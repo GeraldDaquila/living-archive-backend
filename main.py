@@ -1,80 +1,62 @@
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+from fastapi import FastAPI, HTTPException
+from google import genai
 from pydantic import BaseModel
-from qdrant_client import QdrantClient
-from fastembed import TextEmbedding
-import google.generativeai as genai
 
-app = FastAPI()
-
-# Enable CORS for WordPress HTTP requests
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="Living Archive Backend",
+    description="API server for search and archive queries",
+    version="0.1.0",
 )
 
-# Qdrant & Embedding initialization
-# Note: Swap path to Qdrant Cloud URL/API Key for persistent cloud storage later
-DB_PATH = "./qdrant_db"
-qdrant = QdrantClient(path=DB_PATH)
-embedding_model = TextEmbedding()
 
-# Configure Gemini
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+# 1. Health Check Endpoints (Fixes Render 404 & Auto-Shutdown)
+@app.get("/")
+@app.head("/")
+async def root():
+    return {"status": "ok", "message": "Living Archive Backend is running."}
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 
 class SearchPayload(BaseModel):
     query: str
-    clarification: str = None
+    clarification: Optional[str] = None
 
+
+# 2. Search Endpoint using google-genai SDK
 @app.post("/api/search")
 async def search_endpoint(payload: SearchPayload):
-    full_query = f"{payload.query} {payload.clarification}" if payload.clarification else payload.query
-    query_vector = list(embedding_model.embed([full_query]))[0]
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY environment variable is not set on the server.",
+        )
 
-    response = qdrant.query_points(
-        collection_name="documents",
-        query=query_vector.tolist(),
-        limit=3
-    )
-    
-    hits = response.points
-    docs = [hit.payload.get("text", "")[:300] for hit in hits]
-    titles = [hit.payload.get("title", "Untitled") for hit in hits]
-    context = "\n---\n".join(docs)
+    try:
+        client = genai.Client(api_key=api_key)
 
-    # First Pass: Generate Socratic Clarifying Question
-    if not payload.clarification:
-        prompt = f"""
-        You are the Living Archive Socratic Concierge.
-        User Query: "{payload.query}"
-        Retrieved Context Excerpts:
-        {context}
+        prompt = payload.query
+        if payload.clarification:
+            prompt += f"\nContext/Clarification: {payload.clarification}"
 
-        Formulate ONE short, reflective clarifying question to help the user specify their intent.
-        Respect user sovereignty—keep it concise, grounded, and characteristically thoughtful.
-        """
-        ai_res = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+
         return {
-            "mode": "clarification",
-            "question": ai_res.text.strip(),
-            "matches": titles
+            "query": payload.query,
+            "clarification": payload.clarification,
+            "result": response.text,
         }
 
-    # Second Pass: Synthesize Final Answer
-    prompt = f"""
-    Synthesize a helpful, precise response based on the living archive context and user clarification.
-    User Query: {payload.query}
-    Clarification Provided: {payload.clarification}
-    Context: {context}
-    """
-    ai_res = model.generate_content(prompt)
-    return {
-        "mode": "final",
-        "answer": ai_res.text.strip(),
-        "sources": titles
-    }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Backend processing error: {str(e)}"
+        )
