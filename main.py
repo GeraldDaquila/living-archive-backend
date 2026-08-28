@@ -21,13 +21,13 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Gemini Client with 120-second Timeout Fix
+# Initialize Gemini Client with 120-Second Timeout (120,000 ms)
 ai_client = None
 if GEMINI_API_KEY:
     try:
         ai_client = genai.Client(
             api_key=GEMINI_API_KEY,
-            http_options=types.HttpOptions(timeout=120)
+            http_options=types.HttpOptions(timeout=120000)  # 120 seconds in milliseconds
         )
     except Exception as e:
         print(f"Gemini client init error: {e}")
@@ -45,12 +45,12 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings safely using text-embedding-004."""
+    """Fetch embeddings using gemini-embedding-001."""
     if not ai_client:
         return None
     try:
         response = ai_client.models.embed_content(
-            model="text-embedding-004",
+            model="gemini-embedding-001",
             contents=text,
         )
         if hasattr(response, 'embedding') and response.embedding:
@@ -60,7 +60,7 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate curated guidance using active gemini-3.6-flash model."""
+    """Generate curated guidance using gemini-3.6-flash."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
