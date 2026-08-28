@@ -8,6 +8,7 @@ from google.genai import types
 
 app = FastAPI(title="Living Archive API")
 
+# Setup CORS for WordPress interaction
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,13 +21,13 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Gemini Client with 120-second Timeout
+# Initialize Gemini Client with extended 120s timeout fix
 ai_client = None
 if GEMINI_API_KEY:
     try:
         ai_client = genai.Client(
             api_key=GEMINI_API_KEY,
-            http_options=types.HttpOptions(timeout=120)  # Extended 120s timeout fix
+            http_options=types.HttpOptions(timeout=120)
         )
     except Exception as e:
         print(f"Gemini client init error: {e}")
@@ -44,12 +45,12 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings using text-embedding-004."""
+    """Fetch embeddings using models/text-embedding-004."""
     if not ai_client:
         return None
     try:
         response = ai_client.models.embed_content(
-            model="text-embedding-004",
+            model="models/text-embedding-004",
             contents=text,
         )
         if hasattr(response, 'embedding') and response.embedding:
@@ -59,12 +60,12 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate curated guidance with timeout resilience."""
+    """Generate curated guidance using gemini-2.5-flash with timeout protection."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
-    # Priority model sequence
-    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    # Use standard supported models for the genai SDK
+    models_to_try = ["gemini-2.5-flash", "models/gemini-2.5-flash"]
     
     last_exception = None
     for model_name in models_to_try:
@@ -96,6 +97,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
+    # Safe Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -110,6 +112,7 @@ async def handle_query(request: QueryRequest):
 
     context_str = "\n\n".join(context_chunks) if context_chunks else "Archive database context expanding."
 
+    # Prompt Setup (Outer Courtyard Sensemaking Rules)
     prompt = (
         "You are the Navigation and Sensemaking Guide for the Living Archive outer courtyard interface.\n"
         "Your goal is to guide an uninitiated visitor from confusion/depletion to clarity, balance, and self-sovereignty.\n\n"
