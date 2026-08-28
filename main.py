@@ -7,6 +7,7 @@ from google import genai
 
 app = FastAPI(title="Living Archive API")
 
+# Setup CORS for WordPress interaction
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +28,7 @@ if GEMINI_API_KEY:
     except Exception as e:
         print(f"Gemini client init error: {e}")
 
-# Initialize Pinecone
+# Initialize Pinecone Client
 index = None
 if PINECONE_API_KEY:
     try:
@@ -40,7 +41,7 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings using updated model routing."""
+    """Fetch embeddings safely using the official SDK."""
     if not ai_client:
         return None
     try:
@@ -55,7 +56,7 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate content targeting gemini-3.6-flash."""
+    """Generate curated navigation guidance using gemini-3.6-flash."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
@@ -85,7 +86,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # Vector Search
+    # Safe Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -98,23 +99,26 @@ async def handle_query(request: QueryRequest):
         except Exception as e:
             print(f"Pinecone search bypassed: {e}")
 
-    # Prompt Setup
-    if context_chunks:
-        context_str = "\n\n".join(context_chunks)
-        prompt = (
-            f"You are the assistant for the Living Archive.\n"
-            f"Answer the query using the retrieved context below:\n\n"
-            f"Context:\n{context_str}\n\n"
-            f"Query: {query_text}"
-        )
-    else:
-        prompt = (
-            f"You are the assistant for the Living Archive.\n"
-            f"Answer the query directly, thoughtfully, and clearly:\n\n"
-            f"Query: {query_text}"
-        )
+    # Build Prompt with Navigation Blueprint
+    context_str = "\n\n".join(context_chunks) if context_chunks else "No specific matches found in vector index."
+    
+    prompt = (
+        "You are the Navigation Guide for the Living Archive.\n"
+        "Your task is NOT to give generic advice or synthesize answers yourself. "
+        "Your goal is to orient the user toward the Archive's existing body of thought.\n\n"
+        "Follow this exact response structure using clean Markdown:\n\n"
+        "**Start Here**\n"
+        "[Primary Resource/Essay Title] — State in 1-2 sentences why this is the primary starting point relative to the query.\n\n"
+        "**Complementary Pathways & Resources**\n"
+        "• [Resource/Framework 1] — 1 sentence explaining its complementary connection.\n"
+        "• [Resource/Framework 2] — 1 sentence explaining its complementary connection.\n\n"
+        "**Why These Resources**\n"
+        "A brief (2 sentence) synthesis explaining how these materials approach the inquiry from different levels of the system.\n\n"
+        f"Retrieved Archive Context:\n{context_str}\n\n"
+        f"User Query: {query_text}"
+    )
 
-    # Execution
+    # Generate Output
     try:
         answer = generate_text(prompt)
         return {"response": answer}
