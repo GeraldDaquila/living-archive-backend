@@ -31,32 +31,38 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Direct REST call for text embeddings."""
+    """Fetch embeddings securely without throwing unhandled exceptions."""
+    if not GEMINI_API_KEY:
+        return None
     url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
     payload = {"content": {"parts": [{"text": text}]}}
     try:
         res = requests.post(url, json=payload, timeout=10)
-        data = res.json()
-        if "embedding" in data and "values" in data["embedding"]:
-            return data["embedding"]["values"]
-        print(f"Embedding API warning: {data}")
+        if res.status_code == 200:
+            data = res.json()
+            if "embedding" in data and "values" in data["embedding"]:
+                return data["embedding"]["values"]
+        print(f"Embedding notice: API status {res.status_code}")
     except Exception as e:
-        print(f"Embedding attempt failed: {e}")
+        print(f"Embedding error: {e}")
     return None
 
 def generate_text(prompt: str):
-    """Calls gemini-3.6-flash directly as required by Google's API."""
+    """Calls gemini-3.6-flash directly."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
-    res = requests.post(url, json=payload, timeout=15)
+    res = requests.post(url, json=payload, timeout=20)
     data = res.json()
     
     if res.status_code == 200 and "candidates" in data:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-        
-    error_msg = data.get("error", {}).get("message", f"HTTP {res.status_code}")
-    raise Exception(f"Gemini 3.6 Error: {error_msg}")
+        try:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            raise Exception("Malformed response structure from Gemini API.")
+            
+    error_msg = data.get("error", {}).get("message", f"HTTP status {res.status_code}")
+    raise Exception(f"Gemini API Error: {error_msg}")
 
 @app.get("/")
 def health_check():
@@ -65,43 +71,44 @@ def health_check():
 @app.post("/api/query")
 async def handle_query(request: QueryRequest):
     if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing on Render.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured on Render.")
 
-    query_text = request.query.strip()
+    query_text = request.query.strip() if request.query else ""
     if not query_text:
-        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
 
     context_chunks = []
 
-    # 1. Vector Search (Pinecone)
+    # Safe Vector Retrieval
     if index:
-        vector = get_embedding(query_text)
-        if vector:
-            try:
+        try:
+            vector = get_embedding(query_text)
+            if vector:
                 results = index.query(vector=vector, top_k=3, include_metadata=True)
                 for match in results.get("matches", []):
                     meta = match.get("metadata", {})
                     if "text" in meta:
                         context_chunks.append(meta["text"])
-            except Exception as e:
-                print(f"Pinecone search warning: {e}")
+        except Exception as e:
+            print(f"Pinecone query bypassed due to error: {e}")
 
-    # 2. Build Prompt
+    # Build Prompt
     if context_chunks:
         context_str = "\n\n".join(context_chunks)
         prompt = (
-            f"You are the voice of the Living Archive.\n"
-            f"Answer the user query based on this context:\n{context_str}\n\n"
+            f"You are the assistant for the Living Archive.\n"
+            f"Answer the query using the retrieved context below:\n\n"
+            f"Context:\n{context_str}\n\n"
             f"Query: {query_text}"
         )
     else:
         prompt = (
-            f"You are the voice of the Living Archive.\n"
-            f"Answer the user query directly and thoughtfully:\n\n"
+            f"You are the assistant for the Living Archive.\n"
+            f"Answer the query directly, thoughtfully, and clearly:\n\n"
             f"Query: {query_text}"
         )
 
-    # 3. Generate Response
+    # Generate Response
     try:
         answer = generate_text(prompt)
         return {"response": answer}
