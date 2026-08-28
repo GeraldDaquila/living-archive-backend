@@ -99,22 +99,26 @@ async def handle_query(request: QueryRequest):
         except Exception as e:
             print(f"Pinecone search bypassed: {e}")
 
-    # Build Prompt with Navigation Blueprint
-    context_str = "\n\n".join(context_chunks) if context_chunks else "No specific matches found in vector index."
-    
+    context_str = "\n\n".join(context_chunks) if context_chunks else "Database context is currently expanding."
+
+    # Prompt Setup with 70/30 Grounding and Sensemaking Focus
     prompt = (
-        "You are the Navigation Guide for the Living Archive.\n"
-        "Your task is NOT to give generic advice or synthesize answers yourself. "
-        "Your goal is to orient the user toward the Archive's existing body of thought.\n\n"
-        "Follow this exact response structure using clean Markdown:\n\n"
+        "You are the Navigation Guide and Sensemaking Interface for the Living Archive.\n"
+        "Your role is to orient the user toward existing body of thought, framing their inquiry thoughtfully.\n\n"
+        "BALANCE GUIDELINE:\n"
+        "1. Primary Weight (70%): Base your orientation on the Archive Context provided below.\n"
+        "2. Complementary Synthesis (30%): If the Archive context is sparse, draw upon established universal frameworks, systems thinking, and philosophical sensemaking to complete the guidance.\n\n"
+        "RESPONSE STRUCTURE (Use clean Markdown):\n\n"
+        "**The Question Beneath the Question**\n"
+        "A brief (1-2 sentence) reflective re-framing of what the query is truly touching upon.\n\n"
         "**Start Here**\n"
-        "[Primary Resource/Essay Title] — State in 1-2 sentences why this is the primary starting point relative to the query.\n\n"
-        "**Complementary Pathways & Resources**\n"
-        "• [Resource/Framework 1] — 1 sentence explaining its complementary connection.\n"
-        "• [Resource/Framework 2] — 1 sentence explaining its complementary connection.\n\n"
-        "**Why These Resources**\n"
-        "A brief (2 sentence) synthesis explaining how these materials approach the inquiry from different levels of the system.\n\n"
-        f"Retrieved Archive Context:\n{context_str}\n\n"
+        "• [Primary Concept/Resource] — State clearly why this serves as the foundational starting point.\n\n"
+        "**Complementary Pathways**\n"
+        "• [Pathway 1] — 1 sentence on its systemic or practical relation to the inquiry.\n"
+        "• [Pathway 2] — 1 sentence on its systemic or practical relation to the inquiry.\n\n"
+        "**Contextual Synthesis**\n"
+        "A concise closing paragraph bridging the archive's core perspective with the practical reality of the user's inquiry.\n\n"
+        f"Archive Corpus Context:\n{context_str}\n\n"
         f"User Query: {query_text}"
     )
 
