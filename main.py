@@ -7,6 +7,7 @@ from google import genai
 
 app = FastAPI(title="Living Archive API")
 
+# CORS Configuration for WordPress
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,6 +20,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
+# Initialize Gemini Client
 ai_client = None
 if GEMINI_API_KEY:
     try:
@@ -26,6 +28,7 @@ if GEMINI_API_KEY:
     except Exception as e:
         print(f"Gemini client init error: {e}")
 
+# Initialize Pinecone Client
 index = None
 if PINECONE_API_KEY:
     try:
@@ -38,12 +41,12 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings using text-embedding-004."""
+    """Fetch embeddings using models/text-embedding-004."""
     if not ai_client:
         return None
     try:
         response = ai_client.models.embed_content(
-            model="text-embedding-004",
+            model="models/text-embedding-004",
             contents=text,
         )
         if hasattr(response, 'embedding') and response.embedding:
@@ -53,12 +56,12 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate curated guidance with automatic failover if primary model faces 503 capacity limits."""
+    """Generate curated guidance targeting gemini-3.6-flash with legacy fallback."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
-    # Priority list of models to try if high demand occurs
-    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    # Target active model tier specified by Google API
+    models_to_try = ["gemini-3.6-flash", "models/gemini-3.6-flash"]
     
     last_exception = None
     for model_name in models_to_try:
@@ -70,10 +73,10 @@ def generate_text(prompt: str):
             if response.text:
                 return response.text
         except Exception as e:
-            print(f"Notice: Model {model_name} failed ({e}). Trying fallback...")
+            print(f"Notice: Model {model_name} failed ({e}). Trying next string...")
             last_exception = e
             
-    raise Exception(f"Gemini API Error across available models: {last_exception}")
+    raise Exception(f"Gemini API Error: {last_exception}")
 
 @app.get("/")
 def health_check():
@@ -90,6 +93,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
+    # Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -104,6 +108,7 @@ async def handle_query(request: QueryRequest):
 
     context_str = "\n\n".join(context_chunks) if context_chunks else "Archive database context expanding."
 
+    # Outer Courtyard Sensemaking Prompt
     prompt = (
         "You are the Navigation and Sensemaking Guide for the Living Archive outer courtyard interface.\n"
         "Your goal is to guide an uninitiated visitor from confusion/depletion to clarity, balance, and self-sovereignty.\n\n"
