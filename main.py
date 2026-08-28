@@ -2,6 +2,10 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.chains import RetrievalQA
+from pinecone import Pinecone
 
 app = FastAPI(
     title="Living Archive Backend",
@@ -9,14 +13,42 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for all domains so WordPress can talk to Render
+# Enable CORS for all origins so WordPress can communicate with Render
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # Allows requests from any origin
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],        # Allows GET, POST, OPTIONS, etc.
-    allow_headers=["*"],        # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# Retrieve configuration from Render Environment Variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
+
+# Initialize Pinecone & LangChain Search Engine
+qa_chain = None
+if OPENAI_API_KEY and PINECONE_API_KEY:
+    try:
+        pc = Pinecone(api_key=PINECONE_API_KEY)
+        embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+        vectorstore = PineconeVectorStore.from_existing_index(
+            index_name=PINECONE_INDEX_NAME, 
+            embedding=embeddings
+        )
+        llm = ChatOpenAI(
+            model_name="gpt-4o", 
+            temperature=0.3, 
+            openai_api_key=OPENAI_API_KEY
+        )
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=vectorstore.as_retriever(search_kwargs={"k": 3})
+        )
+    except Exception as e:
+        print(f"Warning: Failed to initialize Vector Store: {e}")
 
 class QueryRequest(BaseModel):
     query: str
@@ -33,8 +65,13 @@ async def query_archive(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
     
     try:
-        # Core archive response logic
-        response_text = f"Stewardship is the intentional practice of holding, nurturing, and passing forward what has been entrusted to us across generations."
+        if qa_chain:
+            # Query Pinecone vector index and generate answer via OpenAI
+            result = qa_chain.run(user_query)
+            response_text = result
+        else:
+            # Fallback response if API keys aren't loaded in environment
+            response_text = f"Stewardship is the intentional practice of holding, nurturing, and passing forward what has been entrusted to us across generations."
 
         return {
             "status": "success",
