@@ -19,31 +19,40 @@ app.add_middleware(
 )
 
 # Environment setup
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
 # Attempt LangChain / Pinecone initialization safely
 qa_chain = None
 
-if OPENAI_API_KEY and PINECONE_API_KEY:
+if GEMINI_API_KEY and PINECONE_API_KEY:
     try:
         from pinecone import Pinecone
         from langchain_community.vectorstores import Pinecone as PineconeVectorStore
-        from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
         from langchain.chains import RetrievalQA
 
         pc = Pinecone(api_key=PINECONE_API_KEY)
-        embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+        
+        # Use Google's free embedding model
+        embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/text-embedding-004", 
+            google_api_key=GEMINI_API_KEY
+        )
+        
         vectorstore = PineconeVectorStore.from_existing_index(
             index_name=PINECONE_INDEX_NAME, 
             embedding=embeddings
         )
-        llm = ChatOpenAI(
-            model_name="gpt-4o", 
+        
+        # Use Gemini 1.5 Flash
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash", 
             temperature=0.3, 
-            openai_api_key=OPENAI_API_KEY
+            google_api_key=GEMINI_API_KEY
         )
+        
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type="stuff",
