@@ -1,9 +1,9 @@
 import os
-import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
+from google import genai
 
 app = FastAPI(title="Living Archive API")
 
@@ -19,6 +19,15 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
+# Initialize Gemini Client via official SDK
+ai_client = None
+if GEMINI_API_KEY:
+    try:
+        ai_client = genai.Client(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"Gemini client init error: {e}")
+
+# Initialize Pinecone
 index = None
 if PINECONE_API_KEY:
     try:
@@ -31,39 +40,35 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch text embeddings via standard v1 endpoint."""
-    if not GEMINI_API_KEY:
+    """Fetch embeddings safely using the official SDK."""
+    if not ai_client:
         return None
-    url = f"https://generativelanguage.googleapis.com/v1/models/embedding-001:embedContent?key={GEMINI_API_KEY}"
-    payload = {"model": "models/embedding-001", "content": {"parts": [{"text": text}]}}
     try:
-        res = requests.post(url, json=payload, timeout=8)
-        if res.status_code == 200:
-            data = res.json()
-            if "embedding" in data and "values" in data["embedding"]:
-                return data["embedding"]["values"]
-        print(f"Embedding notice: API status {res.status_code}")
+        response = ai_client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+        )
+        if hasattr(response, 'embedding') and response.embedding:
+            return response.embedding.values
     except Exception as e:
-        print(f"Embedding error: {e}")
+        print(f"Embedding attempt failed: {e}")
     return None
 
 def generate_text(prompt: str):
-    """Calls gemini-1.5-flash with extended timeout."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    """Generate content safely using gemini-2.5-flash."""
+    if not ai_client:
+        raise Exception("Gemini client is not initialized.")
     
-    # Timeout bumped to 45s to avoid connection drops
-    res = requests.post(url, json=payload, timeout=45)
-    data = res.json()
-    
-    if res.status_code == 200 and "candidates" in data:
-        try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            raise Exception("Malformed response structure from Gemini API.")
-            
-    error_msg = data.get("error", {}).get("message", f"HTTP status {res.status_code}")
-    raise Exception(f"Gemini API Error: {error_msg}")
+    try:
+        response = ai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        if response.text:
+            return response.text
+        raise Exception("Empty response returned from Gemini.")
+    except Exception as e:
+        raise Exception(f"Gemini API Error: {e}")
 
 @app.get("/")
 def health_check():
@@ -71,8 +76,8 @@ def health_check():
 
 @app.post("/api/query")
 async def handle_query(request: QueryRequest):
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured on Render.")
+    if not GEMINI_API_KEY or not ai_client:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing or invalid on Render.")
 
     query_text = request.query.strip() if request.query else ""
     if not query_text:
@@ -80,7 +85,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # Safe Vector Retrieval
+    # Safe Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -91,7 +96,7 @@ async def handle_query(request: QueryRequest):
                     if "text" in meta:
                         context_chunks.append(meta["text"])
         except Exception as e:
-            print(f"Pinecone query bypassed due to error: {e}")
+            print(f"Pinecone search bypassed due to error: {e}")
 
     # Build Prompt
     if context_chunks:
