@@ -1,7 +1,8 @@
 fastapi
 uvicorn
 pydantic
-pinecone
+pinecone-client
+openai
 langchain
 langchain-community
 langchain-openai
