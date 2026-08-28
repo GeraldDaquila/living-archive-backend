@@ -1,36 +1,4 @@
-import os
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-app = FastAPI(
-    title="Living Archive Backend",
-    description="Backend API for Outer Courtyard Search",
-    version="1.0.0"
-)
-
-# Enable CORS for all domains so WordPress can talk to Render
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows requests from any origin
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
-    allow_headers=["*"],  # Allows all headers
-)
-
-# Request Data Model
-class QueryRequest(BaseModel):
-    query: str
-
-# Health Check Route
-@app.get("/")
-def read_root():
-    return {
-        "status": "online",
-        "system": "Living Archive Search Engine"
-    }
-
-# Search Query Route
+# Example: Integrating an OpenAI / Vector Search query
 @app.post("/api/query")
 async def query_archive(request: QueryRequest):
     user_query = request.query.strip()
@@ -39,11 +7,14 @@ async def query_archive(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
     
     try:
-        response_text = (
-            f"Thank you for asking about: **\"{user_query}\"**.\n\n"
-            "Stewardship is the intentional practice of holding, nurturing, "
-            "and passing forward what has been entrusted to us across generations."
-        )
+        # 1. Fetch relevant archive documents (e.g., from Pinecone, Chroma, or database)
+        # context = vector_store.similarity_search(user_query, k=3)
+
+        # 2. Generate response (e.g., via OpenAI API)
+        # llm_response = openai_client.chat.completions.create(...)
+        
+        # 3. Assign the dynamic answer
+        response_text = "YOUR_SEARCH_OR_LLM_OUTPUT_HERE"
 
         return {
             "status": "success",
@@ -52,4 +23,4 @@ async def query_archive(request: QueryRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
