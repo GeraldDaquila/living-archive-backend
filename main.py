@@ -2,10 +2,6 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from langchain_community.vectorstores import Pinecone as PineconeVectorStore
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.chains import RetrievalQA
-from pinecone import Pinecone
 
 app = FastAPI(
     title="Living Archive Backend",
@@ -13,7 +9,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for all origins so WordPress can communicate with Render
+# Enable CORS for all origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,15 +18,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Retrieve configuration from Render Environment Variables
+# Environment setup
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Pinecone & LangChain Search Engine
+# Attempt LangChain / Pinecone initialization safely
 qa_chain = None
+
 if OPENAI_API_KEY and PINECONE_API_KEY:
     try:
+        from pinecone import Pinecone
+        from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+        from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+        from langchain.chains import RetrievalQA
+
         pc = Pinecone(api_key=PINECONE_API_KEY)
         embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
         vectorstore = PineconeVectorStore.from_existing_index(
@@ -48,7 +50,7 @@ if OPENAI_API_KEY and PINECONE_API_KEY:
             retriever=vectorstore.as_retriever(search_kwargs={"k": 3})
         )
     except Exception as e:
-        print(f"Warning: Failed to initialize Vector Store: {e}")
+        print(f"Warning: Initialization error: {str(e)}")
 
 class QueryRequest(BaseModel):
     query: str
@@ -66,12 +68,9 @@ async def query_archive(request: QueryRequest):
     
     try:
         if qa_chain:
-            # Query Pinecone vector index and generate answer via OpenAI
-            result = qa_chain.run(user_query)
-            response_text = result
+            response_text = qa_chain.run(user_query)
         else:
-            # Fallback response if API keys aren't loaded in environment
-            response_text = f"Stewardship is the intentional practice of holding, nurturing, and passing forward what has been entrusted to us across generations."
+            response_text = "Stewardship is the intentional practice of holding, nurturing, and passing forward what has been entrusted to us across generations."
 
         return {
             "status": "success",
