@@ -1,7 +1,5 @@
 fastapi
 uvicorn
+pinecone
+google-generativeai
 pydantic
-pinecone-client
-langchain
-langchain-community
-langchain-google-genai
