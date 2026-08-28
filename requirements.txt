@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 pinecone
-google-generativeai
+google-genai
 pydantic
