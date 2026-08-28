@@ -2,7 +2,6 @@ fastapi
 uvicorn
 pydantic
 pinecone-client
-openai
 langchain
 langchain-community
-langchain-openai
+langchain-google-genai
