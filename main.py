@@ -21,7 +21,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Gemini Client with extended 120s timeout fix
+# Initialize Gemini Client with 120-second Timeout Fix
 ai_client = None
 if GEMINI_API_KEY:
     try:
@@ -45,12 +45,12 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings using models/text-embedding-004."""
+    """Fetch embeddings safely using text-embedding-004."""
     if not ai_client:
         return None
     try:
         response = ai_client.models.embed_content(
-            model="models/text-embedding-004",
+            model="text-embedding-004",
             contents=text,
         )
         if hasattr(response, 'embedding') and response.embedding:
@@ -60,27 +60,20 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate curated guidance using gemini-2.5-flash with timeout protection."""
+    """Generate curated guidance using active gemini-3.6-flash model."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
-    # Use standard supported models for the genai SDK
-    models_to_try = ["gemini-2.5-flash", "models/gemini-2.5-flash"]
-    
-    last_exception = None
-    for model_name in models_to_try:
-        try:
-            response = ai_client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-            )
-            if response.text:
-                return response.text
-        except Exception as e:
-            print(f"Notice: Model {model_name} failed ({e}). Trying fallback...")
-            last_exception = e
-            
-    raise Exception(f"Gemini API Error: {last_exception}")
+    try:
+        response = ai_client.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=prompt,
+        )
+        if response.text:
+            return response.text
+        raise Exception("Empty text returned from Gemini API.")
+    except Exception as e:
+        raise Exception(f"Gemini API Error: {e}")
 
 @app.get("/")
 def health_check():
@@ -97,7 +90,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # Safe Vector Search
+    # Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -112,7 +105,7 @@ async def handle_query(request: QueryRequest):
 
     context_str = "\n\n".join(context_chunks) if context_chunks else "Archive database context expanding."
 
-    # Prompt Setup (Outer Courtyard Sensemaking Rules)
+    # Outer Courtyard EQ Sensemaking Prompt
     prompt = (
         "You are the Navigation and Sensemaking Guide for the Living Archive outer courtyard interface.\n"
         "Your goal is to guide an uninitiated visitor from confusion/depletion to clarity, balance, and self-sovereignty.\n\n"
