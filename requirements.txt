@@ -1,6 +1,7 @@
 fastapi
 uvicorn
-qdrant-client
-fastembed
-google-genai
 pydantic
+pinecone
+langchain
+langchain-community
+langchain-openai
