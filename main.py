@@ -31,7 +31,7 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Direct REST call for embeddings."""
+    """Direct REST call for text embeddings."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
     payload = {"content": {"parts": [{"text": text}]}}
     try:
@@ -39,12 +39,13 @@ def get_embedding(text: str):
         data = res.json()
         if "embedding" in data and "values" in data["embedding"]:
             return data["embedding"]["values"]
+        print(f"Embedding API warning: {data}")
     except Exception as e:
         print(f"Embedding attempt failed: {e}")
     return None
 
 def generate_text(prompt: str):
-    """Directly targeting gemini-3.6-flash as instructed by the Google API error."""
+    """Calls gemini-3.6-flash directly as required by Google's API."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
@@ -55,11 +56,11 @@ def generate_text(prompt: str):
         return data["candidates"][0]["content"]["parts"][0]["text"]
         
     error_msg = data.get("error", {}).get("message", f"HTTP {res.status_code}")
-    raise Exception(f"Gemini 3.6 error: {error_msg}")
+    raise Exception(f"Gemini 3.6 Error: {error_msg}")
 
 @app.get("/")
 def health_check():
-    return {"status": "ok", "message": "API active"}
+    return {"status": "ok", "message": "Living Archive API active"}
 
 @app.post("/api/query")
 async def handle_query(request: QueryRequest):
@@ -72,7 +73,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # 1. Vector Search
+    # 1. Vector Search (Pinecone)
     if index:
         vector = get_embedding(query_text)
         if vector:
@@ -83,7 +84,7 @@ async def handle_query(request: QueryRequest):
                     if "text" in meta:
                         context_chunks.append(meta["text"])
             except Exception as e:
-                print(f"Pinecone search error: {e}")
+                print(f"Pinecone search warning: {e}")
 
     # 2. Build Prompt
     if context_chunks:
