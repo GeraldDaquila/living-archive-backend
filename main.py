@@ -5,119 +5,108 @@ from pydantic import BaseModel
 from pinecone import Pinecone
 import google.generativeai as genai
 
-# ==========================================
-# 1. INITIALIZATION & CONFIGURATION
-# ==========================================
-
 app = FastAPI(title="Living Archive API")
 
-# Enable CORS for WordPress frontend requests
+# Setup CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Fetch Environment Variables
+# API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-if not GEMINI_API_KEY or not PINECONE_API_KEY:
-    raise ValueError("Missing critical environment variables: GEMINI_API_KEY or PINECONE_API_KEY.")
-
-# Configure Google Gemini AI
-genai.configure(api_key=GEMINI_API_KEY)
-llm_model = genai.GenerativeModel("gemini-2.5-flash")
+# Configure Gemini
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 # Configure Pinecone
-pc = Pinecone(api_key=PINECONE_API_KEY)
-index = pc.Index(PINECONE_INDEX_NAME)
+index = None
+if PINECONE_API_KEY:
+    try:
+        pc = Pinecone(api_key=PINECONE_API_KEY)
+        index = pc.Index(PINECONE_INDEX_NAME)
+    except Exception as e:
+        print(f"Warning: Pinecone initialization failed: {e}")
 
-
-# Request Schema
 class QueryRequest(BaseModel):
     query: str
 
-
-# ==========================================
-# 2. HELPER FUNCTIONS
-# ==========================================
-
 def get_text_embedding(text: str):
-    """Generates a 768-dim vector embedding using Google Generative AI."""
+    """Generates vector embedding using text-embedding-004."""
     try:
-        response = genai.embed_content(
+        res = genai.embed_content(
             model="models/text-embedding-004",
             content=text,
             task_type="retrieval_query"
         )
-        return response["embedding"]
+        return res['embedding']
     except Exception as e:
-        print(f"Error generating embedding: {e}")
+        print(f"Embedding error: {e}")
         return None
 
-
-# ==========================================
-# 3. API ENDPOINTS
-# ==========================================
-
 @app.get("/")
-def health_check():
-    return {"status": "ok", "message": "Living Archive API is running"}
-
+def read_root():
+    return {"status": "ok", "message": "API is online"}
 
 @app.post("/api/query")
-async def query_archive(request: QueryRequest):
+async def handle_query(request: QueryRequest):
     query_text = request.query.strip()
     if not query_text:
-        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    # 1. Generate query vector
-    vector = get_text_embedding(query_text)
-    
     context_chunks = []
-    
-    # 2. Retrieve vectors from Pinecone if embedding succeeded
-    if vector:
-        try:
-            results = index.query(
-                vector=vector,
-                top_k=3,
-                include_metadata=True
-            )
-            matches = results.get("matches", [])
-            for match in matches:
-                metadata = match.get("metadata", {})
-                if "text" in metadata:
-                    context_chunks.append(metadata["text"])
-        except Exception as e:
-            print(f"Pinecone query error: {e}")
 
-    # 3. Construct prompt dynamically (No static fallbacks)
+    # 1. Try vector retrieval if Pinecone is configured
+    if index:
+        query_vector = get_text_embedding(query_text)
+        if query_vector:
+            try:
+                results = index.query(
+                    vector=query_vector,
+                    top_k=3,
+                    include_metadata=True
+                )
+                for match in results.get("matches", []):
+                    meta = match.get("metadata", {})
+                    if "text" in meta:
+                        context_chunks.append(meta["text"])
+            except Exception as e:
+                print(f"Pinecone query bypassed due to error: {e}")
+
+    # 2. Build Prompt based on available context
     if context_chunks:
         context_str = "\n\n".join(context_chunks)
         prompt = (
             f"You are the voice of the Living Archive. "
-            f"Use the following retrieved context to answer the question thoughtfully and directly.\n\n"
-            f"--- CONTEXT ---\n{context_str}\n---------------\n\n"
-            f"User Question: {query_text}\nAnswer:"
+            f"Answer the user's question using the context below:\n\n"
+            f"Context:\n{context_str}\n\n"
+            f"Question: {query_text}"
         )
     else:
-        # Fallback to direct Gemini synthesis if Pinecone index is empty or unpopulated
         prompt = (
             f"You are the voice of the Living Archive. "
-            f"Answer the following query thoughtfully, warmly, and concisely:\n\n"
-            f"Query: {query_text}"
+            f"Answer the following question directly, thoughtfully, and clearly:\n\n"
+            f"Question: {query_text}"
         )
 
-    # 4. Generate answer using Gemini
+    # 3. Generate Gemini Response
     try:
-        response = llm_model.generate_content(prompt)
-        answer = response.text.strip()
-        return {"response": answer}
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        model_response = model.generate_content(prompt)
+        return {"response": model_response.text}
     except Exception as e:
         print(f"Gemini generation error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate response.")
+        # Secondary fallback if model naming varies
+        try:
+            model = genai.GenerativeModel("gemini-pro")
+            model_response = model.generate_content(prompt)
+            return {"response": model_response.text}
+        except Exception as err:
+            print(f"Fallback model failed: {err}")
+            raise HTTPException(status_code=500, detail=f"Gemini generation failed: {str(e)}")
