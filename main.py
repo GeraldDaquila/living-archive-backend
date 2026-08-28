@@ -1,62 +1,55 @@
 import os
-from typing import Optional
 from fastapi import FastAPI, HTTPException
-from google import genai
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI(
     title="Living Archive Backend",
-    description="API server for search and archive queries",
-    version="0.1.0",
+    description="Backend API for Outer Courtyard Search",
+    version="1.0.0"
 )
 
+# Enable CORS for all domains so WordPress can talk to Render
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows requests from any origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
+    allow_headers=["*"],  # Allows all headers
+)
 
-# 1. Health Check Endpoints (Fixes Render 404 & Auto-Shutdown)
-@app.get("/")
-@app.head("/")
-async def root():
-    return {"status": "ok", "message": "Living Archive Backend is running."}
-
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-
-class SearchPayload(BaseModel):
+# Request Data Model
+class QueryRequest(BaseModel):
     query: str
-    clarification: Optional[str] = None
 
+# Health Check Route
+@app.get("/")
+def read_root():
+    return {
+        "status": "online",
+        "system": "Living Archive Search Engine"
+    }
 
-# 2. Search Endpoint using google-genai SDK
-@app.post("/api/search")
-async def search_endpoint(payload: SearchPayload):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="GEMINI_API_KEY environment variable is not set on the server.",
-        )
-
+# Search Query Route
+@app.post("/api/query")
+async def query_archive(request: QueryRequest):
+    user_query = request.query.strip()
+    
+    if not user_query:
+        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
+    
     try:
-        client = genai.Client(api_key=api_key)
-
-        prompt = payload.query
-        if payload.clarification:
-            prompt += f"\nContext/Clarification: {payload.clarification}"
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
+        response_text = (
+            f"Thank you for asking about: **\"{user_query}\"**.\n\n"
+            "Stewardship is the intentional practice of holding, nurturing, "
+            "and passing forward what has been entrusted to us across generations."
         )
 
         return {
-            "query": payload.query,
-            "clarification": payload.clarification,
-            "result": response.text,
+            "status": "success",
+            "query": user_query,
+            "response": response_text
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Backend processing error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
