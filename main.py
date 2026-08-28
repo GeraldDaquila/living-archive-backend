@@ -7,7 +7,6 @@ from pinecone import Pinecone
 
 app = FastAPI(title="Living Archive API")
 
-# Setup CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,7 +19,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Pinecone
 index = None
 if PINECONE_API_KEY:
     try:
@@ -33,10 +31,9 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Direct REST call for text embeddings."""
+    """Direct REST call for text embeddings using v1beta endpoint."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
     payload = {
-        "model": "models/text-embedding-004",
         "content": {"parts": [{"text": text}]}
     }
     try:
@@ -44,28 +41,37 @@ def get_embedding(text: str):
         data = res.json()
         if "embedding" in data and "values" in data["embedding"]:
             return data["embedding"]["values"]
-        print(f"Embedding API error payload: {data}")
+        print(f"Embedding error: {data}")
         return None
     except Exception as e:
         print(f"Embedding request failed: {e}")
         return None
 
 def generate_text(prompt: str):
-    """Direct REST call for Gemini text generation."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
-    }
-    res = requests.post(url, json=payload, timeout=15)
-    data = res.json()
+    """Try models in sequence to prevent 404 version issues."""
+    models_to_try = [
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-pro"
+    ]
     
-    if res.status_code != 200:
-        raise Exception(f"Gemini API returned {res.status_code}: {data.get('error', {}).get('message', 'Unknown error')}")
-        
-    try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError):
-        raise Exception(f"Unexpected response structure: {data}")
+    last_err = ""
+    for model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}]
+        }
+        try:
+            res = requests.post(url, json=payload, timeout=15)
+            data = res.json()
+            if res.status_code == 200 and "candidates" in data:
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+            last_err = f"Model {model_name} returned status {res.status_code}: {data.get('error', {}).get('message', 'Unknown error')}"
+            print(last_err)
+        except Exception as e:
+            last_err = str(e)
+            
+    raise Exception(f"All Gemini models failed. Details: {last_err}")
 
 @app.get("/")
 def health_check():
@@ -74,7 +80,7 @@ def health_check():
 @app.post("/api/query")
 async def handle_query(request: QueryRequest):
     if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing in Render environment variables.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing on Render.")
 
     query_text = request.query.strip()
     if not query_text:
@@ -82,7 +88,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # 1. Pinecone Retrieval
+    # 1. Pinecone Vector Search
     if index:
         vector = get_embedding(query_text)
         if vector:
@@ -95,7 +101,7 @@ async def handle_query(request: QueryRequest):
             except Exception as e:
                 print(f"Pinecone search error: {e}")
 
-    # 2. Prompt Assembly
+    # 2. Build Prompt
     if context_chunks:
         context_str = "\n\n".join(context_chunks)
         prompt = (
@@ -110,7 +116,7 @@ async def handle_query(request: QueryRequest):
             f"Query: {query_text}"
         )
 
-    # 3. Direct HTTP REST Request
+    # 3. Generate Answer
     try:
         answer = generate_text(prompt)
         return {"response": answer}
