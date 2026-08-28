@@ -31,13 +31,13 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings securely without throwing unhandled exceptions."""
+    """Fetch text embeddings via standard v1 endpoint."""
     if not GEMINI_API_KEY:
         return None
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
-    payload = {"content": {"parts": [{"text": text}]}}
+    url = f"https://generativelanguage.googleapis.com/v1/models/embedding-001:embedContent?key={GEMINI_API_KEY}"
+    payload = {"model": "models/embedding-001", "content": {"parts": [{"text": text}]}}
     try:
-        res = requests.post(url, json=payload, timeout=10)
+        res = requests.post(url, json=payload, timeout=8)
         if res.status_code == 200:
             data = res.json()
             if "embedding" in data and "values" in data["embedding"]:
@@ -48,11 +48,12 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Calls gemini-3.6-flash directly."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
+    """Calls gemini-1.5-flash with extended timeout."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
-    res = requests.post(url, json=payload, timeout=20)
+    # Timeout bumped to 45s to avoid connection drops
+    res = requests.post(url, json=payload, timeout=45)
     data = res.json()
     
     if res.status_code == 200 and "candidates" in data:
