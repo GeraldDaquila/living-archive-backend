@@ -38,11 +38,12 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
+    """Fetch embeddings using text-embedding-004."""
     if not ai_client:
         return None
     try:
         response = ai_client.models.embed_content(
-            model="embedding-001",
+            model="text-embedding-004",
             contents=text,
         )
         if hasattr(response, 'embedding') and response.embedding:
@@ -52,19 +53,27 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
+    """Generate curated guidance with automatic failover if primary model faces 503 capacity limits."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
-    try:
-        response = ai_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-        )
-        if response.text:
-            return response.text
-        raise Exception("Empty response returned from Gemini.")
-    except Exception as e:
-        raise Exception(f"Gemini API Error: {e}")
+    # Priority list of models to try if high demand occurs
+    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    
+    last_exception = None
+    for model_name in models_to_try:
+        try:
+            response = ai_client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            if response.text:
+                return response.text
+        except Exception as e:
+            print(f"Notice: Model {model_name} failed ({e}). Trying fallback...")
+            last_exception = e
+            
+    raise Exception(f"Gemini API Error across available models: {last_exception}")
 
 @app.get("/")
 def health_check():
@@ -95,7 +104,6 @@ async def handle_query(request: QueryRequest):
 
     context_str = "\n\n".join(context_chunks) if context_chunks else "Archive database context expanding."
 
-    # Prompt Built Around the Unannounced Outer Courtyard EQ Architecture
     prompt = (
         "You are the Navigation and Sensemaking Guide for the Living Archive outer courtyard interface.\n"
         "Your goal is to guide an uninitiated visitor from confusion/depletion to clarity, balance, and self-sovereignty.\n\n"
