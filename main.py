@@ -7,7 +7,6 @@ from google import genai
 
 app = FastAPI(title="Living Archive API")
 
-# Setup CORS for WordPress interaction
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,7 +19,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
-# Initialize Gemini Client
 ai_client = None
 if GEMINI_API_KEY:
     try:
@@ -28,7 +26,6 @@ if GEMINI_API_KEY:
     except Exception as e:
         print(f"Gemini client init error: {e}")
 
-# Initialize Pinecone Client
 index = None
 if PINECONE_API_KEY:
     try:
@@ -41,7 +38,6 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Fetch embeddings safely using the official SDK."""
     if not ai_client:
         return None
     try:
@@ -56,7 +52,6 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Generate curated navigation guidance using gemini-3.6-flash."""
     if not ai_client:
         raise Exception("Gemini client is not initialized.")
     
@@ -86,7 +81,6 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # Safe Vector Search
     if index:
         try:
             vector = get_embedding(query_text)
@@ -99,30 +93,30 @@ async def handle_query(request: QueryRequest):
         except Exception as e:
             print(f"Pinecone search bypassed: {e}")
 
-    context_str = "\n\n".join(context_chunks) if context_chunks else "Database context is currently expanding."
+    context_str = "\n\n".join(context_chunks) if context_chunks else "Archive database context expanding."
 
-    # Prompt Setup with 70/30 Grounding and Sensemaking Focus
+    # Prompt Built Around the Unannounced Outer Courtyard EQ Architecture
     prompt = (
-        "You are the Navigation Guide and Sensemaking Interface for the Living Archive.\n"
-        "Your role is to orient the user toward existing body of thought, framing their inquiry thoughtfully.\n\n"
-        "BALANCE GUIDELINE:\n"
-        "1. Primary Weight (70%): Base your orientation on the Archive Context provided below.\n"
-        "2. Complementary Synthesis (30%): If the Archive context is sparse, draw upon established universal frameworks, systems thinking, and philosophical sensemaking to complete the guidance.\n\n"
-        "RESPONSE STRUCTURE (Use clean Markdown):\n\n"
-        "**The Question Beneath the Question**\n"
-        "A brief (1-2 sentence) reflective re-framing of what the query is truly touching upon.\n\n"
+        "You are the Navigation and Sensemaking Guide for the Living Archive outer courtyard interface.\n"
+        "Your goal is to guide an uninitiated visitor from confusion/depletion to clarity, balance, and self-sovereignty.\n\n"
+        "STRICT TONE & LANGUAGE RULES:\n"
+        "1. NO JARGON: Do NOT use technical, academic, or esoteric words (e.g., 'somatic', 'telemetry', 'coherence', 'resonance', 'frequency', 'corpus', 'oversoul', 'ecologies of capacity'). Use clean, warm, everyday human words.\n"
+        "2. UNANNOUNCED EQ ARCHITECTURE: Do NOT label the first paragraph as 'Question Beneath the Question' or 'Contextual Synthesis'. Simply start directly with the re-framing.\n"
+        "3. INTENTIONALLY CURATED DELTA: The suggested pathways must give the reader a feeling of regaining control over their situation.\n\n"
+        "OUTPUT STRUCTURE (Use plain Markdown formatting):\n\n"
+        "[Paragraph 1: Unlabeled Grounding & Re-framing]\n"
+        "1-2 sentences that gently re-frame their situation. Shift the burden away from personal failure toward understanding the dynamics around them.\n\n"
         "**Start Here**\n"
-        "• [Primary Concept/Resource] — State clearly why this serves as the foundational starting point.\n\n"
+        "• [Resource/Essay Title] — 1-2 plain, grounding sentences on why this helps them find their bearings right now.\n\n"
         "**Complementary Pathways**\n"
-        "• [Pathway 1] — 1 sentence on its systemic or practical relation to the inquiry.\n"
-        "• [Pathway 2] — 1 sentence on its systemic or practical relation to the inquiry.\n\n"
-        "**Contextual Synthesis**\n"
-        "A concise closing paragraph bridging the archive's core perspective with the practical reality of the user's inquiry.\n\n"
-        f"Archive Corpus Context:\n{context_str}\n\n"
+        "• [Resource/Pathway 1] — 1 sentence offering a practical or psychological perspective shift.\n"
+        "• [Resource/Pathway 2] — 1 sentence offering a way to restore personal agency or boundaries.\n\n"
+        "[Paragraph 2: Unlabeled Sensemaking Closing]\n"
+        "2 sentences concluding with a steady, empowering realization that leaves the visitor feeling centered and in control.\n\n"
+        f"Archive Reference Context:\n{context_str}\n\n"
         f"User Query: {query_text}"
     )
 
-    # Generate Output
     try:
         answer = generate_text(prompt)
         return {"response": answer}
