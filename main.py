@@ -30,24 +30,6 @@ if PINECONE_API_KEY:
 class QueryRequest(BaseModel):
     query: str
 
-def get_active_model():
-    """Queries Google API to discover what text models are actually available for this key."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
-    try:
-        res = requests.get(url, timeout=5)
-        if res.status_code == 200:
-            models = res.json().get("models", [])
-            for m in models:
-                name = m.get("name", "")
-                methods = m.get("supportedGenerationMethods", [])
-                if "generateContent" in methods and "flash" in name:
-                    # Strip 'models/' prefix if present
-                    return name.replace("models/", "")
-    except Exception as e:
-        print(f"ListModels failed: {e}")
-    # Default fallback
-    return "gemini-2.5-flash"
-
 def get_embedding(text: str):
     """Direct REST call for embeddings."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
@@ -62,11 +44,8 @@ def get_embedding(text: str):
     return None
 
 def generate_text(prompt: str):
-    """Dynamically fetches active model and generates response."""
-    model_name = get_active_model()
-    print(f"Using discovered Gemini model: {model_name}")
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+    """Directly targeting gemini-3.6-flash as instructed by the Google API error."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
     res = requests.post(url, json=payload, timeout=15)
@@ -76,7 +55,7 @@ def generate_text(prompt: str):
         return data["candidates"][0]["content"]["parts"][0]["text"]
         
     error_msg = data.get("error", {}).get("message", f"HTTP {res.status_code}")
-    raise Exception(f"Model ({model_name}) error: {error_msg}")
+    raise Exception(f"Gemini 3.6 error: {error_msg}")
 
 @app.get("/")
 def health_check():
