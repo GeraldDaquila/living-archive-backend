@@ -31,47 +31,48 @@ class QueryRequest(BaseModel):
     query: str
 
 def get_embedding(text: str):
-    """Direct REST call for text embeddings using v1beta endpoint."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
-    payload = {
-        "content": {"parts": [{"text": text}]}
-    }
-    try:
-        res = requests.post(url, json=payload, timeout=10)
-        data = res.json()
-        if "embedding" in data and "values" in data["embedding"]:
-            return data["embedding"]["values"]
-        print(f"Embedding error: {data}")
-        return None
-    except Exception as e:
-        print(f"Embedding request failed: {e}")
-        return None
+    """Direct REST call for embeddings using v1 endpoint."""
+    endpoints = [
+        f"https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key={GEMINI_API_KEY}"
+    ]
+    payload = {"content": {"parts": [{"text": text}]}}
+    
+    for url in endpoints:
+        try:
+            res = requests.post(url, json=payload, timeout=10)
+            data = res.json()
+            if "embedding" in data and "values" in data["embedding"]:
+                return data["embedding"]["values"]
+        except Exception as e:
+            print(f"Embedding attempt failed: {e}")
+    return None
 
 def generate_text(prompt: str):
-    """Try models in sequence to prevent 404 version issues."""
+    """Hits v1 endpoints directly with fallback models."""
     models_to_try = [
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-pro"
+        ("v1", "gemini-1.5-flash"),
+        ("v1", "gemini-1.5-pro"),
+        ("v1beta", "gemini-2.0-flash"),
+        ("v1beta", "gemini-1.5-flash-latest")
     ]
     
     last_err = ""
-    for model_name in models_to_try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    
+    for ver, model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}" if ver == "v1beta" else f"https://generativelanguage.googleapis.com/v1/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
         try:
             res = requests.post(url, json=payload, timeout=15)
             data = res.json()
             if res.status_code == 200 and "candidates" in data:
                 return data["candidates"][0]["content"]["parts"][0]["text"]
-            last_err = f"Model {model_name} returned status {res.status_code}: {data.get('error', {}).get('message', 'Unknown error')}"
+            last_err = f"Status {res.status_code} ({model_name}): {data.get('error', {}).get('message', 'Unknown error')}"
             print(last_err)
         except Exception as e:
             last_err = str(e)
             
-    raise Exception(f"All Gemini models failed. Details: {last_err}")
+    raise Exception(f"All models failed. Details: {last_err}")
 
 @app.get("/")
 def health_check():
@@ -88,7 +89,7 @@ async def handle_query(request: QueryRequest):
 
     context_chunks = []
 
-    # 1. Pinecone Vector Search
+    # 1. Vector Search
     if index:
         vector = get_embedding(query_text)
         if vector:
@@ -116,7 +117,7 @@ async def handle_query(request: QueryRequest):
             f"Query: {query_text}"
         )
 
-    # 3. Generate Answer
+    # 3. Generate Response
     try:
         answer = generate_text(prompt)
         return {"response": answer}
