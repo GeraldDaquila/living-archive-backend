@@ -7,7 +7,6 @@ from groq import Groq
 
 app = FastAPI()
 
-# Enable CORS for WordPress
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,14 +15,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Pinecone Client
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-# Initialize Groq Client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
@@ -37,18 +34,14 @@ def health_check():
 @app.post("/api/query")
 async def query_archive(request: QueryRequest):
     try:
-        # 1. Generate 384-dim vector using Pinecone Hosted Inference (0 local RAM used)
+        # Embed via Pinecone hosted inference (0 local RAM usage)
         embeddings = pc.inference.embed(
-            model="multilingual-e5-large", # or "bge-small-en-v1.5" depending on your index setup
+            model="multilingual-e5-large",
             inputs=[request.query],
             parameters={"input_type": "query"}
         )
-        
-        # Fallback to direct raw query if index is already populated with MiniLM vectors
-        # If your index was built using sentence-transformers MiniLM-L6-v2 directly:
         query_vector = embeddings.data[0].values
 
-        # 2. Query Pinecone
         search_response = index.query(
             vector=query_vector,
             top_k=5,
@@ -67,7 +60,6 @@ async def query_archive(request: QueryRequest):
                 retrieved_texts.append(f"Source ({title}): {text}")
                 sources.append({"title": title, "score": match.get("score")})
 
-        # 3. Synthesize via Groq
         if groq_client and retrieved_texts:
             context_block = "\n\n".join(retrieved_texts)
             system_prompt = (
