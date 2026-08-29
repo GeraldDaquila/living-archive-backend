@@ -71,25 +71,25 @@ async def query_archive(request: QueryRequest):
             "insightful, and structured."
         )
 
-        # Attempt Groq completion with robust fallback models
+        # Attempt Groq completion with active, supported model strings
         try:
             chat_completion = groq_client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_query}
                 ],
-                model="llama-3.3-70b-versatile",
+                model="llama-3.1-8b-instant",
                 temperature=0.5,
                 max_tokens=1024,
             )
         except Exception:
-            # Fallback model if primary model ID has shifted
+            # Secondary fallback to Groq's specdec endpoint
             chat_completion = groq_client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_query}
                 ],
-                model="llama3-70b-8192",
+                model="llama-3.3-70b-specdec",
                 temperature=0.5,
                 max_tokens=1024,
             )
