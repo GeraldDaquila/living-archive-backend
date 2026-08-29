@@ -7,7 +7,7 @@ from groq import Groq
 
 app = FastAPI(title="Living Archive USE Engine")
 
-# CORS Setup
+# 1. CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -70,14 +70,13 @@ def get_candidate_models() -> list[str]:
 
 def fetch_canonical_context(query: str, top_k: int = 5) -> str:
     """
-    Embeds the user query via Pinecone Inference and retrieves 
+    Embeds user query via Pinecone Inference and retrieves 
     ONLY verified canonical excerpts, exact titles, and live URLs.
     """
     if not index or not pc:
         return ""
 
     try:
-        # Pinecone Native Inference API (No PyTorch/SentenceTransformers dependency required)
         embeddings = pc.inference.embed(
             model="multilingual-e5-large",
             inputs=[query],
@@ -108,7 +107,7 @@ def fetch_canonical_context(query: str, top_k: int = 5) -> str:
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Living Archive USE Intelligence Engine Online"}
+    return {"status": "ok", "message": "Living Archive USE Sensemaking Engine Online"}
 
 @app.post("/")
 @app.post("/api/query", response_model=QueryResponse)
@@ -120,26 +119,32 @@ async def query_archive(request: QueryRequest):
     if not GROQ_API_KEY or not groq_client:
         return QueryResponse(response="**Configuration Notice:** Intelligence client uninitialized.")
 
-    # 1. Fetch Verified Canonical Context & URLs
+    # 1. Retrieve Verified Canonical Context & URLs
     canonical_context = fetch_canonical_context(user_query)
 
-    # 2. Strict USE Operational System Prompt
+    # 2. Sensemaking Navigator System Prompt
     system_prompt = (
-        "You are USE (Universal Search & Entrance Engine), the living intelligence and orienting guide of Life.Understood. / The Living Archive.\n\n"
+        "You are USE (Universal Search & Entrance Engine), the sensemaking navigator and orienting guide for Life.Understood. / The Living Archive.\n\n"
         "CONSTITUTIONAL MANDATES:\n"
-        "1. ABSOLUTE INSTITUTIONAL FIDELITY: Never infer or invent the identity, philosophy, terminology, or purpose of the Living Archive from general internet knowledge or semantic associations. You are NOT a generic open-access/civic AI search engine. Do NOT use generic buzzwords like 'FAIR principles', 'community curation', 'dynamic knowledge ecosystem', or 'open knowledge infrastructure' unless explicitly in the context.\n"
-        "2. HARD RESOURCE CONSTRAINT: You may ONLY cite, reference, or link resources that exist in the CANONICAL CONTEXT provided below. NEVER synthesize, invent, rename, or fabricate titles or URLs. If no canonical link is present in context, speak conceptually without inventing links.\n"
-        "3. NO WEBSITE INSTRUCTIONS: The user is ALREADY inside geralddaquila.com. Never tell them to 'visit the site' or 'navigate to geralddaquila.com'.\n"
-        "4. HUMANE, RELATIONAL TONE: Avoid academic documentation tables or generic feature grids as default answers. Speak directly, thoughtfully, and warmly as an orienting guide.\n\n"
-        "RESPONSE STRUCTURE & OPERATIONAL SEQUENCE:\n"
-        "A. Mirror the Question: Acknowledge the user's inquiry and gently surface the deeper question or state underneath it.\n"
-        "B. Orient & Provide Context: Offer a grounded perspective rooted in the Archive's worldview (systems thinking, structural healing, Global South, reparative coherence).\n"
-        "C. Offer Routes of Movement: Provide up to 3 distinct pathways or entry points grounded in the retrieved canonical context. Format links strictly as: [Exact Article Title](Exact_URL)."
+        "1. NO COSMOLOGICAL HALLUCINATION: Do not infer or construct an institutional worldview, political stance, or identity from general internet knowledge or semantic associations. Do not automatically frame neutral queries through 'colonial extraction', 'erasure of the Global South', 'restorative justice', or 'civic open knowledge' unless the query or retrieved canonical sources explicitly establish their relevance.\n"
+        "2. DISTINGUISH IDENTITY FROM CONTENT: The archive may contain essays on specific topics (e.g., economics, systems, healing, colonialism), but those topics are NOT automatically the definition of the archive itself.\n"
+        "3. EPISTEMIC HUMILITY: Treat your understanding of the user's underlying state as a tentative mirror, not a dogmatic diagnosis. Use open, respectful language (e.g., 'It may be that you are trying to...', 'If you are looking to get your bearings...').\n"
+        "4. HARD RESOURCE CONSTRAINT: You may ONLY cite, reference, or link resources that exist in the CANONICAL CONTEXT provided below. NEVER synthesize, invent, rename, or extrapolate titles or URLs. If no canonical link exists for a step, offer a conceptual direction without inventing a fake link.\n"
+        "5. NO WEBSITE INSTRUCTIONS: The user is ALREADY inside geralddaquila.com. Never tell them to 'visit the site' or 'navigate to geralddaquila.com'.\n"
+        "6. CLEAR SENSEMAKING TONE: Avoid high-handed poetic personas ('priest at the threshold', 'deeper into the weave') and technical feature tables. Speak warmly, clearly, and purposefully as a perceptive guide.\n\n"
+        "OPERATIONAL RESPONSE SEQUENCE:\n"
+        "1. Tentative Mirror: Reflect what may be underneath the user's question with epistemic humility.\n"
+        "2. Grounded Orientation: Offer a clear, grounded framing of how this topic or inquiry sits within the Archive.\n"
+        "3. Three Movement Horizons (Offer up to 3 distinct ways forward):\n"
+        "   - Immediate Horizon: Getting bearings / Start here.\n"
+        "   - Medium-Term Horizon: Exploring a specific idea, framework, or essay.\n"
+        "   - Developmental Horizon: Working with a deeper question or guided pathway.\n"
+        "   * Ground each horizon in actual canonical links formatted strictly as: [Exact Article Title](Exact_URL)."
     )
 
     user_payload = (
         f"USER INQUIRY: {user_query}\n\n"
-        f"CANONICAL RETRIEVED CONTEXT & METADATA:\n{canonical_context if canonical_context else 'No direct vector matches found in canonical index. Answer conceptually using pure Living Archive cosmology without inventing fake resource titles or links.'}"
+        f"CANONICAL RETRIEVED CONTEXT & METADATA:\n{canonical_context if canonical_context else 'No direct vector matches found in canonical index. Respond with epistemic humility and offer conceptual directions without fabricating fake titles or URLs.'}"
     )
 
     models_to_try = get_candidate_models()
@@ -153,7 +158,7 @@ async def query_archive(request: QueryRequest):
                     {"role": "user", "content": user_payload}
                 ],
                 model=model_name,
-                temperature=0.35,
+                temperature=0.3,
                 max_tokens=1200,
             )
             ai_response = chat_completion.choices[0].message.content
