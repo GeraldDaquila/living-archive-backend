@@ -8,6 +8,7 @@ from groq import Groq
 
 app = FastAPI(title="Living Archive Backend")
 
+# 1. CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,12 +17,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 2. Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-# Optional env var: set a specific model in Render if you want to override auto-detection
-PREFERRED_MODEL = os.getenv("GROQ_MODEL")
+PREFERRED_MODEL = os.getenv("GROQ_MODEL")  # Optional override in Render
 
+# 3. Client Initializations
 pc = None
 index = None
 if PINECONE_API_KEY:
@@ -38,34 +40,50 @@ if GROQ_API_KEY:
     except Exception as e:
         print(f"Groq init notice: {e}")
 
+# 4. Request / Response Schemas
 class QueryRequest(BaseModel):
     query: str
 
 class QueryResponse(BaseModel):
     response: str
 
-def get_active_groq_model() -> str:
-    """Dynamically fetches available models from Groq to prevent breaking on deprecations."""
+def get_candidate_models() -> list[str]:
+    """
+    Dynamically builds a prioritized list of active Groq model IDs.
+    Prevents breakage when upstream model IDs are decommissioned.
+    """
+    candidates = []
+
+    # Priority 1: User Override via Render Environment Variable
     if PREFERRED_MODEL:
-        return PREFERRED_MODEL
+        candidates.append(PREFERRED_MODEL)
 
-    try:
-        models_page = groq_client.models.list()
-        available_models = [m.id for m in models_page.data if getattr(m, 'active', True)]
-        
-        # Priority order for preferred model families
-        for model_id in available_models:
-            if "120b" in model_id or "70b" in model_id or "versatile" in model_id:
-                return model_id
-        
-        # Fallback to the first active model listed by Groq
-        if available_models:
-            return available_models[0]
-    except Exception as e:
-        print(f"Failed to fetch dynamic models: {e}")
+    # Priority 2: Live API Query to Groq's Active Models
+    if groq_client:
+        try:
+            models_page = groq_client.models.list()
+            available_models = [m.id for m in models_page.data if getattr(m, 'active', True)]
+            
+            # Prioritize flagship Llama models from live list
+            for m_id in available_models:
+                if "llama-3.3" in m_id or "70b" in m_id or "versatile" in m_id:
+                    if m_id not in candidates:
+                        candidates.append(m_id)
 
-    # Ultimate fallback string
-    return "openai/gpt-oss-120b"
+            # Append remaining active models
+            for m_id in available_models:
+                if m_id not in candidates:
+                    candidates.append(m_id)
+        except Exception as e:
+            print(f"Dynamic model fetch warning: {e}")
+
+    # Priority 3: Hardcoded Standard Groq Production Models
+    known_fallbacks = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    for fb in known_fallbacks:
+        if fb not in candidates:
+            candidates.append(fb)
+
+    return candidates
 
 @app.get("/")
 def read_root():
@@ -80,36 +98,39 @@ async def query_archive(request: QueryRequest):
 
     if not GROQ_API_KEY or not groq_client:
         return QueryResponse(
-            response="**Backend Configuration Issue:** Groq API client is not configured."
+            response="**Backend Configuration Issue:** `GROQ_API_KEY` is missing or Groq client failed to initialize."
         )
 
-    try:
-        active_model = get_active_groq_model()
+    system_prompt = (
+        "You are the Living Archive AI guide for geralddaquila.com. "
+        "Interpret the user's inquiry across subjects, themes, frameworks, "
+        "and pathways in a grounding, thoughtful tone. Keep responses clear, "
+        "insightful, and structured."
+    )
 
-        system_prompt = (
-            "You are the Living Archive AI guide for geralddaquila.com. "
-            "Interpret the user's inquiry across subjects, themes, frameworks, "
-            "and pathways in a grounding, thoughtful tone. Keep responses clear, "
-            "insightful, and structured."
-        )
+    models_to_try = get_candidate_models()
+    last_error = None
 
-        chat_completion = groq_client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_query}
-            ],
-            model=active_model,
-            temperature=0.5,
-            max_tokens=1024,
-        )
+    # Iterate through candidates until an active model completes successfully
+    for model_name in models_to_try:
+        try:
+            chat_completion = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_query}
+                ],
+                model=model_name,
+                temperature=0.5,
+                max_tokens=1024,
+            )
+            ai_response = chat_completion.choices[0].message.content
+            return QueryResponse(response=ai_response)
+        except Exception as err:
+            print(f"Model candidate '{model_name}' failed: {err}")
+            last_error = err
 
-        ai_response = chat_completion.choices[0].message.content
-        return QueryResponse(response=ai_response)
-
-    except Exception as e:
-        err_msg = str(e)
-        print(f"Error executing query: {err_msg}")
-        traceback.print_exc()
-        return QueryResponse(
-            response=f"**API Exception Encountered:** {err_msg}"
-        )
+    # Fallback response if all candidates fail
+    err_msg = str(last_error) if last_error else "All candidate models failed."
+    return QueryResponse(
+        response=f"**API Exception Encountered:** {err_msg}"
+    )
