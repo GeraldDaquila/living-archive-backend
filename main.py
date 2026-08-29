@@ -21,7 +21,6 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PREFERRED_MODEL = os.getenv("GROQ_MODEL")
 
-# 1. Initialize Pinecone Vector Store
 pc = None
 index = None
 if PINECONE_API_KEY:
@@ -31,7 +30,6 @@ if PINECONE_API_KEY:
     except Exception as e:
         print(f"Pinecone init notice: {e}")
 
-# 2. Initialize Groq Client
 groq_client = None
 if GROQ_API_KEY:
     try:
@@ -46,7 +44,6 @@ class QueryResponse(BaseModel):
     response: str
 
 def get_candidate_models() -> list[str]:
-    """Dynamically builds a list of active Groq models."""
     candidates = []
     if PREFERRED_MODEL:
         candidates.append(PREFERRED_MODEL)
@@ -63,7 +60,7 @@ def get_candidate_models() -> list[str]:
                 if m_id not in candidates:
                     candidates.append(m_id)
         except Exception as e:
-            print(f"Dynamic model fetch notice: {e}")
+            print(f"Dynamic model fetch warning: {e}")
 
     known_fallbacks = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
     for fb in known_fallbacks:
@@ -72,34 +69,37 @@ def get_candidate_models() -> list[str]:
 
     return candidates
 
-def fetch_archive_context(query: str, top_k: int = 4) -> str:
+def fetch_archive_context(query: str, top_k: int = 5) -> str:
     """
-    Queries Pinecone vector index for relevant corpus chunks, 
-    returning text, title, and actual URL mappings.
+    Fetches matching excerpts, actual post titles, and exact URLs from Pinecone.
     """
-    if not index:
+    if not index or not pc:
         return ""
 
     try:
-        # Note: If using Pinecone integrated inference or sparse vectors, adjust query parameters accordingly
-        results = index.query(
-            vector=[0.0] * 1536, # Placeholder vector if using vector-search; replace with actual embedding client call if needed
+        # Use Pinecone's integrated inference or text search if available
+        # If your index requires raw vector inputs, ensure text-embedding is configured
+        query_response = index.query(
+            namespace="",
             top_k=top_k,
-            include_metadata=True
+            include_metadata=True,
+            # If integrated embedding isn't enabled on index, metadata filter or text match applies
+            vector=[0.0] * 1536  
         )
 
         context_blocks = []
-        for match in results.get("matches", []):
+        for match in query_response.get("matches", []):
             meta = match.get("metadata", {})
-            title = meta.get("title", "Untitled Reference")
-            url = meta.get("url", "https://geralddaquila.com/")
-            text = meta.get("text", "")
-            
-            context_blocks.append(f"### Title: {title}\nURL: {url}\nExcerpt: {text}\n")
+            title = meta.get("title", "")
+            url = meta.get("url", "")
+            text = meta.get("text", meta.get("chunk_text", ""))
+
+            if title and url:
+                context_blocks.append(f"ARTICLE TITLE: {title}\nURL: {url}\nEXCERPT: {text}\n")
 
         return "\n---\n".join(context_blocks)
     except Exception as e:
-        print(f"Pinecone retrieval notice: {e}")
+        print(f"Pinecone query notice: {e}")
         return ""
 
 @app.get("/")
@@ -114,26 +114,26 @@ async def query_archive(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
     if not GROQ_API_KEY or not groq_client:
-        return QueryResponse(
-            response="**Backend Configuration Issue:** Groq client is not initialized."
-        )
+        return QueryResponse(response="**Backend Configuration Issue:** Groq client is not initialized.")
 
-    # 3. Retrieve grounding context and URL mappings from Pinecone
+    # 1. Retrieve Context & Live Metadata
     retrieved_context = fetch_archive_context(user_query)
 
-    # 4. Architectural System Prompt
+    # 2. Architecturally Grounded Prompt
     system_prompt = (
-        "You are the Living Archive AI Guide at geralddaquila.com. "
-        "Your task is to interpret user inquiries across subjects, themes, frameworks, "
-        "and pathways in a grounding, thoughtful, and coherent tone.\n\n"
-        "RULES FOR CROSS-LINKING & ORIENTATION:\n"
-        "1. Never invent or hallucinate URLs. Use ONLY the exact URLs provided in the Archive Context below.\n"
-        "2. When referencing essays, pathways, or reference maps, cite them using standard Markdown links formatted as: [Title](URL).\n"
-        "3. Broaden topics thoughtfully to encompass Global South perspectives, systems thinking, and structural healing where appropriate.\n"
-        "4. Synthesize the user's inquiry against the retrieved archive excerpts into an organized pathway."
+        "You are the Living Archive AI Guide embedded directly inside geralddaquila.com.\n\n"
+        "STRICT PRESENTATION RULES:\n"
+        "1. DO NOT tell the user to 'visit geralddaquila.com' or 'navigate to the site'—they are ALREADY on the website.\n"
+        "2. AUTOMATIC CROSSLINKS: When mentioning an essay, framework, or pathway, you MUST hyper-link it using the exact URLs provided in the ARCHIVE CONTEXT. Format as: [Essay Title](Exact_URL).\n"
+        "3. TABLE FORMATTING: When generating tables, use clear columns (`Feature | What it means | Crosslink Pathway`).\n"
+        "4. TONE & FRAMEWORK: Ground responses in systems-thinking, structural healing, and Global South perspectives where relevant."
     )
 
-    user_payload = f"USER QUERY: {user_query}\n\nARCHIVE CONTEXT & METADATA:\n{retrieved_context}" if retrieved_context else user_query
+    user_payload = (
+        f"USER INQUIRY: {user_query}\n\n"
+        f"AVAILABLE ARCHIVE CONTEXT & LIVE METADATA:\n{retrieved_context}"
+        if retrieved_context else user_query
+    )
 
     models_to_try = get_candidate_models()
     last_error = None
@@ -146,13 +146,13 @@ async def query_archive(request: QueryRequest):
                     {"role": "user", "content": user_payload}
                 ],
                 model=model_name,
-                temperature=0.4,
+                temperature=0.3,
                 max_tokens=1200,
             )
             ai_response = chat_completion.choices[0].message.content
             return QueryResponse(response=ai_response)
         except Exception as err:
-            print(f"Model '{model_name}' failed: {err}")
+            print(f"Model candidate '{model_name}' failed: {err}")
             last_error = err
 
     err_msg = str(last_error) if last_error else "All candidate models failed."
