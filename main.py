@@ -7,8 +7,8 @@ from groq import Groq
 
 app = FastAPI(
     title="Living Archive Dual Intelligence Layer - USE Engine",
-    version="2.0.0",
-    description="Universal Search Engine (USE) - Orientation, Sensemaking, and Guided Movement"
+    version="2.1.0",
+    description="Universal Search Engine (USE) - Human-Centric Sensemaking & Orientation"
 )
 
 # ---------------------------------------------------------
@@ -44,47 +44,45 @@ def read_root():
 
 
 # ---------------------------------------------------------
-# CONSTITUTIONAL PROMPT FOR USE (Universal Search Engine)
+# CONSTITUTIONAL PROMPT FOR USE (Conversational & Seamless)
 # ---------------------------------------------------------
 USE_CONSTITUTIONAL_PROMPT = """
-You are the Universal Search Engine (USE) for the Living Archive (Life.Understood.).
-Your purpose is NOT merely to answer questions or dump search results. Your purpose is to understand human questions deeply enough to help visitors find their way toward greater clarity, coherence, and orientation.
+You are the Universal Search Engine (USE) for the Living Archive.
+Your purpose is to welcome visitors, help them make sense of what they are really asking, and guide them into the Archive naturally.
 
-CORE PRINCIPLES:
-1. DOMAIN & AUDIENCE: You serve general visitors, reflective practitioners, and leaders (T1-T3 resources).
-2. TRANSLATION LAYER: Speak in universal, accessible, emotionally intelligent, human language. Do NOT require the user to understand Living Archive terminology (e.g., avoid ungrounded uses of 'resonance', 'frequency', 'fractal', 'sovereignty', 'overflow') unless you translate them naturally into human experience.
-3. ORIENTATION OVER INFORMATION: Your objective is to create a meaningful shift in orientation between entry and exit.
+TONE & STYLE RULES:
+1. DAILY HUMAN LANGUAGE: Write like a warm, thoughtful, grounded human speaking to a friend or colleague. Avoid dry, academic, clinical, or stiff corporate language. Completely avoid jargon (e.g., 'epistemology', 'epistemic', 'paradigm shift', 'epistemic regulation', or ungrounded uses of 'resonance', 'fractal', 'sovereignty').
+2. NO ANNOUNCEMENT HEADERS FOR MIRRORING: NEVER print headers like "### Mirror & Interpretation", "Mirror:", or "Interpretation:". Start immediately with a natural, empathetic response that reflects the question and the human tension behind it.
+3. CONVERSATIONAL PATHWAYS: Present the three orientation directions smoothly and naturally. Use clear, human-friendly titles.
 
 REQUIRED RESPONSE STRUCTURE:
-You must structure your response clearly using the following markdown sections:
 
-### Mirror & Interpretation
-(Acknowledge the explicit question, reflect the likely human tension or state beneath it, and offer a sensemaking mirror without being clinical or preachy.)
+[Start directly here with 1-2 conversational paragraphs reflecting back the user's question, validating their curiosity, and helping them clarify what might be underneath it. Do NOT add a section header.]
 
 ### Orientation Pathways
 
-1. **Immediate Movement (Now):**
-   - What perspective, question, or conceptual frame can help the visitor work with this state right now?
-   - Recommends general concepts, essays, or cornerstones.
+1. **Immediate Movement (Right Now)**
+   - Offer a grounded, intuitive way to think about or work with this question right away.
+   - Point to a clear, accessible starting place in the Archive.
 
-2. **Medium-Term Movement (Deeper Understanding):**
-   - What deeper concepts or frameworks can help them develop their understanding over time?
-   - Connects to Reference Maps, Knowledge Hubs, or Guided Pathways.
+2. **Medium-Term Movement (Going Deeper)**
+   - Suggest a broader frame or concept to explore as they build context over time.
+   - Connect to relevant essays, Reference Maps, or Knowledge Hubs.
 
-3. **Developmental Movement (Underlying Pattern):**
-   - What deeper exploration addresses the underlying pattern or root systemic dynamic?
-   - Points toward foundational Cornerstones or long-term reflective work.
+3. **Developmental Movement (Underlying Patterns)**
+   - Help them look at the root patterns or long-term systemic themes behind their query.
+   - Point toward foundational Cornerstones or reflective practices.
 """
 
 
 # ---------------------------------------------------------
-# REVISED SECTION: USE Search & Navigation Endpoint
+# USE Search & Navigation Endpoint
 # ---------------------------------------------------------
 @app.post("/api/query")
 async def query_archive(payload: QueryRequest):
     """
     USE Operational Endpoint:
-    Processes queries through the USE Constitutional Logic (Sensemaking + 3-Tier Orientation).
+    Processes queries through conversational sensemaking and structured 3-tier orientation.
     """
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
@@ -98,7 +96,7 @@ async def query_archive(payload: QueryRequest):
     start_time = time.time()
 
     try:
-        # Executing via active Groq model (openai/gpt-oss-20b)
+        # Active Groq model execution
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[
@@ -111,7 +109,7 @@ async def query_archive(payload: QueryRequest):
                     "content": payload.query
                 }
             ],
-            temperature=0.4,
+            temperature=0.5,
             max_tokens=1200,
         )
 
@@ -121,8 +119,8 @@ async def query_archive(payload: QueryRequest):
         return {
             "response": response_text,
             "meta": {
-                "engine": "USE-v2",
-                "layer": "T1-T3 Orientation",
+                "engine": "USE-v2.1",
+                "layer": "T1-T3 Conversational Orientation",
                 "model_used": "openai/gpt-oss-20b",
                 "latency_ms": execution_latency_ms,
                 "status": "healthy"
@@ -136,10 +134,10 @@ async def query_archive(payload: QueryRequest):
         if "429" in error_msg or "rate_limit" in error_msg.lower():
             return {
                 "response": "The search engine is currently experiencing high demand. Please pause a moment and try again.",
-                "meta": {"engine": "USE-v2", "status": "rate_limited"}
+                "meta": {"engine": "USE-v2.1", "status": "rate_limited"}
             }
 
         return {
             "response": "An error occurred while connecting to the Living Archive engine.",
-            "meta": {"engine": "USE-v2", "status": "error"}
+            "meta": {"engine": "USE-v2.1", "status": "error"}
         }
