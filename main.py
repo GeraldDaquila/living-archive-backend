@@ -1,13 +1,15 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
 
+# ------------------------------------------------------------------
+# 1. APPLICATION & SETUP
+# ------------------------------------------------------------------
 app = FastAPI(title="Living Archive USE Engine")
 
-# 1. CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,28 +45,20 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     response: str
 
+# ------------------------------------------------------------------
+# 2. FROZEN PRODUCTION ENGINE (ACTIVE ON / AND /api/query)
+# ------------------------------------------------------------------
 def get_candidate_models() -> list[str]:
-    """
-    Safely retrieves ONLY valid LLM chat models from Groq.
-    Filters out Whisper (audio), Orpheus (speech), and other non-chat models.
-    """
     candidates = []
     if PREFERRED_MODEL:
         candidates.append(PREFERRED_MODEL)
 
-    # High-priority reliable chat models
-    default_chat_models = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768"
-    ]
+    default_chat_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
 
     if groq_client:
         try:
             models_page = groq_client.models.list()
             available = [m.id for m in models_page.data if getattr(m, 'active', True)]
-            
-            # Filter strictly for chat-compatible architecture families
             chat_keywords = ["llama", "mixtral", "gemma", "qwen"]
             for m_id in available:
                 if any(kw in m_id.lower() for kw in chat_keywords):
@@ -81,15 +75,10 @@ def get_candidate_models() -> list[str]:
     return candidates
 
 def fetch_canonical_context(query: str, top_k: int = 5) -> str:
-    """
-    Embeds user query via Pinecone Inference matching the 384-dimension index
-    and retrieves verified canonical excerpts, exact titles, and live URLs.
-    """
     if not index or not pc:
         return ""
 
     try:
-        # Fixed: Uses 384-dim model to match Pinecone Index configuration
         embeddings = pc.inference.embed(
             model="bge-small-en-v1.5",
             inputs=[query],
@@ -120,7 +109,7 @@ def fetch_canonical_context(query: str, top_k: int = 5) -> str:
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Living Archive USE Sensemaking Engine Online"}
+    return {"status": "ok", "message": "Living Archive USE Engine Online"}
 
 @app.post("/")
 @app.post("/api/query", response_model=QueryResponse)
@@ -132,10 +121,8 @@ async def query_archive(request: QueryRequest):
     if not GROQ_API_KEY or not groq_client:
         return QueryResponse(response="**Configuration Notice:** Intelligence client uninitialized.")
 
-    # 1. Retrieve Verified Canonical Context & URLs
     canonical_context = fetch_canonical_context(user_query)
 
-    # 2. Sensemaking Navigator System Prompt
     system_prompt = (
         "You are USE (Universal Search & Entrance Engine), the sensemaking navigator and orienting guide for Life.Understood. / The Living Archive.\n\n"
         "CONSTITUTIONAL MANDATES:\n"
@@ -182,3 +169,74 @@ async def query_archive(request: QueryRequest):
 
     err_msg = str(last_error) if last_error else "All candidate models failed."
     return QueryResponse(response=f"**API Exception Encountered:** {err_msg}")
+
+
+# ------------------------------------------------------------------
+# 3. ISOLATED DIAGNOSTIC ROUTER (ACTIVE ON /api/diagnostic)
+# ------------------------------------------------------------------
+diagnostic_router = APIRouter(prefix="/api", tags=["Diagnostic"])
+
+@diagnostic_router.post("/diagnostic")
+async def run_diagnostic(request: QueryRequest):
+    """
+    USE TEST 001 Diagnostic Endpoint.
+    Exposes raw Pinecone matches, scores, index stats, and Groq model trace.
+    """
+    user_query = request.query.strip()
+    if not user_query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+
+    embedding_model_used = "bge-small-en-v1.5"
+    raw_matches = []
+    index_dimension = "UNKNOWN"
+
+    if index and pc:
+        try:
+            stats = index.describe_index_stats()
+            index_dimension = stats.get("dimension", "UNKNOWN")
+        except Exception as e:
+            index_dimension = f"Error fetching stats: {str(e)}"
+
+        try:
+            embeddings = pc.inference.embed(
+                model=embedding_model_used,
+                inputs=[user_query],
+                parameters={"input_type": "query"}
+            )
+            query_vector = embeddings[0].values
+
+            query_response = index.query(
+                vector=query_vector,
+                top_k=5,
+                include_metadata=True
+            )
+
+            for idx, match in enumerate(query_response.get("matches", [])):
+                meta = match.get("metadata", {})
+                raw_matches.append({
+                    "match_rank": idx + 1,
+                    "score": match.get("score"),
+                    "title": meta.get("title", "NO_TITLE_METADATA"),
+                    "url": meta.get("url", "NO_URL_METADATA"),
+                    "excerpt": meta.get("text", meta.get("chunk_text", "NO_TEXT_METADATA"))
+                })
+        except Exception as e:
+            raw_matches.append({"error": f"Pinecone query exception: {str(e)}"})
+
+    active_models = get_candidate_models()
+    selected_model = active_models[0] if active_models else "UNKNOWN"
+
+    return {
+        "diagnostic_test": "USE TEST 001",
+        "query": user_query,
+        "configurations": {
+            "query_embedding_model": embedding_model_used,
+            "pinecone_index_dimension": index_dimension,
+            "target_index_name": PINECONE_INDEX_NAME,
+            "active_groq_model": selected_model
+        },
+        "retrieved_matches_count": len(raw_matches),
+        "raw_matches": raw_matches
+    }
+
+app.include_router(diagnostic_router)
