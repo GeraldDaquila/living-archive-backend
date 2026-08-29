@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
+from google.genai import types
 
 app = FastAPI()
 
@@ -15,15 +16,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. Initialize Gemini Client
+# 2. Configure Gemini Client explicitly targeting stable 'v1' REST API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+
+client = None
+if GEMINI_API_KEY:
+    client = genai.Client(
+        api_key=GEMINI_API_KEY,
+        http_options=types.HttpOptions(api_version="v1") # Fixes v1beta 404 routing
+    )
 
 # 3. Request Schema
 class QueryRequest(BaseModel):
     query: str
 
-# 4. Health Check Endpoint (Ping target for Cron-Job / UptimeRobot)
+# 4. Health Check Endpoint (Target for cron-job.org keepalive)
 @app.get("/")
 def read_root():
     return {"status": "Living Archive Engine Online"}
@@ -35,14 +42,14 @@ async def query_archive(payload: QueryRequest):
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
 
     if not client:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable is not configured.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing from environment variables.")
 
     try:
         prompt = f"You are the Living Archive interface. Answer the following inquiry clearly: {payload.query}"
         
-        # Primary standard production model
+        # Calls the stable production model on v1 endpoint
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
         )
         
@@ -54,7 +61,7 @@ async def query_archive(payload: QueryRequest):
         
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
             return {
-                "response": "The Living Archive is currently receiving high traffic. Please wait 30 seconds and try your search again."
+                "response": "The Living Archive is currently experiencing high query volume. Please wait 30 seconds and try your search again."
             }
         
         return {
