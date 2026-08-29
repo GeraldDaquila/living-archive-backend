@@ -44,25 +44,37 @@ class QueryResponse(BaseModel):
     response: str
 
 def get_candidate_models() -> list[str]:
+    """
+    Safely retrieves ONLY valid LLM chat models from Groq.
+    Filters out Whisper (audio), Orpheus (speech), and other non-chat models.
+    """
     candidates = []
     if PREFERRED_MODEL:
         candidates.append(PREFERRED_MODEL)
+
+    # High-priority reliable chat models
+    default_chat_models = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
+    ]
 
     if groq_client:
         try:
             models_page = groq_client.models.list()
             available = [m.id for m in models_page.data if getattr(m, 'active', True)]
+            
+            # Filter strictly for chat-compatible architecture families
+            chat_keywords = ["llama", "mixtral", "gemma", "qwen"]
             for m_id in available:
-                if "llama-3.3" in m_id or "70b" in m_id or "versatile" in m_id:
-                    if m_id not in candidates:
-                        candidates.append(m_id)
-            for m_id in available:
-                if m_id not in candidates:
-                    candidates.append(m_id)
+                if any(kw in m_id.lower() for kw in chat_keywords):
+                    if not any(non_chat in m_id.lower() for non_chat in ["whisper", "orpheus", "vision"]):
+                        if m_id not in candidates:
+                            candidates.append(m_id)
         except Exception as e:
             print(f"Model Fetch Notice: {e}")
 
-    for fb in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+    for fb in default_chat_models:
         if fb not in candidates:
             candidates.append(fb)
 
@@ -70,15 +82,16 @@ def get_candidate_models() -> list[str]:
 
 def fetch_canonical_context(query: str, top_k: int = 5) -> str:
     """
-    Embeds user query via Pinecone Inference and retrieves 
-    ONLY verified canonical excerpts, exact titles, and live URLs.
+    Embeds user query via Pinecone Inference matching the 384-dimension index
+    and retrieves verified canonical excerpts, exact titles, and live URLs.
     """
     if not index or not pc:
         return ""
 
     try:
+        # Fixed: Uses 384-dim model to match Pinecone Index configuration
         embeddings = pc.inference.embed(
-            model="multilingual-e5-large",
+            model="bge-small-en-v1.5",
             inputs=[query],
             parameters={"input_type": "query"}
         )
