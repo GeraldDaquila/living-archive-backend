@@ -1,14 +1,13 @@
 import os
+import traceback
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
 
-# Initialize FastAPI App
 app = FastAPI(title="Living Archive Backend")
 
-# Enable CORS (Allows geralddaquila.com to communicate with Render)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,12 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# Initialize Pinecone
 pc = None
 index = None
 if PINECONE_API_KEY:
@@ -30,17 +27,15 @@ if PINECONE_API_KEY:
         pc = Pinecone(api_key=PINECONE_API_KEY)
         index = pc.Index(PINECONE_INDEX_NAME)
     except Exception as e:
-        print(f"Warning: Failed to initialize Pinecone: {e}")
+        print(f"Pinecone init notice: {e}")
 
-# Initialize Groq
 groq_client = None
 if GROQ_API_KEY:
     try:
         groq_client = Groq(api_key=GROQ_API_KEY)
     except Exception as e:
-        print(f"Warning: Failed to initialize Groq client: {e}")
+        print(f"Groq init notice: {e}")
 
-# Request / Response Schemas
 class QueryRequest(BaseModel):
     query: str
 
@@ -51,20 +46,24 @@ class QueryResponse(BaseModel):
 def read_root():
     return {"status": "ok", "message": "Living Archive API is online"}
 
-# Route handler configured for both root POST and /api/query POST
-@app.post("/", response_model=QueryResponse)
+@app.post("/")
 @app.post("/api/query", response_model=QueryResponse)
 async def query_archive(request: QueryRequest):
     user_query = request.query.strip()
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
+    if not GROQ_API_KEY:
+        return QueryResponse(
+            response="**Backend Configuration Issue:** `GROQ_API_KEY` is not set in Render's Environment Variables."
+        )
+
     if not groq_client:
-        raise HTTPException(status_code=500, detail="Groq client is not configured on the backend.")
+        return QueryResponse(
+            response="**Backend Configuration Issue:** Groq client failed to initialize."
+        )
 
     try:
-        context_str = ""
-
         system_prompt = (
             "You are the Living Archive AI guide for geralddaquila.com. "
             "Interpret the user's inquiry across subjects, themes, frameworks, "
@@ -72,19 +71,36 @@ async def query_archive(request: QueryRequest):
             "insightful, and structured."
         )
 
-        chat_completion = groq_client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Context:\n{context_str}\n\nQuestion: {user_query}" if context_str else user_query}
-            ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.5,
-            max_tokens=1024,
-        )
+        # Attempt Groq completion with robust fallback models
+        try:
+            chat_completion = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_query}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.5,
+                max_tokens=1024,
+            )
+        except Exception:
+            # Fallback model if primary model ID has shifted
+            chat_completion = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_query}
+                ],
+                model="llama3-70b-8192",
+                temperature=0.5,
+                max_tokens=1024,
+            )
 
         ai_response = chat_completion.choices[0].message.content
         return QueryResponse(response=ai_response)
 
     except Exception as e:
-        print(f"Error processing query: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        err_msg = str(e)
+        print(f"Error executing query: {err_msg}")
+        traceback.print_exc()
+        return QueryResponse(
+            response=f"**API Exception Encountered:** {err_msg}"
+        )
