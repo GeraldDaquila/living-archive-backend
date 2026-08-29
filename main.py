@@ -1,45 +1,95 @@
-from fastapi import FastAPI, Query
+import os
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
-import os
+from groq import Groq
 
-app = FastAPI(title="Living Archive API")
+app = FastAPI()
 
-# 1. Hardcoded API Key for local testing (or use os.getenv in production)
-PINECONE_API_KEY = "pcsk_4L2SWH_FupPpwpwUrMQomv4YQsrpfLModrrCueDQ6ngiHqCQh7DgpvcetFEGjoHnYbZAkL"
-INDEX_NAME = "living-archive"
+# Enable CORS for WordPress
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# 2. Initialize local embedder (384-dim) & Pinecone
-print("Loading local embedding model for API...")
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+# 1. Initialize lightweight MiniLM model (~80MB RAM) to prevent Exit Code 137 OOM
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+# 2. Initialize Pinecone Client
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
-index = pc.Index(INDEX_NAME)
+index = pc.Index(PINECONE_INDEX_NAME)
+
+# 3. Initialize Groq Client
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+
+class QueryRequest(BaseModel):
+    query: str
 
 @app.get("/")
-def root():
-    return {"status": "online", "system": "Living Archive Engine"}
+def health_check():
+    return {"status": "ok", "message": "Living Archive Backend Running"}
 
-@app.get("/search")
-def search_archive(q: str = Query(..., description="Query string"), top_k: int = 5):
-    # Vectorize search query locally
-    query_vector = embedder.encode(q).tolist()
-    
-    # Perform vector search on Pinecone
-    results = index.query(
-        vector=query_vector,
-        top_k=top_k,
-        include_metadata=True
-    )
-    
-    matches = []
-    for match in results.get("matches", []):
-        matches.append({
-            "id": match["id"],
-            "score": round(match["score"], 4),
-            "title": match["metadata"].get("title", ""),
-            "text": match["metadata"].get("text", ""),
-            "tier": match["metadata"].get("tier", "T1")
-        })
-        
-    return {"query": q, "results": matches}
+@app.post("/api/query")
+async def query_archive(request: QueryRequest):
+    try:
+        # Generate 384-dimensional query vector
+        query_vector = model.encode(request.query).tolist()
+
+        # Search Pinecone Index for top 5 matches
+        search_response = index.query(
+            vector=query_vector,
+            top_k=5,
+            include_metadata=True
+        )
+
+        matches = search_response.get("matches", [])
+        retrieved_texts = []
+        sources = []
+
+        for match in matches:
+            metadata = match.get("metadata", {})
+            text = metadata.get("text") or metadata.get("content", "")
+            title = metadata.get("title", "Untitled Document")
+            if text:
+                retrieved_texts.append(f"Source ({title}): {text}")
+                sources.append({"title": title, "score": match.get("score")})
+
+        # Synthesize via Groq LLM if configured
+        if groq_client and retrieved_texts:
+            context_block = "\n\n".join(retrieved_texts)
+            system_prompt = (
+                "You are the authoritative sensemaking guide for the Living Archive. "
+                "Answer the user's inquiry strictly using the provided canonical context. "
+                "Maintain a serious, professional, and authoritative tone suitable for thought leaders."
+            )
+            user_prompt = f"Context from Living Archive:\n{context_block}\n\nUser Question: {request.query}"
+
+            completion = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=800
+            )
+            synthesis = completion.choices[0].message.content
+        else:
+            synthesis = "\n\n".join(retrieved_texts) if retrieved_texts else "No direct matches found in the archive."
+
+        return {
+            "answer": synthesis,
+            "sources": sources
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
