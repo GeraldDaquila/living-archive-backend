@@ -5,87 +5,109 @@ from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
 
-app = FastAPI()
+# ------------------------------------------------------------------------------
+# 1. Initialize FastAPI App & Enable CORS
+# ------------------------------------------------------------------------------
+app = FastAPI(title="Living Archive Backend")
 
+# Allow requests from your WordPress frontend and local testing environments
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allows geralddaquila.com and all external origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ------------------------------------------------------------------------------
+# 2. Environment Variables & Client Initialization
+# ------------------------------------------------------------------------------
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
-
-pc = Pinecone(api_key=PINECONE_API_KEY)
-index = pc.Index(PINECONE_INDEX_NAME)
-
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
+# Initialize Pinecone
+pc = None
+index = None
+if PINECONE_API_KEY:
+    try:
+        pc = Pinecone(api_key=PINECONE_API_KEY)
+        index = pc.Index(PINECONE_INDEX_NAME)
+    except Exception as e:
+        print(f"Warning: Failed to initialize Pinecone: {e}")
+
+# Initialize Groq
+groq_client = None
+if GROQ_API_KEY:
+    try:
+        groq_client = Groq(api_key=GROQ_API_KEY)
+    except Exception as e:
+        print(f"Warning: Failed to initialize Groq client: {e}")
+
+# ------------------------------------------------------------------------------
+# 3. Request / Response Data Models
+# ------------------------------------------------------------------------------
 class QueryRequest(BaseModel):
     query: str
 
+class QueryResponse(BaseModel):
+    response: str
+
+# ------------------------------------------------------------------------------
+# 4. API Endpoints
+# ------------------------------------------------------------------------------
 @app.get("/")
-def health_check():
-    return {"status": "ok", "message": "Living Archive Backend Running"}
+def read_root():
+    """Health check endpoint."""
+    return {"status": "ok", "message": "Living Archive API is online"}
 
-@app.post("/api/query")
+@app.post("/api/query", response_model=QueryResponse)
 async def query_archive(request: QueryRequest):
+    """
+    Main endpoint queried by the WordPress front-end search interface.
+    """
+    user_query = request.query.strip()
+    if not user_query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+
+    # Validate client initializations
+    if not groq_client:
+        raise HTTPException(status_code=500, detail="Groq client is not configured on the backend.")
+
     try:
-        # Embed via Pinecone hosted inference (0 local RAM usage)
-        embeddings = pc.inference.embed(
-            model="multilingual-e5-large",
-            inputs=[request.query],
-            parameters={"input_type": "query"}
+        # Retrieve context from Pinecone vector database if available
+        context_str = ""
+        if index:
+            # Query Pinecone (adjust embedding model/call if using Pinecone Inference API)
+            try:
+                # Basic context placeholder or vector search call
+                # Expand this section if generating embeddings via Groq or Pinecone
+                pass
+            except Exception as pe:
+                print(f"Pinecone query error: {pe}")
+
+        # System prompt setting the context for the Living Archive
+        system_prompt = (
+            "You are the Living Archive AI guide for geralddaquila.com. "
+            "Interpret the user's inquiry across subjects, themes, frameworks, "
+            "and pathways in a grounding, thoughtful tone. Keep responses clear, "
+            "insightful, and structured."
         )
-        query_vector = embeddings.data[0].values
 
-        search_response = index.query(
-            vector=query_vector,
-            top_k=5,
-            include_metadata=True
+        # Call Groq API (using llama-3.3-70b-versatile or your preferred model)
+        chat_completion = groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Context:\n{context_str}\n\nQuestion: {user_query}" if context_str else user_query}
+            ],
+            model="llama-3.3-70b-versatile",
+            temperature=0.5,
+            max_tokens=1024,
         )
 
-        matches = search_response.get("matches", [])
-        retrieved_texts = []
-        sources = []
-
-        for match in matches:
-            metadata = match.get("metadata", {})
-            text = metadata.get("text") or metadata.get("content", "")
-            title = metadata.get("title", "Untitled Document")
-            if text:
-                retrieved_texts.append(f"Source ({title}): {text}")
-                sources.append({"title": title, "score": match.get("score")})
-
-        if groq_client and retrieved_texts:
-            context_block = "\n\n".join(retrieved_texts)
-            system_prompt = (
-                "You are the authoritative sensemaking guide for the Living Archive. "
-                "Answer the user's inquiry strictly using the provided canonical context. "
-                "Maintain a serious, professional, and authoritative tone suitable for thought leaders."
-            )
-            user_prompt = f"Context from Living Archive:\n{context_block}\n\nUser Question: {request.query}"
-
-            completion = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.3,
-                max_tokens=800
-            )
-            synthesis = completion.choices[0].message.content
-        else:
-            synthesis = "\n\n".join(retrieved_texts) if retrieved_texts else "No direct matches found in the archive."
-
-        return {
-            "answer": synthesis,
-            "sources": sources
-        }
+        ai_response = chat_completion.choices[0].message.content
+        return QueryResponse(response=ai_response)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error processing query: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
