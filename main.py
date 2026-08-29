@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
+from fastembed import TextEmbedding
 
 # ------------------------------------------------------------------
 # 1. APPLICATION & SETUP
@@ -38,6 +39,14 @@ if GROQ_API_KEY:
         groq_client = Groq(api_key=GROQ_API_KEY)
     except Exception as e:
         print(f"Groq Init Error: {e}")
+
+# Initialize local BAAI/bge-small-en-v1.5 embedding model to match existing index space
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+
+def generate_local_embedding(text: str) -> list[float]:
+    """Generates 384-dimensional embeddings matching the exact BAAI/bge-small-en-v1.5 corpus space."""
+    embeddings = list(embedding_model.embed([text]))
+    return embeddings[0].tolist()
 
 class QueryRequest(BaseModel):
     query: str
@@ -79,12 +88,8 @@ def fetch_canonical_context(query: str, top_k: int = 5) -> str:
         return ""
 
     try:
-        embeddings = pc.inference.embed(
-            model="bge-small-en-v1.5",
-            inputs=[query],
-            parameters={"input_type": "query"}
-        )
-        query_vector = embeddings[0].values
+        # Generate query vector locally using exact BAAI/bge-small-en-v1.5 model space
+        query_vector = generate_local_embedding(query)
 
         query_response = index.query(
             vector=query_vector,
@@ -186,7 +191,7 @@ async def run_diagnostic(request: QueryRequest):
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
-    embedding_model_used = "bge-small-en-v1.5"
+    embedding_model_used = "BAAI/bge-small-en-v1.5 (Local FastEmbed)"
     raw_matches = []
     index_dimension = "UNKNOWN"
 
@@ -198,12 +203,8 @@ async def run_diagnostic(request: QueryRequest):
             index_dimension = f"Error fetching stats: {str(e)}"
 
         try:
-            embeddings = pc.inference.embed(
-                model=embedding_model_used,
-                inputs=[user_query],
-                parameters={"input_type": "query"}
-            )
-            query_vector = embeddings[0].values
+            # Generate query vector locally using exact corpus embedding space
+            query_vector = generate_local_embedding(user_query)
 
             query_response = index.query(
                 vector=query_vector,
