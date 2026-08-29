@@ -152,6 +152,7 @@ def fetch_canonical_context(query: str, top_k: int = 5) -> str:
         return ""
 
 @app.get("/")
+@app.head("/")
 def read_root():
     return {"status": "ok", "message": "Living Archive USE Engine Online"}
 
