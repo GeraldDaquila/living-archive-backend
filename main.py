@@ -5,23 +5,19 @@ from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
 
-# ------------------------------------------------------------------------------
-# 1. Initialize FastAPI App & Enable CORS
-# ------------------------------------------------------------------------------
+# Initialize FastAPI App
 app = FastAPI(title="Living Archive Backend")
 
-# Allow requests from your WordPress frontend and local testing environments
+# Enable CORS (Allows geralddaquila.com to communicate with Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows geralddaquila.com and all external origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ------------------------------------------------------------------------------
-# 2. Environment Variables & Client Initialization
-# ------------------------------------------------------------------------------
+# Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -44,49 +40,31 @@ if GROQ_API_KEY:
     except Exception as e:
         print(f"Warning: Failed to initialize Groq client: {e}")
 
-# ------------------------------------------------------------------------------
-# 3. Request / Response Data Models
-# ------------------------------------------------------------------------------
+# Request / Response Schemas
 class QueryRequest(BaseModel):
     query: str
 
 class QueryResponse(BaseModel):
     response: str
 
-# ------------------------------------------------------------------------------
-# 4. API Endpoints
-# ------------------------------------------------------------------------------
 @app.get("/")
 def read_root():
-    """Health check endpoint."""
     return {"status": "ok", "message": "Living Archive API is online"}
 
+# Route handler configured for both root POST and /api/query POST
+@app.post("/", response_model=QueryResponse)
 @app.post("/api/query", response_model=QueryResponse)
 async def query_archive(request: QueryRequest):
-    """
-    Main endpoint queried by the WordPress front-end search interface.
-    """
     user_query = request.query.strip()
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
-    # Validate client initializations
     if not groq_client:
         raise HTTPException(status_code=500, detail="Groq client is not configured on the backend.")
 
     try:
-        # Retrieve context from Pinecone vector database if available
         context_str = ""
-        if index:
-            # Query Pinecone (adjust embedding model/call if using Pinecone Inference API)
-            try:
-                # Basic context placeholder or vector search call
-                # Expand this section if generating embeddings via Groq or Pinecone
-                pass
-            except Exception as pe:
-                print(f"Pinecone query error: {pe}")
 
-        # System prompt setting the context for the Living Archive
         system_prompt = (
             "You are the Living Archive AI guide for geralddaquila.com. "
             "Interpret the user's inquiry across subjects, themes, frameworks, "
@@ -94,7 +72,6 @@ async def query_archive(request: QueryRequest):
             "insightful, and structured."
         )
 
-        # Call Groq API (using llama-3.3-70b-versatile or your preferred model)
         chat_completion = groq_client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt},
