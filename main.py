@@ -23,7 +23,7 @@ client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 class QueryRequest(BaseModel):
     query: str
 
-# 4. Health Check Endpoint
+# 4. Health Check Endpoint (Ping target for Cron-Job / UptimeRobot)
 @app.get("/")
 def read_root():
     return {"status": "Living Archive Engine Online"}
@@ -35,14 +35,14 @@ async def query_archive(payload: QueryRequest):
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
 
     if not client:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing from environment variables.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable is not configured.")
 
     try:
         prompt = f"You are the Living Archive interface. Answer the following inquiry clearly: {payload.query}"
         
-        # Modern SDK call targeting Gemini 2.5 Flash
+        # Primary standard production model
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
         )
         
@@ -52,10 +52,9 @@ async def query_archive(payload: QueryRequest):
         error_msg = str(e)
         print(f"Generation error: {error_msg}")
         
-        # Clean response on rate limits or API issues
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
             return {
-                "response": "The Living Archive is currently experiencing high query volume. Please wait 30 seconds and try your search again."
+                "response": "The Living Archive is currently receiving high traffic. Please wait 30 seconds and try your search again."
             }
         
         return {
