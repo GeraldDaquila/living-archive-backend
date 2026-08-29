@@ -2,7 +2,6 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
 from groq import Groq
 
@@ -17,17 +16,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Initialize lightweight MiniLM model (~80MB RAM) to prevent Exit Code 137 OOM
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-
-# 2. Initialize Pinecone Client
+# Initialize Pinecone Client
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-# 3. Initialize Groq Client
+# Initialize Groq Client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
@@ -41,10 +37,18 @@ def health_check():
 @app.post("/api/query")
 async def query_archive(request: QueryRequest):
     try:
-        # Generate 384-dimensional query vector
-        query_vector = model.encode(request.query).tolist()
+        # 1. Generate 384-dim vector using Pinecone Hosted Inference (0 local RAM used)
+        embeddings = pc.inference.embed(
+            model="multilingual-e5-large", # or "bge-small-en-v1.5" depending on your index setup
+            inputs=[request.query],
+            parameters={"input_type": "query"}
+        )
+        
+        # Fallback to direct raw query if index is already populated with MiniLM vectors
+        # If your index was built using sentence-transformers MiniLM-L6-v2 directly:
+        query_vector = embeddings.data[0].values
 
-        # Search Pinecone Index for top 5 matches
+        # 2. Query Pinecone
         search_response = index.query(
             vector=query_vector,
             top_k=5,
@@ -63,7 +67,7 @@ async def query_archive(request: QueryRequest):
                 retrieved_texts.append(f"Source ({title}): {text}")
                 sources.append({"title": title, "score": match.get("score")})
 
-        # Synthesize via Groq LLM if configured
+        # 3. Synthesize via Groq
         if groq_client and retrieved_texts:
             context_block = "\n\n".join(retrieved_texts)
             system_prompt = (
