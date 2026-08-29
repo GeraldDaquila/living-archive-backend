@@ -6,7 +6,7 @@ from groq import Groq
 
 app = FastAPI()
 
-# 1. Enable CORS for WordPress integration
+# 1. Enable CORS for WordPress / external web clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. Initialize Groq Client
+# 2. Initialize Groq Client safely
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
@@ -23,28 +23,31 @@ client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 class QueryRequest(BaseModel):
     query: str
 
-# 4. Base Health Check (Cron-job target: zero AI tokens consumed)
+# 4. Base Keepalive Route (Target for cron-job.org -> zero token consumption)
 @app.get("/")
 def read_root():
     return {"status": "Living Archive Engine Online"}
 
-# 5. Archive Search Endpoint
+# 5. Archive Query Endpoint
 @app.post("/api/query")
 async def query_archive(payload: QueryRequest):
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
 
     if not client:
-        raise HTTPException(status_code=500, detail="GROQ_API_KEY is missing from environment variables.")
+        raise HTTPException(
+            status_code=500, 
+            detail="GROQ_API_KEY is missing from environment variables."
+        )
 
     try:
-        # Utilizing Llama-3.1-8b-instant for 14,400 daily free requests
+        # Active production model on Groq's current architecture
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are the Living Archive interface. Answer user inquiries clearly, accurately, and concisely."
+                    "content": "You are the Living Archive search interface. Answer user inquiries accurately and concisely."
                 },
                 {
                     "role": "user",
@@ -62,6 +65,6 @@ async def query_archive(payload: QueryRequest):
         print(f"Generation error: {error_msg}")
         
         if "429" in error_msg:
-            return {"response": "Query rate limit reached temporarily. Please wait a minute and try again."}
+            return {"response": "Rate limit temporarily reached. Please wait a moment and try again."}
         
-        return {"response": "An error occurred while connecting to the archive engine."}
+        return {"response": "An error occurred while reaching the archive engine."}
