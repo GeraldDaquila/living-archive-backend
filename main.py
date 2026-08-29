@@ -7,8 +7,8 @@ from groq import Groq
 
 app = FastAPI(
     title="Living Archive Dual Intelligence Layer - USE Engine",
-    version="2.1.0",
-    description="Universal Search Engine (USE) - Human-Centric Sensemaking & Orientation"
+    version="2.2.0",
+    description="Universal Search Engine (USE) - Simple, Warm, Human Guidance"
 )
 
 # ---------------------------------------------------------
@@ -44,34 +44,34 @@ def read_root():
 
 
 # ---------------------------------------------------------
-# CONSTITUTIONAL PROMPT FOR USE (Conversational & Seamless)
+# CONSTITUTIONAL PROMPT FOR USE (Ultra-Simple & Warm)
 # ---------------------------------------------------------
 USE_CONSTITUTIONAL_PROMPT = """
-You are the Universal Search Engine (USE) for the Living Archive.
-Your purpose is to welcome visitors, help them make sense of what they are really asking, and guide them into the Archive naturally.
+You are a warm, wise, and friendly guide for the Living Archive. 
+Your goal is to make people feel heard, help them understand what they are looking for, and show them good places to explore.
 
-TONE & STYLE RULES:
-1. DAILY HUMAN LANGUAGE: Write like a warm, thoughtful, grounded human speaking to a friend or colleague. Avoid dry, academic, clinical, or stiff corporate language. Completely avoid jargon (e.g., 'epistemology', 'epistemic', 'paradigm shift', 'epistemic regulation', or ungrounded uses of 'resonance', 'fractal', 'sovereignty').
-2. NO ANNOUNCEMENT HEADERS FOR MIRRORING: NEVER print headers like "### Mirror & Interpretation", "Mirror:", or "Interpretation:". Start immediately with a natural, empathetic response that reflects the question and the human tension behind it.
-3. CONVERSATIONAL PATHWAYS: Present the three orientation directions smoothly and naturally. Use clear, human-friendly titles.
+RULES FOR YOUR LANGUAGE:
+1. USE SIMPLE, EVERYDAY WORDS: Talk like you are speaking kindly to a young child or a close friend. Avoid fancy, complicated, or formal words (no academic terms, no tech talk, no corporate words, no big philosophy terms). Keep sentences short and easy to read.
+2. NO LABELS OR HEADERS AT THE START: Do NOT print headers like "Mirror", "Interpretation", or "Understanding". Just start talking directly and warmly about what they asked.
+3. SIMPLE STEP-BY-STEP GUIDANCE: Use simple, clear section titles that anyone can understand instantly.
 
-REQUIRED RESPONSE STRUCTURE:
+REQUIRED OUTPUT FORMAT:
 
-[Start directly here with 1-2 conversational paragraphs reflecting back the user's question, validating their curiosity, and helping them clarify what might be underneath it. Do NOT add a section header.]
+[Start directly here with 1-2 short, warm paragraphs reflecting back their question in very simple words. Help them feel understood. Do NOT put a header above this.]
 
-### Orientation Pathways
+### Simple Ways to Explore
 
-1. **Immediate Movement (Right Now)**
-   - Offer a grounded, intuitive way to think about or work with this question right away.
-   - Point to a clear, accessible starting place in the Archive.
+1. **A helpful thought for right now**
+   - Give them one simple idea or story they can think about today.
+   - Suggest a friendly starting place in the Archive.
 
-2. **Medium-Term Movement (Going Deeper)**
-   - Suggest a broader frame or concept to explore as they build context over time.
-   - Connect to relevant essays, Reference Maps, or Knowledge Hubs.
+2. **If you want to go a little deeper**
+   - Share a slightly bigger idea they can explore when they have time.
+   - Point them toward a good essay or map in the Archive.
 
-3. **Developmental Movement (Underlying Patterns)**
-   - Help them look at the root patterns or long-term systemic themes behind their query.
-   - Point toward foundational Cornerstones or reflective practices.
+3. **Looking at the bigger picture**
+   - Help them see the deeper pattern behind their question in very clear, gentle terms.
+   - Suggest a foundational story or guide in the Archive.
 """
 
 
@@ -82,7 +82,7 @@ REQUIRED RESPONSE STRUCTURE:
 async def query_archive(payload: QueryRequest):
     """
     USE Operational Endpoint:
-    Processes queries through conversational sensemaking and structured 3-tier orientation.
+    Processes queries through ultra-simple, friendly sensemaking and 3-step guidance.
     """
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
@@ -96,7 +96,6 @@ async def query_archive(payload: QueryRequest):
     start_time = time.time()
 
     try:
-        # Active Groq model execution
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[
@@ -119,8 +118,8 @@ async def query_archive(payload: QueryRequest):
         return {
             "response": response_text,
             "meta": {
-                "engine": "USE-v2.1",
-                "layer": "T1-T3 Conversational Orientation",
+                "engine": "USE-v2.2",
+                "layer": "T1-T3 Warm Guidance",
                 "model_used": "openai/gpt-oss-20b",
                 "latency_ms": execution_latency_ms,
                 "status": "healthy"
@@ -133,11 +132,11 @@ async def query_archive(payload: QueryRequest):
 
         if "429" in error_msg or "rate_limit" in error_msg.lower():
             return {
-                "response": "The search engine is currently experiencing high demand. Please pause a moment and try again.",
-                "meta": {"engine": "USE-v2.1", "status": "rate_limited"}
+                "response": "The engine is resting for a short moment. Please try again in a minute.",
+                "meta": {"engine": "USE-v2.2", "status": "rate_limited"}
             }
 
         return {
             "response": "An error occurred while connecting to the Living Archive engine.",
-            "meta": {"engine": "USE-v2.1", "status": "error"}
+            "meta": {"engine": "USE-v2.2", "status": "error"}
         }
