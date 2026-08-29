@@ -5,9 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
+from sentence_transformers import SentenceTransformer
 
 app = FastAPI(title="Living Archive Backend")
 
+# 1. CORS Configuration (Allows geralddaquila.com)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,6 +22,9 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PREFERRED_MODEL = os.getenv("GROQ_MODEL")
+
+# Load lightweight embedding model for Pinecone lookups
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 pc = None
 index = None
@@ -69,37 +74,36 @@ def get_candidate_models() -> list[str]:
 
     return candidates
 
-def fetch_archive_context(query: str, top_k: int = 5) -> str:
+def fetch_archive_context(query: str, top_k: int = 4) -> str:
     """
-    Fetches matching excerpts, actual post titles, and exact URLs from Pinecone.
+    Embeds user query and fetches matching post titles, text excerpts, and actual URLs.
     """
-    if not index or not pc:
+    if not index:
         return ""
 
     try:
-        # Use Pinecone's integrated inference or text search if available
-        # If your index requires raw vector inputs, ensure text-embedding is configured
+        # Convert text query into real vector embedding
+        query_vector = embedder.encode(query).tolist()
+
         query_response = index.query(
-            namespace="",
+            vector=query_vector,
             top_k=top_k,
-            include_metadata=True,
-            # If integrated embedding isn't enabled on index, metadata filter or text match applies
-            vector=[0.0] * 1536  
+            include_metadata=True
         )
 
         context_blocks = []
         for match in query_response.get("matches", []):
             meta = match.get("metadata", {})
-            title = meta.get("title", "")
+            title = meta.get("title", "Archive Article")
             url = meta.get("url", "")
             text = meta.get("text", meta.get("chunk_text", ""))
 
-            if title and url:
+            if url:
                 context_blocks.append(f"ARTICLE TITLE: {title}\nURL: {url}\nEXCERPT: {text}\n")
 
         return "\n---\n".join(context_blocks)
     except Exception as e:
-        print(f"Pinecone query notice: {e}")
+        print(f"Pinecone retrieval notice: {e}")
         return ""
 
 @app.get("/")
@@ -116,22 +120,22 @@ async def query_archive(request: QueryRequest):
     if not GROQ_API_KEY or not groq_client:
         return QueryResponse(response="**Backend Configuration Issue:** Groq client is not initialized.")
 
-    # 1. Retrieve Context & Live Metadata
+    # 1. Fetch Real Context & Exact Link Metadata from Pinecone
     retrieved_context = fetch_archive_context(user_query)
 
-    # 2. Architecturally Grounded Prompt
+    # 2. Strict Link & Formatting Rules
     system_prompt = (
-        "You are the Living Archive AI Guide embedded directly inside geralddaquila.com.\n\n"
-        "STRICT PRESENTATION RULES:\n"
+        "You are the Living Archive AI Guide at geralddaquila.com.\n\n"
+        "STRICT LINKING & NAVIGATION RULES:\n"
         "1. DO NOT tell the user to 'visit geralddaquila.com' or 'navigate to the site'—they are ALREADY on the website.\n"
-        "2. AUTOMATIC CROSSLINKS: When mentioning an essay, framework, or pathway, you MUST hyper-link it using the exact URLs provided in the ARCHIVE CONTEXT. Format as: [Essay Title](Exact_URL).\n"
-        "3. TABLE FORMATTING: When generating tables, use clear columns (`Feature | What it means | Crosslink Pathway`).\n"
-        "4. TONE & FRAMEWORK: Ground responses in systems-thinking, structural healing, and Global South perspectives where relevant."
+        "2. AUTOMATIC HYPERLINKS: Every time you reference an article, essay, pathway, or reference map from the context, you MUST hyper-link it using the exact URL from the context metadata: [Article Title](Exact_URL).\n"
+        "3. TABLES: When presenting structured concepts, use Markdown tables with clear column separation (`Feature | What it means | Related Pathway`).\n"
+        "4. FRAMEWORK: Ground all answers in systems thinking, structural healing, and Global South perspectives."
     )
 
     user_payload = (
         f"USER INQUIRY: {user_query}\n\n"
-        f"AVAILABLE ARCHIVE CONTEXT & LIVE METADATA:\n{retrieved_context}"
+        f"RETRIEVED ARCHIVE CONTEXT & LIVE METADATA:\n{retrieved_context}"
         if retrieved_context else user_query
     )
 
