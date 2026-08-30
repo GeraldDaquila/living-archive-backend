@@ -1,12 +1,11 @@
 import os
 import re
-import json
-import urllib.request
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
+from fastembed import TextEmbedding
 
 # =====================================================================
 # APP & INFRASTRUCTURE INITIALIZATION
@@ -25,39 +24,32 @@ app.add_middleware(
 # Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
-HF_TOKEN = os.getenv("HF_TOKEN")  # Optional: Free HuggingFace token for higher rate limits
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-# Pinecone vector ID for the Living Archive Root Node
+# Update this ID/slug to match your exact Pinecone vector ID for the Living Archive Root Node
 ROOT_NODE_ID = "canonical_root_living_archive"
+
+# Lazy-loaded Model Instance (prevents startup timeouts on Render)
+_embedding_model = None
+
+def get_embedding_model():
+    global _embedding_model
+    if _embedding_model is None:
+        _embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+    return _embedding_model
 
 
 # =====================================================================
-# FREE EMBEDDING GENERATOR (Zero Heavy Dependencies)
+# EMBEDDING GENERATOR
 # =====================================================================
 
 def generate_local_embedding(text: str) -> List[float]:
-    """Generates embeddings using Hugging Face's free inference API without heavy local models."""
-    api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-small-en-v1.5"
-    headers = {"Content-Type": "application/json"}
-    
-    if HF_TOKEN:
-        headers["Authorization"] = f"Bearer {HF_TOKEN}"
-
-    data = json.dumps({"inputs": text, "options": {"wait_for_model": True}}).encode("utf-8")
-    req = urllib.request.Request(api_url, data=data, headers=headers)
-
-    try:
-        with urllib.request.urlopen(req) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            # BGE outputs a nested list if batched, flatten if necessary
-            if isinstance(result, list) and isinstance(result[0], list):
-                return result[0]
-            return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
+    """Generates embeddings locally using fastembed on demand."""
+    model = get_embedding_model()
+    embeddings = list(model.embed([text]))
+    return embeddings[0].tolist()
 
 
 # =====================================================================
