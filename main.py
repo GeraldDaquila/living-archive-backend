@@ -183,11 +183,12 @@ def get_candidate_models() -> List[str]:
 
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
-    if not groq_client:
-        return "GROQ_API_KEY environment variable is missing on backend."
+    if not GROQ_API_KEY or not groq_client:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY is missing on Render Environment Variables.")
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
 
+    last_error = None
     for model_id in get_candidate_models():
         try:
             response = groq_client.chat.completions.create(
@@ -202,9 +203,10 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
             return response.choices[0].message.content
         except Exception as e:
             print(f"Groq generation failed for {model_id}: {e}")
+            last_error = str(e)
             continue
     
-    return "Unable to generate a response at this moment. Please check backend API configurations."
+    raise HTTPException(status_code=500, detail=f"Groq API Error: {last_error}")
 
 
 # =====================================================================
@@ -226,19 +228,15 @@ def handle_query(payload: QueryRequest):
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
     
-    try:
-        context_data = fetch_canonical_context(payload.query)
-        llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
-        
-        return {
-            "query": payload.query,
-            "intent": context_data["intent"],
-            "response": llm_output,
-            "canonical_context": context_data["context_blocks"]
-        }
-    except Exception as e:
-        print(f"Request handling exception: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    context_data = fetch_canonical_context(payload.query)
+    llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
+    
+    return {
+        "query": payload.query,
+        "intent": context_data["intent"],
+        "response": llm_output,
+        "canonical_context": context_data["context_blocks"]
+    }
 
 
 if __name__ == "__main__":
