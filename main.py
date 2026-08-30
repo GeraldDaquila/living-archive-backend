@@ -1,5 +1,40 @@
+import os
 import re
-from typing import Dict, Any
+from typing import Dict, Any, List
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from pinecone import Pinecone
+from sentence_transformers import SentenceTransformer
+import os
+
+# =====================================================================
+# APP & INFRASTRUCTURE INITIALIZATION
+# =====================================================================
+
+app = FastAPI(title="Find Your Way (USE) Navigation Engine")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Load Local Embedding Model
+model = SentenceTransformer("BAAI/bge-small-en-v1.5")
+
+# Initialize Pinecone
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
+
+pc = Pinecone(api_key=PINECONE_API_KEY)
+index = pc.Index(PINECONE_INDEX_NAME)
+
+# Update this ID/slug to match the exact Pinecone vector ID for the canonical Living Archive Root Node
+ROOT_NODE_ID = "canonical_root_living_archive"
+
 
 # =====================================================================
 # INTENT CLASSIFICATION ENGINE (SITE ORIENTATION VS TOPICAL)
@@ -22,28 +57,36 @@ SIGNAL_C_PATTERN = re.compile(
     re.IGNORECASE
 )
 
-SIGNAL_A_TOKENS = {"start", "begin", "entry", "first", "overwhelmed", "lost", "confused", "navigate", "explore", "find my way"}
-SIGNAL_B_TOKENS = {"this site", "the site", "website", "this archive", "the archive", "living archive", "everything here", "all this", "how much is on"}
+SIGNAL_A_TOKENS = {
+    "start", "begin", "entry", "first", "overwhelmed", "lost", "confused", 
+    "navigate", "explore", "find my way", "how to use", "structure"
+}
 
-# UPDATE THIS SLUG/ID to match your actual Pinecone vector ID for the Living Archive Root Node
-ROOT_NODE_ID = "canonical_root_living_archive" 
+SIGNAL_B_TOKENS = {
+    "this site", "the site", "website", "this archive", "the archive", 
+    "living archive", "everything here", "all this", "how much is on"
+}
+
 
 def classify_intent(query_str: str) -> str:
+    """
+    Deterministically classifies query intent as WHOLE_SITE_ORIENTATION or TOPICAL_INQUIRY.
+    """
     clean_query = query_str.strip()
 
-    # 1. Prepositional Guard (Topical Override)
+    # Step 1: Prepositional Scope Check (Topical Override)
     if TOPICAL_PREPOSITION_GUARD.search(clean_query):
         return "TOPICAL_INQUIRY"
 
-    # 2. Explicit Identity Check
+    # Step 2: Explicit Identity Check (Signal C)
     if SIGNAL_C_PATTERN.search(clean_query):
         return "WHOLE_SITE_ORIENTATION"
 
-    # 3. Site-Referential Prepositional Check
+    # Step 3: Site-Referential Prepositional Check
     if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query.lower() for w in SIGNAL_A_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
 
-    # 4. Compound Signal Check
+    # Step 4: Compound Signal Check (Signal A + Signal B)
     query_lower = clean_query.lower()
     has_signal_a = any(token in query_lower for token in SIGNAL_A_TOKENS)
     has_signal_b = any(token in query_lower for token in SIGNAL_B_TOKENS)
@@ -53,24 +96,38 @@ def classify_intent(query_str: str) -> str:
 
     return "TOPICAL_INQUIRY"
 
+
 # =====================================================================
-# UPDATED RETRIEVAL LOGIC
-# Replace your existing fetch_canonical_context function with this one
+# RETRIEVAL & CONTEXT FORMATTING LOGIC
 # =====================================================================
+
+def generate_local_embedding(text: str) -> List[float]:
+    return model.encode(text).tolist()
+
+
+def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
+    formatted_blocks = []
+    for doc in documents:
+        title = doc.get("title", "Untitled Resource")
+        url = doc.get("url", "#")
+        content = doc.get("text", doc.get("content", ""))
+        formatted_blocks.append(f"Title: {title}\nURL: {url}\nContent: {content}")
+    return "\n\n---\n\n".join(formatted_blocks)
+
 
 def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     intent = classify_intent(user_query)
     retrieved_docs = []
 
     if intent == "WHOLE_SITE_ORIENTATION":
-        # Slot 1: Fetch Canonical Root Node
+        # Slot 1: Deterministic Root Node Injection
         try:
             root_doc = index.fetch(ids=[ROOT_NODE_ID])
-            if ROOT_NODE_ID in root_doc.get("vectors", {}):
-                retrieved_docs.append(root_doc["vectors"][ROOT_NODE_ID]["metadata"])
-        except Exception as e:
-            # Fallback gracefully if fetch fails
-            pass
+            vectors = root_doc.get("vectors", {})
+            if ROOT_NODE_ID in vectors:
+                retrieved_docs.append(vectors[ROOT_NODE_ID]["metadata"])
+        except Exception:
+            pass  # Fallback gracefully if ID fetch encounters an issue
 
         # Slots 2–3: Semantic Backfill (K=2)
         query_vector = generate_local_embedding(user_query)
@@ -79,7 +136,7 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
             if match["id"] != ROOT_NODE_ID:
                 retrieved_docs.append(match["metadata"])
     else:
-        # Standard Topical Retrieval (K=3)
+        # Standard Topical Search (K=3)
         query_vector = generate_local_embedding(user_query)
         res = index.query(vector=query_vector, top_k=3, include_metadata=True)
         for match in res.get("matches", []):
@@ -90,4 +147,31 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     return {
         "intent": intent,
         "context_blocks": format_context_blocks(retrieved_docs)
+    }
+
+
+# =====================================================================
+# API ENDPOINTS
+# =====================================================================
+
+class QueryRequest(BaseModel):
+    query: str
+
+
+@app.get("/")
+def read_root():
+    return {"status": "online", "engine": "Find Your Way (USE)"}
+
+
+@app.post("/api/query")
+def handle_query(payload: QueryRequest):
+    if not payload.query or not payload.query.strip():
+        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
+    
+    context_data = fetch_canonical_context(payload.query)
+    
+    return {
+        "query": payload.query,
+        "intent": context_data["intent"],
+        "canonical_context": context_data["context_blocks"]
     }
