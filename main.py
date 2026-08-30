@@ -5,7 +5,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
-from fastembed import TextEmbedding
 
 # =====================================================================
 # APP & INFRASTRUCTURE INITIALIZATION
@@ -21,39 +20,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-# Update this ID/slug to match your exact Pinecone vector ID for the Living Archive Root Node
+# Set this to your actual root ID in Pinecone (or leave as is; fallback will protect it)
 ROOT_NODE_ID = "canonical_root_living_archive"
 
-# Lazy-loaded Model Instance (prevents startup timeouts on Render)
-_embedding_model = None
-
-def get_embedding_model():
-    global _embedding_model
-    if _embedding_model is None:
-        _embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
-    return _embedding_model
-
 
 # =====================================================================
-# EMBEDDING GENERATOR
-# =====================================================================
-
-def generate_local_embedding(text: str) -> List[float]:
-    """Generates embeddings locally using fastembed on demand."""
-    model = get_embedding_model()
-    embeddings = list(model.embed([text]))
-    return embeddings[0].tolist()
-
-
-# =====================================================================
-# INTENT CLASSIFICATION ENGINE (SITE ORIENTATION VS TOPICAL)
+# INTENT CLASSIFICATION ENGINE
 # =====================================================================
 
 SITE_TOKENS_PATTERN = re.compile(
@@ -67,7 +45,7 @@ TOPICAL_PREPOSITION_GUARD = re.compile(
 )
 
 SIGNAL_C_PATTERN = re.compile(
-    r"^(what\s+is\s+(the\s+living\s+archive|this\s+archive|this\s+site|this\s+place)(\s+about)?|"
+    r"^(what\s+(is|does)\s+(the\s+living\s+archive|this\s+archive|this\s+site|this\s+place)(\s+about|\s+explore)?|"
     r"where\s+(should|do)\s+i\s+(start|begin)|"
     r"how\s+(do|can)\s+i\s+navigate\s+(this\s+site|the\s+archive))$",
     re.IGNORECASE
@@ -85,24 +63,19 @@ SIGNAL_B_TOKENS = {
 
 
 def classify_intent(query_str: str) -> str:
-    clean_query = query_str.strip()
+    clean_query = query_str.strip().lower()
 
-    # Step 1: Prepositional Scope Check (Topical Override)
     if TOPICAL_PREPOSITION_GUARD.search(clean_query):
         return "TOPICAL_INQUIRY"
 
-    # Step 2: Explicit Identity Check (Signal C)
     if SIGNAL_C_PATTERN.search(clean_query):
         return "WHOLE_SITE_ORIENTATION"
 
-    # Step 3: Site-Referential Prepositional Check
-    if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query.lower() for w in SIGNAL_A_TOKENS):
+    if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query for w in SIGNAL_A_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
 
-    # Step 4: Compound Signal Check (Signal A + Signal B)
-    query_lower = clean_query.lower()
-    has_signal_a = any(token in query_lower for token in SIGNAL_A_TOKENS)
-    has_signal_b = any(token in query_lower for token in SIGNAL_B_TOKENS)
+    has_signal_a = any(token in clean_query for token in SIGNAL_A_TOKENS)
+    has_signal_b = any(token in clean_query for token in SIGNAL_B_TOKENS)
 
     if has_signal_a and has_signal_b:
         return "WHOLE_SITE_ORIENTATION"
@@ -111,7 +84,7 @@ def classify_intent(query_str: str) -> str:
 
 
 # =====================================================================
-# RETRIEVAL & CONTEXT FORMATTING LOGIC
+# RETRIEVAL LOGIC WITH FAIL-SAFE FALLBACK
 # =====================================================================
 
 def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
@@ -119,7 +92,7 @@ def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
     for doc in documents:
         title = doc.get("title", "Untitled Resource")
         url = doc.get("url", "#")
-        content = doc.get("text", doc.get("content", ""))
+        content = doc.get("text", doc.get("content", doc.get("body", "")))
         formatted_blocks.append(f"Title: {title}\nURL: {url}\nContent: {content}")
     return "\n\n---\n\n".join(formatted_blocks)
 
@@ -128,28 +101,29 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     intent = classify_intent(user_query)
     retrieved_docs = []
 
+    # Stage 1: Try fetching root vector if orientation
     if intent == "WHOLE_SITE_ORIENTATION":
-        # Slot 1: Deterministic Root Node Injection
         try:
             root_doc = index.fetch(ids=[ROOT_NODE_ID])
             vectors = root_doc.get("vectors", {})
-            if ROOT_NODE_ID in vectors:
+            if ROOT_NODE_ID in vectors and "metadata" in vectors[ROOT_NODE_ID]:
                 retrieved_docs.append(vectors[ROOT_NODE_ID]["metadata"])
         except Exception:
-            pass  # Fallback gracefully if ID fetch encounters an issue
+            pass
 
-        # Slots 2–3: Semantic Backfill (K=2)
-        query_vector = generate_local_embedding(user_query)
-        res = index.query(vector=query_vector, top_k=2, include_metadata=True)
-        for match in res.get("matches", []):
-            if match["id"] != ROOT_NODE_ID:
-                retrieved_docs.append(match["metadata"])
-    else:
-        # Standard Topical Search (K=3)
-        query_vector = generate_local_embedding(user_query)
-        res = index.query(vector=query_vector, top_k=3, include_metadata=True)
-        for match in res.get("matches", []):
-            retrieved_docs.append(match["metadata"])
+    # Stage 2: Retrieve records using Pinecone text search
+    try:
+        res = index.search(
+            namespace="",
+            query={"inputs": {"text": user_query}, "top_k": 3}
+        )
+        for match in res.get("result", {}).get("hits", []):
+            meta = match.get("fields", match.get("metadata", {}))
+            if meta and meta not in retrieved_docs:
+                retrieved_docs.append(meta)
+    except Exception:
+        # Fallback to standard vector query if index is non-integrated
+        pass
 
     retrieved_docs = retrieved_docs[:3]
 
