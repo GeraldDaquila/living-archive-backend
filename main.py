@@ -1,7 +1,7 @@
 import os
 import re
-from typing import Dict, Any, List
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Any, List, Optional
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
@@ -46,18 +46,17 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Local 384-dimension embedding model running entirely in Python memory
+# Local 384-dimension embedding model
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
+# EMBEDDING GENERATION (384 DIMENSIONS STRICTLY GUARANTEED)
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
-    """Generates 384-dimension query embeddings locally to match frozen Pinecone index."""
     try:
         embeddings = list(embedding_model.embed([text]))
         return embeddings[0].tolist()
@@ -182,7 +181,7 @@ def get_candidate_models() -> List[str]:
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
     if not GROQ_API_KEY or not groq_client:
-        raise HTTPException(status_code=500, detail="GROQ_API_KEY is missing on Render Environment Variables.")
+        return "Unable to generate a response. GROQ_API_KEY is not set in backend environment variables."
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
 
@@ -200,19 +199,22 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Groq generation failed for model '{model_id}': {e}")
+            print(f"Groq generation error with model '{model_id}': {e}")
             last_error = str(e)
             continue
     
-    raise HTTPException(status_code=500, detail=f"Groq API Error: {last_error}")
+    return f"Unable to generate response. Groq API returned error: {last_error}"
 
 
 # =====================================================================
-# API ENDPOINTS
+# FLEXIBLE API PAYLOAD MODEL
 # =====================================================================
 
-class QueryRequest(BaseModel):
-    query: str
+class FlexibleQueryRequest(BaseModel):
+    query: Optional[str] = None
+    user_query: Optional[str] = None
+    question: Optional[str] = None
+    text: Optional[str] = None
 
 
 @app.get("/")
@@ -223,15 +225,42 @@ def read_root():
 
 @app.post("/api/query")
 @app.post("/")
-def handle_query(payload: QueryRequest):
-    if not payload.query or not payload.query.strip():
-        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
+async def handle_query(request: Request, payload: Optional[FlexibleQueryRequest] = None):
+    # Extract query string from payload or raw JSON body regardless of key name
+    raw_body = {}
+    try:
+        raw_body = await request.json()
+    except Exception:
+        pass
+
+    query_str = None
+    if payload:
+        query_str = payload.query or payload.user_query or payload.question or payload.text
     
-    context_data = fetch_canonical_context(payload.query)
-    llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
+    if not query_str and raw_body:
+        query_str = (
+            raw_body.get("query") or 
+            raw_body.get("user_query") or 
+            raw_body.get("question") or 
+            raw_body.get("text") or 
+            raw_body.get("input")
+        )
+
+    if not query_str or not str(query_str).strip():
+        return {
+            "query": "",
+            "intent": "TOPICAL_INQUIRY",
+            "response": "Please enter a question to query the archive.",
+            "canonical_context": ""
+        }
+
+    query_str = str(query_str).strip()
+    
+    context_data = fetch_canonical_context(query_str)
+    llm_output = generate_llm_response(query_str, context_data["context_blocks"], context_data["intent"])
     
     return {
-        "query": payload.query,
+        "query": query_str,
         "intent": context_data["intent"],
         "response": llm_output,
         "canonical_context": context_data["context_blocks"]
