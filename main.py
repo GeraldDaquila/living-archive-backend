@@ -1,12 +1,12 @@
 import os
 import re
+import json
+import urllib.request
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
-import os
 
 # =====================================================================
 # APP & INFRASTRUCTURE INITIALIZATION
@@ -22,18 +22,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load Local Embedding Model
-model = SentenceTransformer("BAAI/bge-small-en-v1.5")
-
-# Initialize Pinecone
+# Environment Variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
+HF_TOKEN = os.getenv("HF_TOKEN")  # Optional: Free HuggingFace token for higher rate limits
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-# Update this ID/slug to match the exact Pinecone vector ID for the canonical Living Archive Root Node
+# Pinecone vector ID for the Living Archive Root Node
 ROOT_NODE_ID = "canonical_root_living_archive"
+
+
+# =====================================================================
+# FREE EMBEDDING GENERATOR (Zero Heavy Dependencies)
+# =====================================================================
+
+def generate_local_embedding(text: str) -> List[float]:
+    """Generates embeddings using Hugging Face's free inference API without heavy local models."""
+    api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-small-en-v1.5"
+    headers = {"Content-Type": "application/json"}
+    
+    if HF_TOKEN:
+        headers["Authorization"] = f"Bearer {HF_TOKEN}"
+
+    data = json.dumps({"inputs": text, "options": {"wait_for_model": True}}).encode("utf-8")
+    req = urllib.request.Request(api_url, data=data, headers=headers)
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            # BGE outputs a nested list if batched, flatten if necessary
+            if isinstance(result, list) and isinstance(result[0], list):
+                return result[0]
+            return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
 
 
 # =====================================================================
@@ -69,9 +93,6 @@ SIGNAL_B_TOKENS = {
 
 
 def classify_intent(query_str: str) -> str:
-    """
-    Deterministically classifies query intent as WHOLE_SITE_ORIENTATION or TOPICAL_INQUIRY.
-    """
     clean_query = query_str.strip()
 
     # Step 1: Prepositional Scope Check (Topical Override)
@@ -100,10 +121,6 @@ def classify_intent(query_str: str) -> str:
 # =====================================================================
 # RETRIEVAL & CONTEXT FORMATTING LOGIC
 # =====================================================================
-
-def generate_local_embedding(text: str) -> List[float]:
-    return model.encode(text).tolist()
-
 
 def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
     formatted_blocks = []
