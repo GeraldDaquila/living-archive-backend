@@ -46,14 +46,14 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Local 384-dimension embedding model running entirely in Python memory (0 API cost, strictly locked to 384 dims)
+# Local 384-dimension embedding model running entirely in Python memory
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# EMBEDDING GENERATION (384 DIMENSIONS STRICTLY GUARANTEED)
+# EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
@@ -216,6 +216,7 @@ class QueryRequest(BaseModel):
 
 
 @app.get("/")
+@app.head("/")
 def read_root():
     return {"status": "ok"}
 
