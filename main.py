@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +10,7 @@ from groq import Groq
 from fastembed import TextEmbedding
 
 # =====================================================================
-# SYSTEM PROMPT (INLINED)
+# SYSTEM PROMPT
 # =====================================================================
 
 SYSTEM_PROMPT = """
@@ -40,20 +41,50 @@ app.add_middleware(
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Local 384-dimension embedding model
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
-
 ROOT_NODE_ID = "canonical_root_living_archive"
 
+# =====================================================================
+# DYNAMIC MODEL DISCOVERY & CACHING (LONG-TERM FIX)
+# =====================================================================
+
+MODEL_CACHE = {"models": [], "last_fetch": 0}
+
+def get_dynamic_groq_models() -> List[str]:
+    """Queries Groq's live API to discover active models automatically."""
+    now = time.time()
+    if MODEL_CACHE["models"] and (now - MODEL_CACHE["last_fetch"] < 3600):
+        return MODEL_CACHE["models"]
+
+    if not groq_client:
+        return ["llama-3.3-70b-versatile", "llama3-8b-8192"]
+
+    try:
+        response = groq_client.models.list()
+        # Extract active text models, excluding whisper, audio, or vision-only tools
+        discovered = [
+            m.id for m in response.data 
+            if not any(x in m.id.lower() for x in ["whisper", "guard", "vision"])
+        ]
+        # Prioritize 70b/versatile models first
+        discovered.sort(key=lambda x: ("70b" in x or "versatile" in x), reverse=True)
+        
+        if discovered:
+            MODEL_CACHE["models"] = discovered
+            MODEL_CACHE["last_fetch"] = now
+            return discovered
+    except Exception as e:
+        print(f"Dynamic model resolution fallback due to error: {e}")
+
+    return ["llama-3.3-70b-versatile", "llama3-70b-8192", "llama3-8b-8192"]
 
 # =====================================================================
-# EMBEDDING GENERATION (384 DIMENSIONS STRICTLY GUARANTEED)
+# EMBEDDING & RETRIEVAL LOGIC
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
@@ -63,11 +94,6 @@ def generate_embedding(text: str) -> List[float]:
     except Exception as e:
         print(f"Embedding generation error: {e}")
         return []
-
-
-# =====================================================================
-# INTENT CLASSIFICATION ENGINE
-# =====================================================================
 
 SITE_TOKENS_PATTERN = re.compile(
     r"\b(the\s+)?(whole\s+|own\s+)?(living\s+archive|archive|site|website|place|everything|all\s+this)(\s+itself|\s+as\s+a\s+whole|\s+on\s+this\s+site|\s+its\s+own\s+purpose)?\b",
@@ -96,31 +122,17 @@ SIGNAL_B_TOKENS = {
     "living archive", "everything here", "all this", "how much is on"
 }
 
-
 def classify_intent(query_str: str) -> str:
     clean_query = query_str.strip().lower()
-
     if TOPICAL_PREPOSITION_GUARD.search(clean_query):
         return "TOPICAL_INQUIRY"
-
     if SIGNAL_C_PATTERN.search(clean_query):
         return "WHOLE_SITE_ORIENTATION"
-
     if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query for w in SIGNAL_A_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
-
-    has_signal_a = any(token in clean_query for token in SIGNAL_A_TOKENS)
-    has_signal_b = any(token in clean_query for token in SIGNAL_B_TOKENS)
-
-    if has_signal_a and has_signal_b:
+    if any(token in clean_query for token in SIGNAL_A_TOKENS) and any(token in clean_query for token in SIGNAL_B_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
-
     return "TOPICAL_INQUIRY"
-
-
-# =====================================================================
-# RETRIEVAL LOGIC
-# =====================================================================
 
 def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
     formatted_blocks = []
@@ -130,7 +142,6 @@ def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
         content = doc.get("text", doc.get("content", doc.get("excerpt", "")))
         formatted_blocks.append(f"Title: {title}\nURL: {url}\nContent: {content}")
     return "\n\n---\n\n".join(formatted_blocks)
-
 
 def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     intent = classify_intent(user_query)
@@ -158,36 +169,24 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
             print(f"Index query error: {e}")
 
     retrieved_docs = [doc for doc in retrieved_docs if doc][:3]
-
     return {
         "intent": intent,
         "context_blocks": format_context_blocks(retrieved_docs)
     }
 
-
 # =====================================================================
-# GROQ MODEL RESOLUTION & GENERATION
+# GENERATION ENGINE WITH AUTOMATIC RECOVERY
 # =====================================================================
-
-def get_candidate_models() -> List[str]:
-    candidates = [
-        PREFERRED_GROQ_MODEL,
-        "llama-3.3-70b-versatile",
-        "llama3-70b-8192",
-        "llama3-8b-8192",
-        "llama-3.1-8b-instant"
-    ]
-    return list(dict.fromkeys(candidates))
-
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
     if not GROQ_API_KEY or not groq_client:
-        return "Unable to generate a response. GROQ_API_KEY is not set in backend environment variables."
+        return "Unable to generate a response. GROQ_API_KEY is missing."
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
+    candidate_models = get_dynamic_groq_models()
 
     last_error = None
-    for model_id in get_candidate_models():
+    for model_id in candidate_models:
         try:
             response = groq_client.chat.completions.create(
                 model=model_id,
@@ -200,15 +199,16 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Groq generation error with model '{model_id}': {e}")
+            print(f"Groq execution failed for '{model_id}': {e}")
             last_error = str(e)
             continue
     
+    # If all dynamic models fail, reset cache to force fresh fetch on next call
+    MODEL_CACHE["last_fetch"] = 0
     return f"Unable to generate response. Groq API returned error: {last_error}"
 
-
 # =====================================================================
-# FLEXIBLE API PAYLOAD MODEL & ENDPOINTS
+# API ENDPOINTS
 # =====================================================================
 
 class FlexibleQueryRequest(BaseModel):
@@ -217,12 +217,10 @@ class FlexibleQueryRequest(BaseModel):
     question: Optional[str] = None
     text: Optional[str] = None
 
-
 @app.get("/")
 @app.head("/")
 def read_root():
     return {"status": "ok"}
-
 
 @app.post("/api/query")
 @app.post("/")
@@ -255,7 +253,6 @@ async def handle_query(request: Request, payload: Optional[FlexibleQueryRequest]
         }
 
     query_str = str(query_str).strip()
-    
     context_data = fetch_canonical_context(query_str)
     llm_output = generate_llm_response(query_str, context_data["context_blocks"], context_data["intent"])
     
@@ -265,7 +262,6 @@ async def handle_query(request: Request, payload: Optional[FlexibleQueryRequest]
         "response": llm_output,
         "canonical_context": context_data["context_blocks"]
     }
-
 
 if __name__ == "__main__":
     import uvicorn
