@@ -8,7 +8,7 @@ from pinecone import Pinecone
 from groq import Groq
 
 # =====================================================================
-# SYSTEM PROMPT (INLINED TO PREVENT IMPORT ERRORS)
+# SYSTEM PROMPT (INLINED)
 # =====================================================================
 
 SYSTEM_PROMPT = """
@@ -39,7 +39,7 @@ app.add_middleware(
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
 
 pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
@@ -49,23 +49,24 @@ ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# PINECONE EMBEDDING GENERATION
+# PINECONE EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
-    """Generates query embeddings via Pinecone native inference API."""
+    """Generates 384-dimension query embeddings matching the frozen Pinecone index."""
     if not pc:
         return []
     try:
+        # bge-small-en-v1.5 produces exactly 384-dimensional vectors
         response = pc.inference.embed(
-            model="multilingual-e5-large",
+            model="bge-small-en-v1.5",
             inputs=[text],
             parameters={"input_type": "query"}
         )
-        if isinstance(response, list) and len(response) > 0:
-            return response[0]["values"]
-        elif hasattr(response, "data") and len(response.data) > 0:
+        if hasattr(response, "data") and len(response.data) > 0:
             return response.data[0].values
+        elif isinstance(response, list) and len(response) > 0:
+            return response[0]["values"]
     except Exception as e:
         print(f"Embedding generation error: {e}")
     return []
@@ -153,7 +154,7 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
             except Exception as e:
                 print(f"Root node fetch error: {e}")
 
-        # Vector semantic backfill or topical search
+        # Vector semantic backfill or topical search (384 dimensions)
         try:
             query_vector = generate_embedding(user_query)
             if query_vector:
@@ -178,7 +179,12 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
 # =====================================================================
 
 def get_candidate_models() -> List[str]:
-    candidates = [PREFERRED_GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    candidates = [
+        PREFERRED_GROQ_MODEL,
+        "llama-3.1-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
+    ]
     return list(dict.fromkeys(candidates))
 
 
