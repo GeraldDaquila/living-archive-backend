@@ -152,7 +152,7 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
         except Exception:
             pass
 
-    # Safety Fallback: If intent == WHOLE_SITE_ORIENTATION failed to fetch ROOT_NODE_ID
+    # Safety Fallback: Ensure context is populated if root node lookup is missing
     if not retrieved_docs:
         try:
             query_vector = generate_embedding(user_query)
@@ -177,12 +177,18 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
 def get_candidate_models() -> List[str]:
     """Dynamically resolves available Groq models with fallback ordering."""
     candidates = [PREFERRED_GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
-    # Return unique ordered list
     return list(dict.fromkeys(candidates))
 
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
-    from system_prompt import SYSTEM_PROMPT  # Assuming system_prompt.py is in the root
+    # Embedded constitutional system prompt fallback
+    try:
+        from system_prompt import SYSTEM_PROMPT
+    except ImportError:
+        SYSTEM_PROMPT = (
+            "You are the Living Archive Navigation Engine. Answer the user's question using "
+            "only the provided context blocks. Do not invent links or outside information."
+        )
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
 
@@ -232,3 +238,13 @@ def handle_query(payload: QueryRequest):
         "response": llm_output,
         "canonical_context": context_data["context_blocks"]
     }
+
+
+# =====================================================================
+# PROGRAMMATIC ENTRY POINT & PORT BINDING
+# =====================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 10000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
