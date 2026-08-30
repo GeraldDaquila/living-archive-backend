@@ -42,10 +42,16 @@ if GROQ_API_KEY:
         print(f"Groq Init Error: {e}")
 
 # Initialize local BAAI/bge-small-en-v1.5 embedding model to match index space
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+embedding_model = None
+try:
+    embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+except Exception as e:
+    print(f"Embedding Model Load Exception: {e}")
 
 def generate_local_embedding(text: str) -> list[float]:
     """Generates 384-dimensional embeddings matching the exact BAAI/bge-small-en-v1.5 corpus space."""
+    if not embedding_model:
+        return []
     embeddings = list(embedding_model.embed([text]))
     return embeddings[0].tolist()
 
@@ -94,7 +100,6 @@ def get_candidate_models() -> list[str]:
             models_page = groq_client.models.list()
             available = [m.id for m in models_page.data if getattr(m, 'active', True)]
             
-            # Excluded "compound" alongside existing invalid/non-chat endpoint keywords
             excluded_keywords = ["guard", "whisper", "orpheus", "vision", "safetensors", "compound"]
             
             for m_id in available:
@@ -117,6 +122,8 @@ def fetch_canonical_context(query: str, top_k: int = 3) -> str:
 
     try:
         query_vector = generate_local_embedding(query)
+        if not query_vector:
+            return ""
 
         query_response = index.query(
             vector=query_vector,
@@ -219,10 +226,6 @@ diagnostic_router = APIRouter(prefix="/api", tags=["Diagnostic"])
 
 @diagnostic_router.post("/diagnostic")
 async def run_diagnostic(request: QueryRequest):
-    """
-    USE TEST 001 Diagnostic Endpoint.
-    Exposes cleaned titles, derived canonical URLs, scrubbed excerpts, and raw metadata.
-    """
     user_query = request.query.strip()
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
@@ -241,32 +244,33 @@ async def run_diagnostic(request: QueryRequest):
         try:
             query_vector = generate_local_embedding(user_query)
 
-            query_response = index.query(
-                vector=query_vector,
-                top_k=3,
-                include_metadata=True
-            )
+            if query_vector:
+                query_response = index.query(
+                    vector=query_vector,
+                    top_k=3,
+                    include_metadata=True
+                )
 
-            for idx, match in enumerate(query_response.get("matches", [])):
-                meta = match.get("metadata", {})
-                raw_title = meta.get("title", "NO_TITLE_METADATA")
-                raw_text = meta.get("text", meta.get("chunk_text", ""))
+                for idx, match in enumerate(query_response.get("matches", [])):
+                    meta = match.get("metadata", {})
+                    raw_title = meta.get("title", "NO_TITLE_METADATA")
+                    raw_text = meta.get("text", meta.get("chunk_text", ""))
 
-                clean_t = clean_title(raw_title)
-                canonical_url = generate_canonical_url(clean_t)
-                
-                clean_exp = clean_excerpt(raw_text)
-                if len(clean_exp) > 300:
-                    clean_exp = clean_exp[:300] + "..."
+                    clean_t = clean_title(raw_title)
+                    canonical_url = generate_canonical_url(clean_t)
+                    
+                    clean_exp = clean_excerpt(raw_text)
+                    if len(clean_exp) > 300:
+                        clean_exp = clean_exp[:300] + "..."
 
-                processed_matches.append({
-                    "match_rank": idx + 1,
-                    "score": match.get("score"),
-                    "raw_title": raw_title,
-                    "sanitized_title": clean_t,
-                    "derived_canonical_url": canonical_url,
-                    "scrubbed_excerpt_sample": clean_exp
-                })
+                    processed_matches.append({
+                        "match_rank": idx + 1,
+                        "score": match.get("score"),
+                        "raw_title": raw_title,
+                        "sanitized_title": clean_t,
+                        "derived_canonical_url": canonical_url,
+                        "scrubbed_excerpt_sample": clean_exp
+                    })
         except Exception as e:
             processed_matches.append({"error": f"Pinecone query exception: {str(e)}"})
 
