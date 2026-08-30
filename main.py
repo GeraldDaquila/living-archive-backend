@@ -51,9 +51,7 @@ def generate_local_embedding(text: str) -> list[float]:
 
 def clean_title(raw_title: str) -> str:
     """Removes trailing chunk index numbers, emojis, and encoding artifacts from document titles."""
-    # Strip non-ASCII/emoji characters
     clean = re.sub(r'[^\x00-\x7F]+', '', raw_title)
-    # Remove trailing digits/chunk IDs (e.g. "Title 1183" -> "Title")
     clean = re.sub(r'\s+\d+$', '', clean).strip()
     return clean if clean else raw_title.strip()
 
@@ -66,11 +64,8 @@ def generate_canonical_url(clean_title_str: str) -> str:
 
 def clean_excerpt(text: str) -> str:
     """Removes raw WordPress block comments and HTML tags from vector excerpts."""
-    # Strip WP comments like <!-- wp:paragraph -->
     text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
-    # Strip HTML tags
     text = re.sub(r'<[^>]+>', '', text)
-    # Collapse extra whitespace
     text = re.sub(r'\n\s*\n', '\n\n', text)
     return text.strip()
 
@@ -99,7 +94,6 @@ def get_candidate_models() -> list[str]:
             models_page = groq_client.models.list()
             available = [m.id for m in models_page.data if getattr(m, 'active', True)]
             
-            # Exclude guard, whisper, vision, and non-general chat models
             excluded_keywords = ["guard", "whisper", "orpheus", "vision", "safetensors"]
             
             for m_id in available:
@@ -116,7 +110,7 @@ def get_candidate_models() -> list[str]:
 
     return candidates
 
-def fetch_canonical_context(query: str, top_k: int = 5) -> str:
+def fetch_canonical_context(query: str, top_k: int = 3) -> str:
     if not index or not pc:
         return ""
 
@@ -138,7 +132,11 @@ def fetch_canonical_context(query: str, top_k: int = 5) -> str:
             if raw_title:
                 sanitized_title = clean_title(raw_title)
                 canonical_url = generate_canonical_url(sanitized_title)
+                
+                # CLEAN AND CAP EXCERPT LENGTH TO 600 CHARS TO PREVENT 413 ERRORS
                 sanitized_excerpt = clean_excerpt(raw_text)
+                if len(sanitized_excerpt) > 600:
+                    sanitized_excerpt = sanitized_excerpt[:600] + "..."
 
                 context_blocks.append(
                     f"CANONICAL TITLE: {sanitized_title}\n"
@@ -247,7 +245,7 @@ async def run_diagnostic(request: QueryRequest):
 
             query_response = index.query(
                 vector=query_vector,
-                top_k=5,
+                top_k=3,
                 include_metadata=True
             )
 
@@ -258,7 +256,10 @@ async def run_diagnostic(request: QueryRequest):
 
                 clean_t = clean_title(raw_title)
                 canonical_url = generate_canonical_url(clean_t)
-                clean_exp = clean_excerpt(raw_text)[:300] + "..." if len(raw_text) > 300 else clean_excerpt(raw_text)
+                
+                clean_exp = clean_excerpt(raw_text)
+                if len(clean_exp) > 300:
+                    clean_exp = clean_exp[:300] + "..."
 
                 processed_matches.append({
                     "match_rank": idx + 1,
