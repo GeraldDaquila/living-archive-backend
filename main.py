@@ -40,7 +40,7 @@ app.add_middleware(
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
@@ -172,9 +172,10 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
 def get_candidate_models() -> List[str]:
     candidates = [
         PREFERRED_GROQ_MODEL,
-        "llama-3.1-70b-versatile",
-        "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768"
+        "llama-3.3-70b-versatile",
+        "llama3-70b-8192",
+        "llama3-8b-8192",
+        "llama-3.1-8b-instant"
     ]
     return list(dict.fromkeys(candidates))
 
@@ -207,7 +208,7 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
 
 
 # =====================================================================
-# FLEXIBLE API PAYLOAD MODEL
+# FLEXIBLE API PAYLOAD MODEL & ENDPOINTS
 # =====================================================================
 
 class FlexibleQueryRequest(BaseModel):
@@ -226,7 +227,6 @@ def read_root():
 @app.post("/api/query")
 @app.post("/")
 async def handle_query(request: Request, payload: Optional[FlexibleQueryRequest] = None):
-    # Extract query string from payload or raw JSON body regardless of key name
     raw_body = {}
     try:
         raw_body = await request.json()
