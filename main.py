@@ -46,45 +46,55 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
+# Local 384-dimension embedding model
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 # =====================================================================
-# DYNAMIC MODEL DISCOVERY & CACHING (LONG-TERM FIX)
+# DYNAMIC MODEL DISCOVERY & CACHING (PERMANENT LONG-TERM FIX)
 # =====================================================================
 
 MODEL_CACHE = {"models": [], "last_fetch": 0}
 
-def get_dynamic_groq_models() -> List[str]:
-    """Queries Groq's live API to discover active models automatically."""
+def get_live_groq_models() -> List[str]:
+    """
+    Queries Groq's live API to fetch valid, active models currently accessible 
+    by your specific API key. Eliminates hardcoded model string maintenance.
+    """
     now = time.time()
+    # Return cached live models if fetched within the last hour
     if MODEL_CACHE["models"] and (now - MODEL_CACHE["last_fetch"] < 3600):
         return MODEL_CACHE["models"]
 
     if not groq_client:
-        return ["llama-3.3-70b-versatile", "llama3-8b-8192"]
+        return []
 
     try:
         response = groq_client.models.list()
-        # Extract active text models, excluding whisper, audio, or vision-only tools
+        # Extract active text/chat model IDs dynamically
         discovered = [
             m.id for m in response.data 
-            if not any(x in m.id.lower() for x in ["whisper", "guard", "vision"])
+            if hasattr(m, 'id') and not any(x in m.id.lower() for x in ["whisper", "guard", "audio", "vision"])
         ]
-        # Prioritize 70b/versatile models first
-        discovered.sort(key=lambda x: ("70b" in x or "versatile" in x), reverse=True)
         
         if discovered:
+            # Sort to prioritize versatile/70b models first
+            discovered.sort(
+                key=lambda x: ("70b" in x or "versatile" in x or "instruct" in x), 
+                reverse=True
+            )
             MODEL_CACHE["models"] = discovered
             MODEL_CACHE["last_fetch"] = now
+            print(f"Dynamically loaded live Groq models for this API Key: {discovered}")
             return discovered
     except Exception as e:
-        print(f"Dynamic model resolution fallback due to error: {e}")
+        print(f"Failed to fetch live model list from Groq API: {e}")
 
-    return ["llama-3.3-70b-versatile", "llama3-70b-8192", "llama3-8b-8192"]
+    # Fallback to cache if available
+    return MODEL_CACHE["models"]
 
 # =====================================================================
-# EMBEDDING & RETRIEVAL LOGIC
+# EMBEDDING GENERATION & RETRIEVAL LOGIC
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
@@ -175,18 +185,21 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     }
 
 # =====================================================================
-# GENERATION ENGINE WITH AUTOMATIC RECOVERY
+# GROQ GENERATION (DYNAMIC EXECUTION)
 # =====================================================================
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
     if not GROQ_API_KEY or not groq_client:
-        return "Unable to generate a response. GROQ_API_KEY is missing."
+        return "Unable to generate a response. GROQ_API_KEY is not configured in backend environment."
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
-    candidate_models = get_dynamic_groq_models()
+    active_models = get_live_groq_models()
+
+    if not active_models:
+        return "Unable to generate a response. No active models returned from Groq API."
 
     last_error = None
-    for model_id in candidate_models:
+    for model_id in active_models:
         try:
             response = groq_client.chat.completions.create(
                 model=model_id,
@@ -199,11 +212,11 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Groq execution failed for '{model_id}': {e}")
+            print(f"Execution failed for live model '{model_id}': {e}")
             last_error = str(e)
             continue
     
-    # If all dynamic models fail, reset cache to force fresh fetch on next call
+    # Invalidate cache if all dynamic models fail
     MODEL_CACHE["last_fetch"] = 0
     return f"Unable to generate response. Groq API returned error: {last_error}"
 
