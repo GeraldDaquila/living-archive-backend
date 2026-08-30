@@ -1,5 +1,10 @@
 import os
 import re
+
+# Suppress Hugging Face unauthenticated warnings & tokenizer parallelism notices
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
