@@ -6,9 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
+from fastembed import TextEmbedding
 
 # =====================================================================
-# SYSTEM PROMPT (INLINED)
+# SYSTEM PROMPT
 # =====================================================================
 
 SYSTEM_PROMPT = """
@@ -45,31 +46,24 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
+# Local 384-dimension embedding model (0 cost, locked to index schema)
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# PINECONE EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
+# EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
     """Generates 384-dimension query embeddings matching the frozen Pinecone index."""
-    if not pc:
-        return []
     try:
-        # bge-small-en-v1.5 produces exactly 384-dimensional vectors
-        response = pc.inference.embed(
-            model="bge-small-en-v1.5",
-            inputs=[text],
-            parameters={"input_type": "query"}
-        )
-        if hasattr(response, "data") and len(response.data) > 0:
-            return response.data[0].values
-        elif isinstance(response, list) and len(response) > 0:
-            return response[0]["values"]
+        embeddings = list(embedding_model.embed([text]))
+        return embeddings[0].tolist()
     except Exception as e:
         print(f"Embedding generation error: {e}")
-    return []
+        return []
 
 
 # =====================================================================
@@ -145,7 +139,6 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
 
     if index:
         if intent == "WHOLE_SITE_ORIENTATION":
-            # Attempt root node pre-fetch
             try:
                 root_doc = index.fetch(ids=[ROOT_NODE_ID])
                 vectors = root_doc.get("vectors", {})
@@ -154,7 +147,6 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
             except Exception as e:
                 print(f"Root node fetch error: {e}")
 
-        # Vector semantic backfill or topical search (384 dimensions)
         try:
             query_vector = generate_embedding(user_query)
             if query_vector:
