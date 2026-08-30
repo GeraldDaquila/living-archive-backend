@@ -9,7 +9,7 @@ from groq import Groq
 from fastembed import TextEmbedding
 
 # =====================================================================
-# SYSTEM PROMPT
+# SYSTEM PROMPT (INLINED)
 # =====================================================================
 
 SYSTEM_PROMPT = """
@@ -46,18 +46,18 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Local 384-dimension embedding model (0 cost, locked to index schema)
+# Local 384-dimension embedding model running entirely in Python memory (0 API cost, strictly locked to 384 dims)
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# EMBEDDING GENERATION (384 DIMENSIONS LOCKED)
+# EMBEDDING GENERATION (384 DIMENSIONS STRICTLY GUARANTEED)
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
-    """Generates 384-dimension query embeddings matching the frozen Pinecone index."""
+    """Generates 384-dimension query embeddings locally to match frozen Pinecone index."""
     try:
         embeddings = list(embedding_model.embed([text]))
         return embeddings[0].tolist()
@@ -200,7 +200,7 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Groq generation failed for {model_id}: {e}")
+            print(f"Groq generation failed for model '{model_id}': {e}")
             last_error = str(e)
             continue
     
