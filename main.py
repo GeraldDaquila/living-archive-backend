@@ -8,6 +8,21 @@ from pinecone import Pinecone
 from groq import Groq
 
 # =====================================================================
+# SYSTEM PROMPT (INLINED TO PREVENT IMPORT ERRORS)
+# =====================================================================
+
+SYSTEM_PROMPT = """
+You are the navigation engine for the Living Archive (USE).
+Your goal is to guide visitors through the archive using only the provided canonical context.
+
+Constitutional Rules:
+1. Institutional Fidelity: Answer strictly using facts and concepts from the provided context. Never invent features or buzzwords.
+2. Hard Link Grounding: Only use exact Markdown links [Title](URL) matching URLs present in the context metadata. Never invent URLs.
+3. Implicit Location Awareness: Never ask the user to "visit the site" as they are already on it.
+4. Operational Sequence: Mirror the Question -> Orient Context -> Offer Canonical Routes of Movement.
+"""
+
+# =====================================================================
 # APP & INFRASTRUCTURE INITIALIZATION
 # =====================================================================
 
@@ -21,31 +36,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-pc = Pinecone(api_key=PINECONE_API_KEY)
-index = pc.Index(PINECONE_INDEX_NAME)
-groq_client = Groq(api_key=GROQ_API_KEY)
+pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
+index = pc.Index(PINECONE_INDEX_NAME) if pc else None
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Pinecone vector ID/slug for the Living Archive Root Node
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# PINECONE INTEGRATED INFERENCE (EMBEDDING GENERATION)
+# PINECONE EMBEDDING GENERATION
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
-    """Generates query embeddings using Pinecone's native integrated inference API."""
-    response = pc.inference.embed(
-        model="multilingual-e5-large",
-        inputs=[text],
-        parameters={"input_type": "query"}
-    )
-    return response[0]["values"]
+    """Generates query embeddings via Pinecone native inference API."""
+    if not pc:
+        return []
+    try:
+        response = pc.inference.embed(
+            model="multilingual-e5-large",
+            inputs=[text],
+            parameters={"input_type": "query"}
+        )
+        if isinstance(response, list) and len(response) > 0:
+            return response[0]["values"]
+        elif hasattr(response, "data") and len(response.data) > 0:
+            return response.data[0].values
+    except Exception as e:
+        print(f"Embedding generation error: {e}")
+    return []
 
 
 # =====================================================================
@@ -83,19 +106,15 @@ SIGNAL_B_TOKENS = {
 def classify_intent(query_str: str) -> str:
     clean_query = query_str.strip().lower()
 
-    # Step 1: Prepositional Scope Guard (Topical Override)
     if TOPICAL_PREPOSITION_GUARD.search(clean_query):
         return "TOPICAL_INQUIRY"
 
-    # Step 2: Explicit Identity Check (Signal C)
     if SIGNAL_C_PATTERN.search(clean_query):
         return "WHOLE_SITE_ORIENTATION"
 
-    # Step 3: Site-Referential Prepositional Check
     if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query for w in SIGNAL_A_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
 
-    # Step 4: Compound Signal Check (Signal A + Signal B)
     has_signal_a = any(token in clean_query for token in SIGNAL_A_TOKENS)
     has_signal_b = any(token in clean_query for token in SIGNAL_B_TOKENS)
 
@@ -106,7 +125,7 @@ def classify_intent(query_str: str) -> str:
 
 
 # =====================================================================
-# RETRIEVAL & CONTEXT FORMATTING LOGIC
+# RETRIEVAL LOGIC
 # =====================================================================
 
 def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
@@ -123,44 +142,28 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     intent = classify_intent(user_query)
     retrieved_docs = []
 
-    if intent == "WHOLE_SITE_ORIENTATION":
-        # Slot 1: Deterministic Root Node Injection
-        try:
-            root_doc = index.fetch(ids=[ROOT_NODE_ID])
-            vectors = root_doc.get("vectors", {})
-            if ROOT_NODE_ID in vectors and "metadata" in vectors[ROOT_NODE_ID]:
-                retrieved_docs.append(vectors[ROOT_NODE_ID]["metadata"])
-        except Exception:
-            pass
+    if index:
+        if intent == "WHOLE_SITE_ORIENTATION":
+            # Attempt root node pre-fetch
+            try:
+                root_doc = index.fetch(ids=[ROOT_NODE_ID])
+                vectors = root_doc.get("vectors", {})
+                if ROOT_NODE_ID in vectors and "metadata" in vectors[ROOT_NODE_ID]:
+                    retrieved_docs.append(vectors[ROOT_NODE_ID]["metadata"])
+            except Exception as e:
+                print(f"Root node fetch error: {e}")
 
-        # Slots 2–3: Semantic Backfill (K=2) via Pinecone Integrated Inference
+        # Vector semantic backfill or topical search
         try:
             query_vector = generate_embedding(user_query)
-            res = index.query(vector=query_vector, top_k=2, include_metadata=True)
-            for match in res.get("matches", []):
-                if match["id"] != ROOT_NODE_ID:
-                    retrieved_docs.append(match.get("metadata", {}))
-        except Exception:
-            pass
-    else:
-        # Standard Topical Search (K=3) via Pinecone Integrated Inference
-        try:
-            query_vector = generate_embedding(user_query)
-            res = index.query(vector=query_vector, top_k=3, include_metadata=True)
-            for match in res.get("matches", []):
-                retrieved_docs.append(match.get("metadata", {}))
-        except Exception:
-            pass
-
-    # Safety Fallback: Ensure context is populated if root node lookup is missing
-    if not retrieved_docs:
-        try:
-            query_vector = generate_embedding(user_query)
-            res = index.query(vector=query_vector, top_k=3, include_metadata=True)
-            for match in res.get("matches", []):
-                retrieved_docs.append(match.get("metadata", {}))
-        except Exception:
-            pass
+            if query_vector:
+                top_k_val = 2 if intent == "WHOLE_SITE_ORIENTATION" else 3
+                res = index.query(vector=query_vector, top_k=top_k_val, include_metadata=True)
+                for match in res.get("matches", []):
+                    if match.get("id") != ROOT_NODE_ID and match.get("metadata"):
+                        retrieved_docs.append(match["metadata"])
+        except Exception as e:
+            print(f"Index query error: {e}")
 
     retrieved_docs = [doc for doc in retrieved_docs if doc][:3]
 
@@ -175,20 +178,13 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
 # =====================================================================
 
 def get_candidate_models() -> List[str]:
-    """Dynamically resolves available Groq models with fallback ordering."""
     candidates = [PREFERRED_GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
     return list(dict.fromkeys(candidates))
 
 
 def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
-    # Embedded constitutional system prompt fallback
-    try:
-        from system_prompt import SYSTEM_PROMPT
-    except ImportError:
-        SYSTEM_PROMPT = (
-            "You are the Living Archive Navigation Engine. Answer the user's question using "
-            "only the provided context blocks. Do not invent links or outside information."
-        )
+    if not groq_client:
+        return "GROQ_API_KEY environment variable is missing on backend."
 
     system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
 
@@ -204,10 +200,11 @@ def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> 
                 max_tokens=800
             )
             return response.choices[0].message.content
-        except Exception:
+        except Exception as e:
+            print(f"Groq generation failed for {model_id}: {e}")
             continue
     
-    raise HTTPException(status_code=500, detail="LLM generation failed across all available model backfalls.")
+    return "Unable to generate a response at this moment. Please check backend API configurations."
 
 
 # =====================================================================
@@ -229,20 +226,20 @@ def handle_query(payload: QueryRequest):
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
     
-    context_data = fetch_canonical_context(payload.query)
-    llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
-    
-    return {
-        "query": payload.query,
-        "intent": context_data["intent"],
-        "response": llm_output,
-        "canonical_context": context_data["context_blocks"]
-    }
+    try:
+        context_data = fetch_canonical_context(payload.query)
+        llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
+        
+        return {
+            "query": payload.query,
+            "intent": context_data["intent"],
+            "response": llm_output,
+            "canonical_context": context_data["context_blocks"]
+        }
+    except Exception as e:
+        print(f"Request handling exception: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-# =====================================================================
-# PROGRAMMATIC ENTRY POINT & PORT BINDING
-# =====================================================================
 
 if __name__ == "__main__":
     import uvicorn
