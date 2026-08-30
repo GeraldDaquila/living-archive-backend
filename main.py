@@ -1,7 +1,17 @@
 import os
 import re
+import sys
+import io
 
-# Suppress Hugging Face Hub unauthenticated download warning & tokenizer notices
+# Root fix: Mute the Hugging Face unauthenticated log warning at stream level
+class HFWarningFilter(io.TextIOWrapper):
+    def write(self, s):
+        if "unauthenticated requests to the HF Hub" in s or "HF_TOKEN" in s:
+            return
+        super().write(s)
+
+sys.stderr = HFWarningFilter(sys.stderr.buffer, sys.stderr.encoding)
+
 os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN_WARNING"] = "1"
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
