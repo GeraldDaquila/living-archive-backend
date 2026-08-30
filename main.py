@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
+from groq import Groq
 
 # =====================================================================
 # APP & INFRASTRUCTURE INITIALIZATION
@@ -22,12 +23,29 @@ app.add_middleware(
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+PREFERRED_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
+groq_client = Groq(api_key=GROQ_API_KEY)
 
-# Set this to your actual root ID in Pinecone (or leave as is; fallback will protect it)
+# Pinecone vector ID/slug for the Living Archive Root Node
 ROOT_NODE_ID = "canonical_root_living_archive"
+
+
+# =====================================================================
+# PINECONE INTEGRATED INFERENCE (EMBEDDING GENERATION)
+# =====================================================================
+
+def generate_embedding(text: str) -> List[float]:
+    """Generates query embeddings using Pinecone's native integrated inference API."""
+    response = pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[text],
+        parameters={"input_type": "query"}
+    )
+    return response[0]["values"]
 
 
 # =====================================================================
@@ -65,15 +83,19 @@ SIGNAL_B_TOKENS = {
 def classify_intent(query_str: str) -> str:
     clean_query = query_str.strip().lower()
 
+    # Step 1: Prepositional Scope Guard (Topical Override)
     if TOPICAL_PREPOSITION_GUARD.search(clean_query):
         return "TOPICAL_INQUIRY"
 
+    # Step 2: Explicit Identity Check (Signal C)
     if SIGNAL_C_PATTERN.search(clean_query):
         return "WHOLE_SITE_ORIENTATION"
 
+    # Step 3: Site-Referential Prepositional Check
     if SITE_TOKENS_PATTERN.search(clean_query) and any(w in clean_query for w in SIGNAL_A_TOKENS):
         return "WHOLE_SITE_ORIENTATION"
 
+    # Step 4: Compound Signal Check (Signal A + Signal B)
     has_signal_a = any(token in clean_query for token in SIGNAL_A_TOKENS)
     has_signal_b = any(token in clean_query for token in SIGNAL_B_TOKENS)
 
@@ -84,7 +106,7 @@ def classify_intent(query_str: str) -> str:
 
 
 # =====================================================================
-# RETRIEVAL LOGIC WITH FAIL-SAFE FALLBACK
+# RETRIEVAL & CONTEXT FORMATTING LOGIC
 # =====================================================================
 
 def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
@@ -92,7 +114,7 @@ def format_context_blocks(documents: List[Dict[str, Any]]) -> str:
     for doc in documents:
         title = doc.get("title", "Untitled Resource")
         url = doc.get("url", "#")
-        content = doc.get("text", doc.get("content", doc.get("body", "")))
+        content = doc.get("text", doc.get("content", doc.get("excerpt", "")))
         formatted_blocks.append(f"Title: {title}\nURL: {url}\nContent: {content}")
     return "\n\n---\n\n".join(formatted_blocks)
 
@@ -101,8 +123,8 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
     intent = classify_intent(user_query)
     retrieved_docs = []
 
-    # Stage 1: Try fetching root vector if orientation
     if intent == "WHOLE_SITE_ORIENTATION":
+        # Slot 1: Deterministic Root Node Injection
         try:
             root_doc = index.fetch(ids=[ROOT_NODE_ID])
             vectors = root_doc.get("vectors", {})
@@ -111,26 +133,75 @@ def fetch_canonical_context(user_query: str) -> Dict[str, Any]:
         except Exception:
             pass
 
-    # Stage 2: Retrieve records using Pinecone text search
-    try:
-        res = index.search(
-            namespace="",
-            query={"inputs": {"text": user_query}, "top_k": 3}
-        )
-        for match in res.get("result", {}).get("hits", []):
-            meta = match.get("fields", match.get("metadata", {}))
-            if meta and meta not in retrieved_docs:
-                retrieved_docs.append(meta)
-    except Exception:
-        # Fallback to standard vector query if index is non-integrated
-        pass
+        # Slots 2–3: Semantic Backfill (K=2) via Pinecone Integrated Inference
+        try:
+            query_vector = generate_embedding(user_query)
+            res = index.query(vector=query_vector, top_k=2, include_metadata=True)
+            for match in res.get("matches", []):
+                if match["id"] != ROOT_NODE_ID:
+                    retrieved_docs.append(match.get("metadata", {}))
+        except Exception:
+            pass
+    else:
+        # Standard Topical Search (K=3) via Pinecone Integrated Inference
+        try:
+            query_vector = generate_embedding(user_query)
+            res = index.query(vector=query_vector, top_k=3, include_metadata=True)
+            for match in res.get("matches", []):
+                retrieved_docs.append(match.get("metadata", {}))
+        except Exception:
+            pass
 
-    retrieved_docs = retrieved_docs[:3]
+    # Safety Fallback: If intent == WHOLE_SITE_ORIENTATION failed to fetch ROOT_NODE_ID
+    if not retrieved_docs:
+        try:
+            query_vector = generate_embedding(user_query)
+            res = index.query(vector=query_vector, top_k=3, include_metadata=True)
+            for match in res.get("matches", []):
+                retrieved_docs.append(match.get("metadata", {}))
+        except Exception:
+            pass
+
+    retrieved_docs = [doc for doc in retrieved_docs if doc][:3]
 
     return {
         "intent": intent,
         "context_blocks": format_context_blocks(retrieved_docs)
     }
+
+
+# =====================================================================
+# GROQ MODEL RESOLUTION & GENERATION
+# =====================================================================
+
+def get_candidate_models() -> List[str]:
+    """Dynamically resolves available Groq models with fallback ordering."""
+    candidates = [PREFERRED_GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    # Return unique ordered list
+    return list(dict.fromkeys(candidates))
+
+
+def generate_llm_response(user_query: str, context_blocks: str, intent: str) -> str:
+    from system_prompt import SYSTEM_PROMPT  # Assuming system_prompt.py is in the root
+
+    system_content = f"{SYSTEM_PROMPT}\n\n[QUERY INTENT]: {intent}\n\n[CANONICAL CONTEXT]:\n{context_blocks}"
+
+    for model_id in get_candidate_models():
+        try:
+            response = groq_client.chat.completions.create(
+                model=model_id,
+                messages=[
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_query}
+                ],
+                temperature=0.2,
+                max_tokens=800
+            )
+            return response.choices[0].message.content
+        except Exception:
+            continue
+    
+    raise HTTPException(status_code=500, detail="LLM generation failed across all available model backfalls.")
 
 
 # =====================================================================
@@ -143,18 +214,21 @@ class QueryRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"status": "online", "engine": "Find Your Way (USE)"}
+    return {"status": "ok"}
 
 
 @app.post("/api/query")
+@app.post("/")
 def handle_query(payload: QueryRequest):
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query string cannot be empty.")
     
     context_data = fetch_canonical_context(payload.query)
+    llm_output = generate_llm_response(payload.query, context_data["context_blocks"], context_data["intent"])
     
     return {
         "query": payload.query,
         "intent": context_data["intent"],
+        "response": llm_output,
         "canonical_context": context_data["context_blocks"]
     }
