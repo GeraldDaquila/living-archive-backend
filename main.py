@@ -1,3 +1,6 @@
+# USE v15 — Adaptive Stewardship Retrieval / Canonical Link Presentation
+# Derived from the audited USE v14 production unit.
+
 import os
 import re
 import time
@@ -367,7 +370,32 @@ CONSTITUTIONAL RULES
     Raw URL display and emoji-prefixed resource titles are presentation
     failures, not alternative valid formats.
 
-37. DESTINATION INTEGRITY
+37. ADAPTIVE DEVELOPMENTAL ORIENTATION
+    USE is capable of recognizing when a visitor's current question
+    contains a meaningful movement from primarily inward inquiry toward
+    responsibility for others, systems, institutions, communities, or
+    future generations. When the supplied evidence supports such a
+    transition, surface the relevant canonical bridge material naturally.
+    Do not diagnose the visitor, assign a developmental status, declare
+    that a threshold has been crossed, or force stewardship language where
+    it is not warranted. The visitor remains free to determine whether
+    the material applies.
+
+38. ADAPTIVE RETRIEVAL IS NOT A SECOND ENGINE
+    Treat stewardship-oriented bridge evidence as an additional retrieval
+    signal within the same USE navigation architecture. Do not create a
+    separate response engine, separate worldview, separate answer format,
+    or separate visitor identity. The same constitutional rules continue
+    to govern the response.
+
+39. INWARD-TO-OUTWARD CONTINUITY
+    When a question connects self-development with responsibility beyond
+    the self, preserve that continuity. Personal development remains a
+    foundation, while the answer may open a route toward contribution,
+    stewardship, custodianship, or service when canonical evidence supports
+    that movement. Do not present this as a required progression.
+
+40. DESTINATION INTEGRITY
     When the visitor asks where to find or explore something, never
     recommend a resource merely because it is semantically related.
     The destination must function as a genuine visitor-facing corpus
@@ -375,13 +403,13 @@ CONSTITUTIONAL RULES
     a search/query endpoint, an API, documentation endpoint, feed, or
     other technical intermediary.
 
-38. DESTINATION-FIRST RESPONSE
+41. DESTINATION-FIRST RESPONSE
     For explicit location requests, give the strongest established
     destination first. If the evidence does not establish a genuine
     destination, say that the available material does not establish one
     and do not substitute an unrelated resource.
 
-39. RELATIONSHIP QUALIFICATION
+42. RELATIONSHIP QUALIFICATION
     For collection-level navigation, distinguish between:
     - a resource that IS the collection/index/landing/gateway;
     - a resource that directly describes the collection as a whole; and
@@ -392,7 +420,7 @@ CONSTITUTIONAL RULES
     A page that says "Explore the Guided Pathway" is evidence of a member
     pathway, not evidence that the page is the Guided Pathways collection.
 
-40. NO SEMANTIC DESTINATION SUBSTITUTION
+43. NO SEMANTIC DESTINATION SUBSTITUTION
     For an explicit collection-location request, never use ordinary
     semantic similarity to promote an individual essay, case, map, or
     pathway into the requested collection's destination. If structural
@@ -405,7 +433,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v14"
+APP_VERSION = "v15"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -734,6 +762,187 @@ def classify_intent(query_str: str) -> str:
         return "WHOLE_SITE_ORIENTATION"
 
     return "TOPICAL_INQUIRY"
+
+
+# =====================================================================
+# ADAPTIVE STEWARDSHIP ORIENTATION
+# =====================================================================
+#
+# v15 introduces the first adaptive layer for USE.
+#
+# The purpose is NOT to create a second engine, diagnose the visitor, or
+# force a visitor into stewardship language. It is to recognize when the
+# wording of a question contains a meaningful movement from primarily
+# inward/personal inquiry toward responsibility for people, systems,
+# institutions, communities, or future generations.
+#
+# When that signal is strong enough, retrieval is given an additional
+# stewardship-bridge pass. The response model remains the same and still
+# decides what is appropriate to surface from canonical evidence.
+#
+# This is deliberately retrieval adaptation rather than a hard-coded
+# destination map. It allows USE to discover the bridge resources that are
+# actually present in the corpus.
+# =====================================================================
+
+STEWARDSHIP_SIGNAL_TERMS = (
+    ("stewardship", 4),
+    ("steward", 3),
+    ("custodian", 4),
+    ("custodianship", 4),
+    ("guardian", 4),
+    ("guardianship", 4),
+    ("responsibility", 2),
+    ("responsible for", 2),
+    ("entrusted", 3),
+    ("entrusted with", 3),
+    ("serve others", 3),
+    ("service to others", 3),
+    ("larger whole", 2),
+    ("future generations", 3),
+    ("long-term health", 2),
+    ("long term health", 2),
+    ("what happens after i am gone", 3),
+    ("after i am gone", 3),
+    ("after i'm gone", 3),
+    ("beyond myself", 2),
+    ("beyond the self", 2),
+    ("what i build serves", 3),
+    ("who it serves", 2),
+    ("who does it serve", 2),
+    ("serve the whole", 3),
+    ("care for", 2),
+    ("care of", 1),
+)
+
+INWARD_DEVELOPMENT_TERMS = (
+    "self-awareness",
+    "self awareness",
+    "self-development",
+    "self development",
+    "personal growth",
+    "personal development",
+    "inner growth",
+    "identity",
+    "emotional intelligence",
+    "emotional maturity",
+    "healing",
+    "myself",
+    "my own",
+    "my life",
+    "my journey",
+)
+
+OUTWARD_RESPONSIBILITY_TERMS = (
+    "others",
+    "community",
+    "communities",
+    "institution",
+    "institutions",
+    "society",
+    "systems",
+    "governance",
+    "leadership",
+    "future",
+    "generations",
+    "organization",
+    "organizations",
+    "people",
+    "public",
+    "collective",
+    "civilization",
+    "civilizational",
+    "resources",
+    "legacy",
+    "contribution",
+)
+
+ADAPTIVE_STEWARDSHIP_THRESHOLD = 4
+MAX_ADAPTIVE_BRIDGE_RESOURCES = 3
+
+
+def _phrase_hits(query: str, phrases: Tuple[str, ...]) -> int:
+    clean = re.sub(r"\s+", " ", query.lower()).strip()
+    return sum(
+        1
+        for phrase in phrases
+        if re.search(rf"(?<!\w){re.escape(phrase)}(?!\w)", clean)
+    )
+
+
+def detect_adaptive_stewardship_orientation(query: str) -> Dict[str, Any]:
+    """
+    Detect a stewardship-oriented shift in the wording of the current
+    question without diagnosing the visitor or assigning a developmental
+    status.
+
+    The score is used only to decide whether retrieval should receive an
+    additional bridge-oriented pass. It is never exposed to the visitor.
+    """
+    clean = re.sub(r"\s+", " ", query.lower()).strip()
+
+    signal_score = 0
+    matched_signals: List[str] = []
+
+    for phrase, weight in STEWARDSHIP_SIGNAL_TERMS:
+        if re.search(rf"(?<!\w){re.escape(phrase)}(?!\w)", clean):
+            signal_score += weight
+            matched_signals.append(phrase)
+
+    inward_hits = _phrase_hits(clean, INWARD_DEVELOPMENT_TERMS)
+    outward_hits = _phrase_hits(clean, OUTWARD_RESPONSIBILITY_TERMS)
+
+    # A simultaneous inward/outward pattern is a particularly useful
+    # adaptive signal: the visitor is connecting personal development with
+    # responsibility beyond the self.
+    if inward_hits and outward_hits:
+        signal_score += 2
+        matched_signals.append("inward_to_outward_shift")
+
+    # A direct question about what a person's work/building is for, who it
+    # serves, or what remains after the builder is gone is also a strong
+    # bridge signal even when the word stewardship is never used.
+    legacy_pattern = re.search(
+        r"\b(?:after|when)\b.{0,80}\b(?:gone|leave|leaves|left)\b",
+        clean,
+        flags=re.IGNORECASE,
+    )
+    service_pattern = re.search(
+        r"\b(?:who|what)\b.{0,80}\b(?:serve|serves|serving)\b",
+        clean,
+        flags=re.IGNORECASE,
+    )
+
+    if legacy_pattern:
+        signal_score += 2
+        matched_signals.append("legacy_continuity")
+
+    if service_pattern:
+        signal_score += 2
+        matched_signals.append("service_orientation")
+
+    return {
+        "active": signal_score >= ADAPTIVE_STEWARDSHIP_THRESHOLD,
+        "score": signal_score,
+        "inward_hits": inward_hits,
+        "outward_hits": outward_hits,
+        "matched_signals": tuple(dict.fromkeys(matched_signals)),
+    }
+
+
+def build_stewardship_bridge_query(user_query: str) -> str:
+    """
+    Produce one semantic retrieval variant for a question showing a
+    stewardship-oriented shift.
+
+    The variant is conceptual rather than resource-specific so USE can
+    discover whatever canonical bridge material the corpus currently holds.
+    """
+    return (
+        f"{user_query} human development responsibility contribution "
+        "stewardship service systems communities future generations"
+    )
+
 
 
 # =====================================================================
@@ -1131,6 +1340,7 @@ def _resource_content(doc: Dict[str, Any]) -> str:
 def format_context_blocks(
     documents: List[Dict[str, Any]],
     structural_destination_count: int = 0,
+    adaptive_bridge_count: int = 0,
 ) -> str:
     formatted_blocks: List[str] = []
 
@@ -1142,6 +1352,8 @@ def format_context_blocks(
         role = "CANONICAL CORPUS EVIDENCE"
         if index_number < structural_destination_count:
             role = "PRIMARY STRUCTURAL DESTINATION CANDIDATE"
+        elif index_number < structural_destination_count + adaptive_bridge_count:
+            role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
         formatted_blocks.append(
             f"Evidence Role: {role}\n"
@@ -1291,7 +1503,10 @@ def fetch_canonical_context(
 ) -> Dict[str, Any]:
     intent = classify_intent(user_query)
     collection_name = detect_collection_request(user_query)
+    adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
+
     structural_docs: List[Dict[str, Any]] = []
+    adaptive_docs: List[Dict[str, Any]] = []
     retrieved_docs: List[Dict[str, Any]] = []
     seen_keys = set()
 
@@ -1300,6 +1515,18 @@ def fetch_canonical_context(
             "intent": intent,
             "context_blocks": "",
         }
+
+    if adaptive_orientation["active"]:
+        print(
+            "USE adaptive stewardship orientation: "
+            f"score={adaptive_orientation['score']}, "
+            f"signals={adaptive_orientation['matched_signals']}"
+        )
+    else:
+        print(
+            "USE adaptive stewardship orientation: "
+            f"inactive, score={adaptive_orientation['score']}"
+        )
 
     if intent == "WHOLE_SITE_ORIENTATION":
         try:
@@ -1326,6 +1553,9 @@ def fetch_canonical_context(
         query_vector = generate_embedding(user_query)
 
         if query_vector:
+            # -----------------------------------------------------------
+            # STRUCTURAL DESTINATION RETRIEVAL
+            # -----------------------------------------------------------
             if collection_name:
                 structural_docs = _query_structural_index(
                     collection_name,
@@ -1348,16 +1578,66 @@ def fetch_canonical_context(
                     f"selected={len(retrieved_docs)}."
                 )
 
+            # -----------------------------------------------------------
+            # ADAPTIVE STEWARDSHIP BRIDGE RETRIEVAL
+            # -----------------------------------------------------------
+            # Only activated by the current question's signal. This does
+            # not change the engine or expose an internal stage to the user.
+            if (
+                adaptive_orientation["active"]
+                and not collection_name
+                and intent != "WHOLE_SITE_ORIENTATION"
+            ):
+                bridge_query = build_stewardship_bridge_query(user_query)
+                bridge_vector = generate_embedding(bridge_query)
+
+                if bridge_vector:
+                    bridge_candidates = _query_index(
+                        bridge_vector,
+                        max(RETRIEVAL_TOP_K, 100),
+                    )
+
+                    adaptive_seen_keys = set()
+                    for _score, _match_id_value, metadata in bridge_candidates:
+                        _append_unique_resource(
+                            adaptive_docs,
+                            adaptive_seen_keys,
+                            metadata,
+                            require_destination=False,
+                        )
+                        if len(adaptive_docs) >= MAX_ADAPTIVE_BRIDGE_RESOURCES:
+                            break
+
+                # Place bridge evidence ahead of ordinary semantic neighbors
+                # so the generator can see the developmental-to-stewardship
+                # transition when the question actually warrants it.
+                for metadata in adaptive_docs:
+                    _append_unique_resource(
+                        retrieved_docs,
+                        seen_keys,
+                        metadata,
+                    )
+                    if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
+                        break
+
+                print(
+                    "USE adaptive bridge retrieval: "
+                    f"bridge_query=1, "
+                    f"selected={len(adaptive_docs)}."
+                )
+
+            # -----------------------------------------------------------
+            # ORDINARY SEMANTIC RETRIEVAL
+            # -----------------------------------------------------------
             # Destination requests must not fall back to ordinary semantic
             # neighbors when a structural destination has been resolved.
-            # That was the root cause of the previous false destination.
             if not collection_name or not retrieved_docs:
                 candidates = _query_index(
                     query_vector,
                     RETRIEVAL_TOP_K,
                 )
 
-                for score, match_id, metadata in candidates:
+                for _score, _match_id_value, metadata in candidates:
                     _append_unique_resource(
                         retrieved_docs,
                         seen_keys,
@@ -1390,11 +1670,21 @@ def fetch_canonical_context(
         else 0
     )
 
+    adaptive_bridge_count = (
+        min(
+            len(adaptive_docs),
+            max(0, len(retrieved_docs) - structural_destination_count),
+        )
+        if adaptive_orientation["active"] and adaptive_docs
+        else 0
+    )
+
     return {
         "intent": intent,
         "context_blocks": format_context_blocks(
             retrieved_docs,
             structural_destination_count=structural_destination_count,
+            adaptive_bridge_count=adaptive_bridge_count,
         ),
     }
 
