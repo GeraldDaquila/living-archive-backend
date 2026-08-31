@@ -1,26 +1,12 @@
-# USE v31 — Reasoning Boundary Enforcement / Visitor-Facing Output Gate
-# v31 preserves v30 evidence-relevance, v29 canonical-integrity, v28 commitment-state,
-# and progressive-inquiry behavior while adding a deterministic generation-output gate.
-# Internal reasoning/process leakage is rejected and regenerated before visitor presentation.
+# USE v32 — Temporal 5-Why Observer / Rebuilt from v26
+# v32 intentionally returns to the v26 architectural baseline.
+# 5-Why/progressive inquiry observes the completed conversation turn only;
+# it cannot influence current-turn interpretation, retrieval, evidence selection,
+# generation, or native-vocabulary permission.
 
-# USE v28 — Commitment-State Guard / 5-Why-Inspired Progressive Inquiry
-# v28 preserves v27 inquiry-before-retrieval behavior and adds an explicit
-# pre-commitment vocabulary guard. Serious study readiness may be recognized
-# internally, but native Living Archive vocabulary remains unavailable until
-# an explicit Steward Access commitment is supplied by the application.
-#
-# v27 — Inquiry Before Retrieval / Progressive Commitment Inquiry
-# v27 preserves v26's 5-Why-inspired inquiry architecture and gives that
-# architecture limited behavioral authority: when a question genuinely sits
-# at a deeper inquiry threshold, USE should engage the question before falling
-# back to resource enumeration. This is not diagnosis, scoring, status, or
-# membership inference. Explicit Steward Access remains the commitment boundary.
-
-# USE v29 — Canonical Evidence Integrity / Deterministic Resource Allowlist
-# v29 preserves v28 commitment-state and progressive-inquiry behavior while adding
-# a hard generation-to-corpus integrity gate: generated resource recommendations
-# must correspond to exact canonical titles present in the supplied evidence.
-# Unsupported plausible-looking resource names are removed rather than surfaced.
+# v26 preserves v25 orientational routing and adds a conservative, non-diagnostic
+# inquiry-depth layer inspired by 5 Whys. It never grants status or unlocks
+# native vocabulary; explicit Steward Access remains the commitment boundary.
 
 # USE v23 — Root-Cause Generation Context / Deployment Fingerprint
 # Derived from the audited USE v20 production unit. v23 preserves the
@@ -493,11 +479,6 @@ CONSTITUTIONAL GENERATION RULES
     tags. Do not output anything outside those tags.
 11. For resources, output only the exact canonical title as plain text.
     USE reconstructs links deterministically from canonical evidence.
-12. A resource recommendation is valid only if its exact title appears in the
-    supplied canonical evidence. If the evidence does not contain a suitable
-    resource, do not invent or paraphrase a resource title; answer within the
-    evidence boundary and say that the available material does not establish
-    an additional resource when necessary.
 """
 
 
@@ -505,7 +486,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v30"
+APP_VERSION = "v32"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -520,7 +501,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v31-reasoning-boundary-enforcement"
+DEPLOYMENT_FINGERPRINT = "USE-v32-temporal-5why-observer"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1506,16 +1487,8 @@ def format_context_blocks(
         elif index_number < structural_destination_count + adaptive_bridge_count:
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
-        relevance_score = float(doc.get("_v30_relevance_score", 0.0) or 0.0)
-        relevance_label = (
-            "HIGH RELEVANCE" if relevance_score >= 0.20
-            else "MODERATE RELEVANCE" if relevance_score >= 0.08
-            else "LOW RELEVANCE — DO NOT PRESENT AS A PRIMARY ANSWER ROUTE"
-        )
-
         formatted_blocks.append(
             f"Evidence Role: {role}\n"
-            f"Evidence Relevance: {relevance_label}\n"
             f"Title: {title}\n"
             f"URL: {url}\n"
             f"Content: {content}"
@@ -1619,120 +1592,6 @@ def orientational_rerank_documents(
         key=lambda item: (-_orientational_resource_bonus(item[1], frame), item[0]),
     )
     return prefix + [doc for _index, doc in ranked]
-
-
-# =====================================================================
-# V30 EVIDENCE RELEVANCE THRESHOLD
-# =====================================================================
-# v29 established that named resources must be canonical. v30 adds the next
-# boundary: canonical identity is not sufficient; a resource should also be
-# sufficiently relevant to the actual question before USE treats it as a
-# primary route. This is intentionally a light deterministic rerank, not a
-# replacement for semantic retrieval and not a claim that low-scoring
-# resources are absent from the Archive.
-
-_RELEVANCE_STOPWORDS = {
-    "a", "an", "and", "are", "as", "at", "be", "been", "being", "but",
-    "by", "can", "could", "did", "do", "does", "for", "from", "had", "has",
-    "have", "how", "i", "if", "in", "into", "is", "it", "its", "may", "me",
-    "more", "my", "of", "on", "or", "our", "should", "that", "the", "their",
-    "them", "there", "these", "this", "to", "was", "we", "what", "when", "where",
-    "which", "who", "why", "will", "with", "would", "you", "your", "than", "not",
-}
-
-
-def _relevance_tokens(text: str) -> List[str]:
-    words = re.findall(r"[a-z0-9][a-z0-9'-]{2,}", str(text or "").lower())
-    return [w for w in words if w not in _RELEVANCE_STOPWORDS]
-
-
-def _stem_relevance_token(token: str) -> str:
-    value = token.lower().strip("'-")
-    for suffix in ("ization", "ations", "ation", "ingly", "edly", "ment", "ness", "ing", "ers", "ies", "es", "s"):
-        if value.endswith(suffix) and len(value) - len(suffix) >= 4:
-            value = value[: -len(suffix)]
-            break
-    return value
-
-
-def _evidence_relevance_score(query: str, doc: Dict[str, Any]) -> float:
-    """Estimate question/evidence alignment without inventing corpus facts."""
-    query_tokens = [_stem_relevance_token(x) for x in _relevance_tokens(query)]
-    if not query_tokens:
-        return 0.0
-
-    title = str(doc.get("title", ""))
-    content = _resource_content(doc)
-    title_tokens = {_stem_relevance_token(x) for x in _relevance_tokens(title)}
-    content_tokens = {_stem_relevance_token(x) for x in _relevance_tokens(content)}
-
-    unique_query = set(query_tokens)
-    title_hits = len(unique_query & title_tokens)
-    content_hits = len(unique_query & content_tokens)
-
-    # Title alignment is deliberately weighted more strongly than generic
-    # body overlap. Exact multi-word phrase overlap gets a modest additional
-    # signal, while the score remains bounded and conservative.
-    title_component = title_hits / max(1, len(unique_query))
-    content_component = min(1.0, content_hits / max(1, len(unique_query)))
-
-    query_phrases = set(
-        " ".join(query_tokens[i:i + 2])
-        for i in range(max(0, len(query_tokens) - 1))
-    )
-    searchable = " ".join(_stem_relevance_token(x) for x in _relevance_tokens(content))
-    phrase_hits = sum(1 for phrase in query_phrases if phrase in searchable)
-    phrase_component = min(1.0, phrase_hits / max(1, min(3, len(query_phrases))))
-
-    score = (0.55 * title_component) + (0.35 * content_component) + (0.10 * phrase_component)
-    return round(min(1.0, max(0.0, score)), 4)
-
-
-def apply_evidence_relevance_threshold(
-    documents: List[Dict[str, Any]],
-    query: str,
-    *,
-    minimum_primary_score: float = 0.08,
-) -> List[Dict[str, Any]]:
-    """Rank evidence by deterministic relevance while preserving recall.
-
-    No document is declared nonexistent when its relevance is weak. Strong
-    evidence is simply promoted, and very weak candidates are retained only
-    when the retrieval set contains too little stronger evidence. This keeps
-    semantic retrieval as the discovery mechanism while preventing a merely
-    canonical but tangential resource from dominating the answer.
-    """
-    if not documents:
-        return documents
-
-    scored: List[Tuple[float, int, Dict[str, Any]]] = []
-    for index_number, doc in enumerate(documents):
-        score = _evidence_relevance_score(query, doc)
-        enriched = dict(doc)
-        enriched["_v30_relevance_score"] = score
-        scored.append((score, index_number, enriched))
-
-    ranked = sorted(scored, key=lambda item: (-item[0], item[1]))
-    strong = [item for item in ranked if item[0] >= minimum_primary_score]
-
-    # Preserve at least the strongest canonical evidence. When several
-    # sufficiently relevant resources exist, don't let a long tail of weak
-    # neighbors consume the bounded generation window.
-    if len(strong) >= 2:
-        selected = strong[:MAX_CONTEXT_RESOURCES]
-    else:
-        selected = ranked[:MAX_CONTEXT_RESOURCES]
-
-    result = [doc for _score, _index, doc in selected]
-    print(
-        "USE evidence relevance: "
-        + ", ".join(
-            f"{doc.get('title', 'Untitled Resource')}="
-            f"{doc.get('_v30_relevance_score', 0.0):.3f}"
-            for doc in result[:5]
-        )
-    )
-    return result
 
 
 # =====================================================================
@@ -2050,14 +1909,6 @@ def fetch_canonical_context(
         retrieved_docs,
         orientational_frame,
         preserve_prefix=protected_prefix,
-    )[:MAX_CONTEXT_RESOURCES]
-
-    # v30: canonical identity is necessary but not sufficient. Apply a light
-    # deterministic relevance threshold after semantic/orientational
-    # retrieval, while retaining recall when strong evidence is sparse.
-    retrieved_docs = apply_evidence_relevance_threshold(
-        retrieved_docs,
-        user_query,
     )[:MAX_CONTEXT_RESOURCES]
 
     structural_destination_count = (
@@ -2536,180 +2387,6 @@ def _strip_leading_decorative_symbols(text: str) -> str:
     return value
 
 
-def _canonical_resource_title_set(context_blocks: str) -> Dict[str, str]:
-    """Return canonical display titles keyed by normalized title."""
-    titles: Dict[str, str] = {}
-    for title, _url in _canonical_pairs(context_blocks):
-        display = _canonical_display_title(title)
-        if display:
-            titles[display.casefold()] = display
-    return titles
-
-
-def _line_contains_canonical_title(line: str, canonical_titles: Dict[str, str]) -> bool:
-    """Return True when a line contains at least one exact canonical title."""
-    if not canonical_titles:
-        return False
-    folded = str(line or "").casefold()
-    return any(title in folded for title in canonical_titles)
-
-
-def _looks_like_resource_list_item(line: str) -> bool:
-    """Recognize conservative numbered/bulleted resource-list lines."""
-    value = str(line or "").strip()
-    if not value:
-        return False
-    return bool(re.match(r"^(?:\d+[.)]|[-*•])\s+", value))
-
-
-def enforce_canonical_resource_allowlist(
-    answer: str,
-    context_blocks: str,
-) -> str:
-    """Remove unsupported resource recommendations from model output.
-
-    v29 treats canonical resource identity as data, not generation. The model
-    may synthesize prose, but a resource named as a recommendation must be
-    present in the exact supplied evidence. The gate is intentionally
-    conservative: only explicit list items are removed, avoiding destructive
-    edits to ordinary explanatory prose.
-    """
-    text = str(answer or "").strip()
-    if not text:
-        return ""
-
-    canonical_titles = _canonical_resource_title_set(context_blocks)
-    if not canonical_titles:
-        return text
-
-    lines = text.splitlines()
-    output: List[str] = []
-    removed = 0
-    in_resource_section = False
-
-    resource_section_re = re.compile(
-        r'\b(?:resources?|recommended resources?|suggested resources?|reading|resources to explore)\b',
-        flags=re.IGNORECASE,
-    )
-
-    for line in lines:
-        stripped = line.strip()
-        if resource_section_re.search(stripped) and not _looks_like_resource_list_item(stripped):
-            in_resource_section = True
-            output.append(line)
-            continue
-
-        if _looks_like_resource_list_item(stripped):
-            if _line_contains_canonical_title(stripped, canonical_titles):
-                output.append(line)
-            elif in_resource_section:
-                removed += 1
-                continue
-            else:
-                # Numbered/bulleted lines that are not canonical resources are
-                # retained unless a resource-introduction cue has established
-                # that the following list is explicitly a resource list.
-                output.append(line)
-            continue
-
-        # A blank line ends an explicit resource-list section only after the
-        # section has contained content; retaining the flag through ordinary
-        # prose is safer than accidentally deleting later bullets.
-        if in_resource_section and stripped == "":
-            output.append(line)
-            continue
-
-        output.append(line)
-
-    cleaned = "\n".join(output).strip()
-
-    if removed:
-        boundary = (
-            "The available Archive evidence establishes the resources named "
-            "above; I have not added additional resources that are not supported "
-            "by that evidence."
-        )
-        if boundary.casefold() not in cleaned.casefold():
-            cleaned = (cleaned + "\n\n" + boundary).strip()
-        print(
-            "USE canonical evidence gate: removed "
-            f"{removed} unsupported resource recommendation(s)."
-        )
-
-    return cleaned
-
-
-def _looks_like_reasoning_leak(answer: str) -> bool:
-    """
-    Detect explicit model process narration that must never reach visitors.
-    This is deliberately conservative and targets unmistakable internal-process
-    markers rather than ordinary analytical prose.
-    """
-    value = str(answer or "").strip()
-    if not value:
-        return False
-
-    strong_markers = (
-        "thinking process:",
-        "chain of thought",
-        "reasoning process:",
-        "analyze the request:",
-        "analyze user query:",
-        "scan retrieved evidence:",
-        "synthesize findings:",
-        "draft response:",
-        "mental refinement:",
-        "evidence vs. corpus boundary:",
-        "internal reasoning:",
-        "retrieval analysis:",
-        "retrieval process:",
-        "system prompt:",
-        "system instructions:",
-    )
-    folded = value.casefold()
-    if any(marker in folded for marker in strong_markers):
-        return True
-
-    procedural_terms = (
-        "analyze the",
-        "canonical evidence",
-        "retrieved evidence",
-        "retrieval",
-        "constraints:",
-        "goal:",
-        "instructions:",
-        "output inside",
-        "no reasoning",
-        "reasoning/retrieval",
-        "visitor-facing response contract",
-    )
-    numbered_steps = len(re.findall(r"(?im)^\s*\d+[.)]\s+", value))
-    procedural_hits = sum(term in folded for term in procedural_terms)
-    return numbered_steps >= 2 and procedural_hits >= 2
-
-
-def _reasoning_safe_generation_messages(
-    messages: List[Dict[str, str]],
-) -> List[Dict[str, str]]:
-    """Strengthen only the visitor-output boundary after a leakage failure."""
-    strengthened = [dict(message) for message in messages]
-
-    if strengthened and strengthened[0].get("role") == "system":
-        strengthened[0]["content"] = (
-            strengthened[0].get("content", "")
-            + "\n\n"
-            "FINAL OUTPUT SAFETY OVERRIDE: Return ONLY the finished "
-            "visitor-facing answer. Do not output or describe any analysis, "
-            "thinking process, reasoning steps, retrieval process, evidence "
-            "review, instructions, constraints, system messages, or drafting "
-            "process. Do not use headings such as 'Thinking Process' or "
-            "'Reasoning'. Do not enumerate how you arrived at the answer. "
-            "Begin directly with the answer to the visitor's question."
-        )
-
-    return strengthened
-
-
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2719,10 +2396,6 @@ def _clean_generation_output(
         return ""
 
     cleaned_answer = _strip_leading_decorative_symbols(answer)
-    cleaned_answer = enforce_canonical_resource_allowlist(
-        cleaned_answer,
-        context_blocks,
-    )
 
     return normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, context_blocks),
@@ -2730,13 +2403,10 @@ def _clean_generation_output(
     )
 
 # =====================================================================
-# V27 PROGRESSIVE COMMITMENT INQUIRY / INQUIRY BEFORE RETRIEVAL
+# V26 PROGRESSIVE COMMITMENT INQUIRY
 # =====================================================================
 # 5 Whys is used as an inspiration for progressive depth, not as a diagnostic,
 # compliance test, or commitment score. The visitor remains sovereign.
-# v27 adds one behavioral consequence: when the inquiry has reached a genuine
-# deeper-question threshold, generation is instructed to engage that question
-# before enumerating resources. Native vocabulary remains forbidden here.
 PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
     "recognition",
     "significance",
@@ -2747,9 +2417,9 @@ PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
 
 PROGRESSIVE_INQUIRY_TERMS: Dict[str, Tuple[str, ...]] = {
     "recognition": ("notice", "recognize", "aware", "awareness", "pattern", "patterns", "understand", "understanding"),
-    "significance": ("matter", "matters", "important", "importance", "meaning", "meaningful", "why does", "why do", "why should", "significant", "why should that"),
-    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved", "my choices", "my actions"),
-    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows", "what responsibility"),
+    "significance": ("matter", "matters", "important", "meaning", "meaningful", "why does", "why do", "significant"),
+    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved"),
+    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows"),
     "willingness": ("willing", "willingness", "ready", "readiness", "commit", "commitment", "take responsibility", "serve", "service", "steward", "stewardship", "custodian"),
 }
 
@@ -2774,67 +2444,22 @@ def _history_questions(history: Any) -> List[str]:
     return questions
 
 
-def _explicit_steward_access_commitment(value: Any) -> bool:
-    """Return True only for an explicit application-supplied commitment flag.
-
-    Visitor language such as "ready", "commit", or "stewardship" is
-    evidence of inquiry only. It is never treated as membership. The actual
-    commitment gate must be supplied explicitly by the application/client.
-    """
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.strip().lower() in {"true", "1", "yes", "committed"}
-    return False
-
-
-PRE_COMMITMENT_NATIVE_VOCABULARY = (
-    "threshold flame",
-    "flameholder",
-    "living archive native vocabulary",
-    "native archive vocabulary",
-    "steward-only vocabulary",
-)
-
-
-def commitment_state_guidance(state: Dict[str, Any]) -> str:
-    """Build the internal commitment-state contract for generation."""
-    committed = bool(state.get("steward_access_committed", False))
-    study_ready = bool(state.get("study_readiness_signal", False))
-    if committed:
-        return (
-            "EXPLICIT STEWARD ACCESS COMMITMENT IS PRESENT. Native Living Archive "
-            "vocabulary may be used only when it is supported by the supplied "
-            "canonical evidence and appropriate to the visitor's question. Do not "
-            "invent insider terminology."
-        )
-    if study_ready:
-        return (
-            "SERIOUS-STUDY READINESS MAY BE PRESENT, BUT COMMITMENT IS NOT. "
-            "Remain in ordinary human language. You may deepen the inquiry and "
-            "invite the visitor to examine willingness, responsibility, and what "
-            "they want to study. Do not describe the visitor as a steward, do not "
-            "declare a threshold crossing, and do not use proprietary/native "
-            "Living Archive threshold labels."
-        )
-    return (
-        "PRE-COMMITMENT STATE. Use ordinary human language. Explore the question "
-        "without assigning identity, status, readiness, or membership. Do not use "
-        "proprietary/native Living Archive threshold labels."
-    )
-
-
 def assess_progressive_commitment(
     current_question: str,
     history: Any = None,
-    steward_access_committed: Any = False,
 ) -> Dict[str, Any]:
-    """Return conservative inquiry-depth evidence; never infer membership or status."""
+    """
+    Observe inquiry trajectory only.
+
+    This is a side observer, not a diagnostic and not a current-turn control
+    signal. Its result is observational context for a subsequent turn.
+    """
     questions = _history_questions(history) + [str(current_question or "").strip()]
     questions = [q for q in questions if q]
+
     stage_hits = {stage: 0 for stage in PROGRESSIVE_INQUIRY_STAGES}
     for question in questions:
-        q = question.lower()
+        q = question.casefold()
         for stage, terms in PROGRESSIVE_INQUIRY_TERMS.items():
             if any(term in q for term in terms):
                 stage_hits[stage] += 1
@@ -2850,54 +2475,15 @@ def assess_progressive_commitment(
         or stage_hits["willingness"] > 0
     )
 
-    current_lower = str(current_question or "").lower()
-    current_significance = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["significance"])
-    current_participation = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["participation"])
-    current_responsibility = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["responsibility"])
-    explicit_why = any(marker in current_lower for marker in ("why ", "why should", "why does", "why do", "what follows", "how can i tell"))
-
-    # v27 behavioral gate. A deeper conversational move is allowed when the
-    # current question itself contains a substantive threshold signal, or
-    # when prior visitor questions establish sustained movement into deeper
-    # participation/responsibility territory. This is intentionally not a
-    # numeric commitment score.
-    deeper_probe_allowed = bool(
-        sustained
-        or (current_significance and explicit_why)
-        or current_participation
-        or current_responsibility
-        or deepest_index >= 2
-    )
-
-    if current_responsibility or deepest_index >= 3:
-        stage = "responsibility"
-    elif current_participation or deepest_index >= 2:
-        stage = "participation"
-    elif current_significance or deepest_index >= 1:
-        stage = "significance"
-    else:
-        stage = PROGRESSIVE_INQUIRY_STAGES[deepest_index]
-
-    explicit_commitment = _explicit_steward_access_commitment(steward_access_committed)
-    study_readiness_signal = bool(
-        sustained
-        and (
-            stage in {"responsibility", "willingness"}
-            or stage_hits["willingness"] > 0
-        )
-    )
-
     return {
-        "stage": stage,
+        "stage": PROGRESSIVE_INQUIRY_STAGES[deepest_index],
         "turns": len(questions),
         "sustained": sustained,
-        "deeper_probe_allowed": deeper_probe_allowed,
-        "current_significance": current_significance,
-        "current_participation": current_participation,
-        "current_responsibility": current_responsibility,
-        "study_readiness_signal": study_readiness_signal,
-        "steward_access_committed": explicit_commitment,
-        "native_vocabulary_allowed": explicit_commitment,
+        "deeper_probe_allowed_next_turn": sustained or deepest_index >= 2,
+        "native_vocabulary_allowed": False,
+        "observer_only": True,
+        "current_turn_influence": False,
+        "applies_to_next_turn": True,
     }
 
 
@@ -2905,19 +2491,16 @@ def progressive_inquiry_guidance(state: Dict[str, Any]) -> str:
     """Internal guidance only; never expose the machinery to visitors."""
     stage = str(state.get("stage", "recognition"))
     sustained = bool(state.get("sustained", False))
-    probe = bool(state.get("deeper_probe_allowed", False))
     guidance = {
         "recognition": "Stay with what the visitor is noticing; do not push beyond the question.",
-        "significance": "Engage why the question matters before defaulting to resource enumeration. If appropriate, end with one gentle reflective question.",
-        "participation": "Distinguish participation from control. Invite reflection on the visitor's part in a larger pattern without assigning responsibility.",
-        "responsibility": "Distinguish responsibility from blame. Explore what follows from recognition without declaring a role or status.",
-        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone or treat readiness as membership.",
+        "significance": "If useful, explore why the question matters without prescribing a conclusion.",
+        "participation": "If supported, invite reflection on participation in the larger pattern without assigning responsibility.",
+        "responsibility": "Distinguish responsibility from blame. Do not declare a role or status.",
+        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone.",
     }.get(stage, "Stay with the visitor's question and preserve uncertainty.")
-    if probe:
-        guidance += " This is an inquiry-before-retrieval moment: answer the human question first, then offer the smallest useful canonical route. A single open reflective question may be used to invite the next layer; do not turn the exchange into a questionnaire or require five steps."
-    elif sustained:
-        guidance += " Sustained inquiry is present, but do not force a sequence."
-    guidance += " " + commitment_state_guidance(state)
+    if sustained:
+        guidance += " Sustained inquiry is present; one deeper question may be appropriate, but do not force a sequence."
+    guidance += " Native Living Archive vocabulary is not permitted from this inference layer."
     return guidance
 
 # =====================================================================
@@ -3030,9 +2613,6 @@ def _build_generation_system_content(
         f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
         f"OR INTERNAL CONTEXT]:\n"
         f"{generation_context}\n\n"
-        "[CANONICAL RESOURCE ALLOWLIST — INTERNAL]\n"
-        "Only exact titles appearing in the evidence above may be named as "
-        "resources. Never create a plausible substitute title.\n\n"
         "[FINAL RESPONSE REQUIREMENT]\n"
         "Respond directly to the visitor's question. Output the finished "
         "visitor-facing answer. A clean answer without a wrapper is valid. "
@@ -3127,20 +2707,6 @@ def _build_generation_messages(
     safe_context = str(generation_context or "").strip()
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
-    effective_progressive_state = progressive_state or {"stage": "recognition"}
-    inquiry_hint = progressive_inquiry_guidance(effective_progressive_state)
-    commitment_hint = commitment_state_guidance(effective_progressive_state)
-    inquiry_behavior = (
-        "When the internal progressive-inquiry guidance identifies an inquiry-before-retrieval moment, "
-        "do not begin with a generic resource list or the phrase 'Based on the provided canonical evidence'. "
-        "First directly engage the visitor's underlying question in natural language. Explain the relevant distinction "
-        "supported by the canonical evidence. Then offer the smallest useful canonical route, normally one or two resources. "
-        "If appropriate, end with exactly one open reflective question that invites the visitor's own next step. "
-        "Do not present the reflective question as a test, score, gate, diagnosis, or membership assessment. "
-        "If the question does not warrant a deeper probe, answer normally and navigate naturally. "
-        "Before explicit Steward Access commitment, never use proprietary or threshold-specific Living Archive labels, even if the visitor uses stewardship terminology. Do not infer commitment from interest, readiness language, repeated questions, or sophisticated understanding. "
-        "Treat Evidence Relevance as an internal confidence signal. Prefer HIGH RELEVANCE evidence for direct claims and primary resource recommendations. MODERATE RELEVANCE evidence may be used when the connection is explicit and qualified. Do not stretch LOW RELEVANCE evidence into an authoritative answer route. If the supplied evidence is only tangential, acknowledge the limitation rather than manufacturing a stronger connection. Never invent a resource to fill an evidence gap. "
-    )
 
     system_content = _build_generation_system_content(
         intent,
@@ -3150,12 +2716,6 @@ def _build_generation_messages(
         f"{frame_hint}. Let this orientation influence relevance and next-step "
         "selection only when supported by the canonical evidence; never mention "
         "the classification itself."
-        "\n\n[INTERNAL PROGRESSIVE INQUIRY GUIDANCE — DO NOT REVEAL]: "
-        f"{inquiry_hint}"
-        "\n\n[INTERNAL INQUIRY-BEFORE-RETRIEVAL BEHAVIOR — DO NOT REVEAL]: "
-        f"{inquiry_behavior}"
-        "\n\n[INTERNAL COMMITMENT-STATE GUARD — DO NOT REVEAL]: "
-        f"{commitment_hint}"
     )
 
     user_content = (
@@ -3195,7 +2755,6 @@ def _run_generation_attempt(
         generation_context,
         max_tokens=max_tokens,
         orientational_frame=orientational_frame,
-        progressive_state=progressive_state,
     )
 
     response = groq_client.chat.completions.create(
@@ -3206,44 +2765,11 @@ def _run_generation_attempt(
     )
 
     generated_text = response.choices[0].message.content or ""
-    cleaned_answer = _clean_generation_output(
+
+    return _clean_generation_output(
         generated_text,
         safe_context,
     )
-
-    if _looks_like_reasoning_leak(cleaned_answer):
-        print(
-            f"USE output boundary: reasoning/process leakage detected from "
-            f"model '{model_id}'; regenerating visitor-facing answer."
-        )
-
-        safe_messages = _reasoning_safe_generation_messages(messages)
-        retry_response = groq_client.chat.completions.create(
-            model=model_id,
-            messages=safe_messages,
-            temperature=0.2,
-            max_tokens=max_tokens,
-        )
-        retry_text = retry_response.choices[0].message.content or ""
-        retry_answer = _clean_generation_output(
-            retry_text,
-            safe_context,
-        )
-
-        if retry_answer and not _looks_like_reasoning_leak(retry_answer):
-            print(
-                f"USE output boundary: reasoning-safe regeneration accepted "
-                f"for model '{model_id}'."
-            )
-            return retry_answer
-
-        print(
-            f"USE output boundary: reasoning leakage persisted for model "
-            f"'{model_id}'; rejecting output."
-        )
-        return ""
-
-    return cleaned_answer
 
 
 def _is_request_too_large_error(error_text: str) -> bool:
@@ -3354,8 +2880,6 @@ def generate_llm_response(
                 intent,
                 base_generation_context,
                 max_tokens=MAX_GENERATION_TOKENS,
-                orientational_frame=orientational_frame,
-                progressive_state=progressive_state,
             )
 
             if visitor_answer:
@@ -3424,7 +2948,6 @@ def generate_llm_response(
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
                         orientational_frame=orientational_frame,
-                        progressive_state=progressive_state,
                     )
 
                     if compact_answer:
@@ -3489,7 +3012,6 @@ class FlexibleQueryRequest(BaseModel):
     text: Optional[str] = None
     history: Optional[List[Any]] = None
     conversation_history: Optional[List[Any]] = None
-    steward_access_committed: Optional[bool] = None
 
 
 # =====================================================================
@@ -3558,24 +3080,8 @@ async def handle_query(
     if supplied_history is None and raw_body:
         supplied_history = raw_body.get("history") or raw_body.get("conversation_history")
 
-    supplied_commitment = None
-    if payload and payload.steward_access_committed is not None:
-        supplied_commitment = payload.steward_access_committed
-    if supplied_commitment is None and raw_body:
-        supplied_commitment = raw_body.get("steward_access_committed")
-
-    progressive_state = assess_progressive_commitment(
-        query_str,
-        supplied_history,
-        supplied_commitment,
-    )
-    print(
-        "USE progressive inquiry: "
-        f"stage={progressive_state['stage']}, "
-        f"turns={progressive_state['turns']}, "
-        f"sustained={progressive_state['sustained']}, "
-        f"deeper_probe={progressive_state['deeper_probe_allowed']}"
-    )
+    # v32: 5-Why observation is deliberately absent from the current-answer path.
+    # The question is understood and retrieved on its own terms first.
 
     try:
         context_data = fetch_canonical_context(query_str)
@@ -3588,10 +3094,21 @@ async def handle_query(
                 "orientational_frame",
                 {"primary": "general", "scores": {}},
             ),
-            progressive_state=progressive_state,
         )
 
-        # v26 deliberately does NOT return canonical_context to the browser.
+        # v32: observe the completed turn only. This state does not influence
+        # the answer just generated. The next request may supply history again,
+        # allowing the observer to inform subsequent conversational behavior.
+        progressive_state = assess_progressive_commitment(query_str, supplied_history)
+        print(
+            "USE 5-Why observer: "
+            f"stage={progressive_state['stage']}, "
+            f"turns={progressive_state['turns']}, "
+            f"sustained={progressive_state['sustained']}, "
+            f"next_turn_probe={progressive_state['deeper_probe_allowed_next_turn']}"
+        )
+
+        # v32 deliberately does NOT return canonical_context to the browser.
         # Retrieval evidence is an internal generation input; returning it
         # was unnecessary for the WordPress client and could make health/
         # keep-warm requests return a very large body.
@@ -3653,68 +3170,16 @@ def health_check():
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if the known context-scope defect returns."""
-    # v27 invariants: progressive inquiry is internal-only and can never
-    # grant native vocabulary or membership by inference.
-    state = assess_progressive_commitment(
-        "Why should my participation in a larger system matter if I cannot control it?"
-    )
+    # v32 invariants: progressive inquiry is observer-only and can never
+    # influence the current answer, grant native vocabulary, or infer membership.
+    state = assess_progressive_commitment("stewardship commitment")
     assert state["native_vocabulary_allowed"] is False
-    assert state["steward_access_committed"] is False
-    assert state["deeper_probe_allowed"] is True
-    assert state["stage"] in {"significance", "participation", "responsibility"}
-
-    ready = assess_progressive_commitment(
-        "I am ready to study this more deeply and understand what responsibility follows.",
-        [
-            "I notice a pattern in how I participate in systems.",
-            "Why does this matter to me?",
-            "What responsibility follows from understanding my part?",
-        ],
-    )
-    assert ready["study_readiness_signal"] is True
-    assert ready["native_vocabulary_allowed"] is False
-
-    committed = assess_progressive_commitment(
-        "I want to continue this study.",
-        [],
-        True,
-    )
-    assert committed["steward_access_committed"] is True
-    assert committed["native_vocabulary_allowed"] is True
-
-    shallow = assess_progressive_commitment("What is the Archive?", [])
-    assert shallow["deeper_probe_allowed"] is False
-
-    relevance_docs = [
-        {"title": "Personal Responsibility in Systems", "url": "https://example.com/strong", "content": "responsibility participation systems power community"},
-        {"title": "Social Media and Anxiety", "url": "https://example.com/weak", "content": "social media anxiety comparison digital habits"},
-    ]
-    relevance_ranked = apply_evidence_relevance_threshold(
-        relevance_docs,
-        "How do I understand responsibility and participation in systems?",
-    )
-    assert relevance_ranked[0]["title"] == "Personal Responsibility in Systems"
-
-    evidence = (
-        "Title: Canonical Resource One\n"
-        "URL: https://example.com/one\n"
-        "Content: Supported evidence.\n\n---\n\n"
-        "Title: Canonical Resource Two\n"
-        "URL: https://example.com/two\n"
-        "Content: Supported evidence."
-    )
-    test_answer = (
-        "Here are useful resources:\n\n"
-        "1. Canonical Resource One\n"
-        "2. Invented Resource That Does Not Exist\n"
-    )
-    gated = enforce_canonical_resource_allowlist(test_answer, evidence)
-    assert "Canonical Resource One" in gated
-    assert "Invented Resource That Does Not Exist" not in gated
-
+    assert state["observer_only"] is True
+    assert state["current_turn_influence"] is False
+    assert state["applies_to_next_turn"] is True
     try:
         _strip_model_link_markup("", "")
-        _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "", progressive_state=state)
+        _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
     except Exception as exc:
         raise RuntimeError(
             "USE generation boundary self-audit failed: "
@@ -3723,7 +3188,7 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "context_blocks is explicitly scoped; v30 evidence relevance threshold is active."
+        "context_blocks is explicitly scoped."
     )
 
 
