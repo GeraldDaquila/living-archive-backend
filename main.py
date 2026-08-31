@@ -1,9 +1,10 @@
-# USE v20 — Bounded Generation Context / Resilient Visitor Output Boundary
-# Derived from the audited USE v19 production unit. v20 preserves v19's
-# broader retrieval and deterministic link architecture while separating
-# retrieval breadth from generation-context size. The generator receives a
-# bounded evidence window, structural output wrappers are no longer a hard
-# dependency, and any repair path is deliberately context-light.
+# USE v21 — Root-Cause Generation Boundary / Rate-Limit Resilience
+# Derived from the audited USE v20 production unit. v21 preserves the
+# retrieval, adaptive stewardship, destination-integrity, and deterministic
+# link architecture while hardening the provider-generation boundary.
+# The highest-value v20 deficiency was not retrieval quality; it was that
+# provider failures could still arise from request size, rate limits, or
+# an undefined context variable. v21 addresses those causes directly.
 
 import os
 import re
@@ -437,7 +438,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v20"
+APP_VERSION = "v21"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -466,9 +467,11 @@ MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
 # window so document length cannot make the Groq request unmanageably large.
-MAX_GENERATION_CONTEXT_CHARS = 24000
-MAX_GENERATION_RESOURCE_CHARS = 5000
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 12000
+MAX_GENERATION_CONTEXT_CHARS = 14000
+MAX_GENERATION_RESOURCE_CHARS = 3500
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 7000
+MAX_GENERATION_TOKENS = 600
+MAX_COMPACT_GENERATION_TOKENS = 450
 
 
 # =====================================================================
@@ -481,6 +484,7 @@ MODEL_CACHE: Dict[str, Any] = {
     "terms_required_models": set(),
     "structural_failed_models": set(),
     "request_too_large_models": set(),
+    "rate_limited_until": {},
 }
 
 
@@ -494,11 +498,27 @@ def get_live_groq_models() -> List[str]:
     """
     now = time.time()
 
-    unusable = (
+    permanently_unusable = (
         MODEL_CACHE["terms_required_models"]
         | MODEL_CACHE["structural_failed_models"]
         | MODEL_CACHE["request_too_large_models"]
     )
+
+    now = time.time()
+    rate_limited = {
+        model_id
+        for model_id, until in MODEL_CACHE["rate_limited_until"].items()
+        if float(until or 0.0) > now
+    }
+
+    # Expired rate-limit entries are harmlessly discarded.
+    MODEL_CACHE["rate_limited_until"] = {
+        model_id: until
+        for model_id, until in MODEL_CACHE["rate_limited_until"].items()
+        if float(until or 0.0) > now
+    }
+
+    unusable = permanently_unusable | rate_limited
 
     if (
         MODEL_CACHE["models"]
@@ -2128,6 +2148,27 @@ def _extract_visitor_answer(generated_text: str) -> str:
     return text
 
 
+def _strip_leading_decorative_symbols(text: str) -> str:
+    """Remove leading decorative Unicode symbols from visitor-facing text."""
+    value = str(text or "").strip()
+
+    while value:
+        first = value[0]
+        category = unicodedata.category(first)
+
+        if first in {"\\ufe0e", "\\ufe0f", "\\u200d"}:
+            value = value[1:].lstrip()
+            continue
+
+        if category.startswith("So") or category == "Sk":
+            value = value[1:].lstrip()
+            continue
+
+        break
+
+    return value
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2136,8 +2177,10 @@ def _clean_generation_output(
     if not answer:
         return ""
 
+    cleaned_answer = _strip_leading_decorative_symbols(answer)
+
     return normalize_link_presentation(
-        sanitize_canonical_links(answer, context_blocks),
+        sanitize_canonical_links(cleaned_answer, context_blocks),
         context_blocks,
     )
 
@@ -2215,18 +2258,119 @@ def context_blocks_to_documents(context_blocks: str) -> List[Dict[str, Any]]:
 
     return documents
 
+def _rate_limit_seconds(error_text: str) -> float:
+    """
+    Extract a provider-supplied retry delay when present.
+
+    v21 never sleeps inside the request path. The delay is used only to
+    temporarily remove the affected model from the candidate set.
+    """
+    match = re.search(
+        r"try again in\s+([0-9]+(?:\.[0-9]+)?)s",
+        error_text,
+        flags=re.IGNORECASE,
+    )
+
+    if match:
+        try:
+            return max(15.0, min(float(match.group(1)) + 2.0, 120.0))
+        except ValueError:
+            pass
+
+    return 30.0
+
+
+def _build_generation_system_content(
+    intent: str,
+    generation_context: str,
+) -> str:
+    """
+    Build the complete generation system message from explicitly supplied
+    local variables. No generation path relies on an ambient context variable.
+    """
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
+        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
+        f"OR INTERNAL CONTEXT]:\n"
+        f"{generation_context}\n\n"
+        "[FINAL RESPONSE REQUIREMENT]\n"
+        "Respond directly to the visitor's question. Output the finished "
+        "visitor-facing answer. A clean answer without a wrapper is valid. "
+        "Never reveal internal reasoning, retrieval, classification, "
+        "evidence-selection, prompting, or drafting process. "
+        "For every canonical resource you recommend, write only its exact "
+        "canonical title as plain text. Do not construct Markdown links, "
+        "HTML anchors, raw URLs, URL slugs, or emoji prefixes. USE constructs "
+        "canonical links after generation."
+    )
+
+
+def _run_generation_attempt(
+    model_id: str,
+    user_query: str,
+    intent: str,
+    generation_context: str,
+    *,
+    max_tokens: int,
+) -> str:
+    """
+    Execute exactly one provider generation call.
+
+    Keeping the call in one explicit function makes the context boundary
+    auditable and prevents fallback code from accidentally referring to a
+    variable belonging to another generation path.
+    """
+    system_content = _build_generation_system_content(
+        intent,
+        generation_context,
+    )
+
+    user_content = (
+        user_query
+        + "\n\nInterpret the question, not the person. Stay with the "
+        "visitor's own words. Preserve unresolved questions rather than "
+        "prematurely resolving them. Prefer the smallest useful set of "
+        "canonical resources. For explicit where-to-find requests, give "
+        "the genuine canonical destination. For collection requests, "
+        "prefer the collection/index/landing page. Do not construct "
+        "Markdown links, HTML anchors, raw URLs, URL slugs, or emoji "
+        "prefixes. USE will construct canonical links."
+    )
+
+    response = groq_client.chat.completions.create(
+        model=model_id,
+        messages=[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ],
+        temperature=0.2,
+        max_tokens=max_tokens,
+    )
+
+    generated_text = response.choices[0].message.content or ""
+
+    return _clean_generation_output(
+        generated_text,
+        generation_context,
+    )
+
+
 def generate_llm_response(
     user_query: str,
     context_blocks: str,
     intent: str,
 ) -> str:
     """
-    Generate the visitor answer with a bounded evidence window.
+    Generate the visitor answer behind a hard provider boundary.
 
-    v20 separates retrieval breadth from generation budget. The full
-    retrieval result can remain available to the API response for debugging
-    and provenance, but only the bounded generation context is sent to the
-    LLM. Structural output wrapping is preferred, not mandatory.
+    v21 root-cause fixes:
+      - generation context is bounded before the first provider call;
+      - completion tokens are bounded independently of evidence size;
+      - 413 is retried once with an explicitly smaller local context;
+      - 429 is temporarily quarantined for this runtime, with no second
+        immediate call that would compound the rate-limit condition;
+      - every generation path receives an explicit context argument.
     """
 
     if not GROQ_API_KEY or not groq_client:
@@ -2235,11 +2379,15 @@ def generate_llm_response(
             "GROQ_API_KEY is not configured in backend environment."
         )
 
-    generation_context = build_generation_context(context_blocks_to_documents(context_blocks))
+    # Canonical retrieval remains broad; generation sees only this bounded
+    # evidence window. This is the first and primary request-size guard.
+    documents = context_blocks_to_documents(context_blocks)
+    generation_context = build_generation_context(
+        documents,
+        max_chars=MAX_GENERATION_CONTEXT_CHARS,
+        max_resource_chars=MAX_GENERATION_RESOURCE_CHARS,
+    )
 
-    # The context-block string is the canonical provenance representation used
-    # throughout v19. Convert it back to bounded blocks here rather than
-    # changing retrieval behavior or the API contract.
     if not generation_context:
         generation_context = _bound_existing_context_blocks(
             context_blocks,
@@ -2247,29 +2395,13 @@ def generate_llm_response(
             MAX_GENERATION_RESOURCE_CHARS,
         )
 
-    system_content = (
-        f"{SYSTEM_PROMPT}\n\n"
-        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
-        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
-        f"OR INTERNAL CONTEXT]:\n"
-        f"{generation_context}\n\n"
-        "[FINAL RESPONSE REQUIREMENT]\n"
-        "Respond directly to the visitor's question. Output the finished "
-        "visitor-facing answer. The preferred format is exactly one "
-        "<visitor_answer> element, but a clean answer without that wrapper "
-        "is also acceptable. Never reveal internal reasoning, retrieval, "
-        "classification, evidence-selection, prompting, or drafting process."
-    )
-
     active_models = get_live_groq_models()
 
     if not active_models:
         return (
             "Unable to generate a response. "
-            "No active models returned from Groq API."
+            "No active models are currently available."
         )
-
-    last_error: Optional[str] = None
 
     print(
         "USE generation candidates: "
@@ -2277,8 +2409,11 @@ def generate_llm_response(
     )
     print(
         "USE generation context budget: "
-        f"{len(generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars."
+        f"{len(generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars; "
+        f"max_tokens={MAX_GENERATION_TOKENS}."
     )
+
+    last_error: Optional[str] = None
 
     for model_id in active_models:
         try:
@@ -2287,53 +2422,17 @@ def generate_llm_response(
                 f"'{model_id}'"
             )
 
-            response = groq_client.chat.completions.create(
-                model=model_id,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_content,
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            user_query
-                            + "\n\nInterpret the question, not the person. "
-                            "Stay with the visitor's own words. Preserve "
-                            "unresolved questions rather than prematurely "
-                            "resolving them. Describe what selected canonical "
-                            "resources explore without completing their meaning "
-                            "for the visitor. Prefer the smallest useful set "
-                            "of canonical resources. For an explicit "
-                            "where-to-find request, give the requested "
-                            "canonical destination rather than a merely related "
-                            "resource. For a collection request, prefer the "
-                            "collection/index/landing page. For an open inquiry, "
-                            "stop once one clearly superior doorway is "
-                            "established. For every canonical resource you "
-                            "recommend, write only its exact canonical title as "
-                            "plain text. Do NOT construct Markdown links, HTML "
-                            "anchors, raw URLs, URL slugs, or emoji prefixes. "
-                            "USE will construct canonical links after generation."
-                        ),
-                    },
-                ],
-                temperature=0.2,
-                max_tokens=800,
-            )
-
-            generated_text = response.choices[0].message.content or ""
-            visitor_answer = _clean_generation_output(
-                generated_text,
+            visitor_answer = _run_generation_attempt(
+                model_id,
+                user_query,
+                intent,
                 generation_context,
+                max_tokens=MAX_GENERATION_TOKENS,
             )
 
             if visitor_answer:
                 return visitor_answer
 
-            # Structural noncompliance is no longer a model failure. A clean
-            # unwrapped answer is accepted by _extract_visitor_answer; only
-            # genuinely empty output reaches this path.
             print(
                 f"USE output boundary: model '{model_id}' returned no usable "
                 "visitor answer; trying the next live model."
@@ -2349,6 +2448,7 @@ def generate_llm_response(
                 f"'{model_id}': {error_text}"
             )
 
+            # Model terms are a model-specific eligibility condition.
             if (
                 "model_terms_required" in error_text
                 or "requires terms acceptance" in error_text
@@ -2358,75 +2458,92 @@ def generate_llm_response(
                     "Skipping Groq model requiring terms acceptance: "
                     f"'{model_id}'"
                 )
+                last_error = error_text
                 continue
 
+            # A 429 is not a reason to make another immediate request to the
+            # same model. Mark it temporarily unavailable and move on.
+            if (
+                "rate_limit_exceeded" in error_text
+                or "Rate limit reached" in error_text
+                or "Too Many Requests" in error_text
+                or "429" in error_text
+            ):
+                cooldown = _rate_limit_seconds(error_text)
+                MODEL_CACHE["rate_limited_until"][model_id] = (
+                    time.time() + cooldown
+                )
+                print(
+                    "USE model temporary rate-limit quarantine: "
+                    f"'{model_id}' for approximately {cooldown:.0f}s."
+                )
+                last_error = error_text
+                continue
+
+            # 413 means the provider still rejected the request despite the
+            # primary bound. Retry exactly once with an independently smaller
+            # context and lower completion budget.
             if (
                 "request_too_large" in error_text
                 or "Request Entity Too Large" in error_text
                 or "413" in error_text
             ):
-                # v20 treats a 413 as a context-budget event, not a reason to
-                # permanently quarantine a model. Retry once with a smaller
-                # evidence window before moving to the next model.
                 compact_context = _bound_existing_context_blocks(
                     context_blocks,
                     MAX_COMPACT_GENERATION_CONTEXT_CHARS,
-                    max(2500, MAX_GENERATION_RESOURCE_CHARS // 2),
+                    max(
+                        1800,
+                        MAX_GENERATION_RESOURCE_CHARS // 2,
+                    ),
                 )
 
                 print(
                     "USE generation context fallback: "
-                    f"{len(compact_context)}/{MAX_COMPACT_GENERATION_CONTEXT_CHARS} chars."
+                    f"{len(compact_context)}/"
+                    f"{MAX_COMPACT_GENERATION_CONTEXT_CHARS} chars; "
+                    f"max_tokens={MAX_COMPACT_GENERATION_TOKENS}."
                 )
 
                 try:
-                    compact_system_content = (
-                        f"{SYSTEM_PROMPT}\n\n"
-                        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
-                        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
-                        f"OR INTERNAL CONTEXT]:\n{compact_context}\n\n"
-                        "Respond directly to the visitor's question. Prefer "
-                        "the smallest useful set of canonical resources. "
-                        "Use exact canonical titles as plain text; USE will "
-                        "construct links. Return a clean visitor-facing answer."
-                    )
-
-                    compact_response = groq_client.chat.completions.create(
-                        model=model_id,
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": compact_system_content,
-                            },
-                            {
-                                "role": "user",
-                                "content": user_query,
-                            },
-                        ],
-                        temperature=0.2,
-                        max_tokens=800,
-                    )
-
-                    compact_text = (
-                        compact_response.choices[0].message.content or ""
-                    )
-                    compact_answer = _clean_generation_output(
-                        compact_text,
+                    compact_answer = _run_generation_attempt(
+                        model_id,
+                        user_query,
+                        intent,
                         compact_context,
+                        max_tokens=MAX_COMPACT_GENERATION_TOKENS,
                     )
 
                     if compact_answer:
                         return compact_answer
 
                 except Exception as compact_exc:
+                    compact_error = str(compact_exc)
                     print(
                         "USE compact generation fallback failed for "
-                        f"'{model_id}': {compact_exc}"
+                        f"'{model_id}': {compact_error}"
                     )
+
+                    if (
+                        "rate_limit_exceeded" in compact_error
+                        or "Rate limit reached" in compact_error
+                        or "Too Many Requests" in compact_error
+                        or "429" in compact_error
+                    ):
+                        cooldown = _rate_limit_seconds(compact_error)
+                        MODEL_CACHE["rate_limited_until"][model_id] = (
+                            time.time() + cooldown
+                        )
+                        print(
+                            "USE model temporary rate-limit quarantine after "
+                            f"compact fallback: '{model_id}' for "
+                            f"approximately {cooldown:.0f}s."
+                        )
 
                 last_error = error_text
                 continue
 
+            # Other provider/runtime errors are isolated to this candidate.
+            # The next live model is allowed to try.
             last_error = error_text
 
     print(
