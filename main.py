@@ -1,5 +1,5 @@
-# USE v16 — Adaptive Stewardship Retrieval / Deterministic Link Repair
-# Derived from the audited USE v14 production unit.
+# USE v17 — Adaptive Stewardship Retrieval / Deterministic Link Repair / HTML Anchor Normalization
+# Derived from the audited USE v16 production unit. v17 adds deterministic normalization of model-generated HTML anchors before URL sanitization.
 
 import os
 import re
@@ -1764,6 +1764,55 @@ def sanitize_canonical_links(
     """
     pairs = _canonical_pairs(context_blocks)
     allowed_urls = {url.lower() for _title, url in pairs}
+
+    # Models occasionally emit HTML anchors instead of Markdown. Normalize
+    # those anchors BEFORE raw-URL sanitization; otherwise the sanitizer can
+    # remove the URL and leave broken visitor-facing fragments such as
+    # '<a href="'. Canonical URL identity remains authoritative.
+    canonical_by_url = {
+        url.lower(): (_canonical_display_title(title), url)
+        for title, url in pairs
+    }
+
+    def replace_html_anchor(match: re.Match) -> str:
+        url = match.group(1).strip().rstrip(".,;")
+        canonical = canonical_by_url.get(url.lower())
+        label = re.sub(r"<[^>]*>", "", match.group(2) or "").strip()
+
+        if canonical is None:
+            return label
+
+        display_title, exact_url = canonical
+        return f"[{display_title}]({exact_url})"
+
+    # Standard HTML anchor: <a href="URL">label</a>, allowing attributes.
+    answer = re.sub(
+        r"<a\s+[^>]*?href=[\"\'](https?://[^\"\']+)[\"\'][^>]*>(.*?)</a>",
+        replace_html_anchor,
+        answer,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    # Some model outputs omit the closing anchor tag. If the exact canonical
+    # URL is present, rebuild the link from canonical evidence rather than
+    # exposing the malformed HTML. Keep the remainder of the line intact.
+    def replace_unclosed_html_anchor(match: re.Match) -> str:
+        url = match.group(1).strip().rstrip(".,;")
+        canonical = canonical_by_url.get(url.lower())
+        label = match.group(2).strip()
+
+        if canonical is None:
+            return label
+
+        display_title, exact_url = canonical
+        return f"[{display_title}]({exact_url})"
+
+    answer = re.sub(
+        r"<a\s+[^>]*?href=[\"\'](https?://[^\"\']+)[\"\'][^>]*>([^<\n]{1,300})",
+        replace_unclosed_html_anchor,
+        answer,
+        flags=re.IGNORECASE,
+    )
 
     def replace_markdown(match: re.Match) -> str:
         label = match.group(1).strip()
