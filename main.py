@@ -1,3 +1,8 @@
+# USE v31 — Reasoning Boundary Enforcement / Visitor-Facing Output Gate
+# v31 preserves v30 evidence-relevance, v29 canonical-integrity, v28 commitment-state,
+# and progressive-inquiry behavior while adding a deterministic generation-output gate.
+# Internal reasoning/process leakage is rejected and regenerated before visitor presentation.
+
 # USE v28 — Commitment-State Guard / 5-Why-Inspired Progressive Inquiry
 # v28 preserves v27 inquiry-before-retrieval behavior and adds an explicit
 # pre-commitment vocabulary guard. Serious study readiness may be recognized
@@ -515,7 +520,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v30-evidence-relevance-threshold"
+DEPLOYMENT_FINGERPRINT = "USE-v31-reasoning-boundary-enforcement"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2634,6 +2639,77 @@ def enforce_canonical_resource_allowlist(
     return cleaned
 
 
+def _looks_like_reasoning_leak(answer: str) -> bool:
+    """
+    Detect explicit model process narration that must never reach visitors.
+    This is deliberately conservative and targets unmistakable internal-process
+    markers rather than ordinary analytical prose.
+    """
+    value = str(answer or "").strip()
+    if not value:
+        return False
+
+    strong_markers = (
+        "thinking process:",
+        "chain of thought",
+        "reasoning process:",
+        "analyze the request:",
+        "analyze user query:",
+        "scan retrieved evidence:",
+        "synthesize findings:",
+        "draft response:",
+        "mental refinement:",
+        "evidence vs. corpus boundary:",
+        "internal reasoning:",
+        "retrieval analysis:",
+        "retrieval process:",
+        "system prompt:",
+        "system instructions:",
+    )
+    folded = value.casefold()
+    if any(marker in folded for marker in strong_markers):
+        return True
+
+    procedural_terms = (
+        "analyze the",
+        "canonical evidence",
+        "retrieved evidence",
+        "retrieval",
+        "constraints:",
+        "goal:",
+        "instructions:",
+        "output inside",
+        "no reasoning",
+        "reasoning/retrieval",
+        "visitor-facing response contract",
+    )
+    numbered_steps = len(re.findall(r"(?im)^\s*\d+[.)]\s+", value))
+    procedural_hits = sum(term in folded for term in procedural_terms)
+    return numbered_steps >= 2 and procedural_hits >= 2
+
+
+def _reasoning_safe_generation_messages(
+    messages: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
+    """Strengthen only the visitor-output boundary after a leakage failure."""
+    strengthened = [dict(message) for message in messages]
+
+    if strengthened and strengthened[0].get("role") == "system":
+        strengthened[0]["content"] = (
+            strengthened[0].get("content", "")
+            + "\n\n"
+            "FINAL OUTPUT SAFETY OVERRIDE: Return ONLY the finished "
+            "visitor-facing answer. Do not output or describe any analysis, "
+            "thinking process, reasoning steps, retrieval process, evidence "
+            "review, instructions, constraints, system messages, or drafting "
+            "process. Do not use headings such as 'Thinking Process' or "
+            "'Reasoning'. Do not enumerate how you arrived at the answer. "
+            "Begin directly with the answer to the visitor's question."
+        )
+
+    return strengthened
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -3130,11 +3206,44 @@ def _run_generation_attempt(
     )
 
     generated_text = response.choices[0].message.content or ""
-
-    return _clean_generation_output(
+    cleaned_answer = _clean_generation_output(
         generated_text,
         safe_context,
     )
+
+    if _looks_like_reasoning_leak(cleaned_answer):
+        print(
+            f"USE output boundary: reasoning/process leakage detected from "
+            f"model '{model_id}'; regenerating visitor-facing answer."
+        )
+
+        safe_messages = _reasoning_safe_generation_messages(messages)
+        retry_response = groq_client.chat.completions.create(
+            model=model_id,
+            messages=safe_messages,
+            temperature=0.2,
+            max_tokens=max_tokens,
+        )
+        retry_text = retry_response.choices[0].message.content or ""
+        retry_answer = _clean_generation_output(
+            retry_text,
+            safe_context,
+        )
+
+        if retry_answer and not _looks_like_reasoning_leak(retry_answer):
+            print(
+                f"USE output boundary: reasoning-safe regeneration accepted "
+                f"for model '{model_id}'."
+            )
+            return retry_answer
+
+        print(
+            f"USE output boundary: reasoning leakage persisted for model "
+            f"'{model_id}'; rejecting output."
+        )
+        return ""
+
+    return cleaned_answer
 
 
 def _is_request_too_large_error(error_text: str) -> bool:
@@ -3245,6 +3354,7 @@ def generate_llm_response(
                 intent,
                 base_generation_context,
                 max_tokens=MAX_GENERATION_TOKENS,
+                orientational_frame=orientational_frame,
                 progressive_state=progressive_state,
             )
 
