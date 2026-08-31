@@ -1,4 +1,4 @@
-# USE v30 — Visitor Output & Runtime Identification Hardening
+# USE v31 — Provider Daily TPD Guard & Quota Failure Hardening
 # Complete production unit reconstructed from the current live main.py baseline.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, and provider chain while hardening confirmed
@@ -9,6 +9,8 @@ import re
 import time
 import unicodedata
 from typing import Dict, Any, List, Optional, Tuple
+import math
+import threading
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -474,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v30"
+APP_VERSION = "v31"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -490,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v30-visitor-output-runtime-hardening"
+DEPLOYMENT_FINGERPRINT = "USE-v31-provider-daily-tpd-guard"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -576,7 +578,13 @@ MODEL_CACHE: Dict[str, Any] = {
     "structural_failed_models": set(),
     "request_too_large_models": set(),
     "rate_limited_until": {},
+    # Observed provider TPD state, populated only when Groq explicitly
+    # reports a daily-token limit/usage pair. This is intentionally an
+    # observed-state guard, not an invented quota source.
+    "daily_tpd": {},
 }
+
+MODEL_CACHE_LOCK = threading.Lock()
 
 
 def get_live_groq_models() -> List[str]:
@@ -2623,26 +2631,123 @@ def context_blocks_to_documents(context_blocks: str) -> List[Dict[str, Any]]:
 
     return documents
 
-def _rate_limit_seconds(error_text: str) -> float:
-    """
-    Extract a provider-supplied retry delay when present.
-
-    v21 never sleeps inside the request path. The delay is used only to
-    temporarily remove the affected model from the candidate set.
-    """
+def _parse_provider_retry_delay_seconds(error_text: str) -> Optional[float]:
+    """Parse Groq's human-readable retry delay, including m/s combinations."""
     match = re.search(
-        r"try again in\s+([0-9]+(?:\.[0-9]+)?)s",
+        r"try again in\s+((?:[0-9]+(?:\.[0-9]+)?h\s*)?(?:[0-9]+(?:\.[0-9]+)?m\s*)?(?:[0-9]+(?:\.[0-9]+)?s)?)",
         error_text,
         flags=re.IGNORECASE,
     )
+    if not match:
+        return None
 
-    if match:
-        try:
-            return max(15.0, min(float(match.group(1)) + 2.0, 120.0))
-        except ValueError:
-            pass
+    value = match.group(1).strip().lower()
+    total = 0.0
+    for amount, unit in re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*([hms])", value):
+        multiplier = {"h": 3600.0, "m": 60.0, "s": 1.0}[unit]
+        total += float(amount) * multiplier
 
+    return total if total > 0 else None
+
+
+def _rate_limit_seconds(error_text: str) -> float:
+    """Extract a provider-supplied retry delay for ordinary rate limits."""
+    parsed = _parse_provider_retry_delay_seconds(error_text)
+    if parsed is not None:
+        return max(15.0, min(parsed + 2.0, 3600.0))
     return 30.0
+
+
+def _parse_daily_tpd_state(error_text: str) -> Optional[Dict[str, Any]]:
+    """Extract an explicitly reported Groq daily TPD limit/usage state."""
+    clean = str(error_text or "")
+    if not re.search(r"tokens per day\s*\(TPD\)", clean, flags=re.IGNORECASE):
+        return None
+
+    match = re.search(
+        r"Limit\s+([0-9,]+)\s*,\s*Used\s+([0-9,]+)\s*,\s*Requested\s+([0-9,]+)",
+        clean,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+
+    limit = int(match.group(1).replace(",", ""))
+    used = int(match.group(2).replace(",", ""))
+    requested = int(match.group(3).replace(",", ""))
+    retry_seconds = _parse_provider_retry_delay_seconds(clean)
+
+    return {
+        "limit": limit,
+        "used": used,
+        "requested": requested,
+        "remaining": max(0, limit - used),
+        "reset_at": time.time() + (retry_seconds if retry_seconds is not None else 86400.0),
+        "observed_at": time.time(),
+    }
+
+
+def _record_daily_tpd_state(candidate_model: str, error_text: str) -> bool:
+    """Record an explicit provider TPD state and bind it to this candidate."""
+    state = _parse_daily_tpd_state(error_text)
+    if not state:
+        return False
+
+    with MODEL_CACHE_LOCK:
+        MODEL_CACHE["daily_tpd"][candidate_model] = state
+
+    print(
+        "USE provider daily TPD state observed: "
+        f"candidate='{candidate_model}', used={state['used']}, "
+        f"limit={state['limit']}, remaining={state['remaining']}, "
+        f"requested={state['requested']}."
+    )
+    return True
+
+
+def _estimate_quota_tokens(messages: List[Dict[str, str]], max_tokens: int) -> int:
+    """Conservatively estimate total tokens consumed by one provider request."""
+    chars = _estimate_message_chars(messages)
+    estimated_input = math.ceil(chars / 5.0)
+    estimated_total = math.ceil((estimated_input + max_tokens) * 1.10)
+    return max(1, estimated_total)
+
+
+def _known_daily_tpd_preflight(candidate_model: str, estimated_tokens: int) -> None:
+    """Skip a candidate when observed provider TPD is known to be insufficient."""
+    now = time.time()
+    with MODEL_CACHE_LOCK:
+        state = MODEL_CACHE["daily_tpd"].get(candidate_model)
+        if not state:
+            return
+
+        if float(state.get("reset_at", 0.0)) <= now:
+            MODEL_CACHE["daily_tpd"].pop(candidate_model, None)
+            return
+
+        remaining = max(0, int(state.get("limit", 0)) - int(state.get("used", 0)))
+        if estimated_tokens <= remaining:
+            return
+
+    raise KnownDailyQuotaInsufficient(
+        candidate_model=candidate_model,
+        estimated_tokens=estimated_tokens,
+        remaining_tokens=remaining,
+    )
+
+
+class KnownDailyQuotaInsufficient(RuntimeError):
+    """Raised before a request when observed daily TPD is insufficient."""
+
+    def __init__(self, candidate_model: str, estimated_tokens: int, remaining_tokens: int):
+        super().__init__(
+            f"Known insufficient Groq daily TPD for '{candidate_model}': "
+            f"estimated request {estimated_tokens} tokens exceeds "
+            f"observed remaining quota {remaining_tokens} tokens."
+        )
+        self.candidate_model = candidate_model
+        self.estimated_tokens = estimated_tokens
+        self.remaining_tokens = remaining_tokens
 
 
 def _build_generation_system_content(
@@ -2800,6 +2905,9 @@ def _run_generation_attempt(
         orientational_frame=orientational_frame,
     )
 
+    estimated_quota_tokens = _estimate_quota_tokens(messages, max_tokens)
+    _known_daily_tpd_preflight(model_id, estimated_quota_tokens)
+
     response = groq_client.chat.completions.create(
         model=model_id,
         messages=messages,
@@ -2863,7 +2971,10 @@ def generate_llm_response(
       - provider 400 length errors are treated as request-size failures;
       - compact fallback is derived from the already-bounded generation context,
         never from an ambient or stale variable;
-      - 429 responses quarantine the affected model for this runtime;
+      - known provider TPD exhaustion is preflighted after an explicit Groq
+        daily-quota observation, so the same doomed request is not retried;
+      - 429 responses remain a fallback quarantine for conditions not known
+        beforehand;
       - startup and health responses expose a deployment fingerprint so stale
         deployments cannot masquerade as current-code failures.
     """
@@ -2953,7 +3064,18 @@ def generate_llm_response(
                 last_error = error_text
                 continue
 
+            if isinstance(exc, KnownDailyQuotaInsufficient):
+                print(
+                    "USE provider daily TPD preflight: SKIP "
+                    f"'{model_id}' before API call; "
+                    f"estimated={exc.estimated_tokens}, "
+                    f"remaining={exc.remaining_tokens}."
+                )
+                last_error = error_text
+                continue
+
             if _is_rate_limit_error(error_text):
+                _record_daily_tpd_state(model_id, error_text)
                 cooldown = _rate_limit_seconds(error_text)
                 MODEL_CACHE["rate_limited_until"][model_id] = (
                     time.time() + cooldown
@@ -3007,6 +3129,7 @@ def generate_llm_response(
                     )
 
                     if _is_rate_limit_error(compact_error):
+                        _record_daily_tpd_state(model_id, compact_error)
                         cooldown = _rate_limit_seconds(compact_error)
                         MODEL_CACHE["rate_limited_until"][model_id] = (
                             time.time() + cooldown
@@ -3220,10 +3343,42 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v30":
+        if APP_VERSION != "v31":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
+
+        quota_test_error = (
+            "Rate limit reached for model `meta-llama/llama-4-scout-17b-16e-instruct` "
+            "on tokens per day (TPD): Limit 500000, Used 499159, Requested 1267. "
+            "Please try again in 1m13.6128s."
+        )
+        parsed_quota = _parse_daily_tpd_state(quota_test_error)
+        if not parsed_quota or parsed_quota["remaining"] != 841:
+            raise RuntimeError(
+                "Daily TPD parser regression: explicit provider quota state was not parsed."
+            )
+
+        test_model = "self-audit/groq-compound"
+        MODEL_CACHE["daily_tpd"][test_model] = {
+            "limit": 500000,
+            "used": 499159,
+            "remaining": 841,
+            "requested": 1267,
+            "reset_at": time.time() + 3600,
+            "observed_at": time.time(),
+        }
+        try:
+            try:
+                _known_daily_tpd_preflight(test_model, 842)
+            except KnownDailyQuotaInsufficient:
+                pass
+            else:
+                raise RuntimeError(
+                    "Daily TPD preflight regression: insufficient observed quota was not blocked."
+                )
+        finally:
+            MODEL_CACHE["daily_tpd"].pop(test_model, None)
 
     except Exception as exc:
         raise RuntimeError(
