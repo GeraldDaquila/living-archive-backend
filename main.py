@@ -500,7 +500,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v29"
+APP_VERSION = "v30"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -515,7 +515,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v29-canonical-evidence-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v30-evidence-relevance-threshold"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1501,8 +1501,16 @@ def format_context_blocks(
         elif index_number < structural_destination_count + adaptive_bridge_count:
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
+        relevance_score = float(doc.get("_v30_relevance_score", 0.0) or 0.0)
+        relevance_label = (
+            "HIGH RELEVANCE" if relevance_score >= 0.20
+            else "MODERATE RELEVANCE" if relevance_score >= 0.08
+            else "LOW RELEVANCE — DO NOT PRESENT AS A PRIMARY ANSWER ROUTE"
+        )
+
         formatted_blocks.append(
             f"Evidence Role: {role}\n"
+            f"Evidence Relevance: {relevance_label}\n"
             f"Title: {title}\n"
             f"URL: {url}\n"
             f"Content: {content}"
@@ -1606,6 +1614,120 @@ def orientational_rerank_documents(
         key=lambda item: (-_orientational_resource_bonus(item[1], frame), item[0]),
     )
     return prefix + [doc for _index, doc in ranked]
+
+
+# =====================================================================
+# V30 EVIDENCE RELEVANCE THRESHOLD
+# =====================================================================
+# v29 established that named resources must be canonical. v30 adds the next
+# boundary: canonical identity is not sufficient; a resource should also be
+# sufficiently relevant to the actual question before USE treats it as a
+# primary route. This is intentionally a light deterministic rerank, not a
+# replacement for semantic retrieval and not a claim that low-scoring
+# resources are absent from the Archive.
+
+_RELEVANCE_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "been", "being", "but",
+    "by", "can", "could", "did", "do", "does", "for", "from", "had", "has",
+    "have", "how", "i", "if", "in", "into", "is", "it", "its", "may", "me",
+    "more", "my", "of", "on", "or", "our", "should", "that", "the", "their",
+    "them", "there", "these", "this", "to", "was", "we", "what", "when", "where",
+    "which", "who", "why", "will", "with", "would", "you", "your", "than", "not",
+}
+
+
+def _relevance_tokens(text: str) -> List[str]:
+    words = re.findall(r"[a-z0-9][a-z0-9'-]{2,}", str(text or "").lower())
+    return [w for w in words if w not in _RELEVANCE_STOPWORDS]
+
+
+def _stem_relevance_token(token: str) -> str:
+    value = token.lower().strip("'-")
+    for suffix in ("ization", "ations", "ation", "ingly", "edly", "ment", "ness", "ing", "ers", "ies", "es", "s"):
+        if value.endswith(suffix) and len(value) - len(suffix) >= 4:
+            value = value[: -len(suffix)]
+            break
+    return value
+
+
+def _evidence_relevance_score(query: str, doc: Dict[str, Any]) -> float:
+    """Estimate question/evidence alignment without inventing corpus facts."""
+    query_tokens = [_stem_relevance_token(x) for x in _relevance_tokens(query)]
+    if not query_tokens:
+        return 0.0
+
+    title = str(doc.get("title", ""))
+    content = _resource_content(doc)
+    title_tokens = {_stem_relevance_token(x) for x in _relevance_tokens(title)}
+    content_tokens = {_stem_relevance_token(x) for x in _relevance_tokens(content)}
+
+    unique_query = set(query_tokens)
+    title_hits = len(unique_query & title_tokens)
+    content_hits = len(unique_query & content_tokens)
+
+    # Title alignment is deliberately weighted more strongly than generic
+    # body overlap. Exact multi-word phrase overlap gets a modest additional
+    # signal, while the score remains bounded and conservative.
+    title_component = title_hits / max(1, len(unique_query))
+    content_component = min(1.0, content_hits / max(1, len(unique_query)))
+
+    query_phrases = set(
+        " ".join(query_tokens[i:i + 2])
+        for i in range(max(0, len(query_tokens) - 1))
+    )
+    searchable = " ".join(_stem_relevance_token(x) for x in _relevance_tokens(content))
+    phrase_hits = sum(1 for phrase in query_phrases if phrase in searchable)
+    phrase_component = min(1.0, phrase_hits / max(1, min(3, len(query_phrases))))
+
+    score = (0.55 * title_component) + (0.35 * content_component) + (0.10 * phrase_component)
+    return round(min(1.0, max(0.0, score)), 4)
+
+
+def apply_evidence_relevance_threshold(
+    documents: List[Dict[str, Any]],
+    query: str,
+    *,
+    minimum_primary_score: float = 0.08,
+) -> List[Dict[str, Any]]:
+    """Rank evidence by deterministic relevance while preserving recall.
+
+    No document is declared nonexistent when its relevance is weak. Strong
+    evidence is simply promoted, and very weak candidates are retained only
+    when the retrieval set contains too little stronger evidence. This keeps
+    semantic retrieval as the discovery mechanism while preventing a merely
+    canonical but tangential resource from dominating the answer.
+    """
+    if not documents:
+        return documents
+
+    scored: List[Tuple[float, int, Dict[str, Any]]] = []
+    for index_number, doc in enumerate(documents):
+        score = _evidence_relevance_score(query, doc)
+        enriched = dict(doc)
+        enriched["_v30_relevance_score"] = score
+        scored.append((score, index_number, enriched))
+
+    ranked = sorted(scored, key=lambda item: (-item[0], item[1]))
+    strong = [item for item in ranked if item[0] >= minimum_primary_score]
+
+    # Preserve at least the strongest canonical evidence. When several
+    # sufficiently relevant resources exist, don't let a long tail of weak
+    # neighbors consume the bounded generation window.
+    if len(strong) >= 2:
+        selected = strong[:MAX_CONTEXT_RESOURCES]
+    else:
+        selected = ranked[:MAX_CONTEXT_RESOURCES]
+
+    result = [doc for _score, _index, doc in selected]
+    print(
+        "USE evidence relevance: "
+        + ", ".join(
+            f"{doc.get('title', 'Untitled Resource')}="
+            f"{doc.get('_v30_relevance_score', 0.0):.3f}"
+            for doc in result[:5]
+        )
+    )
+    return result
 
 
 # =====================================================================
@@ -1923,6 +2045,14 @@ def fetch_canonical_context(
         retrieved_docs,
         orientational_frame,
         preserve_prefix=protected_prefix,
+    )[:MAX_CONTEXT_RESOURCES]
+
+    # v30: canonical identity is necessary but not sufficient. Apply a light
+    # deterministic relevance threshold after semantic/orientational
+    # retrieval, while retaining recall when strong evidence is sparse.
+    retrieved_docs = apply_evidence_relevance_threshold(
+        retrieved_docs,
+        user_query,
     )[:MAX_CONTEXT_RESOURCES]
 
     structural_destination_count = (
@@ -2933,6 +3063,7 @@ def _build_generation_messages(
         "Do not present the reflective question as a test, score, gate, diagnosis, or membership assessment. "
         "If the question does not warrant a deeper probe, answer normally and navigate naturally. "
         "Before explicit Steward Access commitment, never use proprietary or threshold-specific Living Archive labels, even if the visitor uses stewardship terminology. Do not infer commitment from interest, readiness language, repeated questions, or sophisticated understanding. "
+        "Treat Evidence Relevance as an internal confidence signal. Prefer HIGH RELEVANCE evidence for direct claims and primary resource recommendations. MODERATE RELEVANCE evidence may be used when the connection is explicit and qualified. Do not stretch LOW RELEVANCE evidence into an authoritative answer route. If the supplied evidence is only tangential, acknowledge the limitation rather than manufacturing a stronger connection. Never invent a resource to fill an evidence gap. "
     )
 
     system_content = _build_generation_system_content(
@@ -3444,6 +3575,16 @@ def _generation_boundary_self_audit() -> None:
     shallow = assess_progressive_commitment("What is the Archive?", [])
     assert shallow["deeper_probe_allowed"] is False
 
+    relevance_docs = [
+        {"title": "Personal Responsibility in Systems", "url": "https://example.com/strong", "content": "responsibility participation systems power community"},
+        {"title": "Social Media and Anxiety", "url": "https://example.com/weak", "content": "social media anxiety comparison digital habits"},
+    ]
+    relevance_ranked = apply_evidence_relevance_threshold(
+        relevance_docs,
+        "How do I understand responsibility and participation in systems?",
+    )
+    assert relevance_ranked[0]["title"] == "Personal Responsibility in Systems"
+
     evidence = (
         "Title: Canonical Resource One\n"
         "URL: https://example.com/one\n"
@@ -3472,7 +3613,7 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "context_blocks is explicitly scoped."
+        "context_blocks is explicitly scoped; v30 evidence relevance threshold is active."
     )
 
 
