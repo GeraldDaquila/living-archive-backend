@@ -404,7 +404,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v12"
+APP_VERSION = "v13"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -741,7 +741,7 @@ def classify_intent(query_str: str) -> str:
 
 COLLECTION_TERMS = {
     "reference maps": ("reference maps", "reference map"),
-    "pathways": ("pathways", "guided pathways", "guided reading pathways"),
+    "pathways": ("guided pathways", "living archive pathways", "pathways", "guided reading pathways"),
     "navigators": ("navigators", "navigator series"),
     "knowledge hubs": ("knowledge hubs", "knowledge hub"),
     "case library": ("case library", "case atlas"),
@@ -865,6 +865,20 @@ def _structural_relationship(
     content = _resource_content(metadata).lower()
     aliases = COLLECTION_TERMS.get(collection_name, (collection_name,))
 
+    # "Guided reading pathways" is a Navigator feature, not automatically
+    # the Guided Pathways collection. Remove that phrase from collection
+    # qualification so a companion publication cannot become the destination
+    # merely because it contains the generic word "pathways".
+    if collection_name == "pathways":
+        content_without_reading = re.sub(
+            r"guided\s+reading\s+pathways?",
+            "",
+            content,
+            flags=re.IGNORECASE,
+        )
+    else:
+        content_without_reading = content
+
     # Prefer the canonical plural/collection form when one exists. This
     # prevents a singular member (e.g. one Guided Pathway) from being
     # mistaken for the collection-level destination.
@@ -875,6 +889,8 @@ def _structural_relationship(
 
     title_exact = any(title == alias for alias in plural_aliases)
     title_contains = any(alias in title for alias in plural_aliases)
+    early_content = content_without_reading[:1600]
+    primary_early = primary_alias in early_content
 
     collection_role_terms = (
         "collection",
@@ -920,9 +936,21 @@ def _structural_relationship(
 
     # Strongest content relationship: the page describes the collection
     # itself, rather than a single member of it.
-    plural_hits = sum(content.count(alias) for alias in plural_aliases)
-    has_collection_role = any(term in content for term in collection_role_terms)
-    has_navigation = any(term in content for term in navigational_terms)
+    plural_hits = sum(content_without_reading.count(alias) for alias in plural_aliases)
+    has_collection_role = any(term in content_without_reading for term in collection_role_terms)
+    has_navigation = any(term in content_without_reading for term in navigational_terms)
+
+    # A collection landing page often identifies itself through its opening
+    # heading/subtitle rather than the exact words "collection" or "index".
+    # This is especially important for a page such as "Ninety Minutes to
+    # Greater Clarity", whose opening heading identifies it as Guided
+    # Pathways even though the page title does not contain the word Pathways.
+    if primary_early and has_navigation and (
+        collection_name != "pathways"
+        or "guided pathways" in early_content
+        or "living archive pathways" in early_content
+    ):
+        return "DESTINATION", 82
 
     # Explicit collection-level formulations are high-confidence evidence.
     explicit_collection_patterns = (
@@ -933,7 +961,7 @@ def _structural_relationship(
     )
 
     explicit_collection = any(
-        re.search(pattern, content, flags=re.IGNORECASE)
+        re.search(pattern, content_without_reading, flags=re.IGNORECASE)
         for pattern in explicit_collection_patterns
     )
 
@@ -948,7 +976,8 @@ def _structural_relationship(
     # A page can be a genuine gateway without naming itself as a collection.
     # Require repeated collection-level evidence plus navigational framing.
     if plural_hits >= 2 and has_collection_role and has_navigation:
-        return "DESTINATION", 65
+        if collection_name != "pathways" or primary_early:
+            return "DESTINATION", 65
 
     # A common false-positive pattern: an individual resource says
     # "Explore the Guided Pathway" or discusses a Pathway it incorporates.
@@ -969,7 +998,7 @@ def _structural_relationship(
     singular_reference = any(
         re.search(
             rf"\b(?:a|an|the|this|one|each)\s+{re.escape(alias)}\b",
-            content,
+            content_without_reading,
             flags=re.IGNORECASE,
         )
         for alias in singular_aliases
@@ -978,7 +1007,7 @@ def _structural_relationship(
     member_cta = any(
         re.search(
             rf"(?:explore|read|open|view|follow|access)\s+(?:the\s+)?{re.escape(alias)}\b",
-            content,
+            content_without_reading,
             flags=re.IGNORECASE,
         )
         for alias in singular_aliases
@@ -1000,13 +1029,26 @@ def _query_structural_index(
     to a hard-coded URL. Only candidates whose corpus evidence qualifies
     them as collection-level destinations are returned.
     """
-    query_variants = (
-        f'"{collection_name}"',
-        f"Living Archive {collection_name} collection index landing page gateway",
-        f"Living Archive {collection_name} where to find explore browse access",
-        f"Living Archive {collection_name} series library hub navigator",
-        f"Living Archive {collection_name} continue exploring choose begin",
-    )
+    aliases = COLLECTION_TERMS.get(collection_name, (collection_name,))
+
+    # Structural recall must search the actual vocabulary visitors and the
+    # corpus use for the collection. These are retrieval aliases, not
+    # hard-coded destinations.
+    alias_variants = tuple(dict.fromkeys(
+        alias.strip() for alias in aliases if alias.strip()
+    ))
+
+    query_variants = tuple(dict.fromkeys(
+        [
+            *(f'"{alias}"' for alias in alias_variants),
+            *(f"Living Archive {alias} collection index landing page gateway"
+              for alias in alias_variants),
+            *(f"Living Archive {alias} where to find explore browse access"
+              for alias in alias_variants),
+            *(f"Living Archive {alias} continue exploring choose begin"
+              for alias in alias_variants),
+        ]
+    ))
 
     ranked_by_key: Dict[str, Tuple[int, float, Dict[str, Any]]] = {}
 
@@ -1015,7 +1057,10 @@ def _query_structural_index(
         if not vector:
             continue
 
-        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 100))
+        # Structural discovery is a recall problem before it is a ranking
+        # problem. Search a materially wider candidate set than ordinary
+        # topical retrieval, then apply relationship qualification locally.
+        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 250))
 
         for semantic_score, _match_id_value, metadata in candidates:
             relationship, structural_score = _structural_relationship(
