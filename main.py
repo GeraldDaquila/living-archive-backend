@@ -1,4 +1,4 @@
-# USE v33 — Strict Visitor Output Gate / v32 Baseline
+# USE v34 — Browser CORS Boundary Hardening / v33 Baseline
 # v33 preserves v32's temporal 5-Why observer architecture.
 # It hardens only the final visitor-output acceptance boundary: model output
 # is valid only when a clean visitor-facing envelope is explicitly present.
@@ -490,13 +490,13 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v33"
+APP_VERSION = "v34"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[CORS_ALLOWED_ORIGIN],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -505,18 +505,21 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v33-strict-visitor-output-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v34-cors-boundary-hardening"
+
+CORS_ALLOWED_ORIGIN = "https://geralddaquila.com"
 
 CORS_RESPONSE_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": CORS_ALLOWED_ORIGIN,
     "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
     "Access-Control-Max-Age": "600",
+    "Vary": "Origin",
 }
 
 
 @app.middleware("http")
-async def v23_api_boundary(request: Request, call_next):
+async def v34_api_boundary(request: Request, call_next):
     """Guarantee a readable browser response at the outer API boundary."""
     if request.method == "OPTIONS":
         return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
@@ -534,8 +537,14 @@ async def v23_api_boundary(request: Request, call_next):
             },
         )
 
-    for header, value in CORS_RESPONSE_HEADERS.items():
-        response.headers[header] = value
+    request_origin = request.headers.get("origin", "")
+    if request_origin == CORS_ALLOWED_ORIGIN or not request_origin:
+        for header, value in CORS_RESPONSE_HEADERS.items():
+            response.headers[header] = value
+    else:
+        # Preserve normal server behavior while refusing to grant browser
+        # cross-origin access to an unapproved origin.
+        response.headers["Vary"] = "Origin"
 
     return response
 
@@ -547,6 +556,20 @@ print(
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"file={os.path.abspath(__file__)}"
 )
+
+print(
+    "USE CORS CONTRACT: "
+    f"origin={CORS_ALLOWED_ORIGIN}, methods=GET,POST,HEAD,OPTIONS"
+)
+
+# v34 startup contract audit: fail fast during deployment if the browser-facing
+# CORS configuration is accidentally weakened or disconnected from the
+# explicit production origin.
+assert CORS_ALLOWED_ORIGIN == "https://geralddaquila.com"
+assert CORS_RESPONSE_HEADERS["Access-Control-Allow-Origin"] == CORS_ALLOWED_ORIGIN
+assert CORS_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "GET, POST, HEAD, OPTIONS"
+assert "Content-Type" in CORS_RESPONSE_HEADERS["Access-Control-Allow-Headers"]
+assert CORS_RESPONSE_HEADERS["Vary"] == "Origin"
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
