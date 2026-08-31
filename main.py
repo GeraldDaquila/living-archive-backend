@@ -1,4 +1,8 @@
-# USE v32 — Temporal 5-Why Observer / Rebuilt from v26
+# USE v33 — Strict Visitor Output Gate / v32 Baseline
+# v33 preserves v32's temporal 5-Why observer architecture.
+# It hardens only the final visitor-output acceptance boundary: model output
+# is valid only when a clean visitor-facing envelope is explicitly present.
+
 # v32 intentionally returns to the v26 architectural baseline.
 # 5-Why/progressive inquiry observes the completed conversation turn only;
 # it cannot influence current-turn interpretation, retrieval, evidence selection,
@@ -486,7 +490,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v32"
+APP_VERSION = "v33"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -501,7 +505,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v32-temporal-5why-observer"
+DEPLOYMENT_FINGERPRINT = "USE-v33-strict-visitor-output-gate"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2335,35 +2339,54 @@ def build_generation_context(
     return "\n\n---\n\n".join(blocks).strip()
 
 
-def _extract_visitor_answer(generated_text: str) -> str:
+def _extract_visitor_answer(raw_text: str) -> str:
     """
-    Accept both the preferred visitor_answer envelope and clean unwrapped
-    model output. The envelope is a useful boundary, but it is not allowed
-    to turn a valid answer into a failed generation.
+    Strict visitor-output boundary.
+
+    The provider must explicitly return a visitor-facing envelope. Unwrapped
+    provider output is rejected rather than silently treated as the answer.
+    This prevents internal task specifications, reasoning/process narration,
+    or malformed provider output from reaching the visitor.
     """
-    text = str(generated_text or "").strip()
-    if not text:
+    value = str(raw_text or "").strip()
+    if not value:
         return ""
 
-    visitor_match = re.search(
+    match = re.search(
         r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
-        text,
+        value,
         flags=re.IGNORECASE | re.DOTALL,
     )
+    if not match:
+        print("USE output gate: missing <visitor_answer> envelope; rejecting output.")
+        return ""
 
-    if visitor_match:
-        return visitor_match.group(1).strip()
+    answer = match.group(1).strip()
+    if not answer:
+        print("USE output gate: empty <visitor_answer> envelope; rejecting output.")
+        return ""
 
-    # If a model emits only one side of the envelope, remove that wrapper
-    # rather than rejecting an otherwise usable visitor answer.
-    text = re.sub(
-        r"</?visitor_answer>",
-        "",
-        text,
-        flags=re.IGNORECASE,
-    ).strip()
+    # Reject unmistakable process/specification leakage even when wrapped.
+    folded = answer.casefold()
+    leak_markers = (
+        "thinking process:",
+        "chain of thought",
+        "reasoning process:",
+        "analyze the request:",
+        "analyze user query:",
+        "canonical evidence:",
+        "constraints:",
+        "retrieval analysis:",
+        "internal reasoning:",
+        "system prompt:",
+        "system instructions:",
+        "draft response:",
+    )
+    if any(marker in folded for marker in leak_markers):
+        print("USE output gate: reasoning/specification leakage inside envelope; rejecting output.")
+        return ""
 
-    return text
+    return answer
 
 
 def _strip_leading_decorative_symbols(text: str) -> str:
