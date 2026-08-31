@@ -490,7 +490,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v26-relational-orientation"
+DEPLOYMENT_FINGERPRINT = "USE-v27-inline-emoji-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2384,6 +2384,38 @@ def _extract_visitor_answer(generated_text: str) -> str:
     return text
 
 
+def _strip_emoji(text: str) -> str:
+    """
+    Remove emoji presentation characters anywhere in visitor-facing output.
+
+    This is deliberately a presentation-boundary operation. It does not
+    modify canonical evidence, resource identity, retrieval, or orientation.
+    """
+    value = str(text or "")
+
+    # Emoji-capable Unicode ranges commonly used by model-generated output.
+    emoji_ranges = (
+        r"\U0001F1E6-\U0001F1FF"  # regional indicators
+        r"\U0001F300-\U0001FAFF"  # pictographs, symbols, emoji
+        r"\u2600-\u27BF"          # miscellaneous symbols/dingbats
+        r"\u2300-\u23FF"          # technical/misc symbols occasionally emoji-presented
+    )
+    value = re.sub(f"[{emoji_ranges}]", "", value)
+
+    # Remove emoji presentation selectors and zero-width joiners left behind
+    # after the base emoji is removed.
+    value = re.sub(r"[\ufe0e\ufe0f\u200d]", "", value)
+
+    # Remove stray keycap combining marks that can remain after sanitation.
+    value = re.sub(r"\u20e3", "", value)
+
+    # Normalize whitespace created by removal without changing paragraph flow.
+    value = re.sub(r"[ \t]{2,}", " ", value)
+    value = re.sub(r"[ \t]+\n", "\n", value)
+    value = re.sub(r"\n[ \t]+", "\n", value)
+    return value.strip()
+
+
 def _strip_leading_decorative_symbols(text: str) -> str:
     """Remove leading decorative Unicode symbols from visitor-facing text."""
     value = str(text or "").strip()
@@ -2414,6 +2446,7 @@ def _clean_generation_output(
         return ""
 
     cleaned_answer = _strip_leading_decorative_symbols(answer)
+    cleaned_answer = _strip_emoji(cleaned_answer)
 
     return normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, context_blocks),
