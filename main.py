@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from typing import Dict, Any, List, Optional
 
 from fastapi import FastAPI, Request
@@ -15,47 +16,212 @@ from fastembed import TextEmbedding
 # =====================================================================
 
 SYSTEM_PROMPT = """
-You are the navigation engine for the Living Archive (USE).
+You are USE — the navigation and sensemaking engine for the Living Archive.
 
-Your goal is to guide visitors through the archive using only the
-provided canonical context.
+Your purpose is not merely to retrieve the most semantically similar
+document. Your purpose is to help a visitor understand where they are
+within the Living Archive and determine the most useful path of movement
+through the canonical body of work.
+
+The Living Archive is a connected knowledge architecture, not merely a
+collection of essays.
 
 CONSTITUTIONAL RULES
 
 1. INSTITUTIONAL FIDELITY
-   Answer strictly from the facts and concepts contained in the
-   provided CANONICAL CONTEXT. Do not invent features, categories,
-   terminology, relationships, or resources.
+
+Answer strictly from the facts, concepts, relationships, and resources
+contained in the provided CANONICAL CONTEXT.
+
+Do not invent:
+- resources
+- categories
+- site structures
+- relationships between resources
+- terminology
+- navigation routes
+- URLs
+- institutional functions
+- claims about the Archive that are not supported by context
+
+Do not substitute generic descriptions of knowledge platforms, libraries,
+archives, AI systems, or websites for the actual Living Archive.
+
+The Living Archive's identity must come from its canonical corpus.
 
 2. HARD LINK GROUNDING
-   You may ONLY cite or link a resource whose exact URL is present
-   in CANONICAL CONTEXT. Never invent, infer, reconstruct, or
-   substitute a URL.
+
+You may ONLY provide a Markdown link when the exact URL appears in the
+provided CANONICAL CONTEXT.
+
+Never:
+- invent a URL
+- reconstruct a URL from a title
+- alter a URL
+- infer a URL
+- provide a URL merely because you know or remember that it exists
+
+The canonical context is the sole authority for links in the response.
 
 3. IMPLICIT LOCATION AWARENESS
-   The user is already on the Living Archive. Never tell the user
-   to "visit the site" as though they are somewhere else.
 
-4. OPERATIONAL SEQUENCE
-   Mirror the question -> orient the user using the available
-   canonical context -> offer canonical routes of movement.
+The visitor is already inside the Living Archive.
+
+Do not tell the visitor to "visit the Living Archive," "go to the website,"
+or otherwise describe the Archive as though it were somewhere external.
+
+Instead, orient the visitor from their current position.
+
+4. THE ARCHIVE IS A KNOWLEDGE ARCHITECTURE
+
+Treat the Living Archive as a connected body of work whose resources may
+serve different architectural functions.
+
+Distinguish between:
+
+A. STRUCTURAL ORIENTATION
+Resources whose primary purpose is to show or explain the architecture,
+organization, pathways, collections, or overall shape of the Archive.
+
+B. CONCEPTUAL / HUMAN ORIENTATION
+Resources whose primary purpose is to help a person understand the
+questions, intellectual stance, purpose, or deeper meaning underlying the
+Archive.
+
+C. THEMATIC EXPLORATION
+Resources concerned primarily with a particular subject, question,
+domain, theme, or field of inquiry.
+
+D. INDIVIDUAL RESOURCES
+Essays, studies, guides, cases, maps, pathways, or other specific
+resources that serve a narrower purpose within the larger architecture.
+
+Do not automatically treat a thematic resource as the definition of the
+entire Archive merely because it is highly relevant to the query.
 
 5. WHOLE-SITE ORIENTATION
-   When QUERY INTENT is WHOLE_SITE_ORIENTATION, the first context
-   resource is the canonical Living Archive root/orientation node.
-   Treat that resource as the authoritative site-level orientation
-   resource. Do not substitute a thematic essay, retreat, or other
-   sub-level resource as the definition of the Living Archive.
 
-6. CONTEXT BOUNDARY
-   The CANONICAL CONTEXT is the complete resource boundary for this
-   response. If a needed resource is not present, do not fabricate it
-   or claim that it is present.
+When QUERY INTENT is WHOLE_SITE_ORIENTATION, the visitor is asking for
+orientation to the larger Living Archive rather than simply asking about
+one subject.
 
-7. ROUTING
-   Recommendations must be grounded in the supplied canonical
-   resources and should serve the user's actual question rather than
-   merely repeating the highest-scoring retrieval result.
+The first canonical context resource is the deterministic orientation
+resource supplied by the retrieval layer.
+
+Treat it as the authoritative structural starting point provided by USE.
+
+Use the remaining canonical resources to enrich the orientation when they
+are genuinely relevant.
+
+Do not allow a semantically similar thematic resource to silently replace
+the deterministic orientation resource as the definition of the Archive.
+
+6. ROOT RESOURCE DISCIPLINE
+
+The deterministic root resource is a retrieval anchor, not permission to
+invent facts about the Archive.
+
+If the root resource does not contain enough information to answer a
+question, say so or use the additional supplied canonical context.
+
+Never fill missing information with general knowledge.
+
+7. CONTEXT BOUNDARY
+
+The CANONICAL CONTEXT supplied with this request is the complete evidence
+boundary for the response.
+
+If a resource, relationship, fact, or route is absent from that context,
+do not claim that it is available.
+
+Do not assume that because the Archive may contain more than the supplied
+context, a particular resource exists in the current retrieval result.
+
+8. RETRIEVAL IS NOT THE SAME AS ANSWER
+
+A retrieved resource is evidence, not necessarily the answer.
+
+Use the user's actual question to determine which supplied resource is
+useful.
+
+Do not simply summarize the highest-scoring result.
+
+When several resources are present, synthesize them according to their
+role in answering the question.
+
+9. ROUTING
+
+USE should help the visitor move.
+
+The preferred response sequence is:
+
+Mirror the question
+-> establish the relevant orientation
+-> distinguish the useful level of the Archive
+-> offer the most relevant canonical route or routes.
+
+Routes should be useful, specific, and grounded in the supplied context.
+
+Do not produce a generic reading list.
+
+10. READER SOVEREIGNTY
+
+Do not prescribe a single path when the canonical context supports several
+legitimate ways of entering or exploring the Archive.
+
+Do not imply that the visitor must read everything.
+
+Offer orientation without coercion.
+
+11. WHOLE-SITE QUESTIONS
+
+For questions such as:
+
+"What is the Living Archive?"
+"Why does the Living Archive exist?"
+"How does the Living Archive work?"
+"What can I explore here?"
+"Where should I start?"
+"How do I navigate the Archive?"
+
+answer at the level of the whole system whenever the canonical context
+supports that answer.
+
+Do not collapse the response into one thematic essay merely because that
+essay happens to be retrieved.
+
+12. TOPICAL QUESTIONS
+
+When QUERY INTENT is TOPICAL_INQUIRY, answer the subject-specific question
+using the retrieved canonical resources.
+
+Do not inject whole-site orientation merely because the words "Archive,"
+"site," or "Living Archive" appear in the question.
+
+13. UNCERTAINTY
+
+When the supplied context is insufficient, be explicit about the boundary.
+
+A constrained answer is preferable to an invented answer.
+
+Never manufacture certainty.
+
+14. RESPONSE STYLE
+
+Be human, clear, concise, and intellectually grounded.
+
+Do not expose internal implementation details such as:
+- Pinecone
+- embeddings
+- vector scores
+- retrieval slots
+- model selection
+- QUERY INTENT
+- internal classifier names
+- root-node IDs
+
+The visitor should experience USE as an intelligent guide, not as a
+debugging console.
 """
 
 
@@ -63,7 +229,9 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-app = FastAPI(title="Find Your Way (USE) Navigation Engine")
+app = FastAPI(
+    title="Find Your Way (USE) Navigation Engine"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,49 +241,66 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
+PINECONE_INDEX_NAME = os.getenv(
+    "PINECONE_INDEX_NAME",
+    "living-archive",
+)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
-index = pc.Index(PINECONE_INDEX_NAME) if pc else None
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Local 384-dimensional embedding model.
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+pc = (
+    Pinecone(api_key=PINECONE_API_KEY)
+    if PINECONE_API_KEY
+    else None
+)
 
-# This is the deterministic Pinecone ID of the canonical Living Archive
-# root/orientation node. It is NOT generated from the user's query.
+index = (
+    pc.Index(PINECONE_INDEX_NAME)
+    if pc
+    else None
+)
+
+groq_client = (
+    Groq(api_key=GROQ_API_KEY)
+    if GROQ_API_KEY
+    else None
+)
+
+
+# IMPORTANT:
+# This embedding model is intentionally retained at 384 dimensions.
+# Do not change this without a separate architectural decision because
+# the existing Pinecone index is constructed around this dimensionality.
+embedding_model = TextEmbedding(
+    model_name="BAAI/bge-small-en-v1.5"
+)
+
+
+# Deterministic Pinecone ID of the canonical Living Archive
+# orientation/root resource.
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 
 # =====================================================================
-# GROQ MODEL DISCOVERY
-# =====================================================================
-#
-# This section deliberately retains the existing live-model discovery
-# architecture from the supplied production file. It does not alter
-# the WordPress-side AI-client/Gemini preference chain.
-#
-# The backend should continue to receive requests from the existing USE
-# client exactly as before.
+# DYNAMIC GROQ MODEL DISCOVERY & CACHING
 # =====================================================================
 
-MODEL_CACHE: Dict[str, Any] = {
+MODEL_CACHE = {
     "models": [],
-    "last_fetch": 0.0,
+    "last_fetch": 0,
 }
 
 
 def get_live_groq_models() -> List[str]:
     """
-    Return currently available Groq text/chat models.
+    Query Groq for models currently available to the configured API key.
 
-    A short-lived in-process cache prevents a model-list API request on
-    every user query. If discovery fails after a previous successful
-    discovery, the previous cached list is retained.
+    The live model list is cached for one hour to avoid unnecessary
+    API calls while still allowing the backend to adapt to model
+    availability changes.
     """
-    import time
 
     now = time.time()
 
@@ -135,7 +320,6 @@ def get_live_groq_models() -> List[str]:
             model.id
             for model in response.data
             if hasattr(model, "id")
-            and model.id
             and not any(
                 excluded in model.id.lower()
                 for excluded in (
@@ -169,7 +353,7 @@ def get_live_groq_models() -> List[str]:
 
     except Exception as exc:
         print(
-            "Failed to fetch live model list from Groq API: "
+            "Failed to fetch live Groq model list: "
             f"{exc}"
         )
 
@@ -181,189 +365,271 @@ def get_live_groq_models() -> List[str]:
 # =====================================================================
 
 def generate_embedding(text: str) -> List[float]:
+    """
+    Generate a 384-dimensional local embedding using the existing
+    production embedding model.
+    """
+
     try:
-        embeddings = list(embedding_model.embed([text]))
+        embeddings = list(
+            embedding_model.embed([text])
+        )
+
         if not embeddings:
             return []
 
         return embeddings[0].tolist()
 
     except Exception as exc:
-        print(f"Embedding generation error: {exc}")
+        print(
+            f"Embedding generation error: {exc}"
+        )
         return []
 
 
 # =====================================================================
-# WHOLE-SITE ORIENTATION CLASSIFICATION
-# =====================================================================
-#
-# The classifier is intentionally narrow and deterministic.
-#
-# It does NOT maintain a blacklist of archive topics.
-#
-# Decision order:
-#   1. Explicit topical complement guard
-#   2. Explicit whole-site identity/entry phrases
-#   3. Site-anchor + orientation compound signal
-#   4. Otherwise topical inquiry
-#
-# The critical distinction is that a prepositional object referring to
-# the Living Archive/site itself is NOT topical.
+# INTENT CLASSIFICATION
 # =====================================================================
 
-SITE_ANCHOR = (
-    r"(?:"
+# ---------------------------------------------------------------------
+# Site-referential language
+#
+# This is intentionally a small closed structural vocabulary.
+# It is NOT a list of Living Archive topics.
+# ---------------------------------------------------------------------
+
+SITE_ANCHOR_RE = re.compile(
+    r"\b(?:"
     r"(?:the\s+)?living\s+archive"
     r"|(?:the\s+)?whole\s+archive"
     r"|(?:the\s+)?archive"
     r"|(?:this\s+)?site"
     r"|(?:this\s+)?website"
     r"|(?:this\s+)?place"
-    r"|everything(?:\s+here|\s+on\s+(?:this\s+)?site)?"
+    r"|everything\s+(?:here|on\s+(?:this\s+)?site)"
     r"|all\s+(?:this|of\s+this)"
     r"|itself"
-    r"|the\s+archive\s+itself"
-    r")"
-)
-
-SITE_ANCHOR_RE = re.compile(
-    rf"\b{SITE_ANCHOR}\b",
+    r"|its\s+own\s+purpose"
+    r")\b",
     re.IGNORECASE,
 )
 
-ORIENTATION_TOKENS = (
-    "start",
-    "begin",
-    "entry",
-    "first",
-    "overwhelmed",
-    "lost",
-    "confused",
-    "navigate",
-    "explore",
-    "find my way",
-    "how to use",
-    "structure",
-)
 
-SITE_SCOPE_TOKENS = (
-    "this site",
-    "the site",
-    "website",
-    "this archive",
-    "the archive",
-    "living archive",
-    "everything here",
-    "all this",
-    "all of this",
-    "how much is on",
-)
+# ---------------------------------------------------------------------
+# Explicit whole-site identity / entry forms
+# ---------------------------------------------------------------------
+
+SIGNAL_C_PATTERNS = [
+    re.compile(
+        r"^what\s+is\s+(?:the\s+)?living\s+archive$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^what\s+is\s+(?:the\s+)?living\s+archive\s+about$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^what\s+does\s+(?:the\s+)?living\s+archive\s+"
+        r"(?:explore|cover|do)$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^what\s+is\s+(?:this\s+)?(?:archive|site|website|place)$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^what\s+is\s+(?:this\s+)?(?:archive|site|website|place)"
+        r"\s+about$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^where\s+(?:should|do)\s+i\s+(?:start|begin)$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^where\s+to\s+begin$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^how\s+(?:do|can)\s+i\s+navigate\s+"
+        r"(?:this\s+site|the\s+archive|the\s+living\s+archive)$",
+        re.IGNORECASE,
+    ),
+]
 
 
-def _has_orientation_signal(query: str) -> bool:
+# ---------------------------------------------------------------------
+# Orientation signals
+# ---------------------------------------------------------------------
+
+ORIENTATION_SIGNAL_PATTERNS = [
+    re.compile(r"\boverwhelmed\b", re.IGNORECASE),
+    re.compile(r"\blost\b", re.IGNORECASE),
+    re.compile(r"\bconfused\b", re.IGNORECASE),
+    re.compile(r"\bstart\b", re.IGNORECASE),
+    re.compile(r"\bbegin\b", re.IGNORECASE),
+    re.compile(r"\bentry\b", re.IGNORECASE),
+    re.compile(r"\bfirst\b", re.IGNORECASE),
+    re.compile(r"\bnavigate\b", re.IGNORECASE),
+    re.compile(r"\bexplore\b", re.IGNORECASE),
+    re.compile(r"\bfind\s+my\s+way\b", re.IGNORECASE),
+    re.compile(r"\bhow\s+to\s+use\b", re.IGNORECASE),
+]
+
+
+# ---------------------------------------------------------------------
+# Site-scope signals
+# ---------------------------------------------------------------------
+
+SITE_SCOPE_PATTERNS = [
+    re.compile(r"\bthis\s+site\b", re.IGNORECASE),
+    re.compile(r"\bthe\s+site\b", re.IGNORECASE),
+    re.compile(r"\bwebsite\b", re.IGNORECASE),
+    re.compile(r"\bthis\s+archive\b", re.IGNORECASE),
+    re.compile(r"\bthe\s+archive\b", re.IGNORECASE),
+    re.compile(r"\bliving\s+archive\b", re.IGNORECASE),
+    re.compile(r"\beverything\s+here\b", re.IGNORECASE),
+    re.compile(r"\ball\s+this\b", re.IGNORECASE),
+    re.compile(r"\bhow\s+much\s+is\s+on\b", re.IGNORECASE),
+]
+
+
+def _has_orientation_signal(
+    query: str,
+) -> bool:
     return any(
-        re.search(
-            rf"\b{re.escape(token)}\b",
-            query,
-            re.IGNORECASE,
-        )
-        for token in ORIENTATION_TOKENS
+        pattern.search(query)
+        for pattern in ORIENTATION_SIGNAL_PATTERNS
     )
 
 
-def _has_site_scope_signal(query: str) -> bool:
+def _has_site_scope_signal(
+    query: str,
+) -> bool:
     return any(
-        re.search(
-            rf"\b{re.escape(token)}\b",
-            query,
-            re.IGNORECASE,
-        )
-        for token in SITE_SCOPE_TOKENS
+        pattern.search(query)
+        for pattern in SITE_SCOPE_PATTERNS
     )
 
 
-def _has_topical_prepositional_complement(query: str) -> bool:
+def _is_site_referential_complement(
+    complement: str,
+) -> bool:
     """
-    Detect a prepositional phrase that clearly points beyond the site
-    itself to a subject.
+    Determine whether a prepositional complement refers to the
+    Living Archive/site itself rather than a subject matter.
 
-    Examples that MUST be topical:
+    This deliberately uses a closed structural vocabulary rather
+    than a corpus-wide topical blacklist.
+    """
+
+    normalized = re.sub(
+        r"\s+",
+        " ",
+        complement.strip().lower(),
+    )
+
+    normalized = re.sub(
+        r"^(?:the|this|that|my|your|our|their)\s+",
+        "",
+        normalized,
+    ).strip()
+
+    site_forms = re.compile(
+        r"^(?:"
+        r"living\s+archive"
+        r"|whole\s+(?:living\s+archive|archive|site|website)"
+        r"|archive"
+        r"|site"
+        r"|website"
+        r"|place"
+        r"|everything(?:\s+(?:here|on\s+(?:this\s+)?site))?"
+        r"|all\s+(?:this|of\s+this)"
+        r"|itself"
+        r"|archive\s+itself"
+        r"|living\s+archive\s+itself"
+        r"|living\s+archive\s+as\s+a\s+whole"
+        r"|archive\s+as\s+a\s+whole"
+        r"|site\s+as\s+a\s+whole"
+        r"|website\s+as\s+a\s+whole"
+        r"|its\s+own\s+purpose"
+        r")$",
+        re.IGNORECASE,
+    )
+
+    return bool(
+        site_forms.fullmatch(normalized)
+    )
+
+
+def _has_topical_prepositional_complement(
+    query: str,
+) -> bool:
+    """
+    Detect a prepositional complement that narrows the query to a
+    specific subject.
+
+    Examples:
+
         start with leadership
-        start with regenerative economics
-        site about leadership
+        navigate grief
         view on stewardship
-        approach to inquiry
-        navigate through grief
+        site about trauma
+        approach to governance
 
-    Examples that MUST NOT be topical:
-        start with the Living Archive
-        start with this site
-        navigate through the archive
-        say about itself
-        start with everything here
-
-    This deliberately uses a closed site-reference set rather than a
-    corpus-wide topic blacklist.
+    Site-referential complements are explicitly exempted.
     """
 
-    # Orientation/action verb + preposition + first target phrase.
     action_pattern = re.compile(
-        r"\b(?:start|begin|navigate|explore|view|approach|"
-        r"look|read|use|go|move|learn|say)\b"
-        r"\s+(?:"
+        r"\b(?:"
+        r"start|begin|navigate|explore|view|approach|"
+        r"look|read|use|go|move|learn|say"
+        r")\b"
+        r"\s+"
+        r"(?:"
         r"with|about|on|through|in|for|to"
         r")\s+"
-        r"(.+?)(?:[?.!,;:]|$)",
+        r"(.+?)"
+        r"(?:[?.!,;:]|$)",
         re.IGNORECASE,
     )
 
-    # Site noun + about/on/for + target.
     site_pattern = re.compile(
-        r"\b(?:site|website|archive|living\s+archive)\b"
-        r"\s+(?:about|on|for)\s+"
-        r"(.+?)(?:[?.!,;:]|$)",
+        r"\b(?:"
+        r"site|website|archive|living\s+archive"
+        r")\b"
+        r"\s+"
+        r"(?:about|on|for)\s+"
+        r"(.+?)"
+        r"(?:[?.!,;:]|$)",
         re.IGNORECASE,
     )
 
-    for pattern in (action_pattern, site_pattern):
+    for pattern in (
+        action_pattern,
+        site_pattern,
+    ):
         for match in pattern.finditer(query):
+
             complement = match.group(1).strip()
 
-            # Normalize common determiners, but retain the remainder
-            # because multi-word site references matter.
-            complement = re.sub(
-                r"^(?:the|this|that|my|your|our|their)\s+",
-                "",
-                complement,
-                flags=re.IGNORECASE,
-            ).strip()
+            if not complement:
+                continue
 
-            # Closed structural forms that still refer to the archive
-            # itself rather than to a topic.
-            site_referential_forms = (
-                r"(?:"
-                r"(?:living\s+archive|archive|site|website|place)"
-                r"(?:\s+(?:itself|as\s+a\s+whole|as\s+such))?"
-                r"|whole\s+(?:living\s+archive|archive|site|website)"
-                r"|everything(?:\s+here|\s+on\s+(?:this\s+)?site)"
-                r"|all\s+(?:this|of\s+this)"
-                r"|itself"
-                r"|its\s+own\s+purpose"
-                r")"
-            )
-
-            if re.fullmatch(
-                site_referential_forms,
-                complement,
-                flags=re.IGNORECASE,
+            if _is_site_referential_complement(
+                complement
             ):
                 continue
 
-            # A site anchor followed by another prepositional phrase
-            # is a nested topical scope:
-            # "its own approach to stewardship",
-            # "the site about leadership", etc.
-            if SITE_ANCHOR_RE.search(complement):
+            # A site-referential phrase followed by another
+            # prepositional phrase creates a nested topical scope.
+            #
+            # Example:
+            # "its own approach to stewardship"
+            # "the site about leadership"
+            if SITE_ANCHOR_RE.search(
+                complement
+            ):
                 if re.search(
                     r"\b(?:to|about|on|for|with|in)\s+\S+",
                     complement,
@@ -371,14 +637,24 @@ def _has_topical_prepositional_complement(query: str) -> bool:
                 ):
                     return True
 
-            # Any remaining non-site complement is a topical target.
-            if complement:
-                return True
+            # Any remaining non-site complement is topical.
+            return True
 
     return False
 
 
-def classify_intent(query_str: str) -> str:
+def classify_intent(
+    query_str: str,
+) -> str:
+    """
+    Deterministic two-class intent classifier.
+
+    Returns only:
+
+        WHOLE_SITE_ORIENTATION
+        TOPICAL_INQUIRY
+    """
+
     clean_query = re.sub(
         r"\s+",
         " ",
@@ -388,63 +664,54 @@ def classify_intent(query_str: str) -> str:
     if not clean_query:
         return "TOPICAL_INQUIRY"
 
-    # 1. A clear topical complement wins over broader site language.
-    if _has_topical_prepositional_complement(clean_query):
+    # ---------------------------------------------------------------
+    # 1. Topical scope has precedence.
+    # ---------------------------------------------------------------
+
+    if _has_topical_prepositional_complement(
+        clean_query
+    ):
         return "TOPICAL_INQUIRY"
 
-    # 2. Exact/structured whole-site identity and entry queries.
-    if re.fullmatch(
-        r"what\s+is\s+(?:the\s+)?living\s+archive",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
+    # ---------------------------------------------------------------
+    # 2. Explicit whole-site identity / entry.
+    # ---------------------------------------------------------------
 
-    if re.fullmatch(
-        r"what\s+is\s+(?:this\s+)?(?:archive|site|place|website)"
-        r"(?:\s+about)?",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
+    for pattern in SIGNAL_C_PATTERNS:
+        if pattern.fullmatch(clean_query):
+            return "WHOLE_SITE_ORIENTATION"
 
-    if re.fullmatch(
-        r"what\s+does\s+(?:the\s+)?living\s+archive\s+"
-        r"(?:explore|cover|do)",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
+    # ---------------------------------------------------------------
+    # 3. Compound whole-site signal:
+    #
+    # Orientation signal + explicit site scope.
+    # ---------------------------------------------------------------
 
-    if re.fullmatch(
-        r"where\s+(?:should|do)\s+i\s+(?:start|begin)",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
-
-    if re.fullmatch(
-        r"where\s+to\s+begin",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
-
-    if re.fullmatch(
-        r"how\s+(?:do|can)\s+i\s+navigate\s+"
-        r"(?:this\s+site|the\s+archive|the\s+living\s+archive)",
-        clean_query,
-    ):
-        return "WHOLE_SITE_ORIENTATION"
-
-    # 3. Compound whole-site signal.
     if (
         _has_orientation_signal(clean_query)
         and _has_site_scope_signal(clean_query)
     ):
         return "WHOLE_SITE_ORIENTATION"
 
-    # 4. Explicit site anchor combined with a clear orientation action.
+    # ---------------------------------------------------------------
+    # 4. Explicit site anchor + clear orientation action.
+    #
+    # This covers expressions such as:
+    # "Where should I start with the Living Archive?"
+    # "How do I navigate through the archive?"
+    # ---------------------------------------------------------------
+
     if (
         SITE_ANCHOR_RE.search(clean_query)
         and _has_orientation_signal(clean_query)
     ):
         return "WHOLE_SITE_ORIENTATION"
+
+    # ---------------------------------------------------------------
+    # 5. Default:
+    #
+    # Standard semantic topical retrieval.
+    # ---------------------------------------------------------------
 
     return "TOPICAL_INQUIRY"
 
@@ -456,16 +723,38 @@ def classify_intent(query_str: str) -> str:
 def format_context_blocks(
     documents: List[Dict[str, Any]],
 ) -> str:
+    """
+    Convert canonical metadata records into the context format supplied
+    to Groq.
+
+    Only metadata returned by Pinecone is included.
+    """
+
     formatted_blocks: List[str] = []
 
     for doc in documents:
-        title = doc.get("title", "Untitled Resource")
-        url = doc.get("url", "#")
+
+        if not isinstance(doc, dict):
+            continue
+
+        title = doc.get(
+            "title",
+            "Untitled Resource",
+        )
+
+        url = doc.get(
+            "url",
+            "#",
+        )
+
         content = doc.get(
             "text",
             doc.get(
                 "content",
-                doc.get("excerpt", ""),
+                doc.get(
+                    "excerpt",
+                    "",
+                ),
             ),
         )
 
@@ -475,28 +764,45 @@ def format_context_blocks(
             f"Content: {content}"
         )
 
-    return "\n\n---\n\n".join(formatted_blocks)
+    return "\n\n---\n\n".join(
+        formatted_blocks
+    )
 
 
 # =====================================================================
-# CANONICAL RETRIEVAL
+# ROOT-NODE METADATA EXTRACTION
 # =====================================================================
 
-def _metadata_from_root_fetch(root_doc: Any) -> Optional[Dict[str, Any]]:
+def _metadata_from_root_fetch(
+    root_doc: Any,
+) -> Optional[Dict[str, Any]]:
     """
     Extract root-node metadata defensively from Pinecone's fetch
-    response. Supports the current SDK object's mapping behavior
-    without assuming that the response is a plain dict.
+    response.
+
+    Supports both mapping-style and SDK-object response forms.
     """
 
     try:
+
         vectors = (
-            root_doc.get("vectors", {})
+            root_doc.get(
+                "vectors",
+                {},
+            )
             if hasattr(root_doc, "get")
-            else getattr(root_doc, "vectors", {})
+            else getattr(
+                root_doc,
+                "vectors",
+                {},
+            )
         )
 
-        vector = vectors.get(ROOT_NODE_ID) if vectors else None
+        vector = (
+            vectors.get(ROOT_NODE_ID)
+            if vectors
+            else None
+        )
 
         if vector is None:
             return None
@@ -504,21 +810,56 @@ def _metadata_from_root_fetch(root_doc: Any) -> Optional[Dict[str, Any]]:
         metadata = (
             vector.get("metadata")
             if hasattr(vector, "get")
-            else getattr(vector, "metadata", None)
+            else getattr(
+                vector,
+                "metadata",
+                None,
+            )
         )
 
-        return metadata if isinstance(metadata, dict) else None
+        return (
+            metadata
+            if isinstance(metadata, dict)
+            else None
+        )
 
     except Exception as exc:
-        print(f"Root metadata extraction error: {exc}")
+
+        print(
+            "Root metadata extraction error: "
+            f"{exc}"
+        )
+
         return None
 
+
+# =====================================================================
+# CANONICAL RETRIEVAL
+# =====================================================================
 
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
-    intent = classify_intent(user_query)
-    retrieved_docs: List[Dict[str, Any]] = []
+    """
+    Retrieve canonical context according to classified intent.
+
+    WHOLE_SITE_ORIENTATION:
+        Slot 1 = deterministic root resource
+        Slots 2-3 = semantic backfill
+
+    TOPICAL_INQUIRY:
+        Slots 1-3 = semantic retrieval
+
+    Maximum context = three resources.
+    """
+
+    intent = classify_intent(
+        user_query
+    )
+
+    retrieved_docs: List[
+        Dict[str, Any]
+    ] = []
 
     if not index:
         return {
@@ -527,35 +868,60 @@ def fetch_canonical_context(
         }
 
     # ---------------------------------------------------------------
-    # WHOLE-SITE ORIENTATION:
-    # Deterministically place the canonical root node first.
+    # WHOLE-SITE ORIENTATION
+    #
+    # Deterministically place the canonical root resource first.
     # ---------------------------------------------------------------
+
     if intent == "WHOLE_SITE_ORIENTATION":
+
         try:
-            root_doc = index.fetch(ids=[ROOT_NODE_ID])
-            root_metadata = _metadata_from_root_fetch(root_doc)
+
+            root_doc = index.fetch(
+                ids=[ROOT_NODE_ID]
+            )
+
+            root_metadata = (
+                _metadata_from_root_fetch(
+                    root_doc
+                )
+            )
 
             if root_metadata:
-                retrieved_docs.append(root_metadata)
+
+                retrieved_docs.append(
+                    root_metadata
+                )
+
             else:
+
                 print(
-                    "WHOLE_SITE_ORIENTATION detected, but the "
-                    f"root node '{ROOT_NODE_ID}' was not returned "
-                    "with metadata."
+                    "WHOLE_SITE_ORIENTATION detected, "
+                    f"but root node '{ROOT_NODE_ID}' "
+                    "was not returned with metadata."
                 )
 
         except Exception as exc:
-            print(f"Root node fetch error: {exc}")
+
+            print(
+                f"Root node fetch error: {exc}"
+            )
 
     # ---------------------------------------------------------------
-    # Semantic retrieval:
-    # K=2 for orientation because slot 1 is reserved for the root.
-    # K=3 remains unchanged for topical inquiries.
+    # SEMANTIC RETRIEVAL
+    #
+    # Orientation uses K=2 because Slot 1 is reserved for root.
+    # Topical inquiry continues to use K=3.
     # ---------------------------------------------------------------
+
     try:
-        query_vector = generate_embedding(user_query)
+
+        query_vector = generate_embedding(
+            user_query
+        )
 
         if query_vector:
+
             top_k = (
                 2
                 if intent == "WHOLE_SITE_ORIENTATION"
@@ -569,37 +935,69 @@ def fetch_canonical_context(
             )
 
             matches = (
-                result.get("matches", [])
+                result.get(
+                    "matches",
+                    [],
+                )
                 if hasattr(result, "get")
-                else getattr(result, "matches", [])
+                else getattr(
+                    result,
+                    "matches",
+                    [],
+                )
             )
 
             for match in matches:
+
                 match_id = (
                     match.get("id")
                     if hasattr(match, "get")
-                    else getattr(match, "id", None)
+                    else getattr(
+                        match,
+                        "id",
+                        None,
+                    )
                 )
 
                 metadata = (
                     match.get("metadata")
                     if hasattr(match, "get")
-                    else getattr(match, "metadata", None)
+                    else getattr(
+                        match,
+                        "metadata",
+                        None,
+                    )
                 )
 
                 if (
                     match_id != ROOT_NODE_ID
-                    and isinstance(metadata, dict)
+                    and isinstance(
+                        metadata,
+                        dict,
+                    )
                 ):
-                    retrieved_docs.append(metadata)
+                    retrieved_docs.append(
+                        metadata
+                    )
 
     except Exception as exc:
-        print(f"Index query error: {exc}")
 
-    # Preserve maximum context size of three resources.
+        print(
+            f"Index query error: {exc}"
+        )
+
+    # ---------------------------------------------------------------
+    # Maximum canonical context = three resources.
+    # ---------------------------------------------------------------
+
     retrieved_docs = [
-        doc for doc in retrieved_docs
-        if isinstance(doc, dict) and doc
+        doc
+        for doc in retrieved_docs
+        if isinstance(
+            doc,
+            dict,
+        )
+        and doc
     ][:3]
 
     return {
@@ -619,64 +1017,99 @@ def generate_llm_response(
     context_blocks: str,
     intent: str,
 ) -> str:
+    """
+    Generate the final USE response using Groq.
 
-    if not GROQ_API_KEY or not groq_client:
+    The model receives:
+        1. constitutional system instructions
+        2. deterministic query intent
+        3. canonical retrieved context
+        4. original user query
+    """
+
+    if (
+        not GROQ_API_KEY
+        or not groq_client
+    ):
         return (
             "Unable to generate a response. "
-            "GROQ_API_KEY is not configured in backend environment."
+            "GROQ_API_KEY is not configured "
+            "in backend environment."
         )
 
     system_content = (
         f"{SYSTEM_PROMPT}\n\n"
         f"[QUERY INTENT]: {intent}\n\n"
-        f"[CANONICAL CONTEXT]:\n{context_blocks}"
+        f"[CANONICAL CONTEXT]:\n"
+        f"{context_blocks}"
     )
 
-    active_models = get_live_groq_models()
+    active_models = (
+        get_live_groq_models()
+    )
 
     if not active_models:
         return (
             "Unable to generate a response. "
-            "No active models returned from Groq API."
+            "No active models returned from "
+            "Groq API."
         )
 
     last_error: Optional[str] = None
 
     for model_id in active_models:
+
         try:
-            response = groq_client.chat.completions.create(
-                model=model_id,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_content,
-                    },
-                    {
-                        "role": "user",
-                        "content": user_query,
-                    },
-                ],
-                temperature=0.2,
-                max_tokens=800,
+
+            response = (
+                groq_client
+                .chat
+                .completions
+                .create(
+                    model=model_id,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": system_content,
+                        },
+                        {
+                            "role": "user",
+                            "content": user_query,
+                        },
+                    ],
+                    temperature=0.2,
+                    max_tokens=800,
+                )
             )
 
-            return response.choices[0].message.content
+            return (
+                response
+                .choices[0]
+                .message
+                .content
+            )
 
         except Exception as exc:
+
             print(
-                f"Execution failed for live Groq model "
-                f"'{model_id}': {exc}"
+                "Execution failed for live "
+                f"Groq model '{model_id}': {exc}"
             )
+
             last_error = str(exc)
 
-    # Invalidate the discovery cache so the next request obtains a
-    # fresh live model list.
-    MODEL_CACHE["models"] = []
-    MODEL_CACHE["last_fetch"] = 0.0
+    # ---------------------------------------------------------------
+    # All discovered models failed.
+    # Invalidate discovery cache so the next
+    # request obtains a fresh model list.
+    # ---------------------------------------------------------------
+
+    MODEL_CACHE["last_fetch"] = 0
 
     return (
         "Unable to generate response. "
-        f"Groq API returned error: {last_error}"
+        "Groq API returned error: "
+        f"{last_error}"
     )
 
 
@@ -684,7 +1117,9 @@ def generate_llm_response(
 # API REQUEST MODEL
 # =====================================================================
 
-class FlexibleQueryRequest(BaseModel):
+class FlexibleQueryRequest(
+    BaseModel
+):
     query: Optional[str] = None
     user_query: Optional[str] = None
     question: Optional[str] = None
@@ -692,13 +1127,15 @@ class FlexibleQueryRequest(BaseModel):
 
 
 # =====================================================================
-# HEALTH / ROOT
+# HEALTH CHECK
 # =====================================================================
 
 @app.get("/")
 @app.head("/")
 def read_root():
-    return {"status": "ok"}
+    return {
+        "status": "ok"
+    }
 
 
 # =====================================================================
@@ -709,18 +1146,31 @@ def read_root():
 @app.post("/")
 async def handle_query(
     request: Request,
-    payload: Optional[FlexibleQueryRequest] = None,
+    payload: Optional[
+        FlexibleQueryRequest
+    ] = None,
 ):
-    raw_body: Dict[str, Any] = {}
+    raw_body: Dict[
+        str,
+        Any,
+    ] = {}
 
     try:
+
         raw_body = await request.json()
+
     except Exception:
+
         pass
 
     query_str: Optional[str] = None
 
+    # ---------------------------------------------------------------
+    # Pydantic payload fields
+    # ---------------------------------------------------------------
+
     if payload:
+
         query_str = (
             payload.query
             or payload.user_query
@@ -728,7 +1178,15 @@ async def handle_query(
             or payload.text
         )
 
-    if not query_str and raw_body:
+    # ---------------------------------------------------------------
+    # Raw JSON fallback
+    # ---------------------------------------------------------------
+
+    if (
+        not query_str
+        and raw_body
+    ):
+
         query_str = (
             raw_body.get("query")
             or raw_body.get("user_query")
@@ -737,31 +1195,70 @@ async def handle_query(
             or raw_body.get("input")
         )
 
-    if not query_str or not str(query_str).strip():
+    # ---------------------------------------------------------------
+    # Empty query
+    # ---------------------------------------------------------------
+
+    if (
+        not query_str
+        or not str(query_str).strip()
+    ):
+
         return {
             "query": "",
             "intent": "TOPICAL_INQUIRY",
             "response": (
-                "Please enter a question to query the archive."
+                "Please enter a question "
+                "to query the archive."
             ),
             "canonical_context": "",
         }
 
-    query_str = str(query_str).strip()
+    query_str = str(
+        query_str
+    ).strip()
 
-    context_data = fetch_canonical_context(query_str)
+    # ---------------------------------------------------------------
+    # Retrieval
+    # ---------------------------------------------------------------
 
-    llm_output = generate_llm_response(
-        query_str,
-        context_data["context_blocks"],
-        context_data["intent"],
+    context_data = (
+        fetch_canonical_context(
+            query_str
+        )
     )
+
+    # ---------------------------------------------------------------
+    # Generation
+    # ---------------------------------------------------------------
+
+    llm_output = (
+        generate_llm_response(
+            query_str,
+            context_data[
+                "context_blocks"
+            ],
+            context_data[
+                "intent"
+            ],
+        )
+    )
+
+    # ---------------------------------------------------------------
+    # Response contract
+    # ---------------------------------------------------------------
 
     return {
         "query": query_str,
-        "intent": context_data["intent"],
+        "intent": context_data[
+            "intent"
+        ],
         "response": llm_output,
-        "canonical_context": context_data["context_blocks"],
+        "canonical_context": (
+            context_data[
+                "context_blocks"
+            ]
+        ),
     }
 
 
@@ -770,9 +1267,15 @@ async def handle_query(
 # =====================================================================
 
 if __name__ == "__main__":
+
     import uvicorn
 
-    port = int(os.getenv("PORT", 10000))
+    port = int(
+        os.getenv(
+            "PORT",
+            10000,
+        )
+    )
 
     uvicorn.run(
         "main:app",
