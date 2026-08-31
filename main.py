@@ -490,7 +490,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v27-inline-emoji-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v28-strict-reasoning-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2353,6 +2353,50 @@ def build_generation_context(
     return "\n\n---\n\n".join(blocks).strip()
 
 
+def _contains_internal_reasoning_leak(text: str) -> bool:
+    """
+    Detect known internal-process markers before any visitor-facing output
+    can leave the backend.
+
+    This is intentionally conservative: suspicious output is rejected and the
+    normal model fallback chain is allowed to try another generation model.
+    We do not attempt to guess where a leaked reasoning trace ends.
+    """
+    value = str(text or "")
+    lowered = value.casefold()
+
+    forbidden_markers = (
+        "thinking process:",
+        "chain of thought",
+        "analyze the request:",
+        "analyze user query",
+        "scan retrieved evidence",
+        "synthesize findings",
+        "draft response",
+        "mental refinement",
+        "internal query classification",
+        "internal canonical evidence",
+        "internal evidence",
+        "evidence analysis workflow",
+        "retrieval commentary",
+        "retrieval report",
+        "diagnostic trace",
+        "prompt explanation",
+    )
+
+    if any(marker in lowered for marker in forbidden_markers):
+        return True
+
+    # Catch the numbered internal workflow reproduced verbatim.
+    if re.search(
+        r"(?im)^\s*1\.\s*(?:analyze|analyse)\s+(?:the\s+)?(?:request|user\s+query)\s*:",
+        value,
+    ):
+        return True
+
+    return False
+
+
 def _extract_visitor_answer(generated_text: str) -> str:
     """
     Accept both the preferred visitor_answer envelope and clean unwrapped
@@ -2361,6 +2405,11 @@ def _extract_visitor_answer(generated_text: str) -> str:
     """
     text = str(generated_text or "").strip()
     if not text:
+        return ""
+
+    if _contains_internal_reasoning_leak(text):
+        print("USE output boundary: internal reasoning/process leakage detected; "
+              "rejecting this model output.")
         return ""
 
     visitor_match = re.search(
