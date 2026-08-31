@@ -142,6 +142,7 @@ MAX_CONTEXT_RESOURCES = 8
 MODEL_CACHE: Dict[str, Any] = {
     "models": [],
     "last_fetch": 0.0,
+    "terms_required_models": set(),
 }
 
 
@@ -201,7 +202,13 @@ def get_live_groq_models() -> List[str]:
                 f"{discovered}"
             )
 
-            return discovered
+            usable = [
+                model_id
+                for model_id in discovered
+                if model_id not in MODEL_CACHE["terms_required_models"]
+            ]
+
+            return usable
 
     except Exception as exc:
         print(
@@ -209,7 +216,11 @@ def get_live_groq_models() -> List[str]:
             f"{exc}"
         )
 
-    return MODEL_CACHE["models"]
+    return [
+        model_id
+        for model_id in MODEL_CACHE["models"]
+        if model_id not in MODEL_CACHE["terms_required_models"]
+    ]
 
 
 # =====================================================================
@@ -778,14 +789,40 @@ def generate_llm_response(
             return response.choices[0].message.content
 
         except Exception as exc:
+            error_text = str(exc)
+
             print(
                 f"Execution failed for live Groq model "
-                f"'{model_id}': {exc}"
+                f"'{model_id}': {error_text}"
             )
-            last_error = str(exc)
 
-    MODEL_CACHE["models"] = []
-    MODEL_CACHE["last_fetch"] = 0.0
+            # Some currently listed Groq models require an organization
+            # administrator to accept model-specific terms. This is not a
+            # USE application failure and should never block the next usable
+            # model in the live model list.
+            if (
+                "model_terms_required" in error_text
+                or "requires terms acceptance" in error_text
+            ):
+                MODEL_CACHE["terms_required_models"].add(model_id)
+
+                print(
+                    "Skipping Groq model requiring terms acceptance: "
+                    f"'{model_id}'"
+                )
+
+                continue
+
+            last_error = error_text
+
+    usable_models = [
+        model_id
+        for model_id in MODEL_CACHE["models"]
+        if model_id not in MODEL_CACHE["terms_required_models"]
+    ]
+
+    if usable_models:
+        MODEL_CACHE["models"] = usable_models
 
     return (
         "Unable to generate response. "
