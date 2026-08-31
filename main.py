@@ -1,3 +1,8 @@
+# USE v26 — Progressive Commitment Inquiry / 5-Why-Inspired Stewardship Readiness
+# v26 preserves v25 orientational routing and adds a conservative, non-diagnostic
+# inquiry-depth layer inspired by 5 Whys. It never grants status or unlocks
+# native vocabulary; explicit Steward Access remains the commitment boundary.
+
 # USE v23 — Root-Cause Generation Context / Deployment Fingerprint
 # Derived from the audited USE v20 production unit. v23 preserves the
 # retrieval, adaptive stewardship, destination-integrity, and deterministic
@@ -476,7 +481,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v25"
+APP_VERSION = "v26"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -491,7 +496,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v25-orientational-frame-routing"
+DEPLOYMENT_FINGERPRINT = "USE-v26-progressive-commitment-inquiry"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2393,6 +2398,94 @@ def _clean_generation_output(
     )
 
 # =====================================================================
+# V26 PROGRESSIVE COMMITMENT INQUIRY
+# =====================================================================
+# 5 Whys is used as an inspiration for progressive depth, not as a diagnostic,
+# compliance test, or commitment score. The visitor remains sovereign.
+PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
+    "recognition",
+    "significance",
+    "participation",
+    "responsibility",
+    "willingness",
+)
+
+PROGRESSIVE_INQUIRY_TERMS: Dict[str, Tuple[str, ...]] = {
+    "recognition": ("notice", "recognize", "aware", "awareness", "pattern", "patterns", "understand", "understanding"),
+    "significance": ("matter", "matters", "important", "meaning", "meaningful", "why does", "why do", "significant"),
+    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved"),
+    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows"),
+    "willingness": ("willing", "willingness", "ready", "readiness", "commit", "commitment", "take responsibility", "serve", "service", "steward", "stewardship", "custodian"),
+}
+
+
+def _history_questions(history: Any) -> List[str]:
+    """Extract only prior visitor questions from optional client-supplied history."""
+    if not isinstance(history, list):
+        return []
+    questions: List[str] = []
+    for item in history[-12:]:
+        if isinstance(item, str):
+            value = item.strip()
+        elif isinstance(item, dict):
+            role = str(item.get("role", "")).lower()
+            if role and role not in {"user", "visitor", "human"}:
+                continue
+            value = str(item.get("question") or item.get("content") or item.get("text") or "").strip()
+        else:
+            continue
+        if value:
+            questions.append(value)
+    return questions
+
+
+def assess_progressive_commitment(current_question: str, history: Any = None) -> Dict[str, Any]:
+    """Return conservative inquiry-depth evidence; never infer membership or status."""
+    questions = _history_questions(history) + [str(current_question or "").strip()]
+    questions = [q for q in questions if q]
+    stage_hits = {stage: 0 for stage in PROGRESSIVE_INQUIRY_STAGES}
+    for question in questions:
+        q = question.lower()
+        for stage, terms in PROGRESSIVE_INQUIRY_TERMS.items():
+            if any(term in q for term in terms):
+                stage_hits[stage] += 1
+
+    deepest_index = 0
+    for index, stage in enumerate(PROGRESSIVE_INQUIRY_STAGES):
+        if stage_hits[stage] > 0:
+            deepest_index = index
+
+    sustained = len(questions) >= 3 and (
+        stage_hits["participation"] > 0
+        or stage_hits["responsibility"] > 0
+        or stage_hits["willingness"] > 0
+    )
+    return {
+        "stage": PROGRESSIVE_INQUIRY_STAGES[deepest_index],
+        "turns": len(questions),
+        "sustained": sustained,
+        "deeper_probe_allowed": sustained or deepest_index >= 2,
+        "native_vocabulary_allowed": False,
+    }
+
+
+def progressive_inquiry_guidance(state: Dict[str, Any]) -> str:
+    """Internal guidance only; never expose the machinery to visitors."""
+    stage = str(state.get("stage", "recognition"))
+    sustained = bool(state.get("sustained", False))
+    guidance = {
+        "recognition": "Stay with what the visitor is noticing; do not push beyond the question.",
+        "significance": "If useful, explore why the question matters without prescribing a conclusion.",
+        "participation": "If supported, invite reflection on participation in the larger pattern without assigning responsibility.",
+        "responsibility": "Distinguish responsibility from blame. Do not declare a role or status.",
+        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone.",
+    }.get(stage, "Stay with the visitor's question and preserve uncertainty.")
+    if sustained:
+        guidance += " Sustained inquiry is present; one deeper question may be appropriate, but do not force a sequence."
+    guidance += " Native Living Archive vocabulary is not permitted from this inference layer."
+    return guidance
+
+# =====================================================================
 # GROQ GENERATION
 # =====================================================================
 
@@ -2527,6 +2620,7 @@ def _fit_generation_context_to_provider_budget(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Preflight the complete provider payload and compact evidence before the
@@ -2541,7 +2635,7 @@ def _fit_generation_context_to_provider_budget(
     ) if candidate else ""
 
     while True:
-        messages = _build_generation_messages(user_query, intent, candidate, orientational_frame)
+        messages = _build_generation_messages(user_query, intent, candidate, orientational_frame, progressive_state)
         input_chars = _estimate_message_chars(messages)
         estimated_output_chars = max_tokens * 4
         total_estimate = input_chars + estimated_output_chars
@@ -2589,11 +2683,13 @@ def _build_generation_messages(
     intent: str,
     generation_context: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, str]]:
     """Build one canonical provider request from one explicit context value."""
     safe_context = str(generation_context or "").strip()
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
+    inquiry_hint = progressive_inquiry_guidance(progressive_state or {"stage": "recognition"})
 
     system_content = _build_generation_system_content(
         intent,
@@ -2603,6 +2699,8 @@ def _build_generation_messages(
         f"{frame_hint}. Let this orientation influence relevance and next-step "
         "selection only when supported by the canonical evidence; never mention "
         "the classification itself."
+        "\n\n[INTERNAL PROGRESSIVE INQUIRY GUIDANCE — DO NOT REVEAL]: "
+        f"{inquiry_hint}"
     )
 
     user_content = (
@@ -2631,6 +2729,7 @@ def _run_generation_attempt(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
     # v24 invariant: generation context is explicit from retrieval boundary
@@ -2641,6 +2740,7 @@ def _run_generation_attempt(
         generation_context,
         max_tokens=max_tokens,
         orientational_frame=orientational_frame,
+        progressive_state=progressive_state,
     )
 
     response = groq_client.chat.completions.create(
@@ -2695,6 +2795,7 @@ def generate_llm_response(
     retrieved_context_blocks: str,
     intent: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate a visitor answer behind a hard, single-context provider boundary.
@@ -2765,6 +2866,7 @@ def generate_llm_response(
                 intent,
                 base_generation_context,
                 max_tokens=MAX_GENERATION_TOKENS,
+                progressive_state=progressive_state,
             )
 
             if visitor_answer:
@@ -2832,6 +2934,8 @@ def generate_llm_response(
                         intent,
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
+                        orientational_frame=orientational_frame,
+                        progressive_state=progressive_state,
                     )
 
                     if compact_answer:
@@ -2894,6 +2998,8 @@ class FlexibleQueryRequest(BaseModel):
     user_query: Optional[str] = None
     question: Optional[str] = None
     text: Optional[str] = None
+    history: Optional[List[Any]] = None
+    conversation_history: Optional[List[Any]] = None
 
 
 # =====================================================================
@@ -2956,6 +3062,21 @@ async def handle_query(
 
     query_str = str(query_str).strip()
 
+    supplied_history = None
+    if payload:
+        supplied_history = payload.history or payload.conversation_history
+    if supplied_history is None and raw_body:
+        supplied_history = raw_body.get("history") or raw_body.get("conversation_history")
+
+    progressive_state = assess_progressive_commitment(query_str, supplied_history)
+    print(
+        "USE progressive inquiry: "
+        f"stage={progressive_state['stage']}, "
+        f"turns={progressive_state['turns']}, "
+        f"sustained={progressive_state['sustained']}, "
+        f"deeper_probe={progressive_state['deeper_probe_allowed']}"
+    )
+
     try:
         context_data = fetch_canonical_context(query_str)
 
@@ -2967,9 +3088,10 @@ async def handle_query(
                 "orientational_frame",
                 {"primary": "general", "scores": {}},
             ),
+            progressive_state=progressive_state,
         )
 
-        # v24 deliberately does NOT return canonical_context to the browser.
+        # v26 deliberately does NOT return canonical_context to the browser.
         # Retrieval evidence is an internal generation input; returning it
         # was unnecessary for the WordPress client and could make health/
         # keep-warm requests return a very large body.
@@ -3031,6 +3153,10 @@ def health_check():
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if the known context-scope defect returns."""
+    # v26 invariants: progressive inquiry is internal-only and can never
+    # grant native vocabulary or membership by inference.
+    state = assess_progressive_commitment("stewardship commitment")
+    assert state["native_vocabulary_allowed"] is False
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
