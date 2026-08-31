@@ -1,24 +1,8 @@
-# USE v34 — Browser CORS Boundary Hardening / v33 Baseline
-# v33 preserves v32's temporal 5-Why observer architecture.
-# It hardens only the final visitor-output acceptance boundary: model output
-# is valid only when a clean visitor-facing envelope is explicitly present.
-
-# v32 intentionally returns to the v26 architectural baseline.
-# 5-Why/progressive inquiry observes the completed conversation turn only;
-# it cannot influence current-turn interpretation, retrieval, evidence selection,
-# generation, or native-vocabulary permission.
-
-# v26 preserves v25 orientational routing and adds a conservative, non-diagnostic
-# inquiry-depth layer inspired by 5 Whys. It never grants status or unlocks
-# native vocabulary; explicit Steward Access remains the commitment boundary.
-
-# USE v23 — Root-Cause Generation Context / Deployment Fingerprint
-# Derived from the audited USE v20 production unit. v23 preserves the
-# retrieval, adaptive stewardship, destination-integrity, and deterministic
-# link architecture while hardening the provider-generation boundary.
-# The highest-value v20 deficiency was not retrieval quality; it was that
-# provider failures could still arise from request size, rate limits, or
-# an undefined context variable. v23 addresses those causes directly and removes ambient generation-context references.
+# USE v25-R — Reconstituted v25 Baseline
+# Clean reconstruction of the canonical v25 production unit.
+# Historical version labels from superseded iterations are removed from
+# the source narrative; executable v25 behavior is otherwise preserved.
+# No 5-Why/progressive-inquiry layer is introduced in this baseline.
 
 import os
 import re
@@ -490,36 +474,34 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v34"
+APP_VERSION = "v25"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[CORS_ALLOWED_ORIGIN],
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# v25 API boundary: make CORS explicit at the final response boundary as
-# well as through CORSMiddleware. This protects the browser-facing contract
-# from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v34-cors-boundary-hardening"
-
-CORS_ALLOWED_ORIGIN = "https://geralddaquila.com"
+# Browser/API boundary: make CORS explicit at the final response boundary
+# as well as through CORSMiddleware. This protects the browser-facing
+# contract from application-level failures and keeps OPTIONS/preflight
+# deterministic.
+DEPLOYMENT_FINGERPRINT = "USE-v25-R-reconstituted-baseline"
 
 CORS_RESPONSE_HEADERS = {
-    "Access-Control-Allow-Origin": CORS_ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
     "Access-Control-Max-Age": "600",
-    "Vary": "Origin",
 }
 
 
 @app.middleware("http")
-async def v34_api_boundary(request: Request, call_next):
+async def api_boundary(request: Request, call_next):
     """Guarantee a readable browser response at the outer API boundary."""
     if request.method == "OPTIONS":
         return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
@@ -537,39 +519,18 @@ async def v34_api_boundary(request: Request, call_next):
             },
         )
 
-    request_origin = request.headers.get("origin", "")
-    if request_origin == CORS_ALLOWED_ORIGIN or not request_origin:
-        for header, value in CORS_RESPONSE_HEADERS.items():
-            response.headers[header] = value
-    else:
-        # Preserve normal server behavior while refusing to grant browser
-        # cross-origin access to an unapproved origin.
-        response.headers["Vary"] = "Origin"
+    for header, value in CORS_RESPONSE_HEADERS.items():
+        response.headers[header] = value
 
     return response
 
-# v25 deployment fingerprint: makes it immediately visible in Render logs
-# which complete production unit is actually running. This prevents a stale
-# main.py / deployment mismatch from being mistaken for a USE logic failure.
+# Deployment fingerprint: makes the complete production unit immediately
+# visible in runtime logs, preventing stale-source ambiguity.
 print(
     "USE STARTUP FINGERPRINT: "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"file={os.path.abspath(__file__)}"
 )
-
-print(
-    "USE CORS CONTRACT: "
-    f"origin={CORS_ALLOWED_ORIGIN}, methods=GET,POST,HEAD,OPTIONS"
-)
-
-# v34 startup contract audit: fail fast during deployment if the browser-facing
-# CORS configuration is accidentally weakened or disconnected from the
-# explicit production origin.
-assert CORS_ALLOWED_ORIGIN == "https://geralddaquila.com"
-assert CORS_RESPONSE_HEADERS["Access-Control-Allow-Origin"] == CORS_ALLOWED_ORIGIN
-assert CORS_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "GET, POST, HEAD, OPTIONS"
-assert "Content-Type" in CORS_RESPONSE_HEADERS["Access-Control-Allow-Headers"]
-assert CORS_RESPONSE_HEADERS["Vary"] == "Origin"
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
@@ -927,7 +888,7 @@ def classify_intent(query_str: str) -> str:
 # ADAPTIVE STEWARDSHIP ORIENTATION
 # =====================================================================
 #
-# v15 introduces the first adaptive layer for USE.
+# Adaptive stewardship orientation: established baseline capability.
 #
 # The purpose is NOT to create a second engine, diagnose the visitor, or
 # force a visitor into stewardship language. It is to recognize when the
@@ -1525,7 +1486,7 @@ def format_context_blocks(
 
 
 # =====================================================================
-# V25 ORIENTATIONAL FRAME / DOMAIN-AWARE RETRIEVAL
+# v25 ORIENTATIONAL FRAME / DOMAIN-AWARE RETRIEVAL
 # =====================================================================
 # Internal navigation aid only. These labels are never exposed to visitors.
 # The frame does not replace semantic retrieval; it provides a light domain
@@ -2362,54 +2323,35 @@ def build_generation_context(
     return "\n\n---\n\n".join(blocks).strip()
 
 
-def _extract_visitor_answer(raw_text: str) -> str:
+def _extract_visitor_answer(generated_text: str) -> str:
     """
-    Strict visitor-output boundary.
-
-    The provider must explicitly return a visitor-facing envelope. Unwrapped
-    provider output is rejected rather than silently treated as the answer.
-    This prevents internal task specifications, reasoning/process narration,
-    or malformed provider output from reaching the visitor.
+    Accept both the preferred visitor_answer envelope and clean unwrapped
+    model output. The envelope is a useful boundary, but it is not allowed
+    to turn a valid answer into a failed generation.
     """
-    value = str(raw_text or "").strip()
-    if not value:
+    text = str(generated_text or "").strip()
+    if not text:
         return ""
 
-    match = re.search(
+    visitor_match = re.search(
         r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
-        value,
+        text,
         flags=re.IGNORECASE | re.DOTALL,
     )
-    if not match:
-        print("USE output gate: missing <visitor_answer> envelope; rejecting output.")
-        return ""
 
-    answer = match.group(1).strip()
-    if not answer:
-        print("USE output gate: empty <visitor_answer> envelope; rejecting output.")
-        return ""
+    if visitor_match:
+        return visitor_match.group(1).strip()
 
-    # Reject unmistakable process/specification leakage even when wrapped.
-    folded = answer.casefold()
-    leak_markers = (
-        "thinking process:",
-        "chain of thought",
-        "reasoning process:",
-        "analyze the request:",
-        "analyze user query:",
-        "canonical evidence:",
-        "constraints:",
-        "retrieval analysis:",
-        "internal reasoning:",
-        "system prompt:",
-        "system instructions:",
-        "draft response:",
-    )
-    if any(marker in folded for marker in leak_markers):
-        print("USE output gate: reasoning/specification leakage inside envelope; rejecting output.")
-        return ""
+    # If a model emits only one side of the envelope, remove that wrapper
+    # rather than rejecting an otherwise usable visitor answer.
+    text = re.sub(
+        r"</?visitor_answer>",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
 
-    return answer
+    return text
 
 
 def _strip_leading_decorative_symbols(text: str) -> str:
@@ -2447,107 +2389,6 @@ def _clean_generation_output(
         sanitize_canonical_links(cleaned_answer, context_blocks),
         context_blocks,
     )
-
-# =====================================================================
-# V26 PROGRESSIVE COMMITMENT INQUIRY
-# =====================================================================
-# 5 Whys is used as an inspiration for progressive depth, not as a diagnostic,
-# compliance test, or commitment score. The visitor remains sovereign.
-PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
-    "recognition",
-    "significance",
-    "participation",
-    "responsibility",
-    "willingness",
-)
-
-PROGRESSIVE_INQUIRY_TERMS: Dict[str, Tuple[str, ...]] = {
-    "recognition": ("notice", "recognize", "aware", "awareness", "pattern", "patterns", "understand", "understanding"),
-    "significance": ("matter", "matters", "important", "meaning", "meaningful", "why does", "why do", "significant"),
-    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved"),
-    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows"),
-    "willingness": ("willing", "willingness", "ready", "readiness", "commit", "commitment", "take responsibility", "serve", "service", "steward", "stewardship", "custodian"),
-}
-
-
-def _history_questions(history: Any) -> List[str]:
-    """Extract only prior visitor questions from optional client-supplied history."""
-    if not isinstance(history, list):
-        return []
-    questions: List[str] = []
-    for item in history[-12:]:
-        if isinstance(item, str):
-            value = item.strip()
-        elif isinstance(item, dict):
-            role = str(item.get("role", "")).lower()
-            if role and role not in {"user", "visitor", "human"}:
-                continue
-            value = str(item.get("question") or item.get("content") or item.get("text") or "").strip()
-        else:
-            continue
-        if value:
-            questions.append(value)
-    return questions
-
-
-def assess_progressive_commitment(
-    current_question: str,
-    history: Any = None,
-) -> Dict[str, Any]:
-    """
-    Observe inquiry trajectory only.
-
-    This is a side observer, not a diagnostic and not a current-turn control
-    signal. Its result is observational context for a subsequent turn.
-    """
-    questions = _history_questions(history) + [str(current_question or "").strip()]
-    questions = [q for q in questions if q]
-
-    stage_hits = {stage: 0 for stage in PROGRESSIVE_INQUIRY_STAGES}
-    for question in questions:
-        q = question.casefold()
-        for stage, terms in PROGRESSIVE_INQUIRY_TERMS.items():
-            if any(term in q for term in terms):
-                stage_hits[stage] += 1
-
-    deepest_index = 0
-    for index, stage in enumerate(PROGRESSIVE_INQUIRY_STAGES):
-        if stage_hits[stage] > 0:
-            deepest_index = index
-
-    sustained = len(questions) >= 3 and (
-        stage_hits["participation"] > 0
-        or stage_hits["responsibility"] > 0
-        or stage_hits["willingness"] > 0
-    )
-
-    return {
-        "stage": PROGRESSIVE_INQUIRY_STAGES[deepest_index],
-        "turns": len(questions),
-        "sustained": sustained,
-        "deeper_probe_allowed_next_turn": sustained or deepest_index >= 2,
-        "native_vocabulary_allowed": False,
-        "observer_only": True,
-        "current_turn_influence": False,
-        "applies_to_next_turn": True,
-    }
-
-
-def progressive_inquiry_guidance(state: Dict[str, Any]) -> str:
-    """Internal guidance only; never expose the machinery to visitors."""
-    stage = str(state.get("stage", "recognition"))
-    sustained = bool(state.get("sustained", False))
-    guidance = {
-        "recognition": "Stay with what the visitor is noticing; do not push beyond the question.",
-        "significance": "If useful, explore why the question matters without prescribing a conclusion.",
-        "participation": "If supported, invite reflection on participation in the larger pattern without assigning responsibility.",
-        "responsibility": "Distinguish responsibility from blame. Do not declare a role or status.",
-        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone.",
-    }.get(stage, "Stay with the visitor's question and preserve uncertainty.")
-    if sustained:
-        guidance += " Sustained inquiry is present; one deeper question may be appropriate, but do not force a sequence."
-    guidance += " Native Living Archive vocabulary is not permitted from this inference layer."
-    return guidance
 
 # =====================================================================
 # GROQ GENERATION
@@ -2684,7 +2525,6 @@ def _fit_generation_context_to_provider_budget(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
-    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Preflight the complete provider payload and compact evidence before the
@@ -2699,7 +2539,7 @@ def _fit_generation_context_to_provider_budget(
     ) if candidate else ""
 
     while True:
-        messages = _build_generation_messages(user_query, intent, candidate, orientational_frame, progressive_state)
+        messages = _build_generation_messages(user_query, intent, candidate, orientational_frame)
         input_chars = _estimate_message_chars(messages)
         estimated_output_chars = max_tokens * 4
         total_estimate = input_chars + estimated_output_chars
@@ -2747,7 +2587,6 @@ def _build_generation_messages(
     intent: str,
     generation_context: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
-    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, str]]:
     """Build one canonical provider request from one explicit context value."""
     safe_context = str(generation_context or "").strip()
@@ -2790,10 +2629,9 @@ def _run_generation_attempt(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
-    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
-    # v24 invariant: generation context is explicit from retrieval boundary
+    # Generation invariant: context is explicit from retrieval boundary
     # through payload construction, output cleaning, and link normalization.
     safe_context, messages = _fit_generation_context_to_provider_budget(
         user_query,
@@ -2855,12 +2693,11 @@ def generate_llm_response(
     retrieved_context_blocks: str,
     intent: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
-    progressive_state: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate a visitor answer behind a hard, single-context provider boundary.
 
-    v24 generation-boundary repair:
+    Generation-boundary hardening:
       - the retrieval-layer name `context_blocks` never enters provider code;
       - one local `base_generation_context` is created before any model call;
       - every provider and compact-fallback call receives that context explicitly;
@@ -2970,7 +2807,7 @@ def generate_llm_response(
                 continue
 
             if _is_request_too_large_error(error_text):
-                # v23 root-cause rule: compact fallback is made from the
+                # Compact fallback is made from the already-bounded
                 # already-created generation context. There is no reference
                 # to `context_blocks` anywhere in this fallback path.
                 compact_context = _bound_existing_context_blocks(
@@ -2993,7 +2830,6 @@ def generate_llm_response(
                         intent,
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
-                        orientational_frame=orientational_frame,
                     )
 
                     if compact_answer:
@@ -3056,8 +2892,6 @@ class FlexibleQueryRequest(BaseModel):
     user_query: Optional[str] = None
     question: Optional[str] = None
     text: Optional[str] = None
-    history: Optional[List[Any]] = None
-    conversation_history: Optional[List[Any]] = None
 
 
 # =====================================================================
@@ -3120,15 +2954,6 @@ async def handle_query(
 
     query_str = str(query_str).strip()
 
-    supplied_history = None
-    if payload:
-        supplied_history = payload.history or payload.conversation_history
-    if supplied_history is None and raw_body:
-        supplied_history = raw_body.get("history") or raw_body.get("conversation_history")
-
-    # v32: 5-Why observation is deliberately absent from the current-answer path.
-    # The question is understood and retrieved on its own terms first.
-
     try:
         context_data = fetch_canonical_context(query_str)
 
@@ -3142,19 +2967,7 @@ async def handle_query(
             ),
         )
 
-        # v32: observe the completed turn only. This state does not influence
-        # the answer just generated. The next request may supply history again,
-        # allowing the observer to inform subsequent conversational behavior.
-        progressive_state = assess_progressive_commitment(query_str, supplied_history)
-        print(
-            "USE 5-Why observer: "
-            f"stage={progressive_state['stage']}, "
-            f"turns={progressive_state['turns']}, "
-            f"sustained={progressive_state['sustained']}, "
-            f"next_turn_probe={progressive_state['deeper_probe_allowed_next_turn']}"
-        )
-
-        # v32 deliberately does NOT return canonical_context to the browser.
+        # Canonical context is deliberately not returned to the browser.
         # Retrieval evidence is an internal generation input; returning it
         # was unnecessary for the WordPress client and could make health/
         # keep-warm requests return a very large body.
@@ -3216,13 +3029,6 @@ def health_check():
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if the known context-scope defect returns."""
-    # v32 invariants: progressive inquiry is observer-only and can never
-    # influence the current answer, grant native vocabulary, or infer membership.
-    state = assess_progressive_commitment("stewardship commitment")
-    assert state["native_vocabulary_allowed"] is False
-    assert state["observer_only"] is True
-    assert state["current_turn_influence"] is False
-    assert state["applies_to_next_turn"] is True
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
