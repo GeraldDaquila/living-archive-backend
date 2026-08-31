@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v31"
+APP_VERSION = "v32"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v31-provider-daily-tpd-guard"
+DEPLOYMENT_FINGERPRINT = "USE-v32-emoji-sanitization-regression-fix"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2495,6 +2495,7 @@ def _strip_emoji(text: str) -> str:
         r"\U0001F1E6-\U0001F1FF"  # regional indicators
         r"\U0001F300-\U0001FAFF"  # pictographs, symbols, emoji
         r"\u2600-\u27BF"          # miscellaneous symbols/dingbats
+        r"\u2B00-\u2BFF"          # supplemental symbols, including U+2B50 WHITE MEDIUM STAR
         r"\u2300-\u23FF"          # technical/misc symbols occasionally emoji-presented
     )
     value = re.sub(f"[{emoji_ranges}]", "", value)
@@ -3343,7 +3344,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v31":
+        if APP_VERSION != "v32":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
