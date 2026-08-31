@@ -490,7 +490,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v25-R-reconstituted-baseline"
+DEPLOYMENT_FINGERPRINT = "USE-v26-relational-orientation"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1517,7 +1517,32 @@ ORIENTATIONAL_DOMAIN_TERMS = {
         "transition", "change", "uncertain", "uncertainty", "threshold",
         "becoming", "next chapter", "what now", "meaning",
     ),
+    "relational": (
+        "relationship", "relationships", "relational", "interplay", "interaction",
+        "connection", "tension", "dynamic", "between", "mutually exclusive",
+        "personal", "self", "individual", "inner", "internal",
+        "system", "systems", "systemic", "social", "society", "institution",
+        "collective", "external",
+    ),
 }
+
+
+def detect_relational_orientation(question: str) -> bool:
+    """Detect explicit questions connecting personal and systemic dimensions."""
+    q = re.sub(r"\s+", " ", str(question or "").lower()).strip()
+    if not q:
+        return False
+    personal = bool(re.search(
+        r"\b(?:personal|self|myself|individual|inner|internal|within myself)\b", q
+    ))
+    systemic = bool(re.search(
+        r"\b(?:system|systems|systemic|social|society|institution|collective|external)\b", q
+    ))
+    relation = bool(re.search(
+        r"\b(?:between|relationship|relational|interplay|interaction|connection|"
+        r"tension|dynamic|mutually exclusive)\b", q
+    ))
+    return personal and systemic and relation
 
 
 def infer_orientational_frame(question: str) -> Dict[str, Any]:
@@ -1531,6 +1556,10 @@ def infer_orientational_frame(question: str) -> Dict[str, Any]:
         domain: count_terms(terms)
         for domain, terms in ORIENTATIONAL_DOMAIN_TERMS.items()
     }
+
+    if detect_relational_orientation(question):
+        primary = "relational"
+        return {"primary": primary, "scores": scores, "relational": True}
 
     # Explicit systems conditions take precedence over inward language when
     # the question asks what is happening in the larger environment.
@@ -1726,7 +1755,8 @@ def fetch_canonical_context(
     print(
         "USE orientational frame: "
         f"primary={orientational_frame['primary']}, "
-        f"scores={orientational_frame['scores']}"
+        f"scores={orientational_frame['scores']}, "
+        f"relational={orientational_frame.get('relational', False)}"
     )
 
     structural_docs: List[Dict[str, Any]] = []
