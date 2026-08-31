@@ -474,7 +474,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v25"
+APP_VERSION = "v29"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -490,7 +490,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v28-strict-reasoning-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v29-canonical-title-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2397,6 +2397,40 @@ def _contains_internal_reasoning_leak(text: str) -> bool:
     return False
 
 
+def _contains_evidence_schema_leak(text: str) -> bool:
+    """
+    Detect canonical-evidence metadata reproduced as if it were visitor prose.
+
+    Canonical evidence is internal input to generation. Labels such as
+    ``Title:``, ``URL:``, and ``Content:`` must never become visitor-facing
+    output. The detector is intentionally conservative: when evidence-schema
+    material is exposed, reject the complete generation and use the existing
+    fallback path rather than attempting to reconstruct a partial answer.
+    """
+    value = str(text or "")
+
+    if re.search(r"(?im)^\s*(?:title|url|content|id)\s*:\s*", value):
+        return True
+
+    title_labels = re.findall(r"(?im)\btitle\s*:", value)
+    if len(title_labels) >= 2:
+        return True
+
+    if re.search(
+        r"(?is)\b(?:title|url|content)\s*:\s*.+?\b(?:title|url|content)\s*:",
+        value,
+    ):
+        return True
+
+    if re.search(
+        r"(?im)^\s*(?:canonical evidence|retrieved evidence|evidence block)\s*:",
+        value,
+    ):
+        return True
+
+    return False
+
+
 def _extract_visitor_answer(generated_text: str) -> str:
     """
     Accept both the preferred visitor_answer envelope and clean unwrapped
@@ -2409,6 +2443,11 @@ def _extract_visitor_answer(generated_text: str) -> str:
 
     if _contains_internal_reasoning_leak(text):
         print("USE output boundary: internal reasoning/process leakage detected; "
+              "rejecting this model output.")
+        return ""
+
+    if _contains_evidence_schema_leak(text):
+        print("USE output boundary: canonical evidence-schema leakage detected; "
               "rejecting this model output.")
         return ""
 
