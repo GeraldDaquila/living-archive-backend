@@ -1,7 +1,9 @@
-# USE v26 — Progressive Commitment Inquiry / 5-Why-Inspired Stewardship Readiness
-# v26 preserves v25 orientational routing and adds a conservative, non-diagnostic
-# inquiry-depth layer inspired by 5 Whys. It never grants status or unlocks
-# native vocabulary; explicit Steward Access remains the commitment boundary.
+# USE v27 — Inquiry Before Retrieval / Progressive Commitment Inquiry
+# v27 preserves v26's 5-Why-inspired inquiry architecture and gives that
+# architecture limited behavioral authority: when a question genuinely sits
+# at a deeper inquiry threshold, USE should engage the question before falling
+# back to resource enumeration. This is not diagnosis, scoring, status, or
+# membership inference. Explicit Steward Access remains the commitment boundary.
 
 # USE v23 — Root-Cause Generation Context / Deployment Fingerprint
 # Derived from the audited USE v20 production unit. v23 preserves the
@@ -481,7 +483,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v26"
+APP_VERSION = "v27"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -496,7 +498,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v26-progressive-commitment-inquiry"
+DEPLOYMENT_FINGERPRINT = "USE-v27-inquiry-before-retrieval"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2398,10 +2400,13 @@ def _clean_generation_output(
     )
 
 # =====================================================================
-# V26 PROGRESSIVE COMMITMENT INQUIRY
+# V27 PROGRESSIVE COMMITMENT INQUIRY / INQUIRY BEFORE RETRIEVAL
 # =====================================================================
 # 5 Whys is used as an inspiration for progressive depth, not as a diagnostic,
 # compliance test, or commitment score. The visitor remains sovereign.
+# v27 adds one behavioral consequence: when the inquiry has reached a genuine
+# deeper-question threshold, generation is instructed to engage that question
+# before enumerating resources. Native vocabulary remains forbidden here.
 PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
     "recognition",
     "significance",
@@ -2412,9 +2417,9 @@ PROGRESSIVE_INQUIRY_STAGES: Tuple[str, ...] = (
 
 PROGRESSIVE_INQUIRY_TERMS: Dict[str, Tuple[str, ...]] = {
     "recognition": ("notice", "recognize", "aware", "awareness", "pattern", "patterns", "understand", "understanding"),
-    "significance": ("matter", "matters", "important", "meaning", "meaningful", "why does", "why do", "significant"),
-    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved"),
-    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows"),
+    "significance": ("matter", "matters", "important", "importance", "meaning", "meaningful", "why does", "why do", "why should", "significant", "why should that"),
+    "participation": ("participate", "participation", "contribute", "contributing", "my role", "my part", "influence", "involved", "my choices", "my actions"),
+    "responsibility": ("responsible", "responsibility", "accountable", "accountability", "obligation", "duty", "what follows", "what responsibility"),
     "willingness": ("willing", "willingness", "ready", "readiness", "commit", "commitment", "take responsibility", "serve", "service", "steward", "stewardship", "custodian"),
 }
 
@@ -2460,11 +2465,43 @@ def assess_progressive_commitment(current_question: str, history: Any = None) ->
         or stage_hits["responsibility"] > 0
         or stage_hits["willingness"] > 0
     )
+
+    current_lower = str(current_question or "").lower()
+    current_significance = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["significance"])
+    current_participation = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["participation"])
+    current_responsibility = any(term in current_lower for term in PROGRESSIVE_INQUIRY_TERMS["responsibility"])
+    explicit_why = any(marker in current_lower for marker in ("why ", "why should", "why does", "why do", "what follows", "how can i tell"))
+
+    # v27 behavioral gate. A deeper conversational move is allowed when the
+    # current question itself contains a substantive threshold signal, or
+    # when prior visitor questions establish sustained movement into deeper
+    # participation/responsibility territory. This is intentionally not a
+    # numeric commitment score.
+    deeper_probe_allowed = bool(
+        sustained
+        or (current_significance and explicit_why)
+        or current_participation
+        or current_responsibility
+        or deepest_index >= 2
+    )
+
+    if current_responsibility or deepest_index >= 3:
+        stage = "responsibility"
+    elif current_participation or deepest_index >= 2:
+        stage = "participation"
+    elif current_significance or deepest_index >= 1:
+        stage = "significance"
+    else:
+        stage = PROGRESSIVE_INQUIRY_STAGES[deepest_index]
+
     return {
-        "stage": PROGRESSIVE_INQUIRY_STAGES[deepest_index],
+        "stage": stage,
         "turns": len(questions),
         "sustained": sustained,
-        "deeper_probe_allowed": sustained or deepest_index >= 2,
+        "deeper_probe_allowed": deeper_probe_allowed,
+        "current_significance": current_significance,
+        "current_participation": current_participation,
+        "current_responsibility": current_responsibility,
         "native_vocabulary_allowed": False,
     }
 
@@ -2473,16 +2510,19 @@ def progressive_inquiry_guidance(state: Dict[str, Any]) -> str:
     """Internal guidance only; never expose the machinery to visitors."""
     stage = str(state.get("stage", "recognition"))
     sustained = bool(state.get("sustained", False))
+    probe = bool(state.get("deeper_probe_allowed", False))
     guidance = {
         "recognition": "Stay with what the visitor is noticing; do not push beyond the question.",
-        "significance": "If useful, explore why the question matters without prescribing a conclusion.",
-        "participation": "If supported, invite reflection on participation in the larger pattern without assigning responsibility.",
-        "responsibility": "Distinguish responsibility from blame. Do not declare a role or status.",
-        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone.",
+        "significance": "Engage why the question matters before defaulting to resource enumeration. If appropriate, end with one gentle reflective question.",
+        "participation": "Distinguish participation from control. Invite reflection on the visitor's part in a larger pattern without assigning responsibility.",
+        "responsibility": "Distinguish responsibility from blame. Explore what follows from recognition without declaring a role or status.",
+        "willingness": "Explore willingness gently. Do not infer commitment from vocabulary alone or treat readiness as membership.",
     }.get(stage, "Stay with the visitor's question and preserve uncertainty.")
-    if sustained:
-        guidance += " Sustained inquiry is present; one deeper question may be appropriate, but do not force a sequence."
-    guidance += " Native Living Archive vocabulary is not permitted from this inference layer."
+    if probe:
+        guidance += " This is an inquiry-before-retrieval moment: answer the human question first, then offer the smallest useful canonical route. A single open reflective question may be used to invite the next layer; do not turn the exchange into a questionnaire or require five steps."
+    elif sustained:
+        guidance += " Sustained inquiry is present, but do not force a sequence."
+    guidance += " Native Living Archive vocabulary is not permitted from this inference layer. Explicit Steward Access remains the commitment boundary."
     return guidance
 
 # =====================================================================
@@ -2690,6 +2730,15 @@ def _build_generation_messages(
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
     inquiry_hint = progressive_inquiry_guidance(progressive_state or {"stage": "recognition"})
+    inquiry_behavior = (
+        "When the internal progressive-inquiry guidance identifies an inquiry-before-retrieval moment, "
+        "do not begin with a generic resource list or the phrase 'Based on the provided canonical evidence'. "
+        "First directly engage the visitor's underlying question in natural language. Explain the relevant distinction "
+        "supported by the canonical evidence. Then offer the smallest useful canonical route, normally one or two resources. "
+        "If appropriate, end with exactly one open reflective question that invites the visitor's own next step. "
+        "Do not present the reflective question as a test, score, gate, diagnosis, or membership assessment. "
+        "If the question does not warrant a deeper probe, answer normally and navigate naturally. "
+    )
 
     system_content = _build_generation_system_content(
         intent,
@@ -2701,6 +2750,8 @@ def _build_generation_messages(
         "the classification itself."
         "\n\n[INTERNAL PROGRESSIVE INQUIRY GUIDANCE — DO NOT REVEAL]: "
         f"{inquiry_hint}"
+        "\n\n[INTERNAL INQUIRY-BEFORE-RETRIEVAL BEHAVIOR — DO NOT REVEAL]: "
+        f"{inquiry_behavior}"
     )
 
     user_content = (
@@ -3153,10 +3204,14 @@ def health_check():
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if the known context-scope defect returns."""
-    # v26 invariants: progressive inquiry is internal-only and can never
+    # v27 invariants: progressive inquiry is internal-only and can never
     # grant native vocabulary or membership by inference.
-    state = assess_progressive_commitment("stewardship commitment")
+    state = assess_progressive_commitment("Why should my participation in a larger system matter if I cannot control it?")
     assert state["native_vocabulary_allowed"] is False
+    assert state["deeper_probe_allowed"] is True
+    assert state["stage"] in {"significance", "participation", "responsibility"}
+    shallow = assess_progressive_commitment("What is the Archive?", [])
+    assert shallow["deeper_probe_allowed"] is False
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
