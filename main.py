@@ -1,5 +1,5 @@
-# USE v18 — Adaptive Stewardship Retrieval / Deterministic Link Reconstruction
-# Derived from the audited USE v17 production unit. v18 removes the LLM from
+# USE v19 — Adaptive Stewardship Retrieval / Deterministic Link Reconstruction
+# Derived from the audited USE v18 production unit. v19 closes the remaining presentation boundary by
 # hyperlink construction: the model supplies resource titles, while USE
 # deterministically rebuilds every canonical hyperlink from corpus evidence.
 
@@ -435,7 +435,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v18"
+APP_VERSION = "v19"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -1847,7 +1847,7 @@ def _strip_model_link_markup(answer: str) -> str:
     """
     Remove model-generated link syntax while preserving the visible label.
 
-    v18 deliberately treats Markdown/HTML construction as untrusted model
+    v19 deliberately treats Markdown/HTML construction as untrusted model
     output. The model is no longer responsible for creating visitor-facing
     hyperlinks. This function therefore collapses both valid and malformed
     link wrappers to their visible text before canonical links are rebuilt.
@@ -1885,6 +1885,20 @@ def _strip_model_link_markup(answer: str) -> str:
     answer = re.sub(r"\*\*\[([^\]\n]+)\]\([^\n]*", r"\1", answer)
     answer = re.sub(r"\[([^\]\n]+)\]\(", r"\1", answer)
 
+    # Bare bracketed canonical titles are also model-generated presentation
+    # syntax, e.g. "[The Illusion of Separation]" after an incomplete link
+    # has already lost its destination. Remove the brackets here so the
+    # deterministic canonical-title pass below can create the one valid link.
+    for canonical_title in (_canonical_display_title(title) for title, _url in _canonical_pairs(context_blocks)):
+        if not canonical_title:
+            continue
+        answer = re.sub(
+            rf"\[({re.escape(canonical_title)})\]",
+            r"\1",
+            answer,
+            flags=re.IGNORECASE,
+        )
+
     # Remove stray Markdown emphasis that can otherwise remain attached to a
     # canonical title after link syntax has been collapsed.
     answer = re.sub(r"\*{1,3}([^*\n]+)\*{1,3}", r"\1", answer)
@@ -1911,7 +1925,7 @@ def _link_canonical_titles(
     """
     Reconstruct canonical links deterministically from evidence.
 
-    v18's core architectural change is here: the LLM never supplies the
+    v19's core architectural change is here: the LLM never supplies the
     visitor-facing URL syntax. Exact canonical titles and exact canonical
     URLs come from the retrieved corpus evidence, and this function creates
     the only permitted Markdown links.
@@ -1984,7 +1998,7 @@ def normalize_link_presentation(
     """
     Enforce the canonical visitor-facing link contract deterministically.
 
-    v18 intentionally does not trust model-generated Markdown or HTML.
+    v19 intentionally does not trust model-generated Markdown or HTML.
     Resource identity is established by canonical corpus evidence; the
     visitor-facing link is then constructed by USE itself as:
 
