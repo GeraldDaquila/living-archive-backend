@@ -1,4 +1,4 @@
-# USE v21 — Root-Cause Generation Boundary / Rate-Limit Resilience
+# USE v22 — Root-Cause API Boundary / Provider Budget Isolation
 # Derived from the audited USE v20 production unit. v21 preserves the
 # retrieval, adaptive stewardship, destination-integrity, and deterministic
 # link architecture while hardening the provider-generation boundary.
@@ -13,6 +13,7 @@ import unicodedata
 from typing import Dict, Any, List, Optional, Tuple
 
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
@@ -438,7 +439,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v21"
+APP_VERSION = "v22"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -449,6 +450,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# v22 API boundary: make CORS explicit at the final response boundary as
+# well as through CORSMiddleware. This protects the browser-facing contract
+# from application-level failures and keeps OPTIONS/preflight deterministic.
+CORS_RESPONSE_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+    "Access-Control-Max-Age": "600",
+}
+
+
+@app.middleware("http")
+async def v22_api_boundary(request: Request, call_next):
+    """Guarantee a readable browser response at the outer API boundary."""
+    if request.method == "OPTIONS":
+        return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
+
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        print(f"USE API boundary exception: {exc}")
+        response = JSONResponse(
+            status_code=200,
+            content={
+                "ok": False,
+                "response": "Unable to generate a response from the Living Archive service right now. Please try again.",
+                "error_type": "api_boundary_failure",
+            },
+        )
+
+    for header, value in CORS_RESPONSE_HEADERS.items():
+        response.headers[header] = value
+
+    return response
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
@@ -467,11 +503,12 @@ MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
 # window so document length cannot make the Groq request unmanageably large.
-MAX_GENERATION_CONTEXT_CHARS = 14000
-MAX_GENERATION_RESOURCE_CHARS = 3500
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 7000
-MAX_GENERATION_TOKENS = 600
-MAX_COMPACT_GENERATION_TOKENS = 450
+MAX_GENERATION_CONTEXT_CHARS = 4500
+MAX_GENERATION_RESOURCE_CHARS = 900
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 2800
+MAX_COMPACT_GENERATION_RESOURCE_CHARS = 500
+MAX_GENERATION_TOKENS = 300
+MAX_COMPACT_GENERATION_TOKENS = 180
 
 
 # =====================================================================
@@ -2364,12 +2401,14 @@ def generate_llm_response(
     """
     Generate the visitor answer behind a hard provider boundary.
 
-    v21 root-cause fixes:
-      - generation context is bounded before the first provider call;
+    v22 root-cause fixes:
+      - retrieval remains broad, but the provider prompt has a deliberately
+        conservative independent budget;
       - completion tokens are bounded independently of evidence size;
-      - 413 is retried once with an explicitly smaller local context;
-      - 429 is temporarily quarantined for this runtime, with no second
-        immediate call that would compound the rate-limit condition;
+      - 413 is retried once with a smaller, separately bounded context;
+      - 429 is quarantined without an immediate repeat against the same model;
+      - generation failures remain application-level states, not transport
+        failures;
       - every generation path receives an explicit context argument.
     """
 
@@ -2491,10 +2530,7 @@ def generate_llm_response(
                 compact_context = _bound_existing_context_blocks(
                     context_blocks,
                     MAX_COMPACT_GENERATION_CONTEXT_CHARS,
-                    max(
-                        1800,
-                        MAX_GENERATION_RESOURCE_CHARS // 2,
-                    ),
+                    MAX_COMPACT_GENERATION_RESOURCE_CHARS,
                 )
 
                 print(
@@ -2615,29 +2651,81 @@ async def handle_query(
         )
 
     if not query_str or not str(query_str).strip():
-        return {
-            "query": "",
-            "intent": "TOPICAL_INQUIRY",
-            "response": "Please enter a question to query the archive.",
-            "canonical_context": "",
-        }
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "query": "",
+                "intent": "TOPICAL_INQUIRY",
+                "response": "Please enter a question to query the archive.",
+            },
+            headers=CORS_RESPONSE_HEADERS,
+        )
 
     query_str = str(query_str).strip()
 
-    context_data = fetch_canonical_context(query_str)
+    try:
+        context_data = fetch_canonical_context(query_str)
 
-    llm_output = generate_llm_response(
-        query_str,
-        context_data["context_blocks"],
-        context_data["intent"],
+        llm_output = generate_llm_response(
+            query_str,
+            context_data["context_blocks"],
+            context_data["intent"],
+        )
+
+        # v22 deliberately does NOT return canonical_context to the browser.
+        # Retrieval evidence is an internal generation input; returning it
+        # was unnecessary for the WordPress client and could make health/
+        # keep-warm requests return a very large body.
+        response_content: Dict[str, Any] = {
+            "ok": True,
+            "query": query_str,
+            "intent": context_data["intent"],
+            "response": llm_output,
+        }
+
+        # Optional diagnostic exposure is disabled by default.
+        if os.getenv("USE_DEBUG_CONTEXT", "0").strip() == "1":
+            response_content["canonical_context"] = context_data["context_blocks"]
+
+        return JSONResponse(
+            status_code=200,
+            content=response_content,
+            headers=CORS_RESPONSE_HEADERS,
+        )
+
+    except Exception as exc:
+        # Keep provider/retrieval failures inside the application contract.
+        # The browser must receive readable JSON with CORS headers rather
+        # than interpreting an upstream exception as a connection failure.
+        print(f"USE query application failure: {exc}")
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": False,
+                "query": query_str,
+                "intent": "TOPICAL_INQUIRY",
+                "response": "Unable to generate a response from the Living Archive service right now. Please try again.",
+                "error_type": "application_generation_failure",
+            },
+            headers=CORS_RESPONSE_HEADERS,
+        )
+
+
+# =====================================================================
+# LIGHTWEIGHT HEALTH / KEEP-WARM ENDPOINT
+# =====================================================================
+
+@app.get("/health")
+@app.head("/health")
+def health_check():
+    """Small transport-safe health response for monitoring/keep-warm jobs."""
+    return JSONResponse(
+        status_code=200,
+        content={"status": "ok", "service": "USE", "version": APP_VERSION},
+        headers=CORS_RESPONSE_HEADERS,
     )
-
-    return {
-        "query": query_str,
-        "intent": context_data["intent"],
-        "response": llm_output,
-        "canonical_context": context_data["context_blocks"],
-    }
 
 
 # =====================================================================
