@@ -11,6 +11,12 @@
 # back to resource enumeration. This is not diagnosis, scoring, status, or
 # membership inference. Explicit Steward Access remains the commitment boundary.
 
+# USE v29 — Canonical Evidence Integrity / Deterministic Resource Allowlist
+# v29 preserves v28 commitment-state and progressive-inquiry behavior while adding
+# a hard generation-to-corpus integrity gate: generated resource recommendations
+# must correspond to exact canonical titles present in the supplied evidence.
+# Unsupported plausible-looking resource names are removed rather than surfaced.
+
 # USE v23 — Root-Cause Generation Context / Deployment Fingerprint
 # Derived from the audited USE v20 production unit. v23 preserves the
 # retrieval, adaptive stewardship, destination-integrity, and deterministic
@@ -482,6 +488,11 @@ CONSTITUTIONAL GENERATION RULES
     tags. Do not output anything outside those tags.
 11. For resources, output only the exact canonical title as plain text.
     USE reconstructs links deterministically from canonical evidence.
+12. A resource recommendation is valid only if its exact title appears in the
+    supplied canonical evidence. If the evidence does not contain a suitable
+    resource, do not invent or paraphrase a resource title; answer within the
+    evidence boundary and say that the available material does not establish
+    an additional resource when necessary.
 """
 
 
@@ -489,7 +500,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v28"
+APP_VERSION = "v29"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -504,7 +515,7 @@ app.add_middleware(
 # v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v28-commitment-state-guard"
+DEPLOYMENT_FINGERPRINT = "USE-v29-canonical-evidence-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2390,6 +2401,109 @@ def _strip_leading_decorative_symbols(text: str) -> str:
     return value
 
 
+def _canonical_resource_title_set(context_blocks: str) -> Dict[str, str]:
+    """Return canonical display titles keyed by normalized title."""
+    titles: Dict[str, str] = {}
+    for title, _url in _canonical_pairs(context_blocks):
+        display = _canonical_display_title(title)
+        if display:
+            titles[display.casefold()] = display
+    return titles
+
+
+def _line_contains_canonical_title(line: str, canonical_titles: Dict[str, str]) -> bool:
+    """Return True when a line contains at least one exact canonical title."""
+    if not canonical_titles:
+        return False
+    folded = str(line or "").casefold()
+    return any(title in folded for title in canonical_titles)
+
+
+def _looks_like_resource_list_item(line: str) -> bool:
+    """Recognize conservative numbered/bulleted resource-list lines."""
+    value = str(line or "").strip()
+    if not value:
+        return False
+    return bool(re.match(r"^(?:\d+[.)]|[-*•])\s+", value))
+
+
+def enforce_canonical_resource_allowlist(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """Remove unsupported resource recommendations from model output.
+
+    v29 treats canonical resource identity as data, not generation. The model
+    may synthesize prose, but a resource named as a recommendation must be
+    present in the exact supplied evidence. The gate is intentionally
+    conservative: only explicit list items are removed, avoiding destructive
+    edits to ordinary explanatory prose.
+    """
+    text = str(answer or "").strip()
+    if not text:
+        return ""
+
+    canonical_titles = _canonical_resource_title_set(context_blocks)
+    if not canonical_titles:
+        return text
+
+    lines = text.splitlines()
+    output: List[str] = []
+    removed = 0
+    in_resource_section = False
+
+    resource_section_re = re.compile(
+        r'\b(?:resources?|recommended resources?|suggested resources?|reading|resources to explore)\b',
+        flags=re.IGNORECASE,
+    )
+
+    for line in lines:
+        stripped = line.strip()
+        if resource_section_re.search(stripped) and not _looks_like_resource_list_item(stripped):
+            in_resource_section = True
+            output.append(line)
+            continue
+
+        if _looks_like_resource_list_item(stripped):
+            if _line_contains_canonical_title(stripped, canonical_titles):
+                output.append(line)
+            elif in_resource_section:
+                removed += 1
+                continue
+            else:
+                # Numbered/bulleted lines that are not canonical resources are
+                # retained unless a resource-introduction cue has established
+                # that the following list is explicitly a resource list.
+                output.append(line)
+            continue
+
+        # A blank line ends an explicit resource-list section only after the
+        # section has contained content; retaining the flag through ordinary
+        # prose is safer than accidentally deleting later bullets.
+        if in_resource_section and stripped == "":
+            output.append(line)
+            continue
+
+        output.append(line)
+
+    cleaned = "\n".join(output).strip()
+
+    if removed:
+        boundary = (
+            "The available Archive evidence establishes the resources named "
+            "above; I have not added additional resources that are not supported "
+            "by that evidence."
+        )
+        if boundary.casefold() not in cleaned.casefold():
+            cleaned = (cleaned + "\n\n" + boundary).strip()
+        print(
+            "USE canonical evidence gate: removed "
+            f"{removed} unsupported resource recommendation(s)."
+        )
+
+    return cleaned
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2399,6 +2513,10 @@ def _clean_generation_output(
         return ""
 
     cleaned_answer = _strip_leading_decorative_symbols(answer)
+    cleaned_answer = enforce_canonical_resource_allowlist(
+        cleaned_answer,
+        context_blocks,
+    )
 
     return normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, context_blocks),
@@ -2706,6 +2824,9 @@ def _build_generation_system_content(
         f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
         f"OR INTERNAL CONTEXT]:\n"
         f"{generation_context}\n\n"
+        "[CANONICAL RESOURCE ALLOWLIST — INTERNAL]\n"
+        "Only exact titles appearing in the evidence above may be named as "
+        "resources. Never create a plausible substitute title.\n\n"
         "[FINAL RESPONSE REQUIREMENT]\n"
         "Respond directly to the visitor's question. Output the finished "
         "visitor-facing answer. A clean answer without a wrapper is valid. "
@@ -3322,6 +3443,24 @@ def _generation_boundary_self_audit() -> None:
 
     shallow = assess_progressive_commitment("What is the Archive?", [])
     assert shallow["deeper_probe_allowed"] is False
+
+    evidence = (
+        "Title: Canonical Resource One\n"
+        "URL: https://example.com/one\n"
+        "Content: Supported evidence.\n\n---\n\n"
+        "Title: Canonical Resource Two\n"
+        "URL: https://example.com/two\n"
+        "Content: Supported evidence."
+    )
+    test_answer = (
+        "Here are useful resources:\n\n"
+        "1. Canonical Resource One\n"
+        "2. Invented Resource That Does Not Exist\n"
+    )
+    gated = enforce_canonical_resource_allowlist(test_answer, evidence)
+    assert "Canonical Resource One" in gated
+    assert "Invented Resource That Does Not Exist" not in gated
+
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "", progressive_state=state)
