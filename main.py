@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v24"
+APP_VERSION = "v25"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -488,10 +488,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# v23 API boundary: make CORS explicit at the final response boundary as
+# v25 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v24-generation-context-root-repaired"
+DEPLOYMENT_FINGERPRINT = "USE-v25-orientational-frame-routing"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -525,7 +525,7 @@ async def v23_api_boundary(request: Request, call_next):
 
     return response
 
-# v23 deployment fingerprint: makes it immediately visible in Render logs
+# v25 deployment fingerprint: makes it immediately visible in Render logs
 # which complete production unit is actually running. This prevents a stale
 # main.py / deployment mismatch from being mistaken for a USE logic failure.
 print(
@@ -1488,6 +1488,103 @@ def format_context_blocks(
 
 
 # =====================================================================
+# V25 ORIENTATIONAL FRAME / DOMAIN-AWARE RETRIEVAL
+# =====================================================================
+# Internal navigation aid only. These labels are never exposed to visitors.
+# The frame does not replace semantic retrieval; it provides a light domain
+# preference so that a question about larger systems is not pulled inward
+# merely because the visitor also uses personal language.
+
+ORIENTATIONAL_DOMAIN_TERMS = {
+    "systems": (
+        "system", "systems", "institution", "institutions", "institutional",
+        "structure", "structural", "incentive", "incentives", "governance",
+        "policy", "culture", "community", "communities", "collective",
+        "society", "social", "organization", "organizations", "power",
+        "authority", "rules", "conditions", "environment", "ecosystem",
+        "trust", "legitimacy", "coordination", "institutional design",
+    ),
+    "stewardship": (
+        "stewardship", "steward", "custodian", "custodianship", "guardian",
+        "guardianship", "service to others", "responsibility", "responsible",
+        "care for", "serve", "service", "accountability", "trust", "governance",
+    ),
+    "inward": (
+        "myself", "my self", "my pattern", "my patterns", "emotion", "emotions",
+        "self-awareness", "self awareness", "self-development", "self development",
+        "inner", "shadow", "ego", "healing", "grief", "fear", "identity",
+        "personal", "authenticity", "relationship", "relationships",
+    ),
+    "transition": (
+        "transition", "change", "uncertain", "uncertainty", "threshold",
+        "becoming", "next chapter", "what now", "meaning",
+    ),
+}
+
+
+def infer_orientational_frame(question: str) -> Dict[str, Any]:
+    """Infer the dominant orientation of the question for internal routing."""
+    q = re.sub(r"\s+", " ", str(question or "").lower()).strip()
+
+    def count_terms(terms: Tuple[str, ...]) -> int:
+        return sum(1 for term in terms if term in q)
+
+    scores = {
+        domain: count_terms(terms)
+        for domain, terms in ORIENTATIONAL_DOMAIN_TERMS.items()
+    }
+
+    # Explicit systems conditions take precedence over inward language when
+    # the question asks what is happening in the larger environment.
+    if scores["systems"] > 0 and scores["systems"] >= scores["inward"]:
+        primary = "systems"
+    elif scores["stewardship"] > 0:
+        primary = "stewardship"
+    elif scores["inward"] > 0:
+        primary = "inward"
+    elif scores["transition"] > 0:
+        primary = "transition"
+    else:
+        primary = "general"
+
+    return {"primary": primary, "scores": scores}
+
+
+def _orientational_resource_bonus(metadata: Dict[str, Any], frame: Dict[str, Any]) -> int:
+    """Return a small routing bonus from existing canonical metadata only."""
+    primary = str(frame.get("primary", "general"))
+    terms = ORIENTATIONAL_DOMAIN_TERMS.get(primary, ())
+    if not terms:
+        return 0
+
+    searchable = " ".join(
+        str(metadata.get(key, ""))
+        for key in ("title", "text", "content", "excerpt", "description", "category")
+    ).lower()
+
+    return sum(1 for term in terms if term in searchable)
+
+
+def orientational_rerank_documents(
+    documents: List[Dict[str, Any]],
+    frame: Dict[str, Any],
+    *,
+    preserve_prefix: int = 0,
+) -> List[Dict[str, Any]]:
+    """Lightly reorder retrieved evidence without replacing semantic retrieval."""
+    if not documents or frame.get("primary") == "general":
+        return documents
+
+    prefix = documents[:preserve_prefix]
+    remainder = documents[preserve_prefix:]
+    ranked = sorted(
+        enumerate(remainder),
+        key=lambda item: (-_orientational_resource_bonus(item[1], frame), item[0]),
+    )
+    return prefix + [doc for _index, doc in ranked]
+
+
+# =====================================================================
 # CANONICAL RETRIEVAL
 # =====================================================================
 
@@ -1626,6 +1723,13 @@ def fetch_canonical_context(
     intent = classify_intent(user_query)
     collection_name = detect_collection_request(user_query)
     adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
+    orientational_frame = infer_orientational_frame(user_query)
+
+    print(
+        "USE orientational frame: "
+        f"primary={orientational_frame['primary']}, "
+        f"scores={orientational_frame['scores']}"
+    )
 
     structural_docs: List[Dict[str, Any]] = []
     adaptive_docs: List[Dict[str, Any]] = []
@@ -1786,6 +1890,17 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:MAX_CONTEXT_RESOURCES]
 
+    # v25: semantic retrieval remains the source of candidates; this light
+    # rerank makes the question's dominant orientation influence which of the
+    # already-retrieved resources receive priority. Explicit collection
+    # destinations remain first; ordinary topical evidence is then domain-biased.
+    protected_prefix = min(len(structural_docs), len(retrieved_docs)) if collection_name else 0
+    retrieved_docs = orientational_rerank_documents(
+        retrieved_docs,
+        orientational_frame,
+        preserve_prefix=protected_prefix,
+    )[:MAX_CONTEXT_RESOURCES]
+
     structural_destination_count = (
         min(len(structural_docs), len(retrieved_docs))
         if collection_name and retrieved_docs
@@ -1803,6 +1918,7 @@ def fetch_canonical_context(
 
     return {
         "intent": intent,
+        "orientational_frame": orientational_frame,
         "context_blocks": format_context_blocks(
             retrieved_docs,
             structural_destination_count=structural_destination_count,
@@ -2410,6 +2526,7 @@ def _fit_generation_context_to_provider_budget(
     generation_context: str,
     *,
     max_tokens: int,
+    orientational_frame: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Preflight the complete provider payload and compact evidence before the
@@ -2424,7 +2541,7 @@ def _fit_generation_context_to_provider_budget(
     ) if candidate else ""
 
     while True:
-        messages = _build_generation_messages(user_query, intent, candidate)
+        messages = _build_generation_messages(user_query, intent, candidate, orientational_frame)
         input_chars = _estimate_message_chars(messages)
         estimated_output_chars = max_tokens * 4
         total_estimate = input_chars + estimated_output_chars
@@ -2471,13 +2588,21 @@ def _build_generation_messages(
     user_query: str,
     intent: str,
     generation_context: str,
+    orientational_frame: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, str]]:
     """Build one canonical provider request from one explicit context value."""
     safe_context = str(generation_context or "").strip()
+    frame = orientational_frame or {"primary": "general", "scores": {}}
+    frame_hint = str(frame.get("primary", "general"))
 
     system_content = _build_generation_system_content(
         intent,
         safe_context,
+    ) + (
+        "\n\n[INTERNAL ORIENTATIONAL GUIDANCE — DO NOT REVEAL]: "
+        f"{frame_hint}. Let this orientation influence relevance and next-step "
+        "selection only when supported by the canonical evidence; never mention "
+        "the classification itself."
     )
 
     user_content = (
@@ -2505,6 +2630,7 @@ def _run_generation_attempt(
     generation_context: str,
     *,
     max_tokens: int,
+    orientational_frame: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
     # v24 invariant: generation context is explicit from retrieval boundary
@@ -2514,6 +2640,7 @@ def _run_generation_attempt(
         intent,
         generation_context,
         max_tokens=max_tokens,
+        orientational_frame=orientational_frame,
     )
 
     response = groq_client.chat.completions.create(
@@ -2567,11 +2694,12 @@ def generate_llm_response(
     user_query: str,
     retrieved_context_blocks: str,
     intent: str,
+    orientational_frame: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate a visitor answer behind a hard, single-context provider boundary.
 
-    v23 root-cause repair:
+    v24 generation-boundary repair:
       - the retrieval-layer name `context_blocks` never enters provider code;
       - one local `base_generation_context` is created before any model call;
       - every provider and compact-fallback call receives that context explicitly;
@@ -2835,9 +2963,13 @@ async def handle_query(
             query_str,
             context_data["context_blocks"],
             context_data["intent"],
+            orientational_frame=context_data.get(
+                "orientational_frame",
+                {"primary": "general", "scores": {}},
+            ),
         )
 
-        # v23 deliberately does NOT return canonical_context to the browser.
+        # v24 deliberately does NOT return canonical_context to the browser.
         # Retrieval evidence is an internal generation input; returning it
         # was unnecessary for the WordPress client and could make health/
         # keep-warm requests return a very large body.
