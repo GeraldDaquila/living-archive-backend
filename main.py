@@ -365,6 +365,20 @@ CONSTITUTIONAL RULES
 36. PRESENTATION SAFETY
     Raw URL display and emoji-prefixed resource titles are presentation
     failures, not alternative valid formats.
+
+37. DESTINATION INTEGRITY
+    When the visitor asks where to find or explore something, never
+    recommend a resource merely because it is semantically related.
+    The destination must function as a genuine visitor-facing corpus
+    destination. Never send the visitor back to the USE query interface,
+    a search/query endpoint, an API, documentation endpoint, feed, or
+    other technical intermediary.
+
+38. DESTINATION-FIRST RESPONSE
+    For explicit location requests, give the strongest established
+    destination first. If the evidence does not establish a genuine
+    destination, say that the available material does not establish one
+    and do not substitute an unrelated resource.
 """
 
 
@@ -372,7 +386,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v10"
+APP_VERSION = "v11"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -717,64 +731,216 @@ COLLECTION_TERMS = {
     "essays": ("essays", "essay collection"),
 }
 
+DESTINATION_SIGNALS = (
+    "where",
+    "find",
+    "explore",
+    "access",
+    "browse",
+    "located",
+    "location",
+    "available",
+    "go",
+    "start",
+    "begin",
+)
+
+USE_INTERFACE_MARKERS = (
+    "ask a question, follow a curiosity, or find what you need",
+    "how results are found",
+    "ask another question",
+    "unable to connect to the living archive service",
+)
+
+TECHNICAL_URL_MARKERS = (
+    "/api/",
+    "/docs",
+    "/openapi",
+    "/wp-admin",
+    "/wp-json",
+    "/search",
+    "/feed",
+    ".json",
+)
+
+
 def detect_collection_request(query: str) -> Optional[str]:
     clean = re.sub(r"\s+", " ", query.strip().lower())
-    destination_signal = re.search(
-        r"\b(?:where|how)\b.*\b(?:find|explore|access|browse|see|go|"
-        r"start|begin|located|location|available)\b",
-        clean,
-        re.IGNORECASE,
-    ) or re.search(
-        r"\bwhere\s+(?:can|do|should)\s+i\b", clean, re.IGNORECASE
+
+    destination_signal = any(
+        re.search(rf"\b{re.escape(token)}\b", clean, re.IGNORECASE)
+        for token in DESTINATION_SIGNALS
+    ) and (
+        re.search(r"\bwhere\b", clean, re.IGNORECASE)
+        or re.search(r"\bhow\b", clean, re.IGNORECASE)
     )
 
     if not destination_signal:
         return None
 
     for canonical_name, aliases in COLLECTION_TERMS.items():
-        if any(re.search(rf"\b{re.escape(a)}\b", clean, re.IGNORECASE)
-               for a in aliases):
+        if any(
+            re.search(rf"\b{re.escape(alias)}\b", clean, re.IGNORECASE)
+            for alias in aliases
+        ):
             return canonical_name
 
     return None
 
-def _structural_score(metadata: Dict[str, Any], collection_name: str) -> int:
-    title = str(metadata.get("title", "")).lower()
+
+def _is_use_interface_resource(metadata: Dict[str, Any]) -> bool:
+    title = str(metadata.get("title", "")).strip().lower()
+    url = str(metadata.get("url", "")).strip().lower()
+    content = _resource_content(metadata).lower()
+
+    if any(marker in title for marker in USE_INTERFACE_MARKERS):
+        return True
+
+    if any(marker in content for marker in USE_INTERFACE_MARKERS):
+        return True
+
+    # Technical/service destinations are not visitor-facing corpus
+    # destinations even when they happen to have useful semantic text.
+    if any(marker in url for marker in TECHNICAL_URL_MARKERS):
+        return True
+
+    if url.startswith("javascript:") or url.startswith("data:"):
+        return True
+
+    return False
+
+
+def _has_usable_destination(metadata: Dict[str, Any]) -> bool:
+    url = str(metadata.get("url", "")).strip()
+
+    if not url or url == "#":
+        return False
+
+    if not re.match(r"^https?://", url, flags=re.IGNORECASE):
+        return False
+
+    return not _is_use_interface_resource(metadata)
+
+
+def _structural_score(
+    metadata: Dict[str, Any],
+    collection_name: str,
+) -> int:
+    title = str(metadata.get("title", "")).strip().lower()
     content = _resource_content(metadata).lower()
     aliases = COLLECTION_TERMS.get(collection_name, (collection_name,))
     score = 0
 
-    if any(a in title for a in aliases):
-        score += 8
-    if any(a in content for a in aliases):
-        score += 3
+    if not _has_usable_destination(metadata):
+        return -100
+
+    # Exact collection/title evidence is substantially stronger than
+    # merely related prose. This is the core destination-first signal.
+    if any(alias == title for alias in aliases):
+        score += 20
+    elif any(alias in title for alias in aliases):
+        score += 12
+
+    # A structural page that explicitly names the requested collection
+    # is strong evidence even when the collection name is not its title.
+    alias_hits = sum(content.count(alias) for alias in aliases)
+    if alias_hits:
+        score += min(alias_hits * 2, 10)
 
     structural_terms = (
-        "document types", "subject index", "index", "collection",
-        "series", "hub", "library", "atlas", "navigator",
-        "navigation", "about this site",
+        "subject index",
+        "document types",
+        "collection",
+        "series",
+        "hub",
+        "library",
+        "atlas",
+        "navigator",
+        "navigation",
+        "where to begin",
+        "about this site",
     )
+
     if any(term in title for term in structural_terms):
-        score += 4
+        score += 6
+
     if any(term in content for term in structural_terms):
-        score += 1
+        score += 2
+
+    # Direct navigational language is preferable to incidental mention.
+    destination_phrases = (
+        "find",
+        "explore",
+        "browse",
+        "access",
+        "available",
+        "where to",
+        "entry point",
+        "navigation",
+    )
+    if any(phrase in content for phrase in destination_phrases):
+        score += 3
 
     return score
 
+
 def _query_structural_index(
     collection_name: str,
-    query_vector: List[float],
 ) -> List[Dict[str, Any]]:
-    candidates = _query_index(query_vector, max(RETRIEVAL_TOP_K, 20))
-    ranked = []
+    """
+    Resolve structural destinations through several purpose-built
+    retrieval queries rather than relying on the visitor's full question
+    as a single semantic vector.
 
-    for score, _match_id_value, metadata in candidates:
-        structural = _structural_score(metadata, collection_name)
-        if structural > 0:
-            ranked.append((structural, score, metadata))
+    This remains generic: the collection name is supplied by intent
+    detection, and no individual Archive collection is hard-coded to a
+    particular destination.
+    """
+    query_variants = (
+        f"{collection_name}",
+        f"Living Archive {collection_name} collection index landing page",
+        f"where to find and explore {collection_name} in the Living Archive",
+        f"Living Archive navigation for {collection_name}",
+    )
 
-    ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    return [metadata for _s, _semantic, metadata in ranked]
+    ranked_by_key: Dict[str, Tuple[int, float, Dict[str, Any]]] = {}
+
+    for variant in query_variants:
+        vector = generate_embedding(variant)
+        if not vector:
+            continue
+
+        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 50))
+
+        for semantic_score, _match_id_value, metadata in candidates:
+            structural_score = _structural_score(metadata, collection_name)
+
+            if structural_score <= 0:
+                continue
+
+            key = _resource_key(metadata)
+            existing = ranked_by_key.get(key)
+
+            combined_score = structural_score + semantic_score
+
+            if existing is None or combined_score > existing[0] + existing[1]:
+                ranked_by_key[key] = (
+                    structural_score,
+                    semantic_score,
+                    metadata,
+                )
+
+    ranked = list(ranked_by_key.values())
+    ranked.sort(
+        key=lambda item: (
+            item[0],
+            item[1],
+        ),
+        reverse=True,
+    )
+
+    return [metadata for _structural, _semantic, metadata in ranked]
+
 
 # =====================================================================
 # CANONICAL CONTEXT FORMATTING
@@ -804,15 +970,21 @@ def _resource_content(doc: Dict[str, Any]) -> str:
 
 def format_context_blocks(
     documents: List[Dict[str, Any]],
+    structural_destination_count: int = 0,
 ) -> str:
     formatted_blocks: List[str] = []
 
-    for doc in documents:
+    for index_number, doc in enumerate(documents):
         title = doc.get("title", "Untitled Resource")
         url = doc.get("url", "#")
         content = _resource_content(doc)
 
+        role = "CANONICAL CORPUS EVIDENCE"
+        if index_number < structural_destination_count:
+            role = "PRIMARY STRUCTURAL DESTINATION CANDIDATE"
+
         formatted_blocks.append(
+            f"Evidence Role: {role}\n"
             f"Title: {title}\n"
             f"URL: {url}\n"
             f"Content: {content}"
@@ -890,8 +1062,17 @@ def _append_unique_resource(
     documents: List[Dict[str, Any]],
     seen_keys: set,
     metadata: Optional[Dict[str, Any]],
+    *,
+    require_destination: bool = False,
 ) -> None:
     if not metadata:
+        return
+
+    if require_destination and not _has_usable_destination(metadata):
+        print(
+            "USE destination validation: rejected non-destination "
+            f"resource '{metadata.get('title', 'Untitled Resource')}'."
+        )
         return
 
     key = _resource_key(metadata)
@@ -949,6 +1130,8 @@ def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
     intent = classify_intent(user_query)
+    collection_name = detect_collection_request(user_query)
+    structural_docs: List[Dict[str, Any]] = []
     retrieved_docs: List[Dict[str, Any]] = []
     seen_keys = set()
 
@@ -983,12 +1166,9 @@ def fetch_canonical_context(
         query_vector = generate_embedding(user_query)
 
         if query_vector:
-            collection_name = detect_collection_request(user_query)
-
             if collection_name:
                 structural_docs = _query_structural_index(
                     collection_name,
-                    query_vector,
                 )
 
                 for metadata in structural_docs:
@@ -996,29 +1176,38 @@ def fetch_canonical_context(
                         retrieved_docs,
                         seen_keys,
                         metadata,
+                        require_destination=True,
                     )
                     if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
                         break
 
                 print(
-                    "USE structural retrieval: "
+                    "USE structural destination retrieval: "
                     f"collection='{collection_name}', "
-                    f"selected={len(structural_docs)} candidates."
+                    f"usable_candidates={len(structural_docs)}, "
+                    f"selected={len(retrieved_docs)}."
                 )
 
-            candidates = _query_index(
-                query_vector,
-                RETRIEVAL_TOP_K,
-            )
-
-            for score, match_id, metadata in candidates:
-                _append_unique_resource(
-                    retrieved_docs,
-                    seen_keys,
-                    metadata,
+            # Destination requests must not fall back to ordinary semantic
+            # neighbors when a structural destination has been resolved.
+            # That was the root cause of the previous false destination.
+            if not collection_name or not retrieved_docs:
+                candidates = _query_index(
+                    query_vector,
+                    RETRIEVAL_TOP_K,
                 )
-                if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
-                    break
+
+                for score, match_id, metadata in candidates:
+                    _append_unique_resource(
+                        retrieved_docs,
+                        seen_keys,
+                        metadata,
+                        require_destination=bool(collection_name),
+                    )
+                    if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
+                        break
+            else:
+                candidates = []
 
             print(
                 "USE retrieval: "
@@ -1035,9 +1224,18 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:MAX_CONTEXT_RESOURCES]
 
+    structural_destination_count = (
+        min(len(structural_docs), len(retrieved_docs))
+        if collection_name and retrieved_docs
+        else 0
+    )
+
     return {
         "intent": intent,
-        "context_blocks": format_context_blocks(retrieved_docs),
+        "context_blocks": format_context_blocks(
+            retrieved_docs,
+            structural_destination_count=structural_destination_count,
+        ),
     }
 
 
@@ -1045,16 +1243,8 @@ def fetch_canonical_context(
 # CANONICAL LINK PRESENTATION NORMALIZATION
 # =====================================================================
 
-def normalize_link_presentation(
-    answer: str,
-    context_blocks: str,
-) -> str:
-    """
-    Convert raw canonical URLs to exact-title Markdown links when the
-    title/URL pair is explicitly present in the canonical evidence.
-    Never invents or reconstructs a URL.
-    """
-    pairs = []
+def _canonical_pairs(context_blocks: str) -> List[Tuple[str, str]]:
+    pairs: List[Tuple[str, str]] = []
 
     for block in context_blocks.split("\n\n---\n\n"):
         title_match = re.search(
@@ -1065,11 +1255,63 @@ def normalize_link_presentation(
             block,
             flags=re.MULTILINE | re.IGNORECASE,
         )
-        if title_match and url_match:
-            title = title_match.group(1).strip()
-            url = url_match.group(1).strip().rstrip(".,;")
-            if title and url and url != "#":
-                pairs.append((title, url))
+        if not title_match or not url_match:
+            continue
+
+        title = title_match.group(1).strip()
+        url = url_match.group(1).strip().rstrip(".,;")
+
+        if title and url and url != "#":
+            pairs.append((title, url))
+
+    return pairs
+
+
+def sanitize_canonical_links(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """Remove links that are not grounded in the supplied corpus."""
+    pairs = _canonical_pairs(context_blocks)
+    allowed_urls = {url.lower(): title for title, url in pairs}
+
+    def replace_markdown(match: re.Match) -> str:
+        label = match.group(1).strip()
+        url = match.group(2).strip()
+
+        if url.lower() in allowed_urls:
+            return match.group(0)
+
+        # Preserve the visible label but remove an ungrounded destination.
+        return label
+
+    answer = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)]+)\)",
+        replace_markdown,
+        answer,
+        flags=re.IGNORECASE,
+    )
+
+    # Raw URLs are never visitor-facing. If grounded, normalization will
+    # replace them with the canonical title; otherwise remove them.
+    for url in re.findall(r"https?://\S+", answer, flags=re.IGNORECASE):
+        clean_url = url.rstrip(".,;)")
+        if clean_url.lower() not in allowed_urls:
+            answer = answer.replace(url, "")
+
+    return answer.strip()
+
+
+def normalize_link_presentation(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """
+    Convert raw canonical URLs to exact-title Markdown links when the
+    title/URL pair is explicitly present in the canonical evidence.
+    Never invents or reconstructs a URL.
+    """
+    pairs = _canonical_pairs(context_blocks)
 
     # Strip known decorative emoji prefixes from resource-link lines.
     answer = re.sub(
@@ -1080,16 +1322,30 @@ def normalize_link_presentation(
 
     for title, url in pairs:
         escaped = re.escape(url)
+        display_title = re.sub(
+            r"^[\s📖📍🏛️🌱✨🧠🗺️🌿📚🔹🔸]+",
+            "",
+            title,
+        ).strip()
+        if not display_title:
+            display_title = title
 
-        # Already correctly linked: leave it alone.
+        # Already correctly linked: leave it alone, while ensuring any
+        # decorative prefix is removed from the visible label.
         if re.search(rf"\[{re.escape(title)}\]\({escaped}\)", answer,
                      flags=re.IGNORECASE):
+            answer = re.sub(
+                rf"\[{re.escape(title)}\]\({escaped}\)",
+                f"[{display_title}]({url})",
+                answer,
+                flags=re.IGNORECASE,
+            )
             continue
 
         # Title followed by URL.
         answer = re.sub(
             rf"{re.escape(title)}\s*[:—–-]?\s*{escaped}",
-            f"[{title}]({url})",
+            f"[{display_title}]({url})",
             answer,
             flags=re.IGNORECASE,
         )
@@ -1097,7 +1353,7 @@ def normalize_link_presentation(
         # Remaining raw URL: only replace if it is exact canonical evidence.
         answer = re.sub(
             rf"(?<!\]\()(?<!\(){escaped}",
-            f"[{title}]({url})",
+            f"[{display_title}]({url})",
             answer,
             flags=re.IGNORECASE,
         )
@@ -1205,7 +1461,7 @@ def generate_llm_response(
 
                 if visitor_answer:
                     return normalize_link_presentation(
-                        visitor_answer,
+                        sanitize_canonical_links(visitor_answer, context_blocks),
                         context_blocks,
                     )
 
@@ -1268,7 +1524,7 @@ def generate_llm_response(
 
                 if repaired_answer:
                     return normalize_link_presentation(
-                        repaired_answer,
+                        sanitize_canonical_links(repaired_answer, context_blocks),
                         context_blocks,
                     )
 
