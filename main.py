@@ -74,10 +74,24 @@ The visitor is already inside the Living Archive.
 Do not tell the visitor to "visit the Living Archive," "go to the website,"
 or otherwise describe the Archive as though it were somewhere external.
 
-Instead, orient the visitor from their current position.
+Orient the visitor from their current position.
 
 
-4. THE ARCHIVE IS A KNOWLEDGE ARCHITECTURE
+4. OPERATIONAL SEQUENCE
+
+Use this sequence when appropriate:
+
+Understand the visitor's question
+→ orient the visitor
+→ interpret the available canonical resources
+→ identify useful movement
+→ offer canonical routes.
+
+Do not mechanically expose this sequence as headings unless it genuinely
+improves the answer.
+
+
+5. THE ARCHIVE IS A KNOWLEDGE ARCHITECTURE
 
 Treat the Living Archive as a connected body of work whose resources may
 serve different architectural functions.
@@ -85,116 +99,113 @@ serve different architectural functions.
 A resource can be relevant to a subject without being the architectural
 entry point for that subject.
 
-Distinguish, where the canonical context permits, among resources that
-primarily serve:
+When the canonical context supports the distinction, consider whether a
+resource primarily serves one or more of these functions:
 
-A. STRUCTURAL ORIENTATION
+- structural orientation
+- conceptual or human orientation
+- thematic exploration
+- applied or practical orientation
+- developmental orientation
+- governance or systems orientation
 
-Resources whose primary purpose is to show or explain the architecture,
-organization, pathways, collections, or overall shape of the Archive.
+These are interpretive roles, not a rigid taxonomy.
 
-B. CONCEPTUAL OR HUMAN ORIENTATION
+Do not assume that every domain contains every role.
 
-Resources whose primary purpose is to help a person understand the
-questions, intellectual stance, purpose, meaning, or deeper human
-orientation underlying a domain.
-
-C. THEMATIC EXPLORATION
-
-Resources concerned primarily with a particular subject, question,
-domain, theme, or field of inquiry.
-
-D. APPLIED / PRACTICAL ORIENTATION
-
-Resources concerned primarily with lived practice, application,
-implementation, institutional work, community work, or real-world
-engagement.
-
-E. DEVELOPMENTAL ORIENTING MATERIAL
-
-Resources concerned with how a person, group, leader, steward, or
-institution develops capacity, responsibility, awareness, or maturity.
-
-F. GOVERNANCE / SYSTEMS ORIENTATION
-
-Resources concerned with how ideas operate through systems, institutions,
-governance structures, patterns of responsibility, or relationships
-between parts of a larger whole.
-
-These are NOT a fixed taxonomy of the Living Archive.
-
-Do not assume that every domain contains all of these layers.
-
-Do not manufacture a category merely because it would be useful.
-
-Instead, infer the role of each retrieved resource from the actual
-canonical context and use that role to determine how it may help answer
-the visitor's question.
+Do not manufacture a role merely because it would be convenient.
 
 
-5. DOMAIN ≠ TOPIC
+6. DOMAIN IS NOT MERELY TOPIC
 
 A domain such as stewardship may appear across multiple parts of the
 Living Archive.
 
-Do not reduce a domain to whichever document contains the most matching
-words.
+Do not reduce a domain to whichever retrieved resource contains the
+most matching words.
 
-When a visitor asks about a domain, determine:
+When a visitor asks about a domain, consider:
 
-- what aspect of the domain the visitor is actually seeking;
-- what role the retrieved resources appear to play;
+- what the visitor is actually seeking;
+- what role each retrieved resource appears to play;
 - whether the resources represent different levels of engagement;
-- whether those resources appear connected;
-- which movement through them best answers the visitor's question.
+- whether the resources are explicitly connected;
+- what movement through them best answers the visitor's question.
 
 Semantic similarity is evidence of relevance.
 
 It is NOT proof of architectural primacy.
 
 
-6. ARCHITECTURAL RELATIONSHIPS
+7. CANONICAL RELATIONSHIP VS INTERPRETATION
+
+This distinction is mandatory.
+
+Before stating that two or more resources, subjects, or domains are
+connected, determine what kind of claim is actually supported.
+
+There are three legitimate levels:
+
+A. EXPLICIT CANONICAL RELATIONSHIP
+
+The supplied canonical context directly establishes the relationship.
+
+You may state it confidently.
+
+B. GROUNDED INTERPRETATION
+
+The supplied resources do not state the relationship as a formal rule,
+but their content provides reasonable grounds for interpreting them
+together.
+
+Make the interpretive nature clear.
+
+Useful language may include:
+- "Taken together, these suggest..."
+- "A useful way to read these together is..."
+- "The connection appears to be..."
+
+C. INSUFFICIENT EVIDENCE
+
+The supplied context does not establish the relationship.
+
+Say so.
+
+Do not manufacture a relationship merely because two subjects are
+conceptually compatible.
+
+Never convert B into A through confident wording.
+
+
+8. ARCHITECTURAL RELATIONSHIPS
 
 When a question asks whether apparently different subjects are connected,
 do not answer merely by listing documents that mention each subject.
 
-First determine whether the canonical context itself reveals a relationship.
+First determine whether the canonical context itself reveals a
+relationship.
 
 If it does, explain the relationship.
 
+If the relationship is interpretive rather than explicit, distinguish
+that interpretation from canonical fact.
+
 If the relationship is not supported by the supplied context, say so.
 
-Do not invent bridges merely because two subjects sound intellectually
-compatible.
 
-Prefer relationships demonstrated by:
-- explicit descriptions;
-- recurring framing;
-- resource relationships;
-- shared purposes;
-- stated institutional structures;
-- clear conceptual continuity in the supplied material.
+9. WHOLE-SITE ORIENTATION
 
+When QUERY INTENT is WHOLE_SITE_ORIENTATION, the first context resource
+is the deterministic canonical Living Archive root/orientation node.
 
-7. WHOLE-SITE ORIENTATION
-
-When QUERY INTENT is WHOLE_SITE_ORIENTATION, the visitor is asking for
-orientation to the larger Living Archive rather than simply asking about
-one subject.
-
-The first canonical context resource is the deterministic orientation
-resource supplied by the retrieval layer.
-
-Treat it as the authoritative structural starting point provided by USE.
-
-Use the remaining canonical resources to enrich the orientation when they
-are genuinely relevant.
+Treat that resource as the authoritative site-level orientation resource
+provided by the retrieval layer.
 
 Do not allow a semantically similar thematic resource to silently replace
-the deterministic orientation resource as the definition of the Archive.
+the root as the definition of the Archive.
 
 
-8. ROOT RESOURCE DISCIPLINE
+10. ROOT RESOURCE DISCIPLINE
 
 The deterministic root resource is a retrieval anchor, not permission to
 invent facts about the Archive.
@@ -205,7 +216,7 @@ question, use the additional supplied canonical context where relevant.
 Never fill missing information with general knowledge.
 
 
-9. CONTEXT BOUNDARY
+11. CONTEXT BOUNDARY
 
 The CANONICAL CONTEXT supplied with this request is the complete evidence
 boundary for the response.
@@ -213,53 +224,38 @@ boundary for the response.
 If a resource, relationship, fact, or route is absent from that context,
 do not claim that it is available.
 
-Do not assume that because the Archive may contain more than the supplied
-context, a particular resource exists in the current retrieval result.
-
 A large archive does not justify unsupported claims.
 
 
-10. RETRIEVAL IS NOT THE SAME AS ANSWER
+12. RETRIEVAL IS NOT THE ANSWER
 
 A retrieved resource is evidence, not necessarily the answer.
 
-Use the user's actual question to determine which supplied resource is
-useful.
+Use the visitor's actual question to determine which supplied resource
+is useful.
 
 Do not simply summarize the highest-scoring result.
 
-When several resources are present, synthesize them according to their
-role in answering the question.
 
-
-11. ROUTING
+13. ROUTING
 
 USE should help the visitor move.
 
-The preferred response sequence is:
-
-Understand the visitor's question
--> determine the relevant level of inquiry
--> interpret the architectural role of the supplied resources
--> identify the most useful movement
--> provide the canonical route or routes supported by context.
-
-Routes should be useful, specific, and grounded in the supplied context.
+Recommendations should be grounded in supplied canonical resources and
+should serve the visitor's actual question.
 
 Do not produce a generic reading list.
 
 
-12. READER SOVEREIGNTY
+14. READER SOVEREIGNTY
 
 Do not prescribe a single path when the canonical context supports several
 legitimate ways of entering or exploring the Archive.
 
 Do not imply that the visitor must read everything.
 
-Offer orientation without coercion.
 
-
-13. WHOLE-SITE QUESTIONS
+15. WHOLE-SITE QUESTIONS
 
 For questions such as:
 
@@ -277,7 +273,7 @@ Do not collapse the response into one thematic essay merely because that
 essay happens to be retrieved.
 
 
-14. TOPICAL QUESTIONS
+16. TOPICAL QUESTIONS
 
 When QUERY INTENT is TOPICAL_INQUIRY, answer the subject-specific question
 using the retrieved canonical resources.
@@ -286,7 +282,7 @@ Do not inject whole-site orientation merely because the words "Archive,"
 "site," or "Living Archive" appear in the question.
 
 
-15. UNCERTAINTY
+17. UNCERTAINTY
 
 When the supplied context is insufficient, be explicit about the boundary.
 
@@ -295,22 +291,100 @@ A constrained answer is preferable to an invented answer.
 Never manufacture certainty.
 
 
-16. RESPONSE STYLE
+=======================================================================
+MARKDOWN PRESENTATION RULES
+=======================================================================
+
+18. CHOOSE THE RIGHT FORM
+
+Use ordinary narrative prose by default.
+
+Use bullets or numbered lists when they improve clarity.
+
+Use a Markdown table only when the information genuinely benefits from
+structured comparison or parallel presentation.
+
+Do NOT create a table merely because several resources are being discussed.
+
+
+19. TABLE INTEGRITY
+
+Whenever you use a Markdown table, it MUST be syntactically valid.
+
+Every table must contain:
+
+- exactly one header row;
+- exactly one separator row immediately beneath it;
+- the same number of columns in every row;
+- matching pipe delimiters;
+- no missing cells;
+- no extra cells;
+- no prose accidentally attached to a table row.
+
+Example of valid structure:
+
+| Resource | Role | Contribution |
+| --- | --- | --- |
+| Resource A | Orientation | Explains the larger structure |
+| Resource B | Exploration | Develops the specific theme |
+
+Never produce malformed tables.
+
+Do not place a heading, paragraph, list, or unrelated text inside a
+table row.
+
+
+20. TABLE CONTENT
+
+Do not put long paragraphs into table cells merely to force information
+into a table.
+
+If the comparison becomes unwieldy, abandon the table and present the
+material as concise narrative or bullets.
+
+A clear answer is more important than preserving a table.
+
+
+21. LINKS INSIDE TABLES
+
+If a table is used, links must still obey the HARD LINK GROUNDING rule.
+
+Never create a link simply to make a table look complete.
+
+
+=======================================================================
+STYLE
+=======================================================================
+
+22. HUMAN EXPERIENCE
+
+The visitor should experience USE as an intelligent guide, not as a
+database interface.
 
 Be human, clear, concise, and intellectually grounded.
 
-Do not expose internal implementation details such as:
+Avoid unnecessary repetition.
+
+Do not expose:
 - Pinecone
 - embeddings
 - vector scores
 - retrieval slots
 - model selection
 - QUERY INTENT
-- internal classifier names
-- root-node IDs
+- internal classifiers
+- implementation details
 
-The visitor should experience USE as an intelligent guide, not as a
-debugging console.
+The internal machinery should remain invisible.
+
+
+23. NO PERFORMATIVE CERTAINTY
+
+Do not sound authoritative merely because the language model can produce
+a confident sentence.
+
+Accuracy, provenance, and useful orientation matter more than rhetorical
+confidence.
 """
 
 
@@ -356,7 +430,9 @@ pc = (
 )
 
 index = (
-    pc.Index(PINECONE_INDEX_NAME)
+    pc.Index(
+        PINECONE_INDEX_NAME
+    )
     if pc
     else None
 )
@@ -374,14 +450,16 @@ groq_client = (
 # EMBEDDING MODEL
 # =====================================================================
 #
-# IMPORTANT:
+# LOCKED ARCHITECTURAL CONSTRAINT:
 #
-# The Pinecone index is constructed around 384-dimensional embeddings.
-# This model therefore remains unchanged.
+# Pinecone is built around 384-dimensional vectors.
 #
-# DO NOT replace this model with a 1024-dimensional embedding model
-# unless the Pinecone index is deliberately rebuilt as a separate
-# architectural operation.
+# Therefore this local embedding model remains:
+#
+# BAAI/bge-small-en-v1.5
+#
+# Do not substitute a 1024-dimensional embedding model here without
+# deliberately rebuilding the Pinecone index.
 # =====================================================================
 
 embedding_model = TextEmbedding(
@@ -410,9 +488,12 @@ MODEL_CACHE = {
 
 def get_live_groq_models() -> List[str]:
     """
-    Retrieve the currently available Groq models.
+    Retrieve currently available Groq models.
 
-    The live list is cached for one hour.
+    The result is cached for one hour.
+
+    This preserves dynamic model discovery rather than depending on
+    a permanently hard-coded Groq model identifier.
     """
 
     now = time.time()
@@ -441,17 +522,20 @@ def get_live_groq_models() -> List[str]:
         discovered = [
             model.id
             for model in response.data
-            if hasattr(
-                model,
-                "id",
-            )
-            and not any(
-                excluded in model.id.lower()
-                for excluded in (
-                    "whisper",
-                    "guard",
-                    "audio",
-                    "vision",
+            if (
+                hasattr(
+                    model,
+                    "id",
+                )
+                and not any(
+                    excluded
+                    in model.id.lower()
+                    for excluded in (
+                        "whisper",
+                        "guard",
+                        "audio",
+                        "vision",
+                    )
                 )
             )
         ]
@@ -674,10 +758,6 @@ SITE_SCOPE_PATTERNS = [
         r"\ball\s+this\b",
         re.IGNORECASE,
     ),
-    re.compile(
-        r"\bhow\s+much\s+is\s+on\b",
-        re.IGNORECASE,
-    ),
 ]
 
 
@@ -842,18 +922,10 @@ def classify_intent(
     if not clean_query:
         return "TOPICAL_INQUIRY"
 
-    # ---------------------------------------------------------------
-    # 1. Topical scope takes precedence.
-    # ---------------------------------------------------------------
-
     if _has_topical_prepositional_complement(
         clean_query
     ):
         return "TOPICAL_INQUIRY"
-
-    # ---------------------------------------------------------------
-    # 2. Explicit whole-site identity.
-    # ---------------------------------------------------------------
 
     for pattern in SIGNAL_C_PATTERNS:
 
@@ -861,10 +933,6 @@ def classify_intent(
             clean_query
         ):
             return "WHOLE_SITE_ORIENTATION"
-
-    # ---------------------------------------------------------------
-    # 3. Orientation + explicit site scope.
-    # ---------------------------------------------------------------
 
     if (
         _has_orientation_signal(
@@ -876,10 +944,6 @@ def classify_intent(
     ):
         return "WHOLE_SITE_ORIENTATION"
 
-    # ---------------------------------------------------------------
-    # 4. Site anchor + orientation action.
-    # ---------------------------------------------------------------
-
     if (
         SITE_ANCHOR_RE.search(
             clean_query
@@ -890,15 +954,11 @@ def classify_intent(
     ):
         return "WHOLE_SITE_ORIENTATION"
 
-    # ---------------------------------------------------------------
-    # 5. Default topical inquiry.
-    # ---------------------------------------------------------------
-
     return "TOPICAL_INQUIRY"
 
 
 # =====================================================================
-# CANONICAL CONTEXT FORMATTING
+# CONTEXT FORMATTING
 # =====================================================================
 
 def format_context_blocks(
@@ -907,7 +967,8 @@ def format_context_blocks(
     ],
 ) -> str:
     """
-    Convert Pinecone metadata into canonical context.
+    Convert Pinecone metadata into canonical
+    context blocks.
     """
 
     formatted_blocks: List[str] = []
@@ -927,7 +988,7 @@ def format_context_blocks(
 
         url = doc.get(
             "url",
-            "#",
+            "",
         )
 
         content = doc.get(
@@ -956,7 +1017,7 @@ def format_context_blocks(
 
 
 # =====================================================================
-# ROOT-NODE EXTRACTION
+# ROOT NODE EXTRACTION
 # =====================================================================
 
 def _metadata_from_root_fetch(
@@ -1035,16 +1096,6 @@ def _metadata_from_root_fetch(
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
-    """
-    Retrieve canonical context.
-
-    WHOLE_SITE_ORIENTATION:
-        Slot 1 = deterministic root
-        Slots 2-3 = semantic backfill
-
-    TOPICAL_INQUIRY:
-        Slots 1-3 = semantic retrieval
-    """
 
     intent = classify_intent(
         user_query
@@ -1095,7 +1146,7 @@ def fetch_canonical_context(
                 print(
                     "WHOLE_SITE_ORIENTATION detected, "
                     f"but root node '{ROOT_NODE_ID}' "
-                    "was not returned with metadata."
+                    "returned no metadata."
                 )
 
         except Exception as exc:
@@ -1105,10 +1156,13 @@ def fetch_canonical_context(
             )
 
     # ---------------------------------------------------------------
-    # SEMANTIC BACKFILL
+    # SEMANTIC RETRIEVAL
     #
-    # Orientation gets K=2 because Slot 1
-    # is deterministically occupied by root.
+    # Whole-site orientation:
+    #     K=2 because root occupies slot 1.
+    #
+    # Topical inquiry:
+    #     K=3.
     # ---------------------------------------------------------------
 
     try:
@@ -1204,7 +1258,8 @@ def fetch_canonical_context(
         )
 
     # ---------------------------------------------------------------
-    # Hard context ceiling.
+    # Preserve the established maximum
+    # context size of three resources.
     # ---------------------------------------------------------------
 
     retrieved_docs = [
@@ -1230,7 +1285,403 @@ def fetch_canonical_context(
 
 
 # =====================================================================
-# GROQ RESPONSE GENERATION
+# MARKDOWN TABLE VALIDATION
+# =====================================================================
+
+def _split_markdown_table_row(
+    line: str,
+) -> List[str]:
+    """
+    Split a Markdown table row while respecting escaped pipes.
+
+    This is deliberately conservative. It is used to validate model
+    output rather than attempting to rewrite arbitrary prose into a
+    table.
+    """
+
+    stripped = line.strip()
+
+    if not stripped.startswith("|"):
+        return []
+
+    if not stripped.endswith("|"):
+        return []
+
+    body = stripped[1:-1]
+
+    cells: List[str] = []
+    current: List[str] = []
+
+    escaped = False
+
+    for char in body:
+
+        if escaped:
+
+            current.append(char)
+            escaped = False
+            continue
+
+        if char == "\\":
+            current.append(char)
+            escaped = True
+            continue
+
+        if char == "|":
+
+            cells.append(
+                "".join(
+                    current
+                ).strip()
+            )
+
+            current = []
+
+        else:
+
+            current.append(
+                char
+            )
+
+    cells.append(
+        "".join(
+            current
+        ).strip()
+    )
+
+    return cells
+
+
+def _is_markdown_separator_row(
+    line: str,
+    expected_columns: int,
+) -> bool:
+
+    cells = (
+        _split_markdown_table_row(
+            line
+        )
+    )
+
+    if len(cells) != expected_columns:
+        return False
+
+    for cell in cells:
+
+        normalized = (
+            cell.strip()
+            .replace(" ", "")
+        )
+
+        if not re.fullmatch(
+            r":?-{3,}:?",
+            normalized,
+        ):
+            return False
+
+    return True
+
+
+def _find_table_blocks(
+    text: str,
+) -> List[
+    tuple
+]:
+
+    lines = text.splitlines()
+
+    blocks: List[
+        tuple
+    ] = []
+
+    i = 0
+
+    while i < len(lines) - 1:
+
+        header = lines[i]
+
+        separator = lines[i + 1]
+
+        header_cells = (
+            _split_markdown_table_row(
+                header
+            )
+        )
+
+        if (
+            header_cells
+            and "|" in separator
+            and _is_markdown_separator_row(
+                separator,
+                len(header_cells),
+            )
+        ):
+
+            start = i
+            end = i + 2
+
+            while (
+                end < len(lines)
+                and lines[end].strip().startswith("|")
+                and lines[end].strip().endswith("|")
+            ):
+
+                end += 1
+
+            blocks.append(
+                (
+                    start,
+                    end,
+                    len(header_cells),
+                )
+            )
+
+            i = end
+
+        else:
+
+            i += 1
+
+    return blocks
+
+
+def _table_block_is_valid(
+    lines: List[str],
+    expected_columns: int,
+) -> bool:
+
+    if len(lines) < 2:
+        return False
+
+    header_cells = (
+        _split_markdown_table_row(
+            lines[0]
+        )
+    )
+
+    if len(header_cells) != expected_columns:
+        return False
+
+    if not _is_markdown_separator_row(
+        lines[1],
+        expected_columns,
+    ):
+        return False
+
+    for row in lines[2:]:
+
+        cells = (
+            _split_markdown_table_row(
+                row
+            )
+        )
+
+        if len(cells) != expected_columns:
+            return False
+
+    return True
+
+
+def _repair_table_block(
+    lines: List[str],
+    expected_columns: int,
+) -> Optional[
+    List[str]
+]:
+    """
+    Repair only straightforward column-count defects.
+
+    If the structure is ambiguous, return None rather than risking
+    corruption of the response.
+    """
+
+    if len(lines) < 2:
+        return None
+
+    repaired: List[str] = []
+
+    header_cells = (
+        _split_markdown_table_row(
+            lines[0]
+        )
+    )
+
+    if len(header_cells) != expected_columns:
+        return None
+
+    repaired.append(
+        "| "
+        + " | ".join(
+            header_cells
+        )
+        + " |"
+    )
+
+    repaired.append(
+        "| "
+        + " | ".join(
+            "---"
+            for _ in range(
+                expected_columns
+            )
+        )
+        + " |"
+    )
+
+    for row in lines[2:]:
+
+        cells = (
+            _split_markdown_table_row(
+                row
+            )
+        )
+
+        if not cells:
+            return None
+
+        if len(cells) > expected_columns:
+
+            # Do not arbitrarily merge content.
+            return None
+
+        while len(cells) < expected_columns:
+            cells.append("")
+
+        repaired.append(
+            "| "
+            + " | ".join(
+                cells
+            )
+            + " |"
+        )
+
+    return repaired
+
+
+def validate_markdown_tables(
+    text: str,
+) -> str:
+    """
+    Root-level output safeguard for Markdown tables.
+
+    Valid tables are preserved.
+
+    Straightforward under-filled rows are repaired.
+
+    Ambiguous malformed tables are converted into readable narrative
+    rather than allowed to reach the visitor as broken Markdown.
+
+    This function is intentionally conservative.
+    """
+
+    if not text or "|" not in text:
+        return text
+
+    lines = text.splitlines()
+
+    blocks = _find_table_blocks(
+        text
+    )
+
+    if not blocks:
+        return text
+
+    output = lines[:]
+
+    # Process from bottom to top so
+    # line indexes remain stable.
+    for (
+        start,
+        end,
+        expected_columns,
+    ) in reversed(blocks):
+
+        block = output[
+            start:end
+        ]
+
+        if _table_block_is_valid(
+            block,
+            expected_columns,
+        ):
+            continue
+
+        repaired = (
+            _repair_table_block(
+                block,
+                expected_columns,
+            )
+        )
+
+        if repaired is not None:
+
+            output[
+                start:end
+            ] = repaired
+
+        else:
+
+            # -------------------------------------------------------
+            # Ambiguous malformed table.
+            #
+            # Rather than emitting broken Markdown, turn each row
+            # into readable prose.
+            # -------------------------------------------------------
+
+            narrative_lines: List[
+                str
+            ] = []
+
+            for row_index, row in enumerate(
+                block
+            ):
+
+                cells = (
+                    _split_markdown_table_row(
+                        row
+                    )
+                )
+
+                if not cells:
+                    continue
+
+                if row_index == 0:
+
+                    narrative_lines.append(
+                        " — ".join(
+                            cell
+                            for cell in cells
+                            if cell
+                        )
+                    )
+
+                    narrative_lines.append("")
+
+                elif row_index == 1:
+
+                    continue
+
+                else:
+
+                    narrative_lines.append(
+                        " — ".join(
+                            cell
+                            for cell in cells
+                            if cell
+                        )
+                    )
+
+            output[
+                start:end
+            ] = narrative_lines
+
+    return "\n".join(
+        output
+    )
+
+
+# =====================================================================
+# GROQ GENERATION
 # =====================================================================
 
 def generate_llm_response(
@@ -1238,9 +1689,6 @@ def generate_llm_response(
     context_blocks: str,
     intent: str,
 ) -> str:
-    """
-    Generate the final USE response through Groq.
-    """
 
     if (
         not GROQ_API_KEY
@@ -1301,11 +1749,26 @@ def generate_llm_response(
                 )
             )
 
-            return (
+            raw_output = (
                 response
                 .choices[0]
                 .message
                 .content
+            )
+
+            if not raw_output:
+                return ""
+
+            # -------------------------------------------------------
+            # Final presentation-integrity gate.
+            #
+            # The LLM remains responsible for choosing whether a
+            # table is appropriate. This layer ensures that malformed
+            # Markdown cannot escape into the user-facing interface.
+            # -------------------------------------------------------
+
+            return validate_markdown_tables(
+                raw_output.strip()
             )
 
         except Exception as exc:
@@ -1315,21 +1778,26 @@ def generate_llm_response(
                 f"Groq model '{model_id}': {exc}"
             )
 
-            last_error = str(exc)
+            last_error = str(
+                exc
+            )
 
     # ---------------------------------------------------------------
-    # Force a fresh model discovery on
-    # the next request.
+    # Invalidate model discovery cache so
+    # the next request obtains a fresh list.
     # ---------------------------------------------------------------
 
     MODEL_CACHE[
+        "models"
+    ] = []
+
+    MODEL_CACHE[
         "last_fetch"
-    ] = 0
+    ] = 0.0
 
     return (
         "Unable to generate response. "
-        "Groq API returned error: "
-        f"{last_error}"
+        f"Groq API returned error: {last_error}"
     )
 
 
@@ -1359,7 +1827,7 @@ class FlexibleQueryRequest(
 
 
 # =====================================================================
-# HEALTH CHECK
+# HEALTH / ROOT
 # =====================================================================
 
 @app.get("/")
@@ -1426,11 +1894,21 @@ async def handle_query(
     ):
 
         query_str = (
-            raw_body.get("query")
-            or raw_body.get("user_query")
-            or raw_body.get("question")
-            or raw_body.get("text")
-            or raw_body.get("input")
+            raw_body.get(
+                "query"
+            )
+            or raw_body.get(
+                "user_query"
+            )
+            or raw_body.get(
+                "question"
+            )
+            or raw_body.get(
+                "text"
+            )
+            or raw_body.get(
+                "input"
+            )
         )
 
     # ---------------------------------------------------------------
@@ -1459,7 +1937,7 @@ async def handle_query(
     ).strip()
 
     # ---------------------------------------------------------------
-    # Retrieval
+    # Canonical retrieval
     # ---------------------------------------------------------------
 
     context_data = (
@@ -1469,7 +1947,7 @@ async def handle_query(
     )
 
     # ---------------------------------------------------------------
-    # Generation
+    # LLM generation
     # ---------------------------------------------------------------
 
     llm_output = (
@@ -1485,7 +1963,7 @@ async def handle_query(
     )
 
     # ---------------------------------------------------------------
-    # Response contract
+    # Existing response contract
     # ---------------------------------------------------------------
 
     return {
