@@ -1,10 +1,10 @@
-# USE v22 — Root-Cause API Boundary / Provider Budget Isolation
-# Derived from the audited USE v20 production unit. v21 preserves the
+# USE v23 — Root-Cause Generation Context / Deployment Fingerprint
+# Derived from the audited USE v20 production unit. v23 preserves the
 # retrieval, adaptive stewardship, destination-integrity, and deterministic
 # link architecture while hardening the provider-generation boundary.
 # The highest-value v20 deficiency was not retrieval quality; it was that
 # provider failures could still arise from request size, rate limits, or
-# an undefined context variable. v21 addresses those causes directly.
+# an undefined context variable. v23 addresses those causes directly and removes ambient generation-context references.
 
 import os
 import re
@@ -439,7 +439,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v22"
+APP_VERSION = "v23"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -451,9 +451,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# v22 API boundary: make CORS explicit at the final response boundary as
+# v23 API boundary: make CORS explicit at the final response boundary as
 # well as through CORSMiddleware. This protects the browser-facing contract
 # from application-level failures and keeps OPTIONS/preflight deterministic.
+DEPLOYMENT_FINGERPRINT = "USE-v23-generation-context-isolated"
+
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
@@ -463,7 +465,7 @@ CORS_RESPONSE_HEADERS = {
 
 
 @app.middleware("http")
-async def v22_api_boundary(request: Request, call_next):
+async def v23_api_boundary(request: Request, call_next):
     """Guarantee a readable browser response at the outer API boundary."""
     if request.method == "OPTIONS":
         return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
@@ -486,6 +488,15 @@ async def v22_api_boundary(request: Request, call_next):
 
     return response
 
+# v23 deployment fingerprint: makes it immediately visible in Render logs
+# which complete production unit is actually running. This prevents a stale
+# main.py / deployment mismatch from being mistaken for a USE logic failure.
+print(
+    "USE STARTUP FINGERPRINT: "
+    f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
+    f"file={os.path.abspath(__file__)}"
+)
+
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "living-archive")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -503,11 +514,11 @@ MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
 # window so document length cannot make the Groq request unmanageably large.
-MAX_GENERATION_CONTEXT_CHARS = 4500
-MAX_GENERATION_RESOURCE_CHARS = 900
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 2800
-MAX_COMPACT_GENERATION_RESOURCE_CHARS = 500
-MAX_GENERATION_TOKENS = 300
+MAX_GENERATION_CONTEXT_CHARS = 3600
+MAX_GENERATION_RESOURCE_CHARS = 750
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1800
+MAX_COMPACT_GENERATION_RESOURCE_CHARS = 450
+MAX_GENERATION_TOKENS = 260
 MAX_COMPACT_GENERATION_TOKENS = 180
 
 
@@ -2343,24 +2354,17 @@ def _build_generation_system_content(
     )
 
 
-def _run_generation_attempt(
-    model_id: str,
+def _build_generation_messages(
     user_query: str,
     intent: str,
     generation_context: str,
-    *,
-    max_tokens: int,
-) -> str:
-    """
-    Execute exactly one provider generation call.
+) -> List[Dict[str, str]]:
+    """Build one canonical provider request from one explicit context value."""
+    safe_context = str(generation_context or "").strip()
 
-    Keeping the call in one explicit function makes the context boundary
-    auditable and prevents fallback code from accidentally referring to a
-    variable belonging to another generation path.
-    """
     system_content = _build_generation_system_content(
         intent,
-        generation_context,
+        safe_context,
     )
 
     user_content = (
@@ -2375,12 +2379,34 @@ def _run_generation_attempt(
         "prefixes. USE will construct canonical links."
     )
 
+    return [
+        {"role": "system", "content": system_content},
+        {"role": "user", "content": user_content},
+    ]
+
+
+def _run_generation_attempt(
+    model_id: str,
+    user_query: str,
+    intent: str,
+    generation_context: str,
+    *,
+    max_tokens: int,
+) -> str:
+    """Execute exactly one provider call using only the supplied context."""
+    # v23 invariant: this function has no access to the retrieval-layer
+    # variable name. Every provider call receives its generation context as
+    # an explicit argument, eliminating the recurring context_blocks NameError.
+    safe_context = str(generation_context or "").strip()
+    messages = _build_generation_messages(
+        user_query,
+        intent,
+        safe_context,
+    )
+
     response = groq_client.chat.completions.create(
         model=model_id,
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content},
-        ],
+        messages=messages,
         temperature=0.2,
         max_tokens=max_tokens,
     )
@@ -2389,47 +2415,82 @@ def _run_generation_attempt(
 
     return _clean_generation_output(
         generated_text,
-        generation_context,
+        safe_context,
+    )
+
+
+def _is_request_too_large_error(error_text: str) -> bool:
+    """Recognize both HTTP 413 and provider 400 length-limit messages."""
+    clean = str(error_text or "").lower()
+    return any(
+        marker in clean
+        for marker in (
+            "request_too_large",
+            "request entity too large",
+            "please reduce the length of the messages or completion",
+            "reduce the length of the messages",
+            "messages or completion",
+            "context length",
+            "maximum context length",
+            "too many tokens",
+            "413",
+        )
+    )
+
+
+def _is_rate_limit_error(error_text: str) -> bool:
+    clean = str(error_text or "").lower()
+    return any(
+        marker in clean
+        for marker in (
+            "rate_limit_exceeded",
+            "rate limit reached",
+            "too many requests",
+            "429",
+        )
     )
 
 
 def generate_llm_response(
     user_query: str,
-    context_blocks: str,
+    retrieved_context_blocks: str,
     intent: str,
 ) -> str:
     """
-    Generate the visitor answer behind a hard provider boundary.
+    Generate a visitor answer behind a hard, single-context provider boundary.
 
-    v22 root-cause fixes:
-      - retrieval remains broad, but the provider prompt has a deliberately
-        conservative independent budget;
-      - completion tokens are bounded independently of evidence size;
-      - 413 is retried once with a smaller, separately bounded context;
-      - 429 is quarantined without an immediate repeat against the same model;
-      - generation failures remain application-level states, not transport
-        failures;
-      - every generation path receives an explicit context argument.
+    v23 root-cause repair:
+      - the retrieval-layer name `context_blocks` never enters provider code;
+      - one local `base_generation_context` is created before any model call;
+      - every provider and compact-fallback call receives that context explicitly;
+      - provider 400 length errors are treated as request-size failures;
+      - compact fallback is derived from the already-bounded generation context,
+        never from an ambient or stale variable;
+      - 429 responses quarantine the affected model for this runtime;
+      - startup and health responses expose a deployment fingerprint so stale
+        deployments cannot masquerade as current-code failures.
     """
-
     if not GROQ_API_KEY or not groq_client:
         return (
             "Unable to generate a response. "
             "GROQ_API_KEY is not configured in backend environment."
         )
 
-    # Canonical retrieval remains broad; generation sees only this bounded
-    # evidence window. This is the first and primary request-size guard.
-    documents = context_blocks_to_documents(context_blocks)
-    generation_context = build_generation_context(
+    # This is the only transition from retrieval evidence into generation.
+    # From this point onward, the provider layer knows nothing about the
+    # retrieval-layer variable name or structure.
+    documents = context_blocks_to_documents(
+        str(retrieved_context_blocks or "")
+    )
+    base_generation_context = build_generation_context(
         documents,
         max_chars=MAX_GENERATION_CONTEXT_CHARS,
         max_resource_chars=MAX_GENERATION_RESOURCE_CHARS,
     )
 
-    if not generation_context:
-        generation_context = _bound_existing_context_blocks(
-            context_blocks,
+    if not base_generation_context:
+        base_generation_context = _bound_existing_context_blocks(
+            str(retrieved_context_blocks or ""),
             MAX_GENERATION_CONTEXT_CHARS,
             MAX_GENERATION_RESOURCE_CHARS,
         )
@@ -2448,7 +2509,7 @@ def generate_llm_response(
     )
     print(
         "USE generation context budget: "
-        f"{len(generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars; "
+        f"{len(base_generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars; "
         f"max_tokens={MAX_GENERATION_TOKENS}."
     )
 
@@ -2456,16 +2517,13 @@ def generate_llm_response(
 
     for model_id in active_models:
         try:
-            print(
-                "USE generation attempt: "
-                f"'{model_id}'"
-            )
+            print(f"USE generation attempt: '{model_id}'")
 
             visitor_answer = _run_generation_attempt(
                 model_id,
                 user_query,
                 intent,
-                generation_context,
+                base_generation_context,
                 max_tokens=MAX_GENERATION_TOKENS,
             )
 
@@ -2481,16 +2539,14 @@ def generate_llm_response(
 
         except Exception as exc:
             error_text = str(exc)
-
             print(
-                f"Execution failed for live Groq model "
-                f"'{model_id}': {error_text}"
+                f"Execution failed for live Groq model '{model_id}': "
+                f"{error_text}"
             )
 
-            # Model terms are a model-specific eligibility condition.
             if (
-                "model_terms_required" in error_text
-                or "requires terms acceptance" in error_text
+                "model_terms_required" in error_text.lower()
+                or "requires terms acceptance" in error_text.lower()
             ):
                 MODEL_CACHE["terms_required_models"].add(model_id)
                 print(
@@ -2500,14 +2556,7 @@ def generate_llm_response(
                 last_error = error_text
                 continue
 
-            # A 429 is not a reason to make another immediate request to the
-            # same model. Mark it temporarily unavailable and move on.
-            if (
-                "rate_limit_exceeded" in error_text
-                or "Rate limit reached" in error_text
-                or "Too Many Requests" in error_text
-                or "429" in error_text
-            ):
+            if _is_rate_limit_error(error_text):
                 cooldown = _rate_limit_seconds(error_text)
                 MODEL_CACHE["rate_limited_until"][model_id] = (
                     time.time() + cooldown
@@ -2519,22 +2568,18 @@ def generate_llm_response(
                 last_error = error_text
                 continue
 
-            # 413 means the provider still rejected the request despite the
-            # primary bound. Retry exactly once with an independently smaller
-            # context and lower completion budget.
-            if (
-                "request_too_large" in error_text
-                or "Request Entity Too Large" in error_text
-                or "413" in error_text
-            ):
+            if _is_request_too_large_error(error_text):
+                # v23 root-cause rule: compact fallback is made from the
+                # already-created generation context. There is no reference
+                # to `context_blocks` anywhere in this fallback path.
                 compact_context = _bound_existing_context_blocks(
-                    context_blocks,
+                    base_generation_context,
                     MAX_COMPACT_GENERATION_CONTEXT_CHARS,
                     MAX_COMPACT_GENERATION_RESOURCE_CHARS,
                 )
 
                 print(
-                    "USE generation context fallback: "
+                    "USE generation compact fallback: "
                     f"{len(compact_context)}/"
                     f"{MAX_COMPACT_GENERATION_CONTEXT_CHARS} chars; "
                     f"max_tokens={MAX_COMPACT_GENERATION_TOKENS}."
@@ -2552,6 +2597,11 @@ def generate_llm_response(
                     if compact_answer:
                         return compact_answer
 
+                    print(
+                        f"USE compact output boundary: model '{model_id}' "
+                        "returned no usable visitor answer."
+                    )
+
                 except Exception as compact_exc:
                     compact_error = str(compact_exc)
                     print(
@@ -2559,12 +2609,7 @@ def generate_llm_response(
                         f"'{model_id}': {compact_error}"
                     )
 
-                    if (
-                        "rate_limit_exceeded" in compact_error
-                        or "Rate limit reached" in compact_error
-                        or "Too Many Requests" in compact_error
-                        or "429" in compact_error
-                    ):
+                    if _is_rate_limit_error(compact_error):
                         cooldown = _rate_limit_seconds(compact_error)
                         MODEL_CACHE["rate_limited_until"][model_id] = (
                             time.time() + cooldown
@@ -2578,8 +2623,15 @@ def generate_llm_response(
                 last_error = error_text
                 continue
 
-            # Other provider/runtime errors are isolated to this candidate.
-            # The next live model is allowed to try.
+            # A NameError is never silently treated as a provider failure.
+            # It is logged explicitly so a future regression is immediately
+            # attributable to application code rather than model behavior.
+            if isinstance(exc, NameError):
+                print(
+                    "USE ROOT-CAUSE ALERT: unexpected NameError in generation "
+                    f"path: {error_text}"
+                )
+
             last_error = error_text
 
     print(
@@ -2611,7 +2663,7 @@ class FlexibleQueryRequest(BaseModel):
 @app.get("/")
 @app.head("/")
 def read_root():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "USE", "version": APP_VERSION, "fingerprint": DEPLOYMENT_FINGERPRINT}
 
 
 # =====================================================================
@@ -2673,7 +2725,7 @@ async def handle_query(
             context_data["intent"],
         )
 
-        # v22 deliberately does NOT return canonical_context to the browser.
+        # v23 deliberately does NOT return canonical_context to the browser.
         # Retrieval evidence is an internal generation input; returning it
         # was unnecessary for the WordPress client and could make health/
         # keep-warm requests return a very large body.
@@ -2723,7 +2775,7 @@ def health_check():
     """Small transport-safe health response for monitoring/keep-warm jobs."""
     return JSONResponse(
         status_code=200,
-        content={"status": "ok", "service": "USE", "version": APP_VERSION},
+        content={"status": "ok", "service": "USE", "version": APP_VERSION, "fingerprint": DEPLOYMENT_FINGERPRINT},
         headers=CORS_RESPONSE_HEADERS,
     )
 
