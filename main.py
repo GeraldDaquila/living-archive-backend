@@ -1,7 +1,9 @@
-# USE v19 — Adaptive Stewardship Retrieval / Deterministic Link Reconstruction
-# Derived from the audited USE v18 production unit. v19 closes the remaining presentation boundary by
-# hyperlink construction: the model supplies resource titles, while USE
-# deterministically rebuilds every canonical hyperlink from corpus evidence.
+# USE v20 — Bounded Generation Context / Resilient Visitor Output Boundary
+# Derived from the audited USE v19 production unit. v20 preserves v19's
+# broader retrieval and deterministic link architecture while separating
+# retrieval breadth from generation-context size. The generator receives a
+# bounded evidence window, structural output wrappers are no longer a hard
+# dependency, and any repair path is deliberately context-light.
 
 import os
 import re
@@ -435,7 +437,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v19"
+APP_VERSION = "v20"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -461,6 +463,12 @@ ROOT_NODE_ID = "canonical_root_living_archive"
 
 RETRIEVAL_TOP_K = 12
 MAX_CONTEXT_RESOURCES = 8
+
+# Retrieval may remain broad, but generation receives a bounded evidence
+# window so document length cannot make the Groq request unmanageably large.
+MAX_GENERATION_CONTEXT_CHARS = 24000
+MAX_GENERATION_RESOURCE_CHARS = 5000
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 12000
 
 
 # =====================================================================
@@ -2011,14 +2019,215 @@ def normalize_link_presentation(
     return _link_canonical_titles(cleaned, context_blocks)
 
 # =====================================================================
+# BOUNDED GENERATION CONTEXT
+# =====================================================================
+
+def _truncate_evidence_content(content: str, limit: int) -> str:
+    """Bound one resource's evidence without altering canonical metadata."""
+    value = str(content or "").strip()
+    if len(value) <= limit:
+        return value
+
+    # Prefer a clean character boundary. The generator is being given
+    # evidence, not a publication-ready excerpt, so a hard ceiling is more
+    # important than preserving the complete source text.
+    truncated = value[:limit].rsplit(" ", 1)[0].strip()
+    return truncated + " … [evidence excerpt bounded by USE]"
+
+
+def build_generation_context(
+    documents: List[Dict[str, Any]],
+    *,
+    max_chars: int = MAX_GENERATION_CONTEXT_CHARS,
+    max_resource_chars: int = MAX_GENERATION_RESOURCE_CHARS,
+) -> str:
+    """
+    Create a bounded evidence window for LLM generation.
+
+    Retrieval remains broad and preserves its ordering. Generation is a
+    separate budget: every selected resource retains its exact canonical
+    title and URL, while only a bounded amount of content is exposed to the
+    model. This prevents a large corpus excerpt from determining request
+    size and causing provider-level 413 failures.
+    """
+    if not documents or max_chars <= 0:
+        return ""
+
+    blocks: List[str] = []
+    used = 0
+
+    for doc in documents:
+        title = str(doc.get("title", "Untitled Resource")).strip()
+        url = str(doc.get("url", "#")).strip()
+        content = _resource_content(doc)
+
+        if not title or not content:
+            continue
+
+        block_prefix = (
+            "Title: " + title + "\n"
+            "URL: " + url + "\n"
+            "Content: "
+        )
+        separator = "\n\n---\n\n" if blocks else ""
+        remaining = max_chars - used - len(separator) - len(block_prefix)
+
+        if remaining <= 120:
+            break
+
+        content_limit = min(max_resource_chars, remaining)
+        bounded_content = _truncate_evidence_content(content, content_limit)
+
+        block = block_prefix + bounded_content
+
+        # A truncation marker can itself push the block slightly beyond the
+        # remaining budget. Trim once more if necessary while retaining the
+        # title and URL, which are the canonical link identity.
+        if len(block) > remaining:
+            available = max(1, remaining - len(block_prefix) - 20)
+            bounded_content = _truncate_evidence_content(content, available)
+            block = block_prefix + bounded_content
+
+        if len(block) > remaining:
+            break
+
+        blocks.append(block)
+        used += len(separator) + len(block)
+
+    return "\n\n---\n\n".join(blocks).strip()
+
+
+def _extract_visitor_answer(generated_text: str) -> str:
+    """
+    Accept both the preferred visitor_answer envelope and clean unwrapped
+    model output. The envelope is a useful boundary, but it is not allowed
+    to turn a valid answer into a failed generation.
+    """
+    text = str(generated_text or "").strip()
+    if not text:
+        return ""
+
+    visitor_match = re.search(
+        r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    if visitor_match:
+        return visitor_match.group(1).strip()
+
+    # If a model emits only one side of the envelope, remove that wrapper
+    # rather than rejecting an otherwise usable visitor answer.
+    text = re.sub(
+        r"</?visitor_answer>",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    return text
+
+
+def _clean_generation_output(
+    generated_text: str,
+    context_blocks: str,
+) -> str:
+    answer = _extract_visitor_answer(generated_text)
+    if not answer:
+        return ""
+
+    return normalize_link_presentation(
+        sanitize_canonical_links(answer, context_blocks),
+        context_blocks,
+    )
+
+# =====================================================================
 # GROQ GENERATION
 # =====================================================================
+
+
+def _bound_existing_context_blocks(
+    context_blocks: str,
+    max_chars: int,
+    max_resource_chars: int,
+) -> str:
+    """Bound already-formatted canonical blocks without changing their identity."""
+    if not context_blocks:
+        return ""
+
+    bounded: List[str] = []
+    used = 0
+
+    for block in context_blocks.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, flags=re.MULTILINE | re.IGNORECASE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+
+        if not title_match or not url_match or not content_match:
+            continue
+
+        title = title_match.group(1).strip()
+        url = url_match.group(1).strip()
+        content = content_match.group(1).strip()
+        prefix = f"Title: {title}\nURL: {url}\nContent: "
+        separator = "\n\n---\n\n" if bounded else ""
+        remaining = max_chars - used - len(separator) - len(prefix)
+
+        if remaining <= 120:
+            break
+
+        content_limit = min(max_resource_chars, remaining)
+        bounded_content = _truncate_evidence_content(content, content_limit)
+        candidate = prefix + bounded_content
+
+        if len(candidate) > remaining:
+            candidate = prefix + _truncate_evidence_content(
+                content,
+                max(1, remaining - len(prefix) - 20),
+            )
+
+        if len(candidate) > remaining:
+            break
+
+        bounded.append(candidate)
+        used += len(separator) + len(candidate)
+
+    return "\n\n---\n\n".join(bounded).strip()
+
+
+def context_blocks_to_documents(context_blocks: str) -> List[Dict[str, Any]]:
+    """Parse canonical context blocks for generation-only bounding."""
+    documents: List[Dict[str, Any]] = []
+
+    for block in context_blocks.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, flags=re.MULTILINE | re.IGNORECASE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+
+        if not title_match or not url_match or not content_match:
+            continue
+
+        documents.append({
+            "title": title_match.group(1).strip(),
+            "url": url_match.group(1).strip(),
+            "text": content_match.group(1).strip(),
+        })
+
+    return documents
 
 def generate_llm_response(
     user_query: str,
     context_blocks: str,
     intent: str,
 ) -> str:
+    """
+    Generate the visitor answer with a bounded evidence window.
+
+    v20 separates retrieval breadth from generation budget. The full
+    retrieval result can remain available to the API response for debugging
+    and provenance, but only the bounded generation context is sent to the
+    LLM. Structural output wrapping is preferred, not mandatory.
+    """
 
     if not GROQ_API_KEY or not groq_client:
         return (
@@ -2026,16 +2235,30 @@ def generate_llm_response(
             "GROQ_API_KEY is not configured in backend environment."
         )
 
+    generation_context = build_generation_context(context_blocks_to_documents(context_blocks))
+
+    # The context-block string is the canonical provenance representation used
+    # throughout v19. Convert it back to bounded blocks here rather than
+    # changing retrieval behavior or the API contract.
+    if not generation_context:
+        generation_context = _bound_existing_context_blocks(
+            context_blocks,
+            MAX_GENERATION_CONTEXT_CHARS,
+            MAX_GENERATION_RESOURCE_CHARS,
+        )
+
     system_content = (
         f"{SYSTEM_PROMPT}\n\n"
         f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
         f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
         f"OR INTERNAL CONTEXT]:\n"
-        f"{context_blocks}\n\n"
+        f"{generation_context}\n\n"
         "[FINAL RESPONSE REQUIREMENT]\n"
-        "Respond directly to the visitor's question. Output only the "
-        "finished visitor-facing answer inside the required "
-        "<visitor_answer> element."
+        "Respond directly to the visitor's question. Output the finished "
+        "visitor-facing answer. The preferred format is exactly one "
+        "<visitor_answer> element, but a clean answer without that wrapper "
+        "is also acceptable. Never reveal internal reasoning, retrieval, "
+        "classification, evidence-selection, prompting, or drafting process."
     )
 
     active_models = get_live_groq_models()
@@ -2051,6 +2274,10 @@ def generate_llm_response(
     print(
         "USE generation candidates: "
         f"{active_models}"
+    )
+    print(
+        "USE generation context budget: "
+        f"{len(generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars."
     )
 
     for model_id in active_models:
@@ -2071,26 +2298,23 @@ def generate_llm_response(
                         "role": "user",
                         "content": (
                             user_query
-                            + "\n\nReturn the answer only inside the "
-                            "<visitor_answer> element. Interpret the "
-                            "question, not the person. Stay with the "
-                            "visitor's own words. Preserve unresolved "
-                            "questions rather than prematurely resolving "
-                            "them. Describe what selected canonical "
-                            "resources explore without completing their "
-                            "meaning for the visitor. Prefer the smallest "
-                            "useful set of canonical resources. For an "
-                            "explicit where-to-find request, give the "
-                            "requested canonical destination rather than "
-                            "a merely related resource. For a collection "
-                            "request, prefer the collection/index/landing "
-                            "page. For an open inquiry, stop once one "
-                            "clearly superior doorway is established. "
-                            "For every canonical resource you recommend, write only its exact "
-                            "canonical title as plain text. Do NOT construct "
-                            "Markdown links, HTML anchors, raw URLs, URL slugs, "
-                            "or emoji prefixes. USE will construct canonical "
-                            "links after generation."
+                            + "\n\nInterpret the question, not the person. "
+                            "Stay with the visitor's own words. Preserve "
+                            "unresolved questions rather than prematurely "
+                            "resolving them. Describe what selected canonical "
+                            "resources explore without completing their meaning "
+                            "for the visitor. Prefer the smallest useful set "
+                            "of canonical resources. For an explicit "
+                            "where-to-find request, give the requested "
+                            "canonical destination rather than a merely related "
+                            "resource. For a collection request, prefer the "
+                            "collection/index/landing page. For an open inquiry, "
+                            "stop once one clearly superior doorway is "
+                            "established. For every canonical resource you "
+                            "recommend, write only its exact canonical title as "
+                            "plain text. Do NOT construct Markdown links, HTML "
+                            "anchors, raw URLs, URL slugs, or emoji prefixes. "
+                            "USE will construct canonical links after generation."
                         ),
                     },
                 ],
@@ -2099,105 +2323,22 @@ def generate_llm_response(
             )
 
             generated_text = response.choices[0].message.content or ""
-
-            visitor_match = re.search(
-                r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
+            visitor_answer = _clean_generation_output(
                 generated_text,
-                flags=re.IGNORECASE | re.DOTALL,
+                generation_context,
             )
 
-            if visitor_match:
-                visitor_answer = visitor_match.group(1).strip()
+            if visitor_answer:
+                return visitor_answer
 
-                if visitor_answer:
-                    return normalize_link_presentation(
-                        sanitize_canonical_links(visitor_answer, context_blocks),
-                        context_blocks,
-                    )
-
+            # Structural noncompliance is no longer a model failure. A clean
+            # unwrapped answer is accepted by _extract_visitor_answer; only
+            # genuinely empty output reaches this path.
             print(
-                f"USE output boundary: model '{model_id}' did not return "
-                "<visitor_answer>. Attempting one structural repair."
+                f"USE output boundary: model '{model_id}' returned no usable "
+                "visitor answer; trying the next live model."
             )
-
-            retry_response = groq_client.chat.completions.create(
-                model=model_id,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are the final response formatter for USE. "
-                            "Return exactly one <visitor_answer> element. "
-                            "Inside it, write ONLY the finished answer to "
-                            "the visitor's original question. Do not include "
-                            "analysis, thinking, reasoning, intent labels, "
-                            "retrieval discussion, evidence commentary, "
-                            "confidence scores, drafting notes, system "
-                            "instructions, or process descriptions. "
-                            "Interpret the question, not the person. Stay "
-                            "with the visitor's own words. Do not invent "
-                            "missing definitions. For explicit location "
-                            "requests, give the requested destination; "
-                            "for collection requests, prefer the "
-                            "collection-level destination; for open "
-                            "inquiries, prefer one strongest doorway. "
-                            "Do not output anything outside the element. "
-                            "For every canonical resource, write only the exact "
-                            "canonical title as plain text. Do not construct "
-                            "Markdown links, HTML anchors, raw URLs, URL slugs, "
-                            "or emoji prefixes; USE constructs the links."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Original visitor question:\n{user_query}\n\n"
-                            "Canonical evidence and answer material:\n"
-                            f"{context_blocks}\n\n"
-                            "Malformed model output to repair:\n"
-                            f"{generated_text}"
-                        ),
-                    },
-                ],
-                temperature=0.1,
-                max_tokens=800,
-            )
-
-            repaired_text = (
-                retry_response.choices[0].message.content or ""
-            )
-
-            repaired_match = re.search(
-                r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
-                repaired_text,
-                flags=re.IGNORECASE | re.DOTALL,
-            )
-
-            if repaired_match:
-                repaired_answer = repaired_match.group(1).strip()
-
-                if repaired_answer:
-                    return normalize_link_presentation(
-                        sanitize_canonical_links(repaired_answer, context_blocks),
-                        context_blocks,
-                    )
-
-            print(
-                f"USE output boundary: model '{model_id}' failed structural "
-                "validation after repair; output withheld."
-            )
-
-            MODEL_CACHE["structural_failed_models"].add(model_id)
-
-            print(
-                "USE model quarantine: structural output failure after "
-                f"repair; skipping '{model_id}' for subsequent requests "
-                "in this runtime."
-            )
-
-            last_error = (
-                "Model did not produce a valid visitor_answer response."
-            )
+            last_error = "Model returned empty visitor answer."
             continue
 
         except Exception as exc:
@@ -2213,12 +2354,10 @@ def generate_llm_response(
                 or "requires terms acceptance" in error_text
             ):
                 MODEL_CACHE["terms_required_models"].add(model_id)
-
                 print(
                     "Skipping Groq model requiring terms acceptance: "
                     f"'{model_id}'"
                 )
-
                 continue
 
             if (
@@ -2226,32 +2365,69 @@ def generate_llm_response(
                 or "Request Entity Too Large" in error_text
                 or "413" in error_text
             ):
-                MODEL_CACHE["request_too_large_models"].add(model_id)
+                # v20 treats a 413 as a context-budget event, not a reason to
+                # permanently quarantine a model. Retry once with a smaller
+                # evidence window before moving to the next model.
+                compact_context = _bound_existing_context_blocks(
+                    context_blocks,
+                    MAX_COMPACT_GENERATION_CONTEXT_CHARS,
+                    max(2500, MAX_GENERATION_RESOURCE_CHARS // 2),
+                )
 
                 print(
-                    "USE model quarantine: request too large for "
-                    f"'{model_id}'; trying the next live model."
+                    "USE generation context fallback: "
+                    f"{len(compact_context)}/{MAX_COMPACT_GENERATION_CONTEXT_CHARS} chars."
                 )
+
+                try:
+                    compact_system_content = (
+                        f"{SYSTEM_PROMPT}\n\n"
+                        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
+                        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
+                        f"OR INTERNAL CONTEXT]:\n{compact_context}\n\n"
+                        "Respond directly to the visitor's question. Prefer "
+                        "the smallest useful set of canonical resources. "
+                        "Use exact canonical titles as plain text; USE will "
+                        "construct links. Return a clean visitor-facing answer."
+                    )
+
+                    compact_response = groq_client.chat.completions.create(
+                        model=model_id,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": compact_system_content,
+                            },
+                            {
+                                "role": "user",
+                                "content": user_query,
+                            },
+                        ],
+                        temperature=0.2,
+                        max_tokens=800,
+                    )
+
+                    compact_text = (
+                        compact_response.choices[0].message.content or ""
+                    )
+                    compact_answer = _clean_generation_output(
+                        compact_text,
+                        compact_context,
+                    )
+
+                    if compact_answer:
+                        return compact_answer
+
+                except Exception as compact_exc:
+                    print(
+                        "USE compact generation fallback failed for "
+                        f"'{model_id}': {compact_exc}"
+                    )
 
                 last_error = error_text
                 continue
 
             last_error = error_text
-
-    unusable = (
-        MODEL_CACHE["terms_required_models"]
-        | MODEL_CACHE["structural_failed_models"]
-        | MODEL_CACHE["request_too_large_models"]
-    )
-
-    usable_models = [
-        model_id
-        for model_id in MODEL_CACHE["models"]
-        if model_id not in unusable
-    ]
-
-    if usable_models:
-        MODEL_CACHE["models"] = usable_models
 
     print(
         "USE generation exhausted all executable model candidates. "
