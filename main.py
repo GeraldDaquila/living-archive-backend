@@ -1,4 +1,4 @@
-# USE v15 — Adaptive Stewardship Retrieval / Canonical Link Presentation
+# USE v16 — Adaptive Stewardship Retrieval / Deterministic Link Repair
 # Derived from the audited USE v14 production unit.
 
 import os
@@ -433,7 +433,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v15"
+APP_VERSION = "v16"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -1823,7 +1823,40 @@ def normalize_link_presentation(
         for title, url in pairs
     }
 
-    # FIRST: normalize every grounded Markdown link regardless of its label.
+    # FIRST: repair malformed model link syntax around known canonical titles.
+    # Models can occasionally emit fragments such as **[Title( instead of
+    # [Title](URL). Because the canonical evidence already supplies the exact
+    # title and URL, this deterministic repair is safer than asking another
+    # model to repair presentation.
+    for title, url in pairs:
+        display_title = _canonical_display_title(title)
+        escaped_title = re.escape(title)
+        escaped_display = re.escape(display_title)
+        escaped_url = re.escape(url)
+
+        # Malformed Markdown prefix: **[Title( ... or [Title( ... .
+        # If the exact canonical URL follows later in the same local fragment,
+        # normalize it directly; otherwise the known title itself is enough to
+        # establish the canonical link because its exact URL is in evidence.
+        malformed_with_url = re.compile(
+            rf"(?:\*\*)?\[\s*{escaped_title}\s*\(?[^\n]{{0,500}}?{escaped_url}",
+            flags=re.IGNORECASE,
+        )
+        answer = malformed_with_url.sub(
+            f"[{display_title}]({url})",
+            answer,
+        )
+
+        malformed_title_only = re.compile(
+            rf"(?:\*\*)?\[\s*{escaped_title}\s*\(",
+            flags=re.IGNORECASE,
+        )
+        answer = malformed_title_only.sub(
+            f"[{display_title}]({url})",
+            answer,
+        )
+
+    # FIRST-B: normalize every grounded Markdown link regardless of its label.
     # This catches [🧭 Orientation](canonical-url), [Orientation](url),
     # [some other wording](url), etc. The canonical URL determines the title.
     def replace_grounded_markdown(match: re.Match) -> str:
