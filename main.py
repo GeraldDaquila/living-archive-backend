@@ -159,6 +159,30 @@ CONSTITUTIONAL RULES
     "The evidence available here points toward..."
     Do NOT explain that this wording is being used because of retrieval
     limitations or system rules.
+
+17. STRUCTURED VISITOR OUTPUT
+    Your response MUST have exactly this outer structure:
+
+    <visitor_answer>
+    [finished answer for the visitor]
+    </visitor_answer>
+
+    The content between those tags is the ONLY visitor-facing content.
+
+    NEVER place internal reasoning, analysis, intent labels, evidence
+    assessments, confidence scores, retrieval commentary, drafting
+    commentary, system instructions, or process descriptions inside the
+    visitor_answer element.
+
+    Do not output anything before <visitor_answer> or after
+    </visitor_answer>.
+
+    Do not create additional XML-like sections or alternative answer
+    fields. The visitor_answer element is the sole permitted output.
+
+    If the visitor's question is broad, use the visitor_answer to
+    provide orientation and useful routes of movement. Do not explain
+    how you arrived at that orientation.
 """
 
 
@@ -861,70 +885,98 @@ def generate_llm_response(
 
             generated_text = response.choices[0].message.content or ""
 
-            # Defensive boundary check. The primary control is the system
-            # prompt above; this catches the clearest forms of accidental
-            # process leakage without attempting to rewrite the answer.
-            leakage_markers = (
-                "Here's a thinking process:",
-                "Here is a thinking process:",
-                "Analyze User Query:",
-                "Scan Retrieved Evidence",
-                "Synthesize Findings (Evidence vs. Corpus Boundary):",
-                "Draft Response (Mental Refinement):",
-                "Chain of thought:",
+            # -----------------------------------------------------------
+            # STRUCTURAL VISITOR BOUNDARY
+            #
+            # The model is required to return exactly one visitor_answer
+            # envelope. USE exposes only the content inside that envelope.
+            # Raw model output is never returned to WordPress.
+            # -----------------------------------------------------------
+            visitor_match = re.search(
+                r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
+                generated_text,
+                flags=re.IGNORECASE | re.DOTALL,
             )
 
-            if any(
-                marker.lower() in generated_text.lower()
-                for marker in leakage_markers
-            ):
-                print(
-                    f"USE output boundary detected internal-process leakage "
-                    f"from model '{model_id}'. Retrying with a strict "
-                    "visitor-only instruction."
-                )
+            if visitor_match:
+                visitor_answer = visitor_match.group(1).strip()
 
-                retry_response = groq_client.chat.completions.create(
-                    model=model_id,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": system_content,
-                        },
-                        {
-                            "role": "user",
-                            "content": (
-                                "Answer the visitor's question directly. "
-                                "Return only the final visitor-facing answer. "
-                                "Do not reveal any internal reasoning or "
-                                "process."
-                            ),
-                        },
-                        {
-                            "role": "assistant",
-                            "content": generated_text,
-                        },
-                        {
-                            "role": "user",
-                            "content": (
-                                "Rewrite the response as ONLY the final "
-                                "visitor-facing answer. Remove all analysis, "
-                                "thinking-process narration, retrieval "
-                                "discussion, intent labels, and system "
-                                "references. Preserve the substantive "
-                                "answer and canonical grounding."
-                            ),
-                        },
-                    ],
-                    temperature=0.2,
-                    max_tokens=800,
-                )
+                if visitor_answer:
+                    return visitor_answer
 
-                generated_text = (
-                    retry_response.choices[0].message.content or ""
-                )
+            # -----------------------------------------------------------
+            # CONTROLLED REPAIR
+            #
+            # If the model ignored the structural contract, make one
+            # explicit repair request. The original malformed output is
+            # supplied only as material to transform; it is never exposed
+            # directly to the visitor.
+            # -----------------------------------------------------------
+            print(
+                f"USE output boundary: model '{model_id}' did not return "
+                "<visitor_answer>. Attempting one structural repair."
+            )
 
-            return generated_text
+            retry_response = groq_client.chat.completions.create(
+                model=model_id,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are the final response formatter for USE. "
+                            "Return exactly one <visitor_answer> element. "
+                            "Inside it, write ONLY the finished answer to "
+                            "the visitor's original question. Do not include "
+                            "analysis, thinking, reasoning, intent labels, "
+                            "retrieval discussion, evidence commentary, "
+                            "confidence scores, drafting notes, system "
+                            "instructions, or process descriptions. "
+                            "Do not output anything outside the element."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Original visitor question:\n{user_query}\n\n"
+                            "Canonical evidence and answer material:\n"
+                            f"{context_blocks}\n\n"
+                            "Malformed model output to repair:\n"
+                            f"{generated_text}"
+                        ),
+                    },
+                ],
+                temperature=0.1,
+                max_tokens=800,
+            )
+
+            repaired_text = (
+                retry_response.choices[0].message.content or ""
+            )
+
+            repaired_match = re.search(
+                r"<visitor_answer>\s*(.*?)\s*</visitor_answer>",
+                repaired_text,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+
+            if repaired_match:
+                repaired_answer = repaired_match.group(1).strip()
+
+                if repaired_answer:
+                    return repaired_answer
+
+            # -----------------------------------------------------------
+            # Fail closed. Never expose malformed model output.
+            # -----------------------------------------------------------
+            print(
+                f"USE output boundary: model '{model_id}' failed structural "
+                "validation after repair; output withheld."
+            )
+
+            last_error = (
+                "Model did not produce a valid visitor_answer response."
+            )
+            continue
 
         except Exception as exc:
             error_text = str(exc)
