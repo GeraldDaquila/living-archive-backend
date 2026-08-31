@@ -1,8 +1,8 @@
-# USE v25-R — Reconstituted v25 Baseline
-# Clean reconstruction of the canonical v25 production unit.
-# Historical version labels from superseded iterations are removed from
-# the source narrative; executable v25 behavior is otherwise preserved.
-# No 5-Why/progressive-inquiry layer is introduced in this baseline.
+# USE v30 — Visitor Output & Runtime Identification Hardening
+# Complete production unit reconstructed from the current live main.py baseline.
+# This release preserves the existing retrieval, Living Archive sourcing,
+# generation architecture, and provider chain while hardening confirmed
+# visitor-output and runtime-identification defects observed in production tests.
 
 import os
 import re
@@ -474,7 +474,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v29"
+APP_VERSION = "v30"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -490,7 +490,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v29-canonical-title-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v30-visitor-output-runtime-hardening"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -514,6 +514,7 @@ async def api_boundary(request: Request, call_next):
             status_code=200,
             content={
                 "ok": False,
+                "version": APP_VERSION,
                 "response": "Unable to generate a response from the Living Archive service right now. Please try again.",
                 "error_type": "api_boundary_failure",
             },
@@ -553,7 +554,7 @@ MAX_GENERATION_CONTEXT_CHARS = 3600
 MAX_GENERATION_RESOURCE_CHARS = 750
 MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1800
 MAX_COMPACT_GENERATION_RESOURCE_CHARS = 450
-MAX_GENERATION_TOKENS = 260
+MAX_GENERATION_TOKENS = 320
 MAX_COMPACT_GENERATION_TOKENS = 180
 
 # Provider preflight budget. This is measured against the actual assembled
@@ -2313,7 +2314,7 @@ def build_generation_context(
     used = 0
 
     for doc in documents:
-        title = str(doc.get("title", "Untitled Resource")).strip()
+        title = _canonical_display_title(str(doc.get("title", "Untitled Resource")).strip())
         url = str(doc.get("url", "#")).strip()
         content = _resource_content(doc)
 
@@ -2536,10 +2537,17 @@ def _clean_generation_output(
     cleaned_answer = _strip_leading_decorative_symbols(answer)
     cleaned_answer = _strip_emoji(cleaned_answer)
 
-    return normalize_link_presentation(
+    normalized_answer = normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, context_blocks),
         context_blocks,
     )
+
+    # Final presentation boundary: canonical link normalization may recreate
+    # visible title text from canonical evidence. Sanitize once more after
+    # normalization so no emoji/decorative symbol can survive in a visitor-
+    # facing answer even if it was introduced by an intermediate presentation
+    # step. Internal corpus metadata is never modified.
+    return _strip_emoji(normalized_answer)
 
 # =====================================================================
 # GROQ GENERATION
@@ -2566,7 +2574,7 @@ def _bound_existing_context_blocks(
         if not title_match or not url_match or not content_match:
             continue
 
-        title = title_match.group(1).strip()
+        title = _canonical_display_title(title_match.group(1).strip())
         url = url_match.group(1).strip()
         content = content_match.group(1).strip()
         prefix = f"Title: {title}\nURL: {url}\nContent: "
@@ -3096,6 +3104,7 @@ async def handle_query(
             status_code=200,
             content={
                 "ok": True,
+                "version": APP_VERSION,
                 "query": "",
                 "intent": "TOPICAL_INQUIRY",
                 "response": "Please enter a question to query the archive.",
@@ -3124,6 +3133,7 @@ async def handle_query(
         # keep-warm requests return a very large body.
         response_content: Dict[str, Any] = {
             "ok": True,
+            "version": APP_VERSION,
             "query": query_str,
             "intent": context_data["intent"],
             "response": llm_output,
@@ -3149,6 +3159,7 @@ async def handle_query(
             status_code=200,
             content={
                 "ok": False,
+                "version": APP_VERSION,
                 "query": query_str,
                 "intent": "TOPICAL_INQUIRY",
                 "response": "Unable to generate a response from the Living Archive service right now. Please try again.",
@@ -3179,10 +3190,41 @@ def health_check():
 
 
 def _generation_boundary_self_audit() -> None:
-    """Fail loudly at startup if the known context-scope defect returns."""
+    """Fail loudly at startup if known visitor-boundary defects return."""
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
+
+        # Regression test: the exact leaked marker observed in production
+        # must never survive the visitor-facing sanitation boundary.
+        sanitized_title = _strip_emoji("⭐ Institutional Cornerstones")
+        if sanitized_title != "Institutional Cornerstones":
+            raise RuntimeError(
+                "Emoji sanitation regression: canonical title marker was not removed."
+            )
+
+        # Regression test: display-safe canonical titles must remain display-
+        # safe when passed through the final link normalization boundary.
+        test_context = (
+            "Title: ⭐ Institutional Cornerstones\n"
+            "URL: https://example.invalid/institutional-cornerstones\n"
+            "Content: Self-audit canonical resource."
+        )
+        test_output = _clean_generation_output(
+            "<visitor_answer>See ⭐ Institutional Cornerstones.</visitor_answer>",
+            test_context,
+        )
+        if "⭐" in test_output:
+            raise RuntimeError(
+                "Emoji sanitation regression: final visitor output still contains emoji."
+            )
+
+        # Runtime identity must be explicit and current.
+        if APP_VERSION != "v30":
+            raise RuntimeError(
+                f"Unexpected USE runtime version: {APP_VERSION}"
+            )
+
     except Exception as exc:
         raise RuntimeError(
             "USE generation boundary self-audit failed: "
@@ -3191,7 +3233,7 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "context_blocks is explicitly scoped."
+        "visitor-output sanitation and runtime identification verified."
     )
 
 
