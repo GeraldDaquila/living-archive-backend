@@ -393,12 +393,18 @@ MODEL_CACHE: Dict[str, Any] = {
     "models": [],
     "last_fetch": 0.0,
     "terms_required_models": set(),
+    "structural_failed_models": set(),
+    "request_too_large_models": set(),
 }
 
 
 def get_live_groq_models() -> List[str]:
     """
-    Return currently available Groq text/chat models.
+    Return currently usable Groq text/chat model candidates.
+
+    Discovery is treated as catalogue discovery, not proof of
+    executability. Known non-text families and runtime-ineligible models
+    are excluded before the generation loop.
 
     A short-lived in-process cache prevents a model-list API request on
     every user query. If discovery fails after a previous successful
@@ -430,6 +436,10 @@ def get_live_groq_models() -> List[str]:
                     "guard",
                     "audio",
                     "vision",
+                    "tts",
+                    "speech",
+                    "transcribe",
+                    "orpheus",
                 )
             )
         ]
@@ -452,10 +462,16 @@ def get_live_groq_models() -> List[str]:
                 f"{discovered}"
             )
 
+            unusable = (
+                MODEL_CACHE["terms_required_models"]
+                | MODEL_CACHE["structural_failed_models"]
+                | MODEL_CACHE["request_too_large_models"]
+            )
+
             usable = [
                 model_id
                 for model_id in discovered
-                if model_id not in MODEL_CACHE["terms_required_models"]
+                if model_id not in unusable
             ]
 
             return usable
@@ -466,10 +482,16 @@ def get_live_groq_models() -> List[str]:
             f"{exc}"
         )
 
+    unusable = (
+        MODEL_CACHE["terms_required_models"]
+        | MODEL_CACHE["structural_failed_models"]
+        | MODEL_CACHE["request_too_large_models"]
+    )
+
     return [
         model_id
         for model_id in MODEL_CACHE["models"]
-        if model_id not in MODEL_CACHE["terms_required_models"]
+        if model_id not in unusable
     ]
 
 
@@ -1029,8 +1051,18 @@ def generate_llm_response(
 
     last_error: Optional[str] = None
 
+    print(
+        "USE generation candidates: "
+        f"{active_models}"
+    )
+
     for model_id in active_models:
         try:
+            print(
+                "USE generation attempt: "
+                f"'{model_id}'"
+            )
+
             response = groq_client.chat.completions.create(
                 model=model_id,
                 messages=[
@@ -1165,6 +1197,14 @@ def generate_llm_response(
                 "validation after repair; output withheld."
             )
 
+            MODEL_CACHE["structural_failed_models"].add(model_id)
+
+            print(
+                "USE model quarantine: structural output failure after "
+                f"repair; skipping '{model_id}' for subsequent requests "
+                "in this runtime."
+            )
+
             last_error = (
                 "Model did not produce a valid visitor_answer response."
             )
@@ -1195,20 +1235,46 @@ def generate_llm_response(
 
                 continue
 
+            if (
+                "request_too_large" in error_text
+                or "Request Entity Too Large" in error_text
+                or "413" in error_text
+            ):
+                MODEL_CACHE["request_too_large_models"].add(model_id)
+
+                print(
+                    "USE model quarantine: request too large for "
+                    f"'{model_id}'; trying the next live model."
+                )
+
+                last_error = error_text
+                continue
+
             last_error = error_text
+
+    unusable = (
+        MODEL_CACHE["terms_required_models"]
+        | MODEL_CACHE["structural_failed_models"]
+        | MODEL_CACHE["request_too_large_models"]
+    )
 
     usable_models = [
         model_id
         for model_id in MODEL_CACHE["models"]
-        if model_id not in MODEL_CACHE["terms_required_models"]
+        if model_id not in unusable
     ]
 
     if usable_models:
         MODEL_CACHE["models"] = usable_models
 
+    print(
+        "USE generation exhausted all executable model candidates. "
+        f"Last error: {last_error}"
+    )
+
     return (
-        "Unable to generate response. "
-        f"Groq API returned error: {last_error}"
+        "Unable to generate a response from the Living Archive service "
+        "right now. Please try again."
     )
 
 
