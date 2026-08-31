@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v32"
+APP_VERSION = "v33"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v32-emoji-sanitization-regression-fix"
+DEPLOYMENT_FINGERPRINT = "USE-v33-canonical-resource-uniqueness-hardening"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1453,6 +1453,36 @@ def _resource_key(doc: Dict[str, Any]) -> str:
     return str(doc.get("title", "Untitled Resource")).strip().lower()
 
 
+def _resource_display_key(doc: Dict[str, Any]) -> str:
+    """Return normalized visitor-facing identity for a canonical title."""
+    title = _canonical_display_title(str(doc.get("title", "Untitled Resource")))
+    return re.sub(r"\s+", " ", title).strip().casefold()
+
+
+def _dedupe_resources_by_display_title(documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Keep the first occurrence of each visitor-facing canonical title."""
+    unique: List[Dict[str, Any]] = []
+    seen_titles = set()
+
+    for document in documents:
+        key = _resource_display_key(document)
+        if not key:
+            unique.append(document)
+            continue
+
+        if key in seen_titles:
+            print(
+                "USE resource uniqueness: suppressed duplicate visitor-facing "
+                f"title '{_canonical_display_title(document.get('title', 'Untitled Resource'))}'."
+            )
+            continue
+
+        seen_titles.add(key)
+        unique.append(document)
+
+    return unique
+
+
 def _resource_content(doc: Dict[str, Any]) -> str:
     return str(
         doc.get(
@@ -1926,6 +1956,11 @@ def fetch_canonical_context(
         for doc in retrieved_docs
         if isinstance(doc, dict) and doc
     ][:MAX_CONTEXT_RESOURCES]
+
+    # URL identity remains authoritative for links, but visitor-facing
+    # resource identity must also be unique. Do not expose two canonical
+    # records with the same display title as separate choices.
+    retrieved_docs = _dedupe_resources_by_display_title(retrieved_docs)
 
     # v25: semantic retrieval remains the source of candidates; this light
     # rerank makes the question's dominant orientation influence which of the
@@ -2535,6 +2570,60 @@ def _strip_leading_decorative_symbols(text: str) -> str:
     return value
 
 
+def _dedupe_repeated_canonical_list_items(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """Remove repeated canonical resources from numbered resource lists."""
+    canonical_titles = {
+        _canonical_display_title(title).casefold(): _canonical_display_title(title)
+        for title, _url in _canonical_pairs(context_blocks)
+        if _canonical_display_title(title)
+    }
+    if not canonical_titles:
+        return answer
+
+    lines = answer.splitlines()
+    output: List[str] = []
+    seen_in_list = set()
+    in_numbered_list = False
+    item_pattern = re.compile(r"^(\s*)(\d+)[.)]\s+(.+?)\s*$")
+
+    for line in lines:
+        match = item_pattern.match(line)
+        if not match:
+            if in_numbered_list and line.strip():
+                in_numbered_list = False
+                seen_in_list.clear()
+            output.append(line)
+            continue
+
+        in_numbered_list = True
+        item_text = match.group(3).strip()
+        matched_key = None
+        for key, display_title in canonical_titles.items():
+            if re.search(
+                rf"(?<![\w]){re.escape(display_title)}(?![\w])",
+                item_text,
+                flags=re.IGNORECASE,
+            ):
+                matched_key = key
+                break
+
+        if matched_key is not None:
+            if matched_key in seen_in_list:
+                print(
+                    "USE resource uniqueness: removed repeated canonical "
+                    f"list item '{canonical_titles[matched_key]}'."
+                )
+                continue
+            seen_in_list.add(matched_key)
+
+        output.append(line)
+
+    return "\n".join(output).strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2543,7 +2632,11 @@ def _clean_generation_output(
     if not answer:
         return ""
 
-    cleaned_answer = _strip_leading_decorative_symbols(answer)
+    cleaned_answer = _dedupe_repeated_canonical_list_items(
+        answer,
+        context_blocks,
+    )
+    cleaned_answer = _strip_leading_decorative_symbols(cleaned_answer)
     cleaned_answer = _strip_emoji(cleaned_answer)
 
     normalized_answer = normalize_link_presentation(
@@ -3343,8 +3436,31 @@ def _generation_boundary_self_audit() -> None:
                 "Emoji sanitation regression: final visitor output still contains emoji."
             )
 
+        duplicate_documents = _dedupe_resources_by_display_title([
+            {"title": "The Path to Humility", "url": "https://example.invalid/one", "text": "one"},
+            {"title": "The Path to Humility", "url": "https://example.invalid/two", "text": "two"},
+        ])
+        if len(duplicate_documents) != 1:
+            raise RuntimeError(
+                "Resource uniqueness regression: duplicate display titles were not deduplicated."
+            )
+
+        duplicate_context = (
+            "Title: The Path to Humility\n"
+            "URL: https://example.invalid/humility\n"
+            "Content: Canonical humility evidence."
+        )
+        duplicate_output = _clean_generation_output(
+            "<visitor_answer>\n1. The Path to Humility\n2. The Path to Humility\n</visitor_answer>",
+            duplicate_context,
+        )
+        if duplicate_output.count("The Path to Humility") != 1:
+            raise RuntimeError(
+                "Resource uniqueness regression: duplicate canonical list item survived output boundary."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v32":
+        if APP_VERSION != "v33":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -3389,7 +3505,7 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "visitor-output sanitation and runtime identification verified."
+        "visitor-output sanitation, resource uniqueness, and runtime identification verified."
     )
 
 
