@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import unicodedata
 from typing import Dict, Any, List, Optional, Tuple
 
 from fastapi import FastAPI, Request
@@ -404,7 +405,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v13"
+APP_VERSION = "v14"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -1426,22 +1427,61 @@ def _canonical_pairs(context_blocks: str) -> List[Tuple[str, str]]:
     return pairs
 
 
+def _canonical_display_title(title: str) -> str:
+    """
+    Return the visitor-facing form of a canonical title.
+
+    Canonical evidence remains authoritative for identity. The only
+    presentation change permitted here is removal of decorative leading
+    Unicode symbol characters (including emoji) and surrounding whitespace.
+    This keeps the visible link text title-only without altering the
+    underlying canonical title/URL relationship.
+    """
+    value = str(title or "").strip()
+
+    while value:
+        first = value[0]
+        category = unicodedata.category(first)
+
+        # Unicode symbol categories cover emoji and decorative symbols.
+        # Variation selectors and zero-width joiners can accompany emoji.
+        if first in {"\\ufe0e", "\\ufe0f", "\\u200d"} or category.startswith("So"):
+            value = value[1:].lstrip()
+            continue
+
+        # A leading modifier/symbol presentation character should not become
+        # part of visitor-facing resource-link text.
+        if category == "Sk":
+            value = value[1:].lstrip()
+            continue
+
+        break
+
+    return value or str(title or "").strip()
+
+
 def sanitize_canonical_links(
     answer: str,
     context_blocks: str,
 ) -> str:
-    """Remove links that are not grounded in the supplied corpus."""
+    """
+    Enforce canonical URL grounding before presentation normalization.
+
+    Any Markdown link whose destination is not an exact canonical URL is
+    reduced to its visible label. Canonical destinations remain intact so
+    the subsequent normalization stage can deterministically replace their
+    visible labels with the canonical title.
+    """
     pairs = _canonical_pairs(context_blocks)
-    allowed_urls = {url.lower(): title for title, url in pairs}
+    allowed_urls = {url.lower() for _title, url in pairs}
 
     def replace_markdown(match: re.Match) -> str:
         label = match.group(1).strip()
-        url = match.group(2).strip()
+        url = match.group(2).strip().rstrip(".,;")
 
         if url.lower() in allowed_urls:
             return match.group(0)
 
-        # Preserve the visible label but remove an ungrounded destination.
         return label
 
     answer = re.sub(
@@ -1451,8 +1491,9 @@ def sanitize_canonical_links(
         flags=re.IGNORECASE,
     )
 
-    # Raw URLs are never visitor-facing. If grounded, normalization will
-    # replace them with the canonical title; otherwise remove them.
+    # Raw URLs are never visitor-facing. Canonical raw URLs are deliberately
+    # retained for normalize_canonical_link_presentation(); all other raw
+    # URLs are removed.
     for url in re.findall(r"https?://\S+", answer, flags=re.IGNORECASE):
         clean_url = url.rstrip(".,;)")
         if clean_url.lower() not in allowed_urls:
@@ -1466,56 +1507,115 @@ def normalize_link_presentation(
     context_blocks: str,
 ) -> str:
     """
-    Convert raw canonical URLs to exact-title Markdown links when the
-    title/URL pair is explicitly present in the canonical evidence.
-    Never invents or reconstructs a URL.
+    Canonical visitor-facing link contract.
+
+    Every link to an exact canonical URL is rebuilt from the canonical
+    evidence as:
+
+        [Canonical Title](Exact Canonical URL)
+
+    The model's original visible label is never trusted. This is the root
+    fix for outputs such as [🧭 Orientation](https://...), because the URL
+    identifies the resource and the canonical evidence supplies the only
+    permitted visible title.
+
+    Ungrounded Markdown links are removed by sanitize_canonical_links().
+    No URL is invented, inferred, reconstructed, or substituted.
     """
     pairs = _canonical_pairs(context_blocks)
+    if not pairs:
+        return answer.strip()
 
-    # Strip known decorative emoji prefixes from resource-link lines.
+    # Build a URL-keyed canonical presentation map. URL identity, not the
+    # model-generated label, is authoritative.
+    canonical_by_url = {
+        url.lower(): (_canonical_display_title(title), url)
+        for title, url in pairs
+    }
+
+    # FIRST: normalize every grounded Markdown link regardless of its label.
+    # This catches [🧭 Orientation](canonical-url), [Orientation](url),
+    # [some other wording](url), etc. The canonical URL determines the title.
+    def replace_grounded_markdown(match: re.Match) -> str:
+        url = match.group(2).strip().rstrip(".,;")
+        canonical = canonical_by_url.get(url.lower())
+        if canonical is None:
+            return match.group(0)
+
+        display_title, exact_url = canonical
+        return f"[{display_title}]({exact_url})"
+
     answer = re.sub(
-        r"(^|\n)\s*[📖📍🏛️🌱✨🧠🗺️🌿📚🔹🔸]\s*",
-        r"\1",
+        r"\[([^\]]+)\]\((https?://[^)]+)\)",
+        replace_grounded_markdown,
         answer,
+        flags=re.IGNORECASE,
     )
 
+    # SECOND: remove decorative emoji/symbol prefixes that may sit immediately
+    # before a canonical title outside Markdown, without touching ordinary
+    # prose. This handles forms such as "🧭 Orientation" before the canonical
+    # URL has been rendered as a Markdown link.
     for title, url in pairs:
-        escaped = re.escape(url)
-        display_title = re.sub(
-            r"^[\s📖📍🏛️🌱✨🧠🗺️🌿📚🔹🔸]+",
-            "",
-            title,
-        ).strip()
-        if not display_title:
-            display_title = title
+        display_title = _canonical_display_title(title)
+        escaped_title = re.escape(title)
+        escaped_display = re.escape(display_title)
+        escaped_url = re.escape(url)
 
-        # Already correctly linked: leave it alone, while ensuring any
-        # decorative prefix is removed from the visible label.
-        if re.search(rf"\[{re.escape(title)}\]\({escaped}\)", answer,
-                     flags=re.IGNORECASE):
+        if display_title != title:
             answer = re.sub(
-                rf"\[{re.escape(title)}\]\({escaped}\)",
-                f"[{display_title}]({url})",
+                rf"(?<![\w]){escaped_title}(?=\s|[:—–-]|$)",
+                display_title,
                 answer,
                 flags=re.IGNORECASE,
             )
-            continue
 
-        # Title followed by URL.
+        # Title followed by its exact canonical URL.
         answer = re.sub(
-            rf"{re.escape(title)}\s*[:—–-]?\s*{escaped}",
+            rf"{escaped_display}\s*[:—–-]?\s*{escaped_url}",
             f"[{display_title}]({url})",
             answer,
             flags=re.IGNORECASE,
         )
 
-        # Remaining raw URL: only replace if it is exact canonical evidence.
+        # Remaining exact canonical raw URL.
         answer = re.sub(
-            rf"(?<!\]\()(?<!\(){escaped}",
+            rf"(?<!\]\()(?<!\(){escaped_url}",
             f"[{display_title}]({url})",
             answer,
             flags=re.IGNORECASE,
         )
+
+    # THIRD: canonical-link labels are now authoritative. Re-run the grounded
+    # Markdown pass so any link created by the previous replacements is exact.
+    answer = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)]+)\)",
+        replace_grounded_markdown,
+        answer,
+        flags=re.IGNORECASE,
+    )
+
+    # FINAL: no raw URL may remain in visitor-facing output. Operate only on
+    # URLs that are NOT already inside Markdown link destinations; otherwise
+    # a valid link would be wrapped a second time.
+    raw_url_pattern = re.compile(
+        r"(?<!\]\()(?<!\()https?://\S+",
+        flags=re.IGNORECASE,
+    )
+
+    def replace_remaining_raw_url(match: re.Match) -> str:
+        raw_url = match.group(0)
+        clean_url = raw_url.rstrip(".,;)")
+        trailing = raw_url[len(clean_url):]
+        canonical = canonical_by_url.get(clean_url.lower())
+
+        if canonical:
+            display_title, exact_url = canonical
+            return f"[{display_title}]({exact_url})" + trailing
+
+        return ""
+
+    answer = raw_url_pattern.sub(replace_remaining_raw_url, answer)
 
     return answer.strip()
 
@@ -1650,7 +1750,10 @@ def generate_llm_response(
                             "for collection requests, prefer the "
                             "collection-level destination; for open "
                             "inquiries, prefer one strongest doorway. "
-                            "Do not output anything outside the element."
+                            "Do not output anything outside the element. "
+                            "Every canonical link must use only the exact "
+                            "canonical title as visible text; never use emoji "
+                            "prefixes, decorative symbols, raw URLs, or URL slugs."
                         ),
                     },
                     {
