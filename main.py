@@ -379,6 +379,24 @@ CONSTITUTIONAL RULES
     destination first. If the evidence does not establish a genuine
     destination, say that the available material does not establish one
     and do not substitute an unrelated resource.
+
+39. RELATIONSHIP QUALIFICATION
+    For collection-level navigation, distinguish between:
+    - a resource that IS the collection/index/landing/gateway;
+    - a resource that directly describes the collection as a whole; and
+    - a resource that merely mentions, contains, incorporates, or links to
+      one member of that collection.
+
+    Only the first two categories may establish a collection destination.
+    A page that says "Explore the Guided Pathway" is evidence of a member
+    pathway, not evidence that the page is the Guided Pathways collection.
+
+40. NO SEMANTIC DESTINATION SUBSTITUTION
+    For an explicit collection-location request, never use ordinary
+    semantic similarity to promote an individual essay, case, map, or
+    pathway into the requested collection's destination. If structural
+    relationship evidence is insufficient, preserve the evidence boundary
+    instead of selecting a merely related resource.
 """
 
 
@@ -386,7 +404,7 @@ CONSTITUTIONAL RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v11"
+APP_VERSION = "v12"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -822,85 +840,172 @@ def _has_usable_destination(metadata: Dict[str, Any]) -> bool:
     return not _is_use_interface_resource(metadata)
 
 
-def _structural_score(
+def _structural_relationship(
     metadata: Dict[str, Any],
     collection_name: str,
-) -> int:
+) -> Tuple[str, int]:
+    """
+    Qualify the relationship between a retrieved resource and the
+    requested collection before allowing it to become a destination.
+
+    DESTINATION means the evidence establishes that the resource is a
+    collection/index/landing/gateway for the requested structural object.
+    REFERENCE means the resource merely mentions, uses, or links to an
+    individual member of that structure. NONE means the evidence does not
+    establish a meaningful structural relationship.
+
+    This distinction is deliberately relationship-based rather than a
+    semantic-similarity score. A page saying "Explore the Guided Pathway"
+    is not thereby the destination for the Guided Pathways collection.
+    """
+    if not _has_usable_destination(metadata):
+        return "NONE", -100
+
     title = str(metadata.get("title", "")).strip().lower()
     content = _resource_content(metadata).lower()
     aliases = COLLECTION_TERMS.get(collection_name, (collection_name,))
-    score = 0
 
-    if not _has_usable_destination(metadata):
-        return -100
-
-    # Exact collection/title evidence is substantially stronger than
-    # merely related prose. This is the core destination-first signal.
-    if any(alias == title for alias in aliases):
-        score += 20
-    elif any(alias in title for alias in aliases):
-        score += 12
-
-    # A structural page that explicitly names the requested collection
-    # is strong evidence even when the collection name is not its title.
-    alias_hits = sum(content.count(alias) for alias in aliases)
-    if alias_hits:
-        score += min(alias_hits * 2, 10)
-
-    structural_terms = (
-        "subject index",
-        "document types",
-        "collection",
-        "series",
-        "hub",
-        "library",
-        "atlas",
-        "navigator",
-        "navigation",
-        "where to begin",
-        "about this site",
+    # Prefer the canonical plural/collection form when one exists. This
+    # prevents a singular member (e.g. one Guided Pathway) from being
+    # mistaken for the collection-level destination.
+    primary_alias = aliases[0].lower()
+    plural_aliases = tuple(
+        alias.lower() for alias in aliases if len(alias.split()) >= 1
     )
 
-    if any(term in title for term in structural_terms):
-        score += 6
+    title_exact = any(title == alias for alias in plural_aliases)
+    title_contains = any(alias in title for alias in plural_aliases)
 
-    if any(term in content for term in structural_terms):
-        score += 2
+    collection_role_terms = (
+        "collection",
+        "series",
+        "library",
+        "hub",
+        "index",
+        "landing page",
+        "landing",
+        "gateway",
+        "entry point",
+        "where to begin",
+        "continue exploring",
+        "choose",
+        "choose the question",
+        "available here",
+        "created for",
+        "were created",
+        "is a collection",
+        "are a collection",
+    )
 
-    # Direct navigational language is preferable to incidental mention.
-    destination_phrases = (
-        "find",
+    navigational_terms = (
         "explore",
         "browse",
         "access",
-        "available",
-        "where to",
-        "entry point",
-        "navigation",
+        "find",
+        "begin",
+        "start",
+        "navigate",
+        "continue",
     )
-    if any(phrase in content for phrase in destination_phrases):
-        score += 3
 
-    return score
+    # A collection-level title is direct structural evidence.
+    if title_exact:
+        return "DESTINATION", 100
+
+    if title_contains:
+        score = 85
+        if any(term in title for term in ("series", "collection", "library", "hub", "index")):
+            score += 10
+        return "DESTINATION", score
+
+    # Strongest content relationship: the page describes the collection
+    # itself, rather than a single member of it.
+    plural_hits = sum(content.count(alias) for alias in plural_aliases)
+    has_collection_role = any(term in content for term in collection_role_terms)
+    has_navigation = any(term in content for term in navigational_terms)
+
+    # Explicit collection-level formulations are high-confidence evidence.
+    explicit_collection_patterns = (
+        rf"the\s+{re.escape(primary_alias)}\s+(?:are|is|were|was|have|has|offer|provide|begin|continue)",
+        rf"{re.escape(primary_alias)}\s+(?:collection|series|library|hub|index|landing page|gateway)",
+        rf"(?:collection|series|library|hub|index|landing page|gateway)\s+(?:for|of)\s+{re.escape(primary_alias)}",
+        rf"(?:explore|browse|find|access|begin|start)\s+(?:the\s+)?{re.escape(primary_alias)}\b",
+    )
+
+    explicit_collection = any(
+        re.search(pattern, content, flags=re.IGNORECASE)
+        for pattern in explicit_collection_patterns
+    )
+
+    if explicit_collection and (plural_hits >= 1 or has_collection_role):
+        score = 75
+        if plural_hits >= 2:
+            score += 8
+        if has_navigation:
+            score += 5
+        return "DESTINATION", score
+
+    # A page can be a genuine gateway without naming itself as a collection.
+    # Require repeated collection-level evidence plus navigational framing.
+    if plural_hits >= 2 and has_collection_role and has_navigation:
+        return "DESTINATION", 65
+
+    # A common false-positive pattern: an individual resource says
+    # "Explore the Guided Pathway" or discusses a Pathway it incorporates.
+    # That is useful reference evidence but is NOT the collection itself.
+    singular_aliases = set()
+    for alias in aliases:
+        clean_alias = alias.lower().strip()
+        singular_aliases.add(clean_alias)
+        if clean_alias.endswith("ies"):
+            singular_aliases.add(clean_alias[:-3] + "y")
+        elif clean_alias.endswith("s"):
+            singular_aliases.add(clean_alias[:-1])
+
+    singular_aliases = tuple(
+        alias for alias in singular_aliases if alias != primary_alias
+    )
+
+    singular_reference = any(
+        re.search(
+            rf"\b(?:a|an|the|this|one|each)\s+{re.escape(alias)}\b",
+            content,
+            flags=re.IGNORECASE,
+        )
+        for alias in singular_aliases
+    )
+
+    member_cta = any(
+        re.search(
+            rf"(?:explore|read|open|view|follow|access)\s+(?:the\s+)?{re.escape(alias)}\b",
+            content,
+            flags=re.IGNORECASE,
+        )
+        for alias in singular_aliases
+    )
+
+    if singular_reference or member_cta:
+        return "REFERENCE", 5
+
+    return "NONE", 0
 
 
 def _query_structural_index(
     collection_name: str,
 ) -> List[Dict[str, Any]]:
     """
-    Resolve structural destinations through several purpose-built
-    retrieval queries rather than relying on the visitor's full question
-    as a single semantic vector.
+    Resolve a collection-level destination through structural evidence.
 
-    This remains generic: the collection name is supplied by intent
-    detection, and no individual Archive collection is hard-coded to a
-    particular destination.
+    Retrieval remains generic: no individual Archive collection is mapped
+    to a hard-coded URL. Only candidates whose corpus evidence qualifies
+    them as collection-level destinations are returned.
     """
     query_variants = (
-        f"{collection_name}",
-        f"Living Archive {collection_name} collection index landing page",
-        f"where to find and explore {collection_name} in the Living Archive",
-        f"Living Archive navigation for {collection_name}",
+        f'"{collection_name}"',
+        f"Living Archive {collection_name} collection index landing page gateway",
+        f"Living Archive {collection_name} where to find explore browse access",
+        f"Living Archive {collection_name} series library hub navigator",
+        f"Living Archive {collection_name} continue exploring choose begin",
     )
 
     ranked_by_key: Dict[str, Tuple[int, float, Dict[str, Any]]] = {}
@@ -910,17 +1015,26 @@ def _query_structural_index(
         if not vector:
             continue
 
-        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 50))
+        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 100))
 
         for semantic_score, _match_id_value, metadata in candidates:
-            structural_score = _structural_score(metadata, collection_name)
+            relationship, structural_score = _structural_relationship(
+                metadata,
+                collection_name,
+            )
 
-            if structural_score <= 0:
+            # Only genuine collection-level destinations are eligible for
+            # the destination channel. Mentions/references never qualify.
+            if relationship != "DESTINATION":
+                if relationship == "REFERENCE":
+                    print(
+                        "USE structural relationship: rejected reference-only "
+                        f"resource '{metadata.get('title', 'Untitled Resource')}'."
+                    )
                 continue
 
             key = _resource_key(metadata)
             existing = ranked_by_key.get(key)
-
             combined_score = structural_score + semantic_score
 
             if existing is None or combined_score > existing[0] + existing[1]:
