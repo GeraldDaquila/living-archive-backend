@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v53 — Visitor Resource Eligibility and Output Integrity
+# USE PRODUCTION VERSION: v54 — Provider-Budget Safe Fallback and Canonical Resource Integrity
 # Complete production unit reconstructed from the verified v51 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -478,7 +478,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v53"
+APP_VERSION = "v54"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -494,7 +494,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v53-visitor-resource-eligibility-and-output-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v54-provider-budget-safe-fallback-and-canonical-resource-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -554,19 +554,19 @@ MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
 # window so document length cannot make the Groq request unmanageably large.
-MAX_GENERATION_CONTEXT_CHARS = 2200
-MAX_GENERATION_RESOURCE_CHARS = 600
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1600
-MAX_COMPACT_GENERATION_RESOURCE_CHARS = 400
-MAX_GENERATION_TOKENS = 300
-MAX_COMPACT_GENERATION_TOKENS = 200
+MAX_GENERATION_CONTEXT_CHARS = 1800
+MAX_GENERATION_RESOURCE_CHARS = 500
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1100
+MAX_COMPACT_GENERATION_RESOURCE_CHARS = 300
+MAX_GENERATION_TOKENS = 240
+MAX_COMPACT_GENERATION_TOKENS = 120
 
 # Provider preflight budget. This is measured against the actual assembled
 # system + user messages, not merely the evidence excerpt. It prevents a
 # large constitutional prompt plus evidence plus completion from reaching a
 # provider that has a smaller effective context window.
-MAX_PROVIDER_INPUT_CHARS = 6000
-MAX_PROVIDER_TOTAL_CHARS = 7000
+MAX_PROVIDER_INPUT_CHARS = 3800
+MAX_PROVIDER_TOTAL_CHARS = 4600
 
 
 # =====================================================================
@@ -3636,6 +3636,50 @@ def _is_rate_limit_error(error_text: str) -> bool:
     )
 
 
+def _deterministic_provider_fallback(
+    user_query: str,
+    generation_context: str,
+) -> str:
+    """Return a safe visitor response without another provider call.
+
+    This path is used only when the provider is unavailable, rate-limited, or
+    has rejected the request envelope. It can only expose canonical resources
+    that are already present in the selected generation context, so it cannot
+    invent titles or URLs while trying to recover from a provider failure.
+    """
+    pairs = []
+    seen = set()
+    for title, url in _canonical_pairs(generation_context):
+        clean_title = _canonical_display_title(title)
+        clean_url = str(url or "").strip()
+        key = clean_url.casefold()
+        if not clean_title or not clean_url or key in seen:
+            continue
+        if _is_non_resource_service_title(clean_title):
+            continue
+        seen.add(key)
+        pairs.append((clean_title, clean_url))
+        if len(pairs) >= 3:
+            break
+
+    if not pairs:
+        return (
+            "The Living Archive is temporarily unable to generate a full "
+            "answer for this question. Please try again shortly."
+        )
+
+    # This is deliberately factual rather than synthetic: the fallback does
+    # not claim an interpretation the unavailable model did not produce.
+    lines = [
+        "The Living Archive could not complete its interpretive response "
+        "right now, but these canonical resources are the relevant material "
+        "available for your question:",
+        "",
+    ]
+    lines.extend(f"- [{title}]({url})" for title, url in pairs)
+    return "\n".join(lines)
+
+
 def generate_llm_response(
     user_query: str,
     retrieved_context_blocks: str,
@@ -3704,6 +3748,7 @@ def generate_llm_response(
     )
 
     last_error: Optional[str] = None
+    provider_recovery_allowed = True
 
     for model_id in active_models:
         try:
@@ -3754,11 +3799,12 @@ def generate_llm_response(
                     f"estimated={exc.estimated_tokens}, "
                     f"remaining={exc.remaining_tokens}."
                 )
+                provider_recovery_allowed = False
                 last_error = error_text
                 continue
 
             if _is_rate_limit_error(error_text):
-                _record_daily_tpd_state(model_id, error_text)
+                tpd_observed = _record_daily_tpd_state(model_id, error_text)
                 cooldown = _rate_limit_seconds(error_text)
                 MODEL_CACHE["rate_limited_until"][model_id] = (
                     time.time() + cooldown
@@ -3767,6 +3813,7 @@ def generate_llm_response(
                     "USE model temporary rate-limit quarantine: "
                     f"'{model_id}' for approximately {cooldown:.0f}s."
                 )
+                provider_recovery_allowed = False
                 last_error = error_text
                 continue
 
@@ -3788,6 +3835,14 @@ def generate_llm_response(
                 )
 
                 try:
+                    compact_messages = _build_generation_messages(
+                        user_query, intent, compact_context, None
+                    )
+                    compact_estimate = _estimate_quota_tokens(
+                        compact_messages, MAX_COMPACT_GENERATION_TOKENS
+                    )
+                    _known_daily_tpd_preflight(model_id, compact_estimate)
+
                     compact_answer = _run_generation_attempt(
                         model_id,
                         user_query,
@@ -3805,6 +3860,15 @@ def generate_llm_response(
                         "returned no usable visitor answer."
                     )
 
+                except KnownDailyQuotaInsufficient as compact_quota_exc:
+                    provider_recovery_allowed = False
+                    print(
+                        "USE compact fallback preflight: SKIP "
+                        f"'{model_id}' because observed daily TPD is insufficient; "
+                        f"estimated={compact_quota_exc.estimated_tokens}, "
+                        f"remaining={compact_quota_exc.remaining_tokens}."
+                    )
+
                 except Exception as compact_exc:
                     compact_error = str(compact_exc)
                     print(
@@ -3818,6 +3882,7 @@ def generate_llm_response(
                         MODEL_CACHE["rate_limited_until"][model_id] = (
                             time.time() + cooldown
                         )
+                        provider_recovery_allowed = False
                         print(
                             "USE model temporary rate-limit quarantine after "
                             f"compact fallback: '{model_id}' for "
@@ -3843,10 +3908,16 @@ def generate_llm_response(
         f"Last error: {last_error}"
     )
 
-    return (
-        "Unable to generate a response from the Living Archive service "
-        "right now. Please try again."
+    fallback = _deterministic_provider_fallback(
+        user_query,
+        base_generation_context,
     )
+    print(
+        "USE deterministic provider fallback: "
+        f"returned canonical resources without another provider call; "
+        f"provider_recovery_allowed={provider_recovery_allowed}."
+    )
+    return fallback
 
 
 # =====================================================================
@@ -4441,15 +4512,15 @@ def _generation_boundary_self_audit() -> None:
         # Provider request-boundary regression: v50 must use the
         # deliberately conservative envelope that was introduced after the
         # observed Groq 413 request-too-large failure.
-        if MAX_GENERATION_CONTEXT_CHARS != 2200:
+        if MAX_GENERATION_CONTEXT_CHARS != 1800:
             raise RuntimeError(
                 "Provider boundary regression: primary generation context budget changed."
             )
-        if MAX_GENERATION_TOKENS != 300:
+        if MAX_GENERATION_TOKENS != 240:
             raise RuntimeError(
                 "Provider boundary regression: primary generation token budget changed."
             )
-        if MAX_PROVIDER_INPUT_CHARS != 6000 or MAX_PROVIDER_TOTAL_CHARS != 7000:
+        if MAX_PROVIDER_INPUT_CHARS != 3800 or MAX_PROVIDER_TOTAL_CHARS != 4600:
             raise RuntimeError(
                 "Provider boundary regression: conservative Groq request envelope changed."
             )
@@ -4465,17 +4536,17 @@ def _generation_boundary_self_audit() -> None:
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v53"):
+        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v54"):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v53."
+                "Source version-label regression: line 1 does not identify v54."
             )
-        if APP_VERSION != "v53":
+        if APP_VERSION != "v54":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v53."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v54."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v53-visitor-resource-eligibility-and-output-integrity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v54-provider-budget-safe-fallback-and-canonical-resource-integrity":
             raise RuntimeError(
-                "Deployment fingerprint regression: v53 fingerprint is not aligned."
+                "Deployment fingerprint regression: v54 fingerprint is not aligned."
             )
 
         # v52 regression: the same canonical resources must not reappear in a
@@ -4548,9 +4619,44 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v53":
+        if APP_VERSION != "v54":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
+            )
+
+        # v54 provider-boundary regression: when provider execution is unavailable,
+        # recovery must use only selected canonical resources and must not emit
+        # an unlinked resource name or make another provider request.
+        fallback_context = (
+            "Title: Designing Anti-Fragile Communities\n"
+            "URL: https://example.invalid/anti-fragile\n"
+            "Content: Resilience depends on capacity to adapt under disturbance."
+            "\n\n---\n\n"
+            "Title: Workshops & Advisory\n"
+            "URL: https://example.invalid/workshops-advisory\n"
+            "Content: Service information."
+        )
+        fallback_output = _deterministic_provider_fallback(
+            "What makes a system resilient without becoming rigid?",
+            fallback_context,
+        )
+        if "Designing Anti-Fragile Communities" not in fallback_output:
+            raise RuntimeError(
+                "Provider fallback regression: valid canonical resource was not preserved."
+            )
+        if "Workshops & Advisory" in fallback_output:
+            raise RuntimeError(
+                "Provider fallback regression: non-resource service title leaked."
+            )
+        if "http://" in fallback_output or "https://" in fallback_output:
+            # URLs are allowed only inside canonical Markdown links.
+            if "[Designing Anti-Fragile Communities](https://example.invalid/anti-fragile)" not in fallback_output:
+                raise RuntimeError(
+                    "Provider fallback regression: canonical URL was not bound to its title."
+                )
+        if fallback_output.count("Designing Anti-Fragile Communities") != 1:
+            raise RuntimeError(
+                "Provider fallback regression: canonical resource was duplicated."
             )
 
         quota_test_error = (
