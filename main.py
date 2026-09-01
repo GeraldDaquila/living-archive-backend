@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v38"
+APP_VERSION = "v39"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v38-canonical-presentation-equivalence-link-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v39-generation-completion-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2980,7 +2980,8 @@ def _build_generation_system_content(
         "For every canonical resource you recommend, write only its exact "
         "canonical title as plain text. Do not construct Markdown links, "
         "HTML anchors, raw URLs, URL slugs, or emoji prefixes. USE constructs "
-        "canonical links after generation."
+        "canonical links after generation. Finish the answer completely; never "
+        "stop mid-sentence, mid-thought, or mid-list item."
     )
 
 
@@ -3093,6 +3094,26 @@ def _build_generation_messages(
     ]
 
 
+def _looks_like_finished_visitor_answer(text: str) -> bool:
+    """Reject only visitor answers that plainly terminate mid-thought."""
+    value = str(text or "").strip()
+    if not value:
+        return False
+
+    # Markdown links naturally end in ')'. Resource titles without links are
+    # allowed elsewhere, so this is intentionally a narrow punctuation gate.
+    if value.endswith((".", "!", "?", ":", ";", ")", "]", '"', "”", "’")):
+        return True
+
+    # A final list item may legitimately end without punctuation only when it
+    # is visibly a complete title-like line.
+    last_line = value.splitlines()[-1].strip()
+    if last_line.startswith(("- ", "* ")) and len(last_line) >= 8:
+        return True
+
+    return False
+
+
 def _run_generation_attempt(
     model_id: str,
     user_query: str,
@@ -3124,14 +3145,38 @@ def _run_generation_attempt(
         max_tokens=max_tokens,
     )
 
-    generated_text = response.choices[0].message.content or ""
+    choice = response.choices[0]
+    finish_reason = getattr(choice, "finish_reason", None)
+    generated_text = choice.message.content or ""
+
+    # A non-empty provider response is not necessarily a finished answer.
+    # In particular, a length-terminated completion must never be exposed to
+    # the visitor as though it were complete. Let the model cascade continue.
+    if str(finish_reason or "").lower() in {"length", "max_tokens"}:
+        print(
+            f"USE output boundary: model '{model_id}' reached its generation "
+            "limit; rejecting incomplete visitor answer."
+        )
+        return ""
 
     # v35: link normalization uses the complete authoritative canonical
     # resource set, never the provider-bounded generation window.
-    return _clean_generation_output(
+    cleaned_answer = _clean_generation_output(
         generated_text,
         canonical_link_context or generation_context,
     )
+
+    # A model can report a normal stop while still returning an obviously
+    # unfinished fragment. Reject only clear terminal fragments so the live
+    # model cascade can supply a complete answer.
+    if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
+        print(
+            f"USE output boundary: model '{model_id}' returned an incomplete "
+            "visitor answer; trying the next live model."
+        )
+        return ""
+
+    return cleaned_answer
 
 
 def _is_request_too_large_error(error_text: str) -> bool:
@@ -3712,7 +3757,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v38":
+        if APP_VERSION != "v39":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
