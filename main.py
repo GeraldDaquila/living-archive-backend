@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v42"
+APP_VERSION = "v41"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v42-resource-list-heading-and-link-preservation"
+DEPLOYMENT_FINGERPRINT = "USE-v41-resource-list-blank-line-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2779,7 +2779,7 @@ def _remove_unresolvable_resource_list_items(
     in_resource_list = False
     list_item_re = re.compile(r"^(\s*)([-*+]|\d+[.)])\s+(.+?)\s*$")
     resource_heading_re = re.compile(
-        r"(?i)(?:resources?|essays?|pathways?|readings?|further reading|further readings|explore these|consider(?: these)?|following resources)\s*:\s*$"
+        r"(?i)(?:resources?|essays?|pathways?|readings?|explore these|consider(?: these)?|following resources)\s*:\s*$"
     )
 
     def is_canonical_title(value: str) -> bool:
@@ -3794,10 +3794,10 @@ def _generation_boundary_self_audit() -> None:
             linker_pairs,
         )
         if existing_link_test != (
-            "[Why Being 'Good' Isn't Enough: The Invisible Incentives Sabotaging Your Success]"
+            "[Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
             "(https://example.invalid/incentives)"
         ):
-            raise RuntimeError("Canonical-link existing-link preservation regression.")
+            raise RuntimeError("Canonical-link existing-link regression.")
 
         substring_link_test = _replace_titles_in_plain_text(
             "Systematic governance is not the same as System.",
@@ -3938,7 +3938,7 @@ def _generation_boundary_self_audit() -> None:
                 "Retrieval-to-generation regression: link-only authority leaked into generation."
             )
 
-        # v42 root-cause regression: a blank line after a resource heading
+        # v41 root-cause regression: a blank line after a resource heading
         # must not terminate the resource-list boundary. Otherwise an
         # unresolvable model-generated resource can leak into visitor output
         # exactly as observed in production.
@@ -3971,7 +3971,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v42":
+        if APP_VERSION != "v41":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
