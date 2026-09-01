@@ -1,4 +1,4 @@
-# USE v40 — Retrieval-to-Generation Selection Boundary
+# USE v41 — Resource-List Boundary Correction
 # Complete production unit reconstructed from the verified v39 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v41-resource-list-blank-line-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v41-resource-list-boundary-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
