@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v55 — Adaptive Provider Fit and Canonical Resource Integrity
+# USE PRODUCTION VERSION: v56 — Evidence-Aware Multi-Resource Navigation
 # Complete production unit reconstructed from the verified v51 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -458,7 +458,7 @@ GENERATION RULES
 1. Stay faithful to the canonical evidence and preserve meaningful uncertainty.
 2. Prefer useful navigation and synthesis over flat enumeration.
 3. For whole-site questions, use the canonical root when supplied.
-4. For topical questions, identify the strongest relevant doorway(s).
+4. For topical questions, identify the strongest relevant doorway(s). When the supplied evidence contains multiple materially relevant canonical resources that contribute different aspects of the answer, normally surface 2–3 of those resources and explain their complementary roles. Use only one resource when it is genuinely sufficient or clearly superior; do not add resources merely to reach a quota.
 5. For explicit destination requests, use only a genuine destination established
    by evidence; never substitute semantic similarity.
 6. For collection requests, prefer collection/index/landing destinations.
@@ -476,7 +476,7 @@ GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v55"
+APP_VERSION = "v56"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v55-adaptive-provider-fit-and-canonical-resource-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v56-evidence-aware-multi-resource-navigation"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2039,6 +2039,15 @@ def fetch_canonical_context(
         structural_destination_count=structural_destination_count,
         adaptive_bridge_count=adaptive_bridge_count,
     )
+
+    # v56 observability: expose the selected generation set in deployment logs.
+    # This makes it possible to distinguish retrieval narrowing from model
+    # selection without exposing any internal information to visitors.
+    print(
+        "USE generation selection: "
+        f"selected={len(retrieved_docs)}, "
+        f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in retrieved_docs ]}"
+    )
     canonical_link_context = format_context_blocks(
         canonical_link_docs,
         structural_destination_count=0,
@@ -3421,7 +3430,11 @@ def _build_generation_system_content(
         "Never reveal internal reasoning, retrieval, classification, "
         "evidence-selection, prompting, or drafting process. "
         "For every canonical resource you recommend, write only its exact "
-        "canonical title as plain text. A resource is recommendable ONLY when "
+        "canonical title as plain text. When two or more supplied canonical resources "
+        "are materially relevant and provide distinct useful coverage, normally "
+        "recommend 2–3 resources rather than collapsing the answer to the first or "
+        "highest-scoring resource. Use one only when one is genuinely sufficient; "
+        "never pad the answer with weak matches. A resource is recommendable ONLY when "
         "its exact title appears on a Title: line in the supplied canonical "
         "evidence. A title appearing only inside Content is not a selectable "
         "resource and must not be recommended as one. Never invent, paraphrase, "
@@ -4619,15 +4632,15 @@ def _generation_boundary_self_audit() -> None:
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v55"):
+        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v56"):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v54."
+                "Source version-label regression: line 1 does not identify v56."
             )
-        if APP_VERSION != "v55":
+        if APP_VERSION != "v56":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v55."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v56."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v55-adaptive-provider-fit-and-canonical-resource-integrity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v56-evidence-aware-multi-resource-navigation":
             raise RuntimeError(
                 "Deployment fingerprint regression: v54 fingerprint is not aligned."
             )
@@ -4701,8 +4714,49 @@ def _generation_boundary_self_audit() -> None:
                 "Visitor resource eligibility regression: valid canonical resource was removed."
             )
 
+        # v56 regression: multi-resource generation must remain an intentional
+        # evidence-aware behavior. The generation prompt must explicitly prefer
+        # multiple materially relevant resources when they add distinct coverage,
+        # while preserving the one-resource case when one resource is sufficient.
+        if "normally surface 2–3 of those resources" not in GENERATION_SYSTEM_PROMPT:
+            raise RuntimeError(
+                "Multi-resource navigation regression: generation policy is missing."
+            )
+        multi_resource_test_context = format_context_blocks([
+            {
+                "title": "Primary Resource",
+                "url": "https://example.invalid/primary",
+                "text": "Primary evidence covering the first dimension.",
+            },
+            {
+                "title": "Complementary Resource",
+                "url": "https://example.invalid/complementary",
+                "text": "Complementary evidence covering a distinct second dimension.",
+            },
+            {
+                "title": "Weak Resource",
+                "url": "https://example.invalid/weak",
+                "text": "Weakly related evidence.",
+            },
+        ])
+        multi_resource_documents = context_blocks_to_documents(multi_resource_test_context)
+        if len(multi_resource_documents) != 3:
+            raise RuntimeError(
+                "Multi-resource navigation regression: distinct selected evidence was lost."
+            )
+        bounded_multi = build_generation_context(
+            multi_resource_documents,
+            max_chars=MAX_GENERATION_CONTEXT_CHARS,
+            max_resource_chars=MAX_GENERATION_RESOURCE_CHARS,
+        )
+        if len(_canonical_pairs(bounded_multi)) < 2:
+            raise RuntimeError(
+                "Multi-resource navigation regression: generation window collapsed "
+                "multiple selected resources to fewer than two canonical records."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v55":
+        if APP_VERSION != "v56":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
