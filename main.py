@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v52 — Canonical Resource Presentation Integrity
+# USE PRODUCTION VERSION: v53 — Visitor Resource Eligibility and Output Integrity
 # Complete production unit reconstructed from the verified v51 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -8,6 +8,7 @@ import os
 import re
 import time
 import unicodedata
+import html
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
@@ -477,7 +478,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v52"
+APP_VERSION = "v53"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -493,7 +494,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v52-canonical-resource-presentation-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v53-visitor-resource-eligibility-and-output-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2705,7 +2706,7 @@ def _dedupe_repeated_canonical_list_items(
     canonical_titles = {
         _canonical_display_title(title).casefold(): _canonical_display_title(title)
         for title, _url in _canonical_pairs(context_blocks)
-        if _canonical_display_title(title)
+        if _canonical_display_title(title) and not _is_non_resource_service_title(title)
     }
     if not canonical_titles:
         return answer
@@ -2751,6 +2752,22 @@ def _dedupe_repeated_canonical_list_items(
     return "\n".join(output).strip()
 
 
+def _is_non_resource_service_title(title: str) -> bool:
+    """Reject generic service/navigation labels from topical resource lists.
+
+    These labels may exist as valid site destinations, but they are not
+    canonical editorial resources for a topical answer. The rule is deliberately
+    narrow and title-based so it does not alter retrieval or prevent an explicit
+    destination request from reaching the site.
+    """
+    normalized = re.sub(r"\s+", " ", str(title or "").strip()).casefold()
+    non_resource_titles = {
+        "workshops & advisory",
+        "workshops and advisory",
+    }
+    return normalized in non_resource_titles
+
+
 def _remove_unresolvable_resource_list_items(
     answer: str,
     context_blocks: str,
@@ -2771,7 +2788,11 @@ def _remove_unresolvable_resource_list_items(
     if not canonical_pairs:
         return answer
 
-    canonical_titles = [title for title, _url in canonical_pairs if title]
+    canonical_titles = [
+        title
+        for title, _url in canonical_pairs
+        if title and not _is_non_resource_service_title(title)
+    ]
     if not canonical_titles:
         return answer
 
@@ -3166,9 +3187,9 @@ def _clean_generation_output(
 
     # Final presentation boundary: canonical link normalization may recreate
     # visible title text from canonical evidence. Sanitize once more after
-    # normalization so no emoji/decorative symbol can survive in a visitor-
-    # facing answer even if it was introduced by an intermediate presentation
-    # step. Internal corpus metadata is never modified.
+    # normalization so no emoji/decorative symbol or HTML entity encoding can
+    # survive in visitor-facing text. Internal corpus metadata is never modified.
+    normalized_answer = html.unescape(normalized_answer)
     return _strip_emoji(normalized_answer)
 
 # =====================================================================
@@ -4444,17 +4465,17 @@ def _generation_boundary_self_audit() -> None:
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v52"):
+        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v53"):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v52."
+                "Source version-label regression: line 1 does not identify v53."
             )
-        if APP_VERSION != "v52":
+        if APP_VERSION != "v53":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v52."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v53."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v52-canonical-resource-presentation-integrity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v53-visitor-resource-eligibility-and-output-integrity":
             raise RuntimeError(
-                "Deployment fingerprint regression: v52 fingerprint is not aligned."
+                "Deployment fingerprint regression: v53 fingerprint is not aligned."
             )
 
         # v52 regression: the same canonical resources must not reappear in a
@@ -4497,8 +4518,37 @@ def _generation_boundary_self_audit() -> None:
                 "Visitor-markup regression: stray Markdown emphasis marker survived output boundary."
             )
 
+        # v53 regression: generic service/navigation labels may exist as
+        # canonical site destinations but must not leak into topical resource
+        # lists. HTML entities must also be decoded at the visitor boundary.
+        service_leak_output = _clean_generation_output(
+            "<visitor_answer>Consider these resources:\n"
+            "- Workshops &amp; Advisory\n"
+            "- [Canonical Resource One](https://example.invalid/one)</visitor_answer>",
+            list_boundary_context + "\n\n---\n\n"
+            "Title: Workshops & Advisory\n"
+            "URL: https://example.invalid/workshops-advisory\n"
+            "Content: Service information.",
+            list_boundary_context + "\n\n---\n\n"
+            "Title: Workshops & Advisory\n"
+            "URL: https://example.invalid/workshops-advisory\n"
+            "Content: Service information.",
+        )
+        if "Workshops & Advisory" in service_leak_output:
+            raise RuntimeError(
+                "Visitor resource eligibility regression: generic service label survived topical output."
+            )
+        if "&amp;" in service_leak_output:
+            raise RuntimeError(
+                "Visitor HTML entity regression: escaped entity survived output boundary."
+            )
+        if "Canonical Resource One" not in service_leak_output:
+            raise RuntimeError(
+                "Visitor resource eligibility regression: valid canonical resource was removed."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v52":
+        if APP_VERSION != "v53":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
