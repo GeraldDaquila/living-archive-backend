@@ -1,5 +1,5 @@
-# USE v41 — Canonical-Link Self-Audit Correction
-# Complete production unit reconstructed from the verified v39 production unit.
+# USE v42 — Resource Presentation Boundary Correction
+# Complete production unit reconstructed from the verified v40 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
 # while correcting the confirmed retrieval-to-generation context handoff defect.
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v41"
+APP_VERSION = "v42"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v41-canonical-link-self-audit-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v42-resource-presentation-boundary-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1718,6 +1718,22 @@ def _match_metadata(
     return metadata if isinstance(metadata, dict) else None
 
 
+def _is_archived_resource(metadata: Optional[Dict[str, Any]]) -> bool:
+    """Return True for resources explicitly marked as archived/unpublished."""
+    if not metadata:
+        return False
+
+    title = _canonical_display_title(str(metadata.get("title", ""))).strip()
+    status = str(
+        metadata.get("status", metadata.get("publication_status", ""))
+    ).strip().casefold()
+
+    return (
+        bool(re.match(r"^archived\s*(?:-|:|—|–)", title, flags=re.IGNORECASE))
+        or status in {"archived", "archive", "unpublished", "draft"}
+    )
+
+
 def _append_unique_resource(
     documents: List[Dict[str, Any]],
     seen_keys: set,
@@ -1726,6 +1742,13 @@ def _append_unique_resource(
     require_destination: bool = False,
 ) -> None:
     if not metadata:
+        return
+
+    if _is_archived_resource(metadata):
+        print(
+            "USE resource boundary: rejected archived/non-published resource "
+            f"'{metadata.get('title', 'Untitled Resource')}'."
+        )
         return
 
     if require_destination and not _has_usable_destination(metadata):
@@ -2074,6 +2097,9 @@ def _canonical_pairs(context_blocks: str) -> List[Tuple[str, str]]:
 
         title = title_match.group(1).strip()
         url = url_match.group(1).strip().rstrip(".,;")
+
+        if re.match(r"^archived\s*(?:-|:|—|–)", title, flags=re.IGNORECASE):
+            continue
 
         if title and url and url != "#":
             pairs.append((title, url))
@@ -2825,6 +2851,76 @@ def _remove_unresolvable_resource_list_items(
     return "\n".join(output).strip()
 
 
+def _normalize_resource_section_presentation(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """Separate adjacent canonical resource titles in visitor output."""
+    if not answer or not context_blocks:
+        return answer
+
+    canonical_titles = [
+        _canonical_display_title(title)
+        for title, _url in _canonical_pairs(context_blocks)
+        if _canonical_display_title(title)
+    ]
+    if not canonical_titles:
+        return answer
+
+    canonical_titles.sort(key=len, reverse=True)
+    heading_re = re.compile(
+        r"(?i)(?:resources?|essays?|pathways?|readings?|further reading|"
+        r"explore these|consider(?: these)?|following resources)\s*:\s*$"
+    )
+
+    lines = answer.splitlines()
+    output: List[str] = []
+    in_resource_section = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        if not in_resource_section:
+            output.append(line)
+            if heading_re.search(stripped):
+                in_resource_section = True
+            continue
+
+        if not stripped:
+            output.append(line)
+            in_resource_section = False
+            continue
+
+        if re.match(r"^\s*(?:[-*+]|\d+[.)])\s+", line):
+            output.append(line)
+            continue
+
+        found: List[Tuple[int, int, str]] = []
+        for title in canonical_titles:
+            for match in re.finditer(re.escape(title), stripped, flags=re.IGNORECASE):
+                found.append((match.start(), match.end(), title))
+
+        found.sort(key=lambda item: (item[0], -(item[1] - item[0])))
+        selected: List[Tuple[int, int, str]] = []
+        cursor = -1
+        for start, end, title in found:
+            if start >= cursor:
+                selected.append((start, end, title))
+                cursor = end
+
+        covered = sum(end - start for start, end, _title in selected)
+        if selected and covered >= max(1, int(len(stripped) * 0.55)):
+            for _start, _end, title in selected:
+                output.append(f"- {title}")
+            in_resource_section = True
+            continue
+
+        output.append(line)
+        in_resource_section = False
+
+    return "\n".join(output).strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2835,6 +2931,10 @@ def _clean_generation_output(
 
     cleaned_answer = _remove_unresolvable_resource_list_items(
         answer,
+        context_blocks,
+    )
+    cleaned_answer = _normalize_resource_section_presentation(
+        cleaned_answer,
         context_blocks,
     )
     cleaned_answer = _dedupe_repeated_canonical_list_items(
@@ -3927,8 +4027,47 @@ def _generation_boundary_self_audit() -> None:
                 "Retrieval-to-generation regression: link-only authority leaked into generation."
             )
 
+        # v42 regression: archived resources must not enter visitor output,
+        # and adjacent bare canonical titles must render as separate resources.
+        archived_bucket: List[Dict[str, Any]] = []
+        _append_unique_resource(
+            archived_bucket,
+            set(),
+            {
+                "title": "ARCHIVED - The Inner Spark: Igniting Societal Transformation",
+                "url": "https://example.invalid/archived",
+                "text": "Archived resource.",
+            },
+        )
+        if archived_bucket:
+            raise RuntimeError(
+                "Archived-resource boundary regression: archived resource survived."
+            )
+
+        presentation_context = (
+            "Title: First Resource\n"
+            "URL: https://example.invalid/first\n"
+            "Content: First canonical resource.\n\n---\n\n"
+            "Title: Second Resource\n"
+            "URL: https://example.invalid/second\n"
+            "Content: Second canonical resource."
+        )
+        presentation_output = _clean_generation_output(
+            "<visitor_answer>Further reading:\n"
+            "First Resource Second Resource</visitor_answer>",
+            presentation_context,
+        )
+        if "- [First Resource](https://example.invalid/first)" not in presentation_output:
+            raise RuntimeError(
+                "Resource presentation regression: first adjacent title was not separated."
+            )
+        if "- [Second Resource](https://example.invalid/second)" not in presentation_output:
+            raise RuntimeError(
+                "Resource presentation regression: second adjacent title was not separated."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v41":
+        if APP_VERSION != "v42":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
