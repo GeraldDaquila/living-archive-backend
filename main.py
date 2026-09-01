@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v49 — Canonical Resource Presentation Boundary
+# USE PRODUCTION VERSION: v50 — Conservative Groq Request Boundary
 # Complete production unit reconstructed from the verified v47 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v49"
+APP_VERSION = "v50"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v49-canonical-resource-presentation-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v50-conservative-groq-request-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -552,19 +552,19 @@ MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
 # window so document length cannot make the Groq request unmanageably large.
-MAX_GENERATION_CONTEXT_CHARS = 3600
-MAX_GENERATION_RESOURCE_CHARS = 750
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1800
-MAX_COMPACT_GENERATION_RESOURCE_CHARS = 450
-MAX_GENERATION_TOKENS = 480
-MAX_COMPACT_GENERATION_TOKENS = 240
+MAX_GENERATION_CONTEXT_CHARS = 2200
+MAX_GENERATION_RESOURCE_CHARS = 600
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1600
+MAX_COMPACT_GENERATION_RESOURCE_CHARS = 400
+MAX_GENERATION_TOKENS = 300
+MAX_COMPACT_GENERATION_TOKENS = 200
 
 # Provider preflight budget. This is measured against the actual assembled
 # system + user messages, not merely the evidence excerpt. It prevents a
 # large constitutional prompt plus evidence plus completion from reaching a
 # provider that has a smaller effective context window.
-MAX_PROVIDER_INPUT_CHARS = 8500
-MAX_PROVIDER_TOTAL_CHARS = 9600
+MAX_PROVIDER_INPUT_CHARS = 6000
+MAX_PROVIDER_TOTAL_CHARS = 7000
 
 
 # =====================================================================
@@ -3275,7 +3275,10 @@ def _fit_generation_context_to_provider_budget(
     while True:
         messages = _build_generation_messages(user_query, intent, candidate, orientational_frame)
         input_chars = _estimate_message_chars(messages)
-        estimated_output_chars = max_tokens * 4
+        # The live Groq 413 demonstrated that a simple 4-chars/token
+        # estimate was too optimistic for the effective provider boundary.
+        # Keep a 25%% output-sizing margin before a request is considered safe.
+        estimated_output_chars = math.ceil(max_tokens * 4 * 1.25)
         total_estimate = input_chars + estimated_output_chars
 
         if (
@@ -4243,8 +4246,31 @@ def _generation_boundary_self_audit() -> None:
                 "Canonical resource presentation regression: second standalone link was not list-formatted."
             )
 
+        # Provider request-boundary regression: v50 must use the
+        # deliberately conservative envelope that was introduced after the
+        # observed Groq 413 request-too-large failure.
+        if MAX_GENERATION_CONTEXT_CHARS != 2200:
+            raise RuntimeError(
+                "Provider boundary regression: primary generation context budget changed."
+            )
+        if MAX_GENERATION_TOKENS != 300:
+            raise RuntimeError(
+                "Provider boundary regression: primary generation token budget changed."
+            )
+        if MAX_PROVIDER_INPUT_CHARS != 6000 or MAX_PROVIDER_TOTAL_CHARS != 7000:
+            raise RuntimeError(
+                "Provider boundary regression: conservative Groq request envelope changed."
+            )
+        if not (
+            MAX_COMPACT_GENERATION_CONTEXT_CHARS < MAX_GENERATION_CONTEXT_CHARS
+            and MAX_COMPACT_GENERATION_TOKENS < MAX_GENERATION_TOKENS
+        ):
+            raise RuntimeError(
+                "Provider boundary regression: compact fallback is not smaller than primary generation."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v49":
+        if APP_VERSION != "v50":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
