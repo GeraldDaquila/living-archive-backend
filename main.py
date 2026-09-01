@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v46 — Resource-List Self-Audit Correction
+# USE PRODUCTION VERSION: v47 — Runtime Identity Alignment Correction
 # Complete production unit reconstructed from the verified v43 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v46"
+APP_VERSION = "v47"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v46-resource-list-self-audit-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v47-runtime-identity-alignment-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4128,9 +4128,6 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Empty-resource-section regression: canonical resource was duplicated."
             )
-            raise RuntimeError(
-                "Empty-resource-section regression: canonical resource was duplicated."
-            )
 
         # A canonical resource in link-only authority must not be promoted
         # into the visitor selection set merely because it can be linked.
@@ -4175,7 +4172,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v44":
+        if APP_VERSION != "v47":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
