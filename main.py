@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v48 — Generation Output-Budget Correction
+# USE PRODUCTION VERSION: v49 — Canonical Resource Presentation Boundary
 # Complete production unit reconstructed from the verified v47 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v48"
+APP_VERSION = "v49"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v48-generation-output-budget-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v49-canonical-resource-presentation-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2931,6 +2931,53 @@ def _ensure_nonempty_resource_section(
     return answer
 
 
+
+def _format_standalone_canonical_resource_links(
+    answer: str,
+    generation_context: str,
+) -> str:
+    """
+    Present consecutive standalone canonical resource links as a discrete list.
+
+    Models sometimes emit canonical resources as separate Markdown-link lines
+    without list markers. The canonical-link layer correctly grounds those
+    links, but the visitor-facing boundary is ambiguous. This pass only adds
+    list markers to consecutive lines that are exact canonical links available
+    in the selected generation context. It does not create, remove, rank, or
+    expand resource selection.
+    """
+    if not answer or not generation_context:
+        return answer
+
+    canonical_titles = {
+        _canonical_display_title(title).casefold()
+        for title, _url in _canonical_pairs(generation_context)
+        if _canonical_display_title(title)
+    }
+    if not canonical_titles:
+        return answer
+
+    lines = answer.splitlines()
+    output: List[str] = []
+    standalone_link_re = re.compile(
+        r"^\s*\[([^\]]+)\]\((https?://[^)]+)\)\s*$",
+        flags=re.IGNORECASE,
+    )
+
+    for line in lines:
+        match = standalone_link_re.match(line)
+        if match:
+            visible_title = re.sub(r"\s+", " ", match.group(1).strip()).casefold()
+            if visible_title in canonical_titles:
+                # Preserve an existing list item if one somehow reaches this
+                # boundary; only bare standalone canonical links are changed.
+                output.append(f"- {line.strip()}")
+                continue
+        output.append(line)
+
+    return "\n".join(output).strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -2963,6 +3010,10 @@ def _clean_generation_output(
     normalized_answer = normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, link_context),
         link_context,
+    )
+    normalized_answer = _format_standalone_canonical_resource_links(
+        normalized_answer,
+        generation_context,
     )
 
     # Final presentation boundary: canonical link normalization may recreate
@@ -4171,8 +4222,29 @@ def _generation_boundary_self_audit() -> None:
                 "Canonical resource-selection regression: invalid resource survived."
             )
 
+        # v49 presentation regression: standalone canonical resource links
+        # must become discrete visitor-facing list items without changing their
+        # canonical identity.
+        standalone_resource_output = _clean_generation_output(
+            "<visitor_answer>"
+            "For a deeper look, see:\n\n"
+            "[Canonical Resource One](https://example.invalid/one)\n"
+            "[Canonical Resource Two](https://example.invalid/two)"
+            "</visitor_answer>",
+            list_boundary_context,
+            list_boundary_context,
+        )
+        if "- [Canonical Resource One](https://example.invalid/one)" not in standalone_resource_output:
+            raise RuntimeError(
+                "Canonical resource presentation regression: first standalone link was not list-formatted."
+            )
+        if "- [Canonical Resource Two](https://example.invalid/two)" not in standalone_resource_output:
+            raise RuntimeError(
+                "Canonical resource presentation regression: second standalone link was not list-formatted."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v48":
+        if APP_VERSION != "v49":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
