@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v33"
+APP_VERSION = "v34"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v33-canonical-resource-uniqueness-hardening"
+DEPLOYMENT_FINGERPRINT = "USE-v34-canonical-link-matcher-hardening"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2270,31 +2270,87 @@ def _link_canonical_titles(
     return "".join(parts).strip()
 
 
+def _build_canonical_title_pattern(
+    canonical_pairs: List[Tuple[str, str]],
+) -> Tuple[re.Pattern, Dict[str, Tuple[str, str]]]:
+    """
+    Build one deterministic matcher for canonical titles.
+
+    Matching is performed against the original visitor text. Harmless
+    representation differences in whitespace and dash characters are
+    tolerated, but the replacement identity remains the exact canonical
+    title/URL supplied by the evidence.
+
+    Each alternative receives a private named group so a normalized match
+    can be mapped back to its authoritative canonical pair without relying
+    on the raw matched text being byte-for-byte identical to the stored title.
+    """
+    pattern_parts: List[str] = []
+    group_map: Dict[str, Tuple[str, str]] = {}
+
+    for index, (title, url) in enumerate(canonical_pairs):
+        if not title or not url:
+            continue
+
+        group_name = f"canonical_title_{index}"
+        clean_title = str(title).strip()
+
+        # Split into whitespace runs, dash variants, and literal text.
+        tokens = re.split(
+            r"([\s\u00A0]+|[\u002D\u2010\u2013\u2014])",
+            clean_title,
+        )
+
+        parts: List[str] = []
+        for token in tokens:
+            if not token:
+                continue
+
+            if re.fullmatch(r"[\s\u00A0]+", token):
+                parts.append(r"[\s\u00A0]+")
+            elif token in ("-", "\u2010", "\u2013", "\u2014"):
+                parts.append(r"[\u002D\u2010\u2013\u2014]")
+            else:
+                parts.append(re.escape(token))
+
+        pattern_parts.append(f"(?P<{group_name}>{''.join(parts)})")
+        group_map[group_name] = (title, url)
+
+    if not pattern_parts:
+        return re.compile(r"(?!x)x"), {}
+
+    alternatives = "|".join(pattern_parts)
+    pattern = re.compile(
+        rf"(?<![\w\]])(?:{alternatives})(?![\w])(?!\]\()",
+        flags=re.IGNORECASE,
+    )
+    return pattern, group_map
+
+
 def _replace_titles_in_plain_text(
     text: str,
     canonical_pairs: List[Tuple[str, str]],
 ) -> str:
-    """Replace exact canonical title occurrences with deterministic links."""
+    """
+    Replace canonical resource titles with deterministic Markdown links.
+
+    The matcher tolerates harmless whitespace/NBSP and dash representation
+    differences while preserving the exact canonical title and URL as the
+    replacement authority.
+    """
     if not text or not canonical_pairs:
         return text
 
-    # One alternation is safer than sequential substitutions: a shorter
-    # canonical title can never become nested inside a longer title's link.
-    # Longest titles are listed first to make the intended match explicit.
-    title_map = {title.casefold(): (title, url) for title, url in canonical_pairs}
-    alternatives = "|".join(re.escape(title) for title, _url in canonical_pairs)
-    pattern = re.compile(
-        rf"(?<![\w\]])(?:{alternatives})(?![\w])",
-        flags=re.IGNORECASE,
-    )
+    pattern, group_map = _build_canonical_title_pattern(canonical_pairs)
+    if not group_map:
+        return text
 
     def replace(match: re.Match) -> str:
-        canonical = title_map.get(match.group(0).casefold())
-        if canonical is None:
-            return match.group(0)
-
-        title, url = canonical
-        return f"[{title}]({url})"
+        for group_name, canonical in group_map.items():
+            if match.group(group_name) is not None:
+                title, url = canonical
+                return f"[{title}]({url})"
+        return match.group(0)
 
     return pattern.sub(replace, text)
 
@@ -3459,8 +3515,73 @@ def _generation_boundary_self_audit() -> None:
                 "Resource uniqueness regression: duplicate canonical list item survived output boundary."
             )
 
+        # Canonical-link matcher regressions: harmless Unicode/whitespace
+        # representation differences must still resolve to canonical links,
+        # while the inserted title/URL remain authoritative.
+        linker_pairs = [
+            (
+                "Incentives Drive Behavior: Why Good Intentions Fail in Systems",
+                "https://example.invalid/incentives",
+            ),
+            (
+                "Systems, Governance, and Organizational Design – Structure, Incentives, and Stability",
+                "https://example.invalid/systems",
+            ),
+        ]
+
+        exact_link_test = _replace_titles_in_plain_text(
+            "See Incentives Drive Behavior: Why Good Intentions Fail in Systems.",
+            linker_pairs,
+        )
+        if exact_link_test != (
+            "See [Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
+            "(https://example.invalid/incentives)."
+        ):
+            raise RuntimeError("Canonical-link exact-match regression.")
+
+        whitespace_link_test = _replace_titles_in_plain_text(
+            "See Incentives\u00A0Drive   Behavior: Why Good Intentions Fail in Systems.",
+            linker_pairs,
+        )
+        if "](https://example.invalid/incentives)" not in whitespace_link_test:
+            raise RuntimeError("Canonical-link whitespace/NBSP regression.")
+
+        dash_link_test = _replace_titles_in_plain_text(
+            "See Systems, Governance, and Organizational Design - Structure, Incentives, and Stability.",
+            linker_pairs,
+        )
+        if "](https://example.invalid/systems)" not in dash_link_test:
+            raise RuntimeError("Canonical-link dash-variant regression.")
+
+        existing_link_test = _replace_titles_in_plain_text(
+            "[Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
+            "(https://example.invalid/incentives)",
+            linker_pairs,
+        )
+        if existing_link_test != (
+            "[Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
+            "(https://example.invalid/incentives)"
+        ):
+            raise RuntimeError("Canonical-link existing-link regression.")
+
+        substring_link_test = _replace_titles_in_plain_text(
+            "Systematic governance is not the same as System.",
+            [("System", "https://example.invalid/system")],
+        )
+        if "System](https://example.invalid/system)atic" in substring_link_test:
+            raise RuntimeError("Canonical-link word-boundary regression.")
+
+        multi_link_test = _replace_titles_in_plain_text(
+            "Incentives Drive Behavior: Why Good Intentions Fail in Systems; "
+            "Systems, Governance, and Organizational Design - Structure, "
+            "Incentives, and Stability.",
+            linker_pairs,
+        )
+        if multi_link_test.count("https://example.invalid/") != 2:
+            raise RuntimeError("Canonical-link multiple-title regression.")
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v33":
+        if APP_VERSION != "v34":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
