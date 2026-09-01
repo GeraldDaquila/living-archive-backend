@@ -1,4 +1,4 @@
-# USE v35 — Authoritative Canonical Link Boundary
+# USE v36 — Canonical Presentation-Equivalence Link Boundary
 # Complete production unit reconstructed from the current live main.py baseline.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, and provider chain while hardening confirmed
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v35"
+APP_VERSION = "v36"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v35-authoritative-canonical-link-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v36-canonical-presentation-equivalence-link-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2283,17 +2283,19 @@ def _build_canonical_title_pattern(
     """
     Build one deterministic matcher for canonical titles.
 
-    Matching is performed against the original visitor text. Harmless
-    representation differences in whitespace and dash characters are
-    tolerated, but the replacement identity remains the exact canonical
-    title/URL supplied by the evidence.
-
-    Each alternative receives a private named group so a normalized match
-    can be mapped back to its authoritative canonical pair without relying
-    on the raw matched text being byte-for-byte identical to the stored title.
+    Matching remains against the original visitor text. The matcher tolerates
+    presentation-equivalent Unicode forms that language models commonly emit:
+    variable whitespace, dash variants, and straight/curly quotation marks.
+    The replacement always uses the exact canonical title and URL supplied by
+    the corpus evidence.
     """
     pattern_parts: List[str] = []
     group_map: Dict[str, Tuple[str, str]] = {}
+
+    whitespace_class = r"[\s\u00A0]+"
+    dash_class = r"[\u002D\u2010\u2013\u2014]"
+    double_quote_class = r"[\"\u201C\u201D\u201E\u201F\u00AB\u00BB]"
+    single_quote_class = r"[\'\u2018\u2019\u201A\u201B]"
 
     for index, (title, url) in enumerate(canonical_pairs):
         if not title or not url:
@@ -2302,23 +2304,38 @@ def _build_canonical_title_pattern(
         group_name = f"canonical_title_{index}"
         clean_title = str(title).strip()
 
-        # Split into whitespace runs, dash variants, and literal text.
-        tokens = re.split(
-            r"([\s\u00A0]+|[\u002D\u2010\u2013\u2014])",
-            clean_title,
-        )
-
         parts: List[str] = []
-        for token in tokens:
-            if not token:
+        cursor = 0
+
+        while cursor < len(clean_title):
+            char = clean_title[cursor]
+
+            if char.isspace() or char == "\u00A0":
+                while cursor < len(clean_title) and (
+                    clean_title[cursor].isspace()
+                    or clean_title[cursor] == "\u00A0"
+                ):
+                    cursor += 1
+                parts.append(whitespace_class)
                 continue
 
-            if re.fullmatch(r"[\s\u00A0]+", token):
-                parts.append(r"[\s\u00A0]+")
-            elif token in ("-", "\u2010", "\u2013", "\u2014"):
-                parts.append(r"[\u002D\u2010\u2013\u2014]")
-            else:
-                parts.append(re.escape(token))
+            if char in ("-", "\u2010", "\u2013", "\u2014"):
+                parts.append(dash_class)
+                cursor += 1
+                continue
+
+            if char in ('"', "\u201C", "\u201D", "\u201E", "\u201F", "\u00AB", "\u00BB"):
+                parts.append(double_quote_class)
+                cursor += 1
+                continue
+
+            if char in ("'", "\u2018", "\u2019", "\u201A", "\u201B"):
+                parts.append(single_quote_class)
+                cursor += 1
+                continue
+
+            parts.append(re.escape(char))
+            cursor += 1
 
         pattern_parts.append(f"(?P<{group_name}>{''.join(parts)})")
         group_map[group_name] = (title, url)
@@ -2332,7 +2349,6 @@ def _build_canonical_title_pattern(
         flags=re.IGNORECASE,
     )
     return pattern, group_map
-
 
 def _replace_titles_in_plain_text(
     text: str,
@@ -3570,6 +3586,30 @@ def _generation_boundary_self_audit() -> None:
         if "](https://example.invalid/systems)" not in dash_link_test:
             raise RuntimeError("Canonical-link dash-variant regression.")
 
+        quote_link_test = _replace_titles_in_plain_text(
+            "See The “Silent Withdrawal”: A Lean Audit of Corporate Identity and Soul Governance.",
+            [
+                (
+                    'The "Silent Withdrawal": A Lean Audit of Corporate Identity and Soul Governance',
+                    "https://example.invalid/silent-withdrawal",
+                )
+            ],
+        )
+        if quote_link_test != (
+            'See [The "Silent Withdrawal": A Lean Audit of Corporate Identity and Soul Governance]'
+            "(https://example.invalid/silent-withdrawal)."
+        ):
+            raise RuntimeError("Canonical-link quotation-mark regression.")
+
+        apostrophe_link_test = _replace_titles_in_plain_text(
+            "See Steward’s Path.",
+            [("Steward's Path", "https://example.invalid/stewards-path")],
+        )
+        if apostrophe_link_test != (
+            "See [Steward's Path](https://example.invalid/stewards-path)."
+        ):
+            raise RuntimeError("Canonical-link apostrophe regression.")
+
         existing_link_test = _replace_titles_in_plain_text(
             "[Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
             "(https://example.invalid/incentives)",
@@ -3637,7 +3677,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v35":
+        if APP_VERSION != "v36":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -3682,7 +3722,7 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "visitor-output sanitation, resource uniqueness, and runtime identification verified."
+        "visitor-output sanitation, canonical presentation equivalence, resource uniqueness, and runtime identification verified."
     )
 
 
