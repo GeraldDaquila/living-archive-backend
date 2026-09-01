@@ -1,8 +1,8 @@
-# USE PRODUCTION VERSION: v47 — Runtime Identity Alignment Correction
-# Complete production unit reconstructed from the verified v43 production unit.
+# USE PRODUCTION VERSION: v48 — Generation Output-Budget Correction
+# Complete production unit reconstructed from the verified v47 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
-# while correcting the confirmed empty-resource-section failure without weakening canonical-resource safety.
+# while correcting the confirmed empty-resource-section failure and restoring sufficient generation headroom without weakening canonical-resource safety.
 
 import os
 import re
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v47"
+APP_VERSION = "v48"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v47-runtime-identity-alignment-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v48-generation-output-budget-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -556,8 +556,8 @@ MAX_GENERATION_CONTEXT_CHARS = 3600
 MAX_GENERATION_RESOURCE_CHARS = 750
 MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1800
 MAX_COMPACT_GENERATION_RESOURCE_CHARS = 450
-MAX_GENERATION_TOKENS = 320
-MAX_COMPACT_GENERATION_TOKENS = 180
+MAX_GENERATION_TOKENS = 480
+MAX_COMPACT_GENERATION_TOKENS = 240
 
 # Provider preflight budget. This is measured against the actual assembled
 # system + user messages, not merely the evidence excerpt. It prevents a
@@ -4172,7 +4172,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v47":
+        if APP_VERSION != "v48":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
