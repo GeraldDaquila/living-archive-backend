@@ -1,4 +1,4 @@
-# USE v31 — Provider Daily TPD Guard & Quota Failure Hardening
+# USE v35 — Authoritative Canonical Link Boundary
 # Complete production unit reconstructed from the current live main.py baseline.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, and provider chain while hardening confirmed
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v34"
+APP_VERSION = "v35"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v34-canonical-link-matcher-hardening"
+DEPLOYMENT_FINGERPRINT = "USE-v35-authoritative-canonical-link-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1988,14 +1988,21 @@ def fetch_canonical_context(
         else 0
     )
 
+    # v35 root-cause boundary: preserve the complete selected canonical
+    # resource set separately from the bounded generation context. The model
+    # may receive a compact evidence window, but final URL construction must
+    # remain authoritative over the complete selected resource set.
+    canonical_link_context = format_context_blocks(
+        retrieved_docs,
+        structural_destination_count=structural_destination_count,
+        adaptive_bridge_count=adaptive_bridge_count,
+    )
+
     return {
         "intent": intent,
         "orientational_frame": orientational_frame,
-        "context_blocks": format_context_blocks(
-            retrieved_docs,
-            structural_destination_count=structural_destination_count,
-            adaptive_bridge_count=adaptive_bridge_count,
-        ),
+        "context_blocks": canonical_link_context,
+        "canonical_link_context": canonical_link_context,
     }
 
 
@@ -3043,6 +3050,7 @@ def _run_generation_attempt(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    canonical_link_context: str = "",
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
     # Generation invariant: context is explicit from retrieval boundary
@@ -3067,9 +3075,11 @@ def _run_generation_attempt(
 
     generated_text = response.choices[0].message.content or ""
 
+    # v35: link normalization uses the complete authoritative canonical
+    # resource set, never the provider-bounded generation window.
     return _clean_generation_output(
         generated_text,
-        safe_context,
+        canonical_link_context or generation_context,
     )
 
 
@@ -3110,6 +3120,7 @@ def generate_llm_response(
     retrieved_context_blocks: str,
     intent: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    canonical_link_context: str = "",
 ) -> str:
     """
     Generate a visitor answer behind a hard, single-context provider boundary.
@@ -3183,6 +3194,7 @@ def generate_llm_response(
                 intent,
                 base_generation_context,
                 max_tokens=MAX_GENERATION_TOKENS,
+                canonical_link_context=canonical_link_context,
             )
 
             if visitor_answer:
@@ -3261,6 +3273,7 @@ def generate_llm_response(
                         intent,
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
+                        canonical_link_context=canonical_link_context,
                     )
 
                     if compact_answer:
@@ -3397,6 +3410,10 @@ async def handle_query(
             orientational_frame=context_data.get(
                 "orientational_frame",
                 {"primary": "general", "scores": {}},
+            ),
+            canonical_link_context=context_data.get(
+                "canonical_link_context",
+                context_data["context_blocks"],
             ),
         )
 
@@ -3580,8 +3597,47 @@ def _generation_boundary_self_audit() -> None:
         if multi_link_test.count("https://example.invalid/") != 2:
             raise RuntimeError("Canonical-link multiple-title regression.")
 
+        # v35 root-cause regression: a canonical resource may be present in
+        # the authoritative selected-resource set even when it is absent from
+        # the bounded generation context. The final linker must still resolve
+        # that canonical title deterministically.
+        authoritative_context = (
+            "Title: Authoritative Resource\n"
+            "URL: https://example.invalid/authoritative\n"
+            "Content: Canonical resource retained for final linking.\n"
+            "\n---\n\n"
+            "Title: Bounded Resource\n"
+            "URL: https://example.invalid/bounded\n"
+            "Content: Generation-window resource."
+        )
+        bounded_only_context = (
+            "Title: Bounded Resource\n"
+            "URL: https://example.invalid/bounded\n"
+            "Content: Generation-window resource."
+        )
+        authoritative_link_test = _clean_generation_output(
+            "<visitor_answer>See Authoritative Resource.</visitor_answer>",
+            authoritative_context,
+        )
+        if authoritative_link_test != (
+            "See [Authoritative Resource](https://example.invalid/authoritative)."
+        ):
+            raise RuntimeError(
+                "Authoritative canonical-link boundary regression."
+            )
+
+        bounded_link_test = _clean_generation_output(
+            "<visitor_answer>See Authoritative Resource.</visitor_answer>",
+            bounded_only_context,
+        )
+        if "https://example.invalid/authoritative" in bounded_link_test:
+            raise RuntimeError(
+                "Canonical-link regression: bounded generation context leaked an "
+                "unauthorized canonical URL."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v34":
+        if APP_VERSION != "v35":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
