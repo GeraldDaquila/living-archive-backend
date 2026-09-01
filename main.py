@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v36"
+APP_VERSION = "v37"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -1801,6 +1801,7 @@ def fetch_canonical_context(
     structural_docs: List[Dict[str, Any]] = []
     adaptive_docs: List[Dict[str, Any]] = []
     retrieved_docs: List[Dict[str, Any]] = []
+    candidates: List[Tuple[float, str, Dict[str, Any]]] = []
     seen_keys = set()
 
     if not index:
@@ -1957,9 +1958,43 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:MAX_CONTEXT_RESOURCES]
 
+    # Keep the complete canonical evidence returned by retrieval available
+    # to the final link-construction boundary. Generation may use a smaller,
+    # visitor-facing resource set, but link authority must not lose a
+    # canonical resource merely because visitor-facing title deduplication
+    # or the generation resource cap removed it.
+    canonical_link_docs: List[Dict[str, Any]] = []
+    canonical_link_seen_keys = set()
+    for document in retrieved_docs:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            document,
+        )
+    for document in structural_docs:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            document,
+            require_destination=False,
+        )
+    for document in adaptive_docs:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            document,
+        )
+    for _score, _match_id_value, metadata in candidates:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            metadata,
+        )
+
     # URL identity remains authoritative for links, but visitor-facing
-    # resource identity must also be unique. Do not expose two canonical
-    # records with the same display title as separate choices.
+    # resource identity must also be unique in the generation context. Do not
+    # expose two canonical records with the same display title as separate
+    # choices.
     retrieved_docs = _dedupe_resources_by_display_title(retrieved_docs)
 
     # v25: semantic retrieval remains the source of candidates; this light
@@ -1988,14 +2023,14 @@ def fetch_canonical_context(
         else 0
     )
 
-    # v35 root-cause boundary: preserve the complete selected canonical
-    # resource set separately from the bounded generation context. The model
-    # may receive a compact evidence window, but final URL construction must
-    # remain authoritative over the complete selected resource set.
+    # v37 root-cause boundary: generation context and canonical link authority
+    # are deliberately separate. The model receives the bounded, deduplicated
+    # generation set; final URL construction retains every canonical resource
+    # returned by the retrieval stage.
     canonical_link_context = format_context_blocks(
-        retrieved_docs,
-        structural_destination_count=structural_destination_count,
-        adaptive_bridge_count=adaptive_bridge_count,
+        canonical_link_docs,
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
     )
 
     return {
