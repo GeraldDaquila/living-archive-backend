@@ -1,8 +1,8 @@
-# USE v43 — Canonical Title Regression Alignment
-# Complete production unit reconstructed from the verified v42 production unit.
+# USE v44 — Canonical Resource Presentation Boundary
+# Complete production unit reconstructed from the verified v43 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
-# while correcting the confirmed canonical-title regression-test mismatch and preserving the v42 production boundary.
+# while correcting the confirmed empty-resource-section failure without weakening canonical-resource safety.
 
 import os
 import re
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v43"
+APP_VERSION = "v44"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v43-canonical-title-regression-alignment"
+DEPLOYMENT_FINGERPRINT = "USE-v44-canonical-resource-presentation-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2838,28 +2838,131 @@ def _remove_unresolvable_resource_list_items(
     return "\n".join(output).strip()
 
 
+def _canonical_resource_titles(context_blocks: str) -> List[str]:
+    """Return canonical display titles that are actually available to generation."""
+    titles: List[str] = []
+    seen = set()
+    for title, url in _canonical_pairs(context_blocks):
+        display_title = _canonical_display_title(title)
+        if not display_title or not url:
+            continue
+        key = display_title.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        titles.append(display_title)
+    return titles
+
+
+def _ensure_nonempty_resource_section(
+    answer: str,
+    generation_context: str,
+) -> str:
+    """
+    Prevent a visitor-facing resource heading from being left empty.
+
+    Generation is allowed to choose the strongest resources, but if the model
+    emits a resource heading without a usable canonical resource item, USE
+    supplies the first available canonical resources from the already-selected
+    generation set. This never introduces a resource outside generation
+    evidence and never fabricates a URL.
+    """
+    if not answer or not generation_context:
+        return answer
+
+    canonical_titles = _canonical_resource_titles(generation_context)
+    if not canonical_titles:
+        return answer
+
+    lines = answer.splitlines()
+    heading_re = re.compile(
+        r"(?i)^.*(?:resources?|essays?|pathways?|readings?|"
+        r"further reading|further readings|explore these|"
+        r"consider(?: these)?|following resources)\s*:\s*$"
+    )
+    list_item_re = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
+
+    for index, line in enumerate(lines):
+        if not heading_re.match(line):
+            continue
+
+        # Inspect the substantive lines following the heading. Stop at the
+        # next ordinary prose line; blank lines do not terminate the section.
+        valid_found = False
+        insertion_index = index + 1
+        j = index + 1
+        while j < len(lines):
+            stripped = lines[j].strip()
+            if not stripped:
+                j += 1
+                insertion_index = j
+                continue
+
+            item_match = list_item_re.match(lines[j])
+            if not item_match:
+                break
+
+            item_text = item_match.group(1).strip()
+            normalized = re.sub(r"^\*\*(.*?)\*\*$", r"\1", item_text).strip()
+            normalized = re.sub(r"^\[([^\]]+)\]\([^)]*\)$", r"\1", normalized).strip()
+            if any(
+                re.search(rf"(?<![\w]){re.escape(title)}(?![\w])", normalized, flags=re.IGNORECASE)
+                for title in canonical_titles
+            ):
+                valid_found = True
+                break
+            j += 1
+            insertion_index = j
+
+        if valid_found:
+            continue
+
+        # The model supplied the heading but no usable canonical resource.
+        # Insert deterministic resource choices from the selected generation
+        # evidence immediately after the heading and any intervening blanks.
+        additions = [f"- {title}" for title in canonical_titles[:3]]
+        lines[insertion_index:insertion_index] = additions
+        print(
+            "USE resource boundary: restored canonical resource selection "
+            f"after empty resource heading ({len(additions)} resources)."
+        )
+        return "\n".join(lines).strip()
+
+    return answer
+
+
 def _clean_generation_output(
     generated_text: str,
-    context_blocks: str,
+    generation_context: str,
+    canonical_link_context: str = "",
 ) -> str:
     answer = _extract_visitor_answer(generated_text)
     if not answer:
         return ""
 
+    link_context = canonical_link_context or generation_context
+
+    # Resource eligibility is governed by the selected generation set. Link
+    # authority may be broader, but it must never expand the set of resources
+    # the visitor is offered.
     cleaned_answer = _remove_unresolvable_resource_list_items(
         answer,
-        context_blocks,
+        generation_context,
+    )
+    cleaned_answer = _ensure_nonempty_resource_section(
+        cleaned_answer,
+        generation_context,
     )
     cleaned_answer = _dedupe_repeated_canonical_list_items(
         cleaned_answer,
-        context_blocks,
+        generation_context,
     )
     cleaned_answer = _strip_leading_decorative_symbols(cleaned_answer)
     cleaned_answer = _strip_emoji(cleaned_answer)
 
     normalized_answer = normalize_link_presentation(
-        sanitize_canonical_links(cleaned_answer, context_blocks),
-        context_blocks,
+        sanitize_canonical_links(cleaned_answer, link_context),
+        link_context,
     )
 
     # Final presentation boundary: canonical link normalization may recreate
@@ -3264,7 +3367,8 @@ def _run_generation_attempt(
 
     cleaned_answer = _clean_generation_output(
         generated_text,
-        canonical_link_context or generation_context,
+        generation_context,
+        canonical_link_context,
     )
 
     if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
@@ -3993,8 +4097,78 @@ def _generation_boundary_self_audit() -> None:
                 "Resource-list boundary regression: following prose was consumed."
             )
 
+        # v44 root-cause regression: a resource heading must never remain
+        # empty when canonical resources are available in the selected
+        # generation context. This is the exact failure observed in the
+        # production test question about learning from failure.
+        empty_resource_context = (
+            "Title: Learning from Failure\n"
+            "URL: https://example.invalid/learning-from-failure\n"
+            "Content: Evidence about learning from failure."
+            "\n\n---\n\n"
+            "Title: Recovering from Failure\n"
+            "URL: https://example.invalid/recovering-from-failure\n"
+            "Content: Evidence about recovery."
+        )
+        empty_resource_output = _clean_generation_output(
+            "<visitor_answer>Consider the following resources:\n\n"
+            "These resources discuss learning from failure.</visitor_answer>",
+            empty_resource_context,
+            empty_resource_context,
+        )
+        if "Learning from Failure" not in empty_resource_output:
+            raise RuntimeError(
+                "Empty-resource-section regression: canonical resources were not restored."
+            )
+        if empty_resource_output.count("Learning from Failure") != 1:
+            raise RuntimeError(
+                "Empty-resource-section regression: canonical resource was duplicated."
+            )
+
+        # A canonical resource in link-only authority must not be promoted
+        # into the visitor selection set merely because it can be linked.
+        selected_only_context = (
+            "Title: Selected Resource\n"
+            "URL: https://example.invalid/selected\n"
+            "Content: Selected evidence."
+        )
+        link_only_context = (
+            selected_only_context
+            + "\n\n---\n\n"
+            "Title: Link-Only Authority\n"
+            "URL: https://example.invalid/link-only\n"
+            "Content: Additional canonical evidence."
+        )
+        link_only_output = _clean_generation_output(
+            "<visitor_answer>Consider these resources:\n"
+            "- Link-Only Authority</visitor_answer>",
+            selected_only_context,
+            link_only_context,
+        )
+        if "Link-Only Authority" in link_only_output:
+            raise RuntimeError(
+                "Visitor-resource authority regression: link-only resource entered selection."
+            )
+        if "Selected Resource" not in link_only_output:
+            raise RuntimeError(
+                "Visitor-resource authority regression: selected resource was not restored."
+            )
+
+        # Invalid/non-canonical generated items must still be removed.
+        invalid_resource_output = _clean_generation_output(
+            "<visitor_answer>Further reading:\n"
+            "- Not Retrieved Resource\n"
+            "- Learning from Failure</visitor_answer>",
+            empty_resource_context,
+            empty_resource_context,
+        )
+        if "Not Retrieved Resource" in invalid_resource_output:
+            raise RuntimeError(
+                "Canonical resource-selection regression: invalid resource survived."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v43":
+        if APP_VERSION != "v44":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
