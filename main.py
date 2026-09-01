@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v40"
+APP_VERSION = "v41"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v40-retrieval-to-generation-selection-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v41-resource-list-blank-line-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2792,7 +2792,7 @@ def _remove_unresolvable_resource_list_items(
                 return True
         return False
 
-    for line in lines:
+    for index, line in enumerate(lines):
         stripped = line.strip()
         item = list_item_re.match(line)
 
@@ -2803,6 +2803,19 @@ def _remove_unresolvable_resource_list_items(
             continue
 
         if not stripped:
+            # A blank line is allowed between a resource heading and its
+            # list, and between list items. Only close the resource boundary
+            # when the next substantive line is not itself a list item.
+            next_nonblank = None
+            for lookahead in lines[index + 1:]:
+                if lookahead.strip():
+                    next_nonblank = lookahead
+                    break
+
+            if next_nonblank is not None and list_item_re.match(next_nonblank):
+                output.append(line)
+                continue
+
             in_resource_list = False
             output.append(line)
             continue
@@ -3925,8 +3938,40 @@ def _generation_boundary_self_audit() -> None:
                 "Retrieval-to-generation regression: link-only authority leaked into generation."
             )
 
+        # v41 root-cause regression: a blank line after a resource heading
+        # must not terminate the resource-list boundary. Otherwise an
+        # unresolvable model-generated resource can leak into visitor output
+        # exactly as observed in production.
+        list_boundary_context = (
+            "Title: Canonical Resource One\n"
+            "URL: https://example.invalid/one\n"
+            "Content: Evidence one.\n\n---\n\n"
+            "Title: Canonical Resource Two\n"
+            "URL: https://example.invalid/two\n"
+            "Content: Evidence two."
+        )
+        list_boundary_test = _remove_unresolvable_resource_list_items(
+            "Further reading:\n\n"
+            "- Canonical Resource One\n"
+            "- Not Retrieved Resource\n\n"
+            "The prose continues here.",
+            list_boundary_context,
+        )
+        if "- Canonical Resource One" not in list_boundary_test:
+            raise RuntimeError(
+                "Resource-list boundary regression: canonical item after blank line was removed."
+            )
+        if "Not Retrieved Resource" in list_boundary_test:
+            raise RuntimeError(
+                "Resource-list boundary regression: unresolvable item leaked through."
+            )
+        if "The prose continues here." not in list_boundary_test:
+            raise RuntimeError(
+                "Resource-list boundary regression: following prose was consumed."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v40":
+        if APP_VERSION != "v41":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
