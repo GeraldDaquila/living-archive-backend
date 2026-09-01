@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v50 — Conservative Groq Request Boundary
+# USE PRODUCTION VERSION: v51 — Canonical Resource List Boundary
 # Complete production unit reconstructed from the verified v47 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v50"
+APP_VERSION = "v51"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v50-conservative-groq-request-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v51-canonical-resource-list-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2937,14 +2937,14 @@ def _format_standalone_canonical_resource_links(
     generation_context: str,
 ) -> str:
     """
-    Present consecutive standalone canonical resource links as a discrete list.
+    Preserve discrete visitor-facing boundaries around canonical resources.
 
-    Models sometimes emit canonical resources as separate Markdown-link lines
-    without list markers. The canonical-link layer correctly grounds those
-    links, but the visitor-facing boundary is ambiguous. This pass only adds
-    list markers to consecutive lines that are exact canonical links available
-    in the selected generation context. It does not create, remove, rank, or
-    expand resource selection.
+    Two deterministic presentation repairs are handled here:
+      1. bare standalone canonical Markdown links become list items;
+      2. ordinary prose immediately following a canonical resource list is
+         separated by a blank line.
+
+    This function does not create, remove, rank, or expand resource selection.
     """
     if not answer or not generation_context:
         return answer
@@ -2963,19 +2963,54 @@ def _format_standalone_canonical_resource_links(
         r"^\s*\[([^\]]+)\]\((https?://[^)]+)\)\s*$",
         flags=re.IGNORECASE,
     )
+    list_item_re = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
+
+    def _is_canonical_resource_line(line: str) -> bool:
+        match = list_item_re.match(line)
+        if not match:
+            return False
+        item_text = re.sub(
+            r"^\*\*(.*?)\*\*$", r"\1", match.group(1).strip()
+        ).strip()
+        link_match = standalone_link_re.match(item_text)
+        if link_match:
+            title = re.sub(r"\s+", " ", link_match.group(1).strip()).casefold()
+            return title in canonical_titles
+        title = re.sub(r"^\[([^\]]+)\]\([^)]*\)$", r"\1", item_text).strip()
+        return any(
+            re.search(
+                rf"(?<![\w]){re.escape(canonical_title)}(?![\w])",
+                title,
+                flags=re.IGNORECASE,
+            )
+            for canonical_title in canonical_titles
+        )
 
     for line in lines:
         match = standalone_link_re.match(line)
         if match:
-            visible_title = re.sub(r"\s+", " ", match.group(1).strip()).casefold()
+            visible_title = re.sub(
+                r"\s+", " ", match.group(1).strip()
+            ).casefold()
             if visible_title in canonical_titles:
-                # Preserve an existing list item if one somehow reaches this
-                # boundary; only bare standalone canonical links are changed.
                 output.append(f"- {line.strip()}")
                 continue
+
+        # Force a Markdown block boundary when ordinary prose follows the
+        # canonical resource list. Without this, Markdown renders the prose as
+        # a continuation of the final resource bullet.
+        if (
+            line.strip()
+            and output
+            and _is_canonical_resource_line(output[-1])
+            and not list_item_re.match(line)
+        ):
+            output.append("")
+
         output.append(line)
 
     return "\n".join(output).strip()
+
 
 
 def _clean_generation_output(
@@ -4246,6 +4281,29 @@ def _generation_boundary_self_audit() -> None:
                 "Canonical resource presentation regression: second standalone link was not list-formatted."
             )
 
+        # v51 boundary regression: ordinary prose after a canonical resource
+        # list must render as a separate paragraph, not as a continuation of
+        # the final resource bullet.
+        trailing_prose_output = _clean_generation_output(
+            "<visitor_answer>"
+            "See these resources:\n"
+            "- [Canonical Resource One](https://example.invalid/one)\n"
+            "- [Canonical Resource Two](https://example.invalid/two)\n"
+            "These resources provide further context."
+            "</visitor_answer>",
+            list_boundary_context,
+            list_boundary_context,
+        )
+        expected_boundary = (
+            "- [Canonical Resource Two](https://example.invalid/two)\n\n"
+            "These resources provide further context."
+        )
+        if expected_boundary not in trailing_prose_output:
+            raise RuntimeError(
+                "Canonical resource presentation regression: trailing prose "
+                "was not separated from the resource list."
+            )
+
         # Provider request-boundary regression: v50 must use the
         # deliberately conservative envelope that was introduced after the
         # observed Groq 413 request-too-large failure.
@@ -4270,7 +4328,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v50":
+        if APP_VERSION != "v51":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
