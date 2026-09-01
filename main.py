@@ -1,8 +1,8 @@
-# USE v38 — Canonical Presentation-Equivalence Link Boundary
-# Complete production unit reconstructed from the current live main.py baseline.
+# USE v40 — Retrieval-to-Generation Selection Boundary
+# Complete production unit reconstructed from the verified v39 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
-# generation architecture, and provider chain while hardening confirmed
-# visitor-output and runtime-identification defects observed in production tests.
+# generation architecture, provider fallback chain, and visitor-output boundary
+# while correcting the confirmed retrieval-to-generation context handoff defect.
 
 import os
 import re
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v39"
+APP_VERSION = "v40"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v39-generation-completion-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v40-retrieval-to-generation-selection-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -656,13 +656,16 @@ def get_live_groq_models() -> List[str]:
         ]
 
         if discovered:
+            # Stable priority: preserve the existing capability preference,
+            # but make ties deterministic so provider catalogue ordering
+            # cannot change which live model becomes the first attempt.
+            discovered.sort(key=lambda model_id: model_id.casefold())
             discovered.sort(
-                key=lambda model_id: (
+                key=lambda model_id: not (
                     "70b" in model_id.lower()
                     or "versatile" in model_id.lower()
                     or "instruct" in model_id.lower()
-                ),
-                reverse=True,
+                )
             )
 
             MODEL_CACHE["models"] = discovered
@@ -2023,10 +2026,19 @@ def fetch_canonical_context(
         else 0
     )
 
-    # v37 root-cause boundary: generation context and canonical link authority
-    # are deliberately separate. The model receives the bounded, deduplicated
-    # generation set; final URL construction retains every canonical resource
-    # returned by the retrieval stage.
+    # v40 root-cause boundary: generation and link authority are two
+    # deliberately different contexts. The model receives ONLY the
+    # selected, deduplicated, orientationally-reranked resources. The
+    # complete canonical set is retained separately for final link
+    # reconstruction. The previous version accidentally supplied the
+    # complete canonical-link set to generation, bypassing the selected
+    # retrieval order and allowing the bounded generation window to change
+    # which resources the model could see.
+    generation_context = format_context_blocks(
+        retrieved_docs,
+        structural_destination_count=structural_destination_count,
+        adaptive_bridge_count=adaptive_bridge_count,
+    )
     canonical_link_context = format_context_blocks(
         canonical_link_docs,
         structural_destination_count=0,
@@ -2036,7 +2048,7 @@ def fetch_canonical_context(
     return {
         "intent": intent,
         "orientational_frame": orientational_frame,
-        "context_blocks": canonical_link_context,
+        "context_blocks": generation_context,
         "canonical_link_context": canonical_link_context,
     }
 
@@ -2738,6 +2750,81 @@ def _dedupe_repeated_canonical_list_items(
     return "\n".join(output).strip()
 
 
+def _remove_unresolvable_resource_list_items(
+    answer: str,
+    context_blocks: str,
+) -> str:
+    """
+    Enforce the canonical resource-selection boundary before link creation.
+
+    A model may repeat a canonical title found inside evidence content even
+    when that resource was not itself retrieved as a canonical resource
+    record. Such a title has no authorized URL in the current evidence set.
+    Resource lists are therefore restricted to titles that exist on a
+    canonical Title: line. Non-resource prose is left untouched.
+    """
+    if not answer or not context_blocks:
+        return answer
+
+    canonical_pairs = _canonical_pairs(context_blocks)
+    if not canonical_pairs:
+        return answer
+
+    canonical_titles = [title for title, _url in canonical_pairs if title]
+    if not canonical_titles:
+        return answer
+
+    lines = answer.splitlines()
+    output: List[str] = []
+    in_resource_list = False
+    list_item_re = re.compile(r"^(\s*)([-*+]|\d+[.)])\s+(.+?)\s*$")
+    resource_heading_re = re.compile(
+        r"(?i)(?:resources?|essays?|pathways?|readings?|explore these|consider(?: these)?|following resources)\s*:\s*$"
+    )
+
+    def is_canonical_title(value: str) -> bool:
+        candidate = re.sub(r"^\*\*(.*?)\*\*$", r"\1", value.strip())
+        candidate = re.sub(r"^\[([^\]]+)\]\([^)]*\)$", r"\1", candidate)
+        candidate = candidate.strip()
+        for title in canonical_titles:
+            probe = _replace_titles_in_plain_text(candidate, [(title, "https://example.invalid/self-audit")])
+            if probe.startswith("[") and "](" in probe:
+                return True
+        return False
+
+    for line in lines:
+        stripped = line.strip()
+        item = list_item_re.match(line)
+
+        if not in_resource_list:
+            if resource_heading_re.search(stripped):
+                in_resource_list = True
+            output.append(line)
+            continue
+
+        if not stripped:
+            in_resource_list = False
+            output.append(line)
+            continue
+
+        if item:
+            item_text = item.group(3).strip()
+            if is_canonical_title(item_text):
+                output.append(line)
+            else:
+                print(
+                    "USE resource boundary: removed unresolvable resource "
+                    f"list item '{item_text}'."
+                )
+            continue
+
+        # A non-list line closes the resource-list boundary.
+        in_resource_list = False
+        output.append(line)
+
+    return "\n".join(output).strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     context_blocks: str,
@@ -2746,8 +2833,12 @@ def _clean_generation_output(
     if not answer:
         return ""
 
-    cleaned_answer = _dedupe_repeated_canonical_list_items(
+    cleaned_answer = _remove_unresolvable_resource_list_items(
         answer,
+        context_blocks,
+    )
+    cleaned_answer = _dedupe_repeated_canonical_list_items(
+        cleaned_answer,
         context_blocks,
     )
     cleaned_answer = _strip_leading_decorative_symbols(cleaned_answer)
@@ -2978,10 +3069,13 @@ def _build_generation_system_content(
         "Never reveal internal reasoning, retrieval, classification, "
         "evidence-selection, prompting, or drafting process. "
         "For every canonical resource you recommend, write only its exact "
-        "canonical title as plain text. Do not construct Markdown links, "
+        "canonical title as plain text. A resource is recommendable ONLY when "
+        "its exact title appears on a Title: line in the supplied canonical "
+        "evidence. A title appearing only inside Content is not a selectable "
+        "resource and must not be recommended as one. Never invent, paraphrase, "
+        "or reconstruct a resource title. Do not construct Markdown links, "
         "HTML anchors, raw URLs, URL slugs, or emoji prefixes. USE constructs "
-        "canonical links after generation. Finish the answer completely; never "
-        "stop mid-sentence, mid-thought, or mid-list item."
+        "canonical links after generation."
     )
 
 
@@ -3100,15 +3194,14 @@ def _looks_like_finished_visitor_answer(text: str) -> bool:
     if not value:
         return False
 
-    # Markdown links naturally end in ')'. Resource titles without links are
-    # allowed elsewhere, so this is intentionally a narrow punctuation gate.
     if value.endswith((".", "!", "?", ":", ";", ")", "]", '"', "”", "’")):
         return True
 
-    # A final list item may legitimately end without punctuation only when it
-    # is visibly a complete title-like line.
     last_line = value.splitlines()[-1].strip()
-    if last_line.startswith(("- ", "* ")) and len(last_line) >= 8:
+    if last_line.startswith(("- ", "* ", "+ ")) and len(last_line) >= 8:
+        return True
+
+    if re.match(r"^\d+[.)]\s+", last_line) and len(last_line) >= 8:
         return True
 
     return False
@@ -3149,9 +3242,6 @@ def _run_generation_attempt(
     finish_reason = getattr(choice, "finish_reason", None)
     generated_text = choice.message.content or ""
 
-    # A non-empty provider response is not necessarily a finished answer.
-    # In particular, a length-terminated completion must never be exposed to
-    # the visitor as though it were complete. Let the model cascade continue.
     if str(finish_reason or "").lower() in {"length", "max_tokens"}:
         print(
             f"USE output boundary: model '{model_id}' reached its generation "
@@ -3159,16 +3249,11 @@ def _run_generation_attempt(
         )
         return ""
 
-    # v35: link normalization uses the complete authoritative canonical
-    # resource set, never the provider-bounded generation window.
     cleaned_answer = _clean_generation_output(
         generated_text,
         canonical_link_context or generation_context,
     )
 
-    # A model can report a normal stop while still returning an obviously
-    # unfinished fragment. Reject only clear terminal fragments so the live
-    # model cascade can supply a complete answer.
     if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
         print(
             f"USE output boundary: model '{model_id}' returned an incomplete "
@@ -3633,7 +3718,7 @@ def _generation_boundary_self_audit() -> None:
         # while the inserted title/URL remain authoritative.
         linker_pairs = [
             (
-                "Incentives Drive Behavior: Why Good Intentions Fail in Systems",
+                "Why Being 'Good' Isn't Enough: The Invisible Incentives Sabotaging Your Success",
                 "https://example.invalid/incentives",
             ),
             (
@@ -3643,17 +3728,17 @@ def _generation_boundary_self_audit() -> None:
         ]
 
         exact_link_test = _replace_titles_in_plain_text(
-            "See Incentives Drive Behavior: Why Good Intentions Fail in Systems.",
+            "See Why Being 'Good' Isn't Enough: The Invisible Incentives Sabotaging Your Success.",
             linker_pairs,
         )
         if exact_link_test != (
-            "See [Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
+            "See [Why Being 'Good' Isn't Enough: The Invisible Incentives Sabotaging Your Success]"
             "(https://example.invalid/incentives)."
         ):
             raise RuntimeError("Canonical-link exact-match regression.")
 
         whitespace_link_test = _replace_titles_in_plain_text(
-            "See Incentives\u00A0Drive   Behavior: Why Good Intentions Fail in Systems.",
+            "See Why Being\u00A0'Good'\u00A0Isn't Enough: The Invisible Incentives Sabotaging Your Success.",
             linker_pairs,
         )
         if "](https://example.invalid/incentives)" not in whitespace_link_test:
@@ -3691,7 +3776,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("Canonical-link apostrophe regression.")
 
         existing_link_test = _replace_titles_in_plain_text(
-            "[Incentives Drive Behavior: Why Good Intentions Fail in Systems]"
+            "[Why Being 'Good' Isn't Enough: The Invisible Incentives Sabotaging Your Success]"
             "(https://example.invalid/incentives)",
             linker_pairs,
         )
@@ -3756,8 +3841,92 @@ def _generation_boundary_self_audit() -> None:
                 "unauthorized canonical URL."
             )
 
+        # Resource-selection boundary regression: a title appearing only in
+        # evidence content must not survive as a recommended resource when it
+        # has no canonical Title: record in the authoritative context.
+        resource_boundary_context = (
+            "Title: Canonical Doorway\n"
+            "URL: https://example.invalid/canonical-doorway\n"
+            "Content: This evidence mentions Ghost Resource as related material."
+        )
+        resource_boundary_output = _clean_generation_output(
+            "<visitor_answer>Consider these resources:\n"
+            "1. Ghost Resource\n"
+            "2. Canonical Doorway.</visitor_answer>",
+            resource_boundary_context,
+        )
+        if "Ghost Resource" in resource_boundary_output:
+            raise RuntimeError(
+                "Canonical resource-selection regression: unresolvable resource "
+                "survived the visitor output boundary."
+            )
+        if "https://example.invalid/canonical-doorway" not in resource_boundary_output:
+            raise RuntimeError(
+                "Canonical resource-selection regression: valid canonical resource "
+                "was not linked."
+            )
+
+        # v40 root-cause regression: the generation context must be the
+        # selected/reranked resource set, while link authority may retain a
+        # larger canonical set. This prevents canonical-link authority from
+        # silently becoming the generation-selection set.
+        selected_context = format_context_blocks(
+            [
+                {
+                    "title": "Primary Selected Resource",
+                    "url": "https://example.invalid/primary",
+                    "text": "Primary evidence.",
+                },
+                {
+                    "title": "Secondary Selected Resource",
+                    "url": "https://example.invalid/secondary",
+                    "text": "Secondary evidence.",
+                },
+            ]
+        )
+        authoritative_context = format_context_blocks(
+            [
+                {
+                    "title": "Primary Selected Resource",
+                    "url": "https://example.invalid/primary",
+                    "text": "Primary evidence.",
+                },
+                {
+                    "title": "Secondary Selected Resource",
+                    "url": "https://example.invalid/secondary",
+                    "text": "Secondary evidence.",
+                },
+                {
+                    "title": "Additional Link Authority",
+                    "url": "https://example.invalid/additional",
+                    "text": "Additional canonical evidence.",
+                },
+            ]
+        )
+        selected_generation_documents = context_blocks_to_documents(selected_context)
+        authoritative_documents = context_blocks_to_documents(authoritative_context)
+        if len(selected_generation_documents) != 2:
+            raise RuntimeError(
+                "Retrieval-to-generation regression: selected generation set changed."
+            )
+        if len(authoritative_documents) != 3:
+            raise RuntimeError(
+                "Canonical-link authority regression: authoritative set changed."
+            )
+        if selected_generation_documents[0]["title"] != "Primary Selected Resource":
+            raise RuntimeError(
+                "Retrieval-to-generation regression: selected ordering was not preserved."
+            )
+        if any(
+            doc["title"] == "Additional Link Authority"
+            for doc in selected_generation_documents
+        ):
+            raise RuntimeError(
+                "Retrieval-to-generation regression: link-only authority leaked into generation."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v39":
+        if APP_VERSION != "v40":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
