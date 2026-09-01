@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v45 — Canonical Resource Deduplication Correction
+# USE PRODUCTION VERSION: v46 — Resource-List Self-Audit Correction
 # Complete production unit reconstructed from the verified v43 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v45"
+APP_VERSION = "v46"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v45-canonical-resource-deduplication-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v46-resource-list-self-audit-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4120,7 +4120,14 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Empty-resource-section regression: canonical resources were not restored."
             )
-        if empty_resource_output.count("Learning from Failure") != 1:
+        resource_list_text = "\n".join(
+            line for line in empty_resource_output.splitlines()
+            if re.match(r"^\s*(?:[-*•]|\d+[.)])\s+", line)
+        )
+        if resource_list_text.lower().count("learning from failure") != 1:
+            raise RuntimeError(
+                "Empty-resource-section regression: canonical resource was duplicated."
+            )
             raise RuntimeError(
                 "Empty-resource-section regression: canonical resource was duplicated."
             )
