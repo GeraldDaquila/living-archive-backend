@@ -1,4 +1,4 @@
-# USE v36 — Canonical Presentation-Equivalence Link Boundary
+# USE v38 — Canonical Presentation-Equivalence Link Boundary
 # Complete production unit reconstructed from the current live main.py baseline.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, and provider chain while hardening confirmed
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v37"
+APP_VERSION = "v38"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v36-canonical-presentation-equivalence-link-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v38-canonical-presentation-equivalence-link-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3712,7 +3712,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v36":
+        if APP_VERSION != "v38":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
