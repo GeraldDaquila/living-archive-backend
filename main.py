@@ -1,5 +1,5 @@
-# USE PRODUCTION VERSION: v51 — Canonical Resource List Boundary
-# Complete production unit reconstructed from the verified v47 production unit.
+# USE PRODUCTION VERSION: v52 — Canonical Resource Presentation Integrity
+# Complete production unit reconstructed from the verified v51 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
 # while correcting the confirmed empty-resource-section failure and restoring sufficient generation headroom without weakening canonical-resource safety.
@@ -11,6 +11,7 @@ import unicodedata
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -476,7 +477,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v51"
+APP_VERSION = "v52"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +493,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v51-canonical-resource-list-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v52-canonical-resource-presentation-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3013,6 +3014,112 @@ def _format_standalone_canonical_resource_links(
 
 
 
+def _strip_stray_markdown_emphasis(answer: str) -> str:
+    """Remove leaked emphasis markers while preserving unordered-list markers."""
+    if not answer:
+        return answer
+
+    cleaned_lines: List[str] = []
+    for line in answer.splitlines():
+        leading_list_marker = re.match(r"^(\s*[-+*]\s+)", line)
+        if leading_list_marker:
+            prefix = leading_list_marker.group(1)
+            remainder = line[len(prefix):]
+            remainder = re.sub(r"\*{1,3}", "", remainder)
+            cleaned_lines.append(prefix + remainder)
+        else:
+            cleaned_lines.append(re.sub(r"\*{1,3}", "", line))
+
+    return "\n".join(cleaned_lines).strip()
+
+
+def _dedupe_canonical_resource_items_across_answer(
+    answer: str,
+    generation_context: str,
+) -> str:
+    """Allow each canonical resource to appear at most once in visitor resource lists."""
+    if not answer or not generation_context:
+        return answer
+
+    canonical_titles = {
+        _canonical_display_title(title).casefold(): _canonical_display_title(title)
+        for title, _url in _canonical_pairs(generation_context)
+        if _canonical_display_title(title)
+    }
+    if not canonical_titles:
+        return answer
+
+    lines = answer.splitlines()
+    output: List[str] = []
+    seen_resource_keys = set()
+    list_item_re = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
+    link_re = re.compile(r"^\[([^\]]+)\]\(https?://[^)]+\)$")
+
+    for line in lines:
+        match = list_item_re.match(line)
+        if not match:
+            output.append(line)
+            continue
+
+        item_text = match.group(1).strip()
+        link_match = link_re.match(item_text)
+        candidate = link_match.group(1).strip() if link_match else item_text
+        candidate = re.sub(r"^\*{1,3}(.*?)\*{1,3}$", r"\1", candidate).strip()
+
+        matched_key = None
+        for key, display_title in canonical_titles.items():
+            if re.search(
+                rf"(?<![\w]){re.escape(display_title)}(?![\w])",
+                candidate,
+                flags=re.IGNORECASE,
+            ):
+                matched_key = key
+                break
+
+        if matched_key is None:
+            output.append(line)
+            continue
+
+        if matched_key in seen_resource_keys:
+            print(
+                "USE resource uniqueness: removed duplicate canonical resource "
+                f"across visitor answer '{canonical_titles[matched_key]}'."
+            )
+            continue
+
+        seen_resource_keys.add(matched_key)
+        output.append(line)
+
+    # If cross-section deduplication emptied a resource heading, remove the
+    # orphan heading rather than presenting an empty "Further reading:" block.
+    heading_re = re.compile(
+        r"(?i)^.*(?:resources?|essays?|pathways?|readings?|"
+        r"further reading|further readings|explore these|"
+        r"consider(?: these)?|following resources)\s*:\s*$"
+    )
+    filtered: List[str] = []
+    for index, line in enumerate(output):
+        if not heading_re.match(line.strip()):
+            filtered.append(line)
+            continue
+
+        next_nonblank = None
+        for lookahead in output[index + 1:]:
+            if lookahead.strip():
+                next_nonblank = lookahead
+                break
+
+        if next_nonblank is None or not list_item_re.match(next_nonblank):
+            print(
+                "USE resource boundary: removed empty visitor-facing resource heading."
+            )
+            continue
+
+        filtered.append(line)
+
+    return "\n".join(filtered).strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -3041,6 +3148,7 @@ def _clean_generation_output(
     )
     cleaned_answer = _strip_leading_decorative_symbols(cleaned_answer)
     cleaned_answer = _strip_emoji(cleaned_answer)
+    cleaned_answer = _strip_stray_markdown_emphasis(cleaned_answer)
 
     normalized_answer = normalize_link_presentation(
         sanitize_canonical_links(cleaned_answer, link_context),
@@ -3050,6 +3158,11 @@ def _clean_generation_output(
         normalized_answer,
         generation_context,
     )
+    normalized_answer = _dedupe_canonical_resource_items_across_answer(
+        normalized_answer,
+        generation_context,
+    )
+    normalized_answer = _strip_stray_markdown_emphasis(normalized_answer)
 
     # Final presentation boundary: canonical link normalization may recreate
     # visible title text from canonical evidence. Sanitize once more after
@@ -4327,8 +4440,65 @@ def _generation_boundary_self_audit() -> None:
                 "Provider boundary regression: compact fallback is not smaller than primary generation."
             )
 
+        # Release identity audit: the source file itself must declare the
+        # same version as the runtime and deployment fingerprint. This prevents
+        # the repeated stale/misaligned top-of-file version problem.
+        source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
+        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v52"):
+            raise RuntimeError(
+                "Source version-label regression: line 1 does not identify v52."
+            )
+        if APP_VERSION != "v52":
+            raise RuntimeError(
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v52."
+            )
+        if DEPLOYMENT_FINGERPRINT != "USE-v52-canonical-resource-presentation-integrity":
+            raise RuntimeError(
+                "Deployment fingerprint regression: v52 fingerprint is not aligned."
+            )
+
+        # v52 regression: the same canonical resources must not reappear in a
+        # later visitor-facing resource section.
+        cross_section_output = _clean_generation_output(
+            "<visitor_answer>"
+            "For a deeper look, see:\n"
+            "- [Canonical Resource One](https://example.invalid/one)\n"
+            "- [Canonical Resource Two](https://example.invalid/two)\n\n"
+            "Further reading:\n"
+            "- [Canonical Resource One](https://example.invalid/one)\n"
+            "- [Canonical Resource Two](https://example.invalid/two)"
+            "</visitor_answer>",
+            list_boundary_context,
+            list_boundary_context,
+        )
+        if cross_section_output.count("Canonical Resource One") != 1:
+            raise RuntimeError(
+                "Canonical resource presentation regression: Resource One was duplicated across sections."
+            )
+        if cross_section_output.count("Canonical Resource Two") != 1:
+            raise RuntimeError(
+                "Canonical resource presentation regression: Resource Two was duplicated across sections."
+            )
+        if "Further reading:" in cross_section_output:
+            raise RuntimeError(
+                "Canonical resource presentation regression: empty duplicate resource heading survived."
+            )
+
+        # v52 regression: incomplete Markdown emphasis markers must never leak
+        # into visitor-facing output.
+        markdown_leak_output = _clean_generation_output(
+            "<visitor_answer>Habitual conditioning** - Long-standing routines.\n"
+            "Emotional resistance** - Fear may block action.</visitor_answer>",
+            list_boundary_context,
+            list_boundary_context,
+        )
+        if "**" in markdown_leak_output or "*" in markdown_leak_output:
+            raise RuntimeError(
+                "Visitor-markup regression: stray Markdown emphasis marker survived output boundary."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v51":
+        if APP_VERSION != "v52":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
