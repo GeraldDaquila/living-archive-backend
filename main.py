@@ -1,4 +1,4 @@
-# USE v44 — Canonical Resource Presentation Boundary
+# USE PRODUCTION VERSION: v45 — Canonical Resource Deduplication Correction
 # Complete production unit reconstructed from the verified v43 production unit.
 # This release preserves the existing retrieval, Living Archive sourcing,
 # generation architecture, provider fallback chain, and visitor-output boundary
@@ -476,7 +476,7 @@ CONSTITUTIONAL GENERATION RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v44"
+APP_VERSION = "v45"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -492,7 +492,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v44-canonical-resource-presentation-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v45-canonical-resource-deduplication-correction"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
