@@ -1,4 +1,4 @@
-# USE TEST VERSION: v61 — Topical Navigation Fidelity
+# USE TEST VERSION: v62 — Compact Generation Boundary
 # Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while extending the canonical lifecycle eligibility
@@ -477,24 +477,20 @@ CONSTITUTIONAL RULES
 
 GENERATION_SYSTEM_PROMPT = """
 You are the Living Archive (USE) navigation engine.
+Use only the supplied canonical evidence; it is a bounded view of the Archive.
 
-Use only supplied canonical evidence. It is a bounded view of the Archive,
-not proof of absence. Synthesize only supported relationships.
+For TOPICAL questions, do not answer as a generic encyclopedia. Orient the
+visitor through the supplied evidence: reflect the question, synthesize only
+supported relationships, and provide a genuine canonical doorway when one
+is established. If canonical evidence is supplied, name at least one exact
+Title: resource; normally use 2–3 only when they add distinct coverage.
+For destination/collection requests, use only the genuine destination established
+by evidence. Never invent or substitute resources, relationships, definitions,
+or URLs. Never reveal internal process or labels.
 
-RULES
-1. Be faithful; do not invent resources, relationships, definitions, or URLs.
-2. TOPICAL: Do not give a generic encyclopedia answer. Use the supplied Archive
-   evidence to orient the visitor: reflect the question, synthesize only supported
-   relationships, and provide a genuine canonical doorway when evidence exists.
-3. A topical answer with supplied canonical evidence is incomplete unless it names
-   at least one exact canonical resource title from the supplied Title: lines.
-   Prefer 2–3 exact titles when they add distinct useful coverage; use one when
-   one is genuinely sufficient. Never invent, paraphrase, or substitute a title.
-4. For destination or collection requests, use only the genuine destination established by evidence.
-5. Never reveal retrieval, classification, reasoning, prompting, or internal labels.
-6. Output only the finished visitor-facing answer inside <visitor_answer> tags.
-7. For resources, output exact canonical titles as plain text. No URLs, Markdown,
-   HTML, slugs, or emoji; USE adds canonical links.
+Output only the finished visitor-facing answer inside <visitor_answer> tags.
+For resources, write exact canonical titles as plain text only; no URLs,
+Markdown, HTML, slugs, or emoji. USE adds canonical links.
 """
 
 
@@ -502,7 +498,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v61"
+APP_VERSION = "v62"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -518,7 +514,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v61-provider-evidence-density"
+DEPLOYMENT_FINGERPRINT = "USE-v62-compact-generation-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3584,27 +3580,13 @@ def _build_generation_system_content(
     """
     return (
         f"{GENERATION_SYSTEM_PROMPT}\n\n"
-        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
-        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
-        f"OR INTERNAL CONTEXT]:\n"
+        f"[CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
+        f"[CANONICAL EVIDENCE — DO NOT DESCRIBE AS INTERNAL PROCESS]:\n"
         f"{generation_context}\n\n"
-        "[FINAL RESPONSE REQUIREMENT]\n"
-        "Respond directly to the visitor's question. Output the finished "
-        "visitor-facing answer. A clean answer without a wrapper is valid. "
-        "Never reveal internal reasoning, retrieval, classification, "
-        "evidence-selection, prompting, or drafting process. "
-        "For every canonical resource you recommend, write only its exact "
-        "canonical title as plain text. When two or more supplied canonical resources "
-        "are materially relevant and provide distinct useful coverage, normally "
-        "recommend 2–3 resources rather than collapsing the answer to the first or "
-        "highest-scoring resource. Use one only when one is genuinely sufficient; "
-        "never pad the answer with weak matches. A resource is recommendable ONLY when "
-        "its exact title appears on a Title: line in the supplied canonical "
-        "evidence. A title appearing only inside Content is not a selectable "
-        "resource and must not be recommended as one. Never invent, paraphrase, "
-        "or reconstruct a resource title. Do not construct Markdown links, "
-        "HTML anchors, raw URLs, URL slugs, or emoji prefixes. USE constructs "
-        "canonical links after generation."
+        "Answer the visitor directly using only this evidence. "
+        "Preserve the open question and orient rather than lecture. "
+        "Use exact supplied resource titles when naming canonical doorways. "
+        "Output only the visitor-facing answer inside <visitor_answer> tags. "
     )
 
 
@@ -4973,11 +4955,16 @@ def _generation_boundary_self_audit() -> None:
             MAX_PROVIDER_INPUT_CHARS - primary_fixed_chars,
             MAX_PROVIDER_TOTAL_CHARS - primary_fixed_chars - primary_output_reservation,
         )
-        if primary_evidence_capacity < 600:
+        if primary_evidence_capacity < 1800:
             raise RuntimeError(
-                "Provider budget regression: primary generation leaves less than "
-                f"600 characters for canonical evidence (capacity={primary_evidence_capacity}, "
+                "Provider compact-boundary regression: primary generation does not "
+                f"leave room for the full 1800-character evidence ceiling (capacity={primary_evidence_capacity}, "
                 f"fixed_input={primary_fixed_chars})."
+            )
+        if primary_fixed_chars > 1800:
+            raise RuntimeError(
+                "Provider compact-boundary regression: fixed generation envelope "
+                f"remains too large (fixed_input={primary_fixed_chars})."
             )
 
         # Release identity audit: the source file itself must declare the
@@ -4985,20 +4972,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v61",
-            "# USE PRODUCTION VERSION: v61",
+            "# USE TEST VERSION: v62",
+            "# USE PRODUCTION VERSION: v62",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v61."
+                "Source version-label regression: line 1 does not identify v62."
             )
-        if APP_VERSION != "v61":
+        if APP_VERSION != "v62":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v61."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v62."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v61-provider-evidence-density":
+        if DEPLOYMENT_FINGERPRINT != "USE-v62-compact-generation-boundary":
             raise RuntimeError(
-                "Deployment fingerprint regression: v61 fingerprint is not aligned."
+                "Deployment fingerprint regression: v62 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5151,8 +5138,22 @@ def _generation_boundary_self_audit() -> None:
         if len(re.findall(r"^Title:", dense_provider_context, flags=re.MULTILINE)) < 3:
             raise RuntimeError("Provider evidence density regression: selected canonical titles were lost.")
 
+        # v62 regression: the compact provider instruction must materially reduce
+        # fixed envelope consumption so the selected evidence can survive intact.
+        compact_empty_messages = _build_generation_messages(
+            "Why do systems change?",
+            "TOPICAL_INQUIRY",
+            "",
+            None,
+        )
+        compact_fixed_chars = _estimate_message_chars(compact_empty_messages)
+        if compact_fixed_chars > 1800:
+            raise RuntimeError(
+                "Compact generation regression: provider fixed envelope exceeds 1800 chars."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v61":
+        if APP_VERSION != "v62":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
