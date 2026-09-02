@@ -1,4 +1,4 @@
-# USE TEST VERSION: v70 — Framework-Neutral Canonical Doorway Selection
+# USE TEST VERSION: v71 — Evidence-Bound Synthesis
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -300,7 +300,16 @@ CONSTITUTIONAL RULES
     the resource explicitly explores, and a reasonable relationship
     between them.
 
-27. MINIMAL ORIENTATION
+27. EVIDENCE-BOUND SYNTHESIS
+    When synthesizing across multiple canonical resources, do not turn
+    a relationship that USE itself infers into an established causal
+    explanation unless the supplied evidence explicitly establishes that
+    relationship. If the evidence supports the component ideas but not
+    the causal bridge between them, mark the bridge as an inference,
+    possibility, or interpretive synthesis. Do not attribute a causal
+    claim to a resource that only supplies one part of the relationship.
+
+29. MINIMAL ORIENTATION
     Once a strong entry point has been selected, do not add material
     merely to make the answer feel comprehensive.
 
@@ -321,7 +330,7 @@ CONSTITUTIONAL RULES
     Do not substitute a related resource for the requested destination
     simply because its content is semantically close.
 
-29. COLLECTION-LEVEL NAVIGATION
+30. COLLECTION-LEVEL NAVIGATION
     Treat collection terms such as "essays," "Reference Maps,"
     "Pathways," "Navigators," "Case Library," "Knowledge Hubs," or
     similar corpus structures as requests for a collection-level
@@ -330,19 +339,19 @@ CONSTITUTIONAL RULES
     A resource that contains examples from a collection is not
     automatically the collection's destination.
 
-30. OPEN-INQUIRY STOP RULE
+31. OPEN-INQUIRY STOP RULE
     For an open experiential or exploratory question, once one
     clearly superior canonical doorway is established by the evidence,
     prefer that single doorway. Add another resource only when the
     second route materially changes or advances the inquiry.
 
-31. EVIDENCE-GAP STOP RULE
+32. EVIDENCE-GAP STOP RULE
     If the Archive evidence does not explicitly establish a requested
     concept, do not complete the missing definition from general
     knowledge. State the boundary naturally and route the visitor to
     the strongest evidence actually available.
 
-32. NAVIGATIONAL USEFULNESS OVER SEMANTIC SIMILARITY
+33. NAVIGATIONAL USEFULNESS OVER SEMANTIC SIMILARITY
     A semantically related resource is not necessarily a useful
     destination. Prefer the resource's architectural role and
     navigational suitability over keyword or topical similarity.
@@ -488,6 +497,11 @@ the visitor's question is open or underdetermined, do not collapse that
 question into the most specialized interpretation present in the evidence;
 present a supported interpretation as a possible lens and preserve uncertainty
 when the evidence does not establish a single cause or meaning.
+When synthesizing multiple resources, distinguish what each resource
+explicitly supports from relationships USE infers across them. Do not
+present an inferred causal chain as established merely because each
+component idea appears in the evidence. Mark unsupported causal bridges
+as possible interpretations or reasonable inferences.
 For destination/collection requests, use only the genuine destination established
 by evidence. Never invent or substitute resources, relationships, definitions,
 or URLs. Never reveal internal process or labels.
@@ -502,7 +516,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v70"
+APP_VERSION = "v71"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -518,7 +532,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v70-framework-neutral-doorway-selection"
+DEPLOYMENT_FINGERPRINT = "USE-v71-evidence-bound-synthesis"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4138,6 +4152,17 @@ def _build_generation_messages(
             "introduce outside interpretations. "
         )
 
+    if intent == "TOPICAL_INQUIRY":
+        system_content += (
+            "\n\n[EVIDENCE-BOUND SYNTHESIS — DO NOT REVEAL]: "
+            "Separate source-supported claims from relationships you infer "
+            "across resources. Do not convert thematic compatibility into "
+            "causation. If two resources support different parts of a possible "
+            "explanation but the evidence does not explicitly establish the "
+            "causal bridge, describe that bridge as an inference or possible "
+            "reading rather than as what the evidence proves. "
+        )
+
     user_content = (
         user_query
         + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
@@ -5383,20 +5408,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v70",
-            "# USE PRODUCTION VERSION: v70",
+            "# USE TEST VERSION: v71",
+            "# USE PRODUCTION VERSION: v71",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v70."
+                "Source version-label regression: line 1 does not identify v71."
             )
-        if APP_VERSION != "v70":
+        if APP_VERSION != "v71":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v70."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v71."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v70-framework-neutral-doorway-selection":
+        if DEPLOYMENT_FINGERPRINT != "USE-v71-evidence-bound-synthesis":
             raise RuntimeError(
-                "Deployment fingerprint regression: v70 fingerprint is not aligned."
+                "Deployment fingerprint regression: v71 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5762,8 +5787,36 @@ def _generation_boundary_self_audit() -> None:
                 "was displaced."
             )
 
+        # v71 regression: topical generation must explicitly preserve the
+        # distinction between source-supported claims and inferred causal bridges.
+        synthesis_messages = _build_generation_messages(
+            "Why can certainty at the moment of a decision become uncertainty after I live with it?",
+            "TOPICAL_INQUIRY",
+            (
+                "Title: Resource A\n"
+                "URL: https://example.invalid/a\n"
+                "Content: A source discusses how choosing can reduce uncertainty.\n\n"
+                "---\n\n"
+                "Title: Resource B\n"
+                "URL: https://example.invalid/b\n"
+                "Content: A source discusses how circumstances change over time."
+            ),
+            {"primary": "general", "scores": {}},
+        )
+        synthesis_system = synthesis_messages[0]["content"]
+        if "EVIDENCE-BOUND SYNTHESIS" not in synthesis_system:
+            raise RuntimeError(
+                "v71 synthesis-boundary regression: explicit synthesis guard "
+                "was not included in the topical generation boundary."
+            )
+        if "causal bridge" not in synthesis_system:
+            raise RuntimeError(
+                "v71 synthesis-boundary regression: causal-bridge instruction "
+                "was not preserved."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v70":
+        if APP_VERSION != "v71":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
