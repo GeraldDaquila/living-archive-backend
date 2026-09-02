@@ -1,4 +1,4 @@
-# USE TEST VERSION: v75 — Interpretive Frame Sovereignty — Prompt Envelope Recovery
+# USE TEST VERSION: v76 — Frame-Neutral Evidence Boundary
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -506,6 +506,19 @@ CONSTITUTIONAL RULES
     available evidence is predominantly framework-specific, state that limit
     and preserve the visitor's open question rather than translating the
     question into the framework.
+
+49. FRAME-NEUTRAL EVIDENCE BOUNDARY
+    For broad or experiential questions whose interpretive frame remains open,
+    specialized framework resources must not be supplied as substantive
+    generation evidence when already-retrieved frame-neutral canonical evidence
+    is available. This is a bounded evidence-selection gate, not a retrieval
+    expansion: it may only narrow the already-retrieved generation set.
+    Canonical link authority remains complete and separate. If no frame-neutral
+    evidence exists, USE must not manufacture an answer by treating a
+    specialized framework as the visitor's premise; it must state that the
+    currently retrieved evidence is framework-specific and insufficient to
+    establish a frame-neutral answer. Explicitly named frameworks remain
+    eligible.
 """
 
 
@@ -536,7 +549,7 @@ For destination/collection requests, use only genuine destinations established b
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v75"
+APP_VERSION = "v76"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -552,7 +565,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v75-interpretive-frame-sovereignty"
+DEPLOYMENT_FINGERPRINT = "USE-v76-frame-neutral-evidence-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2187,6 +2200,64 @@ def _canonical_doorway_score(
     )
 
 
+def _is_specialized_framework_resource(metadata: Dict[str, Any]) -> bool:
+    """Identify resources whose canonical title establishes a specialized worldview."""
+    title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
+    if not title:
+        return False
+    return any(
+        re.search(rf"\b{re.escape(term)}\b", title)
+        for term in _SPECIALIZED_FRAMEWORK_TERMS
+    )
+
+
+def _frame_neutral_generation_documents(
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Narrow open-frame generation evidence to already-retrieved neutral resources."""
+    if intent != "TOPICAL_INQUIRY" or not _question_is_frame_open(question):
+        return documents, False
+
+    neutral = [
+        document for document in documents
+        if not _is_specialized_framework_resource(document)
+    ]
+    specialized_count = len(documents) - len(neutral)
+    if specialized_count == 0:
+        return documents, False
+
+    # If neutral evidence exists, specialized resources cannot define the
+    # generation frame. We do not alter canonical link authority or retrieve
+    # anything new; this is only a generation-evidence boundary.
+    if neutral:
+        print(
+            "USE frame-neutral evidence boundary: "
+            f"excluded={specialized_count} uninvited specialized resources; "
+            f"retained={len(neutral)} frame-neutral resources."
+        )
+        return neutral, True
+
+    print(
+        "USE frame-neutral evidence boundary: no frame-neutral resources "
+        f"available; specialized_count={specialized_count}."
+    )
+    return [], True
+
+
+def _frame_neutral_evidence_unavailable_response(question: str) -> str:
+    """Return a sovereignty-preserving response when only specialized evidence exists."""
+    return (
+        "The currently retrieved canonical material is framed through specialized "
+        "interpretive frameworks rather than the open terms of your question. "
+        "Because that material does not establish that framework as your premise, "
+        "the Living Archive cannot responsibly use it to define what your experience "
+        "means. The question therefore remains open pending more frame-neutral "
+        "canonical evidence."
+    )
+
+
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
@@ -2605,6 +2676,25 @@ def fetch_canonical_context(
         question=user_query,
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
+
+    # v76: for open first-person experiential questions, do not let a retrieved
+    # specialized worldview become substantive generation evidence when a
+    # frame-neutral canonical resource is already available. Canonical link
+    # authority remains untouched above; only the provider evidence set is
+    # narrowed.
+    retrieved_docs, frame_neutral_boundary_active = _frame_neutral_generation_documents(
+        retrieved_docs,
+        user_query,
+        intent,
+    )
+    if frame_neutral_boundary_active and not retrieved_docs:
+        return {
+            "intent": intent,
+            "orientational_frame": orientational_frame,
+            "context_blocks": "",
+            "canonical_link_context": canonical_link_context,
+            "frame_neutral_evidence_unavailable": True,
+        }
 
     structural_destination_count = (
         min(len(structural_docs), len(retrieved_docs))
@@ -4816,19 +4906,22 @@ async def handle_query(
     try:
         context_data = fetch_canonical_context(query_str)
 
-        llm_output = generate_llm_response(
-            query_str,
-            context_data["context_blocks"],
-            context_data["intent"],
-            orientational_frame=context_data.get(
-                "orientational_frame",
-                {"primary": "general", "scores": {}},
-            ),
-            canonical_link_context=context_data.get(
-                "canonical_link_context",
+        if context_data.get("frame_neutral_evidence_unavailable"):
+            llm_output = _frame_neutral_evidence_unavailable_response(query_str)
+        else:
+            llm_output = generate_llm_response(
+                query_str,
                 context_data["context_blocks"],
-            ),
-        )
+                context_data["intent"],
+                orientational_frame=context_data.get(
+                    "orientational_frame",
+                    {"primary": "general", "scores": {}},
+                ),
+                canonical_link_context=context_data.get(
+                    "canonical_link_context",
+                    context_data["context_blocks"],
+                ),
+            )
 
         # Canonical context is deliberately not returned to the browser.
         # Retrieval evidence is an internal generation input; returning it
@@ -4973,6 +5066,45 @@ def _v72_question_doorway_centrality_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v76_frame_neutral_evidence_self_audit() -> Dict[str, Any]:
+    """Static audit for narrowing open-frame generation evidence without changing retrieval."""
+    question = "If I stop trying to interpret an experience immediately, what becomes available to me?"
+    specialized = {
+        "title": "What Is Ego Death? The Hidden Gateway to Spiritual Transformation",
+        "url": "https://example.invalid/ego-death",
+        "text": "A specialized spiritual framework is discussed.",
+    }
+    neutral = {
+        "title": "Understanding Lived Experience",
+        "url": "https://example.invalid/lived-experience",
+        "text": "A neutral account of how experience can be noticed and described.",
+    }
+    selected, active = _frame_neutral_generation_documents(
+        [specialized, neutral], question, "TOPICAL_INQUIRY"
+    )
+    explicit_selected, explicit_active = _frame_neutral_generation_documents(
+        [specialized, neutral],
+        "If I stop trying to interpret an ego death experience immediately, what becomes available to me?",
+        "TOPICAL_INQUIRY",
+    )
+    selected_titles = [str(doc.get("title", "")) for doc in selected]
+    explicit_titles = [str(doc.get("title", "")) for doc in explicit_selected]
+    return {
+        "broad_active": active,
+        "broad_retains_neutral": "Understanding Lived Experience" in selected_titles,
+        "broad_excludes_specialized": "What Is Ego Death? The Hidden Gateway to Spiritual Transformation" not in selected_titles,
+        "explicit_inactive": not explicit_active,
+        "explicit_retains_specialized": "What Is Ego Death? The Hidden Gateway to Spiritual Transformation" in explicit_titles,
+        "pass": (
+            active
+            and "Understanding Lived Experience" in selected_titles
+            and "What Is Ego Death? The Hidden Gateway to Spiritual Transformation" not in selected_titles
+            and not explicit_active
+            and "What Is Ego Death? The Hidden Gateway to Spiritual Transformation" in explicit_titles
+        ),
+    }
+
+
 def _v75_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
     """Static audit for preserving open questions against uninvited framing."""
     broad_question = (
@@ -5014,8 +5146,15 @@ def _generation_boundary_self_audit() -> None:
         v75_frame_sovereignty = _v75_interpretive_frame_sovereignty_self_audit()
         if not v75_frame_sovereignty["pass"]:
             raise RuntimeError(
-                "v75 interpretive-frame sovereignty self-audit failed: "
+                "v76 interpretive-frame sovereignty self-audit failed: "
                 f"{v75_frame_sovereignty}"
+            )
+
+        v76_frame_neutral = _v76_frame_neutral_evidence_self_audit()
+        if not v76_frame_neutral["pass"]:
+            raise RuntimeError(
+                "v76 frame-neutral evidence self-audit failed: "
+                f"{v76_frame_neutral}"
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -5613,20 +5752,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v75",
-            "# USE PRODUCTION VERSION: v75",
+            "# USE TEST VERSION: v76",
+            "# USE PRODUCTION VERSION: v76",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v75."
+                "Source version-label regression: line 1 does not identify v76."
             )
-        if APP_VERSION != "v75":
+        if APP_VERSION != "v76":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v75."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v76."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v75-interpretive-frame-sovereignty":
+        if DEPLOYMENT_FINGERPRINT != "USE-v76-frame-neutral-evidence-boundary":
             raise RuntimeError(
-                "Deployment fingerprint regression: v75 fingerprint is not aligned."
+                "Deployment fingerprint regression: v76 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -6123,7 +6262,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v75":
+        if APP_VERSION != "v76":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
