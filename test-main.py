@@ -6262,7 +6262,7 @@ def _generation_boundary_self_audit() -> None:
             {"primary": "general", "scores": {}},
         )
         synthesis_system = synthesis_messages[0]["content"]
-        if "EVIDENCE-BOUND SYNTHESIS" not in synthesis_system:
+        if "[PROVENANCE + SYNTHESIS]" not in synthesis_system:
             raise RuntimeError(
                 "v71 synthesis-boundary regression: explicit synthesis guard "
                 "was not included in the topical generation boundary."
