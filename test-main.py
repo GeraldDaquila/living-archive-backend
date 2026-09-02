@@ -6235,12 +6235,12 @@ def _generation_boundary_self_audit() -> None:
             {"primary": "inward", "scores": {}},
         )
         frame_system = frame_messages[0]["content"]
-        if "INTERPRETIVE FRAME SOVEREIGNTY" not in frame_system:
+        if "[FRAME SOVEREIGNTY]" not in frame_system:
             raise RuntimeError(
                 "v75 frame-sovereignty regression: specialized framework guard "
                 "was not added for broad experiential questions."
             )
-        if "governing explanation" not in frame_system:
+        if "A specialized framework may govern the explanation only when the visitor names it." not in frame_system:
             raise RuntimeError(
                 "v75 frame-sovereignty regression: governing-frame boundary missing."
             )
