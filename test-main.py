@@ -5383,20 +5383,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v69",
-            "# USE PRODUCTION VERSION: v69",
+            "# USE TEST VERSION: v70",
+            "# USE PRODUCTION VERSION: v70",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v69."
+                "Source version-label regression: line 1 does not identify v70."
             )
-        if APP_VERSION != "v69":
+        if APP_VERSION != "v70":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v69."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v70."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v69-canonical-doorway-proportionality":
+        if DEPLOYMENT_FINGERPRINT != "USE-v70-framework-neutral-doorway-selection":
             raise RuntimeError(
-                "Deployment fingerprint regression: v69 fingerprint is not aligned."
+                "Deployment fingerprint regression: v70 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5763,7 +5763,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v69":
+        if APP_VERSION != "v70":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
