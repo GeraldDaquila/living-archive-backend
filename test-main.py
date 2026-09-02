@@ -5773,11 +5773,11 @@ def _generation_boundary_self_audit() -> None:
             )
         if APP_VERSION != "v77":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v76."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v77."
             )
         if DEPLOYMENT_FINGERPRINT != "USE-v77-generation-capacity-recovery":
             raise RuntimeError(
-                "Deployment fingerprint regression: v76 fingerprint is not aligned."
+                "Deployment fingerprint regression: v77 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -6209,12 +6209,12 @@ def _generation_boundary_self_audit() -> None:
             {"primary": "inward", "scores": {}},
         )
         provenance_system = provenance_messages[0]["content"]
-        if "EVIDENCE PROVENANCE" not in provenance_system:
+        if "[PROVENANCE + SYNTHESIS]" not in provenance_system:
             raise RuntimeError(
                 "v73 provenance regression: evidence-provenance instruction "
                 "was not added to topical generation."
             )
-        if "Title and URL" not in provenance_system or "supplied Content/evidence text" not in provenance_system:
+        if "Titles/URLs identify resources, not substantive evidence." not in provenance_system or "Ground claims in supplied Content." not in provenance_system:
             raise RuntimeError(
                 "v73 provenance regression: title/URL identity boundary or "
                 "Content evidence requirement is missing."
