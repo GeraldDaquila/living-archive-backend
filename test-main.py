@@ -1,7 +1,9 @@
-# USE PRODUCTION VERSION: v57 — EXPERIMENTAL PARALLEL TEST BUILD
-# Complete production unit reconstructed from the verified v56 production unit.
+# USE TEST VERSION: v58 — Canonical Corpus Lifecycle Gate
+# Complete experimental production unit reconstructed from the verified v57 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
-# visitor-output boundaries while correcting the v56 fixed-envelope preflight failure.
+# visitor-output boundaries while adding a canonical lifecycle eligibility gate
+# so archived, retired, superseded, or otherwise withdrawn resources cannot
+# become navigational evidence merely because they remain in the vector index.
 
 import os
 import re
@@ -433,6 +435,19 @@ CONSTITUTIONAL RULES
     pathway into the requested collection's destination. If structural
     relationship evidence is insufficient, preserve the evidence boundary
     instead of selecting a merely related resource.
+
+44. CANONICAL CORPUS LIFECYCLE
+    USE may navigate only resources that are eligible in the current
+    canonical corpus. A resource that carries explicit resource-level
+    evidence of being archived, retired, deactivated, withdrawn, obsolete,
+    deprecated, superseded, or otherwise no longer current must be excluded
+    from navigational evidence, even if it remains technically published
+    or remains present in the vector index.
+
+    Do not infer archival status from arbitrary mentions of historical or
+    archived material inside an otherwise current resource. Lifecycle
+    exclusion must be grounded in the resource's own canonical identity,
+    lifecycle metadata, title marker, or equivalent identity-level evidence.
 """
 
 
@@ -464,6 +479,10 @@ RULES
 7. Output only the finished visitor-facing answer inside <visitor_answer> tags.
 8. For resources, output only the exact canonical title as plain text. Do not output
    URLs, Markdown links, HTML, slugs, or emoji; USE adds canonical links.
+9. Never surface a resource that the supplied evidence identifies as archived,
+   retired, withdrawn, superseded, deprecated, or otherwise no longer current.
+   Do not infer archival status merely because the current resource discusses
+   historical or archived material.
 """
 
 
@@ -471,7 +490,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v57-test"
+APP_VERSION = "v58"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -487,7 +506,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v57-test-parallel-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v58-canonical-corpus-lifecycle-gate"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1494,6 +1513,115 @@ def _resource_content(doc: Dict[str, Any]) -> str:
     ).strip()
 
 
+# =====================================================================
+# CANONICAL CORPUS LIFECYCLE ELIGIBILITY
+# =====================================================================
+#
+# The vector index can contain historically retained resources that remain
+# technically published in WordPress. Publication status therefore cannot be
+# treated as navigational eligibility. USE must reject explicit resource-level
+# lifecycle evidence indicating that a record is archived, retired,
+# superseded, withdrawn, deprecated, or otherwise no longer current.
+#
+# This is intentionally generic: no project-specific title, URL, or keyword
+# such as "Energe" is hard-coded into the navigation engine. Conversational
+# mentions of archived material inside an otherwise current resource are not
+# sufficient to exclude that resource; the lifecycle signal must belong to
+# the resource's own identity/metadata.
+# =====================================================================
+
+_ARCHIVAL_LIFECYCLE_VALUES = frozenset({
+    "archive",
+    "archived",
+    "retired",
+    "deactivated",
+    "withdrawn",
+    "obsolete",
+    "deprecated",
+    "superseded",
+})
+
+_ARCHIVAL_TITLE_PREFIXES = (
+    "archived -",
+    "archived:",
+    "[archived]",
+)
+
+_ARCHIVAL_SLUG_SUFFIXES = (
+    "-legacy",
+    "-archived",
+    "-retired",
+    "-deprecated",
+    "-superseded",
+    "-withdrawn",
+)
+
+
+def _normalized_lifecycle_value(value: Any) -> str:
+    return re.sub(r"\\s+", " ", str(value or "")).strip().casefold()
+
+
+def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
+    """Return True only when the resource itself carries strong archive evidence."""
+    if not isinstance(metadata, dict) or not metadata:
+        return False
+
+    # Prefer explicit lifecycle/status metadata when an ingestion/index version
+    # provides it. Do not confuse ordinary WordPress publication status
+    # ("publish") with canonical lifecycle status.
+    for key, value in metadata.items():
+        key_normalized = re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip()
+        if (
+            "status" in key_normalized
+            or "lifecycle" in key_normalized
+            or "archive" in key_normalized
+            or "retirement" in key_normalized
+        ):
+            normalized_value = _normalized_lifecycle_value(value)
+            if normalized_value in _ARCHIVAL_LIFECYCLE_VALUES:
+                return True
+
+    # Canonical titles beginning with an explicit archive marker are strong
+    # resource-identity evidence. This does not inspect arbitrary content text.
+    title = re.sub(
+        r"\\s+",
+        " ",
+        str(metadata.get("title", "") or ""),
+    ).strip().casefold()
+
+    if any(title.startswith(prefix) for prefix in _ARCHIVAL_TITLE_PREFIXES):
+        return True
+
+    # Legacy/retired URL slugs are also strong identity-level evidence. Restrict
+    # this to suffixes so ordinary resources discussing "legacy systems" are not
+    # suppressed merely because that phrase occurs in their title or content.
+    slug = re.sub(
+        r"\\s+",
+        " ",
+        str(metadata.get("slug", "") or ""),
+    ).strip().strip("/").casefold()
+
+    if any(slug.endswith(suffix) for suffix in _ARCHIVAL_SLUG_SUFFIXES):
+        return True
+
+    return False
+
+
+def _is_navigable_canonical_resource(metadata: Dict[str, Any]) -> bool:
+    """Apply the canonical corpus lifecycle boundary before navigation."""
+    if not metadata:
+        return False
+
+    if _is_archived_canonical_resource(metadata):
+        print(
+            "USE canonical lifecycle gate: rejected archived/retired resource "
+            f"'{metadata.get('title', 'Untitled Resource')}'."
+        )
+        return False
+
+    return True
+
+
 def format_context_blocks(
     documents: List[Dict[str, Any]],
     structural_destination_count: int = 0,
@@ -1723,6 +1851,9 @@ def _append_unique_resource(
     if not metadata:
         return
 
+    if not _is_navigable_canonical_resource(metadata):
+        return
+
     if require_destination and not _has_usable_destination(metadata):
         print(
             "USE destination validation: rejected non-destination "
@@ -1765,6 +1896,9 @@ def _query_index(
         metadata = _match_metadata(match)
 
         if not metadata:
+            continue
+
+        if not _is_navigable_canonical_resource(metadata):
             continue
 
         if match_id == ROOT_NODE_ID:
@@ -4133,6 +4267,61 @@ def _generation_boundary_self_audit() -> None:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
 
+        # Canonical lifecycle regressions: archived resources may remain
+        # technically published in WordPress and in Pinecone, but they must
+        # never become navigational evidence.
+        archived_metadata = {
+            "title": "ARCHIVED - Energe’s Soul Custodian Constitution and CODEX",
+            "url": "https://example.invalid/energe-legacy",
+            "slug": "energes-soul-custodian-constitution-and-codex-legacy",
+            "status": "publish",
+            "access_class": "public",
+            "text": "Historical resource retained for reference.",
+        }
+        if _is_navigable_canonical_resource(archived_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: explicitly archived resource "
+                "was considered navigable."
+            )
+
+        archived_status_metadata = {
+            "title": "Former Governance Framework",
+            "url": "https://example.invalid/former-framework",
+            "status": "archive",
+            "text": "Historical resource retained for reference.",
+        }
+        if _is_navigable_canonical_resource(archived_status_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: archive lifecycle metadata "
+                "was not enforced."
+            )
+
+        current_metadata = {
+            "title": "Learning from Legacy Systems Without Repeating Them",
+            "url": "https://example.invalid/legacy-systems",
+            "slug": "learning-from-legacy-systems-without-repeating-them",
+            "status": "publish",
+            "access_class": "public",
+            "text": "A current essay that discusses historical systems.",
+        }
+        if not _is_navigable_canonical_resource(current_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: legitimate current resource "
+                "was incorrectly suppressed."
+            )
+
+        current_status_metadata = {
+            "title": "Current Governance Framework",
+            "url": "https://example.invalid/current-framework",
+            "status": "publish",
+            "text": "Current canonical resource.",
+        }
+        if not _is_navigable_canonical_resource(current_status_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: published current resource "
+                "was incorrectly suppressed."
+            )
+
         # Regression test: the exact leaked marker observed in production
         # must never survive the visitor-facing sanitation boundary.
         sanitized_title = _strip_emoji("⭐ Institutional Cornerstones")
@@ -4641,23 +4830,21 @@ def _generation_boundary_self_audit() -> None:
                 f"fixed_input={primary_fixed_chars})."
             )
 
-        # Release identity audit: this file is an experimental parallel build
-        # derived from the canonical production v57 source. The source header
-        # must preserve v57 ancestry while the runtime identity must explicitly
-        # identify this test deployment. This keeps the audit strict without
-        # confusing the experimental copy with production main.py.
+        # Release identity audit: the source file itself must declare the
+        # same version as the runtime and deployment fingerprint. This prevents
+        # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v57"):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v57 ancestry."
+                "Source version-label regression: line 1 does not identify v57."
             )
-        if APP_VERSION != "v57-test":
+        if APP_VERSION != "v57":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57-test."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v57-test-parallel-environment":
+        if DEPLOYMENT_FINGERPRINT != "USE-v57-provider-budget-safe-multi-resource-navigation":
             raise RuntimeError(
-                "Deployment fingerprint regression: v57-test parallel fingerprint is not aligned."
+                "Deployment fingerprint regression: v57 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4770,10 +4957,10 @@ def _generation_boundary_self_audit() -> None:
                 "multiple selected resources to fewer than two canonical records."
             )
 
-        # Runtime identity must be explicit and current for this parallel test build.
-        if APP_VERSION != "v57-test":
+        # Runtime identity must be explicit and current.
+        if APP_VERSION != "v57":
             raise RuntimeError(
-                f"Unexpected USE test runtime version: {APP_VERSION}"
+                f"Unexpected USE runtime version: {APP_VERSION}"
             )
 
         # provider-boundary recovery regression: when provider execution is unavailable,
@@ -4851,7 +5038,8 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "visitor-output sanitation, canonical presentation equivalence, resource uniqueness, and runtime identification verified."
+        "visitor-output sanitation, canonical presentation equivalence, resource uniqueness, "
+        "canonical lifecycle eligibility, and runtime identification verified."
     )
 
 
@@ -4868,7 +5056,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
 
     uvicorn.run(
-        "main:app",
+        "test-main:app",
         host="0.0.0.0",
         port=port,
         reload=False,
