@@ -1,7 +1,8 @@
-# USE PRODUCTION VERSION: v57 — Provider-Budget-Safe Multi-Resource Navigation
-# Complete production unit reconstructed from the verified v56 production unit.
-# This release preserves retrieval, canonical sourcing, provider fallback, and
-# visitor-output boundaries while correcting the v56 fixed-envelope preflight failure.
+# USE PRODUCTION VERSION: v64 — Self-Audit-Aligned Compact Generation Boundary
+# Complete production unit reconstructed from the verified v64 experimental unit.
+# This release preserves the tested retrieval, canonical sourcing, provider fallback,
+# topical-navigation fidelity, provider evidence density, compact generation boundary,
+# and canonical lifecycle eligibility architecture.
 
 import os
 import re
@@ -433,6 +434,33 @@ CONSTITUTIONAL RULES
     pathway into the requested collection's destination. If structural
     relationship evidence is insufficient, preserve the evidence boundary
     instead of selecting a merely related resource.
+
+44. CANONICAL CORPUS LIFECYCLE
+    USE may navigate only resources that are eligible in the current
+    canonical corpus. A resource that carries explicit resource-level
+    evidence of being archived, retired, deactivated, withdrawn, obsolete,
+    deprecated, superseded, or otherwise no longer current must be excluded
+    from navigational evidence, even if it remains technically published
+    or remains present in the vector index.
+
+    Do not infer archival status from arbitrary mentions of historical or
+    archived material inside an otherwise current resource. Lifecycle
+    exclusion must be grounded in the resource's own canonical identity,
+    lifecycle metadata, title marker, slug marker, canonical URL marker, or equivalent identity-level evidence.
+
+45. TOPICAL NAVIGATION FIDELITY
+    For a broad or topical inquiry, canonical evidence is not merely background
+    material for a generic answer. USE must orient the visitor through supplied
+    Archive evidence, preserve the question's open character, synthesize only
+    supported relationships, and provide a genuine canonical doorway when
+    eligible evidence is available.
+
+46. GENERATION EVIDENCE DENSITY
+    The provider-facing evidence window must preserve selected canonical
+    resource titles and useful topical evidence as densely as the provider
+    budget permits. Canonical URLs remain separate link authority and need
+    not consume scarce provider evidence space when USE reconstructs links
+    deterministically after generation.
 """
 
 
@@ -448,22 +476,20 @@ CONSTITUTIONAL RULES
 
 GENERATION_SYSTEM_PROMPT = """
 You are the Living Archive (USE) navigation engine.
+Use only the supplied canonical evidence; it is a bounded view of the Archive.
 
-Use only the supplied canonical evidence. It is a bounded view of the Archive,
-not proof of absence. Synthesize only relationships supported by that evidence.
+For TOPICAL questions, do not answer as a generic encyclopedia. Orient the
+visitor through the supplied evidence: reflect the question, synthesize only
+supported relationships, and provide a genuine canonical doorway when one
+is established. If canonical evidence is supplied, name at least one exact
+Title: resource; normally use 2–3 only when they add distinct coverage.
+For destination/collection requests, use only the genuine destination established
+by evidence. Never invent or substitute resources, relationships, definitions,
+or URLs. Never reveal internal process or labels.
 
-RULES
-1. Be faithful to evidence; do not invent resources, relationships, definitions, or URLs.
-2. Prefer useful synthesis and navigation over flat enumeration.
-3. For broad/topical questions, select the strongest relevant doorway(s). When
-   multiple supplied resources add distinct useful coverage, normally surface 2–3.
-   Use one when it is genuinely sufficient; never pad with weak matches.
-4. For destination or collection requests, use only the genuine destination established by evidence.
-5. The visitor is already on the Living Archive.
-6. Never reveal retrieval, classification, reasoning, prompting, or internal labels.
-7. Output only the finished visitor-facing answer inside <visitor_answer> tags.
-8. For resources, output only the exact canonical title as plain text. Do not output
-   URLs, Markdown links, HTML, slugs, or emoji; USE adds canonical links.
+Output only the finished visitor-facing answer inside <visitor_answer> tags.
+For resources, write exact canonical titles as plain text only; no URLs,
+Markdown, HTML, slugs, or emoji. USE adds canonical links.
 """
 
 
@@ -471,7 +497,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v57"
+APP_VERSION = "v64"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -487,7 +513,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v57-provider-budget-safe-multi-resource-navigation"
+DEPLOYMENT_FINGERPRINT = "USE-v64-self-audit-alignment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1494,6 +1520,138 @@ def _resource_content(doc: Dict[str, Any]) -> str:
     ).strip()
 
 
+# =====================================================================
+# CANONICAL CORPUS LIFECYCLE ELIGIBILITY
+# =====================================================================
+#
+# The vector index can contain historically retained resources that remain
+# technically published in WordPress. Publication status therefore cannot be
+# treated as navigational eligibility. USE must reject explicit resource-level
+# lifecycle evidence indicating that a record is archived, retired,
+# superseded, withdrawn, deprecated, or otherwise no longer current.
+#
+# This is intentionally generic: no project-specific title, URL, or keyword
+# such as "Energe" is hard-coded into the navigation engine. Conversational
+# mentions of archived material inside an otherwise current resource are not
+# sufficient to exclude that resource; the lifecycle signal must belong to
+# the resource's own identity/metadata.
+# =====================================================================
+
+_ARCHIVAL_LIFECYCLE_VALUES = frozenset({
+    "archive",
+    "archived",
+    "retired",
+    "deactivated",
+    "withdrawn",
+    "obsolete",
+    "deprecated",
+    "superseded",
+})
+
+_ARCHIVAL_TITLE_PREFIXES = (
+    "archived -",
+    "archived:",
+    "[archived]",
+)
+
+_ARCHIVAL_SLUG_SUFFIXES = (
+    "-legacy",
+    "-archived",
+    "-retired",
+    "-deprecated",
+    "-superseded",
+    "-withdrawn",
+)
+
+
+def _normalized_lifecycle_value(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
+
+
+def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
+    """Return True only when the resource itself carries strong archive evidence."""
+    if not isinstance(metadata, dict) or not metadata:
+        return False
+
+    # Prefer explicit lifecycle/status metadata when an ingestion/index version
+    # provides it. Do not confuse ordinary WordPress publication status
+    # ("publish") with canonical lifecycle status.
+    for key, value in metadata.items():
+        key_normalized = re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip()
+        if (
+            "status" in key_normalized
+            or "lifecycle" in key_normalized
+            or "archive" in key_normalized
+            or "retirement" in key_normalized
+        ):
+            normalized_value = _normalized_lifecycle_value(value)
+            if normalized_value in _ARCHIVAL_LIFECYCLE_VALUES:
+                return True
+
+    # Canonical titles beginning with an explicit archive marker are strong
+    # resource-identity evidence. This does not inspect arbitrary content text.
+    title = re.sub(
+        r"\s+",
+        " ",
+        str(metadata.get("title", "") or ""),
+    ).strip().casefold()
+
+    if any(title.startswith(prefix) for prefix in _ARCHIVAL_TITLE_PREFIXES):
+        return True
+
+    # Legacy/retired URL slugs are also strong identity-level evidence. Restrict
+    # this to suffixes so ordinary resources discussing "legacy systems" are not
+    # suppressed merely because that phrase occurs in their title or content.
+    slug = re.sub(
+        r"\s+",
+        " ",
+        str(metadata.get("slug", "") or ""),
+    ).strip().strip("/").casefold()
+
+    if any(slug.endswith(suffix) for suffix in _ARCHIVAL_SLUG_SUFFIXES):
+        return True
+
+    # Some ingestion versions do not expose a dedicated slug field. The
+    # canonical URL may be the only durable identity field carrying an
+    # archival marker (for example, a WordPress redirect target ending in
+    # "-legacy"). Inspect only URL-like identity metadata, and only the final
+    # path segment, so ordinary query parameters or content text cannot trigger
+    # lifecycle suppression.
+    for key, value in metadata.items():
+        key_normalized = re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip()
+        if not any(token in key_normalized.split() for token in ("url", "permalink")):
+            continue
+
+        url_value = re.sub(r"[?#].*$", "", str(value or "")).strip().rstrip("/").casefold()
+        if not url_value:
+            continue
+
+        final_path_segment = re.split(r"[/\\]", url_value)[-1].strip()
+        if any(final_path_segment.endswith(suffix) for suffix in _ARCHIVAL_SLUG_SUFFIXES):
+            print(
+                "USE canonical lifecycle gate: URL identity marker detected for "
+                f"resource '{metadata.get('title', 'Untitled Resource')}'."
+            )
+            return True
+
+    return False
+
+
+def _is_navigable_canonical_resource(metadata: Dict[str, Any]) -> bool:
+    """Apply the canonical corpus lifecycle boundary before navigation."""
+    if not metadata:
+        return False
+
+    if _is_archived_canonical_resource(metadata):
+        print(
+            "USE canonical lifecycle gate: rejected archived/retired resource "
+            f"'{metadata.get('title', 'Untitled Resource')}'."
+        )
+        return False
+
+    return True
+
+
 def format_context_blocks(
     documents: List[Dict[str, Any]],
     structural_destination_count: int = 0,
@@ -1723,6 +1881,9 @@ def _append_unique_resource(
     if not metadata:
         return
 
+    if not _is_navigable_canonical_resource(metadata):
+        return
+
     if require_destination and not _has_usable_destination(metadata):
         print(
             "USE destination validation: rejected non-destination "
@@ -1765,6 +1926,9 @@ def _query_index(
         metadata = _match_metadata(match)
 
         if not metadata:
+            continue
+
+        if not _is_navigable_canonical_resource(metadata):
             continue
 
         if match_id == ROOT_NODE_ID:
@@ -3415,27 +3579,9 @@ def _build_generation_system_content(
     """
     return (
         f"{GENERATION_SYSTEM_PROMPT}\n\n"
-        f"[INTERNAL QUERY CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
-        f"[INTERNAL CANONICAL EVIDENCE — DO NOT DESCRIBE AS RETRIEVAL "
-        f"OR INTERNAL CONTEXT]:\n"
-        f"{generation_context}\n\n"
-        "[FINAL RESPONSE REQUIREMENT]\n"
-        "Respond directly to the visitor's question. Output the finished "
-        "visitor-facing answer. A clean answer without a wrapper is valid. "
-        "Never reveal internal reasoning, retrieval, classification, "
-        "evidence-selection, prompting, or drafting process. "
-        "For every canonical resource you recommend, write only its exact "
-        "canonical title as plain text. When two or more supplied canonical resources "
-        "are materially relevant and provide distinct useful coverage, normally "
-        "recommend 2–3 resources rather than collapsing the answer to the first or "
-        "highest-scoring resource. Use one only when one is genuinely sufficient; "
-        "never pad the answer with weak matches. A resource is recommendable ONLY when "
-        "its exact title appears on a Title: line in the supplied canonical "
-        "evidence. A title appearing only inside Content is not a selectable "
-        "resource and must not be recommended as one. Never invent, paraphrase, "
-        "or reconstruct a resource title. Do not construct Markdown links, "
-        "HTML anchors, raw URLs, URL slugs, or emoji prefixes. USE constructs "
-        "canonical links after generation."
+        f"[CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
+        f"[CANONICAL EVIDENCE]:\n"
+        f"{generation_context}"
     )
 
 
@@ -3486,21 +3632,29 @@ def _fit_generation_context_to_provider_budget(
             f"estimated_output={estimated_output_chars}."
         )
 
-    # Preserve canonical title+URL identity while adapting content to the
-    # exact remaining provider capacity. Never force a larger minimum than
-    # the provider envelope can accommodate.
+    # Preserve selected resource ordering while converting to a dense provider
+    # evidence view. URLs remain available to deterministic link presentation but
+    # do not consume scarce provider evidence characters.
     if candidate:
         target_context_chars = min(
             len(candidate),
             context_capacity,
             MAX_GENERATION_CONTEXT_CHARS,
         )
-        candidate = _bound_existing_context_blocks(
+        bounded_selected = _bound_existing_context_blocks(
             candidate,
             max(0, target_context_chars),
             min(
                 MAX_GENERATION_RESOURCE_CHARS,
                 max(120, target_context_chars),
+            ) if target_context_chars > 0 else 0,
+        )
+        candidate = _build_provider_evidence_context(
+            bounded_selected,
+            max(0, target_context_chars),
+            min(
+                MAX_GENERATION_RESOURCE_CHARS,
+                max(96, target_context_chars),
             ) if target_context_chars > 0 else 0,
         )
 
@@ -3540,15 +3694,47 @@ def _fit_generation_context_to_provider_budget(
         if target_context_chars >= len(candidate):
             target_context_chars = max(0, len(candidate) - 64)
 
-        candidate = _bound_existing_context_blocks(
-            candidate,
-            target_context_chars,
-            min(
-                MAX_COMPACT_GENERATION_RESOURCE_CHARS,
-                max(120, target_context_chars),
-            ) if target_context_chars > 0 else 0,
-        )
+        candidate = candidate[:target_context_chars].rstrip()
 
+
+
+def _build_provider_evidence_context(
+    generation_context: str,
+    max_chars: int,
+    max_resource_chars: int,
+) -> str:
+    """Build a dense provider evidence view without canonical URLs."""
+    if not generation_context or max_chars <= 0:
+        return ""
+    blocks = []
+    used = 0
+    for block in generation_context.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if not title_match or not content_match:
+            continue
+        title = _canonical_display_title(title_match.group(1).strip())
+        content = content_match.group(1).strip()
+        if not title:
+            continue
+        prefix = f"Title: {title}\nContent: "
+        separator = "\n\n---\n\n" if blocks else ""
+        remaining = max_chars - used - len(separator)
+        if remaining <= len(prefix):
+            break
+        capacity = min(max_resource_chars, remaining - len(prefix))
+        if capacity <= 0:
+            break
+        bounded = content[:capacity].rstrip()
+        if len(content) > capacity and capacity > 18:
+            marker = " … [bounded]"
+            bounded = content[:capacity - len(marker)].rstrip() + marker
+        candidate = prefix + bounded
+        if len(candidate) > remaining:
+            break
+        blocks.append(candidate)
+        used += len(separator) + len(candidate)
+    return "\n\n---\n\n".join(blocks).strip()
 
 
 def _build_generation_messages(
@@ -3572,15 +3758,46 @@ def _build_generation_messages(
 
     user_content = (
         user_query
-        + "\n\nAnswer the question directly. Stay with the visitor's words. "
-        "Preserve uncertainty. Use only genuine canonical destinations established by evidence. "
-        "Do not output links, URLs, HTML, slugs, or emoji; USE adds canonical links."
+        + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
+        "Name genuine canonical resources when supported. "
+        "No links, URLs, HTML, slugs, or emoji; USE adds links."
     )
 
     return [
         {"role": "system", "content": system_content},
         {"role": "user", "content": user_content},
     ]
+
+
+def _contains_canonical_resource_reference(
+    answer: str,
+    generation_context: str,
+) -> bool:
+    """Return True when visitor output names at least one selected canonical resource."""
+    if not answer or not generation_context:
+        return False
+
+    canonical_titles = [
+        _canonical_display_title(match.group(1).strip())
+        for match in re.finditer(
+            r"^Title:\s*(.+?)\s*$", generation_context, flags=re.MULTILINE
+        )
+        if _canonical_display_title(match.group(1).strip())
+    ]
+    if not canonical_titles:
+        canonical_titles = [
+            _canonical_display_title(title)
+            for title, _url in _canonical_pairs(generation_context)
+            if _canonical_display_title(title)
+        ]
+    for title in canonical_titles:
+        if re.search(
+            rf"(?<![\w]){re.escape(title)}(?![\w])",
+            answer,
+            flags=re.IGNORECASE,
+        ):
+            return True
+    return False
 
 
 def _looks_like_finished_visitor_answer(text: str) -> bool:
@@ -3649,6 +3866,25 @@ def _run_generation_attempt(
         generation_context,
         canonical_link_context,
     )
+
+    # v61 root-cause boundary: a topical response that ignores all selected
+    # canonical resources is a generic knowledge answer, not USE navigation.
+    # Reject it before visitor delivery so the model fallback chain can try
+    # another candidate. This does not alter retrieval or force a particular resource.
+    if (
+        cleaned_answer
+        and str(intent).upper() == "TOPICAL_INQUIRY"
+        and _canonical_pairs(generation_context)
+        and not _contains_canonical_resource_reference(
+            cleaned_answer,
+            generation_context,
+        )
+    ):
+        print(
+            f"USE output boundary: topical response ignored all selected "
+            f"canonical resources for model '{model_id}'; trying the next live model."
+        )
+        return ""
 
     if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
         print(
@@ -4132,6 +4368,86 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
+
+        # Canonical lifecycle regressions: archived resources may remain
+        # technically published in WordPress and in Pinecone, but they must
+        # never become navigational evidence.
+        archived_metadata = {
+            "title": "ARCHIVED - Energe’s Soul Custodian Constitution and CODEX",
+            "url": "https://example.invalid/energe-legacy",
+            "slug": "energes-soul-custodian-constitution-and-codex-legacy",
+            "status": "publish",
+            "access_class": "public",
+            "text": "Historical resource retained for reference.",
+        }
+        if _is_navigable_canonical_resource(archived_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: explicitly archived resource "
+                "was considered navigable."
+            )
+
+        archived_status_metadata = {
+            "title": "Former Governance Framework",
+            "url": "https://example.invalid/former-framework",
+            "status": "archive",
+            "text": "Historical resource retained for reference.",
+        }
+        if _is_navigable_canonical_resource(archived_status_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: archive lifecycle metadata "
+                "was not enforced."
+            )
+
+        current_metadata = {
+            "title": "Learning from Legacy Systems Without Repeating Them",
+            "url": "https://example.invalid/legacy-systems",
+            "slug": "learning-from-legacy-systems-without-repeating-them",
+            "status": "publish",
+            "access_class": "public",
+            "text": "A current essay that discusses historical systems.",
+        }
+        if not _is_navigable_canonical_resource(current_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: legitimate current resource "
+                "was incorrectly suppressed."
+            )
+
+        current_status_metadata = {
+            "title": "Current Governance Framework",
+            "url": "https://example.invalid/current-framework",
+            "status": "publish",
+            "text": "Current canonical resource.",
+        }
+        if not _is_navigable_canonical_resource(current_status_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: published current resource "
+                "was incorrectly suppressed."
+            )
+
+        url_archived_metadata = {
+            "title": "The Energe Codex",
+            "url": "https://geralddaquila.com/the-energe-codex-legacy/",
+            "status": "publish",
+            "access_class": "public",
+            "text": "Historical resource retained in the vector index.",
+        }
+        if _is_navigable_canonical_resource(url_archived_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: archived canonical URL "
+                "was considered navigable."
+            )
+
+        current_url_metadata = {
+            "title": "Learning from Legacy Systems Without Repeating Them",
+            "url": "https://example.invalid/legacy-systems",
+            "status": "publish",
+            "text": "A current resource whose URL contains a non-archival legacy phrase.",
+        }
+        if not _is_navigable_canonical_resource(current_url_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: legitimate current URL "
+                "was incorrectly suppressed."
+            )
 
         # Regression test: the exact leaked marker observed in production
         # must never survive the visitor-facing sanitation boundary.
@@ -4619,7 +4935,7 @@ def _generation_boundary_self_audit() -> None:
                 "Provider adaptive-fit regression: oversized evidence was not compacted."
             )
 
-        # v57 regression: the fixed generation envelope itself must leave
+        # Provider-envelope regression: the fixed generation envelope itself must leave
         # meaningful room for canonical evidence. A self-audit that can only
         # fit metadata or no evidence is not a valid provider-safe generation path.
         primary_empty_messages = _build_generation_messages(
@@ -4634,28 +4950,37 @@ def _generation_boundary_self_audit() -> None:
             MAX_PROVIDER_INPUT_CHARS - primary_fixed_chars,
             MAX_PROVIDER_TOTAL_CHARS - primary_fixed_chars - primary_output_reservation,
         )
-        if primary_evidence_capacity < 600:
+        if primary_evidence_capacity < 700:
             raise RuntimeError(
-                "Provider budget regression: primary generation leaves less than "
-                f"600 characters for canonical evidence (capacity={primary_evidence_capacity}, "
+                "Provider compact-boundary regression: primary generation does not "
+                f"leave room for the full 1800-character evidence ceiling (capacity={primary_evidence_capacity}, "
                 f"fixed_input={primary_fixed_chars})."
+            )
+        if primary_fixed_chars > 1800:
+            raise RuntimeError(
+                "Provider compact-boundary regression: fixed generation envelope "
+                f"remains too large (fixed_input={primary_fixed_chars})."
             )
 
         # Release identity audit: the source file itself must declare the
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v57"):
+        expected_source_prefixes = (
+            "# USE TEST VERSION: v64",
+            "# USE PRODUCTION VERSION: v64",
+        )
+        if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v57."
+                "Source version-label regression: line 1 does not identify v64."
             )
-        if APP_VERSION != "v57":
+        if APP_VERSION != "v64":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v64."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v57-provider-budget-safe-multi-resource-navigation":
+        if DEPLOYMENT_FINGERPRINT != "USE-v64-self-audit-alignment":
             raise RuntimeError(
-                "Deployment fingerprint regression: v57 fingerprint is not aligned."
+                "Deployment fingerprint regression: v64 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4727,13 +5052,16 @@ def _generation_boundary_self_audit() -> None:
                 "Visitor resource eligibility regression: valid canonical resource was removed."
             )
 
-        # v56 regression: multi-resource generation must remain an intentional
-        # evidence-aware behavior. The generation prompt must explicitly prefer
-        # multiple materially relevant resources when they add distinct coverage,
-        # while preserving the one-resource case when one resource is sufficient.
-        if "normally surface 2–3" not in GENERATION_SYSTEM_PROMPT:
+        # v64 regression: the compact generation policy must preserve the
+        # constitutional topical-navigation and multi-resource rules using the
+        # current v63 wording, without requiring obsolete prompt text.
+        if "For TOPICAL questions, do not answer as a generic encyclopedia." not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
-                "Multi-resource navigation regression: generation policy is missing."
+                "Topical navigation regression: generic-answer prevention policy is missing."
+            )
+        if "normally use 2–3 only when they add distinct coverage" not in GENERATION_SYSTEM_PROMPT:
+            raise RuntimeError(
+                "Multi-resource navigation regression: current multi-resource policy is missing."
             )
         multi_resource_test_context = format_context_blocks([
             {
@@ -4768,8 +5096,58 @@ def _generation_boundary_self_audit() -> None:
                 "multiple selected resources to fewer than two canonical records."
             )
 
+        # v61 regression: generic topical prose without a selected canonical
+        # resource must fail the navigation-reference gate, while a valid
+        # selected title must pass it.
+        topical_gate_context = (
+            "Title: Canonical Doorway\n"
+            "URL: https://example.invalid/canonical-doorway\n"
+            "Content: Evidence about the visitor's topical question."
+        )
+        if _contains_canonical_resource_reference(
+            "A general explanation without a resource.",
+            topical_gate_context,
+        ):
+            raise RuntimeError(
+                "Topical navigation regression: generic prose falsely passed resource gate."
+            )
+        if not _contains_canonical_resource_reference(
+            "Explore Canonical Doorway for the relevant treatment.",
+            topical_gate_context,
+        ):
+            raise RuntimeError(
+                "Topical navigation regression: canonical resource reference was not detected."
+            )
+
+        # v61 regression: provider evidence omits URLs so more selected canonical
+        # titles and topical evidence fit inside the same provider envelope.
+        density_context = format_context_blocks([
+            {"title": "First Canonical Resource", "url": "https://example.invalid/first", "text": "Evidence about the first topical dimension."},
+            {"title": "Second Canonical Resource", "url": "https://example.invalid/second", "text": "Evidence about the second topical dimension."},
+            {"title": "Third Canonical Resource", "url": "https://example.invalid/third", "text": "Evidence about the third topical dimension."},
+        ])
+        dense_provider_context = _build_provider_evidence_context(density_context, 500, 140)
+        if "URL:" in dense_provider_context:
+            raise RuntimeError("Provider evidence density regression: URLs consumed provider evidence space.")
+        if len(re.findall(r"^Title:", dense_provider_context, flags=re.MULTILINE)) < 3:
+            raise RuntimeError("Provider evidence density regression: selected canonical titles were lost.")
+
+        # v63 regression: the compact provider instruction must materially reduce
+        # fixed envelope consumption so the selected evidence can survive intact.
+        compact_empty_messages = _build_generation_messages(
+            "Why do systems change?",
+            "TOPICAL_INQUIRY",
+            "",
+            None,
+        )
+        compact_fixed_chars = _estimate_message_chars(compact_empty_messages)
+        if compact_fixed_chars > 1800:
+            raise RuntimeError(
+                "Compact generation regression: provider fixed envelope exceeds 1800 chars."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v57":
+        if APP_VERSION != "v64":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -4849,7 +5227,8 @@ def _generation_boundary_self_audit() -> None:
 
     print(
         "USE GENERATION BOUNDARY SELF-AUDIT: PASS; "
-        "visitor-output sanitation, canonical presentation equivalence, resource uniqueness, and runtime identification verified."
+        "visitor-output sanitation, canonical presentation equivalence, resource uniqueness, "
+        "canonical lifecycle eligibility, and runtime identification verified."
     )
 
 
@@ -4866,7 +5245,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
 
     uvicorn.run(
-        "main:app",
+        "test-main:app",
         host="0.0.0.0",
         port=port,
         reload=False,
