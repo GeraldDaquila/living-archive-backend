@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION v57 (test-main parallel environment)
+# USE PRODUCTION VERSION v57
 # Complete production unit reconstructed from the verified v56 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while correcting the v56 fixed-envelope preflight failure.
