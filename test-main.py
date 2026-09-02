@@ -1,9 +1,8 @@
-# USE TEST VERSION: v65 — Canonical Doorway Selection
-# Complete experimental production unit reconstructed from the frozen v64
-# production baseline. This experiment adds one bounded navigation layer:
-# explicit evidence-based canonical doorway selection after retrieval/reranking
-# and before generation. It does not replace semantic retrieval, alter canonical
-# link authority, or create a second navigation engine.
+# USE TEST VERSION: v66 — Question-Conditioned Canonical Doorway Selection
+# Complete experimental production unit reconstructed from the frozen v65
+# TEST baseline. This experiment makes the existing doorway layer question-
+# conditioned without replacing semantic retrieval, altering canonical link
+# authority, expanding retrieval, or creating a second navigation engine.
 
 import os
 import re
@@ -498,7 +497,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v65"
+APP_VERSION = "v66"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -514,7 +513,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v65-canonical-doorway-selection"
+DEPLOYMENT_FINGERPRINT = "USE-v66-question-conditioned-doorway-selection"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1861,30 +1860,97 @@ _DOORWAY_CONTENT_TERMS = (
 )
 
 
+# v66 question-conditioning is deliberately generic. It does not introduce a
+# domain-specific vocabulary for particular Living Archive subjects. Instead,
+# it asks whether the language of the visitor's question is actually present
+# in the already-retrieved resource evidence. Common function words are
+# ignored so that the signal remains about the question's substantive terms.
+_QUESTION_STOPWORDS = frozenset({
+    "a", "about", "after", "all", "always", "am", "an", "and", "are",
+    "as", "at", "be", "because", "been", "being", "but", "by", "can",
+    "could", "did", "do", "does", "for", "from", "get", "has", "have",
+    "how", "i", "if", "in", "into", "is", "it", "its", "may", "me",
+    "more", "my", "not", "of", "on", "or", "our", "so", "something",
+    "that", "the", "their", "them", "there", "this", "to", "was", "what",
+    "when", "where", "which", "who", "why", "will", "with", "would", "you",
+    "your",
+})
+
+
+def _question_condition_terms(question: str) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    """Return generic substantive question terms and adjacent phrases."""
+    tokens = re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", str(question or "").casefold())
+    terms = tuple(
+        token
+        for token in tokens
+        if len(token) >= 3 and token not in _QUESTION_STOPWORDS
+    )
+    phrases = tuple(
+        f"{terms[index]} {terms[index + 1]}"
+        for index in range(len(terms) - 1)
+    )
+    return terms, phrases
+
+
+def _question_resource_fit(
+    question: str,
+    metadata: Dict[str, Any],
+) -> Tuple[int, Tuple[int, int, int]]:
+    """Score how directly an already-retrieved resource fits the question."""
+    terms, phrases = _question_condition_terms(question)
+    if not terms:
+        return 0, (0, 0, 0)
+
+    title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
+    searchable = " ".join(
+        str(metadata.get(key, ""))
+        for key in ("title", "text", "content", "excerpt", "description", "category")
+    ).casefold()
+
+    term_hits = sum(1 for term in set(terms) if re.search(rf"\b{re.escape(term)}\b", searchable))
+    phrase_hits = sum(1 for phrase in set(phrases) if phrase in searchable)
+    title_term_hits = sum(1 for term in set(terms) if re.search(rf"\b{re.escape(term)}\b", title))
+
+    # Phrases and title matches are stronger evidence of direct fit than a
+    # single occurrence buried in body text, while all signals remain generic.
+    raw_score = (term_hits * 2) + (phrase_hits * 3) + (title_term_hits * 2)
+    # Keep question conditioning bounded. It should refine doorway choice,
+    # not become a second semantic retrieval engine.
+    score = min(8, raw_score)
+    return score, (term_hits, phrase_hits, title_term_hits)
+
+
 def _canonical_doorway_score(
     metadata: Dict[str, Any],
     frame: Dict[str, Any],
-) -> Tuple[int, Tuple[int, int, int]]:
-    """Score doorway suitability using only already-retrieved evidence."""
+    question: str = "",
+) -> Tuple[int, Tuple[int, int, int, int, int]]:
+    """Score doorway suitability from question fit plus existing doorway evidence."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     content = _resource_content(metadata).casefold()
     early_content = content[:1600]
 
     if not title or _is_non_resource_service_title(title):
-        return (-1000, (0, 0, 0))
+        return (-1000, (0, 0, 0, 0, 0))
 
     title_hits = sum(1 for term in _DOORWAY_TITLE_TERMS if term in title)
     content_hits = sum(1 for term in _DOORWAY_CONTENT_TERMS if term in early_content)
     orientation_bonus = _orientational_resource_bonus(metadata, frame)
+    question_fit, fit_detail = _question_resource_fit(question, metadata)
 
-    score = (title_hits * 4) + (content_hits * 2) + orientation_bonus
-    return score, (title_hits, content_hits, orientation_bonus)
+    # v65 doorway evidence remains intact. v66 adds a bounded question-fit
+    # signal so a generic doorway cannot win solely because it says "guide"
+    # or "overview" when another retrieved resource is a substantially closer
+    # doorway into the actual question.
+    score = (title_hits * 4) + (content_hits * 2) + orientation_bonus + (question_fit * 2)
+    return score, (title_hits, content_hits, orientation_bonus, question_fit, fit_detail[1])
 
 
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
     *,
+    question: str = "",
     preserve_prefix: int = 0,
 ) -> List[Dict[str, Any]]:
     """
@@ -1902,7 +1968,7 @@ def select_canonical_doorways(
 
     ranked = []
     for index, document in enumerate(remainder):
-        score, detail = _canonical_doorway_score(document, frame)
+        score, detail = _canonical_doorway_score(document, frame, question)
         ranked.append((score, detail, -index, document))
 
     ranked.sort(
@@ -1914,7 +1980,7 @@ def select_canonical_doorways(
 
     if selected:
         primary = selected[0]
-        primary_score, primary_detail = _canonical_doorway_score(primary, frame)
+        primary_score, primary_detail = _canonical_doorway_score(primary, frame, question)
         print(
             "USE canonical doorway selection: "
             f"primary='{_canonical_display_title(str(primary.get('title', 'Untitled Resource')))}', "
@@ -2295,6 +2361,7 @@ def fetch_canonical_context(
     retrieved_docs = select_canonical_doorways(
         retrieved_docs,
         orientational_frame,
+        question=user_query,
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
 
@@ -5095,20 +5162,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v65",
-            "# USE PRODUCTION VERSION: v65",
+            "# USE TEST VERSION: v66",
+            "# USE PRODUCTION VERSION: v66",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v65."
+                "Source version-label regression: line 1 does not identify v66."
             )
-        if APP_VERSION != "v65":
+        if APP_VERSION != "v66":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v65."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v66."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v65-canonical-doorway-selection":
+        if DEPLOYMENT_FINGERPRINT != "USE-v66-question-conditioned-doorway-selection":
             raise RuntimeError(
-                "Deployment fingerprint regression: v65 fingerprint is not aligned."
+                "Deployment fingerprint regression: v66 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5299,6 +5366,46 @@ def _generation_boundary_self_audit() -> None:
                 "entry resource was not prioritized."
             )
 
+        # v66 regression: doorway selection must be conditioned on the actual
+        # question, not merely on generic doorway language. A generic guide
+        # must yield to an already-retrieved resource whose evidence directly
+        # addresses the question's substantive terms.
+        question_conditioned_documents = [
+            {
+                "title": "General Orientation Guide",
+                "url": "https://example.invalid/general-guide",
+                "text": "An overview and where to begin exploring the archive.",
+            },
+            {
+                "title": "Understanding Lived Experience",
+                "url": "https://example.invalid/lived-experience",
+                "text": "This essay explores how intellectual understanding can differ from lived experience.",
+            },
+        ]
+        question_conditioned_selected = select_canonical_doorways(
+            question_conditioned_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question="Why does intellectual understanding not always change lived experience?",
+        )
+        if question_conditioned_selected[0]["title"] != "Understanding Lived Experience":
+            raise RuntimeError(
+                "Question-conditioned doorway regression: direct question fit "
+                "did not outrank generic doorway language."
+            )
+
+        # v66 boundary regression: question conditioning may only reorder the
+        # already-retrieved set and must not manufacture or remove resources.
+        question_conditioned_before = {
+            _resource_key(document) for document in question_conditioned_documents
+        }
+        question_conditioned_after = {
+            _resource_key(document) for document in question_conditioned_selected
+        }
+        if question_conditioned_before != question_conditioned_after:
+            raise RuntimeError(
+                "Question-conditioned doorway regression: resource set changed."
+            )
+
         # v65 boundary regression: doorway selection may only reorder supplied
         # canonical resources; it must never manufacture a new resource.
         doorway_keys_before = {
@@ -5339,7 +5446,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v65":
+        if APP_VERSION != "v66":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
