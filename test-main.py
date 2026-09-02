@@ -5769,7 +5769,7 @@ def _generation_boundary_self_audit() -> None:
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v76."
+                "Source version-label regression: line 1 does not identify v77."
             )
         if APP_VERSION != "v77":
             raise RuntimeError(
@@ -5856,7 +5856,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Topical navigation regression: generic-answer prevention policy is missing."
             )
-        if "normally use 2–3 only when they add distinct coverage" not in GENERATION_SYSTEM_PROMPT:
+        if "normally use 2–3 only for distinct coverage" not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
                 "Multi-resource navigation regression: current multi-resource policy is missing."
             )
