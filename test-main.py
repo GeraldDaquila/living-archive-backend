@@ -1,4 +1,4 @@
-# USE TEST VERSION: v71 — Evidence-Bound Synthesis
+# USE TEST VERSION: v72 — Question–Doorway Centrality
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -471,6 +471,19 @@ CONSTITUTIONAL RULES
     budget permits. Canonical URLs remain separate link authority and need
     not consume scarce provider evidence space when USE reconstructs links
     deterministically after generation.
+
+47. QUESTION–DOORWAY CENTRALITY
+    For topical inquiry, a canonical doorway must be proportionate to the
+    visitor's actual question, not merely capable of supplying a plausible
+    fragment of an explanation. Doorway selection may refine only the
+    already-retrieved canonical evidence; it must not become a second
+    retrieval engine. When a question is broad or experiential and a
+    candidate's primary conceptual territory is not established by the
+    visitor's wording, do not allow generic doorway signals or a specialized
+    framework to turn that candidate into the canonical doorway merely
+    because its evidence contains compatible language. Explicitly named
+    domains remain eligible. A resource may remain in the evidence set even
+    when it is not proportionate enough to be the primary doorway.
 """
 
 
@@ -516,7 +529,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v71"
+APP_VERSION = "v72"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -532,7 +545,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v71-evidence-bound-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v72-question-doorway-centrality"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2009,18 +2022,68 @@ def _framework_neutrality_penalty(question: str, title: str) -> int:
     return min(8, len(specialized_title_terms) * 4)
 
 
+_CENTRALITY_GENERIC_TERMS = frozenset({
+    "life", "lives", "person", "people", "thing", "things", "something",
+    "someone", "feel", "feels", "feeling", "make", "makes", "made",
+    "become", "becoming", "change", "changed", "changing", "way", "ways",
+    "part", "parts", "sometimes", "often", "really", "still", "seem",
+    "seems", "experience", "experiences", "understand", "understanding",
+    "aware", "awareness", "know", "knowing", "clear", "clearer", "clarity",
+})
+
+
+def _question_doorway_centrality(
+    question: str,
+    metadata: Dict[str, Any],
+) -> Tuple[int, Tuple[int, int, int, int]]:
+    """Measure whether a retrieved resource is central enough to be a doorway."""
+    if not question or not metadata:
+        return 0, (0, 0, 0, 0)
+
+    terms, phrases = _question_condition_terms(question)
+    substantive_terms = tuple(
+        term for term in set(terms)
+        if term not in _CENTRALITY_GENERIC_TERMS
+    )
+    if not substantive_terms:
+        substantive_terms = tuple(set(terms))
+
+    title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
+    searchable = " ".join(
+        str(metadata.get(key, ""))
+        for key in ("title", "text", "content", "excerpt", "description", "category")
+    ).casefold()
+    early = searchable[:1200]
+
+    title_hits = sum(
+        1 for term in substantive_terms
+        if re.search(rf"\b{re.escape(term)}\b", title)
+    )
+    early_hits = sum(
+        1 for term in substantive_terms
+        if re.search(rf"\b{re.escape(term)}\b", early)
+    )
+    phrase_hits = sum(1 for phrase in set(phrases) if phrase in early)
+
+    # Centrality is deliberately a modest refinement. It rewards a candidate
+    # whose actual conceptual territory is present in the question, while
+    # leaving semantic retrieval as the authority when evidence is sparse.
+    score = min(6, (title_hits * 3) + phrase_hits + min(3, early_hits))
+    return score, (title_hits, early_hits, phrase_hits, len(substantive_terms))
+
+
 def _canonical_doorway_score(
     metadata: Dict[str, Any],
     frame: Dict[str, Any],
     question: str = "",
-) -> Tuple[int, Tuple[int, int, int, int, int, int, int]]:
+) -> Tuple[int, Tuple[int, int, int, int, int, int, int, int, int]]:
     """Score doorway suitability from question fit plus proportionality safeguards."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     content = _resource_content(metadata).casefold()
     early_content = content[:1600]
 
     if not title or _is_non_resource_service_title(title):
-        return (-1000, (0, 0, 0, 0, 0, 0))
+        return (-1000, (0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     title_hits = sum(1 for term in _DOORWAY_TITLE_TERMS if term in title)
     content_hits = sum(1 for term in _DOORWAY_CONTENT_TERMS if term in early_content)
@@ -2066,11 +2129,43 @@ def _canonical_doorway_score(
     # a resource whose title is itself a specialized worldview.
     framework_penalty = _framework_neutrality_penalty(question, title)
 
+    # v72: doorway centrality asks whether the candidate's own conceptual
+    # territory is actually established by the visitor's wording. This is not
+    # another retrieval pass. It is a bounded safeguard against promoting a
+    # merely compatible resource into the primary doorway.
+    centrality_score, centrality_detail = _question_doorway_centrality(
+        question, metadata
+    )
+    centrality_penalty = 0
+    if question and _question_is_underdetermined(question):
+        if centrality_score == 0:
+            centrality_penalty = 4
+        elif centrality_score <= 1 and question_fit <= 3:
+            centrality_penalty = 2
+
+    # v72 generalizes framework proportionality for open experiential questions:
+    # if the visitor has not named a specialized worldview, that worldview must
+    # not become the primary doorway simply because retrieval found it relevant.
+    if question and _question_is_underdetermined(question):
+        if _framework_neutrality_penalty(question, title) == 0:
+            specialized_title_terms = {
+                term for term in _SPECIALIZED_FRAMEWORK_TERMS
+                if re.search(rf"\b{re.escape(term)}\b", title)
+            }
+            if specialized_title_terms and not (
+                specialized_title_terms & set(_question_condition_terms(question)[0])
+            ):
+                framework_penalty = max(
+                    framework_penalty,
+                    min(6, len(specialized_title_terms) * 4),
+                )
+
     score = (
         generic_doorway_score
         + (question_fit * 2)
         - scope_penalty
         - framework_penalty
+        - centrality_penalty
     )
     return score, (
         title_hits,
@@ -2080,6 +2175,8 @@ def _canonical_doorway_score(
         fit_detail[1],
         scope_penalty,
         framework_penalty,
+        centrality_score,
+        centrality_penalty,
     )
 
 
@@ -4804,11 +4901,65 @@ def _v70_framework_neutrality_self_audit() -> Dict[str, Any]:
     return result
 
 
+def _v72_question_doorway_centrality_self_audit() -> Dict[str, Any]:
+    """Static audit for question-proportionate canonical doorway selection."""
+    broad_question = (
+        "Why can becoming more aware of yourself sometimes make ordinary parts "
+        "of life feel strangely unfamiliar?"
+    )
+    specialized_title = (
+        "Divine Timing and Synchronicity: Unveiling the Cosmic Choreography of Awakening"
+    )
+    neutral_title = "Understanding Everyday Change and Perception"
+    neutral_metadata = {
+        "title": neutral_title,
+        "text": "Explores how changes in perception can alter how ordinary situations are experienced.",
+    }
+    specialized_metadata = {
+        "title": specialized_title,
+        "text": "Explores awakening, synchronicity, and spiritual perception.",
+    }
+    explicit_question = "Why can awakening make ordinary life feel unfamiliar?"
+
+    specialized_score, specialized_detail = _canonical_doorway_score(
+        specialized_metadata,
+        {"primary": "inward", "scores": {"inward": 1}},
+        broad_question,
+    )
+    neutral_score, neutral_detail = _canonical_doorway_score(
+        neutral_metadata,
+        {"primary": "inward", "scores": {"inward": 1}},
+        broad_question,
+    )
+    explicit_score, explicit_detail = _canonical_doorway_score(
+        specialized_metadata,
+        {"primary": "inward", "scores": {"inward": 1}},
+        explicit_question,
+    )
+
+    return {
+        "broad_specialized_score": specialized_score,
+        "broad_neutral_score": neutral_score,
+        "explicit_specialized_score": explicit_score,
+        "specialized_detail": specialized_detail,
+        "neutral_detail": neutral_detail,
+        "explicit_detail": explicit_detail,
+        "pass": specialized_score < neutral_score and explicit_score > specialized_score,
+    }
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
+
+        v72_centrality = _v72_question_doorway_centrality_self_audit()
+        if not v72_centrality["pass"]:
+            raise RuntimeError(
+                "v72 question-doorway centrality self-audit failed: "
+                f"{v72_centrality}"
+            )
 
         # Canonical lifecycle regressions: archived resources may remain
         # technically published in WordPress and in Pinecone, but they must
@@ -5405,20 +5556,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v71",
-            "# USE PRODUCTION VERSION: v71",
+            "# USE TEST VERSION: v72",
+            "# USE PRODUCTION VERSION: v72",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v71."
+                "Source version-label regression: line 1 does not identify v72."
             )
-        if APP_VERSION != "v71":
+        if APP_VERSION != "v72":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v71."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v72."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v71-evidence-bound-synthesis":
+        if DEPLOYMENT_FINGERPRINT != "USE-v72-question-doorway-centrality":
             raise RuntimeError(
-                "Deployment fingerprint regression: v71 fingerprint is not aligned."
+                "Deployment fingerprint regression: v72 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5754,6 +5905,48 @@ def _generation_boundary_self_audit() -> None:
                 "question did not preserve the directly relevant specialized doorway."
             )
 
+        # v72 regression: an open experiential question must not promote a
+        # specialized worldview doorway merely because the retrieved resource
+        # contains a compatible interpretive vocabulary. Explicitly naming the
+        # worldview must restore its eligibility.
+        centrality_documents = [
+            {
+                "title": "Divine Timing and Synchronicity: Unveiling the Cosmic Choreography of Awakening",
+                "url": "https://example.invalid/awakening",
+                "text": "Explores awakening, synchronicity, and spiritual perception.",
+            },
+            {
+                "title": "Understanding Everyday Change and Perception",
+                "url": "https://example.invalid/everyday-change",
+                "text": "Explores how changes in perception can alter how ordinary situations are experienced.",
+            },
+        ]
+        centrality_question = (
+            "Why can becoming more aware of yourself sometimes make ordinary parts "
+            "of life feel strangely unfamiliar?"
+        )
+        centrality_selected = select_canonical_doorways(
+            centrality_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question=centrality_question,
+        )
+        if centrality_selected[0]["title"] != "Understanding Everyday Change and Perception":
+            raise RuntimeError(
+                "v72 question-doorway centrality regression: specialized worldview "
+                "doorway displaced the proportionate neutral doorway."
+            )
+
+        explicit_centrality_selected = select_canonical_doorways(
+            centrality_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question="Why can awakening make ordinary life feel unfamiliar?",
+        )
+        if explicit_centrality_selected[0]["title"] != "Divine Timing and Synchronicity: Unveiling the Cosmic Choreography of Awakening":
+            raise RuntimeError(
+                "v72 question-doorway centrality regression: explicitly named "
+                "framework did not remain eligible."
+            )
+
         # v65 boundary regression: doorway selection may only reorder supplied
         # canonical resources; it must never manufacture a new resource.
         doorway_keys_before = {
@@ -5822,7 +6015,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v71":
+        if APP_VERSION != "v72":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
