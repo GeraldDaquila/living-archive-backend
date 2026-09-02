@@ -6346,10 +6346,14 @@ def _generation_boundary_self_audit() -> None:
                 "v71 synthesis-boundary regression: explicit synthesis guard "
                 "was not included in the topical generation boundary."
             )
-        if "causal bridge" not in synthesis_system:
+        if (
+            "never turn thematic compatibility into established causation"
+            not in synthesis_system
+            or "[INFERENTIAL DISTANCE]" not in synthesis_system
+        ):
             raise RuntimeError(
-                "v71 synthesis-boundary regression: causal-bridge instruction "
-                "was not preserved."
+                "v71 synthesis-boundary regression: current causal-boundary "
+                "instruction was not preserved."
             )
 
         # Runtime identity must be explicit and current.
