@@ -1,6 +1,6 @@
-# USE TEST VERSION: v68 — Interpretive Sovereignty
-# Complete experimental production unit reconstructed from the frozen v66
-# TEST baseline. This experiment adds a bounded interpretive-distance guard to
+# USE TEST VERSION: v69 — Canonical Doorway Proportionality
+# Complete experimental production unit reconstructed from the frozen v68
+# TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
 # retrieval, altering canonical link authority, expanding retrieval, or
 # creating a second navigation engine.
@@ -502,7 +502,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v68"
+APP_VERSION = "v69"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -518,7 +518,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v68-interpretive-sovereignty"
+DEPLOYMENT_FINGERPRINT = "USE-v69-canonical-doorway-proportionality"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1870,6 +1870,19 @@ _DOORWAY_CONTENT_TERMS = (
 # it asks whether the language of the visitor's question is actually present
 # in the already-retrieved resource evidence. Common function words are
 # ignored so that the signal remains about the question's substantive terms.
+# These are broad high-intensity/specialized scope signals. They are not
+# resource names and do not identify particular canonical titles. Their only
+# purpose is to prevent a highly specialized resource from becoming the
+# canonical doorway to a broader question when that specialized domain is not
+# itself established by the visitor's wording. If the visitor explicitly asks
+# about the specialized domain, the penalty disappears.
+_SPECIALIZED_SCOPE_TERMS = frozenset({
+    "suicide", "self-harm", "selfharm", "abuse", "addiction", "overdose",
+    "psychosis", "schizophrenia", "bipolar", "trauma", "ptsd", "cancer",
+    "terminal", "grief", "bereavement", "divorce", "infidelity", "pregnancy",
+    "miscarriage", "diagnosis", "diagnosed", "disease", "illness", "disorder",
+})
+
 _QUESTION_STOPWORDS = frozenset({
     "a", "about", "after", "all", "always", "am", "an", "and", "are",
     "as", "at", "be", "because", "been", "being", "but", "by", "can",
@@ -1929,14 +1942,14 @@ def _canonical_doorway_score(
     metadata: Dict[str, Any],
     frame: Dict[str, Any],
     question: str = "",
-) -> Tuple[int, Tuple[int, int, int, int, int]]:
-    """Score doorway suitability from question fit plus existing doorway evidence."""
+) -> Tuple[int, Tuple[int, int, int, int, int, int]]:
+    """Score doorway suitability from question fit plus proportionality safeguards."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     content = _resource_content(metadata).casefold()
     early_content = content[:1600]
 
     if not title or _is_non_resource_service_title(title):
-        return (-1000, (0, 0, 0, 0, 0))
+        return (-1000, (0, 0, 0, 0, 0, 0))
 
     title_hits = sum(1 for term in _DOORWAY_TITLE_TERMS if term in title)
     content_hits = sum(1 for term in _DOORWAY_CONTENT_TERMS if term in early_content)
@@ -1959,13 +1972,32 @@ def _canonical_doorway_score(
     if question and question_fit <= 1:
         generic_doorway_score = min(2, generic_doorway_score)
 
-    score = generic_doorway_score + (question_fit * 2)
+    # v69 adds canonical doorway proportionality. A resource can be semantically
+    # relevant because one passage overlaps the question while still being a
+    # disproportionate doorway because its primary title/domain is highly
+    # specialized. Penalize only when the specialized scope is absent from the
+    # visitor's own wording; explicit questions about that domain remain eligible.
+    question_terms, _question_phrases = _question_condition_terms(question)
+    question_term_set = set(question_terms)
+    specialized_title_terms = {
+        term for term in _SPECIALIZED_SCOPE_TERMS
+        if re.search(rf"\b{re.escape(term)}\b", title)
+    }
+    specialized_overlap = len(specialized_title_terms & question_term_set)
+    scope_penalty = 0
+    if question and specialized_title_terms and specialized_overlap == 0:
+        # Bounded penalty: enough to block a disproportionate specialized
+        # doorway, but not enough to remove the resource from the retrieved set.
+        scope_penalty = min(6, len(specialized_title_terms) * 3)
+
+    score = generic_doorway_score + (question_fit * 2) - scope_penalty
     return score, (
         title_hits,
         content_hits,
         orientation_bonus,
         question_fit,
         fit_detail[1],
+        scope_penalty,
     )
 
 
@@ -5249,20 +5281,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v68",
-            "# USE PRODUCTION VERSION: v68",
+            "# USE TEST VERSION: v69",
+            "# USE PRODUCTION VERSION: v69",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v68."
+                "Source version-label regression: line 1 does not identify v69."
             )
-        if APP_VERSION != "v68":
+        if APP_VERSION != "v69":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v68."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v69."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v68-interpretive-sovereignty":
+        if DEPLOYMENT_FINGERPRINT != "USE-v69-canonical-doorway-proportionality":
             raise RuntimeError(
-                "Deployment fingerprint regression: v68 fingerprint is not aligned."
+                "Deployment fingerprint regression: v69 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5540,6 +5572,55 @@ def _generation_boundary_self_audit() -> None:
                 "was incorrectly treated as underdetermined."
             )
 
+        # v69 proportionality regression: a highly specialized resource must not
+        # become the canonical doorway to a broad question merely because its body
+        # contains semantically related material. A proportionate resource remains
+        # eligible from the same already-retrieved set.
+        proportionality_question = (
+            "Why can I understand what I need to let go of and still feel unable to let it go?"
+        )
+        proportionality_documents = [
+            {
+                "title": "Psychological Pain, Disconnection, and the Journey of the Soul: Suicide and Meaning",
+                "url": "https://example.invalid/specialized",
+                "text": "Psychological pain and disconnection can affect the ability to act, even when a person understands a difficult change.",
+            },
+            {
+                "title": "When Understanding Does Not Become Action",
+                "url": "https://example.invalid/proportionate",
+                "text": "Explores the gap between intellectual understanding, emotional readiness, and the ability to make a change.",
+            },
+        ]
+        proportionality_selected = select_canonical_doorways(
+            proportionality_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question=proportionality_question,
+        )
+        if proportionality_selected[0]["title"] != "When Understanding Does Not Become Action":
+            raise RuntimeError(
+                "Canonical doorway proportionality regression: disproportionate "
+                "specialized resource displaced a proportionate doorway."
+            )
+        if proportionality_selected[1]["title"] != "Psychological Pain, Disconnection, and the Journey of the Soul: Suicide and Meaning":
+            raise RuntimeError(
+                "Canonical doorway proportionality regression: specialized resource "
+                "was incorrectly removed or reordered beyond the doorway ranking."
+            )
+
+        # v69 boundary regression: when the visitor explicitly names the specialized
+        # domain, proportionality must not suppress the directly relevant resource.
+        explicit_specialized_question = "How can psychological pain after suicide affect my ability to make changes?"
+        explicit_specialized_selected = select_canonical_doorways(
+            proportionality_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question=explicit_specialized_question,
+        )
+        if explicit_specialized_selected[0]["title"] != "Psychological Pain, Disconnection, and the Journey of the Soul: Suicide and Meaning":
+            raise RuntimeError(
+                "Canonical doorway proportionality regression: explicit specialized "
+                "question did not preserve the directly relevant specialized doorway."
+            )
+
         # v65 boundary regression: doorway selection may only reorder supplied
         # canonical resources; it must never manufacture a new resource.
         doorway_keys_before = {
@@ -5580,7 +5661,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v68":
+        if APP_VERSION != "v69":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
