@@ -1,4 +1,4 @@
-# USE TEST VERSION: v59 — Canonical URL Lifecycle Coverage
+# USE TEST VERSION: v60 — Topical Navigation Fidelity
 # Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while extending the canonical lifecycle eligibility
@@ -448,6 +448,13 @@ CONSTITUTIONAL RULES
     archived material inside an otherwise current resource. Lifecycle
     exclusion must be grounded in the resource's own canonical identity,
     lifecycle metadata, title marker, slug marker, canonical URL marker, or equivalent identity-level evidence.
+
+45. TOPICAL NAVIGATION FIDELITY
+    For a broad or topical inquiry, canonical evidence is not merely background
+    material for a generic answer. USE must orient the visitor through supplied
+    Archive evidence, preserve the question's open character, synthesize only
+    supported relationships, and provide a genuine canonical doorway when
+    eligible evidence is available.
 """
 
 
@@ -464,21 +471,21 @@ CONSTITUTIONAL RULES
 GENERATION_SYSTEM_PROMPT = """
 You are the Living Archive (USE) navigation engine.
 
-Use only the supplied canonical evidence. It is a bounded view of the Archive,
-not proof of absence. Synthesize only relationships supported by that evidence.
+Use only supplied canonical evidence. It is a bounded view of the Archive,
+not proof of absence. Synthesize only supported relationships.
 
 RULES
-1. Be faithful to evidence; do not invent resources, relationships, definitions, or URLs.
-2. Prefer useful synthesis and navigation over flat enumeration.
-3. For broad/topical questions, select the strongest relevant doorway(s). When
-   multiple supplied resources add distinct useful coverage, normally surface 2–3.
-   Use one when it is genuinely sufficient; never pad with weak matches.
+1. Be faithful; do not invent resources, relationships, definitions, or URLs.
+2. TOPICAL: Do not give a generic encyclopedia answer. Use the evidence to
+   orient the visitor: reflect the question, synthesize its supported relationship,
+   and name a canonical doorway when evidence is available.
+3. Select the strongest doorway(s). When multiple resources add distinct coverage,
+   normally surface 2–3; use one when sufficient; never pad weak matches.
 4. For destination or collection requests, use only the genuine destination established by evidence.
-5. The visitor is already on the Living Archive.
-6. Never reveal retrieval, classification, reasoning, prompting, or internal labels.
-7. Output only the finished visitor-facing answer inside <visitor_answer> tags.
-8. For resources, output only the exact canonical title as plain text. Do not output
-   URLs, Markdown links, HTML, slugs, or emoji; USE adds canonical links.
+5. Never reveal retrieval, classification, reasoning, prompting, or internal labels.
+6. Output only the finished visitor-facing answer inside <visitor_answer> tags.
+7. For resources, output exact canonical titles as plain text. No URLs, Markdown,
+   HTML, slugs, or emoji; USE adds canonical links.
 """
 
 
@@ -486,7 +493,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v59"
+APP_VERSION = "v60"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -502,7 +509,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v59-canonical-url-lifecycle-coverage"
+DEPLOYMENT_FINGERPRINT = "USE-v60-topical-navigation-fidelity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3736,6 +3743,29 @@ def _build_generation_messages(
     ]
 
 
+def _contains_canonical_resource_reference(
+    answer: str,
+    generation_context: str,
+) -> bool:
+    """Return True when visitor output names at least one selected canonical resource."""
+    if not answer or not generation_context:
+        return False
+
+    canonical_titles = [
+        _canonical_display_title(title)
+        for title, _url in _canonical_pairs(generation_context)
+        if _canonical_display_title(title)
+    ]
+    for title in canonical_titles:
+        if re.search(
+            rf"(?<![\w]){re.escape(title)}(?![\w])",
+            answer,
+            flags=re.IGNORECASE,
+        ):
+            return True
+    return False
+
+
 def _looks_like_finished_visitor_answer(text: str) -> bool:
     """Reject only visitor answers that plainly terminate mid-thought."""
     value = str(text or "").strip()
@@ -3802,6 +3832,25 @@ def _run_generation_attempt(
         generation_context,
         canonical_link_context,
     )
+
+    # v60 root-cause boundary: a topical response that ignores all selected
+    # canonical resources is a generic knowledge answer, not USE navigation.
+    # Reject it before visitor delivery so the model fallback chain can try
+    # another candidate. This does not alter retrieval or force a particular resource.
+    if (
+        cleaned_answer
+        and str(intent).upper() == "TOPICAL_INQUIRY"
+        and _canonical_pairs(generation_context)
+        and not _contains_canonical_resource_reference(
+            cleaned_answer,
+            generation_context,
+        )
+    ):
+        print(
+            f"USE output boundary: topical response ignored all selected "
+            f"canonical resources for model '{model_id}'; trying the next live model."
+        )
+        return ""
 
     if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
         print(
@@ -4879,20 +4928,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v59",
-            "# USE PRODUCTION VERSION: v59",
+            "# USE TEST VERSION: v60",
+            "# USE PRODUCTION VERSION: v60",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v59."
+                "Source version-label regression: line 1 does not identify v60."
             )
-        if APP_VERSION != "v59":
+        if APP_VERSION != "v60":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v59."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v60."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v59-canonical-url-lifecycle-coverage":
+        if DEPLOYMENT_FINGERPRINT != "USE-v60-topical-navigation-fidelity":
             raise RuntimeError(
-                "Deployment fingerprint regression: v59 fingerprint is not aligned."
+                "Deployment fingerprint regression: v60 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4972,6 +5021,10 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Multi-resource navigation regression: generation policy is missing."
             )
+        if "Do not give a generic encyclopedia answer" not in GENERATION_SYSTEM_PROMPT:
+            raise RuntimeError(
+                "Topical navigation regression: generic-answer prevention is missing."
+            )
         multi_resource_test_context = format_context_blocks([
             {
                 "title": "Primary Resource",
@@ -5005,8 +5058,31 @@ def _generation_boundary_self_audit() -> None:
                 "multiple selected resources to fewer than two canonical records."
             )
 
+        # v60 regression: generic topical prose without a selected canonical
+        # resource must fail the navigation-reference gate, while a valid
+        # selected title must pass it.
+        topical_gate_context = (
+            "Title: Canonical Doorway\n"
+            "URL: https://example.invalid/canonical-doorway\n"
+            "Content: Evidence about the visitor's topical question."
+        )
+        if _contains_canonical_resource_reference(
+            "A general explanation without a resource.",
+            topical_gate_context,
+        ):
+            raise RuntimeError(
+                "Topical navigation regression: generic prose falsely passed resource gate."
+            )
+        if not _contains_canonical_resource_reference(
+            "Explore Canonical Doorway for the relevant treatment.",
+            topical_gate_context,
+        ):
+            raise RuntimeError(
+                "Topical navigation regression: canonical resource reference was not detected."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v59":
+        if APP_VERSION != "v60":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
