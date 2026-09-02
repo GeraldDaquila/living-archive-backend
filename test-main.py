@@ -1,4 +1,4 @@
-# USE TEST VERSION: v77 — Generation Capacity Recovery
+# USE TEST VERSION: v78 — Evidence-Bound Inferential Distance
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -519,7 +519,16 @@ CONSTITUTIONAL RULES
     currently retrieved evidence is framework-specific and insufficient to
     establish a frame-neutral answer. Explicitly named frameworks remain
     eligible.
-"""
+
+50. EVIDENCE-BOUND INFERENTIAL DISTANCE
+    Do not manufacture intermediate factual claims or mechanisms to connect
+    supplied evidence to an answer. If the evidence establishes A and B but
+    not that A causes, produces, explains, or leads to B, do not state that
+    unstated connection as fact. State the supported pieces, then mark the
+    remaining connection as an inference, possibility, or interpretive
+    reading. The farther a conclusion moves beyond what the supplied
+    evidence establishes, the more explicitly it must be bounded.
+    """
 
 
 # =====================================================================
@@ -539,7 +548,7 @@ For TOPICAL questions, do not answer as a generic encyclopedia. Orient through t
 
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise treat it only as that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty about cause or meaning.
 
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not substantive evidence. Ground claims in supplied Content. If Content is insufficient, say so; never fill gaps from title, URL, labels, or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. Mark an unsupported causal bridge as inference/possible reading.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; never fill gaps from metadata or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms to connect evidence to the answer. If A and B are supported but their connection is not, state A and B, then label the connection as an inference/possibility/interpretive reading. Mark an unsupported causal bridge as inference/possible reading.
 
 For destination/collection requests, use only destinations established by evidence. Never invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished visitor answer inside <visitor_answer> tags. Use exact canonical titles as plain text; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
@@ -549,7 +558,7 @@ For destination/collection requests, use only destinations established by eviden
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v77"
+APP_VERSION = "v78"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -565,7 +574,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v77-generation-capacity-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v78-evidence-bound-inferential-distance"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -5130,6 +5139,40 @@ def _v75_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v78_inferential_distance_self_audit() -> Dict[str, Any]:
+    """Verify the compact generation boundary forbids invented bridge facts."""
+    prompt = GENERATION_SYSTEM_PROMPT
+    required = (
+        "[INFERENTIAL DISTANCE]",
+        "Do not invent intermediate facts or mechanisms",
+        "label the connection as an inference/possibility/interpretive reading",
+    )
+    present = {term: term in prompt for term in required}
+
+    # Synthetic evidence deliberately supports two components without their
+    # causal bridge. The audit checks the boundary instruction, not model
+    # behavior; live behavioral validation remains a deployment test.
+    synthetic_context = (
+        "Title: Resource A\n"
+        "Content: People report clearer priorities after reflection.\n\n"
+        "Title: Resource B\n"
+        "Content: Distributed decisions involve more interdependent factors."
+    )
+    messages = _build_generation_messages(
+        "Why can greater clarity sometimes make a decision feel harder?",
+        "TOPICAL_INQUIRY",
+        synthetic_context,
+    )
+    joined = " ".join(str(m.get("content", "")) for m in messages)
+
+    return {
+        "required_present": present,
+        "prompt_contains_all": all(present.values()),
+        "messages_preserve_boundary": "[INFERENTIAL DISTANCE]" in joined,
+        "pass": all(present.values()) and "[INFERENTIAL DISTANCE]" in joined,
+    }
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
@@ -5155,6 +5198,13 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "v76 frame-neutral evidence self-audit failed: "
                 f"{v76_frame_neutral}"
+            )
+        
+        v78_inferential_distance = _v78_inferential_distance_self_audit()
+        if not v78_inferential_distance["pass"]:
+            raise RuntimeError(
+                "v78 evidence-bound inferential-distance self-audit failed: "
+                f"{v78_inferential_distance}"
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -5764,18 +5814,18 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v77",
-            "# USE PRODUCTION VERSION: v77",
+            "# USE TEST VERSION: v78",
+            "# USE PRODUCTION VERSION: v78",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v77."
+                "Source version-label regression: line 1 does not identify v78."
             )
-        if APP_VERSION != "v77":
+        if APP_VERSION != "v78":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v77."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v78."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v77-generation-capacity-recovery":
+        if DEPLOYMENT_FINGERPRINT != "USE-v78-evidence-bound-inferential-distance":
             raise RuntimeError(
                 "Deployment fingerprint regression: v77 fingerprint is not aligned."
             )
@@ -6274,7 +6324,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v77":
+        if APP_VERSION != "v78":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
