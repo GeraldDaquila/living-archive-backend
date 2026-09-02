@@ -1,4 +1,4 @@
-# USE TEST VERSION: v79 — Interpretive Compression
+# USE TEST VERSION: v80 — Interpretive Bridge Integrity
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -535,6 +535,14 @@ CONSTITUTIONAL RULES
     hidden states, or causal steps merely to make the analogy explanatory.
     State what the evidence supports, then make only the minimum bounded
     interpretive connection needed to address the visitor's question.
+
+52. INTERPRETIVE BRIDGE INTEGRITY
+    An interpretive inference may connect supplied evidence to the visitor's
+    question, but it may not introduce new factual premises as stepping stones
+    inside that inference. Do not build a chain of plausible mechanisms merely
+    because the overall connection is labeled inference, possibility, or
+    interpretation. If answering requires such unstated premises, omit them
+    and state that the retrieved evidence does not establish the connection.
     """
 
 
@@ -555,7 +563,7 @@ For TOPICAL questions, do not answer as a generic encyclopedia. Orient through t
 
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise treat it only as that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty about cause or meaning.
 
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; never fill gaps from metadata or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms to connect evidence to the answer. If A and B are supported but their connection is not, state A and B, then label the connection as an inference/possibility/interpretive reading. [INTERPRETIVE COMPRESSION]: When applying evidence beyond its stated domain, keep the bridge minimal: add no new factual premises, mechanisms, hidden states, or causal steps merely to make the analogy explanatory.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; never fill gaps from metadata or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, state A and B and label the connection as inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference may connect evidence to the question, but cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms. If needed, omit them; say the evidence does not establish the connection.
 
 For destination/collection requests, use only destinations established by evidence. Never invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished visitor answer inside <visitor_answer> tags. Use exact canonical titles as plain text; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
@@ -565,7 +573,7 @@ For destination/collection requests, use only destinations established by eviden
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v79"
+APP_VERSION = "v80"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -581,7 +589,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v79-interpretive-compression"
+DEPLOYMENT_FINGERPRINT = "USE-v80-interpretive-bridge-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -5180,13 +5188,14 @@ def _v78_inferential_distance_self_audit() -> Dict[str, Any]:
     }
 
 
-def _v79_interpretive_compression_self_audit() -> Dict[str, Any]:
-    """Verify the compact prompt requires minimal, non-expansive interpretation."""
+def _v80_interpretive_bridge_integrity_self_audit() -> Dict[str, Any]:
+    """Verify the compact prompt forbids unstated premises inside an inference."""
     prompt = GENERATION_SYSTEM_PROMPT
     required = (
-        "[INTERPRETIVE COMPRESSION]",
-        "keep the bridge minimal",
-        "add no new factual premises, mechanisms, hidden states, or causal steps",
+        "[BRIDGE INTEGRITY]",
+        "cannot add unstated factual premises as stepping stones",
+        "build a chain of plausible mechanisms",
+        "say the evidence does not establish the connection",
     )
     present = {term: term in prompt for term in required}
     return {
@@ -5229,11 +5238,11 @@ def _generation_boundary_self_audit() -> None:
                 f"{v78_inferential_distance}"
             )
 
-        v79_interpretive_compression = _v79_interpretive_compression_self_audit()
-        if not v79_interpretive_compression["pass"]:
+        v80_interpretive_bridge_integrity = _v80_interpretive_bridge_integrity_self_audit()
+        if not v80_interpretive_bridge_integrity["pass"]:
             raise RuntimeError(
-                "v79 interpretive-compression self-audit failed: "
-                f"{v79_interpretive_compression}"
+                "v80 interpretive-bridge-integrity self-audit failed: "
+                f"{v80_interpretive_bridge_integrity}"
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -5843,20 +5852,35 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v79",
-            "# USE PRODUCTION VERSION: v79",
+            "# USE TEST VERSION: v80",
+            "# USE PRODUCTION VERSION: v80",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v79."
+                "Source version-label regression: line 1 does not identify v80."
             )
-        if APP_VERSION != "v79":
+        if APP_VERSION != "v80":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v79."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v80."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v79-interpretive-compression":
+        if DEPLOYMENT_FINGERPRINT != "USE-v80-interpretive-bridge-integrity":
             raise RuntimeError(
-                "Deployment fingerprint regression: v79 fingerprint is not aligned."
+                "Deployment fingerprint regression: v80 fingerprint is not aligned."
+            )
+        # Audit the audit surface itself: no inherited prior-release identity
+        # or version-specific implementation wording may survive into v80.
+        prior_release_token = "v" + "79"
+        stale_prior_release_hits = [
+            f"line {idx}: {line}"
+            for idx, line in enumerate(source_lines, 1)
+            if prior_release_token in line.lower()
+        ]
+        # The scanner's own construction is deliberately split so it cannot
+        # create a false positive against itself.
+        if stale_prior_release_hits:
+            raise RuntimeError(
+                "Stale-version audit regression: inherited prior-release "
+                "references remain: " + " | ".join(stale_prior_release_hits[:5])
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -6357,7 +6381,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v79":
+        if APP_VERSION != "v80":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
