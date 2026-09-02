@@ -1,4 +1,4 @@
-# USE TEST VERSION: v67 — Ambiguity-Aware Question-Conditioned Doorway Selection
+# USE TEST VERSION: v68 — Interpretive Sovereignty
 # Complete experimental production unit reconstructed from the frozen v66
 # TEST baseline. This experiment adds a bounded interpretive-distance guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -483,7 +483,11 @@ For TOPICAL questions, do not answer as a generic encyclopedia. Orient the
 visitor through the supplied evidence: reflect the question, synthesize only
 supported relationships, and provide a genuine canonical doorway when one
 is established. If canonical evidence is supplied, name at least one exact
-Title: resource; normally use 2–3 only when they add distinct coverage.
+Title: resource; normally use 2–3 only when they add distinct coverage. When
+the visitor's question is open or underdetermined, do not collapse that
+question into the most specialized interpretation present in the evidence;
+present a supported interpretation as a possible lens and preserve uncertainty
+when the evidence does not establish a single cause or meaning.
 For destination/collection requests, use only the genuine destination established
 by evidence. Never invent or substitute resources, relationships, definitions,
 or URLs. Never reveal internal process or labels.
@@ -498,7 +502,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v67"
+APP_VERSION = "v68"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -514,7 +518,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v67-ambiguity-aware-doorway-selection"
+DEPLOYMENT_FINGERPRINT = "USE-v68-interpretive-sovereignty"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3783,6 +3787,56 @@ class KnownDailyQuotaInsufficient(RuntimeError):
         self.remaining_tokens = remaining_tokens
 
 
+def _question_is_underdetermined(question: str) -> bool:
+    """Detect broad experiential questions that do not name a clear mechanism.
+
+    This is intentionally structural rather than domain-specific. It looks for
+    an inward/experiential question whose substantive wording remains broad,
+    then tells generation to preserve multiple plausible interpretations.
+    It does not select or exclude resources.
+    """
+    value = str(question or "").strip().casefold()
+    if not value:
+        return False
+
+    tokens = re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", value)
+    if not tokens or not any(token in tokens for token in ("why", "how")):
+        return False
+
+    broad_terms = {
+        "something", "things", "life", "feel", "feeling", "feels",
+        "important", "matter", "matters", "meaning", "care", "cared",
+        "want", "wanted", "wrong", "right", "fine", "inside",
+        "outside", "sometimes", "often", "used",
+    }
+    mechanism_terms = {
+        "habit", "habits", "choice", "choices", "dissonance", "scarcity",
+        "conditioning", "pressure", "conflict", "memory", "trauma",
+        "belief", "beliefs", "identity", "relationship", "work",
+        "sleep", "stress", "fear", "decision", "decisions",
+    }
+
+    substantive = [
+        token for token in tokens
+        if len(token) >= 4 and token not in _QUESTION_STOPWORDS
+    ]
+    if not substantive:
+        return False
+
+    broad_hits = sum(1 for token in substantive if token in broad_terms)
+    mechanism_hits = sum(1 for token in substantive if token in mechanism_terms)
+
+    # A broad first-person experiential question with no named mechanism is
+    # underdetermined by structure, even when retrieved resources offer a
+    # compelling specialized interpretation.
+    first_person = any(token in tokens for token in ("i", "my", "me"))
+    experiential = any(token in tokens for token in (
+        "feel", "feeling", "feels", "care", "cared", "want", "wanted",
+        "important", "wrong", "fine", "inside", "outside",
+    ))
+    return first_person and experiential and broad_hits >= 1 and mechanism_hits == 0
+
+
 def _build_generation_system_content(
     intent: str,
     generation_context: str,
@@ -3961,6 +4015,7 @@ def _build_generation_messages(
     safe_context = str(generation_context or "").strip()
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
+    underdetermined = _question_is_underdetermined(user_query)
 
     system_content = _build_generation_system_content(
         intent,
@@ -3969,6 +4024,19 @@ def _build_generation_messages(
         "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
         f"{frame_hint}. Use only when supported by evidence."
     )
+
+    if underdetermined and intent == "TOPICAL_INQUIRY":
+        system_content += (
+            "\n\n[INTERPRETIVE SOVEREIGNTY — DO NOT REVEAL]: "
+            "The visitor's question is structurally underdetermined. Do not "
+            "treat one specialized framework in the evidence as the established "
+            "meaning or cause of the visitor's experience. Preserve the question's "
+            "open territory. If the supplied evidence offers one plausible lens, "
+            "present it explicitly as one lens rather than as the explanation. "
+            "Prefer distinct supported possibilities when available, and preserve "
+            "uncertainty where the evidence does not establish a cause. Do not "
+            "introduce outside interpretations. "
+        )
 
     user_content = (
         user_query
@@ -5181,20 +5249,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v67",
-            "# USE PRODUCTION VERSION: v67",
+            "# USE TEST VERSION: v68",
+            "# USE PRODUCTION VERSION: v68",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v66."
+                "Source version-label regression: line 1 does not identify v68."
             )
-        if APP_VERSION != "v67":
+        if APP_VERSION != "v68":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v67."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v68."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v67-ambiguity-aware-doorway-selection":
+        if DEPLOYMENT_FINGERPRINT != "USE-v68-interpretive-sovereignty":
             raise RuntimeError(
-                "Deployment fingerprint regression: v67 fingerprint is not aligned."
+                "Deployment fingerprint regression: v68 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5454,6 +5522,24 @@ def _generation_boundary_self_audit() -> None:
                 "gateway language displaced the closer question-grounded resource."
             )
 
+        # v68 interpretive sovereignty regression: broad first-person
+        # experiential questions are flagged structurally, without naming a
+        # particular domain or forcing a specialized explanation.
+        if not _question_is_underdetermined(
+            "Why does something I used to care about sometimes stop feeling important?"
+        ):
+            raise RuntimeError(
+                "Interpretive sovereignty regression: broad experiential question "
+                "was not recognized as underdetermined."
+            )
+        if _question_is_underdetermined(
+            "Why does cognitive dissonance make choices difficult?"
+        ):
+            raise RuntimeError(
+                "Interpretive sovereignty regression: explicit mechanism question "
+                "was incorrectly treated as underdetermined."
+            )
+
         # v65 boundary regression: doorway selection may only reorder supplied
         # canonical resources; it must never manufacture a new resource.
         doorway_keys_before = {
@@ -5494,7 +5580,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v67":
+        if APP_VERSION != "v68":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
