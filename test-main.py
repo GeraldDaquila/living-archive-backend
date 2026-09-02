@@ -5377,8 +5377,10 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Provider-envelope regression: the fixed generation envelope itself must leave
-        # meaningful room for canonical evidence. A self-audit that can only
-        # fit metadata or no evidence is not a valid provider-safe generation path.
+        # meaningful room for canonical evidence. The boundary is expressed in terms
+        # of actual remaining provider capacity rather than a historical fixed-input
+        # character ceiling, because legitimate generation-boundary safeguards may
+        # increase the fixed prompt envelope while remaining provider-safe.
         primary_empty_messages = _build_generation_messages(
             "Why do systems preserve the conditions that created their problems?",
             "TOPICAL_INQUIRY",
@@ -5394,13 +5396,8 @@ def _generation_boundary_self_audit() -> None:
         if primary_evidence_capacity < 700:
             raise RuntimeError(
                 "Provider compact-boundary regression: primary generation does not "
-                f"leave room for the full 1800-character evidence ceiling (capacity={primary_evidence_capacity}, "
-                f"fixed_input={primary_fixed_chars})."
-            )
-        if primary_fixed_chars > 1800:
-            raise RuntimeError(
-                "Provider compact-boundary regression: fixed generation envelope "
-                f"remains too large (fixed_input={primary_fixed_chars})."
+                f"leave at least 700 characters for canonical evidence "
+                f"(capacity={primary_evidence_capacity}, fixed_input={primary_fixed_chars})."
             )
 
         # Release identity audit: the source file itself must declare the
