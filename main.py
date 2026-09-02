@@ -1,8 +1,9 @@
-# USE PRODUCTION VERSION: v64 — Self-Audit-Aligned Compact Generation Boundary
-# Complete production unit reconstructed from the verified v64 experimental unit.
-# This release preserves the tested retrieval, canonical sourcing, provider fallback,
-# topical-navigation fidelity, provider evidence density, compact generation boundary,
-# and canonical lifecycle eligibility architecture.
+# USE PRODUCTION VERSION: v65 — Canonical Doorway Selection
+# Complete production unit promoted from the audited v65 experimental baseline
+# production baseline. This release adds one bounded navigation layer:
+# explicit evidence-based canonical doorway selection after retrieval/reranking
+# and before generation. It does not replace semantic retrieval, alter canonical
+# link authority, or create a second navigation engine.
 
 import os
 import re
@@ -497,7 +498,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v64"
+APP_VERSION = "v65"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -513,7 +514,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v64-self-audit-alignment"
+DEPLOYMENT_FINGERPRINT = "USE-v65-canonical-doorway-selection"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1807,6 +1808,124 @@ def orientational_rerank_documents(
 
 
 # =====================================================================
+# CANONICAL DOORWAY SELECTION
+# =====================================================================
+#
+# v65 introduces an explicit selection layer between retrieval/reranking and
+# generation. The selector does NOT search the corpus, invent destinations,
+# or replace semantic retrieval. It evaluates only already-retrieved,
+# lifecycle-eligible canonical resources using evidence already present in
+# each resource.
+#
+# The constitutional distinction is:
+#   semantic relevance -> candidate evidence
+#   navigational suitability -> doorway priority
+#
+# This is deliberately a modest evidence-based signal. It rewards language
+# that indicates orientation, framing, foundations, guidance, or an explicit
+# entry point, while preserving retrieval order as the final tie-breaker.
+# No individual Living Archive resource or collection is hard-coded here.
+# =====================================================================
+
+_DOORWAY_TITLE_TERMS = (
+    "cornerstone",
+    "foundation",
+    "foundations",
+    "framework",
+    "guide",
+    "navigator",
+    "orientation",
+    "overview",
+    "introduction",
+    "map",
+    "pathway",
+    "gateway",
+)
+
+_DOORWAY_CONTENT_TERMS = (
+    "where to begin",
+    "entry point",
+    "starting point",
+    "begin here",
+    "overview",
+    "orientation",
+    "introduces",
+    "introduction",
+    "foundational",
+    "foundations",
+    "framework",
+    "guide to",
+    "guides",
+    "explore",
+    "helps orient",
+)
+
+
+def _canonical_doorway_score(
+    metadata: Dict[str, Any],
+    frame: Dict[str, Any],
+) -> Tuple[int, Tuple[int, int, int]]:
+    """Score doorway suitability using only already-retrieved evidence."""
+    title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
+    content = _resource_content(metadata).casefold()
+    early_content = content[:1600]
+
+    if not title or _is_non_resource_service_title(title):
+        return (-1000, (0, 0, 0))
+
+    title_hits = sum(1 for term in _DOORWAY_TITLE_TERMS if term in title)
+    content_hits = sum(1 for term in _DOORWAY_CONTENT_TERMS if term in early_content)
+    orientation_bonus = _orientational_resource_bonus(metadata, frame)
+
+    score = (title_hits * 4) + (content_hits * 2) + orientation_bonus
+    return score, (title_hits, content_hits, orientation_bonus)
+
+
+def select_canonical_doorways(
+    documents: List[Dict[str, Any]],
+    frame: Dict[str, Any],
+    *,
+    preserve_prefix: int = 0,
+) -> List[Dict[str, Any]]:
+    """
+    Prioritize the strongest already-retrieved canonical doorway.
+
+    This function only reorders the supplied evidence. It never adds,
+    removes, searches for, or links a resource. Explicit structural
+    destinations supplied by an earlier retrieval stage remain protected.
+    """
+    if not documents:
+        return documents
+
+    prefix = documents[:preserve_prefix]
+    remainder = documents[preserve_prefix:]
+
+    ranked = []
+    for index, document in enumerate(remainder):
+        score, detail = _canonical_doorway_score(document, frame)
+        ranked.append((score, detail, -index, document))
+
+    ranked.sort(
+        key=lambda item: (item[0], item[1], item[2]),
+        reverse=True,
+    )
+
+    selected = [document for _score, _detail, _order, document in ranked]
+
+    if selected:
+        primary = selected[0]
+        primary_score, primary_detail = _canonical_doorway_score(primary, frame)
+        print(
+            "USE canonical doorway selection: "
+            f"primary='{_canonical_display_title(str(primary.get('title', 'Untitled Resource')))}', "
+            f"score={primary_score}, detail={primary_detail}, "
+            f"candidates={len(selected)}."
+        )
+
+    return prefix + selected
+
+
+# =====================================================================
 # CANONICAL RETRIEVAL
 # =====================================================================
 
@@ -2165,6 +2284,15 @@ def fetch_canonical_context(
     # destinations remain first; ordinary topical evidence is then domain-biased.
     protected_prefix = min(len(structural_docs), len(retrieved_docs)) if collection_name else 0
     retrieved_docs = orientational_rerank_documents(
+        retrieved_docs,
+        orientational_frame,
+        preserve_prefix=protected_prefix,
+    )
+
+    # v65: explicit doorway selection is a final routing refinement over
+    # already-retrieved, lifecycle-eligible evidence. It does not expand
+    # retrieval or alter canonical link authority.
+    retrieved_docs = select_canonical_doorways(
         retrieved_docs,
         orientational_frame,
         preserve_prefix=protected_prefix,
@@ -4967,20 +5095,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v64",
-            "# USE PRODUCTION VERSION: v64",
+            "# USE TEST VERSION: v65",
+            "# USE PRODUCTION VERSION: v65",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v64."
+                "Source version-label regression: line 1 does not identify v65."
             )
-        if APP_VERSION != "v64":
+        if APP_VERSION != "v65":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v64."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v65."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v64-self-audit-alignment":
+        if DEPLOYMENT_FINGERPRINT != "USE-v65-canonical-doorway-selection":
             raise RuntimeError(
-                "Deployment fingerprint regression: v64 fingerprint is not aligned."
+                "Deployment fingerprint regression: v65 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5146,8 +5274,72 @@ def _generation_boundary_self_audit() -> None:
                 "Compact generation regression: provider fixed envelope exceeds 1800 chars."
             )
 
+        # v65 regression: doorway selection must prioritize a canonical
+        # resource whose evidence establishes an orientational/entry role
+        # over a narrowly topical resource when both are already retrieved.
+        doorway_documents = [
+            {
+                "title": "Narrow Institutional Change Example",
+                "url": "https://example.invalid/narrow",
+                "text": "A focused discussion of one institutional change.",
+            },
+            {
+                "title": "Institutional Foundations",
+                "url": "https://example.invalid/foundations",
+                "text": "An overview of institutional foundations and where to begin exploring the question.",
+            },
+        ]
+        doorway_selected = select_canonical_doorways(
+            doorway_documents,
+            {"primary": "systems", "scores": {"systems": 1}},
+        )
+        if doorway_selected[0]["title"] != "Institutional Foundations":
+            raise RuntimeError(
+                "Canonical doorway selection regression: stronger orientational "
+                "entry resource was not prioritized."
+            )
+
+        # v65 boundary regression: doorway selection may only reorder supplied
+        # canonical resources; it must never manufacture a new resource.
+        doorway_keys_before = {
+            _resource_key(document) for document in doorway_documents
+        }
+        doorway_keys_after = {
+            _resource_key(document) for document in doorway_selected
+        }
+        if doorway_keys_before != doorway_keys_after:
+            raise RuntimeError(
+                "Canonical doorway selection regression: selection changed "
+                "the retrieved resource set."
+            )
+
+        # v65 boundary regression: explicit protected destinations remain
+        # first and are never displaced by topical doorway scoring.
+        protected_documents = [
+            {
+                "title": "Requested Collection",
+                "url": "https://example.invalid/collection",
+                "text": "The requested collection landing page.",
+            },
+            {
+                "title": "Foundational Guide",
+                "url": "https://example.invalid/guide",
+                "text": "An overview and where to begin.",
+            },
+        ]
+        protected_selected = select_canonical_doorways(
+            protected_documents,
+            {"primary": "systems", "scores": {"systems": 1}},
+            preserve_prefix=1,
+        )
+        if protected_selected[0]["title"] != "Requested Collection":
+            raise RuntimeError(
+                "Canonical doorway selection regression: protected destination "
+                "was displaced."
+            )
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v64":
+        if APP_VERSION != "v65":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
