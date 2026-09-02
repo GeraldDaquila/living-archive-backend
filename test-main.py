@@ -479,10 +479,6 @@ RULES
 7. Output only the finished visitor-facing answer inside <visitor_answer> tags.
 8. For resources, output only the exact canonical title as plain text. Do not output
    URLs, Markdown links, HTML, slugs, or emoji; USE adds canonical links.
-9. Never surface a resource that the supplied evidence identifies as archived,
-   retired, withdrawn, superseded, deprecated, or otherwise no longer current.
-   Do not infer archival status merely because the current resource discusses
-   historical or archived material.
 """
 
 
@@ -1558,7 +1554,7 @@ _ARCHIVAL_SLUG_SUFFIXES = (
 
 
 def _normalized_lifecycle_value(value: Any) -> str:
-    return re.sub(r"\\s+", " ", str(value or "")).strip().casefold()
+    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
 
 
 def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
@@ -1584,7 +1580,7 @@ def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
     # Canonical titles beginning with an explicit archive marker are strong
     # resource-identity evidence. This does not inspect arbitrary content text.
     title = re.sub(
-        r"\\s+",
+        r"\s+",
         " ",
         str(metadata.get("title", "") or ""),
     ).strip().casefold()
@@ -1596,7 +1592,7 @@ def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
     # this to suffixes so ordinary resources discussing "legacy systems" are not
     # suppressed merely because that phrase occurs in their title or content.
     slug = re.sub(
-        r"\\s+",
+        r"\s+",
         " ",
         str(metadata.get("slug", "") or ""),
     ).strip().strip("/").casefold()
@@ -4808,7 +4804,7 @@ def _generation_boundary_self_audit() -> None:
                 "Provider adaptive-fit regression: oversized evidence was not compacted."
             )
 
-        # v57 regression: the fixed generation envelope itself must leave
+        # Provider-envelope regression: the fixed generation envelope itself must leave
         # meaningful room for canonical evidence. A self-audit that can only
         # fit metadata or no evidence is not a valid provider-safe generation path.
         primary_empty_messages = _build_generation_messages(
@@ -4834,17 +4830,21 @@ def _generation_boundary_self_audit() -> None:
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-        if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v57"):
+        expected_source_prefixes = (
+            "# USE TEST VERSION: v58",
+            "# USE PRODUCTION VERSION: v58",
+        )
+        if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v57."
+                "Source version-label regression: line 1 does not identify v58."
             )
-        if APP_VERSION != "v57":
+        if APP_VERSION != "v58":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v58."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v57-provider-budget-safe-multi-resource-navigation":
+        if DEPLOYMENT_FINGERPRINT != "USE-v58-canonical-corpus-lifecycle-gate":
             raise RuntimeError(
-                "Deployment fingerprint regression: v57 fingerprint is not aligned."
+                "Deployment fingerprint regression: v58 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4958,7 +4958,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v57":
+        if APP_VERSION != "v58":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
