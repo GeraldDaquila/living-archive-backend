@@ -1,4 +1,4 @@
-# USE TEST VERSION: v72 — Question–Doorway Centrality
+# USE TEST VERSION: v73 — Evidence Provenance Integrity
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -309,6 +309,17 @@ CONSTITUTIONAL RULES
     possibility, or interpretive synthesis. Do not attribute a causal
     claim to a resource that only supplies one part of the relationship.
 
+28. EVIDENCE PROVENANCE INTEGRITY
+    Canonical titles, URLs, labels, and metadata establish resource
+    identity; they are not substantive evidence about what a resource
+    says. Substantive claims about a resource must be grounded in the
+    supplied Content/evidence text. Never infer the substance of a
+    resource from its title alone, even when phrased as "suggests",
+    "implies", or a "possible interpretation". If the supplied evidence
+    is insufficient to support a claim, say that it is not established
+    by the retrieved evidence rather than filling the gap from the
+    resource title or outside knowledge.
+
 29. MINIMAL ORIENTATION
     Once a strong entry point has been selected, do not add material
     merely to make the answer feel comprehensive.
@@ -529,7 +540,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v72"
+APP_VERSION = "v73"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -545,7 +556,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v72-question-doorway-centrality"
+DEPLOYMENT_FINGERPRINT = "USE-v73-evidence-provenance-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4260,6 +4271,18 @@ def _build_generation_messages(
             "reading rather than as what the evidence proves. "
         )
 
+    if intent == "TOPICAL_INQUIRY":
+        system_content += (
+            "\n\n[EVIDENCE PROVENANCE — DO NOT REVEAL]: "
+            "Treat each Title and URL as resource identity only. Do not make "
+            "substantive claims about what a resource says from its title, "
+            "URL, label, or inferred subject matter. Ground every substantive "
+            "resource claim in that resource's supplied Content/evidence text. "
+            "If the Content is insufficient, state that the supplied evidence "
+            "does not establish the claim; do not fill the gap from the title "
+            "or outside knowledge. "
+        )
+
     user_content = (
         user_query
         + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
@@ -5556,20 +5579,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v72",
-            "# USE PRODUCTION VERSION: v72",
+            "# USE TEST VERSION: v73",
+            "# USE PRODUCTION VERSION: v73",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v72."
+                "Source version-label regression: line 1 does not identify v73."
             )
-        if APP_VERSION != "v72":
+        if APP_VERSION != "v73":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v72."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v73."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v72-question-doorway-centrality":
+        if DEPLOYMENT_FINGERPRINT != "USE-v73-evidence-provenance-integrity":
             raise RuntimeError(
-                "Deployment fingerprint regression: v72 fingerprint is not aligned."
+                "Deployment fingerprint regression: v73 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5986,6 +6009,32 @@ def _generation_boundary_self_audit() -> None:
                 "was displaced."
             )
 
+        # v73 regression: titles/URLs are identity metadata, not substantive
+        # evidence. The generation boundary must explicitly prevent title-only
+        # inference and require supplied Content/evidence for resource claims.
+        provenance_messages = _build_generation_messages(
+            "How can I tell whether an old pattern is no longer fitting me?",
+            "TOPICAL_INQUIRY",
+            (
+                "Title: What Is Ego Death? The Hidden Gateway to Spiritual Transformation\n"
+                "URL: https://example.invalid/ego-death\n"
+                "Content: A resource is supplied here only as a short retrieval "
+                "record and does not establish what the full article says."
+            ),
+            {"primary": "inward", "scores": {}},
+        )
+        provenance_system = provenance_messages[0]["content"]
+        if "EVIDENCE PROVENANCE" not in provenance_system:
+            raise RuntimeError(
+                "v73 provenance regression: evidence-provenance instruction "
+                "was not added to topical generation."
+            )
+        if "Title and URL" not in provenance_system or "supplied Content/evidence text" not in provenance_system:
+            raise RuntimeError(
+                "v73 provenance regression: title/URL identity boundary or "
+                "Content evidence requirement is missing."
+            )
+
         # v71 regression: topical generation must explicitly preserve the
         # distinction between source-supported claims and inferred causal bridges.
         synthesis_messages = _build_generation_messages(
@@ -6015,7 +6064,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v72":
+        if APP_VERSION != "v73":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
