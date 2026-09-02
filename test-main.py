@@ -5572,6 +5572,8 @@ def _generation_boundary_self_audit() -> None:
 
         # v63 regression: the compact provider instruction must materially reduce
         # fixed envelope consumption so the selected evidence can survive intact.
+        # The compact boundary is now validated against the actual provider
+        # capacity rather than the obsolete 1800-character fixed-envelope ceiling.
         compact_empty_messages = _build_generation_messages(
             "Why do systems change?",
             "TOPICAL_INQUIRY",
@@ -5579,9 +5581,16 @@ def _generation_boundary_self_audit() -> None:
             None,
         )
         compact_fixed_chars = _estimate_message_chars(compact_empty_messages)
-        if compact_fixed_chars > 1800:
+        compact_output_reservation = math.ceil(MAX_COMPACT_GENERATION_TOKENS * 4 * 1.25)
+        compact_evidence_capacity = min(
+            MAX_PROVIDER_INPUT_CHARS - compact_fixed_chars,
+            MAX_PROVIDER_TOTAL_CHARS - compact_fixed_chars - compact_output_reservation,
+        )
+        if compact_evidence_capacity < 700:
             raise RuntimeError(
-                "Compact generation regression: provider fixed envelope exceeds 1800 chars."
+                "Compact generation regression: provider envelope leaves insufficient "
+                f"room for canonical evidence "
+                f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
             )
 
         # v65 regression: doorway selection must prioritize a canonical
