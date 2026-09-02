@@ -5095,20 +5095,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v64",
-            "# USE PRODUCTION VERSION: v64",
+            "# USE TEST VERSION: v65",
+            "# USE PRODUCTION VERSION: v65",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v64."
+                "Source version-label regression: line 1 does not identify v65."
             )
-        if APP_VERSION != "v64":
+        if APP_VERSION != "v65":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v64."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v65."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v64-self-audit-alignment":
+        if DEPLOYMENT_FINGERPRINT != "USE-v65-canonical-doorway-selection":
             raise RuntimeError(
-                "Deployment fingerprint regression: v64 fingerprint is not aligned."
+                "Deployment fingerprint regression: v65 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
