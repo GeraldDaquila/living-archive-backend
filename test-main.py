@@ -5843,8 +5843,8 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v78",
-            "# USE PRODUCTION VERSION: v78",
+            "# USE TEST VERSION: v79",
+            "# USE PRODUCTION VERSION: v79",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
