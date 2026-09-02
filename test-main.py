@@ -1,4 +1,4 @@
-# USE TEST VERSION: v74 — Interpretive Frame Sovereignty
+# USE TEST VERSION: v75 — Interpretive Frame Sovereignty — Prompt Envelope Recovery
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -520,30 +520,15 @@ CONSTITUTIONAL RULES
 # =====================================================================
 
 GENERATION_SYSTEM_PROMPT = """
-You are the Living Archive (USE) navigation engine.
-Use only the supplied canonical evidence; it is a bounded view of the Archive.
+You are the Living Archive (USE) navigation engine. Use only the supplied canonical evidence; it is a bounded view of the Archive.
 
-For TOPICAL questions, do not answer as a generic encyclopedia. Orient the
-visitor through the supplied evidence: reflect the question, synthesize only
-supported relationships, and provide a genuine canonical doorway when one
-is established. If canonical evidence is supplied, name at least one exact
-Title: resource; normally use 2–3 only when they add distinct coverage. When
-the visitor's question is open or underdetermined, do not collapse that
-question into the most specialized interpretation present in the evidence;
-present a supported interpretation as a possible lens and preserve uncertainty
-when the evidence does not establish a single cause or meaning.
-When synthesizing multiple resources, distinguish what each resource
-explicitly supports from relationships USE infers across them. Do not
-present an inferred causal chain as established merely because each
-component idea appears in the evidence. Mark unsupported causal bridges
-as possible interpretations or reasonable inferences.
-For destination/collection requests, use only the genuine destination established
-by evidence. Never invent or substitute resources, relationships, definitions,
-or URLs. Never reveal internal process or labels.
+For TOPICAL questions, do not answer as a generic encyclopedia. Orient the visitor through the supplied evidence: reflect the question, synthesize only supported relationships, and provide a genuine canonical doorway when established. If canonical evidence is supplied, name at least one exact Title: resource; normally use 2–3 only when they add distinct coverage.
 
-Output only the finished visitor-facing answer inside <visitor_answer> tags.
-For resources, write exact canonical titles as plain text only; no URLs,
-Markdown, HTML, slugs, or emoji. USE adds canonical links.
+[INTERPRETIVE FRAME SOVEREIGNTY]: Keep the visitor's question in their own terms. Do not let a specialized framework define the governing explanation unless the visitor names it. Treat an uninvited framework only as that resource's lens; do not imply the visitor is undergoing it or that its characteristic outcome follows. If evidence is mainly specialized, say its fit is limited or framework-specific. Preserve uncertainty where evidence does not establish a cause or meaning.
+
+[EVIDENCE PROVENANCE]: Title and URL identify resources; they are not substantive evidence. Ground resource claims in supplied Content/evidence text. If Content is insufficient, say the evidence does not establish the claim; never fill gaps from title, URL, label, or outside knowledge. [EVIDENCE-BOUND SYNTHESIS]: Separate supported claims from inferred relationships; never turn thematic compatibility into established causation. Mark an unsupported causal bridge as inference or possible reading.
+
+For destination/collection requests, use only genuine destinations established by evidence. Never invent or substitute resources, relationships, definitions, or URLs. Never reveal internal process or labels. Output only the finished visitor-facing answer inside <visitor_answer> tags. For resources, write exact canonical titles as plain text only; no URLs, Markdown, HTML, slugs, or emoji. USE adds canonical links.
 """
 
 
@@ -551,7 +536,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v74"
+APP_VERSION = "v75"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -567,7 +552,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v74-interpretive-frame-sovereignty"
+DEPLOYMENT_FINGERPRINT = "USE-v75-interpretive-frame-sovereignty"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4299,44 +4284,6 @@ def _build_generation_messages(
         f"{frame_hint}. Use only when supported by evidence."
     )
 
-    if underdetermined and intent == "TOPICAL_INQUIRY":
-        system_content += (
-            "\n\n[INTERPRETIVE SOVEREIGNTY — DO NOT REVEAL]: "
-            "The visitor's question is structurally underdetermined. Do not "
-            "treat one specialized framework in the evidence as the established "
-            "meaning or cause of the visitor's experience. Preserve the question's "
-            "open territory. If the supplied evidence offers one plausible lens, "
-            "present it explicitly as one lens rather than as the explanation. "
-            "Prefer distinct supported possibilities when available, and preserve "
-            "uncertainty where the evidence does not establish a cause. Do not "
-            "introduce outside interpretations. "
-        )
-
-    frame_sovereignty_instruction = _interpretive_frame_sovereignty_instruction(
-        user_query, intent
-    )
-    if frame_sovereignty_instruction:
-        system_content += frame_sovereignty_instruction
-
-    if intent == "TOPICAL_INQUIRY":
-        system_content += (
-            "\n\n[EVIDENCE-BOUND SYNTHESIS — DO NOT REVEAL]: "
-            "Separate source-supported claims from relationships you infer "
-            "across resources. Do not convert thematic compatibility into "
-            "causation. If two resources support different parts of a possible "
-            "explanation but the evidence does not explicitly establish the "
-            "causal bridge, describe that bridge as an inference or possible "
-            "reading rather than as what the evidence proves. "
-        )
-
-    if intent == "TOPICAL_INQUIRY":
-        system_content += (
-            "\n\n[EVIDENCE PROVENANCE — DO NOT REVEAL]: "
-            "Treat each Title and URL as identity only, not substantive evidence. "
-            "Ground every resource claim in its supplied Content/evidence text. "
-            "If Content is insufficient, say the evidence does not establish the "
-            "claim; never fill the gap from the title, URL, label, or outside knowledge. "
-        )
 
     user_content = (
         user_query
@@ -5026,7 +4973,7 @@ def _v72_question_doorway_centrality_self_audit() -> Dict[str, Any]:
     }
 
 
-def _v74_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
+def _v75_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
     """Static audit for preserving open questions against uninvited framing."""
     broad_question = (
         "If I stop trying to interpret an experience immediately, what becomes "
@@ -5064,11 +5011,11 @@ def _generation_boundary_self_audit() -> None:
                 f"{v72_centrality}"
             )
 
-        v74_frame_sovereignty = _v74_interpretive_frame_sovereignty_self_audit()
-        if not v74_frame_sovereignty["pass"]:
+        v75_frame_sovereignty = _v75_interpretive_frame_sovereignty_self_audit()
+        if not v75_frame_sovereignty["pass"]:
             raise RuntimeError(
-                "v74 interpretive-frame sovereignty self-audit failed: "
-                f"{v74_frame_sovereignty}"
+                "v75 interpretive-frame sovereignty self-audit failed: "
+                f"{v75_frame_sovereignty}"
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -5666,20 +5613,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v74",
-            "# USE PRODUCTION VERSION: v74",
+            "# USE TEST VERSION: v75",
+            "# USE PRODUCTION VERSION: v75",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v74."
+                "Source version-label regression: line 1 does not identify v75."
             )
-        if APP_VERSION != "v74":
+        if APP_VERSION != "v75":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v74."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v75."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v74-interpretive-frame-sovereignty":
+        if DEPLOYMENT_FINGERPRINT != "USE-v75-interpretive-frame-sovereignty":
             raise RuntimeError(
-                "Deployment fingerprint regression: v74 fingerprint is not aligned."
+                "Deployment fingerprint regression: v75 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -6122,7 +6069,7 @@ def _generation_boundary_self_audit() -> None:
                 "Content evidence requirement is missing."
             )
 
-        # v74 regression: broad experiential questions must not acquire an
+        # v75 regression: broad experiential questions must not acquire an
         # uninvited specialized interpretive frame from retrieved evidence.
         frame_messages = _build_generation_messages(
             "If I stop trying to interpret an experience immediately, what becomes available to me?",
@@ -6139,12 +6086,12 @@ def _generation_boundary_self_audit() -> None:
         frame_system = frame_messages[0]["content"]
         if "INTERPRETIVE FRAME SOVEREIGNTY" not in frame_system:
             raise RuntimeError(
-                "v74 frame-sovereignty regression: specialized framework guard "
+                "v75 frame-sovereignty regression: specialized framework guard "
                 "was not added for broad experiential questions."
             )
         if "governing explanation" not in frame_system:
             raise RuntimeError(
-                "v74 frame-sovereignty regression: governing-frame boundary missing."
+                "v75 frame-sovereignty regression: governing-frame boundary missing."
             )
 
         # v71 regression: topical generation must explicitly preserve the
@@ -6176,7 +6123,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v74":
+        if APP_VERSION != "v75":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
