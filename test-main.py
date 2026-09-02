@@ -1,4 +1,4 @@
-# USE TEST VERSION: v63 — Compact Generation Boundary
+# USE TEST VERSION: v64 — Compact Generation Boundary
 # Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while extending the canonical lifecycle eligibility
@@ -498,7 +498,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v63"
+APP_VERSION = "v64"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -514,7 +514,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v63-deduplicated-provider-envelope"
+DEPLOYMENT_FINGERPRINT = "USE-v64-self-audit-alignment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4968,20 +4968,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v63",
-            "# USE PRODUCTION VERSION: v63",
+            "# USE TEST VERSION: v64",
+            "# USE PRODUCTION VERSION: v64",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v63."
+                "Source version-label regression: line 1 does not identify v64."
             )
-        if APP_VERSION != "v63":
+        if APP_VERSION != "v64":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v63."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v64."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v63-deduplicated-provider-envelope":
+        if DEPLOYMENT_FINGERPRINT != "USE-v64-self-audit-alignment":
             raise RuntimeError(
-                "Deployment fingerprint regression: v63 fingerprint is not aligned."
+                "Deployment fingerprint regression: v64 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5053,17 +5053,16 @@ def _generation_boundary_self_audit() -> None:
                 "Visitor resource eligibility regression: valid canonical resource was removed."
             )
 
-        # v56 regression: multi-resource generation must remain an intentional
-        # evidence-aware behavior. The generation prompt must explicitly prefer
-        # multiple materially relevant resources when they add distinct coverage,
-        # while preserving the one-resource case when one resource is sufficient.
-        if "normally surface 2–3" not in GENERATION_SYSTEM_PROMPT:
+        # v64 regression: the compact generation policy must preserve the
+        # constitutional topical-navigation and multi-resource rules using the
+        # current v63 wording, without requiring obsolete prompt text.
+        if "For TOPICAL questions, do not answer as a generic encyclopedia." not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
-                "Multi-resource navigation regression: generation policy is missing."
+                "Topical navigation regression: generic-answer prevention policy is missing."
             )
-        if "Do not give a generic encyclopedia answer" not in GENERATION_SYSTEM_PROMPT:
+        if "normally use 2–3 only when they add distinct coverage" not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
-                "Topical navigation regression: generic-answer prevention is missing."
+                "Multi-resource navigation regression: current multi-resource policy is missing."
             )
         multi_resource_test_context = format_context_blocks([
             {
@@ -5149,7 +5148,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v63":
+        if APP_VERSION != "v64":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
