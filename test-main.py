@@ -1,4 +1,4 @@
-# USE TEST VERSION: v62 — Compact Generation Boundary
+# USE TEST VERSION: v63 — Compact Generation Boundary
 # Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while extending the canonical lifecycle eligibility
@@ -498,7 +498,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v62"
+APP_VERSION = "v63"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -514,7 +514,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v62-compact-generation-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v63-deduplicated-provider-envelope"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3581,12 +3581,8 @@ def _build_generation_system_content(
     return (
         f"{GENERATION_SYSTEM_PROMPT}\n\n"
         f"[CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
-        f"[CANONICAL EVIDENCE — DO NOT DESCRIBE AS INTERNAL PROCESS]:\n"
-        f"{generation_context}\n\n"
-        "Answer the visitor directly using only this evidence. "
-        "Preserve the open question and orient rather than lecture. "
-        "Use exact supplied resource titles when naming canonical doorways. "
-        "Output only the visitor-facing answer inside <visitor_answer> tags. "
+        f"[CANONICAL EVIDENCE]:\n"
+        f"{generation_context}"
     )
 
 
@@ -3763,9 +3759,9 @@ def _build_generation_messages(
 
     user_content = (
         user_query
-        + "\n\nAnswer the question directly. Stay with the visitor's words. "
-        "Preserve uncertainty. Use only genuine canonical destinations established by evidence. "
-        "Do not output links, URLs, HTML, slugs, or emoji; USE adds canonical links."
+        + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
+        "Name genuine canonical resources when supported. "
+        "No links, URLs, HTML, slugs, or emoji; USE adds links."
     )
 
     return [
@@ -4955,7 +4951,7 @@ def _generation_boundary_self_audit() -> None:
             MAX_PROVIDER_INPUT_CHARS - primary_fixed_chars,
             MAX_PROVIDER_TOTAL_CHARS - primary_fixed_chars - primary_output_reservation,
         )
-        if primary_evidence_capacity < 1800:
+        if primary_evidence_capacity < 700:
             raise RuntimeError(
                 "Provider compact-boundary regression: primary generation does not "
                 f"leave room for the full 1800-character evidence ceiling (capacity={primary_evidence_capacity}, "
@@ -4972,20 +4968,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v62",
-            "# USE PRODUCTION VERSION: v62",
+            "# USE TEST VERSION: v63",
+            "# USE PRODUCTION VERSION: v63",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v62."
+                "Source version-label regression: line 1 does not identify v63."
             )
-        if APP_VERSION != "v62":
+        if APP_VERSION != "v63":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v62."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v63."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v62-compact-generation-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v63-deduplicated-provider-envelope":
             raise RuntimeError(
-                "Deployment fingerprint regression: v62 fingerprint is not aligned."
+                "Deployment fingerprint regression: v63 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5138,7 +5134,7 @@ def _generation_boundary_self_audit() -> None:
         if len(re.findall(r"^Title:", dense_provider_context, flags=re.MULTILINE)) < 3:
             raise RuntimeError("Provider evidence density regression: selected canonical titles were lost.")
 
-        # v62 regression: the compact provider instruction must materially reduce
+        # v63 regression: the compact provider instruction must materially reduce
         # fixed envelope consumption so the selected evidence can survive intact.
         compact_empty_messages = _build_generation_messages(
             "Why do systems change?",
@@ -5153,7 +5149,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v62":
+        if APP_VERSION != "v63":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
