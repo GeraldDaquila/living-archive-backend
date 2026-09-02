@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION v57
+# USE PRODUCTION VERSION: v57 — EXPERIMENTAL PARALLEL TEST BUILD
 # Complete production unit reconstructed from the verified v56 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while correcting the v56 fixed-envelope preflight failure.
@@ -484,7 +484,7 @@ app.add_middleware(
 )
 
 # Browser/API boundary: make CORS explicit at the final response boundary
-# as well as thrDEPLOYMENT_FINGERPRINT = "USE-v57-test-parallel-environment"ugh CORSMiddleware. This protects the browser-facing
+# as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
 DEPLOYMENT_FINGERPRINT = "USE-v57-test-parallel-environment"
@@ -4641,21 +4641,23 @@ def _generation_boundary_self_audit() -> None:
                 f"fixed_input={primary_fixed_chars})."
             )
 
-        # Release identity audit: the source file itself must declare the
-        # same version as the runtime and deployment fingerprint. This prevents
-        # the repeated stale/misaligned top-of-file version problem.
+        # Release identity audit: this file is an experimental parallel build
+        # derived from the canonical production v57 source. The source header
+        # must preserve v57 ancestry while the runtime identity must explicitly
+        # identify this test deployment. This keeps the audit strict without
+        # confusing the experimental copy with production main.py.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         if not source_lines or not source_lines[0].startswith("# USE PRODUCTION VERSION: v57"):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v57."
+                "Source version-label regression: line 1 does not identify v57 ancestry."
             )
-        if APP_VERSION != "v57":
+        if APP_VERSION != "v57-test":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v57-test."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v57-provider-budget-safe-multi-resource-navigation":
+        if DEPLOYMENT_FINGERPRINT != "USE-v57-test-parallel-environment":
             raise RuntimeError(
-                "Deployment fingerprint regression: v57 fingerprint is not aligned."
+                "Deployment fingerprint regression: v57-test parallel fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4768,10 +4770,10 @@ def _generation_boundary_self_audit() -> None:
                 "multiple selected resources to fewer than two canonical records."
             )
 
-        # Runtime identity must be explicit and current.
-        if APP_VERSION != "v57":
+        # Runtime identity must be explicit and current for this parallel test build.
+        if APP_VERSION != "v57-test":
             raise RuntimeError(
-                f"Unexpected USE runtime version: {APP_VERSION}"
+                f"Unexpected USE test runtime version: {APP_VERSION}"
             )
 
         # provider-boundary recovery regression: when provider execution is unavailable,
