@@ -6264,7 +6264,7 @@ def _generation_boundary_self_audit() -> None:
                 "v73 provenance regression: evidence-provenance instruction "
                 "was not added to topical generation."
             )
-        if "Titles/URLs identify resources, not substantive evidence." not in provenance_system or "Ground claims in supplied Content." not in provenance_system:
+        if "Titles/URLs identify resources, not evidence." not in provenance_system or "Ground claims in supplied Content;" not in provenance_system:
             raise RuntimeError(
                 "v73 provenance regression: title/URL identity boundary or "
                 "Content evidence requirement is missing."
