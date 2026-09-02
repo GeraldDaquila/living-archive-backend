@@ -1,8 +1,9 @@
-# USE TEST VERSION: v66 — Question-Conditioned Canonical Doorway Selection
-# Complete experimental production unit reconstructed from the frozen v65
-# TEST baseline. This experiment makes the existing doorway layer question-
-# conditioned without replacing semantic retrieval, altering canonical link
-# authority, expanding retrieval, or creating a second navigation engine.
+# USE TEST VERSION: v67 — Ambiguity-Aware Question-Conditioned Doorway Selection
+# Complete experimental production unit reconstructed from the frozen v66
+# TEST baseline. This experiment adds a bounded interpretive-distance guard to
+# the existing question-conditioned doorway layer without replacing semantic
+# retrieval, altering canonical link authority, expanding retrieval, or
+# creating a second navigation engine.
 
 import os
 import re
@@ -497,7 +498,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v66"
+APP_VERSION = "v67"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -513,7 +514,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v66-question-conditioned-doorway-selection"
+DEPLOYMENT_FINGERPRINT = "USE-v67-ambiguity-aware-doorway-selection"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1938,12 +1939,30 @@ def _canonical_doorway_score(
     orientation_bonus = _orientational_resource_bonus(metadata, frame)
     question_fit, fit_detail = _question_resource_fit(question, metadata)
 
-    # v65 doorway evidence remains intact. v66 adds a bounded question-fit
-    # signal so a generic doorway cannot win solely because it says "guide"
-    # or "overview" when another retrieved resource is a substantially closer
-    # doorway into the actual question.
-    score = (title_hits * 4) + (content_hits * 2) + orientation_bonus + (question_fit * 2)
-    return score, (title_hits, content_hits, orientation_bonus, question_fit, fit_detail[1])
+    # v65 doorway evidence remains intact when no visitor question is supplied.
+    # v66 adds bounded question fit so a generic doorway cannot win solely
+    # because it says "guide" or "overview" when another retrieved resource
+    # is a substantially closer doorway into the actual question.
+    #
+    # v67 adds one further constitutional guard: when the supplied question has
+    # little direct lexical grounding in a candidate, generic doorway signals
+    # are capped. This prevents an interpretively specific resource from being
+    # promoted merely because its title/content looks like a "gateway",
+    # "framework", or "orientation". In that case semantic retrieval order is
+    # allowed to remain the stronger signal. The selector still never expands
+    # or changes the retrieved resource set.
+    generic_doorway_score = (title_hits * 4) + (content_hits * 2) + orientation_bonus
+    if question and question_fit <= 1:
+        generic_doorway_score = min(2, generic_doorway_score)
+
+    score = generic_doorway_score + (question_fit * 2)
+    return score, (
+        title_hits,
+        content_hits,
+        orientation_bonus,
+        question_fit,
+        fit_detail[1],
+    )
 
 
 def select_canonical_doorways(
@@ -5162,20 +5181,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v66",
-            "# USE PRODUCTION VERSION: v66",
+            "# USE TEST VERSION: v67",
+            "# USE PRODUCTION VERSION: v67",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v66."
             )
-        if APP_VERSION != "v66":
+        if APP_VERSION != "v67":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v66."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v67."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v66-question-conditioned-doorway-selection":
+        if DEPLOYMENT_FINGERPRINT != "USE-v67-ambiguity-aware-doorway-selection":
             raise RuntimeError(
-                "Deployment fingerprint regression: v66 fingerprint is not aligned."
+                "Deployment fingerprint regression: v67 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5406,6 +5425,35 @@ def _generation_boundary_self_audit() -> None:
                 "Question-conditioned doorway regression: resource set changed."
             )
 
+        # v67 regression: an ambiguous experiential question must not be forced
+        # into an interpretively specific doorway merely because that resource
+        # advertises a gateway/framework/orientation role. When direct question
+        # grounding is weak, generic doorway evidence is deliberately capped so
+        # semantic retrieval order remains sovereign.
+        ambiguous_question = "Why can a life that looks fine from the outside still feel wrong from the inside?"
+        ambiguous_documents = [
+            {
+                "title": "What Is Ego Death? The Hidden Gateway to Spiritual Transformation",
+                "url": "https://example.invalid/ego-death",
+                "text": "A gateway into spiritual transformation through ego and identity."
+            },
+            {
+                "title": "Inner Disorientation and the Life That No Longer Fits",
+                "url": "https://example.invalid/inner-disorientation",
+                "text": "Explores why an outwardly fine life can still feel wrong from the inside."
+            },
+        ]
+        ambiguous_selected = select_canonical_doorways(
+            ambiguous_documents,
+            {"primary": "inward", "scores": {"inward": 1}},
+            question=ambiguous_question,
+        )
+        if ambiguous_selected[0]["title"] != "Inner Disorientation and the Life That No Longer Fits":
+            raise RuntimeError(
+                "Ambiguity-aware doorway regression: interpretively specific "
+                "gateway language displaced the closer question-grounded resource."
+            )
+
         # v65 boundary regression: doorway selection may only reorder supplied
         # canonical resources; it must never manufacture a new resource.
         doorway_keys_before = {
@@ -5446,7 +5494,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v66":
+        if APP_VERSION != "v67":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
