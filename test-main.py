@@ -1,4 +1,4 @@
-# USE TEST VERSION: v69 — Canonical Doorway Proportionality
+# USE TEST VERSION: v70 — Framework-Neutral Canonical Doorway Selection
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -502,7 +502,7 @@ Markdown, HTML, slugs, or emoji. USE adds canonical links.
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v69"
+APP_VERSION = "v70"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -518,7 +518,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v69-canonical-doorway-proportionality"
+DEPLOYMENT_FINGERPRINT = "USE-v70-framework-neutral-doorway-selection"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1883,6 +1883,30 @@ _SPECIALIZED_SCOPE_TERMS = frozenset({
     "miscarriage", "diagnosis", "diagnosed", "disease", "illness", "disorder",
 })
 
+# v70 framework-neutrality signals. These identify questions explicitly about
+# explanations, narratives, models, labels, frameworks, or interpretive fit.
+# A specialized worldview may remain evidence while being disfavored as the
+# first canonical doorway unless the visitor explicitly names that worldview.
+_FRAMEWORK_QUERY_TERMS = frozenset({
+    "explanation", "explanations", "narrative", "narratives", "story", "stories",
+    "framework", "frameworks", "model", "models", "interpretation",
+    "interpretations", "label", "labels", "archetype", "archetypes",
+    "meaning", "fit", "fitting", "clarity", "clearer", "unclear",
+})
+
+_FRAMEWORK_QUERY_PHRASES = frozenset({
+    "fit myself", "fit experience", "fit experiences", "make sense",
+    "makes sense", "make sense of", "sense of", "explanation make",
+    "explanations make", "story about", "stories about",
+})
+
+_SPECIALIZED_FRAMEWORK_TERMS = frozenset({
+    "starseed", "starseeds", "ascension", "awakening", "kundalini",
+    "reincarnation", "past-life", "pastlife", "soul", "ego death",
+    "nonduality", "non-duality", "manifestation", "channeling",
+    "channeled", "akashic", "twin flame", "twin-flame",
+})
+
 _QUESTION_STOPWORDS = frozenset({
     "a", "about", "after", "all", "always", "am", "an", "and", "are",
     "as", "at", "be", "because", "been", "being", "but", "by", "can",
@@ -1938,11 +1962,44 @@ def _question_resource_fit(
     return score, (term_hits, phrase_hits, title_term_hits)
 
 
+def _framework_neutrality_penalty(question: str, title: str) -> int:
+    """Penalize specialized worldview doorways for framework-level questions."""
+    if not question or not title:
+        return 0
+
+    terms, phrases = _question_condition_terms(question)
+    term_set = set(terms)
+    phrase_set = set(phrases)
+
+    meta_markers = {
+        "explanation", "explanations", "narrative", "narratives", "framework",
+        "frameworks", "model", "models", "interpretation", "interpretations",
+        "archetype", "archetypes", "label", "labels", "fit", "fitting",
+    }
+    meta_count = len(term_set & meta_markers)
+    meta_count += len(phrase_set & _FRAMEWORK_QUERY_PHRASES)
+    if meta_count == 0:
+        return 0
+
+    specialized_title_terms = {
+        term for term in _SPECIALIZED_FRAMEWORK_TERMS
+        if re.search(rf"\b{re.escape(term)}\b", title)
+    }
+    if not specialized_title_terms:
+        return 0
+
+    # Explicitly named frameworks remain eligible.
+    if specialized_title_terms & term_set:
+        return 0
+
+    return min(8, len(specialized_title_terms) * 4)
+
+
 def _canonical_doorway_score(
     metadata: Dict[str, Any],
     frame: Dict[str, Any],
     question: str = "",
-) -> Tuple[int, Tuple[int, int, int, int, int, int]]:
+) -> Tuple[int, Tuple[int, int, int, int, int, int, int]]:
     """Score doorway suitability from question fit plus proportionality safeguards."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     content = _resource_content(metadata).casefold()
@@ -1990,7 +2047,17 @@ def _canonical_doorway_score(
         # doorway, but not enough to remove the resource from the retrieved set.
         scope_penalty = min(6, len(specialized_title_terms) * 3)
 
-    score = generic_doorway_score + (question_fit * 2) - scope_penalty
+    # v70: when the visitor is asking about explanations, narratives, models,
+    # labels, or interpretive fit, prefer a proportionate/neutral doorway over
+    # a resource whose title is itself a specialized worldview.
+    framework_penalty = _framework_neutrality_penalty(question, title)
+
+    score = (
+        generic_doorway_score
+        + (question_fit * 2)
+        - scope_penalty
+        - framework_penalty
+    )
     return score, (
         title_hits,
         content_hits,
@@ -1998,6 +2065,7 @@ def _canonical_doorway_score(
         question_fit,
         fit_detail[1],
         scope_penalty,
+        framework_penalty,
     )
 
 
@@ -4675,6 +4743,40 @@ def health_check():
 # =====================================================================
 # GENERATION BOUNDARY SELF-AUDIT
 # =====================================================================
+
+
+
+def _v70_framework_neutrality_self_audit() -> Dict[str, Any]:
+    """Static audit for framework-neutral canonical doorway behavior."""
+    broad_question = (
+        "Why do some explanations make my experience feel clearer at first, "
+        "but less clear the more I try to fit myself into them?"
+    )
+    specialized_title = "Why the “Starseed” Archetype Resonates With Some Filipinos"
+    neutral_title = "Understanding Lived Experience"
+
+    specialized_penalty = _framework_neutrality_penalty(
+        broad_question, specialized_title.casefold()
+    )
+    neutral_penalty = _framework_neutrality_penalty(
+        broad_question, neutral_title.casefold()
+    )
+    explicit_question = "Why does the Starseed archetype resonate with some people?"
+    explicit_penalty = _framework_neutrality_penalty(
+        explicit_question, specialized_title.casefold()
+    )
+
+    result = {
+        "broad_question_specialized_penalty": specialized_penalty,
+        "broad_question_neutral_penalty": neutral_penalty,
+        "explicit_framework_penalty": explicit_penalty,
+    }
+    result["pass"] = (
+        specialized_penalty > neutral_penalty
+        and neutral_penalty == 0
+        and explicit_penalty == 0
+    )
+    return result
 
 
 def _generation_boundary_self_audit() -> None:
