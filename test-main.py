@@ -1,4 +1,4 @@
-# USE TEST VERSION: v60 — Topical Navigation Fidelity
+# USE TEST VERSION: v61 — Topical Navigation Fidelity
 # Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while extending the canonical lifecycle eligibility
@@ -455,6 +455,13 @@ CONSTITUTIONAL RULES
     Archive evidence, preserve the question's open character, synthesize only
     supported relationships, and provide a genuine canonical doorway when
     eligible evidence is available.
+
+46. GENERATION EVIDENCE DENSITY
+    The provider-facing evidence window must preserve selected canonical
+    resource titles and useful topical evidence as densely as the provider
+    budget permits. Canonical URLs remain separate link authority and need
+    not consume scarce provider evidence space when USE reconstructs links
+    deterministically after generation.
 """
 
 
@@ -476,11 +483,13 @@ not proof of absence. Synthesize only supported relationships.
 
 RULES
 1. Be faithful; do not invent resources, relationships, definitions, or URLs.
-2. TOPICAL: Do not give a generic encyclopedia answer. Use the evidence to
-   orient the visitor: reflect the question, synthesize its supported relationship,
-   and name a canonical doorway when evidence is available.
-3. Select the strongest doorway(s). When multiple resources add distinct coverage,
-   normally surface 2–3; use one when sufficient; never pad weak matches.
+2. TOPICAL: Do not give a generic encyclopedia answer. Use the supplied Archive
+   evidence to orient the visitor: reflect the question, synthesize only supported
+   relationships, and provide a genuine canonical doorway when evidence exists.
+3. A topical answer with supplied canonical evidence is incomplete unless it names
+   at least one exact canonical resource title from the supplied Title: lines.
+   Prefer 2–3 exact titles when they add distinct useful coverage; use one when
+   one is genuinely sufficient. Never invent, paraphrase, or substitute a title.
 4. For destination or collection requests, use only the genuine destination established by evidence.
 5. Never reveal retrieval, classification, reasoning, prompting, or internal labels.
 6. Output only the finished visitor-facing answer inside <visitor_answer> tags.
@@ -493,7 +502,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v60"
+APP_VERSION = "v61"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -509,7 +518,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v60-topical-navigation-fidelity"
+DEPLOYMENT_FINGERPRINT = "USE-v61-provider-evidence-density"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3646,21 +3655,29 @@ def _fit_generation_context_to_provider_budget(
             f"estimated_output={estimated_output_chars}."
         )
 
-    # Preserve canonical title+URL identity while adapting content to the
-    # exact remaining provider capacity. Never force a larger minimum than
-    # the provider envelope can accommodate.
+    # Preserve selected resource ordering while converting to a dense provider
+    # evidence view. URLs remain available to deterministic link presentation but
+    # do not consume scarce provider evidence characters.
     if candidate:
         target_context_chars = min(
             len(candidate),
             context_capacity,
             MAX_GENERATION_CONTEXT_CHARS,
         )
-        candidate = _bound_existing_context_blocks(
+        bounded_selected = _bound_existing_context_blocks(
             candidate,
             max(0, target_context_chars),
             min(
                 MAX_GENERATION_RESOURCE_CHARS,
                 max(120, target_context_chars),
+            ) if target_context_chars > 0 else 0,
+        )
+        candidate = _build_provider_evidence_context(
+            bounded_selected,
+            max(0, target_context_chars),
+            min(
+                MAX_GENERATION_RESOURCE_CHARS,
+                max(96, target_context_chars),
             ) if target_context_chars > 0 else 0,
         )
 
@@ -3700,15 +3717,47 @@ def _fit_generation_context_to_provider_budget(
         if target_context_chars >= len(candidate):
             target_context_chars = max(0, len(candidate) - 64)
 
-        candidate = _bound_existing_context_blocks(
-            candidate,
-            target_context_chars,
-            min(
-                MAX_COMPACT_GENERATION_RESOURCE_CHARS,
-                max(120, target_context_chars),
-            ) if target_context_chars > 0 else 0,
-        )
+        candidate = candidate[:target_context_chars].rstrip()
 
+
+
+def _build_provider_evidence_context(
+    generation_context: str,
+    max_chars: int,
+    max_resource_chars: int,
+) -> str:
+    """Build a dense provider evidence view without canonical URLs."""
+    if not generation_context or max_chars <= 0:
+        return ""
+    blocks = []
+    used = 0
+    for block in generation_context.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if not title_match or not content_match:
+            continue
+        title = _canonical_display_title(title_match.group(1).strip())
+        content = content_match.group(1).strip()
+        if not title:
+            continue
+        prefix = f"Title: {title}\nContent: "
+        separator = "\n\n---\n\n" if blocks else ""
+        remaining = max_chars - used - len(separator)
+        if remaining <= len(prefix):
+            break
+        capacity = min(max_resource_chars, remaining - len(prefix))
+        if capacity <= 0:
+            break
+        bounded = content[:capacity].rstrip()
+        if len(content) > capacity and capacity > 18:
+            marker = " … [bounded]"
+            bounded = content[:capacity - len(marker)].rstrip() + marker
+        candidate = prefix + bounded
+        if len(candidate) > remaining:
+            break
+        blocks.append(candidate)
+        used += len(separator) + len(candidate)
+    return "\n\n---\n\n".join(blocks).strip()
 
 
 def _build_generation_messages(
@@ -3752,10 +3801,18 @@ def _contains_canonical_resource_reference(
         return False
 
     canonical_titles = [
-        _canonical_display_title(title)
-        for title, _url in _canonical_pairs(generation_context)
-        if _canonical_display_title(title)
+        _canonical_display_title(match.group(1).strip())
+        for match in re.finditer(
+            r"^Title:\s*(.+?)\s*$", generation_context, flags=re.MULTILINE
+        )
+        if _canonical_display_title(match.group(1).strip())
     ]
+    if not canonical_titles:
+        canonical_titles = [
+            _canonical_display_title(title)
+            for title, _url in _canonical_pairs(generation_context)
+            if _canonical_display_title(title)
+        ]
     for title in canonical_titles:
         if re.search(
             rf"(?<![\w]){re.escape(title)}(?![\w])",
@@ -3833,7 +3890,7 @@ def _run_generation_attempt(
         canonical_link_context,
     )
 
-    # v60 root-cause boundary: a topical response that ignores all selected
+    # v61 root-cause boundary: a topical response that ignores all selected
     # canonical resources is a generic knowledge answer, not USE navigation.
     # Reject it before visitor delivery so the model fallback chain can try
     # another candidate. This does not alter retrieval or force a particular resource.
@@ -4928,20 +4985,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v60",
-            "# USE PRODUCTION VERSION: v60",
+            "# USE TEST VERSION: v61",
+            "# USE PRODUCTION VERSION: v61",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v60."
+                "Source version-label regression: line 1 does not identify v61."
             )
-        if APP_VERSION != "v60":
+        if APP_VERSION != "v61":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v60."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v61."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v60-topical-navigation-fidelity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v61-provider-evidence-density":
             raise RuntimeError(
-                "Deployment fingerprint regression: v60 fingerprint is not aligned."
+                "Deployment fingerprint regression: v61 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -5058,7 +5115,7 @@ def _generation_boundary_self_audit() -> None:
                 "multiple selected resources to fewer than two canonical records."
             )
 
-        # v60 regression: generic topical prose without a selected canonical
+        # v61 regression: generic topical prose without a selected canonical
         # resource must fail the navigation-reference gate, while a valid
         # selected title must pass it.
         topical_gate_context = (
@@ -5081,8 +5138,21 @@ def _generation_boundary_self_audit() -> None:
                 "Topical navigation regression: canonical resource reference was not detected."
             )
 
+        # v61 regression: provider evidence omits URLs so more selected canonical
+        # titles and topical evidence fit inside the same provider envelope.
+        density_context = format_context_blocks([
+            {"title": "First Canonical Resource", "url": "https://example.invalid/first", "text": "Evidence about the first topical dimension."},
+            {"title": "Second Canonical Resource", "url": "https://example.invalid/second", "text": "Evidence about the second topical dimension."},
+            {"title": "Third Canonical Resource", "url": "https://example.invalid/third", "text": "Evidence about the third topical dimension."},
+        ])
+        dense_provider_context = _build_provider_evidence_context(density_context, 500, 140)
+        if "URL:" in dense_provider_context:
+            raise RuntimeError("Provider evidence density regression: URLs consumed provider evidence space.")
+        if len(re.findall(r"^Title:", dense_provider_context, flags=re.MULTILINE)) < 3:
+            raise RuntimeError("Provider evidence density regression: selected canonical titles were lost.")
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v60":
+        if APP_VERSION != "v61":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
