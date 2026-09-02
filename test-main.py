@@ -1,4 +1,4 @@
-# USE TEST VERSION: v57 — Provider-Budget-Safe Multi-Resource Navigation
+# USE PRODUCTION VERSION v57 (test-main parallel environment)
 # Complete production unit reconstructed from the verified v56 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
 # visitor-output boundaries while correcting the v56 fixed-envelope preflight failure.
@@ -484,7 +484,7 @@ app.add_middleware(
 )
 
 # Browser/API boundary: make CORS explicit at the final response boundary
-# as well as through CORSMiddleware. This protects the browser-facing
+# as well as thrDEPLOYMENT_FINGERPRINT = "USE-v57-test-parallel-environment"ugh CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
 DEPLOYMENT_FINGERPRINT = "USE-v57-test-parallel-environment"
