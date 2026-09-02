@@ -1,9 +1,9 @@
-# USE TEST VERSION: v58 — Canonical Corpus Lifecycle Gate
-# Complete experimental production unit reconstructed from the verified v57 production unit.
+# USE TEST VERSION: v59 — Canonical URL Lifecycle Coverage
+# Complete experimental production unit reconstructed from the verified v58 production unit.
 # This release preserves retrieval, canonical sourcing, provider fallback, and
-# visitor-output boundaries while adding a canonical lifecycle eligibility gate
-# so archived, retired, superseded, or otherwise withdrawn resources cannot
-# become navigational evidence merely because they remain in the vector index.
+# visitor-output boundaries while extending the canonical lifecycle eligibility
+# gate to inspect canonical URL identity fields in addition to explicit lifecycle
+# metadata, title markers, and slug markers.
 
 import os
 import re
@@ -447,7 +447,7 @@ CONSTITUTIONAL RULES
     Do not infer archival status from arbitrary mentions of historical or
     archived material inside an otherwise current resource. Lifecycle
     exclusion must be grounded in the resource's own canonical identity,
-    lifecycle metadata, title marker, or equivalent identity-level evidence.
+    lifecycle metadata, title marker, slug marker, canonical URL marker, or equivalent identity-level evidence.
 """
 
 
@@ -486,7 +486,7 @@ RULES
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v58"
+APP_VERSION = "v59"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -502,7 +502,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v58-canonical-corpus-lifecycle-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v59-canonical-url-lifecycle-coverage"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1599,6 +1599,29 @@ def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
 
     if any(slug.endswith(suffix) for suffix in _ARCHIVAL_SLUG_SUFFIXES):
         return True
+
+    # Some ingestion versions do not expose a dedicated slug field. The
+    # canonical URL may be the only durable identity field carrying an
+    # archival marker (for example, a WordPress redirect target ending in
+    # "-legacy"). Inspect only URL-like identity metadata, and only the final
+    # path segment, so ordinary query parameters or content text cannot trigger
+    # lifecycle suppression.
+    for key, value in metadata.items():
+        key_normalized = re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip()
+        if not any(token in key_normalized.split() for token in ("url", "permalink")):
+            continue
+
+        url_value = re.sub(r"[?#].*$", "", str(value or "")).strip().rstrip("/").casefold()
+        if not url_value:
+            continue
+
+        final_path_segment = re.split(r"[/\\]", url_value)[-1].strip()
+        if any(final_path_segment.endswith(suffix) for suffix in _ARCHIVAL_SLUG_SUFFIXES):
+            print(
+                "USE canonical lifecycle gate: URL identity marker detected for "
+                f"resource '{metadata.get('title', 'Untitled Resource')}'."
+            )
+            return True
 
     return False
 
@@ -4318,6 +4341,31 @@ def _generation_boundary_self_audit() -> None:
                 "was incorrectly suppressed."
             )
 
+        url_archived_metadata = {
+            "title": "The Energe Codex",
+            "url": "https://geralddaquila.com/the-energe-codex-legacy/",
+            "status": "publish",
+            "access_class": "public",
+            "text": "Historical resource retained in the vector index.",
+        }
+        if _is_navigable_canonical_resource(url_archived_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: archived canonical URL "
+                "was considered navigable."
+            )
+
+        current_url_metadata = {
+            "title": "Learning from Legacy Systems Without Repeating Them",
+            "url": "https://example.invalid/legacy-systems",
+            "status": "publish",
+            "text": "A current resource whose URL contains a non-archival legacy phrase.",
+        }
+        if not _is_navigable_canonical_resource(current_url_metadata):
+            raise RuntimeError(
+                "Canonical lifecycle regression: legitimate current URL "
+                "was incorrectly suppressed."
+            )
+
         # Regression test: the exact leaked marker observed in production
         # must never survive the visitor-facing sanitation boundary.
         sanitized_title = _strip_emoji("⭐ Institutional Cornerstones")
@@ -4831,20 +4879,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v58",
-            "# USE PRODUCTION VERSION: v58",
+            "# USE TEST VERSION: v59",
+            "# USE PRODUCTION VERSION: v59",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v58."
+                "Source version-label regression: line 1 does not identify v59."
             )
-        if APP_VERSION != "v58":
+        if APP_VERSION != "v59":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v58."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v59."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v58-canonical-corpus-lifecycle-gate":
+        if DEPLOYMENT_FINGERPRINT != "USE-v59-canonical-url-lifecycle-coverage":
             raise RuntimeError(
-                "Deployment fingerprint regression: v58 fingerprint is not aligned."
+                "Deployment fingerprint regression: v59 fingerprint is not aligned."
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -4958,7 +5006,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v58":
+        if APP_VERSION != "v59":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
