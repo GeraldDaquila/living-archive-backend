@@ -1,4 +1,4 @@
-# USE TEST VERSION: v76 — Frame-Neutral Evidence Boundary
+# USE TEST VERSION: v77 — Generation Capacity Recovery
 # Complete experimental production unit reconstructed from the frozen v68
 # TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -533,15 +533,15 @@ CONSTITUTIONAL RULES
 # =====================================================================
 
 GENERATION_SYSTEM_PROMPT = """
-You are the Living Archive (USE) navigation engine. Use only the supplied canonical evidence; it is a bounded view of the Archive.
+You are the Living Archive (USE) navigation engine. Use only the supplied canonical evidence.
 
-For TOPICAL questions, do not answer as a generic encyclopedia. Orient the visitor through the supplied evidence: reflect the question, synthesize only supported relationships, and provide a genuine canonical doorway when established. If canonical evidence is supplied, name at least one exact Title: resource; normally use 2–3 only when they add distinct coverage.
+For TOPICAL questions, do not answer as a generic encyclopedia. Orient through the evidence: reflect the question, synthesize supported relationships, and give a genuine canonical doorway when established. If evidence is supplied, name at least one exact canonical Title; normally use 2–3 only for distinct coverage.
 
-[INTERPRETIVE FRAME SOVEREIGNTY]: Keep the visitor's question in their own terms. Do not let a specialized framework define the governing explanation unless the visitor names it. Treat an uninvited framework only as that resource's lens; do not imply the visitor is undergoing it or that its characteristic outcome follows. If evidence is mainly specialized, say its fit is limited or framework-specific. Preserve uncertainty where evidence does not establish a cause or meaning.
+[FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise treat it only as that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty about cause or meaning.
 
-[EVIDENCE PROVENANCE]: Title and URL identify resources; they are not substantive evidence. Ground resource claims in supplied Content/evidence text. If Content is insufficient, say the evidence does not establish the claim; never fill gaps from title, URL, label, or outside knowledge. [EVIDENCE-BOUND SYNTHESIS]: Separate supported claims from inferred relationships; never turn thematic compatibility into established causation. Mark an unsupported causal bridge as inference or possible reading.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not substantive evidence. Ground claims in supplied Content. If Content is insufficient, say so; never fill gaps from title, URL, labels, or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. Mark an unsupported causal bridge as inference/possible reading.
 
-For destination/collection requests, use only genuine destinations established by evidence. Never invent or substitute resources, relationships, definitions, or URLs. Never reveal internal process or labels. Output only the finished visitor-facing answer inside <visitor_answer> tags. For resources, write exact canonical titles as plain text only; no URLs, Markdown, HTML, slugs, or emoji. USE adds canonical links.
+For destination/collection requests, use only destinations established by evidence. Never invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished visitor answer inside <visitor_answer> tags. Use exact canonical titles as plain text; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
 
 
@@ -549,7 +549,7 @@ For destination/collection requests, use only genuine destinations established b
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v76"
+APP_VERSION = "v77"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -565,7 +565,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v76-frame-neutral-evidence-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v77-generation-capacity-recovery"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -629,8 +629,8 @@ MAX_GENERATION_CONTEXT_CHARS = 1800
 MAX_GENERATION_RESOURCE_CHARS = 500
 MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1100
 MAX_COMPACT_GENERATION_RESOURCE_CHARS = 300
-MAX_GENERATION_TOKENS = 240
-MAX_COMPACT_GENERATION_TOKENS = 120
+MAX_GENERATION_TOKENS = 320
+MAX_COMPACT_GENERATION_TOKENS = 160
 
 # Provider preflight budget. This is measured against the actual assembled
 # system + user messages, not merely the evidence excerpt. It prevents a
@@ -5676,7 +5676,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Provider boundary regression: primary generation context budget changed."
             )
-        if MAX_GENERATION_TOKENS != 240:
+        if MAX_GENERATION_TOKENS != 320:
             raise RuntimeError(
                 "Provider boundary regression: primary generation token budget changed."
             )
@@ -5747,23 +5747,35 @@ def _generation_boundary_self_audit() -> None:
                 f"(capacity={primary_evidence_capacity}, fixed_input={primary_fixed_chars})."
             )
 
+        # v77 regression: the primary generation budget must materially exceed
+        # the v76 240-token ceiling while preserving a substantial evidence window.
+        if MAX_GENERATION_TOKENS <= 240:
+            raise RuntimeError(
+                "Generation capacity regression: primary output budget did not increase."
+            )
+        if primary_evidence_capacity < 700:
+            raise RuntimeError(
+                "Generation capacity regression: increased output budget consumed the "
+                "minimum canonical evidence window."
+            )
+
         # Release identity audit: the source file itself must declare the
         # same version as the runtime and deployment fingerprint. This prevents
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v76",
-            "# USE PRODUCTION VERSION: v76",
+            "# USE TEST VERSION: v77",
+            "# USE PRODUCTION VERSION: v77",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v76."
             )
-        if APP_VERSION != "v76":
+        if APP_VERSION != "v77":
             raise RuntimeError(
                 f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v76."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v76-frame-neutral-evidence-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v77-generation-capacity-recovery":
             raise RuntimeError(
                 "Deployment fingerprint regression: v76 fingerprint is not aligned."
             )
@@ -6262,7 +6274,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v76":
+        if APP_VERSION != "v77":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
