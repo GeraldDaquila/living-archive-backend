@@ -8525,9 +8525,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v116":
+        if APP_VERSION != "v117":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v116."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v117."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9054,8 +9054,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v116":
-            raise RuntimeError(f"Unexpected v116 USE version: {APP_VERSION}")
+        if APP_VERSION != "v117":
+            raise RuntimeError(f"Unexpected v117 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9113,9 +9113,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v116":
+        if APP_VERSION != "v117":
             raise RuntimeError(
-                f"Unexpected v116 USE runtime version: {APP_VERSION}"
+                f"Unexpected v117 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -9736,7 +9736,7 @@ _d25_resource_function_selection_bridge_self_audit()
 _d25_selection_path_audit()
 
 
-def _v116_open_exploration_deterministic_recovery_self_audit() -> None:
+def _v117_open_exploration_deterministic_recovery_self_audit() -> None:
     """Audit the explicit uncertainty/non-closure generation constraint."""
     question = (
         "I'm beginning to see that some of the things I've been struggling with may be connected, "
@@ -9754,11 +9754,11 @@ def _v116_open_exploration_deterministic_recovery_self_audit() -> None:
         "Why does governance matter?"
     )
     assert neutral == ""
-    print("USE v116 OPEN EXPLORATION DETERMINISTIC RECOVERY AUDIT: PASS")
+    print("USE v117 OPEN EXPLORATION DETERMINISTIC RECOVERY AUDIT: PASS")
 
 
 
-def _v116_deterministic_recovery_behavior_self_audit() -> None:
+def _v117_deterministic_recovery_behavior_self_audit() -> None:
     question = (
         "I’m beginning to see that some of the things I’ve been struggling with may be connected, "
         "but I don’t yet know what the connection is. I’d like to explore that without jumping to a conclusion about what it means."
@@ -9774,7 +9774,7 @@ def _v116_deterministic_recovery_behavior_self_audit() -> None:
     assert "decide for yourself" in result
     assert "The Illusion of Separation" in result
     assert "More Than This Body" in result
-    print("USE v116 DETERMINISTIC RECOVERY BEHAVIOR AUDIT: PASS")
+    print("USE v117 DETERMINISTIC RECOVERY BEHAVIOR AUDIT: PASS")
 
 def _v114_continuity_slice_self_audit() -> None:
     """Audit D28-D29 selection continuity and D31-D38 orientation constraints."""
@@ -9816,10 +9816,10 @@ def _v114_continuity_slice_self_audit() -> None:
     finally:
         globals()["index"] = original_index
 
-    print("USE v116 D28-D29 / D31-D38 CONTINUITY SLICE REGRESSION AUDIT: PASS")
+    print("USE v117 D28-D29 / D31-D38 CONTINUITY SLICE REGRESSION AUDIT: PASS")
 
-_v116_open_exploration_deterministic_recovery_self_audit()
-_v116_deterministic_recovery_behavior_self_audit()
+_v117_open_exploration_deterministic_recovery_self_audit()
+_v117_deterministic_recovery_behavior_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
