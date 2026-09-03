@@ -1,6 +1,6 @@
-# USE TEST VERSION: v80 — Interpretive Bridge Integrity
-# Complete experimental production unit reconstructed from the frozen v68
-# TEST baseline. This experiment adds a bounded canonical-doorway proportionality guard to
+# USE TEST VERSION: v81 — Evidence Sufficiency / Domain Fit
+# Complete experimental production unit reconstructed from the authoritative v80
+# TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
 # retrieval, altering canonical link authority, expanding retrieval, or
 # creating a second navigation engine.
@@ -563,7 +563,7 @@ For TOPICAL questions, do not answer as a generic encyclopedia. Orient through t
 
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise treat it only as that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty about cause or meaning.
 
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; never fill gaps from metadata or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, state A and B and label the connection as inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference may connect evidence to the question, but cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms. If needed, omit them; say the evidence does not establish the connection.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; never fill gaps from metadata or outside knowledge. Distinguish supported claims from inferred relationships; never turn thematic compatibility into established causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, state A and B and label the connection as inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference may connect evidence to the question, but cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms. If needed, omit them; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. Before synthesis, require substantive fit between the question and supplied Content. If retrieved Content is only thematically adjacent, do not explain the question from it; say the supplied evidence is insufficient.
 
 For destination/collection requests, use only destinations established by evidence. Never invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished visitor answer inside <visitor_answer> tags. Use exact canonical titles as plain text; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
@@ -573,7 +573,7 @@ For destination/collection requests, use only destinations established by eviden
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v80"
+APP_VERSION = "v81"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +589,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v80-interpretive-bridge-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v81-evidence-sufficiency-domain-fit"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2466,6 +2466,89 @@ def _query_index(
     return candidates
 
 
+def _evidence_domain_fit_score(
+    question: str,
+    metadata: Dict[str, Any],
+) -> Tuple[int, Tuple[int, int]]:
+    """Measure bounded substantive fit using supplied Content only.
+
+    This is a post-retrieval sufficiency gate, not a retrieval engine. Titles,
+    URLs, categories, and other identity metadata are intentionally excluded.
+    A small morphology normalization permits obvious forms such as
+    understand/understanding without importing semantic knowledge.
+    """
+    content = _resource_content(metadata).casefold()
+    if not question or not content:
+        return 0, (0, 0)
+
+    terms, phrases = _question_condition_terms(question)
+    substantive = tuple(
+        term for term in dict.fromkeys(terms)
+        if term not in _CENTRALITY_GENERIC_TERMS
+    )
+    if not substantive:
+        substantive = tuple(dict.fromkeys(terms))
+
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in ("ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    content_stems = {stem(token) for token in content_tokens}
+    term_hits = 0
+    for term in set(substantive):
+        normalized = term.replace("-", "")
+        if term in content_tokens or normalized in content_tokens or stem(term) in content_stems:
+            term_hits += 1
+
+    phrase_hits = sum(1 for phrase in set(phrases) if phrase in content)
+    # One phrase is strong evidence of direct topical fit; otherwise require
+    # at least two distinct substantive question concepts in supplied Content.
+    score = min(6, term_hits + (phrase_hits * 2))
+    return score, (term_hits, phrase_hits)
+
+
+def _evidence_sufficiency_gate(
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Permit synthesis only when retrieved Content has minimal domain fit."""
+    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"} or not documents:
+        return documents, False
+
+    fit_scores = [
+        _evidence_domain_fit_score(question, document)[0]
+        for document in documents
+    ]
+    # The gate is intentionally conservative only at the evidence boundary:
+    # retain all resources when at least one has direct substantive fit, but do
+    # not send an entirely adjacent evidence set to synthesis.
+    sufficient = any(score >= 2 for score in fit_scores)
+    if sufficient:
+        return documents, False
+
+    print(
+        "USE evidence sufficiency gate: insufficient substantive domain fit; "
+        f"scores={fit_scores}. Generation synthesis withheld."
+    )
+    return [], True
+
+
+def _evidence_sufficiency_unavailable_response(question: str) -> str:
+    """Return a bounded response when retrieved evidence cannot support synthesis."""
+    return (
+        "The supplied canonical evidence does not establish a sufficient "
+        "substantive connection to this question to support a reliable "
+        "explanation. Rather than fill that gap with an inferred mechanism, "
+        "USE is leaving the question open."
+    )
+
+
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
@@ -2718,6 +2801,23 @@ def fetch_canonical_context(
             "context_blocks": "",
             "canonical_link_context": canonical_link_context,
             "frame_neutral_evidence_unavailable": True,
+        }
+
+    # v81: retrieval relevance does not by itself establish evidence sufficiency.
+    # Apply a bounded post-retrieval Content-domain gate before generation.
+    # Canonical link authority remains untouched above.
+    retrieved_docs, evidence_sufficiency_unavailable = _evidence_sufficiency_gate(
+        retrieved_docs,
+        user_query,
+        intent,
+    )
+    if evidence_sufficiency_unavailable:
+        return {
+            "intent": intent,
+            "orientational_frame": orientational_frame,
+            "context_blocks": "",
+            "canonical_link_context": canonical_link_context,
+            "evidence_sufficiency_unavailable": True,
         }
 
     structural_destination_count = (
@@ -4932,6 +5032,8 @@ async def handle_query(
 
         if context_data.get("frame_neutral_evidence_unavailable"):
             llm_output = _frame_neutral_evidence_unavailable_response(query_str)
+        elif context_data.get("evidence_sufficiency_unavailable"):
+            llm_output = _evidence_sufficiency_unavailable_response(query_str)
         else:
             llm_output = generate_llm_response(
                 query_str,
@@ -5204,6 +5306,56 @@ def _v80_interpretive_bridge_integrity_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
+    """Verify the post-retrieval domain-fit gate blocks adjacent evidence."""
+    unrelated = {
+        "title": "Learning to Receive Without Feeling Guilty",
+        "text": (
+            "A hidden belief says I should be able to handle this on my own. "
+            "Needing support can feel like failure or taking something undeserved."
+        ),
+    }
+    direct = {
+        "title": "Understanding Complexity",
+        "text": (
+            "Learning more about a problem can change how understandable the "
+            "problem feels because additional understanding reveals further "
+            "questions and relationships."
+        ),
+    }
+    blocked, unavailable = _evidence_sufficiency_gate(
+        [unrelated],
+        "Why can learning more about a problem sometimes make the problem feel less understandable?",
+        "TOPICAL_INQUIRY",
+    )
+    retained, retained_unavailable = _evidence_sufficiency_gate(
+        [direct],
+        "Why can learning more about a problem sometimes make the problem feel less understandable?",
+        "TOPICAL_INQUIRY",
+    )
+    prompt = GENERATION_SYSTEM_PROMPT
+    required = (
+        "[EVIDENCE SUFFICIENCY]",
+        "Retrieval relevance is not evidence sufficiency.",
+        "require substantive fit between the question and supplied Content",
+        "do not explain the question from it",
+    )
+    present = {term: term in prompt for term in required}
+    return {
+        "adjacent_blocked": unavailable and not blocked,
+        "direct_retained": (not retained_unavailable) and bool(retained),
+        "prompt_contains_all": all(present.values()),
+        "required_present": present,
+        "pass": (
+            unavailable
+            and not blocked
+            and not retained_unavailable
+            and bool(retained)
+            and all(present.values())
+        ),
+    }
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
@@ -5243,6 +5395,24 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "v80 interpretive-bridge-integrity self-audit failed: "
                 f"{v80_interpretive_bridge_integrity}"
+            )
+
+        v81_evidence_sufficiency = _v81_evidence_sufficiency_self_audit()
+        if not v81_evidence_sufficiency["pass"]:
+            raise RuntimeError(
+                "v81 evidence-sufficiency/domain-fit self-audit failed: "
+                f"{v81_evidence_sufficiency}"
+            )
+
+        # v81 response-boundary regression: insufficient evidence must have a
+        # bounded visitor response rather than being passed to generation.
+        insuff_response = _evidence_sufficiency_unavailable_response(
+            "Why can learning more about a problem make it feel less understandable?"
+        )
+        if "does not establish a sufficient substantive connection" not in insuff_response:
+            raise RuntimeError(
+                "v81 evidence-sufficiency response regression: bounded "
+                "insufficiency response is missing."
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -5852,35 +6022,42 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v80",
-            "# USE PRODUCTION VERSION: v80",
+            "# USE TEST VERSION: v81",
+            "# USE PRODUCTION VERSION: v81",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v80."
+                "Source version-label regression: line 1 does not identify v81."
             )
-        if APP_VERSION != "v80":
+        if APP_VERSION != "v81":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v80."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v81."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v80-interpretive-bridge-integrity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v81-evidence-sufficiency-domain-fit":
             raise RuntimeError(
-                "Deployment fingerprint regression: v80 fingerprint is not aligned."
+                "Deployment fingerprint regression: v81 fingerprint is not aligned."
             )
-        # Audit the audit surface itself: no inherited prior-release identity
-        # or version-specific implementation wording may survive into v80.
-        prior_release_token = "v" + "79"
+        # Audit the audit surface itself: detect inherited prior-release identity
+        # assertions, not legitimate historical audit function names/comments.
+        # This scanner is deliberately invariant-based so retaining a prior
+        # regression audit does not itself become a false positive.
+        prior_version = "v" + "80"
+        stale_identity_patterns = (
+            f'APP_VERSION = "{prior_version}"',
+            f'APP_VERSION != "{prior_version}"',
+            f'expected {prior_version}',
+            f'expected_source_prefixes = (\n            "# USE TEST VERSION: {prior_version}"',
+            f'USE-{prior_version}-',
+        )
         stale_prior_release_hits = [
             f"line {idx}: {line}"
             for idx, line in enumerate(source_lines, 1)
-            if prior_release_token in line.lower()
+            if any(pattern.lower() in line.lower() for pattern in stale_identity_patterns)
         ]
-        # The scanner's own construction is deliberately split so it cannot
-        # create a false positive against itself.
         if stale_prior_release_hits:
             raise RuntimeError(
-                "Stale-version audit regression: inherited prior-release "
-                "references remain: " + " | ".join(stale_prior_release_hits[:5])
+                "Stale-version audit regression: inherited prior-release identity "
+                "assertions remain: " + " | ".join(stale_prior_release_hits[:5])
             )
 
         # cross-section regression: the same canonical resources must not reappear in a
@@ -6381,7 +6558,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v80":
+        if APP_VERSION != "v81":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
