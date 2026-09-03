@@ -1,4 +1,4 @@
-# USE TEST VERSION: v94 — D18 Open Exploration Intent Integration
+# USE TEST VERSION: v97 — D18 Open Exploration Intent Integration
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v96"
+APP_VERSION = "v97"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v96-d18-current-turn-state-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v97-d18-retrieval-candidate-window"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2879,6 +2879,13 @@ def fetch_canonical_context(
                     RETRIEVAL_TOP_K,
                 )
 
+                # v97: preserve the complete bounded semantic candidate window
+                # through downstream ranking. v96 truncated ordinary candidates
+                # at MAX_CONTEXT_RESOURCES before question-conditioned doorway
+                # selection, so a strong canonical match appearing later in the
+                # RETRIEVAL_TOP_K window could never be promoted. This changes only
+                # candidate-window recall; retrieval remains the sole source of
+                # candidates and the final generation cap remains downstream.
                 for _score, _match_id_value, metadata in candidates:
                     _append_unique_resource(
                         retrieved_docs,
@@ -2886,7 +2893,7 @@ def fetch_canonical_context(
                         metadata,
                         require_destination=bool(collection_name),
                     )
-                    if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
+                    if len(retrieved_docs) >= RETRIEVAL_TOP_K:
                         break
             else:
                 candidates = []
@@ -6884,20 +6891,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v94",
-            "# USE PRODUCTION VERSION: v94",
+            "# USE TEST VERSION: v97",
+            "# USE PRODUCTION VERSION: v97",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v94."
             )
-        if APP_VERSION != "v96":
+        if APP_VERSION != "v97":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v96."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v97."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v96-d18-current-turn-state-integrity":
+        if DEPLOYMENT_FINGERPRINT != "USE-v97-d18-retrieval-candidate-window":
             raise RuntimeError(
-                "Deployment fingerprint regression: v94 fingerprint is not aligned."
+                "Deployment fingerprint regression: v97 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7419,8 +7426,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v96":
-            raise RuntimeError(f"Unexpected v96 USE version: {APP_VERSION}")
+        if APP_VERSION != "v97":
+            raise RuntimeError(f"Unexpected v97 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7478,9 +7485,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v96":
+        if APP_VERSION != "v97":
             raise RuntimeError(
-                f"Unexpected v96 USE runtime version: {APP_VERSION}"
+                f"Unexpected v97 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -7571,6 +7578,60 @@ def _generation_boundary_self_audit() -> None:
         "canonical lifecycle eligibility, and runtime identification verified."
     )
 
+
+
+def _v97_retrieval_candidate_window_audit() -> None:
+    """Verify semantic candidates survive until bounded doorway ranking."""
+    source = inspect.getsource(fetch_canonical_context)
+    retrieval_pos = source.find("candidates = _query_index(")
+    ordinary_loop_pos = source.find("for _score, _match_id_value, metadata in candidates:")
+    doorway_pos = source.find("select_canonical_doorways(")
+    if retrieval_pos < 0 or ordinary_loop_pos < 0 or doorway_pos < 0:
+        raise RuntimeError(
+            "D18 retrieval-window regression: retrieval or doorway ranking is missing."
+        )
+    if ordinary_loop_pos < retrieval_pos:
+        raise RuntimeError(
+            "D18 retrieval-window regression: candidate loop is not downstream of retrieval."
+        )
+    if "len(retrieved_docs) >= RETRIEVAL_TOP_K" not in source:
+        raise RuntimeError(
+            "D18 retrieval-window regression: full bounded semantic candidate window is not preserved."
+        )
+    ranking_block = source[doorway_pos:]
+    if ")[:MAX_CONTEXT_RESOURCES]" not in ranking_block:
+        raise RuntimeError(
+            "D18 retrieval-window regression: final generation resource cap is not downstream of ranking."
+        )
+
+    # Generic proof: a direct candidate at the end of the bounded window must
+    # be available for promotion; this is not tied to any corpus subject.
+    filler = [
+        {
+            "title": f"Semantic Neighbor {index}",
+            "url": f"https://example.invalid/neighbor-{index}",
+            "text": "A related canonical resource with broad thematic overlap.",
+        }
+        for index in range(1, 12)
+    ]
+    direct = {
+        "title": "Direct Subject Resource",
+        "url": "https://example.invalid/direct-subject",
+        "text": "A canonical resource directly addressing the visitor's named subject and its explanation.",
+    }
+    selected = select_canonical_doorways(
+        filler + [direct],
+        {"primary": "systems", "scores": {"systems": 1}},
+        question="Why does the named subject matter and how can I understand it?",
+    )
+    if selected[0]["title"] != "Direct Subject Resource":
+        raise RuntimeError(
+            "D18 retrieval-window regression: direct late-window candidate could not be promoted."
+        )
+    print(
+        "USE v97 retrieval candidate-window audit: PASS; "
+        "semantic candidates remain available through downstream ranking."
+    )
 
 
 def _v96_current_turn_state_integrity_audit():
@@ -7683,6 +7744,7 @@ def _v96_current_turn_state_integrity_audit():
 
 _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
+_v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
 _generation_boundary_self_audit()
