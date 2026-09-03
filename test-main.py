@@ -2569,6 +2569,10 @@ def fetch_canonical_context(
     retrieved_docs: List[Dict[str, Any]] = []
     candidates: List[Tuple[float, str, Dict[str, Any]]] = []
     seen_keys = set()
+    # Initialize before any bounded early-return path. The query route must
+    # always be able to preserve canonical link context, including when the
+    # evidence-sufficiency gate withholds generation.
+    canonical_link_context = ""
 
     if not index:
         return {
@@ -6561,6 +6565,47 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
+
+        # v81 execution-path regression: an evidence-sufficiency early return
+        # must preserve the canonical-link-context key. The request route
+        # consumes that key even when synthesis is deliberately withheld.
+        # Exercise the actual fetch path with a synthetic, thematically
+        # adjacent resource so this boundary cannot regress into an
+        # UnboundLocalError at runtime.
+        _saved_index = globals().get("index")
+        _saved_generate_embedding = globals().get("generate_embedding")
+        _saved_query_index = globals().get("_query_index")
+        try:
+            class _SelfAuditIndex:
+                pass
+
+            globals()["index"] = _SelfAuditIndex()
+            globals()["generate_embedding"] = lambda _text: [0.0]
+            globals()["_query_index"] = lambda _vector, _top_k: [
+                (1.0, "self-audit-adjacent", {
+                    "title": "Self-Audit Adjacent Resource",
+                    "url": "https://example.invalid/self-audit-adjacent",
+                    "content": "A source discusses unrelated support and resilience themes.",
+                })
+            ]
+
+            boundary_result = fetch_canonical_context(
+                "Why can learning more about a situation sometimes make it harder to see what is actually important?"
+            )
+            if not boundary_result.get("evidence_sufficiency_unavailable"):
+                raise RuntimeError(
+                    "v81 execution-path regression: synthetic adjacent evidence "
+                    "did not activate the evidence-sufficiency boundary."
+                )
+            if "canonical_link_context" not in boundary_result:
+                raise RuntimeError(
+                    "v81 execution-path regression: evidence-sufficiency early return "
+                    "lost canonical_link_context."
+                )
+        finally:
+            globals()["index"] = _saved_index
+            globals()["generate_embedding"] = _saved_generate_embedding
+            globals()["_query_index"] = _saved_query_index
 
         # provider-boundary recovery regression: when provider execution is unavailable,
         # recovery must use only selected canonical resources and must not emit
