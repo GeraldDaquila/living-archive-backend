@@ -6129,9 +6129,8 @@ def _generation_boundary_self_audit() -> None:
                 "Visitor resource eligibility regression: valid canonical resource was removed."
             )
 
-        # v64 regression: the compact generation policy must preserve the
-        # constitutional topical-navigation and multi-resource rules using the
-        # current v63 wording, without requiring obsolete prompt text.
+        # Constitutional topical-navigation and multi-resource invariants:
+        # test the current compact policy, not obsolete historical wording.
         if "For TOPICAL questions, orient through supplied evidence, not generic explanation." not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
                 "Topical navigation regression: evidence-grounded topical orientation policy is missing."
@@ -6547,10 +6546,10 @@ def _generation_boundary_self_audit() -> None:
                 "v71 synthesis-boundary regression: explicit synthesis guard "
                 "was not included in the topical generation boundary."
             )
+        synthesis_lower = synthesis_system.lower()
         if (
-            "never turn thematic compatibility into established causation"
-            not in synthesis_system
-            or "[INFERENTIAL DISTANCE]" not in synthesis_system
+            "never turn thematic compatibility into causation." not in synthesis_lower
+            or "[inferential distance]" not in synthesis_lower
         ):
             raise RuntimeError(
                 "v71 synthesis-boundary regression: current causal-boundary "
