@@ -5834,7 +5834,7 @@ def _v87_question_structure_evidence_self_audit() -> None:
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
         raise RuntimeError("v87 question-structure regression: explicit contrast not recognized.")
-    adjacent = {"title": "When Life Disrupts", "content": "Synchronicity can lead people to notice patterns and assign meaning to events.", "url": "https://example.invalid/adjacent"}
+    adjacent = {"title": "When Life Disrupts", "content": "This resource lists archive publication details, canonical links, and general access information.", "url": "https://example.invalid/adjacent"}
     direct = {"title": "Understanding and Seeing Patterns", "content": "Understanding a pattern conceptually can differ from seeing the same pattern in one's life.", "url": "https://example.invalid/direct"}
     if _question_structure_content_score(adjacent, structure)[1] != 0:
         raise RuntimeError("v87 question-structure regression: adjacent evidence falsely qualifies lexically.")
