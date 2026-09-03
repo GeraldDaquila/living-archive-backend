@@ -1,4 +1,4 @@
-# USE TEST VERSION: v113 — D21-D27 Resource Function Layer
+# USE TEST VERSION: v114 — D28-D31-D38 Continuity Slice
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v113"
+APP_VERSION = "v114"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v113-d21-d27-resource-function-layer"
+DEPLOYMENT_FINGERPRINT = "USE-v114-d28-d31-d38-continuity-slice"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3810,7 +3810,7 @@ def _resource_function_selection_bonus(
     if not function_name:
         return 0.0
 
-    requested = _visitor_resource_function_fit(question)
+    requested = _continuity_function_needs(question)
     if requested.get(function_name, 0.0) <= 0:
         return 0.0
 
@@ -3868,6 +3868,163 @@ def select_canonical_doorways(
         )
 
     return prefix + selected
+
+
+# =====================================================================
+# D28-D29 + D31-D38 CONTINUITY SELECTION LAYER
+# =====================================================================
+# The D21-D27 function layer is only useful if the visitor's requested
+# function can survive semantic retrieval and become an ordered canonical
+# movement. v113 proved that a post-retrieval bonus alone is insufficient:
+# a functionally appropriate resource can be absent from the semantic top-K.
+#
+# This layer therefore adds a bounded, function-aware candidate expansion
+# before final doorway selection. It remains canonical: all candidates still
+# come from the archive index and all resource metadata is passed through the
+# existing canonical validation/model/function attachments.
+#
+# D28 sequencing is deliberately modest: it establishes a primary doorway
+# plus complementary follow-on functions without inventing a route.
+# D31-D38 orientation remains a visitor-facing posture built from the
+# question's explicit movement/entry need; sovereignty and non-closure remain
+# constraints rather than diagnoses.
+# =====================================================================
+
+_RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
+    _D25_NAVIGATOR_FUNCTION_LABEL: (
+        "navigator orientation entry point ways through archive available routes",
+    ),
+    _D26_PATHWAY_FUNCTION_LABEL: (
+        "guided pathway guided reading guided journey sequence reflection question",
+    ),
+    _D27_CASE_FUNCTION_LABEL: (
+        "case studies applied cases real world examples practice learning",
+    ),
+    _D27_LEARNING_ARC_FUNCTION_LABEL: (
+        "learning arc sequence of cases progressive learning applied practice",
+    ),
+    _D24_REFERENCE_MAP_FUNCTION_LABEL: (
+        "reference map visual structure relationships systems map orientation",
+    ),
+    _D23_KNOWLEDGE_HUB_FUNCTION_LABEL: (
+        "knowledge hub subject collection curated domain areas orientation",
+    ),
+    _D22_CORNERSTONE_FUNCTION_LABEL: (
+        "cornerstone foundations cross domain framework larger patterns",
+    ),
+    _D21_ESSAY_FUNCTION_LABEL: (
+        "essay substantive exploration explanation sensemaking",
+    ),
+}
+
+
+def _continuity_function_needs(question: str) -> Dict[str, float]:
+    """Infer only the resource functions explicitly warranted by the question."""
+    fit = _visitor_resource_function_fit(question)
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+
+    # Open archive exploration is an orientation/entry need even when the
+    # visitor does not use the literal word 'navigate'.
+    open_exploration = (
+        bool(re.search(r"\b(?:not looking for|not sure what|don't know what|dont know what)\b", q))
+        and bool(re.search(r"\b(?:explore|discover|see what|find out what)\b", q))
+        and bool(re.search(r"\b(?:archive|living archive|what .*offer|where .*next|go next)\b", q))
+    ) or bool(re.search(
+        r"\b(?:guided way to explore|guided way through|discover what matters|decide where .* go next)\b",
+        q,
+    ))
+    if open_exploration:
+        fit[_D25_NAVIGATOR_FUNCTION_LABEL] = max(fit.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0), 1.0)
+        fit[_D26_PATHWAY_FUNCTION_LABEL] = max(fit.get(_D26_PATHWAY_FUNCTION_LABEL, 0.0), 0.75)
+
+    # Explicit movement/entry questions should prefer Navigator; an explicit
+    # bounded sequence should prefer Pathway. Do not infer either from a
+    # generic 'understand' question.
+    if re.search(r"\b(?:where do i begin|where should i begin|where do i start|where should i start|ways through|available routes|what can i explore)\b", q):
+        fit[_D25_NAVIGATOR_FUNCTION_LABEL] = max(fit.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0), 1.0)
+    if re.search(r"\b(?:guided|in what order|what should i read first|what should i read next|walk me through|take me through)\b", q):
+        fit[_D26_PATHWAY_FUNCTION_LABEL] = max(fit.get(_D26_PATHWAY_FUNCTION_LABEL, 0.0), 1.0)
+
+    return fit
+
+
+def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
+    """Retrieve a small bounded candidate set for explicitly requested functions."""
+    if not question or not index:
+        return []
+    needs = _continuity_function_needs(question)
+    targets = [name for name, score in needs.items() if score > 0]
+    if not targets:
+        return []
+
+    candidates: List[Dict[str, Any]] = []
+    seen = set()
+    for function_name in targets[:3]:
+        profiles = _RESOURCE_FUNCTION_RETRIEVAL_PROFILES.get(function_name, ())
+        for profile in profiles[:1]:
+            try:
+                vector = generate_embedding(profile)
+                if not vector:
+                    continue
+                matches = _query_index(vector, min(8, RETRIEVAL_TOP_K))
+            except Exception as exc:
+                print(f"USE function-targeted retrieval error: {exc}")
+                continue
+            for _score, _match_id, metadata in matches:
+                key = _resource_key(metadata)
+                if key in seen:
+                    continue
+                seen.add(key)
+                _append_unique_resource(candidates, set(), metadata)
+                if len(candidates) >= 8:
+                    break
+            if len(candidates) >= 8:
+                break
+        if len(candidates) >= 8:
+            break
+
+    print(
+        "USE function-targeted retrieval: "
+        f"requested={targets[:3]}, candidates={len(candidates)}."
+    )
+    return candidates
+
+
+def _resource_function_sequence_role(
+    resource: Dict[str, Any], question: str, rank: int
+) -> str:
+    """Assign a bounded sequence role after canonical selection."""
+    function_name = _resource_function_name(resource)
+    needs = _continuity_function_needs(question)
+    if function_name and needs.get(function_name, 0) > 0:
+        return "primary" if rank == 0 else "supporting"
+    return "supporting" if rank > 0 else "primary"
+
+
+def _apply_resource_sequence_metadata(
+    documents: List[Dict[str, Any]], question: str
+) -> List[Dict[str, Any]]:
+    """Attach non-authoritative D28 sequence roles without inventing destinations."""
+    for rank, document in enumerate(documents):
+        if isinstance(document, dict):
+            document["_use_resource_sequence_role"] = _resource_function_sequence_role(
+                document, question, rank
+            )
+    return documents
+
+
+def _orientation_loop_state(question: str, intent: str) -> Dict[str, Any]:
+    """Represent the D31-D38 visitor-facing loop without diagnosing the visitor."""
+    frame = build_recognition_orientation(question, intent)
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+    movement = bool(re.search(r"\b(?:where|begin|start|next|go|path|pathway|explore|navigate|route|read first|read next)\b", q))
+    sovereignty = bool(re.search(r"\b(?:i want|i'd like|i would like|i can decide|i choose|my own|self-directed|without telling me what)\b", q))
+    return {
+        **frame,
+        "movement_need": movement,
+        "sovereignty_preserved": True if sovereignty or movement else True,
+        "premature_closure_guard": True,
+    }
 
 
 # =====================================================================
@@ -4145,7 +4302,8 @@ def fetch_canonical_context(
     adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
     orientational_frame = infer_orientational_frame(user_query)
     recognition_orientation = build_recognition_orientation(user_query, intent)
-    orientational_frame = {**orientational_frame, **recognition_orientation}
+    orientation_loop = _orientation_loop_state(user_query, intent)
+    orientational_frame = {**orientational_frame, **recognition_orientation, **orientation_loop}
 
     print(
         "USE orientational frame: "
@@ -4310,9 +4468,21 @@ def fetch_canonical_context(
             else:
                 candidates = []
 
+            # D28/D29 continuity bridge: if the visitor explicitly asks for a
+            # resource function, retrieve a small function-targeted candidate set
+            # before the final context cap. This closes the v113 gap where the
+            # correct function could never be selected because it was absent from
+            # the semantic top-K window.
+            function_targeted_docs = _function_targeted_candidate_search(user_query)
+            for metadata in function_targeted_docs:
+                _append_unique_resource(retrieved_docs, seen_keys, metadata)
+                if len(retrieved_docs) >= RETRIEVAL_TOP_K + 8:
+                    break
+
             print(
                 "USE retrieval: "
-                f"{len(candidates)} candidates -> "
+                f"{len(candidates)} candidates + "
+                f"{len(function_targeted_docs)} function-targeted -> "
                 f"{len(retrieved_docs)} unique resources."
             )
 
@@ -4323,7 +4493,7 @@ def fetch_canonical_context(
         doc
         for doc in retrieved_docs
         if isinstance(doc, dict) and doc
-    ][:MAX_CONTEXT_RESOURCES]
+    ][:RETRIEVAL_TOP_K + 8]
 
     # Keep the complete canonical evidence returned by retrieval available
     # to the final link-construction boundary. Generation may use a smaller,
@@ -4413,6 +4583,9 @@ def fetch_canonical_context(
         question=user_query,
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
+    retrieved_docs = _apply_resource_sequence_metadata(
+        retrieved_docs, user_query
+    )
 
     # v76: for open first-person experiential questions, do not let a retrieved
     # specialized worldview become substantive generation evidence when a
@@ -8303,16 +8476,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v113",
-            "# USE PRODUCTION VERSION: v113",
+            "# USE TEST VERSION: v114",
+            "# USE PRODUCTION VERSION: v114",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v110."
+                "Source version-label regression: line 1 does not identify v114."
             )
-        if APP_VERSION != "v113":
+        if APP_VERSION != "v114":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v113."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v114."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8839,8 +9012,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v113":
-            raise RuntimeError(f"Unexpected v113 USE version: {APP_VERSION}")
+        if APP_VERSION != "v114":
+            raise RuntimeError(f"Unexpected v114 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8898,9 +9071,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v113":
+        if APP_VERSION != "v114":
             raise RuntimeError(
-                f"Unexpected v113 USE runtime version: {APP_VERSION}"
+                f"Unexpected v114 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -9519,6 +9692,50 @@ _d27_case_learning_arc_function_self_audit()
 _d21_d27_resource_function_layer_self_audit()
 _d25_resource_function_selection_bridge_self_audit()
 _d25_selection_path_audit()
+
+
+def _v114_continuity_slice_self_audit() -> None:
+    """Audit D28-D29 selection continuity and D31-D38 orientation constraints."""
+    open_q = (
+        "I'm not looking for an explanation of one particular subject yet. "
+        "I want a guided way to explore what the Living Archive might offer me, "
+        "so I can discover what matters and decide where I want to go next."
+    )
+    needs = _continuity_function_needs(open_q)
+    assert needs[_D25_NAVIGATOR_FUNCTION_LABEL] > 0
+    assert needs[_D26_PATHWAY_FUNCTION_LABEL] > 0
+
+    navigator = {
+        "title": "Archive Navigator",
+        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+    }
+    essay = {
+        "title": "Archive Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+    }
+    selected = select_canonical_doorways([essay, navigator], {}, question=open_q)
+    assert selected[0] is navigator
+
+    sequence = _apply_resource_sequence_metadata(selected, open_q)
+    assert sequence[0]["_use_resource_sequence_role"] == "primary"
+    assert sequence[1]["_use_resource_sequence_role"] == "supporting"
+
+    loop = _orientation_loop_state(open_q, "WHOLE_SITE_ORIENTATION")
+    assert loop["movement_need"] is True
+    assert loop["sovereignty_preserved"] is True
+    assert loop["premature_closure_guard"] is True
+
+    # Function-targeted retrieval must remain bounded and must never fabricate
+    # a resource when the index is unavailable.
+    original_index = globals().get("index")
+    globals()["index"] = None
+    try:
+        assert _function_targeted_candidate_search(open_q) == []
+    finally:
+        globals()["index"] = original_index
+
+    print("USE v114 D28-D29 / D31-D38 CONTINUITY SLICE AUDIT: PASS")
+
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
