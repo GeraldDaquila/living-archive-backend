@@ -1,4 +1,4 @@
-# USE TEST VERSION: v109 — D24 Reference Map Function
+# USE TEST VERSION: v110 — D25 Navigator Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v109"
+APP_VERSION = "v110"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v109-d24-reference-map-function"
+DEPLOYMENT_FINGERPRINT = "USE-v110-d25-navigator-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2338,6 +2338,99 @@ def _attach_reference_map_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================================================================
+# D25 NAVIGATOR FUNCTION
+# =====================================================================
+# A Navigator is an architectural orientation/entry resource that brings
+# together multiple canonical ways of entering or moving through a subject.
+# D25 recognizes that function only from evidence carried by the resource
+# itself. It does not infer that a Navigator is the right doorway for a
+# particular visitor; that belongs to later navigation architecture.
+# =====================================================================
+
+_D25_NAVIGATOR_FUNCTION_LABEL = "integrated orientation and entry"
+
+
+def _d25_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Navigator function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Navigator":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_navigator",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_navigator_function_evidence",
+        }
+
+    component_signals = (
+        r"\breference maps?\b",
+        r"\bguide notes?\b",
+        r"\breflective questions?\b",
+        r"\bguided reading pathways?\b",
+        r"\bpathways?\b",
+        r"\bessays?\b",
+        r"\bknowledge hubs?\b",
+        r"\bcornerstones?\b",
+    )
+    integration_signals = (
+        r"\bbrings together\b",
+        r"\bbring together\b",
+        r"\bcombines\b",
+        r"\bintegrates\b",
+        r"\bbundles\b",
+        r"\bconnects\b",
+        r"\bentry point\b",
+        r"\bwayfinding\b",
+        r"\bnavigation\b",
+        r"\borientation\b",
+    )
+
+    component_hits = sum(
+        1 for pattern in component_signals if re.search(pattern, content)
+    )
+    integration_hits = sum(
+        1 for pattern in integration_signals if re.search(pattern, content)
+    )
+
+    # Require at least two distinct canonical component signals and an
+    # explicit integration/entry signal. This prevents a generic resource
+    # that merely mentions several document types from becoming a Navigator.
+    if component_hits >= 2 and integration_hits >= 1:
+        return {
+            "function": _D25_NAVIGATOR_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "navigator_integrated_component_and_entry_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_navigator_function_evidence",
+    }
+
+
+def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D25 Navigator function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_navigator_function" not in metadata:
+        metadata["_use_navigator_function"] = _d25_navigator_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -3231,6 +3324,7 @@ def _append_unique_resource(
     metadata = _attach_cornerstone_function(metadata)
     metadata = _attach_knowledge_hub_function(metadata)
     metadata = _attach_reference_map_function(metadata)
+    metadata = _attach_navigator_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7577,16 +7671,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v109",
-            "# USE PRODUCTION VERSION: v109",
+            "# USE TEST VERSION: v110",
+            "# USE PRODUCTION VERSION: v110",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v109."
+                "Source version-label regression: line 1 does not identify v110."
             )
-        if APP_VERSION != "v109":
+        if APP_VERSION != "v110":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v109."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v110."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8113,8 +8207,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v109":
-            raise RuntimeError(f"Unexpected v109 USE version: {APP_VERSION}")
+        if APP_VERSION != "v110":
+            raise RuntimeError(f"Unexpected v110 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8172,9 +8266,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v109":
+        if APP_VERSION != "v110":
             raise RuntimeError(
-                f"Unexpected v109 USE runtime version: {APP_VERSION}"
+                f"Unexpected v110 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8565,6 +8659,58 @@ def _d24_reference_map_function_self_audit() -> None:
     print("USE D24 REFERENCE MAP FUNCTION AUDIT: PASS")
 
 
+def _d25_navigator_function_self_audit() -> None:
+    """Verify Navigator function is type-gated and evidence-bound."""
+    good = {
+        "title": "The Living Archive Navigator: Volume II — Governance & Sovereignty",
+        "_use_resource_type_recognition": {
+            "resource_type": "Navigator",
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        },
+        "text": (
+            "This Navigator provides an orientation and entry point into the "
+            "subject. It brings together Reference Maps, Guide Notes, "
+            "reflective questions, and guided reading pathways, connecting "
+            "these resources for navigation through the domain."
+        ),
+    }
+    result = _d25_navigator_function(good)
+    assert result["function"] == _D25_NAVIGATOR_FUNCTION_LABEL
+    assert result["basis"] == (
+        "navigator_integrated_component_and_entry_evidence"
+    )
+
+    insufficient = {
+        "title": "Navigator",
+        "_use_resource_type_recognition": {"resource_type": "Navigator"},
+        "text": (
+            "This resource mentions Reference Maps and Pathways while "
+            "discussing governance."
+        ),
+    }
+    assert _d25_navigator_function(insufficient)["function"] is None
+
+    non_navigator = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay brings together Reference Maps, Pathways, and "
+            "Guide Notes as examples."
+        ),
+    }
+    non_result = _d25_navigator_function(non_navigator)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_navigator"
+
+    attached = _attach_navigator_function(dict(good))
+    assert attached["_use_navigator_function"]["function"] == (
+        _D25_NAVIGATOR_FUNCTION_LABEL
+    )
+
+    print("USE D25 NAVIGATOR FUNCTION AUDIT: PASS")
+
+
 def _v97_retrieval_candidate_window_audit() -> None:
     """Verify semantic candidates survive until bounded doorway ranking."""
     source = inspect.getsource(fetch_canonical_context)
@@ -8735,6 +8881,7 @@ _d21_essay_function_self_audit()
 _d22_cornerstone_function_self_audit()
 _d23_knowledge_hub_function_self_audit()
 _d24_reference_map_function_self_audit()
+_d25_navigator_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
