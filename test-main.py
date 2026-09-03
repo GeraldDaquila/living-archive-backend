@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v103"
+APP_VERSION = "v104"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v103-d22-cornerstone-function"
+DEPLOYMENT_FINGERPRINT = "USE-v104-d22-cornerstone-function-runtime-safe"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7405,7 +7405,7 @@ def _generation_boundary_self_audit() -> None:
             )
         if APP_VERSION != "v102":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v102."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v104."
             )
         if DEPLOYMENT_FINGERPRINT != "USE-v102-d21-essay-function":
             raise RuntimeError(
@@ -7932,7 +7932,7 @@ def _generation_boundary_self_audit() -> None:
 
         # D16 reconciliation invariants.
         if APP_VERSION != "v102":
-            raise RuntimeError(f"Unexpected v102 USE version: {APP_VERSION}")
+            raise RuntimeError(f"Unexpected v104 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7992,7 +7992,7 @@ def _generation_boundary_self_audit() -> None:
         # Runtime identity must be explicit and current.
         if APP_VERSION != "v102":
             raise RuntimeError(
-                f"Unexpected v102 USE runtime version: {APP_VERSION}"
+                f"Unexpected v104 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
