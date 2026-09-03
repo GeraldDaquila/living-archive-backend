@@ -1,4 +1,4 @@
-# USE TEST VERSION: v108 — D23 Knowledge Hub Function
+# USE TEST VERSION: v109 — D24 Reference Map Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v108"
+APP_VERSION = "v109"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v108-d23-knowledge-hub-function-fingerprint-audit-fixed"
+DEPLOYMENT_FINGERPRINT = "USE-v109-d24-reference-map-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2244,6 +2244,100 @@ def _attach_knowledge_hub_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================================================================
+# D24 REFERENCE MAP FUNCTION
+# =====================================================================
+# Reference Maps are an orienting visual framework: they simplify
+# complexity without reducing it and help readers perceive structure,
+# relationships, and larger systems.
+#
+# D24 recognizes that architectural function only from evidence carried
+# by the resource itself. It does not infer that a map is the right
+# doorway for a particular visitor; that belongs to later navigation
+# architecture.
+# =====================================================================
+
+_D24_REFERENCE_MAP_FUNCTION_LABEL = "visual structural orientation"
+
+
+def _d24_reference_map_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Reference Map function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Reference Map":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_reference_map",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_reference_map_function_evidence",
+        }
+
+    visual_framework_signals = (
+        r"\bvisual framework\b",
+        r"\bvisual frameworks\b",
+        r"\borienting framework\b",
+        r"\bvisual representation\b",
+        r"\bvisual composition\b",
+        r"\bvisual map\b",
+        r"\bmap presents\b",
+        r"\bmap provides\b",
+    )
+    orientation_structure_signals = (
+        r"\borientation\b",
+        r"\borient(?:ing|s)?\b",
+        r"\bstructure\b",
+        r"\brelationships?\b",
+        r"\bpatterns?\b",
+        r"\bcomplexity\b",
+        r"\bsee how\b",
+        r"\bperceive\b",
+        r"\bconnect(?:ions)?\b",
+    )
+
+    visual_hits = sum(
+        1 for pattern in visual_framework_signals if re.search(pattern, content)
+    )
+    orientation_hits = sum(
+        1 for pattern in orientation_structure_signals if re.search(pattern, content)
+    )
+
+    # Require evidence that the resource is itself a visual/framework
+    # object plus at least two independent orientation/structure signals.
+    if visual_hits >= 1 and orientation_hits >= 2:
+        return {
+            "function": _D24_REFERENCE_MAP_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "reference_map_visual_framework_and_orientation_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_reference_map_function_evidence",
+    }
+
+
+def _attach_reference_map_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D24 Reference Map function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_reference_map_function" not in metadata:
+        metadata["_use_reference_map_function"] = _d24_reference_map_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -3136,6 +3230,7 @@ def _append_unique_resource(
     metadata = _attach_essay_function(metadata)
     metadata = _attach_cornerstone_function(metadata)
     metadata = _attach_knowledge_hub_function(metadata)
+    metadata = _attach_reference_map_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7482,16 +7577,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v108",
-            "# USE PRODUCTION VERSION: v108",
+            "# USE TEST VERSION: v109",
+            "# USE PRODUCTION VERSION: v109",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v108."
+                "Source version-label regression: line 1 does not identify v109."
             )
-        if APP_VERSION != "v108":
+        if APP_VERSION != "v109":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v108."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v109."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8018,8 +8113,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v108":
-            raise RuntimeError(f"Unexpected v108 USE version: {APP_VERSION}")
+        if APP_VERSION != "v109":
+            raise RuntimeError(f"Unexpected v109 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8077,9 +8172,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v108":
+        if APP_VERSION != "v109":
             raise RuntimeError(
-                f"Unexpected v108 USE runtime version: {APP_VERSION}"
+                f"Unexpected v109 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8418,6 +8513,58 @@ def _d23_knowledge_hub_function_self_audit() -> None:
     print("USE D23 KNOWLEDGE HUB FUNCTION AUDIT: PASS")
 
 
+def _d24_reference_map_function_self_audit() -> None:
+    """Verify Reference Map function is type-gated and evidence-bound."""
+    good = {
+        "title": "Reference Map 024 — The Adaptive Systems Map",
+        "_use_resource_type_recognition": {
+            "resource_type": "Reference Map",
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        },
+        "text": (
+            "This Reference Map is an orienting framework and visual "
+            "representation of relationships and patterns within complex "
+            "systems. It provides orientation by helping readers perceive "
+            "the structure and connections of the subject."
+        ),
+    }
+    result = _d24_reference_map_function(good)
+    assert result["function"] == _D24_REFERENCE_MAP_FUNCTION_LABEL
+    assert result["basis"] == (
+        "reference_map_visual_framework_and_orientation_evidence"
+    )
+
+    insufficient = {
+        "title": "Reference Map 024",
+        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+        "text": (
+            "This resource discusses governance and mentions relationships "
+            "between several ideas."
+        ),
+    }
+    assert _d24_reference_map_function(insufficient)["function"] is None
+
+    non_map = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay explains a visual framework for governance and "
+            "discusses patterns and relationships."
+        ),
+    }
+    non_result = _d24_reference_map_function(non_map)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_reference_map"
+
+    attached = _attach_reference_map_function(dict(good))
+    assert attached["_use_reference_map_function"]["function"] == (
+        _D24_REFERENCE_MAP_FUNCTION_LABEL
+    )
+
+    print("USE D24 REFERENCE MAP FUNCTION AUDIT: PASS")
+
+
 def _v97_retrieval_candidate_window_audit() -> None:
     """Verify semantic candidates survive until bounded doorway ranking."""
     source = inspect.getsource(fetch_canonical_context)
@@ -8587,6 +8734,7 @@ _d20_resource_type_recognition_self_audit()
 _d21_essay_function_self_audit()
 _d22_cornerstone_function_self_audit()
 _d23_knowledge_hub_function_self_audit()
+_d24_reference_map_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
