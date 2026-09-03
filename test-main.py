@@ -1,4 +1,4 @@
-# USE TEST VERSION: v101 — D21 Navigator Function (Provider-Safe)
+# USE TEST VERSION: v102 — D21 Essay Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v101"
+APP_VERSION = "v102"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v101-d21-navigator-function-provider-safe"
+DEPLOYMENT_FINGERPRINT = "USE-v102-d21-essay-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1968,20 +1968,23 @@ def _attach_resource_type_recognition(metadata: Dict[str, Any]) -> Dict[str, Any
 
 
 # =====================================================================
-# D21 NAVIGATOR FUNCTION
+# D21 ESSAY FUNCTION
 # =====================================================================
 # D21 establishes the architectural function of a resource already recognized
-# as a Navigator. It does not infer a visitor need or recommend a Navigator
-# merely because one is present. The function is established only when the
-# resource is recognized as a Navigator and its own evidence supports the
-# integrated orientation role.
+# as an Essay. It does not infer a visitor need from the essay or promote an
+# essay merely because it is semantically related to the question. The function
+# is established only when the resource's own evidence explicitly presents the
+# essay as an exploratory, interpretive, or integrative work.
+#
+# Navigator function work belongs to D25 in the canonical Phase III sequence.
+# It is intentionally not active in D21.
 # =====================================================================
 
-_D21_NAVIGATOR_FUNCTION_LABEL = "integrated orientation and entry"
+_D21_ESSAY_FUNCTION_LABEL = "substantive exploration and sensemaking"
 
 
-def _d21_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
-    """Recognize Navigator function only from D20 type plus resource evidence."""
+def _d21_essay_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Essay function only from D20 type plus resource evidence."""
     if not isinstance(metadata, dict):
         return {"function": None, "confidence": "unknown", "basis": "none"}
 
@@ -1989,42 +1992,72 @@ def _d21_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(recognition, dict):
         recognition = _recognize_resource_type(metadata)
 
-    if recognition.get("resource_type") != "Navigator":
-        return {"function": None, "confidence": "not_applicable", "basis": "resource_type_not_navigator"}
+    if recognition.get("resource_type") != "Essay":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_essay",
+        }
 
     content = html.unescape(_resource_content(metadata)).casefold()
-    component_patterns = (
-        r"\breference maps?\b",
-        r"\bguide notes?\b",
-        r"\breflective questions?\b",
-        r"\bguided reading pathways?\b",
-    )
-    component_hits = sum(1 for pattern in component_patterns if re.search(pattern, content))
-    integrated_signal = bool(re.search(
-        r"\b(?:brings together|bring together|combines|integrates|bundles)\b",
-        content,
-    ))
-
-    if component_hits >= 2 and integrated_signal:
+    if not content:
         return {
-            "function": _D21_NAVIGATOR_FUNCTION_LABEL,
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_essay_function_evidence",
+        }
+
+    # These signals are intentionally generic and structural. They describe
+    # what the resource itself says it is doing, rather than importing a
+    # subject-specific interpretation from the visitor's question.
+    exploration_signals = (
+        r"\bthis essay explores\b",
+        r"\bthis essay examines\b",
+        r"\bthis essay investigates\b",
+        r"\bthis essay considers\b",
+        r"\bthis essay asks\b",
+        r"\bthe essay explores\b",
+        r"\bthe essay examines\b",
+        r"\bthe essay investigates\b",
+        r"\bthe essay considers\b",
+    )
+    synthesis_signals = (
+        r"\bthis essay presents (?:an|a) (?:integrative|architectural|systems-based|developmental)",
+        r"\bthis essay integrates\b",
+        r"\bthis essay synthesizes\b",
+        r"\bthis essay offers\b",
+        r"\bthe essay integrates\b",
+        r"\bthe essay synthesizes\b",
+        r"\bthe essay offers\b",
+    )
+
+    exploration_hits = sum(
+        1 for pattern in exploration_signals if re.search(pattern, content)
+    )
+    synthesis_hits = sum(
+        1 for pattern in synthesis_signals if re.search(pattern, content)
+    )
+
+    if exploration_hits >= 1 and synthesis_hits >= 1:
+        return {
+            "function": _D21_ESSAY_FUNCTION_LABEL,
             "confidence": "strong",
-            "basis": "navigator_integrated_components",
+            "basis": "essay_exploration_and_synthesis_evidence",
         }
 
     return {
         "function": None,
         "confidence": "unknown",
-        "basis": "insufficient_navigator_function_evidence",
+        "basis": "insufficient_essay_function_evidence",
     }
 
 
-def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
-    """Attach D21 Navigator function without overwriting explicit D19 fields."""
+def _attach_essay_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D21 Essay function without overwriting explicit D19 fields."""
     if not isinstance(metadata, dict):
         return metadata
-    if "_use_navigator_function" not in metadata:
-        metadata["_use_navigator_function"] = _d21_navigator_function(metadata)
+    if "_use_essay_function" not in metadata:
+        metadata["_use_essay_function"] = _d21_essay_function(metadata)
     return metadata
 
 
@@ -2241,15 +2274,15 @@ def format_context_blocks(
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
         resource_type_info = doc.get("_use_resource_type_recognition") or {}
-        navigator_function_info = doc.get("_use_navigator_function") or {}
+        essay_function_info = doc.get("_use_essay_function") or {}
         architectural_lines = []
         if resource_type_info.get("resource_type"):
             architectural_lines.append(
                 f"Recognized Resource Type: {resource_type_info['resource_type']}"
             )
-        if navigator_function_info.get("function"):
+        if essay_function_info.get("function"):
             architectural_lines.append(
-                f"Recognized Resource Function: {navigator_function_info['function']}"
+                f"Recognized Resource Function: {essay_function_info['function']}"
             )
         architectural_context = ""
         if architectural_lines:
@@ -2918,7 +2951,7 @@ def _append_unique_resource(
 
     metadata = _attach_canonical_resource_model(metadata)
     metadata = _attach_resource_type_recognition(metadata)
-    metadata = _attach_navigator_function(metadata)
+    metadata = _attach_essay_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7265,20 +7298,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v101",
-            "# USE PRODUCTION VERSION: v101",
+            "# USE TEST VERSION: v102",
+            "# USE PRODUCTION VERSION: v102",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v101."
+                "Source version-label regression: line 1 does not identify v102."
             )
-        if APP_VERSION != "v101":
+        if APP_VERSION != "v102":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v101."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v102."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v101-d21-navigator-function-provider-safe":
+        if DEPLOYMENT_FINGERPRINT != "USE-v102-d21-essay-function":
             raise RuntimeError(
-                "Deployment fingerprint regression: v101 fingerprint is not aligned."
+                "Deployment fingerprint regression: v102 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7800,8 +7833,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v101":
-            raise RuntimeError(f"Unexpected v101 USE version: {APP_VERSION}")
+        if APP_VERSION != "v102":
+            raise RuntimeError(f"Unexpected v102 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7859,9 +7892,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v101":
+        if APP_VERSION != "v102":
             raise RuntimeError(
-                f"Unexpected v101 USE runtime version: {APP_VERSION}"
+                f"Unexpected v102 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8042,42 +8075,51 @@ def _d20_resource_type_recognition_self_audit() -> None:
     print("USE D20 RESOURCE-TYPE RECOGNITION AUDIT: PASS")
 
 
-def _d21_navigator_function_self_audit() -> None:
-    """Verify Navigator function is asserted only from sufficient evidence."""
+def _d21_essay_function_self_audit() -> None:
+    """Verify Essay function is asserted only from sufficient evidence."""
     good = {
-        "title": "The Living Archive Navigator Series",
+        "title": "The Psychology of Scarcity",
         "_use_resource_type_recognition": {
-            "resource_type": "Navigator",
+            "resource_type": "Essay",
             "confidence": "strong",
-            "basis": "title_self_identification",
+            "basis": "content_self_identification",
         },
         "text": (
-            "Each Navigator brings together curated Reference Maps, concise Guide Notes, "
-            "reflective questions, and guided reading pathways so readers can see how ideas interrelate."
+            "This essay explores scarcity as a developmental and psychological process. "
+            "This essay presents an integrative architectural synthesis informed by "
+            "developmental psychology, behavioral economics, neuroscience, and systems thinking."
         ),
     }
-    result = _d21_navigator_function(good)
-    assert result["function"] == _D21_NAVIGATOR_FUNCTION_LABEL, "D21 Navigator function not recognized"
-    assert result["basis"] == "navigator_integrated_components", "D21 provenance not bounded"
+    result = _d21_essay_function(good)
+    assert result["function"] == _D21_ESSAY_FUNCTION_LABEL, "D21 Essay function not recognized"
+    assert result["basis"] == "essay_exploration_and_synthesis_evidence", "D21 Essay provenance not bounded"
 
     insufficient = {
+        "title": "The Psychology of Scarcity",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay is available in the Living Archive.",
+    }
+    assert _d21_essay_function(insufficient)["function"] is None, "D21 guessed Essay function"
+
+    non_essay = {
         "title": "The Living Archive Navigator Series",
         "_use_resource_type_recognition": {"resource_type": "Navigator"},
-        "text": "A Navigator is available in the Living Archive.",
+        "text": (
+            "This Navigator brings together Reference Maps and guided reading pathways. "
+            "It integrates several forms of archive navigation."
+        ),
     }
-    assert _d21_navigator_function(insufficient)["function"] is None, "D21 guessed function"
+    non_result = _d21_essay_function(non_essay)
+    assert (
+        non_result["function"] is None
+        and non_result["basis"] == "resource_type_not_essay"
+    ), "D21 leaked Essay function"
 
-    non_navigator = {
-        "title": "Reference Map 001",
-        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
-        "text": "Reference Maps and Guide Notes can support navigation.",
-    }
-    non_result = _d21_navigator_function(non_navigator)
-    assert non_result["function"] is None and non_result["basis"] == "resource_type_not_navigator", "D21 leaked Navigator function"
-
-    attached = _attach_navigator_function(dict(good))
-    assert attached["_use_navigator_function"]["function"] == _D21_NAVIGATOR_FUNCTION_LABEL, "D21 function not attached"
-    print("USE D21 NAVIGATOR FUNCTION AUDIT: PASS")
+    attached = _attach_essay_function(dict(good))
+    assert (
+        attached["_use_essay_function"]["function"] == _D21_ESSAY_FUNCTION_LABEL
+    ), "D21 Essay function not attached"
+    print("USE D21 ESSAY FUNCTION AUDIT: PASS")
 
 
 def _v97_retrieval_candidate_window_audit() -> None:
@@ -8246,7 +8288,7 @@ _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
 _d19_canonical_resource_model_self_audit()
 _d20_resource_type_recognition_self_audit()
-_d21_navigator_function_self_audit()
+_d21_essay_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
