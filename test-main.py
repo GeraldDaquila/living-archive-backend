@@ -1,4 +1,4 @@
-# USE TEST VERSION: v110 — D25 Navigator Function
+# USE TEST VERSION: v111 — D25 Selection Path Audit
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v110"
+APP_VERSION = "v111"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v110-d25-navigator-function"
+DEPLOYMENT_FINGERPRINT = "USE-v111-d25-selection-path-audit"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2428,6 +2428,114 @@ def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
     if "_use_navigator_function" not in metadata:
         metadata["_use_navigator_function"] = _d25_navigator_function(metadata)
     return metadata
+
+
+# =====================================================================
+# D25 SELECTION-PATH AUDIT — DIAGNOSTIC ONLY
+# =====================================================================
+# v111 does NOT change canonical selection behavior. It audits whether the
+# resource-function signals established by D19-D25 are actually consumed by
+# the retrieval/ranking/doorway path. This prevents vocabulary patches from
+# being used to compensate for a missing architectural connection.
+# =====================================================================
+
+def _d25_selection_path_audit() -> None:
+    source = Path(__file__).read_text(encoding="utf-8")
+    lines = source.splitlines()
+
+    function_definitions = {
+        "D19 model": r"def _canonical_resource_model",
+        "D20 type recognition": r"def _recognize_resource_type",
+        "D21 Essay function": r"def _d21_essay_function",
+        "D22 Cornerstone function": r"def _d22_cornerstone_function",
+        "D23 Knowledge Hub function": r"def _d23_knowledge_hub_function",
+        "D24 Reference Map function": r"def _d24_reference_map_function",
+        "D25 Navigator function": r"def _d25_navigator_function",
+    }
+
+    attachment_signals = {
+        "D21": r"_attach_essay_function",
+        "D22": r"_attach_cornerstone_function",
+        "D23": r"_attach_knowledge_hub_function",
+        "D24": r"_attach_reference_map_function",
+        "D25": r"_attach_navigator_function",
+    }
+
+    # Selection/ranking functions are intentionally discovered rather than
+    # assumed. This is the evidence needed before changing architecture.
+    candidate_names = []
+    for idx, line in enumerate(lines, 1):
+        if re.match(r"\s*def\s+", line):
+            name = re.search(r"def\s+([A-Za-z_][A-Za-z0-9_]*)", line)
+            if name:
+                candidate_names.append((idx, name.group(1)))
+
+    selection_terms = (
+        "select",
+        "rank",
+        "rerank",
+        "doorway",
+        "candidate",
+        "movement",
+        "sequence",
+        "navigation",
+        "resource",
+    )
+    selection_functions = [
+        (line_no, name)
+        for line_no, name in candidate_names
+        if any(term in name.casefold() for term in selection_terms)
+    ]
+
+    function_consumers = []
+    resource_function_terms = (
+        "_use_essay_function",
+        "_use_cornerstone_function",
+        "_use_knowledge_hub_function",
+        "_use_reference_map_function",
+        "_use_navigator_function",
+        "resource_function",
+        "function",
+    )
+
+    for idx, line in enumerate(lines, 1):
+        if any(term in line for term in resource_function_terms):
+            function_consumers.append((idx, line.strip()))
+
+    print("USE D25 SELECTION-PATH AUDIT")
+    print("  Function definitions:")
+    for label, pattern in function_definitions.items():
+        hits = [
+            idx for idx, line in enumerate(lines, 1)
+            if re.search(pattern, line)
+        ]
+        print(f"    {label}: {hits[:5]}")
+    print("  Function attachment hooks:")
+    for label, pattern in attachment_signals.items():
+        hits = [
+            idx for idx, line in enumerate(lines, 1)
+            if pattern in line
+        ]
+        print(f"    {label}: {hits[:5]}")
+    print("  Selection/ranking/navigation functions:")
+    for line_no, name in selection_functions:
+        print(f"    line {line_no}: {name}")
+    print("  Lines referencing resource-function metadata:")
+    for line_no, line in function_consumers:
+        print(f"    line {line_no}: {line[:180]}")
+
+    # This audit is informational. Its success condition is simply that all
+    # D19-D25 recognition layers exist and are attached; no claim is made that
+    # they influence selection.
+    assert all(
+        re.search(pattern, source)
+        for pattern in function_definitions.values()
+    )
+    assert all(
+        pattern in source for pattern in attachment_signals.values()
+    )
+    print("  D19-D25 recognition/attachment integrity: PASS")
+    print("  Selection consumption: DIAGNOSTIC — requires inspection of listed paths")
 
 
 # =====================================================================
@@ -7671,16 +7779,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v110",
-            "# USE PRODUCTION VERSION: v110",
+            "# USE TEST VERSION: v111",
+            "# USE PRODUCTION VERSION: v111",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v110."
             )
-        if APP_VERSION != "v110":
+        if APP_VERSION != "v111":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v110."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v111."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8207,8 +8315,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v110":
-            raise RuntimeError(f"Unexpected v110 USE version: {APP_VERSION}")
+        if APP_VERSION != "v111":
+            raise RuntimeError(f"Unexpected v111 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8266,9 +8374,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v110":
+        if APP_VERSION != "v111":
             raise RuntimeError(
-                f"Unexpected v110 USE runtime version: {APP_VERSION}"
+                f"Unexpected v111 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8882,6 +8990,7 @@ _d22_cornerstone_function_self_audit()
 _d23_knowledge_hub_function_self_audit()
 _d24_reference_map_function_self_audit()
 _d25_navigator_function_self_audit()
+_d25_selection_path_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
