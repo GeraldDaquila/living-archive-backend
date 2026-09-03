@@ -1,4 +1,4 @@
-# USE TEST VERSION: v93 — D18 USE Intent Integration Audit
+# USE TEST VERSION: v93 — D18 USE Intent Integration Audit — Corrected
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -6060,9 +6060,19 @@ def _v93_d18_use_intent_integration_audit() -> None:
         raise RuntimeError(
             "D18 integration regression: longitudinal observer can influence current-turn reasoning."
         )
-    if "current_turn_influence" not in route_source or "observer_only" not in route_source:
+    # Sovereignty markers belong to the observer state definition, not
+    # necessarily to the route function itself. Audit the actual observer
+    # implementation rather than requiring incidental marker strings in
+    # handle_query().
+    observer_source = inspect.getsource(assess_progressive_commitment)
+    invitation_source = inspect.getsource(progressive_inquiry_invitation)
+    if "observer_only" not in observer_source or "current_turn_influence" not in observer_source:
         raise RuntimeError(
             "D18 integration regression: passive observer sovereignty markers are missing."
+        )
+    if "observer_only" not in invitation_source and "observer_only" not in observer_source:
+        raise RuntimeError(
+            "D18 integration regression: passive observer sovereignty state is not preserved."
         )
 
     # Basic callable smoke checks use only local deterministic functions; no
