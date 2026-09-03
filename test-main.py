@@ -6077,8 +6077,11 @@ def _v93_d18_use_intent_integration_audit() -> None:
 
     # Basic callable smoke checks use only local deterministic functions; no
     # external retrieval/provider call is made by this audit.
+    # Use canonical classifier examples that exercise the actual public
+    # intent contract without colliding with higher-priority topical
+    # complement detection.
     topical = classify_intent("Why can people understand the same situation differently?")
-    whole_site = classify_intent("What is the Living Archive?")
+    whole_site = classify_intent("Where should I start?")
     if topical != "TOPICAL_INQUIRY" or whole_site != "WHOLE_SITE_ORIENTATION":
         raise RuntimeError(
             "D18 integration regression: deterministic intent classification smoke test failed."
