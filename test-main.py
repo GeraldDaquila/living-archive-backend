@@ -6024,7 +6024,7 @@ def _v93_d18_use_intent_integration_audit() -> None:
         raise RuntimeError(
             "D18 integration regression: classified intent is not passed to generation."
         )
-    if "context_data.get(\n                \"orientational_frame\"" not in route_source:
+    if "orientational_frame=context_data.get(" not in route_source:
         raise RuntimeError(
             "D18 integration regression: orientational frame is not passed to generation."
         )
