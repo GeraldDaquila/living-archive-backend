@@ -1,4 +1,4 @@
-# USE TEST VERSION: v112 — D25 Resource Function Selection Bridge
+# USE TEST VERSION: v113 — D21-D27 Resource Function Layer
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v112"
+APP_VERSION = "v113"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v112-d25-resource-function-selection-bridge"
+DEPLOYMENT_FINGERPRINT = "USE-v113-d21-d27-resource-function-layer"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2439,6 +2439,137 @@ def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 # being used to compensate for a missing architectural connection.
 # =====================================================================
 
+def _d26_pathway_function_self_audit() -> None:
+    """Verify Pathway function is type-gated and evidence-bound."""
+    good = {
+        "title": "Guided Reading Pathway — Understanding Change",
+        "_use_resource_type_recognition": {"resource_type": "Pathway"},
+        "text": (
+            "This Guided Reading Pathway is a guided experience that leads the reader "
+            "through a sequence of canonical essays and reflection questions. Each "
+            "stop prepares the reader for the next stop in the journey."
+        ),
+    }
+    result = _d26_pathway_function(good)
+    assert result["function"] == _D26_PATHWAY_FUNCTION_LABEL
+    assert result["basis"] == "pathway_guidance_and_sequence_evidence"
+
+    insufficient = {
+        "title": "Guided Reading Pathway",
+        "_use_resource_type_recognition": {"resource_type": "Pathway"},
+        "text": "This pathway is available in the Living Archive.",
+    }
+    assert _d26_pathway_function(insufficient)["function"] is None
+
+    non_pathway = {
+        "title": "An Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay explores a sequence of ideas and guides reflection.",
+    }
+    assert _d26_pathway_function(non_pathway)["function"] is None
+
+    attached = _attach_pathway_function(dict(good))
+    assert attached["_use_pathway_function"]["function"] == _D26_PATHWAY_FUNCTION_LABEL
+    print("USE D26 PATHWAY FUNCTION AUDIT: PASS")
+
+
+def _d27_case_learning_arc_function_self_audit() -> None:
+    """Verify Case / Learning Arc function is type-gated and evidence-bound."""
+    case = {
+        "title": "Case Study — Institutional Trust",
+        "_use_resource_type_recognition": {"resource_type": "Case"},
+        "text": (
+            "This case study presents an applied case of institutional trust. "
+            "The case illustrates what happened in practice and what can be learned."
+        ),
+    }
+    case_result = _d27_case_learning_arc_function(case)
+    assert case_result["function"] == _D27_CASE_FUNCTION_LABEL
+
+    arc = {
+        "title": "Learning Arc — Trust in Practice",
+        "_use_resource_type_recognition": {"resource_type": "Learning Arc"},
+        "text": (
+            "This Learning Arc presents a sequence of cases and a progressive "
+            "learning progression from one case to the next, with applied learning."
+        ),
+    }
+    arc_result = _d27_case_learning_arc_function(arc)
+    assert arc_result["function"] == _D27_LEARNING_ARC_FUNCTION_LABEL
+
+    insufficient = {
+        "title": "Case Study",
+        "_use_resource_type_recognition": {"resource_type": "Case"},
+        "text": "This resource is available in the case library.",
+    }
+    assert _d27_case_learning_arc_function(insufficient)["function"] is None
+
+    non_case = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay discusses applied examples and case studies.",
+    }
+    assert _d27_case_learning_arc_function(non_case)["function"] is None
+
+    attached = _attach_case_learning_arc_function(dict(case))
+    assert attached["_use_case_learning_arc_function"]["function"] == _D27_CASE_FUNCTION_LABEL
+    print("USE D27 CASE / LEARNING ARC FUNCTION AUDIT: PASS")
+
+
+def _d21_d27_resource_function_layer_self_audit() -> None:
+    """Verify the D21-D27 function layer is coherent and selection-aware."""
+    required = {
+        "_use_essay_function": "substantive exploration and sensemaking",
+        "_use_cornerstone_function": "cross-domain pattern orientation",
+        "_use_knowledge_hub_function": "curated subject-domain orientation",
+        "_use_reference_map_function": "visual structural orientation",
+        "_use_navigator_function": "integrated orientation and entry",
+        "_use_pathway_function": "guided orientation experience",
+        "_use_case_learning_arc_function": "applied case learning",
+    }
+    if tuple(required) != _RESOURCE_FUNCTION_NAMES:
+        raise RuntimeError("D21-D27 function layer regression: registry is incomplete or reordered.")
+
+    questions = (
+        ("I want to see the available routes and decide where to go next.", "integrated orientation and entry"),
+        ("I want a guided path through this subject and want to know what to read first.", "guided orientation experience"),
+        ("I want real cases showing how this plays out in practice.", "applied case learning"),
+    )
+    for question, expected in questions:
+        fit = _visitor_resource_function_fit(question)
+        if fit.get(expected, 0.0) <= 0:
+            raise RuntimeError(
+                "D21-D27 function layer regression: expected functional need was not recognized: "
+                + expected
+            )
+
+    # Function metadata must be part of selection, but ordinary explanatory
+    # questions remain function-neutral.
+    pathway = {
+        "title": "Guided Pathway",
+        "_use_pathway_function": {"function": _D26_PATHWAY_FUNCTION_LABEL},
+    }
+    essay = {
+        "title": "Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+    }
+    selected = select_canonical_doorways(
+        [essay, pathway],
+        {"primary": "general", "scores": {}},
+        question="I want a guided path through this subject and want to know what to read first.",
+    )
+    if selected[0] is not pathway:
+        raise RuntimeError("D21-D27 function layer regression: functional need did not affect canonical selection.")
+
+    neutral_question = "Why does this matter?"
+    if _resource_function_selection_bonus(pathway, neutral_question) != 0.0:
+        raise RuntimeError("D21-D27 function layer regression: neutral question received a functional bonus.")
+    if _resource_function_selection_bonus(essay, neutral_question) != 0.0:
+        raise RuntimeError("D21-D27 function layer regression: neutral question received a functional bonus.")
+
+    print("USE D21-D27 RESOURCE FUNCTION LAYER AUDIT: PASS")
+
+
 def _d25_resource_function_selection_bridge_self_audit() -> None:
     """Verify function fit changes selection only when the visitor need warrants it."""
     navigator = {
@@ -2507,6 +2638,8 @@ def _d25_selection_path_audit() -> None:
         "D23": r"_attach_knowledge_hub_function",
         "D24": r"_attach_reference_map_function",
         "D25": r"_attach_navigator_function",
+        "D26": r"_attach_pathway_function",
+        "D27": r"_attach_case_learning_arc_function",
     }
 
     # Selection/ranking functions are intentionally discovered rather than
@@ -3352,6 +3485,185 @@ def _frame_neutral_evidence_unavailable_response(question: str) -> str:
 
 
 # =====================================================================
+# D26 PATHWAY FUNCTION
+# =====================================================================
+# A Pathway is a guided orientation experience: it gives a reader a bounded
+# sequence through canonical material around a genuine question. The function
+# is recognized from the resource's own evidence, not from the visitor's
+# question. Selection fit is handled separately by the shared D21-D27 layer.
+# =====================================================================
+
+_D26_PATHWAY_FUNCTION_LABEL = "guided orientation experience"
+
+
+def _d26_pathway_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Pathway function only from D20 type plus resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Pathway":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_pathway",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_pathway_function_evidence",
+        }
+
+    guidance_signals = (
+        r"\bguided (?:reading )?pathway\b",
+        r"\bguided experience\b",
+        r"\bguided journey\b",
+        r"\bguide(?:s|d)? the reader\b",
+        r"\bleads the reader\b",
+        r"\bwalk(?:s|ing)? the reader\b",
+    )
+    sequence_signals = (
+        r"\bsequence\b",
+        r"\bin sequence\b",
+        r"\bnext stop\b",
+        r"\bstops?\b",
+        r"\bjourney\b",
+        r"\b90 minutes?\b",
+        r"\breading order\b",
+        r"\breflection question\b",
+    )
+
+    guidance_hits = sum(1 for pattern in guidance_signals if re.search(pattern, content))
+    sequence_hits = sum(1 for pattern in sequence_signals if re.search(pattern, content))
+
+    if guidance_hits >= 1 and sequence_hits >= 1:
+        return {
+            "function": _D26_PATHWAY_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "pathway_guidance_and_sequence_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_pathway_function_evidence",
+    }
+
+
+def _attach_pathway_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D26 Pathway function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_pathway_function" not in metadata:
+        metadata["_use_pathway_function"] = _d26_pathway_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D27 CASE / LEARNING ARC FUNCTION
+# =====================================================================
+# Cases and Learning Arcs provide applied learning through concrete cases or
+# a bounded progression across cases. The function is recognized from the
+# resource's own evidence; the visitor's need only affects later selection.
+# =====================================================================
+
+_D27_CASE_FUNCTION_LABEL = "applied case learning"
+_D27_LEARNING_ARC_FUNCTION_LABEL = "sequenced case-based learning"
+
+
+def _d27_case_learning_arc_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Case or Learning Arc function from type and resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    resource_type = recognition.get("resource_type")
+    if resource_type not in {"Case", "Learning Arc"}:
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_case_or_learning_arc",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_case_learning_arc_function_evidence",
+        }
+
+    case_signals = (
+        r"\bcase stud(?:y|ies)\b",
+        r"\bcase library\b",
+        r"\bcase atlas\b",
+        r"\breal[- ]world case\b",
+        r"\bapplied case\b",
+        r"\bcase(?:s)? illustrate\b",
+        r"\bcase(?:s)? show\b",
+    )
+    arc_signals = (
+        r"\blearning arc\b",
+        r"\bprogression of cases\b",
+        r"\bsequence of cases\b",
+        r"\bcase sequence\b",
+        r"\bprogressive learning\b",
+        r"\bbuilds from one case\b",
+        r"\bfrom one case to the next\b",
+    )
+    learning_signals = (
+        r"\blearning\b",
+        r"\bapplication\b",
+        r"\bapplied\b",
+        r"\bpractice\b",
+        r"\bgovernance challenge\b",
+        r"\bwhat happened\b",
+    )
+
+    case_hits = sum(1 for pattern in case_signals if re.search(pattern, content))
+    arc_hits = sum(1 for pattern in arc_signals if re.search(pattern, content))
+    learning_hits = sum(1 for pattern in learning_signals if re.search(pattern, content))
+
+    if resource_type == "Learning Arc" and arc_hits >= 1 and learning_hits >= 1:
+        return {
+            "function": _D27_LEARNING_ARC_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "learning_arc_sequence_and_learning_evidence",
+        }
+
+    if resource_type == "Case" and case_hits >= 1 and learning_hits >= 1:
+        return {
+            "function": _D27_CASE_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "case_and_applied_learning_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_case_learning_arc_function_evidence",
+    }
+
+
+def _attach_case_learning_arc_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D27 Case / Learning Arc function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_case_learning_arc_function" not in metadata:
+        metadata["_use_case_learning_arc_function"] = _d27_case_learning_arc_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # D25 RESOURCE-FUNCTION SELECTION BRIDGE
 # =====================================================================
 # Connect the already-recognized canonical resource functions to the
@@ -3370,6 +3682,8 @@ _RESOURCE_FUNCTION_NAMES = (
     "_use_knowledge_hub_function",
     "_use_reference_map_function",
     "_use_navigator_function",
+    "_use_pathway_function",
+    "_use_case_learning_arc_function",
 )
 
 def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
@@ -3381,6 +3695,9 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
         "curated subject-domain orientation": 0.0,
         "visual structural orientation": 0.0,
         "integrated orientation and entry": 0.0,
+        "guided orientation experience": 0.0,
+        "applied case learning": 0.0,
+        "sequenced case-based learning": 0.0,
     }
 
     # Integrated entry/orientation: only explicit navigation needs qualify.
@@ -3399,6 +3716,43 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
         )
     ):
         fit["integrated orientation and entry"] = 1.0
+
+    # Guided pathway: the visitor is explicitly asking for a bounded route,
+    # sequence, or guided movement rather than a single explanatory resource.
+    if any(
+        phrase in q for phrase in (
+            "guided path",
+            "guided pathway",
+            "guided reading",
+            "walk me through",
+            "take me through",
+            "what should i read first",
+            "what should i read next",
+            "in what order",
+            "a sequence through",
+            "a path through",
+        )
+    ):
+        fit["guided orientation experience"] = 1.0
+
+    # Applied case learning: the visitor explicitly wants concrete cases,
+    # examples, or applied learning rather than abstract explanation.
+    if any(
+        phrase in q for phrase in (
+            "case studies",
+            "real cases",
+            "real-world cases",
+            "examples of how this plays out",
+            "how this plays out in practice",
+            "applied examples",
+            "learn from cases",
+            "case library",
+            "learning arc",
+            "sequence of cases",
+        )
+    ):
+        fit["applied case learning"] = 1.0
+        fit["sequenced case-based learning"] = 1.0 if "learning arc" in q or "sequence of cases" in q else 0.0
 
     if any(
         phrase in q for phrase in (
@@ -3601,6 +3955,8 @@ def _append_unique_resource(
     metadata = _attach_knowledge_hub_function(metadata)
     metadata = _attach_reference_map_function(metadata)
     metadata = _attach_navigator_function(metadata)
+    metadata = _attach_pathway_function(metadata)
+    metadata = _attach_case_learning_arc_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7947,16 +8303,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v112",
-            "# USE PRODUCTION VERSION: v112",
+            "# USE TEST VERSION: v113",
+            "# USE PRODUCTION VERSION: v113",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v110."
             )
-        if APP_VERSION != "v112":
+        if APP_VERSION != "v113":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v112."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v113."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8483,8 +8839,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v112":
-            raise RuntimeError(f"Unexpected v112 USE version: {APP_VERSION}")
+        if APP_VERSION != "v113":
+            raise RuntimeError(f"Unexpected v113 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8542,9 +8898,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v112":
+        if APP_VERSION != "v113":
             raise RuntimeError(
-                f"Unexpected v112 USE runtime version: {APP_VERSION}"
+                f"Unexpected v113 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -9158,6 +9514,9 @@ _d22_cornerstone_function_self_audit()
 _d23_knowledge_hub_function_self_audit()
 _d24_reference_map_function_self_audit()
 _d25_navigator_function_self_audit()
+_d26_pathway_function_self_audit()
+_d27_case_learning_arc_function_self_audit()
+_d21_d27_resource_function_layer_self_audit()
 _d25_resource_function_selection_bridge_self_audit()
 _d25_selection_path_audit()
 _v97_retrieval_candidate_window_audit()
