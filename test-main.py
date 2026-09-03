@@ -1,4 +1,4 @@
-# USE TEST VERSION: v99 — D20 Resource-Type Recognition
+# USE TEST VERSION: v100 — D21 Navigator Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -562,6 +562,7 @@ You are USE, the Living Archive navigation engine. Use only supplied canonical e
 For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway. If evidence is supplied, name one canonical Title; normally use 2–3 only for distinct coverage.
 
 [RELATIONAL REASONING]: For explicit relationships, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference.
+[RESOURCE FUNCTIONS]: When supplied evidence explicitly establishes a Navigator's integrated orientation function, use that function to explain why the Navigator can serve as an entry point. Do not imply that every visitor needs a Navigator, and do not infer functions for resources whose evidence does not establish them.
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise it is that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty.
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
@@ -574,7 +575,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v99"
+APP_VERSION = "v100"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +591,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v99-d20-resource-type-recognition"
+DEPLOYMENT_FINGERPRINT = "USE-v100-d21-navigator-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1968,6 +1969,67 @@ def _attach_resource_type_recognition(metadata: Dict[str, Any]) -> Dict[str, Any
 
 
 # =====================================================================
+# D21 NAVIGATOR FUNCTION
+# =====================================================================
+# D21 establishes the architectural function of a resource already recognized
+# as a Navigator. It does not infer a visitor need or recommend a Navigator
+# merely because one is present. The function is established only when the
+# resource is recognized as a Navigator and its own evidence supports the
+# integrated orientation role.
+# =====================================================================
+
+_D21_NAVIGATOR_FUNCTION_LABEL = "integrated orientation and entry"
+
+
+def _d21_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Navigator function only from D20 type plus resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Navigator":
+        return {"function": None, "confidence": "not_applicable", "basis": "resource_type_not_navigator"}
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    component_patterns = (
+        r"\breference maps?\b",
+        r"\bguide notes?\b",
+        r"\breflective questions?\b",
+        r"\bguided reading pathways?\b",
+    )
+    component_hits = sum(1 for pattern in component_patterns if re.search(pattern, content))
+    integrated_signal = bool(re.search(
+        r"\b(?:brings together|bring together|combines|integrates|bundles)\b",
+        content,
+    ))
+
+    if component_hits >= 2 and integrated_signal:
+        return {
+            "function": _D21_NAVIGATOR_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "navigator_integrated_components",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_navigator_function_evidence",
+    }
+
+
+def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D21 Navigator function without overwriting explicit D19 fields."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_navigator_function" not in metadata:
+        metadata["_use_navigator_function"] = _d21_navigator_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -2179,8 +2241,23 @@ def format_context_blocks(
         elif index_number < structural_destination_count + adaptive_bridge_count:
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
+        resource_type_info = doc.get("_use_resource_type_recognition") or {}
+        navigator_function_info = doc.get("_use_navigator_function") or {}
+        architectural_lines = []
+        if resource_type_info.get("resource_type"):
+            architectural_lines.append(
+                f"Recognized Resource Type: {resource_type_info['resource_type']}"
+            )
+        if navigator_function_info.get("function"):
+            architectural_lines.append(
+                f"Recognized Resource Function: {navigator_function_info['function']}"
+            )
+        architectural_context = ""
+        if architectural_lines:
+            architectural_context = "\n" + "\n".join(architectural_lines)
         formatted_blocks.append(
-            f"Evidence Role: {role}\n"
+            f"Evidence Role: {role}"
+            f"{architectural_context}\n"
             f"Title: {title}\n"
             f"URL: {url}\n"
             f"Content: {content}"
@@ -2842,6 +2919,7 @@ def _append_unique_resource(
 
     metadata = _attach_canonical_resource_model(metadata)
     metadata = _attach_resource_type_recognition(metadata)
+    metadata = _attach_navigator_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7965,6 +8043,44 @@ def _d20_resource_type_recognition_self_audit() -> None:
     print("USE D20 RESOURCE-TYPE RECOGNITION AUDIT: PASS")
 
 
+def _d21_navigator_function_self_audit() -> None:
+    """Verify Navigator function is asserted only from sufficient evidence."""
+    good = {
+        "title": "The Living Archive Navigator Series",
+        "_use_resource_type_recognition": {
+            "resource_type": "Navigator",
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        },
+        "text": (
+            "Each Navigator brings together curated Reference Maps, concise Guide Notes, "
+            "reflective questions, and guided reading pathways so readers can see how ideas interrelate."
+        ),
+    }
+    result = _d21_navigator_function(good)
+    assert result["function"] == _D21_NAVIGATOR_FUNCTION_LABEL, "D21 Navigator function not recognized"
+    assert result["basis"] == "navigator_integrated_components", "D21 provenance not bounded"
+
+    insufficient = {
+        "title": "The Living Archive Navigator Series",
+        "_use_resource_type_recognition": {"resource_type": "Navigator"},
+        "text": "A Navigator is available in the Living Archive.",
+    }
+    assert _d21_navigator_function(insufficient)["function"] is None, "D21 guessed function"
+
+    non_navigator = {
+        "title": "Reference Map 001",
+        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+        "text": "Reference Maps and Guide Notes can support navigation.",
+    }
+    non_result = _d21_navigator_function(non_navigator)
+    assert non_result["function"] is None and non_result["basis"] == "resource_type_not_navigator", "D21 leaked Navigator function"
+
+    attached = _attach_navigator_function(dict(good))
+    assert attached["_use_navigator_function"]["function"] == _D21_NAVIGATOR_FUNCTION_LABEL, "D21 function not attached"
+    print("USE D21 NAVIGATOR FUNCTION AUDIT: PASS")
+
+
 def _v97_retrieval_candidate_window_audit() -> None:
     """Verify semantic candidates survive until bounded doorway ranking."""
     source = inspect.getsource(fetch_canonical_context)
@@ -8131,6 +8247,7 @@ _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
 _d19_canonical_resource_model_self_audit()
 _d20_resource_type_recognition_self_audit()
+_d21_navigator_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
