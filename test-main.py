@@ -1,4 +1,4 @@
-# USE TEST VERSION: v88 — D17 Multi-Resource Question–Evidence Correspondence
+# USE TEST VERSION: v89 — D17 Multi-Resource Question–Evidence Correspondence
 # Complete experimental production unit reconstructed from the authoritative v87
 # TEST baseline. This experiment calibrates D17 question–evidence correspondence
 # across already-retrieved resources without replacing semantic retrieval,
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v88"
+APP_VERSION = "v89"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v88-multi-resource-question-evidence-correspondence"
+DEPLOYMENT_FINGERPRINT = "USE-v89-multi-resource-question-evidence-correspondence"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2871,7 +2871,7 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
-    # D17/v88: correspondence is a synthesis boundary, not another retrieval
+    # D17/v89: correspondence is a synthesis boundary, not another retrieval
     # heuristic. If the visitor's wording contains an explicit contrast, only
     # already-retrieved Content that addresses both sides may enter synthesis.
     # Navigation remains available through the complete canonical link set.
@@ -5713,58 +5713,35 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
-def _semantic_question_evidence_scores(
-    structure: Dict[str, Any],
-    documents: List[Dict[str, Any]],
-) -> List[Tuple[float, float]]:
-    """Batch semantic validation across already-retrieved Content.
-
-    This is validation, not retrieval. The question sides and supplied Content
-    are embedded in one bounded batch so D17 does not create an N-document
-    sequence of model calls.
-    """
-    pairs = structure.get("pairs") or ()
-    if len(pairs) != 2 or not documents:
-        return [(0.0, 0.0) for _ in documents]
-
-    left = " ".join(pairs[0]).strip()
-    right = " ".join(pairs[1]).strip()
-    contents = []
-    for document in documents:
-        content = str(document.get("content") or document.get("text") or "").strip()
-        # Validation does not require the whole resource. Bound each supplied
-        # evidence payload to keep latency and embedding cost predictable.
-        contents.append(content[:2400])
-
-    if not left or not right or not any(contents):
-        return [(0.0, 0.0) for _ in documents]
-
-    try:
-        texts = [left, right] + contents
-        vectors = list(embedding_model.embed(texts))
-        if len(vectors) != len(texts):
-            return [(0.0, 0.0) for _ in documents]
-
-        def as_list(vector: Any) -> List[float]:
-            return vector.tolist() if hasattr(vector, "tolist") else list(vector)
-
-        base_left = as_list(vectors[0])
-        base_right = as_list(vectors[1])
-
-        def cosine(a: List[float], b: List[float]) -> float:
-            denom_a = math.sqrt(sum(float(x) * float(x) for x in a))
-            denom_b = math.sqrt(sum(float(x) * float(x) for x in b))
-            if denom_a == 0.0 or denom_b == 0.0:
-                return 0.0
-            return sum(float(x) * float(y) for x, y in zip(a, b)) / (denom_a * denom_b)
-
-        return [
-            (cosine(base_left, as_list(vector)), cosine(base_right, as_list(vector)))
-            for vector in vectors[2:]
-        ]
-    except Exception as exc:
-        print(f"USE question-evidence batch embedding error: {exc}")
-        return [(0.0, 0.0) for _ in documents]
+def _question_structure_side_lexical_hits(
+    content: str,
+    terms: Tuple[str, ...],
+) -> int:
+    """Count substantive side terms in supplied Content without embeddings."""
+    value = re.sub(r"[^a-z0-9\s'-]", " ", str(content or "").casefold())
+    words = set(re.findall(r"[a-z][a-z'-]{2,}", value))
+    hits = 0
+    for term in terms:
+        token = str(term).casefold().strip()
+        if not token:
+            continue
+        if token in words:
+            hits += 1
+            continue
+        # Small morphological normalization only; this is not a semantic
+        # vocabulary and does not expand retrieval.
+        stem = token
+        for suffix in ("ingly", "edly", "ing", "ed", "ly", "es", "s"):
+            if len(stem) > len(suffix) + 3 and stem.endswith(suffix):
+                stem = stem[:-len(suffix)]
+                break
+        if stem and any(
+            word == stem or word.startswith(stem)
+            for word in words
+            if len(stem) >= 4
+        ):
+            hits += 1
+    return hits
 
 
 def _question_structure_evidence_gate(
@@ -5772,13 +5749,12 @@ def _question_structure_evidence_gate(
     question: str,
     intent: str,
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Permit synthesis when retrieved Content jointly corresponds to both sides.
+    """Permit synthesis when already-retrieved Content jointly covers both sides.
 
-    D17 does not require one document to contain the entire relationship. A
-    small set of already-retrieved resources may jointly provide the two
-    substantive components of the visitor's explicit contrast. Only resources
-    that contribute to that coverage are retained for synthesis; navigation
-    remains able to use the broader retrieved set on insufficiency.
+    D17 validates correspondence using supplied Content only. It deliberately
+    does not invoke another embedding pass: semantic retrieval has already
+    supplied the candidate set. A small set of retrieved resources may jointly
+    cover the two explicit question components.
     """
     if not documents:
         return [], True
@@ -5787,53 +5763,42 @@ def _question_structure_evidence_gate(
     if structure.get("structure") != "explicit_contrast":
         return documents, False
 
-    semantic_scores = _semantic_question_evidence_scores(structure, documents)
-    diagnostics: List[Tuple[float, float, int, int]] = []
-    qualifying_indexes = set()
-    left_candidates: List[Tuple[float, int]] = []
-    right_candidates: List[Tuple[float, int]] = []
+    pairs = structure.get("pairs") or ()
+    if len(pairs) != 2:
+        return documents, True
+
+    left_terms, right_terms = pairs
+    diagnostics = []
+    direct = []
+    left_candidates = []
+    right_candidates = []
 
     for index, document in enumerate(documents):
-        left_score, right_score = semantic_scores[index]
-        lexical_total, lexical_min = _question_structure_content_score(document, structure)
-        diagnostics.append(
-            (round(left_score, 3), round(right_score, 3), lexical_total, lexical_min)
-        )
+        content = str(document.get("content") or document.get("text") or "")
+        left_hits = _question_structure_side_lexical_hits(content, left_terms)
+        right_hits = _question_structure_side_lexical_hits(content, right_terms)
+        diagnostics.append((left_hits, right_hits))
 
-        # A resource can independently support both sides through literal
-        # correspondence or sufficiently strong semantic correspondence.
-        if lexical_min >= 1 or min(left_score, right_score) >= 0.42:
-            qualifying_indexes.add(index)
+        # Direct correspondence requires substantive coverage of both sides,
+        # not merely one incidental shared word.
+        if left_hits >= 2 and right_hits >= 2:
+            direct.append(index)
 
-        # Distributed coverage: different retrieved resources may carry the
-        # two sides. Keep only actual contributors rather than all neighbors.
-        if lexical_total > 0:
-            left_hits = _question_structure_content_score(document, structure)[0]
-            # The detailed lexical side counts are intentionally recovered
-            # below without adding a second retrieval or vocabulary system.
-            pairs = structure.get("pairs") or ()
-            content = str(document.get("content") or document.get("text") or "").casefold()
-            left_terms, right_terms = pairs
-            lexical_left = sum(1 for term in left_terms if re.search(r"\b" + re.escape(term) + r"\b", content))
-            lexical_right = sum(1 for term in right_terms if re.search(r"\b" + re.escape(term) + r"\b", content))
-            if lexical_left > 0:
-                left_candidates.append((float(lexical_left), index))
-            if lexical_right > 0:
-                right_candidates.append((float(lexical_right), index))
+        if left_hits >= 2:
+            left_candidates.append((left_hits, index))
+        if right_hits >= 2:
+            right_candidates.append((right_hits, index))
 
-        if left_score >= 0.42:
-            left_candidates.append((left_score, index))
-        if right_score >= 0.42:
-            right_candidates.append((right_score, index))
-
-    if qualifying_indexes:
-        selected = [documents[i] for i in sorted(qualifying_indexes)]
+    if direct:
+        selected = [documents[i] for i in direct]
         print(
             "USE question-evidence correspondence: direct qualifying resources="
             f"{len(selected)}/{len(documents)}; diagnostics={diagnostics}"
         )
         return selected, False
 
+    # Distributed coverage allows different already-retrieved resources to
+    # substantively carry the two sides of the visitor's explicit question.
     best_left = max(left_candidates, default=None)
     best_right = max(right_candidates, default=None)
     if best_left is not None and best_right is not None:
@@ -5852,42 +5817,47 @@ def _question_structure_evidence_gate(
     return documents, True
 
 
-def _v88_question_structure_self_audit() -> None:
+
+def _v89_question_structure_self_audit() -> None:
     """Verify D17 recognizes explicit relational structure without inventing theory."""
     contrast = recognize_question_structure(
         "Why can I understand a situation clearly and still not know what to do with that understanding?"
     )
     if contrast.get("structure") != "explicit_contrast" or len(contrast.get("pairs") or ()) != 2:
-        raise RuntimeError("v88 question-structure regression: explicit contrast was not preserved.")
+        raise RuntimeError("v89 question-structure regression: explicit contrast was not preserved.")
     positive = recognize_question_structure(
         "Why can two people experience the same situation and understand it differently?"
     )
     if positive.get("structure") != "explicit_contrast" or len(positive.get("pairs") or ()) != 2:
-        raise RuntimeError("v88 question-structure regression: relational positive case was not recognized.")
+        raise RuntimeError("v89 question-structure regression: relational positive case was not recognized.")
     neutral = recognize_question_structure("Why is uncertainty difficult?")
     if neutral.get("structure") != "none":
-        raise RuntimeError("v88 question-structure regression: implicit theory was invented.")
+        raise RuntimeError("v89 question-structure regression: implicit theory was invented.")
     print("USE D17 question-structure self-audit: PASS")
 
 
-def _v88_question_evidence_correspondence_integration_self_audit() -> None:
+def _v89_question_evidence_correspondence_integration_self_audit() -> None:
     """Verify the D17 gate remains upstream of synthesis/doorway selection."""
     source = inspect.getsource(fetch_canonical_context)
     gate_call = source.find("_question_structure_evidence_gate(")
     doorway_call = source.find("select_canonical_doorways(")
     if gate_call < 0 or doorway_call < 0 or gate_call > doorway_call:
-        raise RuntimeError("v88 correspondence regression: gate is not upstream of doorway/generation selection.")
+        raise RuntimeError("v89 correspondence regression: gate is not upstream of doorway/generation selection.")
     if "question_structure_evidence_unavailable" not in source:
-        raise RuntimeError("v88 correspondence regression: bounded insufficiency path is missing.")
+        raise RuntimeError("v89 correspondence regression: bounded insufficiency path is missing.")
     print("USE D17 correspondence integration self-audit: PASS")
 
 
-def _v88_question_structure_evidence_self_audit() -> None:
-    """Verify both single-resource and distributed Content coverage paths."""
+def _v89_question_structure_evidence_self_audit() -> None:
+    """Verify direct and distributed Content coverage without semantic re-embedding."""
+    gate_source = inspect.getsource(_question_structure_evidence_gate)
+    if "embedding_model" in gate_source or "_semantic_question_evidence_scores" in gate_source:
+        raise RuntimeError("v89 correspondence regression: D17 gate still performs semantic re-embedding.")
+
     question = "Why can understanding a pattern feel different from actually seeing it in my life?"
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
-        raise RuntimeError("v88 question-structure regression: explicit contrast not recognized.")
+        raise RuntimeError("v89 question-structure regression: explicit contrast not recognized.")
 
     unrelated = {
         "title": "Archive Administration",
@@ -5914,13 +5884,13 @@ def _v88_question_structure_evidence_self_audit() -> None:
         [unrelated], question, "TOPICAL_INQUIRY"
     )
     if not blocked or blocked_docs != [unrelated]:
-        raise RuntimeError("v88 correspondence regression: unrelated evidence was not withheld.")
+        raise RuntimeError("v89 correspondence regression: unrelated evidence was not withheld.")
 
     direct_docs, direct_block = _question_structure_evidence_gate(
         [direct], question, "TOPICAL_INQUIRY"
     )
     if direct_block or direct_docs != [direct]:
-        raise RuntimeError("v88 correspondence regression: direct evidence was withheld.")
+        raise RuntimeError("v89 correspondence regression: direct evidence was withheld.")
 
     # The distributed case is audited with literal Content coverage, so the
     # architectural property is testable without requiring a live embedding
@@ -5929,7 +5899,7 @@ def _v88_question_structure_evidence_self_audit() -> None:
         [left_only, right_only], question, "TOPICAL_INQUIRY"
     )
     if distributed_block or len(distributed_docs) != 2:
-        raise RuntimeError("v88 correspondence regression: distributed evidence was withheld.")
+        raise RuntimeError("v89 correspondence regression: distributed evidence was withheld.")
     print("USE D17 multi-resource question-evidence self-audit: PASS")
 
 
@@ -5957,9 +5927,9 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v88_question_structure_self_audit()
-        _v88_question_structure_evidence_self_audit()
-        _v88_question_evidence_correspondence_integration_self_audit()
+        _v89_question_structure_self_audit()
+        _v89_question_structure_evidence_self_audit()
+        _v89_question_evidence_correspondence_integration_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -6621,20 +6591,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v88",
-            "# USE PRODUCTION VERSION: v88",
+            "# USE TEST VERSION: v89",
+            "# USE PRODUCTION VERSION: v89",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v88."
+                "Source version-label regression: line 1 does not identify v89."
             )
-        if APP_VERSION != "v88":
+        if APP_VERSION != "v89":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v88."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v89."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v88-multi-resource-question-evidence-correspondence":
+        if DEPLOYMENT_FINGERPRINT != "USE-v89-multi-resource-question-evidence-correspondence":
             raise RuntimeError(
-                "Deployment fingerprint regression: v88 fingerprint is not aligned."
+                "Deployment fingerprint regression: v89 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7156,7 +7126,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v88":
+        if APP_VERSION != "v89":
             raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -7215,7 +7185,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v88":
+        if APP_VERSION != "v89":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -7248,12 +7218,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v88 execution-path regression: synthetic adjacent evidence "
+                    "v89 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v88 execution-path regression: evidence-sufficiency early return "
+                    "v89 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
