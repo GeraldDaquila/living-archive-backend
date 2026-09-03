@@ -1,4 +1,4 @@
-# USE TEST VERSION: v91 — D17 Reconciled Evidence Boundary
+# USE TEST VERSION: v92 — D17 Frame-Specific Evidence Boundary
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v91"
+APP_VERSION = "v92"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v91-d17-reconciled-evidence-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v92-d17-frame-specific-evidence-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2039,6 +2039,8 @@ _SPECIALIZED_FRAMEWORK_TERMS = frozenset({
     "reincarnation", "past-life", "pastlife", "soul", "ego death",
     "nonduality", "non-duality", "manifestation", "channeling",
     "channeled", "akashic", "twin flame", "twin-flame",
+    # Canonical resource-specific interpretive constructs surfaced in testing.
+    "synchronicity", "synchronicities", "apophenia",
 })
 
 _QUESTION_STOPWORDS = frozenset({
@@ -2288,7 +2290,7 @@ def _canonical_doorway_score(
 
 
 def _is_specialized_framework_resource(metadata: Dict[str, Any]) -> bool:
-    """Identify resources whose canonical title establishes a specialized worldview."""
+    """Identify resources whose canonical title names a specialized interpretive construct."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     if not title:
         return False
@@ -2888,7 +2890,7 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
-    # D17/v91: question structure informs reasoning posture, not a lexical
+    # D17/v92: question structure informs reasoning posture, not a lexical
     # evidence gate. Grounding remains the retrieval constraint; D17 must not
     # manufacture a second retrieval/sufficiency test that can false-negative
     # legitimate multi-resource evidence. Existing retrieved evidence remains
@@ -5589,6 +5591,35 @@ def _v76_frame_neutral_evidence_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v92_frame_specific_resource_self_audit() -> Dict[str, Any]:
+    """Audit the actual D17 failure: uninvited title-declared framing stays out of generation."""
+    question = "Why can understanding a pattern feel different from actually seeing it in my life?"
+    specialized = {
+        "title": "When Life Disrupts: Uncovering the Hidden Lessons of Synchronicity and Crisis",
+        "url": "https://example.invalid/synchronicity",
+        "content": "Synchronicities can foster meaning, hope, and agency.",
+    }
+    neutral = {
+        "title": "Understanding Lived Experience",
+        "url": "https://example.invalid/lived-experience",
+        "content": "People can notice and describe an experience in different ways.",
+    }
+    selected, active = _frame_neutral_generation_documents(
+        [specialized, neutral], question, "TOPICAL_INQUIRY"
+    )
+    titles = [str(doc.get("title", "")) for doc in selected]
+    return {
+        "active": active,
+        "retains_neutral": "Understanding Lived Experience" in titles,
+        "excludes_uninvited_construct": specialized["title"] not in titles,
+        "pass": (
+            active
+            and "Understanding Lived Experience" in titles
+            and specialized["title"] not in titles
+        ),
+    }
+
+
 def _v75_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
     """Static audit for preserving open questions against uninvited framing."""
     broad_question = (
@@ -5822,7 +5853,7 @@ def _question_structure_evidence_gate(
 
 
 
-def _v91_d17_evidence_boundary_reconciliation_self_audit() -> None:
+def _v92_d17_evidence_boundary_reconciliation_self_audit() -> None:
     """Verify D16 sufficiency does not false-negative explicit general relations."""
     general_relation = "Why can two people experience the same situation and understand it differently?"
     open_experience = "Why can understanding a pattern feel different from actually seeing it in my life?"
@@ -5831,56 +5862,56 @@ def _v91_d17_evidence_boundary_reconciliation_self_audit() -> None:
     retained, blocked = _evidence_sufficiency_gate(weak, general_relation, "TOPICAL_INQUIRY")
     if blocked or not retained:
         raise RuntimeError(
-            "v91 D17 reconciliation regression: explicit general relational question was blocked by lexical sufficiency."
+            "v92 D17 reconciliation regression: explicit general relational question was blocked by lexical sufficiency."
         )
 
     retained_open, blocked_open = _evidence_sufficiency_gate(weak, open_experience, "TOPICAL_INQUIRY")
     if not blocked_open or not retained_open:
         raise RuntimeError(
-            "v91 D17 reconciliation regression: open first-person experiential boundary was weakened."
+            "v92 D17 reconciliation regression: open first-person experiential boundary was weakened."
         )
-    print("USE v91 D17 evidence-boundary reconciliation self-audit: PASS")
+    print("USE v92 D17 evidence-boundary reconciliation self-audit: PASS")
 
 
-def _v91_question_structure_self_audit() -> None:
+def _v92_question_structure_self_audit() -> None:
     """Verify D17 recognizes explicit relational structure without inventing theory."""
     contrast = recognize_question_structure(
         "Why can I understand a situation clearly and still not know what to do with that understanding?"
     )
     if contrast.get("structure") != "explicit_contrast" or len(contrast.get("pairs") or ()) != 2:
-        raise RuntimeError("v91 question-structure regression: explicit contrast was not preserved.")
+        raise RuntimeError("v92 question-structure regression: explicit contrast was not preserved.")
     positive = recognize_question_structure(
         "Why can two people experience the same situation and understand it differently?"
     )
     if positive.get("structure") != "explicit_contrast" or len(positive.get("pairs") or ()) != 2:
-        raise RuntimeError("v91 question-structure regression: relational positive case was not recognized.")
+        raise RuntimeError("v92 question-structure regression: relational positive case was not recognized.")
     neutral = recognize_question_structure("Why is uncertainty difficult?")
     if neutral.get("structure") != "none":
-        raise RuntimeError("v91 question-structure regression: implicit theory was invented.")
+        raise RuntimeError("v92 question-structure regression: implicit theory was invented.")
     print("USE D17 question-structure self-audit: PASS")
 
 
-def _v91_question_evidence_correspondence_integration_self_audit() -> None:
+def _v92_question_evidence_correspondence_integration_self_audit() -> None:
     """Verify D17 structure reaches reasoning without becoming a synthesis gate."""
     source = inspect.getsource(fetch_canonical_context)
     structure_call = source.find("recognize_question_structure(user_query)")
     doorway_call = source.find("select_canonical_doorways(")
     if structure_call < 0 or doorway_call < 0 or structure_call > doorway_call:
-        raise RuntimeError("v91 correspondence regression: D17 structure is not upstream of doorway/reasoning selection.")
+        raise RuntimeError("v92 correspondence regression: D17 structure is not upstream of doorway/reasoning selection.")
     if "_question_structure_evidence_gate(" in source:
-        raise RuntimeError("v91 correspondence regression: obsolete lexical evidence gate remains in fetch path.")
+        raise RuntimeError("v92 correspondence regression: obsolete lexical evidence gate remains in fetch path.")
     print("USE D17 relational reasoning integration self-audit: PASS")
 
 
-def _v91_question_structure_evidence_self_audit() -> None:
+def _v92_question_structure_evidence_self_audit() -> None:
     """Verify D17 structure recognition does not create a lexical synthesis gate."""
     source = inspect.getsource(fetch_canonical_context)
     if "_question_structure_evidence_gate(" in source:
-        raise RuntimeError("v91 correspondence regression: lexical evidence gate still blocks D17 synthesis.")
+        raise RuntimeError("v92 correspondence regression: lexical evidence gate still blocks D17 synthesis.")
     if "recognize_question_structure(user_query)" not in source:
-        raise RuntimeError("v91 correspondence regression: D17 question structure is no longer available to reasoning.")
+        raise RuntimeError("v92 correspondence regression: D17 question structure is no longer available to reasoning.")
     if "question_structure_evidence_unavailable" in source:
-        raise RuntimeError("v91 correspondence regression: obsolete D17 synthesis-block path remains.")
+        raise RuntimeError("v92 correspondence regression: obsolete D17 synthesis-block path remains.")
     prompt_source = GENERATION_SYSTEM_PROMPT
     required = (
         "[RELATIONAL REASONING]",
@@ -5888,7 +5919,7 @@ def _v91_question_structure_evidence_self_audit() -> None:
         "Do not force one resource to cover both sides",
     )
     if not all(item in prompt_source for item in required):
-        raise RuntimeError("v91 relational reasoning instruction is incomplete.")
+        raise RuntimeError("v92 relational reasoning instruction is incomplete.")
     print("USE D17 evidence-scoped relational reasoning self-audit: PASS")
 
 def _v83_recognition_orientation_self_audit() -> None:
@@ -5915,9 +5946,9 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v91_question_structure_self_audit()
-        _v91_question_structure_evidence_self_audit()
-        _v91_question_evidence_correspondence_integration_self_audit()
+        _v92_question_structure_self_audit()
+        _v92_question_structure_evidence_self_audit()
+        _v92_question_evidence_correspondence_integration_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -5938,6 +5969,13 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "v76 frame-neutral evidence self-audit failed: "
                 f"{v76_frame_neutral}"
+            )
+
+        v92_frame_specific = _v92_frame_specific_resource_self_audit()
+        if not v92_frame_specific["pass"]:
+            raise RuntimeError(
+                "v92 frame-specific resource self-audit failed: "
+                f"{v92_frame_specific}"
             )
         
         v78_inferential_distance = _v78_inferential_distance_self_audit()
@@ -6579,26 +6617,26 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v91",
-            "# USE PRODUCTION VERSION: v91",
+            "# USE TEST VERSION: v92",
+            "# USE PRODUCTION VERSION: v92",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v91."
+                "Source version-label regression: line 1 does not identify v92."
             )
-        if APP_VERSION != "v91":
+        if APP_VERSION != "v92":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v91."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v92."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v91-d17-reconciled-evidence-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v92-d17-frame-specific-evidence-boundary":
             raise RuntimeError(
-                "Deployment fingerprint regression: v91 fingerprint is not aligned."
+                "Deployment fingerprint regression: v92 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
         # This scanner is deliberately invariant-based so retaining a prior
         # regression audit does not itself become a false positive.
-        prior_version = "v" + "89"
+        prior_version = "v" + "91"
         stale_identity_patterns = (
             f'APP_VERSION = "{prior_version}"',
             f'APP_VERSION != "{prior_version}"',
@@ -7114,8 +7152,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v91":
-            raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
+        if APP_VERSION != "v92":
+            raise RuntimeError(f"Unexpected v92 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7173,19 +7211,19 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v91":
+        if APP_VERSION != "v92":
             raise RuntimeError(
-                f"Unexpected USE runtime version: {APP_VERSION}"
+                f"Unexpected v92 USE runtime version: {APP_VERSION}"
             )
 
-        # v91 D17 execution-path regression: explicit relational structure must
+        # v92 D17 execution-path regression: explicit relational structure must
         # remain available to the normal fetch path without creating a D17
         # synthesis-block return.
         d17_source = inspect.getsource(fetch_canonical_context)
         if "question_structure = recognize_question_structure(user_query)" not in d17_source:
-            raise RuntimeError("v91 execution-path regression: D17 structure recognition is missing from fetch path.")
+            raise RuntimeError("v92 execution-path regression: D17 structure recognition is missing from fetch path.")
         if "question_structure_evidence_unavailable" in d17_source:
-            raise RuntimeError("v91 execution-path regression: obsolete D17 synthesis-block path remains.")
+            raise RuntimeError("v92 execution-path regression: obsolete D17 synthesis-block path remains.")
 
         # provider-boundary recovery regression: when provider execution is unavailable,
         # recovery must use only selected canonical resources and must not emit
