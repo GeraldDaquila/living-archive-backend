@@ -1,4 +1,4 @@
-# USE TEST VERSION: v98 — D19 Canonical Resource Model
+# USE TEST VERSION: v99 — D20 Resource-Type Recognition
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v98"
+APP_VERSION = "v99"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v98-d19-canonical-resource-model"
+DEPLOYMENT_FINGERPRINT = "USE-v99-d20-resource-type-recognition"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1808,6 +1808,166 @@ def _attach_canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]
 
 
 # =====================================================================
+# D20 RESOURCE-TYPE RECOGNITION
+# =====================================================================
+# D20 recognizes the canonical publication/resource family from evidence
+# already carried by the resource itself. Explicit metadata has priority.
+# When explicit type metadata is absent, only strong self-identifying
+# structural signals are accepted. Generic subject wording, semantic
+# similarity, and incidental mentions of another resource type do not
+# establish a type. Unknown is a valid result.
+# =====================================================================
+
+_D20_TYPE_ALIASES = {
+    "essay": "Essay",
+    "essays": "Essay",
+    "cornerstone": "Cornerstone",
+    "cornerstone hub": "Cornerstone",
+    "cornerstone hubs": "Cornerstone",
+    "knowledge hub": "Knowledge Hub",
+    "knowledge hubs": "Knowledge Hub",
+    "reference map": "Reference Map",
+    "reference maps": "Reference Map",
+    "navigator": "Navigator",
+    "navigators": "Navigator",
+    "navigator series": "Navigator",
+    "pathway": "Pathway",
+    "pathways": "Pathway",
+    "guided pathway": "Pathway",
+    "guided pathways": "Pathway",
+    "guided reading pathway": "Pathway",
+    "guided reading pathways": "Pathway",
+    "case": "Case",
+    "case study": "Case",
+    "case studies": "Case",
+    "learning arc": "Learning Arc",
+    "learning arcs": "Learning Arc",
+}
+
+
+def _d20_normalize_type_label(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    clean = re.sub(r"\s+", " ", str(value)).strip().casefold()
+    if not clean:
+        return None
+    return _D20_TYPE_ALIASES.get(clean)
+
+
+def _d20_explicit_type(metadata: Dict[str, Any]) -> Optional[str]:
+    """Recognize a canonical type only from explicit type metadata."""
+    if not isinstance(metadata, dict):
+        return None
+
+    explicit_keys = (
+        "resource_type",
+        "resource_kind",
+        "content_type",
+        "canonical_type",
+        "canonical_resource_type",
+    )
+    for key in explicit_keys:
+        value = _d19_first_metadata_value(metadata, (key,))
+        recognized = _d20_normalize_type_label(value)
+        if recognized:
+            return recognized
+    return None
+
+
+def _d20_title_type(metadata: Dict[str, Any]) -> Optional[str]:
+    """Recognize type from strong title-level self-identification only."""
+    title = html.unescape(str(metadata.get("title", "") or "")).strip().casefold()
+    if not title:
+        return None
+
+    # Ordered from the most structurally specific labels to broader ones.
+    title_patterns = (
+        (r"\b(?:living archive )?navigator(?: series)?\b", "Navigator"),
+        (r"\b(?:reference )?map\b", "Reference Map"),
+        (r"\b(?:guided reading|guided) pathway(?:s)?\b", "Pathway"),
+        (r"\bknowledge hub(?:s)?\b", "Knowledge Hub"),
+        (r"\bcornerstone hub(?:s)?\b", "Cornerstone"),
+        (r"\blearning arc(?:s)?\b", "Learning Arc"),
+        (r"\bcase study(?:s|ies)?\b", "Case"),
+        (r"^case\s*[:#-]?\s*\d+\b", "Case"),
+        (r"^essay\s*[:#-]", "Essay"),
+    )
+    for pattern, resource_type in title_patterns:
+        if re.search(pattern, title, flags=re.IGNORECASE):
+            return resource_type
+    return None
+
+
+def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
+    """Use content only for explicit self-identifying structural statements."""
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return None
+
+    content_patterns = (
+        (r"\b(?:this|the) living archive navigator\b", "Navigator"),
+        (r"\b(?:this|the) reference map\b", "Reference Map"),
+        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),
+        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),
+        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),
+        (r"\b(?:this|the) learning arc\b", "Learning Arc"),
+        (r"\b(?:this|the) case study\b", "Case"),
+        (r"\b(?:this|the) essay\b", "Essay"),
+    )
+    for pattern, resource_type in content_patterns:
+        if re.search(pattern, content, flags=re.IGNORECASE):
+            return resource_type
+    return None
+
+
+def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Return D20 type recognition with bounded evidence provenance."""
+    if not isinstance(metadata, dict) or not metadata:
+        return {"resource_type": None, "confidence": "unknown", "basis": "none"}
+
+    explicit = _d20_explicit_type(metadata)
+    if explicit:
+        return {
+            "resource_type": explicit,
+            "confidence": "explicit",
+            "basis": "explicit_metadata",
+        }
+
+    title_type = _d20_title_type(metadata)
+    if title_type:
+        return {
+            "resource_type": title_type,
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        }
+
+    content_type = _d20_content_self_identification(metadata)
+    if content_type:
+        return {
+            "resource_type": content_type,
+            "confidence": "bounded",
+            "basis": "content_self_identification",
+        }
+
+    return {
+        "resource_type": None,
+        "confidence": "unknown",
+        "basis": "insufficient_structural_evidence",
+    }
+
+
+def _attach_resource_type_recognition(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D20 recognition without overwriting D19's explicit model."""
+    if not isinstance(metadata, dict):
+        return metadata
+
+    if "_use_resource_type_recognition" not in metadata:
+        metadata["_use_resource_type_recognition"] = _recognize_resource_type(metadata)
+
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -2681,6 +2841,7 @@ def _append_unique_resource(
         return
 
     metadata = _attach_canonical_resource_model(metadata)
+    metadata = _attach_resource_type_recognition(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7027,20 +7188,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v98",
-            "# USE PRODUCTION VERSION: v98",
+            "# USE TEST VERSION: v99",
+            "# USE PRODUCTION VERSION: v99",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v98."
+                "Source version-label regression: line 1 does not identify v99."
             )
-        if APP_VERSION != "v98":
+        if APP_VERSION != "v99":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v98."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v99."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v98-d19-canonical-resource-model":
+        if DEPLOYMENT_FINGERPRINT != "USE-v99-d20-resource-type-recognition":
             raise RuntimeError(
-                "Deployment fingerprint regression: v98 fingerprint is not aligned."
+                "Deployment fingerprint regression: v99 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7562,8 +7723,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v98":
-            raise RuntimeError(f"Unexpected v98 USE version: {APP_VERSION}")
+        if APP_VERSION != "v99":
+            raise RuntimeError(f"Unexpected v99 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7621,9 +7782,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v98":
+        if APP_VERSION != "v99":
             raise RuntimeError(
-                f"Unexpected v98 USE runtime version: {APP_VERSION}"
+                f"Unexpected v99 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -7753,6 +7914,55 @@ def _d19_canonical_resource_model_self_audit() -> None:
     if "_use_resource_model" not in attached:
         raise RuntimeError("D19 resource-model regression: model was not attached to resource metadata.")
     print("USE D19 CANONICAL RESOURCE MODEL AUDIT: PASS")
+
+
+def _d20_resource_type_recognition_self_audit() -> None:
+    """Verify D20 recognizes canonical types conservatively and preserves unknowns."""
+    explicit = {
+        "title": "Example Resource",
+        "resource_type": "Reference Map",
+    }
+    explicit_result = _recognize_resource_type(explicit)
+    if explicit_result["resource_type"] != "Reference Map" or explicit_result["confidence"] != "explicit":
+        raise RuntimeError("D20 resource-type regression: explicit metadata was not recognized authoritatively.")
+
+    navigator = {"title": "The Living Archive Navigator — Governance & Sovereignty"}
+    navigator_result = _recognize_resource_type(navigator)
+    if navigator_result["resource_type"] != "Navigator":
+        raise RuntimeError("D20 resource-type regression: Navigator title was not recognized.")
+
+    reference_map = {"title": "Reference Map 024 — The Adaptive Systems Map"}
+    map_result = _recognize_resource_type(reference_map)
+    if map_result["resource_type"] != "Reference Map":
+        raise RuntimeError("D20 resource-type regression: Reference Map title was not recognized.")
+
+    pathway = {"title": "Guided Reading Pathway — Understanding Change"}
+    pathway_result = _recognize_resource_type(pathway)
+    if pathway_result["resource_type"] != "Pathway":
+        raise RuntimeError("D20 resource-type regression: Pathway title was not recognized.")
+
+    mention_only = {
+        "title": "Understanding Sovereignty",
+        "text": "The Living Archive includes Reference Maps, Navigators, and Guided Reading Pathways.",
+    }
+    mention_result = _recognize_resource_type(mention_only)
+    if mention_result["resource_type"] is not None:
+        raise RuntimeError("D20 resource-type regression: incidental mentions were treated as resource identity.")
+
+    generic_post = {
+        "title": "Sovereignty in the Smallest Temple",
+        "type": "post",
+        "text": "A canonical discussion of sovereignty and family life.",
+    }
+    generic_result = _recognize_resource_type(generic_post)
+    if generic_result["resource_type"] is not None:
+        raise RuntimeError("D20 resource-type regression: generic WordPress type was converted into a canonical type.")
+
+    attached = _attach_resource_type_recognition(dict(navigator))
+    if attached["_use_resource_type_recognition"]["resource_type"] != "Navigator":
+        raise RuntimeError("D20 resource-type regression: recognition was not attached to resource metadata.")
+
+    print("USE D20 RESOURCE-TYPE RECOGNITION AUDIT: PASS")
 
 
 def _v97_retrieval_candidate_window_audit() -> None:
@@ -7920,6 +8130,7 @@ def _v96_current_turn_state_integrity_audit():
 _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
 _d19_canonical_resource_model_self_audit()
+_d20_resource_type_recognition_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
