@@ -1,4 +1,4 @@
-# USE TEST VERSION: v116 — Open Exploration Deterministic Recovery
+# USE TEST VERSION: v117 — Open Exploration Sovereignty Deterministic Recovery Audit Fixed
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v116"
+APP_VERSION = "v117"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v116-open-exploration-deterministic-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v117-open-exploration-sovereignty-deterministic-recovery-audit-fixed"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -9764,8 +9764,8 @@ def _v116_deterministic_recovery_behavior_self_audit() -> None:
         "but I don’t yet know what the connection is. I’d like to explore that without jumping to a conclusion about what it means."
     )
     context = (
-        "Title: The Illusion of Separation\nURL: https://example.invalid/separation\nContent: A resource exploring interconnectedness.\n\n"
-        "Title: More Than This Body\nURL: https://example.invalid/body\nContent: A resource exploring lived identity and experience.\n\n"
+        "Title: The Illusion of Separation\nURL: https://example.invalid/separation\nContent: A resource exploring interconnectedness.\n\n---\n\n"
+        "Title: More Than This Body\nURL: https://example.invalid/body\nContent: A resource exploring lived identity and experience.\n\n---\n\n"
         "Title: Another Resource\nURL: https://example.invalid/another\nContent: A resource offering another perspective."
     )
     result = _deterministic_provider_fallback(question, context)
