@@ -1,4 +1,4 @@
-# USE TEST VERSION: v100 — D21 Navigator Function
+# USE TEST VERSION: v101 — D21 Navigator Function (Provider-Safe)
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -562,7 +562,6 @@ You are USE, the Living Archive navigation engine. Use only supplied canonical e
 For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway. If evidence is supplied, name one canonical Title; normally use 2–3 only for distinct coverage.
 
 [RELATIONAL REASONING]: For explicit relationships, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference.
-[RESOURCE FUNCTIONS]: When supplied evidence explicitly establishes a Navigator's integrated orientation function, use that function to explain why the Navigator can serve as an entry point. Do not imply that every visitor needs a Navigator, and do not infer functions for resources whose evidence does not establish them.
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise it is that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty.
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
@@ -575,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v100"
+APP_VERSION = "v101"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -591,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v100-d21-navigator-function"
+DEPLOYMENT_FINGERPRINT = "USE-v101-d21-navigator-function-provider-safe"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7266,20 +7265,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v99",
-            "# USE PRODUCTION VERSION: v99",
+            "# USE TEST VERSION: v101",
+            "# USE PRODUCTION VERSION: v101",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v99."
+                "Source version-label regression: line 1 does not identify v101."
             )
-        if APP_VERSION != "v99":
+        if APP_VERSION != "v101":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v99."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v101."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v99-d20-resource-type-recognition":
+        if DEPLOYMENT_FINGERPRINT != "USE-v101-d21-navigator-function-provider-safe":
             raise RuntimeError(
-                "Deployment fingerprint regression: v99 fingerprint is not aligned."
+                "Deployment fingerprint regression: v101 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7801,8 +7800,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v99":
-            raise RuntimeError(f"Unexpected v99 USE version: {APP_VERSION}")
+        if APP_VERSION != "v101":
+            raise RuntimeError(f"Unexpected v101 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7860,9 +7859,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v99":
+        if APP_VERSION != "v101":
             raise RuntimeError(
-                f"Unexpected v99 USE runtime version: {APP_VERSION}"
+                f"Unexpected v101 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
