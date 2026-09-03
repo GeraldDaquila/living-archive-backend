@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v105"
+APP_VERSION = "v106"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v105-d22-cornerstone-function-runtime-audit-reconciled"
+DEPLOYMENT_FINGERPRINT = "USE-v106-d23-knowledge-hub-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2159,6 +2159,91 @@ def _attach_cornerstone_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================================================================
+# D23 KNOWLEDGE HUB FUNCTION
+# =====================================================================
+# Recognize a Knowledge Hub's architectural function only when the resource
+# itself establishes that it is a collection/orientation point organizing
+# multiple canonical materials around a subject or domain.
+# =====================================================================
+
+_D23_KNOWLEDGE_HUB_FUNCTION_LABEL = "curated subject-domain orientation"
+
+
+def _d23_knowledge_hub_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Knowledge Hub function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Knowledge Hub":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_knowledge_hub",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_knowledge_hub_function_evidence",
+        }
+
+    collection_signals = (
+        r"\bknowledge hub\b",
+        r"\bknowledge hubs\b",
+        r"\bcurated collection\b",
+        r"\bcurated resources\b",
+        r"\bcollection of resources\b",
+    )
+    organization_signals = (
+        r"\bessays?\b",
+        r"\bcornerstones?\b",
+        r"\breference maps?\b",
+        r"\bnavigators?\b",
+        r"\bpathways?\b",
+        r"\bcase (?:studies|library)\b",
+        r"\borganizes?\b",
+        r"\bbrings together\b",
+        r"\bentry point\b",
+        r"\borientation\b",
+    )
+
+    collection_hits = sum(
+        1 for pattern in collection_signals if re.search(pattern, content)
+    )
+    organization_hits = sum(
+        1 for pattern in organization_signals if re.search(pattern, content)
+    )
+
+    if collection_hits >= 1 and organization_hits >= 2:
+        return {
+            "function": _D23_KNOWLEDGE_HUB_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "knowledge_hub_collection_and_organization_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_knowledge_hub_function_evidence",
+    }
+
+
+def _attach_knowledge_hub_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D23 Knowledge Hub function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_knowledge_hub_function" not in metadata:
+        metadata["_use_knowledge_hub_function"] = _d23_knowledge_hub_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -3050,6 +3135,7 @@ def _append_unique_resource(
     metadata = _attach_resource_type_recognition(metadata)
     metadata = _attach_essay_function(metadata)
     metadata = _attach_cornerstone_function(metadata)
+    metadata = _attach_knowledge_hub_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -7405,9 +7491,9 @@ def _generation_boundary_self_audit() -> None:
             )
         if APP_VERSION != "v105":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v104."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v106."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v105-d22-cornerstone-function-runtime-audit-reconciled":
+        if DEPLOYMENT_FINGERPRINT != "USE-v106-d23-knowledge-hub-function":
             raise RuntimeError(
                 "Deployment fingerprint regression: v105 fingerprint is not aligned."
             )
@@ -7932,7 +8018,7 @@ def _generation_boundary_self_audit() -> None:
 
         # D16 reconciliation invariants.
         if APP_VERSION != "v105":
-            raise RuntimeError(f"Unexpected v104 USE version: {APP_VERSION}")
+            raise RuntimeError(f"Unexpected v106 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7992,7 +8078,7 @@ def _generation_boundary_self_audit() -> None:
         # Runtime identity must be explicit and current.
         if APP_VERSION != "v105":
             raise RuntimeError(
-                f"Unexpected v104 USE runtime version: {APP_VERSION}"
+                f"Unexpected v106 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8279,6 +8365,58 @@ def _d22_cornerstone_function_self_audit() -> None:
     print("USE D22 CORNERSTONE FUNCTION AUDIT: PASS")
 
 
+def _d23_knowledge_hub_function_self_audit() -> None:
+    """Verify Knowledge Hub function is type-gated and evidence-bound."""
+    good = {
+        "title": "Systems Thinking & Civilizational Design",
+        "_use_resource_type_recognition": {
+            "resource_type": "Knowledge Hub",
+            "confidence": "strong",
+            "basis": "content_self_identification",
+        },
+        "text": (
+            "This Knowledge Hub is a curated collection of resources and an "
+            "entry point for the subject. It brings together essays, "
+            "Cornerstones, Reference Maps, and Pathways to support orientation "
+            "across the domain."
+        ),
+    }
+    result = _d23_knowledge_hub_function(good)
+    assert result["function"] == _D23_KNOWLEDGE_HUB_FUNCTION_LABEL
+    assert result["basis"] == (
+        "knowledge_hub_collection_and_organization_evidence"
+    )
+
+    insufficient = {
+        "title": "A General Resource",
+        "_use_resource_type_recognition": {"resource_type": "Knowledge Hub"},
+        "text": (
+            "This resource discusses governance and mentions essays, maps, "
+            "and pathways."
+        ),
+    }
+    assert _d23_knowledge_hub_function(insufficient)["function"] is None
+
+    non_hub = {
+        "title": "An Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay is a curated collection of essays and maps about "
+            "a broad subject."
+        ),
+    }
+    non_result = _d23_knowledge_hub_function(non_hub)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_knowledge_hub"
+
+    attached = _attach_knowledge_hub_function(dict(good))
+    assert attached["_use_knowledge_hub_function"]["function"] == (
+        _D23_KNOWLEDGE_HUB_FUNCTION_LABEL
+    )
+
+    print("USE D23 KNOWLEDGE HUB FUNCTION AUDIT: PASS")
+
+
 def _v97_retrieval_candidate_window_audit() -> None:
     """Verify semantic candidates survive until bounded doorway ranking."""
     source = inspect.getsource(fetch_canonical_context)
@@ -8447,6 +8585,7 @@ _d19_canonical_resource_model_self_audit()
 _d20_resource_type_recognition_self_audit()
 _d21_essay_function_self_audit()
 _d22_cornerstone_function_self_audit()
+_d23_knowledge_hub_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
