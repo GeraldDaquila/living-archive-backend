@@ -1,4 +1,4 @@
-# USE TEST VERSION: v85 — D17 Literal Question-Structure Evidence Boundary
+# USE TEST VERSION: v86 — D17 Literal Question-Structure Evidence Boundary
 # Complete experimental production unit reconstructed from the authoritative v80
 # TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -10,6 +10,7 @@ import re
 import time
 import unicodedata
 import html
+import inspect
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
@@ -573,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v85"
+APP_VERSION = "v86"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v85-literal-question-structure-evidence-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v86-literal-question-structure-evidence-boundary"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2870,6 +2871,40 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
+    # D17/v86: correspondence is a synthesis boundary, not another retrieval
+    # heuristic. If the visitor's wording contains an explicit contrast, only
+    # already-retrieved Content that addresses both sides may enter synthesis.
+    # Navigation remains available through the complete canonical link set.
+    question_structure_docs, question_structure_unavailable = (
+        _question_structure_evidence_gate(
+            retrieved_docs,
+            user_query,
+            intent,
+        )
+    )
+
+    # Canonical link authority is established before any synthesis-only boundary.
+    canonical_link_context = format_context_blocks(
+        canonical_link_docs,
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
+    )
+
+    if question_structure_unavailable:
+        print(
+            "USE question-evidence correspondence: insufficient direct "
+            "correspondence; synthesis withheld; navigation preserved."
+        )
+        return {
+            "intent": intent,
+            "orientational_frame": orientational_frame,
+            "context_blocks": "",
+            "canonical_link_context": canonical_link_context,
+            "question_structure_evidence_unavailable": True,
+        }
+
+    retrieved_docs = question_structure_docs
+
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority.
@@ -2879,14 +2914,6 @@ def fetch_canonical_context(
         question=user_query,
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
-
-    # Canonical link authority is established before any synthesis-only boundary.
-    # This keeps navigation available even when reasoning evidence is insufficient.
-    canonical_link_context = format_context_blocks(
-        canonical_link_docs,
-        structural_destination_count=0,
-        adaptive_bridge_count=0,
-    )
 
     # v76: for open first-person experiential questions, do not let a retrieved
     # specialized worldview become substantive generation evidence when a
@@ -5704,42 +5731,56 @@ def _question_structure_evidence_gate(
     if qualifying:
         return qualifying, False
     return documents, True
-def _v85_question_structure_self_audit() -> None:
+def _v86_question_structure_self_audit() -> None:
     """Verify D17 recognizes explicit question structure without inventing a frame."""
     contrast = recognize_question_structure(
         "Why can I understand a situation clearly and still not know what to do with that understanding?"
     )
     if contrast.get("structure") != "explicit_contrast":
-        raise RuntimeError("v85 question-structure regression: explicit contrast was not recognized.")
+        raise RuntimeError("v86 question-structure regression: explicit contrast was not recognized.")
     if len(contrast.get("pairs") or ()) != 2:
-        raise RuntimeError("v85 question-structure regression: contrast sides were not preserved.")
+        raise RuntimeError("v86 question-structure regression: contrast sides were not preserved.")
     neutral = recognize_question_structure("Why is uncertainty difficult?")
     if neutral.get("structure") != "none":
-        raise RuntimeError("v85 question-structure regression: implicit theory was invented from a simple question.")
+        raise RuntimeError("v86 question-structure regression: implicit theory was invented from a simple question.")
     print("USE D17 question-structure self-audit: PASS")
 
 
 
 
 
-def _v85_question_structure_evidence_self_audit() -> None:
+def _v86_question_evidence_correspondence_integration_self_audit() -> None:
+    """Verify the correspondence gate is actually wired into the production path."""
+    source = inspect.getsource(fetch_canonical_context)
+    gate_call = source.find("_question_structure_evidence_gate(")
+    doorway_call = source.find("select_canonical_doorways(")
+    if gate_call < 0:
+        raise RuntimeError("v86 correspondence regression: gate is not wired into fetch path.")
+    if doorway_call < 0 or gate_call > doorway_call:
+        raise RuntimeError("v86 correspondence regression: gate is not upstream of doorway/generation selection.")
+    if "question_structure_evidence_unavailable" not in source:
+        raise RuntimeError("v86 correspondence regression: insufficiency return path is missing.")
+    print("USE D17 question-evidence correspondence integration self-audit: PASS")
+
+
+def _v86_question_structure_evidence_self_audit() -> None:
     """Verify D17 never synthesizes from evidence that misses either side."""
     question = "Why can understanding a pattern feel different from actually seeing it in my life?"
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
-        raise RuntimeError("v85 question-structure regression: explicit contrast not recognized.")
+        raise RuntimeError("v86 question-structure regression: explicit contrast not recognized.")
     adjacent = {"title": "When Life Disrupts", "content": "Synchronicity can lead people to notice patterns and assign meaning to events.", "url": "https://example.invalid/adjacent"}
     direct = {"title": "Understanding and Seeing Patterns", "content": "Understanding a pattern conceptually can differ from seeing the same pattern in one's life.", "url": "https://example.invalid/direct"}
     if _question_structure_content_score(adjacent, structure)[1] != 0:
-        raise RuntimeError("v85 question-structure regression: adjacent evidence falsely qualifies.")
+        raise RuntimeError("v86 question-structure regression: adjacent evidence falsely qualifies.")
     if _question_structure_content_score(direct, structure)[1] < 1:
-        raise RuntimeError("v85 question-structure regression: direct evidence did not qualify.")
+        raise RuntimeError("v86 question-structure regression: direct evidence did not qualify.")
     blocked_docs, blocked = _question_structure_evidence_gate([adjacent], question, "TOPICAL_INQUIRY")
     if not blocked or blocked_docs != [adjacent]:
-        raise RuntimeError("v85 question-structure regression: synthesis/navigation boundary failed.")
+        raise RuntimeError("v86 question-structure regression: synthesis/navigation boundary failed.")
     retained_docs, retained_block = _question_structure_evidence_gate([direct], question, "TOPICAL_INQUIRY")
     if retained_block or retained_docs != [direct]:
-        raise RuntimeError("v85 question-structure regression: direct evidence was incorrectly withheld.")
+        raise RuntimeError("v86 question-structure regression: direct evidence was incorrectly withheld.")
     print("USE D17 literal question-structure evidence self-audit: PASS")
 
 def _v83_recognition_orientation_self_audit() -> None:
@@ -5766,8 +5807,9 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v85_question_structure_self_audit()
-        _v85_question_structure_evidence_self_audit()
+        _v86_question_structure_self_audit()
+        _v86_question_structure_evidence_self_audit()
+        _v86_question_evidence_correspondence_integration_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -6429,20 +6471,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v85",
-            "# USE PRODUCTION VERSION: v85",
+            "# USE TEST VERSION: v86",
+            "# USE PRODUCTION VERSION: v86",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v85."
+                "Source version-label regression: line 1 does not identify v86."
             )
-        if APP_VERSION != "v85":
+        if APP_VERSION != "v86":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v85."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v86."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v85-literal-question-structure-evidence-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v86-literal-question-structure-evidence-boundary":
             raise RuntimeError(
-                "Deployment fingerprint regression: v85 fingerprint is not aligned."
+                "Deployment fingerprint regression: v86 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -6964,7 +7006,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v85":
+        if APP_VERSION != "v86":
             raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -7023,7 +7065,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v85":
+        if APP_VERSION != "v86":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -7056,12 +7098,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v85 execution-path regression: synthetic adjacent evidence "
+                    "v86 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v85 execution-path regression: evidence-sufficiency early return "
+                    "v86 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
