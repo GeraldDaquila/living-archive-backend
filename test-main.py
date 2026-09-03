@@ -1,4 +1,4 @@
-# USE TEST VERSION: v92 — D17 Frame-Specific Evidence Boundary
+# USE TEST VERSION: v93 — D18 USE Intent Integration Audit
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v92"
+APP_VERSION = "v93"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v92-d17-frame-specific-evidence-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v93-d18-use-intent-integration-audit"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -5941,6 +5941,150 @@ def _v83_recognition_orientation_self_audit() -> None:
     print("USE D17 recognition→orientation self-audit: PASS")
 
 
+
+def _v93_d18_use_intent_integration_audit() -> None:
+    """Audit the completed Phase-II intent chain as one integrated system.
+
+    D18 is an integration audit, not a new intelligence layer. It verifies that
+    the capabilities built through D08-D17 remain connected in the intended
+    dependency order and that no later boundary silently replaces an earlier
+    one. The audit is source/invariant based so it does not create a second
+    retrieval or reasoning engine.
+    """
+    fetch_source = inspect.getsource(fetch_canonical_context)
+    route_source = inspect.getsource(handle_query)
+    generation_source = inspect.getsource(generate_llm_response)
+
+    # D08-D13: question, intent, orientation, ambiguity, and separation must
+    # enter the integrated fetch path before retrieval/routing decisions.
+    required_fetch_calls = (
+        "intent = classify_intent(user_query)",
+        "detect_collection_request(user_query)",
+        "detect_adaptive_stewardship_orientation(user_query)",
+        "infer_orientational_frame(user_query)",
+        "build_recognition_orientation(user_query, intent)",
+        "recognize_question_structure(user_query)",
+    )
+    missing = [item for item in required_fetch_calls if item not in fetch_source]
+    if missing:
+        raise RuntimeError(
+            "D18 integration regression: required USE intent-stage call(s) missing: "
+            + ", ".join(missing)
+        )
+
+    # Intent/orientation must precede retrieval and remain available downstream.
+    intent_pos = fetch_source.find("intent = classify_intent(user_query)")
+    retrieval_pos = fetch_source.find("query_vector = generate_embedding(user_query)")
+    if intent_pos < 0 or retrieval_pos < 0 or intent_pos > retrieval_pos:
+        raise RuntimeError(
+            "D18 integration regression: intent classification is not upstream of retrieval."
+        )
+    orientation_pos = fetch_source.find("build_recognition_orientation(user_query, intent)")
+    if orientation_pos < 0 or orientation_pos > retrieval_pos:
+        raise RuntimeError(
+            "D18 integration regression: recognition/orientation is not upstream of retrieval."
+        )
+
+    # D14-D16: retrieval strategy, canonical evidence selection, and reasoning
+    # boundaries must remain distinct. Doorway selection is downstream of
+    # retrieval; synthesis-only boundaries must not erase navigation context.
+    doorway_pos = fetch_source.find("select_canonical_doorways(")
+    link_pos = fetch_source.find("canonical_link_context = format_context_blocks(")
+    if doorway_pos < 0 or retrieval_pos > doorway_pos:
+        raise RuntimeError(
+            "D18 integration regression: canonical doorway selection is not downstream of retrieval."
+        )
+    if link_pos < 0:
+        raise RuntimeError(
+            "D18 integration regression: canonical link authority is not constructed in fetch path."
+        )
+    if "canonical_link_context" not in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: navigation context disappeared from intent path."
+        )
+
+    # D17: recognition/orientation and explicit question structure inform the
+    # response, but do not become a second retrieval engine.
+    if "question_structure_evidence_unavailable" in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: obsolete D17 evidence-blocking path remains."
+        )
+    if "_question_structure_evidence_gate(" in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: obsolete lexical D17 synthesis gate remains."
+        )
+    if "recognize_question_structure(user_query)" not in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: D17 question structure is disconnected."
+        )
+
+    # Generation must receive the integrated intent/orientation state rather
+    # than reconstructing it independently.
+    if "context_data[\"intent\"]" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: classified intent is not passed to generation."
+        )
+    if "context_data.get(\n                \"orientational_frame\"" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: orientational frame is not passed to generation."
+        )
+    if "canonical_link_context" not in generation_source:
+        raise RuntimeError(
+            "D18 integration regression: canonical link authority is disconnected from generation."
+        )
+
+    # Whole-site orientation must remain a distinct intent path rather than a
+    # generic topical answer, while topical inquiry remains the default.
+    if 'return "WHOLE_SITE_ORIENTATION"' not in inspect.getsource(classify_intent):
+        raise RuntimeError(
+            "D18 integration regression: whole-site orientation intent disappeared."
+        )
+    if 'return "TOPICAL_INQUIRY"' not in inspect.getsource(classify_intent):
+        raise RuntimeError(
+            "D18 integration regression: topical inquiry default disappeared."
+        )
+
+    # Longitudinal observation is downstream of the current answer and cannot
+    # alter current-turn reasoning.
+    if "assess_progressive_commitment" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: passive longitudinal observer is disconnected."
+        )
+    observer_pos = route_source.find("assess_progressive_commitment")
+    response_path_pos = max(
+        route_source.find("llm_output = generate_llm_response("),
+        route_source.find("_evidence_sufficiency_unavailable_response("),
+        route_source.find("_frame_neutral_evidence_unavailable_response("),
+    )
+    if observer_pos >= 0 and response_path_pos >= 0 and observer_pos < response_path_pos:
+        raise RuntimeError(
+            "D18 integration regression: longitudinal observer can influence current-turn reasoning."
+        )
+    if "current_turn_influence" not in route_source or "observer_only" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: passive observer sovereignty markers are missing."
+        )
+
+    # Basic callable smoke checks use only local deterministic functions; no
+    # external retrieval/provider call is made by this audit.
+    topical = classify_intent("Why can people understand the same situation differently?")
+    whole_site = classify_intent("What is the Living Archive?")
+    if topical != "TOPICAL_INQUIRY" or whole_site != "WHOLE_SITE_ORIENTATION":
+        raise RuntimeError(
+            "D18 integration regression: deterministic intent classification smoke test failed."
+        )
+    frame = build_recognition_orientation(
+        "Why can people understand the same situation differently?",
+        topical,
+    )
+    if frame.get("orientation_mode") != "understand":
+        raise RuntimeError(
+            "D18 integration regression: recognition-to-orientation smoke test failed."
+        )
+
+    print("USE D18 intent integration audit: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
@@ -6617,18 +6761,18 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v92",
-            "# USE PRODUCTION VERSION: v92",
+            "# USE TEST VERSION: v93",
+            "# USE PRODUCTION VERSION: v93",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v92."
             )
-        if APP_VERSION != "v92":
+        if APP_VERSION != "v93":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v92."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v93."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v92-d17-frame-specific-evidence-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v93-d18-use-intent-integration-audit":
             raise RuntimeError(
                 "Deployment fingerprint regression: v92 fingerprint is not aligned."
             )
@@ -6636,7 +6780,7 @@ def _generation_boundary_self_audit() -> None:
         # assertions, not legitimate historical audit function names/comments.
         # This scanner is deliberately invariant-based so retaining a prior
         # regression audit does not itself become a false positive.
-        prior_version = "v" + "91"
+        prior_version = "v" + "92"
         stale_identity_patterns = (
             f'APP_VERSION = "{prior_version}"',
             f'APP_VERSION != "{prior_version}"',
@@ -7152,8 +7296,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v92":
-            raise RuntimeError(f"Unexpected v92 USE version: {APP_VERSION}")
+        if APP_VERSION != "v93":
+            raise RuntimeError(f"Unexpected v93 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7211,9 +7355,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v92":
+        if APP_VERSION != "v93":
             raise RuntimeError(
-                f"Unexpected v92 USE runtime version: {APP_VERSION}"
+                f"Unexpected v93 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -7306,6 +7450,8 @@ def _generation_boundary_self_audit() -> None:
 
 
 _v83_recognition_orientation_self_audit()
+_v93_d18_use_intent_integration_audit()
+
 _generation_boundary_self_audit()
 
 
