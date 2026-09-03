@@ -5685,6 +5685,25 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
+def _question_structure_evidence_gate(
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Bound synthesis evidence to explicit question structure."""
+    if not documents:
+        return [], True
+    structure = recognize_question_structure(question)
+    if structure.get("structure") != "explicit_contrast":
+        return documents, False
+    qualifying = [
+        document
+        for document in documents
+        if _question_structure_content_score(document, structure)[1] >= 1
+    ]
+    if qualifying:
+        return qualifying, False
+    return documents, True
 def _v85_question_structure_self_audit() -> None:
     """Verify D17 recognizes explicit question structure without inventing a frame."""
     contrast = recognize_question_structure(
@@ -5698,6 +5717,8 @@ def _v85_question_structure_self_audit() -> None:
     if neutral.get("structure") != "none":
         raise RuntimeError("v85 question-structure regression: implicit theory was invented from a simple question.")
     print("USE D17 question-structure self-audit: PASS")
+
+
 
 
 
