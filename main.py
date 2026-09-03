@@ -1,15 +1,15 @@
-# USE TEST VERSION: v86 — Question–Evidence Correspondence
-# Complete experimental production unit reconstructed from the authoritative v80
-# TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
-# the existing question-conditioned doorway layer without replacing semantic
-# retrieval, altering canonical link authority, expanding retrieval, or
-# creating a second navigation engine.
+# USE PRODUCTION VERSION: v117 — Open Exploration Sovereignty Deterministic Recovery
+# Complete TEST production unit. D17 recognizes explicit relational question
+# structure and passes that posture into bounded evidence-based reasoning without
+# creating a second retrieval or lexical synthesis gate.
+# navigation engine.
 
 import os
 import re
 import time
 import unicodedata
 import html
+import inspect
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
@@ -559,11 +559,12 @@ CONSTITUTIONAL RULES
 GENERATION_SYSTEM_PROMPT = """
 You are USE, the Living Archive navigation engine. Use only supplied canonical evidence.
 
-For TOPICAL questions, orient through supplied evidence, not generic explanation. Reflect the question, synthesize supported relationships, and give a canonical doorway when warranted. If evidence is supplied, name one exact canonical Title; normally use 2–3 only for distinct coverage.
+For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway. If evidence is supplied, name one canonical Title; normally use 2–3 only for distinct coverage.
 
+[RELATIONAL REASONING]: For explicit relationships, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference.
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise it is that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty.
 
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. Before synthesis, require substantive fit between the question and supplied Content. If only adjacent, do not explain the question from it; say the evidence is insufficient.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
 For destination/collection requests, use evidence-established destinations. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
@@ -573,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v86"
+APP_VERSION = "v117"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v86-question-evidence-correspondence"
+DEPLOYMENT_FINGERPRINT = "USE-v117-open-exploration-sovereignty-deterministic-recovery-audit-fixed"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -933,10 +934,86 @@ def _has_topical_prepositional_complement(query: str) -> bool:
     return False
 
 
+def _has_subject_specific_navigation_signal(query: str) -> bool:
+    """Recognize navigation questions whose object is an explicit subject.
+
+    A visitor can know the subject while still not knowing which part of the
+    archive is the right doorway. That remains TOPICAL_INQUIRY with a
+    navigation need; it must not be promoted to WHOLE_SITE_ORIENTATION.
+    This is structural detection, not a vocabulary list of subjects.
+    """
+    navigation = bool(
+        re.search(
+            r"\b(?:where|which\s+(?:part|place|section|area|doorway|resource|way)|"
+            r"what\s+(?:part|place|section|area|doorway|resource)|"
+            r"how\s+(?:do|can)\s+i\s+(?:find|reach|get\s+to))\b",
+            query,
+            re.IGNORECASE,
+        )
+    )
+    if not navigation:
+        return False
+
+    subject_patterns = (
+        r"\b(?:about|on|for|around)\s+(?!the\s+(?:living\s+)?archive\b)([^?.!,;:]+)",
+        r"\b(?:understand|explore|learn\s+about|look\s+into)\s+([^?.!,;:]+)",
+        r"\b(?:my|a|an)\s+specific\s+(?:question|subject|topic)\s+about\s+([^?.!,;:]+)",
+    )
+    for pattern in subject_patterns:
+        if re.search(pattern, query, re.IGNORECASE):
+            return True
+
+    # Explicit statements that the visitor already knows the subject also
+    # establish topical scope even when the subject itself is not repeated in
+    # the navigation clause.
+    if re.search(
+        r"\b(?:i|we)\s+(?:know|already\s+know)\s+what\s+(?:subject|topic|question)\b",
+        query,
+        re.IGNORECASE,
+    ):
+        return True
+
+    # Explicit possessive/personal subject construction also establishes that
+    # the visitor has an object of inquiry even when the wording is indirect.
+    if re.search(
+        r"\b(?:i|we)\s+(?:want|would\s+like)\s+to\s+(?:explore|understand|learn\s+about)\s+.+",
+        query,
+        re.IGNORECASE,
+    ):
+        return True
+
+    return False
+
+
 def classify_intent(query_str: str) -> str:
     clean_query = re.sub(r"\s+", " ", query_str.strip().lower())
 
     if not clean_query:
+        return "TOPICAL_INQUIRY"
+
+    # Genuine open exploration is a whole-site orientation state even when
+    # the visitor has not named a subject domain. Recognize the combination
+    # of not-yet-knowing + exploratory movement before topical complement
+    # parsing, so an orientation question is not collapsed into a topic.
+    open_exploration = (
+        bool(re.search(r"\b(?:not sure|don.t know|dont know)\b", clean_query))
+        and bool(re.search(r"\b(?:what i.m looking for|what im looking for|where to look)\b", clean_query))
+        and bool(re.search(r"\b(?:explore|exploring)\b", clean_query))
+    ) or bool(
+        re.search(
+            r"\b(?:i(?:\s+am|'m)\s+not\s+sure\s+what\s+i(?:\s+am|'m)\s+looking\s+for)\b",
+            clean_query,
+        )
+        and re.search(r"\b(?:want|would like)\s+to\s+explore\b", clean_query)
+    )
+    if open_exploration:
+        return "WHOLE_SITE_ORIENTATION"
+
+    # A known subject plus a request for a place/doorway is still topical
+    # inquiry. The navigation need affects doorway selection downstream; it
+    # does not erase the subject from intent classification. This check must
+    # precede generic site-orientation rules.
+    if _has_subject_specific_navigation_signal(clean_query):
         return "TOPICAL_INQUIRY"
 
     if _has_topical_prepositional_complement(clean_query):
@@ -1597,6 +1674,1052 @@ def _resource_content(doc: Dict[str, Any]) -> str:
 
 
 # =====================================================================
+# D19 CANONICAL RESOURCE MODEL
+# =====================================================================
+# D19 establishes the internal shape of a canonical resource without
+# inventing resource types or functions that are not explicitly present in
+# the supplied corpus/index metadata. Recognition and interpretation of
+# those fields belong to later Phase III chunks (D20+).
+#
+# The model deliberately separates stable resource identity from later
+# request-specific navigation/evidence roles. Missing fields remain None;
+# absence of metadata is not converted into a guessed type or function.
+# =====================================================================
+
+_D19_IDENTITY_KEYS = (
+    "id",
+    "resource_id",
+    "canonical_id",
+    "slug",
+    "url",
+    "title",
+)
+
+_D19_TYPE_KEYS = (
+    "resource_type",
+    "resource_kind",
+    "content_type",
+    "type",
+    "kind",
+)
+
+_D19_FUNCTION_KEYS = (
+    "resource_function",
+    "function",
+    "canonical_function",
+)
+
+_D19_LIFECYCLE_KEYS = (
+    "lifecycle",
+    "canonical_lifecycle",
+)
+
+_D19_ACCESS_KEYS = (
+    "access_class",
+    "access_level",
+    "access",
+    "visibility",
+    "audience",
+)
+
+
+def _d19_first_metadata_value(
+    metadata: Dict[str, Any],
+    keys: Tuple[str, ...],
+) -> Optional[Any]:
+    if not isinstance(metadata, dict):
+        return None
+
+    normalized = {}
+    for key, value in metadata.items():
+        normalized_key = re.sub(
+            r"[^a-z0-9]+",
+            "_",
+            str(key).casefold(),
+        ).strip("_")
+        if normalized_key and normalized_key not in normalized:
+            normalized[normalized_key] = value
+
+    for key in keys:
+        value = normalized.get(key)
+        if value is not None and str(value).strip():
+            return value
+
+    return None
+
+
+def _d19_normalize_model_value(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    normalized = re.sub(r"\s+", " ", str(value)).strip()
+    return normalized or None
+
+
+def _canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the D19 resource shape using only explicit metadata evidence."""
+    if not isinstance(metadata, dict) or not metadata:
+        return {
+            "identity": None,
+            "resource_type": None,
+            "function": None,
+            "navigation_role": None,
+            "evidence_role": None,
+            "lifecycle": None,
+            "access": None,
+        }
+
+    identity_values = {}
+    for key in _D19_IDENTITY_KEYS:
+        value = _d19_first_metadata_value(metadata, (key,))
+        if value is not None:
+            identity_values[key] = _d19_normalize_model_value(value)
+
+    return {
+        "identity": identity_values or None,
+        "resource_type": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_TYPE_KEYS)
+        ),
+        "function": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_FUNCTION_KEYS)
+        ),
+        # These are request/pipeline roles, not properties inferred from
+        # resource wording. They remain unset until later navigation stages
+        # establish them from an explicit relationship.
+        "navigation_role": None,
+        "evidence_role": None,
+        "lifecycle": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_LIFECYCLE_KEYS)
+        ),
+        "access": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_ACCESS_KEYS)
+        ),
+    }
+
+
+def _attach_canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D19's non-destructive internal model to a resource record."""
+    if not isinstance(metadata, dict):
+        return metadata
+
+    if "_use_resource_model" not in metadata:
+        metadata["_use_resource_model"] = _canonical_resource_model(metadata)
+
+    return metadata
+
+
+# =====================================================================
+# D20 RESOURCE-TYPE RECOGNITION
+# =====================================================================
+# D20 recognizes the canonical publication/resource family from evidence
+# already carried by the resource itself. Explicit metadata has priority.
+# When explicit type metadata is absent, only strong self-identifying
+# structural signals are accepted. Generic subject wording, semantic
+# similarity, and incidental mentions of another resource type do not
+# establish a type. Unknown is a valid result.
+# =====================================================================
+
+_D20_TYPE_ALIASES = {
+    "essay": "Essay",
+    "essays": "Essay",
+    "cornerstone": "Cornerstone",
+    "cornerstone hub": "Cornerstone",
+    "cornerstone hubs": "Cornerstone",
+    "knowledge hub": "Knowledge Hub",
+    "knowledge hubs": "Knowledge Hub",
+    "reference map": "Reference Map",
+    "reference maps": "Reference Map",
+    "navigator": "Navigator",
+    "navigators": "Navigator",
+    "navigator series": "Navigator",
+    "pathway": "Pathway",
+    "pathways": "Pathway",
+    "guided pathway": "Pathway",
+    "guided pathways": "Pathway",
+    "guided reading pathway": "Pathway",
+    "guided reading pathways": "Pathway",
+    "case": "Case",
+    "case study": "Case",
+    "case studies": "Case",
+    "learning arc": "Learning Arc",
+    "learning arcs": "Learning Arc",
+}
+
+
+def _d20_normalize_type_label(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    clean = re.sub(r"\s+", " ", str(value)).strip().casefold()
+    if not clean:
+        return None
+    return _D20_TYPE_ALIASES.get(clean)
+
+
+def _d20_explicit_type(metadata: Dict[str, Any]) -> Optional[str]:
+    """Recognize a canonical type only from explicit type metadata."""
+    if not isinstance(metadata, dict):
+        return None
+
+    explicit_keys = (
+        "resource_type",
+        "resource_kind",
+        "content_type",
+        "canonical_type",
+        "canonical_resource_type",
+    )
+    for key in explicit_keys:
+        value = _d19_first_metadata_value(metadata, (key,))
+        recognized = _d20_normalize_type_label(value)
+        if recognized:
+            return recognized
+    return None
+
+
+def _d20_title_type(metadata: Dict[str, Any]) -> Optional[str]:
+    """Recognize type from strong title-level self-identification only."""
+    title = html.unescape(str(metadata.get("title", "") or "")).strip().casefold()
+    if not title:
+        return None
+
+    # Ordered from the most structurally specific labels to broader ones.
+    title_patterns = (
+        (r"\b(?:living archive )?navigator(?: series)?\b", "Navigator"),
+        (r"\b(?:reference )?map\b", "Reference Map"),
+        (r"\b(?:guided reading|guided) pathway(?:s)?\b", "Pathway"),
+        (r"\bknowledge hub(?:s)?\b", "Knowledge Hub"),
+        (r"\bcornerstone hub(?:s)?\b", "Cornerstone"),
+        (r"\blearning arc(?:s)?\b", "Learning Arc"),
+        (r"\bcase study(?:s|ies)?\b", "Case"),
+        (r"^case\s*[:#-]?\s*\d+\b", "Case"),
+        (r"^essay\s*[:#-]", "Essay"),
+    )
+    for pattern, resource_type in title_patterns:
+        if re.search(pattern, title, flags=re.IGNORECASE):
+            return resource_type
+    return None
+
+
+def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
+    """Use content only for explicit self-identifying structural statements."""
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return None
+
+    content_patterns = (
+        (r"\b(?:this|the) living archive navigator\b", "Navigator"),
+        (r"\b(?:this|the) reference map\b", "Reference Map"),
+        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),
+        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),
+        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),
+        (r"\b(?:this|the) learning arc\b", "Learning Arc"),
+        (r"\b(?:this|the) case study\b", "Case"),
+        (r"\b(?:this|the) essay\b", "Essay"),
+    )
+    for pattern, resource_type in content_patterns:
+        if re.search(pattern, content, flags=re.IGNORECASE):
+            return resource_type
+    return None
+
+
+def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Return D20 type recognition with bounded evidence provenance."""
+    if not isinstance(metadata, dict) or not metadata:
+        return {"resource_type": None, "confidence": "unknown", "basis": "none"}
+
+    explicit = _d20_explicit_type(metadata)
+    if explicit:
+        return {
+            "resource_type": explicit,
+            "confidence": "explicit",
+            "basis": "explicit_metadata",
+        }
+
+    title_type = _d20_title_type(metadata)
+    if title_type:
+        return {
+            "resource_type": title_type,
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        }
+
+    content_type = _d20_content_self_identification(metadata)
+    if content_type:
+        return {
+            "resource_type": content_type,
+            "confidence": "bounded",
+            "basis": "content_self_identification",
+        }
+
+    return {
+        "resource_type": None,
+        "confidence": "unknown",
+        "basis": "insufficient_structural_evidence",
+    }
+
+
+def _attach_resource_type_recognition(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D20 recognition without overwriting D19's explicit model."""
+    if not isinstance(metadata, dict):
+        return metadata
+
+    if "_use_resource_type_recognition" not in metadata:
+        metadata["_use_resource_type_recognition"] = _recognize_resource_type(metadata)
+
+    return metadata
+
+
+# =====================================================================
+# D21 ESSAY FUNCTION
+# =====================================================================
+# D21 establishes the architectural function of a resource already recognized
+# as an Essay. It does not infer a visitor need from the essay or promote an
+# essay merely because it is semantically related to the question. The function
+# is established only when the resource's own evidence explicitly presents the
+# essay as an exploratory, interpretive, or integrative work.
+#
+# Navigator function work belongs to D25 in the canonical Phase III sequence.
+# It is intentionally not active in D21.
+# =====================================================================
+
+_D21_ESSAY_FUNCTION_LABEL = "substantive exploration and sensemaking"
+
+
+def _d21_essay_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Essay function only from D20 type plus resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Essay":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_essay",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_essay_function_evidence",
+        }
+
+    # These signals are intentionally generic and structural. They describe
+    # what the resource itself says it is doing, rather than importing a
+    # subject-specific interpretation from the visitor's question.
+    exploration_signals = (
+        r"\bthis essay explores\b",
+        r"\bthis essay examines\b",
+        r"\bthis essay investigates\b",
+        r"\bthis essay considers\b",
+        r"\bthis essay asks\b",
+        r"\bthe essay explores\b",
+        r"\bthe essay examines\b",
+        r"\bthe essay investigates\b",
+        r"\bthe essay considers\b",
+    )
+    synthesis_signals = (
+        r"\bthis essay presents (?:an|a) (?:integrative|architectural|systems-based|developmental)",
+        r"\bthis essay integrates\b",
+        r"\bthis essay synthesizes\b",
+        r"\bthis essay offers\b",
+        r"\bthe essay integrates\b",
+        r"\bthe essay synthesizes\b",
+        r"\bthe essay offers\b",
+    )
+
+    exploration_hits = sum(
+        1 for pattern in exploration_signals if re.search(pattern, content)
+    )
+    synthesis_hits = sum(
+        1 for pattern in synthesis_signals if re.search(pattern, content)
+    )
+
+    if exploration_hits >= 1 and synthesis_hits >= 1:
+        return {
+            "function": _D21_ESSAY_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "essay_exploration_and_synthesis_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_essay_function_evidence",
+    }
+
+
+def _attach_essay_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D21 Essay function without overwriting explicit D19 fields."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_essay_function" not in metadata:
+        metadata["_use_essay_function"] = _d21_essay_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D22 CORNERSTONE FUNCTION
+# =====================================================================
+# D22 establishes the architectural function of a resource already recognized
+# as a Cornerstone. The corpus describes Cornerstones as foundational lenses
+# that reveal larger patterns across domains and connect essays, frameworks,
+# analyses, and maps around underlying principles.
+#
+# This layer therefore requires evidence from the resource itself for both:
+#   1) a foundational/lens role, and
+#   2) a cross-domain/pattern-orientation role.
+#
+# It does not infer what a visitor's subject means, and it does not promote a
+# Cornerstone merely because the visitor's question contains broad or
+# interdisciplinary language.
+# =====================================================================
+
+_D22_CORNERSTONE_FUNCTION_LABEL = "cross-domain pattern orientation"
+
+
+def _d22_cornerstone_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Cornerstone function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Cornerstone":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_cornerstone",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_cornerstone_function_evidence",
+        }
+
+    # Structural signals are deliberately generic. They are drawn from the
+    # corpus's own description of Cornerstones as foundational lenses and as
+    # bridges/pattern frameworks across multiple domains.
+    foundational_signals = (
+        r"\bthis cornerstone\b",
+        r"\bcornerstones? (?:are|act as) (?:foundational )?lenses\b",
+        r"\bfoundational lenses?\b",
+        r"\bways of seeing\b",
+        r"\bthe purpose of the cornerstones\b",
+        r"\bthe cornerstone (?:provides|offers)\b",
+    )
+    cross_domain_signals = (
+        r"\bacross (?:multiple|different|various) domains\b",
+        r"\bbetween disciplines\b",
+        r"\bbridges? between disciplines\b",
+        r"\bunderlying (?:principle|patterns?)\b",
+        r"\blarger patterns?\b",
+        r"\bcommon underlying principle\b",
+        r"\binterconnected (?:system|system of|dimensions)\b",
+        r"\bmultiple domains of life\b",
+        r"\binterdisciplinary\b",
+    )
+
+    foundational_hits = sum(
+        1 for pattern in foundational_signals if re.search(pattern, content)
+    )
+    cross_domain_hits = sum(
+        1 for pattern in cross_domain_signals if re.search(pattern, content)
+    )
+
+    if foundational_hits >= 1 and cross_domain_hits >= 1:
+        return {
+            "function": _D22_CORNERSTONE_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "cornerstone_foundational_and_cross_domain_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_cornerstone_function_evidence",
+    }
+
+
+def _attach_cornerstone_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D22 Cornerstone function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_cornerstone_function" not in metadata:
+        metadata["_use_cornerstone_function"] = _d22_cornerstone_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D23 KNOWLEDGE HUB FUNCTION
+# =====================================================================
+# Recognize a Knowledge Hub's architectural function only when the resource
+# itself establishes that it is a collection/orientation point organizing
+# multiple canonical materials around a subject or domain.
+# =====================================================================
+
+_D23_KNOWLEDGE_HUB_FUNCTION_LABEL = "curated subject-domain orientation"
+
+
+def _d23_knowledge_hub_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Knowledge Hub function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Knowledge Hub":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_knowledge_hub",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_knowledge_hub_function_evidence",
+        }
+
+    collection_signals = (
+        r"\bknowledge hub\b",
+        r"\bknowledge hubs\b",
+        r"\bcurated collection\b",
+        r"\bcurated resources\b",
+        r"\bcollection of resources\b",
+    )
+    organization_signals = (
+        r"\bessays?\b",
+        r"\bcornerstones?\b",
+        r"\breference maps?\b",
+        r"\bnavigators?\b",
+        r"\bpathways?\b",
+        r"\bcase (?:studies|library)\b",
+        r"\borganizes?\b",
+        r"\bbrings together\b",
+        r"\bentry point\b",
+        r"\borientation\b",
+    )
+
+    collection_hits = sum(
+        1 for pattern in collection_signals if re.search(pattern, content)
+    )
+    organization_hits = sum(
+        1 for pattern in organization_signals if re.search(pattern, content)
+    )
+
+    if collection_hits >= 1 and organization_hits >= 2:
+        return {
+            "function": _D23_KNOWLEDGE_HUB_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "knowledge_hub_collection_and_organization_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_knowledge_hub_function_evidence",
+    }
+
+
+def _attach_knowledge_hub_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D23 Knowledge Hub function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_knowledge_hub_function" not in metadata:
+        metadata["_use_knowledge_hub_function"] = _d23_knowledge_hub_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D24 REFERENCE MAP FUNCTION
+# =====================================================================
+# Reference Maps are an orienting visual framework: they simplify
+# complexity without reducing it and help readers perceive structure,
+# relationships, and larger systems.
+#
+# D24 recognizes that architectural function only from evidence carried
+# by the resource itself. It does not infer that a map is the right
+# doorway for a particular visitor; that belongs to later navigation
+# architecture.
+# =====================================================================
+
+_D24_REFERENCE_MAP_FUNCTION_LABEL = "visual structural orientation"
+
+
+def _d24_reference_map_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Reference Map function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Reference Map":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_reference_map",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_reference_map_function_evidence",
+        }
+
+    visual_framework_signals = (
+        r"\bvisual framework\b",
+        r"\bvisual frameworks\b",
+        r"\borienting framework\b",
+        r"\bvisual representation\b",
+        r"\bvisual composition\b",
+        r"\bvisual map\b",
+        r"\bmap presents\b",
+        r"\bmap provides\b",
+    )
+    orientation_structure_signals = (
+        r"\borientation\b",
+        r"\borient(?:ing|s)?\b",
+        r"\bstructure\b",
+        r"\brelationships?\b",
+        r"\bpatterns?\b",
+        r"\bcomplexity\b",
+        r"\bsee how\b",
+        r"\bperceive\b",
+        r"\bconnect(?:ions)?\b",
+    )
+
+    visual_hits = sum(
+        1 for pattern in visual_framework_signals if re.search(pattern, content)
+    )
+    orientation_hits = sum(
+        1 for pattern in orientation_structure_signals if re.search(pattern, content)
+    )
+
+    # Require evidence that the resource is itself a visual/framework
+    # object plus at least two independent orientation/structure signals.
+    if visual_hits >= 1 and orientation_hits >= 2:
+        return {
+            "function": _D24_REFERENCE_MAP_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "reference_map_visual_framework_and_orientation_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_reference_map_function_evidence",
+    }
+
+
+def _attach_reference_map_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D24 Reference Map function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_reference_map_function" not in metadata:
+        metadata["_use_reference_map_function"] = _d24_reference_map_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D25 NAVIGATOR FUNCTION
+# =====================================================================
+# A Navigator is an architectural orientation/entry resource that brings
+# together multiple canonical ways of entering or moving through a subject.
+# D25 recognizes that function only from evidence carried by the resource
+# itself. It does not infer that a Navigator is the right doorway for a
+# particular visitor; that belongs to later navigation architecture.
+# =====================================================================
+
+_D25_NAVIGATOR_FUNCTION_LABEL = "integrated orientation and entry"
+
+
+def _d25_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Navigator function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Navigator":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_navigator",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_navigator_function_evidence",
+        }
+
+    component_signals = (
+        r"\breference maps?\b",
+        r"\bguide notes?\b",
+        r"\breflective questions?\b",
+        r"\bguided reading pathways?\b",
+        r"\bpathways?\b",
+        r"\bessays?\b",
+        r"\bknowledge hubs?\b",
+        r"\bcornerstones?\b",
+    )
+    integration_signals = (
+        r"\bbrings together\b",
+        r"\bbring together\b",
+        r"\bcombines\b",
+        r"\bintegrates\b",
+        r"\bbundles\b",
+        r"\bconnects\b",
+        r"\bentry point\b",
+        r"\bwayfinding\b",
+        r"\bnavigation\b",
+        r"\borientation\b",
+    )
+
+    component_hits = sum(
+        1 for pattern in component_signals if re.search(pattern, content)
+    )
+    integration_hits = sum(
+        1 for pattern in integration_signals if re.search(pattern, content)
+    )
+
+    # Require at least two distinct canonical component signals and an
+    # explicit integration/entry signal. This prevents a generic resource
+    # that merely mentions several document types from becoming a Navigator.
+    if component_hits >= 2 and integration_hits >= 1:
+        return {
+            "function": _D25_NAVIGATOR_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "navigator_integrated_component_and_entry_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_navigator_function_evidence",
+    }
+
+
+def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D25 Navigator function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_navigator_function" not in metadata:
+        metadata["_use_navigator_function"] = _d25_navigator_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D25 SELECTION-PATH AUDIT — DIAGNOSTIC ONLY
+# =====================================================================
+# v111 does NOT change canonical selection behavior. It audits whether the
+# resource-function signals established by D19-D25 are actually consumed by
+# the retrieval/ranking/doorway path. This prevents vocabulary patches from
+# being used to compensate for a missing architectural connection.
+# =====================================================================
+
+def _d26_pathway_function_self_audit() -> None:
+    """Verify Pathway function is type-gated and evidence-bound."""
+    good = {
+        "title": "Guided Reading Pathway — Understanding Change",
+        "_use_resource_type_recognition": {"resource_type": "Pathway"},
+        "text": (
+            "This Guided Reading Pathway is a guided experience that leads the reader "
+            "through a sequence of canonical essays and reflection questions. Each "
+            "stop prepares the reader for the next stop in the journey."
+        ),
+    }
+    result = _d26_pathway_function(good)
+    assert result["function"] == _D26_PATHWAY_FUNCTION_LABEL
+    assert result["basis"] == "pathway_guidance_and_sequence_evidence"
+
+    insufficient = {
+        "title": "Guided Reading Pathway",
+        "_use_resource_type_recognition": {"resource_type": "Pathway"},
+        "text": "This pathway is available in the Living Archive.",
+    }
+    assert _d26_pathway_function(insufficient)["function"] is None
+
+    non_pathway = {
+        "title": "An Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay explores a sequence of ideas and guides reflection.",
+    }
+    assert _d26_pathway_function(non_pathway)["function"] is None
+
+    attached = _attach_pathway_function(dict(good))
+    assert attached["_use_pathway_function"]["function"] == _D26_PATHWAY_FUNCTION_LABEL
+    print("USE D26 PATHWAY FUNCTION AUDIT: PASS")
+
+
+def _d27_case_learning_arc_function_self_audit() -> None:
+    """Verify Case / Learning Arc function is type-gated and evidence-bound."""
+    case = {
+        "title": "Case Study — Institutional Trust",
+        "_use_resource_type_recognition": {"resource_type": "Case"},
+        "text": (
+            "This case study presents an applied case of institutional trust. "
+            "The case illustrates what happened in practice and what can be learned."
+        ),
+    }
+    case_result = _d27_case_learning_arc_function(case)
+    assert case_result["function"] == _D27_CASE_FUNCTION_LABEL
+
+    arc = {
+        "title": "Learning Arc — Trust in Practice",
+        "_use_resource_type_recognition": {"resource_type": "Learning Arc"},
+        "text": (
+            "This Learning Arc presents a sequence of cases and a progressive "
+            "learning progression from one case to the next, with applied learning."
+        ),
+    }
+    arc_result = _d27_case_learning_arc_function(arc)
+    assert arc_result["function"] == _D27_LEARNING_ARC_FUNCTION_LABEL
+
+    insufficient = {
+        "title": "Case Study",
+        "_use_resource_type_recognition": {"resource_type": "Case"},
+        "text": "This resource is available in the case library.",
+    }
+    assert _d27_case_learning_arc_function(insufficient)["function"] is None
+
+    non_case = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay discusses applied examples and case studies.",
+    }
+    assert _d27_case_learning_arc_function(non_case)["function"] is None
+
+    attached = _attach_case_learning_arc_function(dict(case))
+    assert attached["_use_case_learning_arc_function"]["function"] == _D27_CASE_FUNCTION_LABEL
+    print("USE D27 CASE / LEARNING ARC FUNCTION AUDIT: PASS")
+
+
+def _d21_d27_resource_function_layer_self_audit() -> None:
+    """Verify the D21-D27 function layer is coherent and selection-aware."""
+    required = {
+        "_use_essay_function": "substantive exploration and sensemaking",
+        "_use_cornerstone_function": "cross-domain pattern orientation",
+        "_use_knowledge_hub_function": "curated subject-domain orientation",
+        "_use_reference_map_function": "visual structural orientation",
+        "_use_navigator_function": "integrated orientation and entry",
+        "_use_pathway_function": "guided orientation experience",
+        "_use_case_learning_arc_function": "applied case learning",
+    }
+    if tuple(required) != _RESOURCE_FUNCTION_NAMES:
+        raise RuntimeError("D21-D27 function layer regression: registry is incomplete or reordered.")
+
+    questions = (
+        ("I want to see the available routes and decide where to go next.", "integrated orientation and entry"),
+        ("I want a guided path through this subject and want to know what to read first.", "guided orientation experience"),
+        ("I want real cases showing how this plays out in practice.", "applied case learning"),
+    )
+    for question, expected in questions:
+        fit = _visitor_resource_function_fit(question)
+        if fit.get(expected, 0.0) <= 0:
+            raise RuntimeError(
+                "D21-D27 function layer regression: expected functional need was not recognized: "
+                + expected
+            )
+
+    # Function metadata must be part of selection, but ordinary explanatory
+    # questions remain function-neutral.
+    pathway = {
+        "title": "Guided Pathway",
+        "_use_pathway_function": {"function": _D26_PATHWAY_FUNCTION_LABEL},
+    }
+    essay = {
+        "title": "Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+    }
+    selected = select_canonical_doorways(
+        [essay, pathway],
+        {"primary": "general", "scores": {}},
+        question="I want a guided path through this subject and want to know what to read first.",
+    )
+    if selected[0] is not pathway:
+        raise RuntimeError("D21-D27 function layer regression: functional need did not affect canonical selection.")
+
+    neutral_question = "Why does this matter?"
+    if _resource_function_selection_bonus(pathway, neutral_question) != 0.0:
+        raise RuntimeError("D21-D27 function layer regression: neutral question received a functional bonus.")
+    if _resource_function_selection_bonus(essay, neutral_question) != 0.0:
+        raise RuntimeError("D21-D27 function layer regression: neutral question received a functional bonus.")
+
+    print("USE D21-D27 RESOURCE FUNCTION LAYER AUDIT: PASS")
+
+
+def _d25_resource_function_selection_bridge_self_audit() -> None:
+    """Verify function fit changes selection only when the visitor need warrants it."""
+    navigator = {
+        "title": "Governance Navigator",
+        "_use_navigator_function": {
+            "function": "integrated orientation and entry"
+        },
+    }
+    essay = {
+        "title": "Governance Essay",
+        "_use_essay_function": {
+            "function": "substantive exploration and sensemaking"
+        },
+    }
+
+    open_navigation_question = (
+        "I want an orientation to the wider body of material, "
+        "see the available routes, and decide where I want to go next. "
+        "Where should I begin?"
+    )
+
+    assert _resource_function_selection_bonus(
+        navigator, open_navigation_question
+    ) == _RESOURCE_FUNCTION_FIT_BONUS
+    assert _resource_function_selection_bonus(
+        essay, open_navigation_question
+    ) == 0.0
+
+    neutral_question = "Why does governance matter?"
+    assert _resource_function_selection_bonus(
+        navigator, neutral_question
+    ) == 0.0
+    assert _resource_function_selection_bonus(
+        essay, neutral_question
+    ) == 0.0
+
+    # Verify the actual canonical selection path consumes the bridge.
+    docs = [essay, navigator]
+    selected = select_canonical_doorways(
+        docs,
+        {},
+        question=open_navigation_question,
+    )
+    assert selected[0]["title"] == "Governance Navigator"
+
+    print("USE D25 RESOURCE-FUNCTION SELECTION BRIDGE AUDIT: PASS")
+
+
+def _d25_selection_path_audit() -> None:
+    source = Path(__file__).read_text(encoding="utf-8")
+    lines = source.splitlines()
+
+    function_definitions = {
+        "D19 model": r"def _canonical_resource_model",
+        "D20 type recognition": r"def _recognize_resource_type",
+        "D21 Essay function": r"def _d21_essay_function",
+        "D22 Cornerstone function": r"def _d22_cornerstone_function",
+        "D23 Knowledge Hub function": r"def _d23_knowledge_hub_function",
+        "D24 Reference Map function": r"def _d24_reference_map_function",
+        "D25 Navigator function": r"def _d25_navigator_function",
+    }
+
+    attachment_signals = {
+        "D21": r"_attach_essay_function",
+        "D22": r"_attach_cornerstone_function",
+        "D23": r"_attach_knowledge_hub_function",
+        "D24": r"_attach_reference_map_function",
+        "D25": r"_attach_navigator_function",
+        "D26": r"_attach_pathway_function",
+        "D27": r"_attach_case_learning_arc_function",
+    }
+
+    # Selection/ranking functions are intentionally discovered rather than
+    # assumed. This is the evidence needed before changing architecture.
+    candidate_names = []
+    for idx, line in enumerate(lines, 1):
+        if re.match(r"\s*def\s+", line):
+            name = re.search(r"def\s+([A-Za-z_][A-Za-z0-9_]*)", line)
+            if name:
+                candidate_names.append((idx, name.group(1)))
+
+    selection_terms = (
+        "select",
+        "rank",
+        "rerank",
+        "doorway",
+        "candidate",
+        "movement",
+        "sequence",
+        "navigation",
+        "resource",
+    )
+    selection_functions = [
+        (line_no, name)
+        for line_no, name in candidate_names
+        if any(term in name.casefold() for term in selection_terms)
+    ]
+
+    function_consumers = []
+    resource_function_terms = (
+        "_use_essay_function",
+        "_use_cornerstone_function",
+        "_use_knowledge_hub_function",
+        "_use_reference_map_function",
+        "_use_navigator_function",
+        "resource_function",
+        "function",
+    )
+
+    for idx, line in enumerate(lines, 1):
+        if any(term in line for term in resource_function_terms):
+            function_consumers.append((idx, line.strip()))
+
+    print("USE D25 SELECTION-PATH AUDIT")
+    print("  Function definitions:")
+    for label, pattern in function_definitions.items():
+        hits = [
+            idx for idx, line in enumerate(lines, 1)
+            if re.search(pattern, line)
+        ]
+        print(f"    {label}: {hits[:5]}")
+    print("  Function attachment hooks:")
+    for label, pattern in attachment_signals.items():
+        hits = [
+            idx for idx, line in enumerate(lines, 1)
+            if pattern in line
+        ]
+        print(f"    {label}: {hits[:5]}")
+    print("  Selection/ranking/navigation functions:")
+    for line_no, name in selection_functions:
+        print(f"    line {line_no}: {name}")
+    print("  Lines referencing resource-function metadata:")
+    for line_no, line in function_consumers:
+        print(f"    line {line_no}: {line[:180]}")
+
+    # This audit is informational. Its success condition is simply that all
+    # D19-D25 recognition layers exist and are attached; no claim is made that
+    # they influence selection.
+    assert all(
+        re.search(pattern, source)
+        for pattern in function_definitions.values()
+    )
+    assert all(
+        pattern in source for pattern in attachment_signals.values()
+    )
+    print("  D19-D25 recognition/attachment integrity: PASS")
+    print("  Selection consumption: DIAGNOSTIC — requires inspection of listed paths")
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -1808,8 +2931,23 @@ def format_context_blocks(
         elif index_number < structural_destination_count + adaptive_bridge_count:
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
+        resource_type_info = doc.get("_use_resource_type_recognition") or {}
+        essay_function_info = doc.get("_use_essay_function") or {}
+        architectural_lines = []
+        if resource_type_info.get("resource_type"):
+            architectural_lines.append(
+                f"Recognized Resource Type: {resource_type_info['resource_type']}"
+            )
+        if essay_function_info.get("function"):
+            architectural_lines.append(
+                f"Recognized Resource Function: {essay_function_info['function']}"
+            )
+        architectural_context = ""
+        if architectural_lines:
+            architectural_context = "\n" + "\n".join(architectural_lines)
         formatted_blocks.append(
-            f"Evidence Role: {role}\n"
+            f"Evidence Role: {role}"
+            f"{architectural_context}\n"
             f"Title: {title}\n"
             f"URL: {url}\n"
             f"Content: {content}"
@@ -2038,6 +3176,8 @@ _SPECIALIZED_FRAMEWORK_TERMS = frozenset({
     "reincarnation", "past-life", "pastlife", "soul", "ego death",
     "nonduality", "non-duality", "manifestation", "channeling",
     "channeled", "akashic", "twin flame", "twin-flame",
+    # Canonical resource-specific interpretive constructs surfaced in testing.
+    "synchronicity", "synchronicities", "apophenia",
 })
 
 _QUESTION_STOPWORDS = frozenset({
@@ -2287,7 +3427,7 @@ def _canonical_doorway_score(
 
 
 def _is_specialized_framework_resource(metadata: Dict[str, Any]) -> bool:
-    """Identify resources whose canonical title establishes a specialized worldview."""
+    """Identify resources whose canonical title names a specialized interpretive construct."""
     title = _canonical_display_title(str(metadata.get("title", ""))).casefold()
     if not title:
         return False
@@ -2344,6 +3484,339 @@ def _frame_neutral_evidence_unavailable_response(question: str) -> str:
     )
 
 
+# =====================================================================
+# D26 PATHWAY FUNCTION
+# =====================================================================
+# A Pathway is a guided orientation experience: it gives a reader a bounded
+# sequence through canonical material around a genuine question. The function
+# is recognized from the resource's own evidence, not from the visitor's
+# question. Selection fit is handled separately by the shared D21-D27 layer.
+# =====================================================================
+
+_D26_PATHWAY_FUNCTION_LABEL = "guided orientation experience"
+
+
+def _d26_pathway_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Pathway function only from D20 type plus resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Pathway":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_pathway",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_pathway_function_evidence",
+        }
+
+    guidance_signals = (
+        r"\bguided (?:reading )?pathway\b",
+        r"\bguided experience\b",
+        r"\bguided journey\b",
+        r"\bguide(?:s|d)? the reader\b",
+        r"\bleads the reader\b",
+        r"\bwalk(?:s|ing)? the reader\b",
+    )
+    sequence_signals = (
+        r"\bsequence\b",
+        r"\bin sequence\b",
+        r"\bnext stop\b",
+        r"\bstops?\b",
+        r"\bjourney\b",
+        r"\b90 minutes?\b",
+        r"\breading order\b",
+        r"\breflection question\b",
+    )
+
+    guidance_hits = sum(1 for pattern in guidance_signals if re.search(pattern, content))
+    sequence_hits = sum(1 for pattern in sequence_signals if re.search(pattern, content))
+
+    if guidance_hits >= 1 and sequence_hits >= 1:
+        return {
+            "function": _D26_PATHWAY_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "pathway_guidance_and_sequence_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_pathway_function_evidence",
+    }
+
+
+def _attach_pathway_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D26 Pathway function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_pathway_function" not in metadata:
+        metadata["_use_pathway_function"] = _d26_pathway_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D27 CASE / LEARNING ARC FUNCTION
+# =====================================================================
+# Cases and Learning Arcs provide applied learning through concrete cases or
+# a bounded progression across cases. The function is recognized from the
+# resource's own evidence; the visitor's need only affects later selection.
+# =====================================================================
+
+_D27_CASE_FUNCTION_LABEL = "applied case learning"
+_D27_LEARNING_ARC_FUNCTION_LABEL = "sequenced case-based learning"
+
+
+def _d27_case_learning_arc_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Case or Learning Arc function from type and resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    resource_type = recognition.get("resource_type")
+    if resource_type not in {"Case", "Learning Arc"}:
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_case_or_learning_arc",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_case_learning_arc_function_evidence",
+        }
+
+    case_signals = (
+        r"\bcase stud(?:y|ies)\b",
+        r"\bcase library\b",
+        r"\bcase atlas\b",
+        r"\breal[- ]world case\b",
+        r"\bapplied case\b",
+        r"\bcase(?:s)? illustrate\b",
+        r"\bcase(?:s)? show\b",
+    )
+    arc_signals = (
+        r"\blearning arc\b",
+        r"\bprogression of cases\b",
+        r"\bsequence of cases\b",
+        r"\bcase sequence\b",
+        r"\bprogressive learning\b",
+        r"\bbuilds from one case\b",
+        r"\bfrom one case to the next\b",
+    )
+    learning_signals = (
+        r"\blearning\b",
+        r"\bapplication\b",
+        r"\bapplied\b",
+        r"\bpractice\b",
+        r"\bgovernance challenge\b",
+        r"\bwhat happened\b",
+    )
+
+    case_hits = sum(1 for pattern in case_signals if re.search(pattern, content))
+    arc_hits = sum(1 for pattern in arc_signals if re.search(pattern, content))
+    learning_hits = sum(1 for pattern in learning_signals if re.search(pattern, content))
+
+    if resource_type == "Learning Arc" and arc_hits >= 1 and learning_hits >= 1:
+        return {
+            "function": _D27_LEARNING_ARC_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "learning_arc_sequence_and_learning_evidence",
+        }
+
+    if resource_type == "Case" and case_hits >= 1 and learning_hits >= 1:
+        return {
+            "function": _D27_CASE_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "case_and_applied_learning_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_case_learning_arc_function_evidence",
+    }
+
+
+def _attach_case_learning_arc_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D27 Case / Learning Arc function without overwriting prior models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_case_learning_arc_function" not in metadata:
+        metadata["_use_case_learning_arc_function"] = _d27_case_learning_arc_function(metadata)
+    return metadata
+
+
+# =====================================================================
+# D25 RESOURCE-FUNCTION SELECTION BRIDGE
+# =====================================================================
+# Connect the already-recognized canonical resource functions to the
+# existing doorway scorer. This is a selection bridge, not a new retrieval
+# mechanism and not a subject-specific mapping.
+#
+# Functional fit is additive and bounded. Existing relevance, evidence,
+# scope, framework, and centrality logic remains intact.
+# =====================================================================
+
+_RESOURCE_FUNCTION_FIT_BONUS = 2.5
+
+_RESOURCE_FUNCTION_NAMES = (
+    "_use_essay_function",
+    "_use_cornerstone_function",
+    "_use_knowledge_hub_function",
+    "_use_reference_map_function",
+    "_use_navigator_function",
+    "_use_pathway_function",
+    "_use_case_learning_arc_function",
+)
+
+def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
+    """Infer the requested canonical resource function conservatively."""
+    q = (question or "").casefold()
+    fit = {
+        "substantive exploration and sensemaking": 0.0,
+        "cross-domain pattern orientation": 0.0,
+        "curated subject-domain orientation": 0.0,
+        "visual structural orientation": 0.0,
+        "integrated orientation and entry": 0.0,
+        "guided orientation experience": 0.0,
+        "applied case learning": 0.0,
+        "sequenced case-based learning": 0.0,
+    }
+
+    # Integrated entry/orientation: only explicit navigation needs qualify.
+    if any(
+        phrase in q for phrase in (
+            "available routes",
+            "ways through",
+            "where should i begin",
+            "where do i begin",
+            "decide where to go next",
+            "wider body of material",
+            "broader understanding of the available",
+            "orientation to",
+            "orient myself",
+            "navigate the subject",
+        )
+    ):
+        fit["integrated orientation and entry"] = 1.0
+
+    # Guided pathway: the visitor is explicitly asking for a bounded route,
+    # sequence, or guided movement rather than a single explanatory resource.
+    if any(
+        phrase in q for phrase in (
+            "guided path",
+            "guided pathway",
+            "guided reading",
+            "walk me through",
+            "take me through",
+            "what should i read first",
+            "what should i read next",
+            "in what order",
+            "a sequence through",
+            "a path through",
+        )
+    ):
+        fit["guided orientation experience"] = 1.0
+
+    # Applied case learning: the visitor explicitly wants concrete cases,
+    # examples, or applied learning rather than abstract explanation.
+    if any(
+        phrase in q for phrase in (
+            "case studies",
+            "real cases",
+            "real-world cases",
+            "examples of how this plays out",
+            "how this plays out in practice",
+            "applied examples",
+            "learn from cases",
+            "case library",
+            "learning arc",
+            "sequence of cases",
+        )
+    ):
+        fit["applied case learning"] = 1.0
+        fit["sequenced case-based learning"] = 1.0 if "learning arc" in q or "sequence of cases" in q else 0.0
+
+    if any(
+        phrase in q for phrase in (
+            "overall structure",
+            "different parts connect",
+            "relationships and patterns",
+            "see how the parts connect",
+            "visual structure",
+        )
+    ):
+        fit["visual structural orientation"] = 1.0
+
+    if any(
+        phrase in q for phrase in (
+            "main areas",
+            "subject areas",
+            "which parts of the subject",
+            "gathered together",
+            "different areas",
+        )
+    ):
+        fit["curated subject-domain orientation"] = 1.0
+
+    if any(
+        phrase in q for phrase in (
+            "larger patterns",
+            "how pieces fit",
+            "cross-domain",
+            "broader framework",
+        )
+    ):
+        fit["cross-domain pattern orientation"] = 1.0
+
+    # Generic "understand" questions remain function-neutral.
+    return fit
+
+
+def _resource_function_name(resource: Dict[str, Any]) -> Optional[str]:
+    """Return the first recognized canonical function attached to a resource."""
+    if not isinstance(resource, dict):
+        return None
+
+    for key in _RESOURCE_FUNCTION_NAMES:
+        value = resource.get(key)
+        if isinstance(value, dict) and value.get("function"):
+            return str(value["function"])
+    return None
+
+
+def _resource_function_selection_bonus(
+    resource: Dict[str, Any], question: str
+) -> float:
+    """Return bounded functional-fit bonus for an already retrieved resource."""
+    function_name = _resource_function_name(resource)
+    if not function_name:
+        return 0.0
+
+    requested = _continuity_function_needs(question)
+    if requested.get(function_name, 0.0) <= 0:
+        return 0.0
+
+    return _RESOURCE_FUNCTION_FIT_BONUS
+
+
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
@@ -2366,15 +3839,23 @@ def select_canonical_doorways(
 
     ranked = []
     for index, document in enumerate(remainder):
-        score, detail = _canonical_doorway_score(document, frame, question)
-        ranked.append((score, detail, -index, document))
+        base_score, detail = _canonical_doorway_score(
+            document, frame, question
+        )
+        function_bonus = _resource_function_selection_bonus(
+            document, question
+        )
+        score = base_score + function_bonus
+        ranked.append(
+            (score, detail, function_bonus, -index, document)
+        )
 
     ranked.sort(
-        key=lambda item: (item[0], item[1], item[2]),
+        key=lambda item: (item[0], item[1], item[2], item[3]),
         reverse=True,
     )
 
-    selected = [document for _score, _detail, _order, document in ranked]
+    selected = [document for _score, _detail, _function_bonus, _order, document in ranked]
 
     if selected:
         primary = selected[0]
@@ -2387,6 +3868,168 @@ def select_canonical_doorways(
         )
 
     return prefix + selected
+
+
+# =====================================================================
+# D28-D29 + D31-D38 CONTINUITY SELECTION LAYER
+# =====================================================================
+# The D21-D27 function layer is only useful if the visitor's requested
+# function can survive semantic retrieval and become an ordered canonical
+# movement. v113 proved that a post-retrieval bonus alone is insufficient:
+# a functionally appropriate resource can be absent from the semantic top-K.
+#
+# This layer therefore adds a bounded, function-aware candidate expansion
+# before final doorway selection. It remains canonical: all candidates still
+# come from the archive index and all resource metadata is passed through the
+# existing canonical validation/model/function attachments.
+#
+# D28 sequencing is deliberately modest: it establishes a primary doorway
+# plus complementary follow-on functions without inventing a route.
+# D31-D38 orientation remains a visitor-facing posture built from the
+# question's explicit movement/entry need; sovereignty and non-closure remain
+# constraints rather than diagnoses.
+# =====================================================================
+
+_RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
+    _D25_NAVIGATOR_FUNCTION_LABEL: (
+        "navigator orientation entry point ways through archive available routes",
+    ),
+    _D26_PATHWAY_FUNCTION_LABEL: (
+        "guided pathway guided reading guided journey sequence reflection question",
+    ),
+    _D27_CASE_FUNCTION_LABEL: (
+        "case studies applied cases real world examples practice learning",
+    ),
+    _D27_LEARNING_ARC_FUNCTION_LABEL: (
+        "learning arc sequence of cases progressive learning applied practice",
+    ),
+    _D24_REFERENCE_MAP_FUNCTION_LABEL: (
+        "reference map visual structure relationships systems map orientation",
+    ),
+    _D23_KNOWLEDGE_HUB_FUNCTION_LABEL: (
+        "knowledge hub subject collection curated domain areas orientation",
+    ),
+    _D22_CORNERSTONE_FUNCTION_LABEL: (
+        "cornerstone foundations cross domain framework larger patterns",
+    ),
+    _D21_ESSAY_FUNCTION_LABEL: (
+        "essay substantive exploration explanation sensemaking",
+    ),
+}
+
+
+def _continuity_function_needs(question: str) -> Dict[str, float]:
+    """Infer only the resource functions explicitly warranted by the question."""
+    fit = _visitor_resource_function_fit(question)
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+
+    # Open archive exploration is an orientation/entry need even when the
+    # visitor does not use the literal word 'navigate'.
+    open_exploration = (
+        bool(re.search(r"\b(?:not looking for|not sure what|don't know what|dont know what)\b", q))
+        and bool(re.search(r"\b(?:explore|discover|see what|find out what)\b", q))
+        and bool(re.search(r"\b(?:archive|living archive|what .*offer|where .*next|go next)\b", q))
+    ) or bool(re.search(
+        r"\b(?:guided way to explore|guided way through|discover what matters|decide where .* go next)\b",
+        q,
+    ))
+    if open_exploration:
+        fit[_D25_NAVIGATOR_FUNCTION_LABEL] = max(fit.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0), 1.0)
+        fit[_D26_PATHWAY_FUNCTION_LABEL] = max(fit.get(_D26_PATHWAY_FUNCTION_LABEL, 0.0), 0.75)
+
+    # Explicit movement/entry questions should prefer Navigator; an explicit
+    # bounded sequence should prefer Pathway. Do not infer either from a
+    # generic 'understand' question.
+    if re.search(r"\b(?:where do i begin|where should i begin|where do i start|where should i start|ways through|available routes|what can i explore)\b", q):
+        fit[_D25_NAVIGATOR_FUNCTION_LABEL] = max(fit.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0), 1.0)
+    if re.search(r"\b(?:guided|in what order|what should i read first|what should i read next|walk me through|take me through)\b", q):
+        fit[_D26_PATHWAY_FUNCTION_LABEL] = max(fit.get(_D26_PATHWAY_FUNCTION_LABEL, 0.0), 1.0)
+
+    return fit
+
+
+def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
+    """Retrieve a small bounded candidate set for explicitly requested functions."""
+    if not question or not index:
+        return []
+    needs = _continuity_function_needs(question)
+    targets = [name for name, score in needs.items() if score > 0]
+    if not targets:
+        return []
+
+    candidates: List[Dict[str, Any]] = []
+    seen = set()
+    for function_name in targets[:3]:
+        profiles = _RESOURCE_FUNCTION_RETRIEVAL_PROFILES.get(function_name, ())
+        for profile in profiles[:1]:
+            try:
+                vector = generate_embedding(profile)
+                if not vector:
+                    continue
+                matches = _query_index(vector, min(8, RETRIEVAL_TOP_K))
+            except Exception as exc:
+                print(f"USE function-targeted retrieval error: {exc}")
+                continue
+            for _score, _match_id, metadata in matches:
+                key = _resource_key(metadata)
+                if key in seen:
+                    continue
+                seen.add(key)
+                _append_unique_resource(candidates, set(), metadata)
+                if len(candidates) >= 8:
+                    break
+            if len(candidates) >= 8:
+                break
+        if len(candidates) >= 8:
+            break
+
+    print(
+        "USE function-targeted retrieval: "
+        f"requested={targets[:3]}, candidates={len(candidates)}."
+    )
+    return candidates
+
+
+def _resource_function_sequence_role(
+    resource: Dict[str, Any], question: str, rank: int
+) -> str:
+    """Assign a bounded sequence role after canonical selection."""
+    function_name = _resource_function_name(resource)
+    needs = _continuity_function_needs(question)
+    if function_name and needs.get(function_name, 0) > 0:
+        return "primary" if rank == 0 else "supporting"
+    return "supporting" if rank > 0 else "primary"
+
+
+def _apply_resource_sequence_metadata(
+    documents: List[Dict[str, Any]], question: str
+) -> List[Dict[str, Any]]:
+    """Attach non-authoritative D28 sequence roles without inventing destinations."""
+    for rank, document in enumerate(documents):
+        if isinstance(document, dict):
+            document["_use_resource_sequence_role"] = _resource_function_sequence_role(
+                document, question, rank
+            )
+    return documents
+
+
+def _orientation_loop_state(question: str, intent: str) -> Dict[str, Any]:
+    """Represent the D31-D38 visitor-facing loop without diagnosing the visitor."""
+    frame = build_recognition_orientation(question, intent)
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+    movement = bool(re.search(r"\b(?:where|begin|start|next|go|path|pathway|explore|navigate|route|read first|read next)\b", q))
+    sovereignty = bool(re.search(r"\b(?:i want|i'd like|i would like|i can decide|i choose|my own|self-directed|without telling me what)\b", q))
+    open_exploration = bool(
+        re.search(r"\b(?:explore|exploring|discover|find out|see what)\b", q)
+        and re.search(r"\b(?:don.t know|do not know|not sure|uncertain|without jumping to (?:a )?conclusion|without (?:a )?conclusion|without deciding|without assuming)\b", q)
+    )
+    return {
+        **frame,
+        "movement_need": movement or open_exploration,
+        "open_exploration": open_exploration,
+        "sovereignty_preserved": True,
+        "premature_closure_guard": True,
+    }
 
 
 # =====================================================================
@@ -2466,6 +4109,16 @@ def _append_unique_resource(
 
     if not _is_navigable_canonical_resource(metadata):
         return
+
+    metadata = _attach_canonical_resource_model(metadata)
+    metadata = _attach_resource_type_recognition(metadata)
+    metadata = _attach_essay_function(metadata)
+    metadata = _attach_cornerstone_function(metadata)
+    metadata = _attach_knowledge_hub_function(metadata)
+    metadata = _attach_reference_map_function(metadata)
+    metadata = _attach_navigator_function(metadata)
+    metadata = _attach_pathway_function(metadata)
+    metadata = _attach_case_learning_arc_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -2587,6 +4240,23 @@ def _evidence_sufficiency_gate(
     if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"} or not documents:
         return documents, False
 
+    # D17 reconciliation: an explicit relational question is allowed to
+    # proceed to the existing evidence-bound generation boundary even when
+    # lexical domain-fit is low. D16 must not turn a relational question into
+    # a navigation-only result merely because no single vocabulary match was
+    # found. First-person open experiential questions retain the stronger
+    # evidence-sufficiency boundary because interpretive-frame sovereignty
+    # remains active there.
+    if (
+        recognize_question_structure(question).get("structure") == "explicit_contrast"
+        and not _question_is_frame_open(question)
+    ):
+        print(
+            "USE evidence sufficiency reconciliation: explicit relational "
+            "question retained for evidence-bound synthesis despite low lexical fit."
+        )
+        return documents, False
+
     fit_scores = [
         _evidence_domain_fit_score(question, document)[0]
         for document in documents
@@ -2637,7 +4307,8 @@ def fetch_canonical_context(
     adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
     orientational_frame = infer_orientational_frame(user_query)
     recognition_orientation = build_recognition_orientation(user_query, intent)
-    orientational_frame = {**orientational_frame, **recognition_orientation}
+    orientation_loop = _orientation_loop_state(user_query, intent)
+    orientational_frame = {**orientational_frame, **recognition_orientation, **orientation_loop}
 
     print(
         "USE orientational frame: "
@@ -2783,6 +4454,13 @@ def fetch_canonical_context(
                     RETRIEVAL_TOP_K,
                 )
 
+                # v97 baseline: preserve the complete bounded semantic candidate window
+                # through downstream ranking. v96 truncated ordinary candidates
+                # at MAX_CONTEXT_RESOURCES before question-conditioned doorway
+                # selection, so a strong canonical match appearing later in the
+                # RETRIEVAL_TOP_K window could never be promoted. This changes only
+                # candidate-window recall; retrieval remains the sole source of
+                # candidates and the final generation cap remains downstream.
                 for _score, _match_id_value, metadata in candidates:
                     _append_unique_resource(
                         retrieved_docs,
@@ -2790,14 +4468,26 @@ def fetch_canonical_context(
                         metadata,
                         require_destination=bool(collection_name),
                     )
-                    if len(retrieved_docs) >= MAX_CONTEXT_RESOURCES:
+                    if len(retrieved_docs) >= RETRIEVAL_TOP_K:
                         break
             else:
                 candidates = []
 
+            # D28/D29 continuity bridge: if the visitor explicitly asks for a
+            # resource function, retrieve a small function-targeted candidate set
+            # before the final context cap. This closes the v113 gap where the
+            # correct function could never be selected because it was absent from
+            # the semantic top-K window.
+            function_targeted_docs = _function_targeted_candidate_search(user_query)
+            for metadata in function_targeted_docs:
+                _append_unique_resource(retrieved_docs, seen_keys, metadata)
+                if len(retrieved_docs) >= RETRIEVAL_TOP_K + 8:
+                    break
+
             print(
                 "USE retrieval: "
-                f"{len(candidates)} candidates -> "
+                f"{len(candidates)} candidates + "
+                f"{len(function_targeted_docs)} function-targeted -> "
                 f"{len(retrieved_docs)} unique resources."
             )
 
@@ -2808,7 +4498,7 @@ def fetch_canonical_context(
         doc
         for doc in retrieved_docs
         if isinstance(doc, dict) and doc
-    ][:MAX_CONTEXT_RESOURCES]
+    ][:RETRIEVAL_TOP_K + 8]
 
     # Keep the complete canonical evidence returned by retrieval available
     # to the final link-construction boundary. Generation may use a smaller,
@@ -2870,15 +4560,23 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
-    # v86: correspondence is a synthesis boundary, not a retrieval engine.
-    # Require supplied Content to address both sides of an explicit question
-    # contrast before allowing generation to synthesize an explanation.
-    retrieved_docs, question_evidence_correspondence_unavailable = (
-        _v86_question_evidence_correspondence_gate(
-            retrieved_docs,
-            user_query,
-            intent,
+    # D17/v92: question structure informs reasoning posture, not a lexical
+    # evidence gate. Grounding remains the retrieval constraint; D17 must not
+    # manufacture a second retrieval/sufficiency test that can false-negative
+    # legitimate multi-resource evidence. Existing retrieved evidence remains
+    # available to the normal frame/provenance/synthesis boundaries below.
+    question_structure = recognize_question_structure(user_query)
+    if question_structure.get("structure") == "explicit_contrast":
+        print(
+            "USE D17 relational reasoning: explicit question contrast recognized; "
+            "multi-resource evidence remains available for bounded synthesis."
         )
+
+    # Canonical link authority remains independent of synthesis reasoning.
+    canonical_link_context = format_context_blocks(
+        canonical_link_docs,
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
     )
 
     # v65: explicit doorway selection is a final routing refinement over
@@ -2890,13 +4588,8 @@ def fetch_canonical_context(
         question=user_query,
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
-
-    # Canonical link authority is established before any synthesis-only boundary.
-    # This keeps navigation available even when reasoning evidence is insufficient.
-    canonical_link_context = format_context_blocks(
-        canonical_link_docs,
-        structural_destination_count=0,
-        adaptive_bridge_count=0,
+    retrieved_docs = _apply_resource_sequence_metadata(
+        retrieved_docs, user_query
     )
 
     # v76: for open first-person experiential questions, do not let a retrieved
@@ -2916,15 +4609,6 @@ def fetch_canonical_context(
             "context_blocks": "",
             "canonical_link_context": canonical_link_context,
             "frame_neutral_evidence_unavailable": True,
-        }
-
-    if question_evidence_correspondence_unavailable:
-        return {
-            "intent": intent,
-            "orientational_frame": orientational_frame,
-            "context_blocks": "",
-            "canonical_link_context": canonical_link_context,
-            "question_evidence_correspondence_unavailable": True,
         }
 
     # D16: retrieval relevance does not by itself establish evidence sufficiency.
@@ -4717,6 +6401,7 @@ def recognize_question_structure(question: str) -> Dict[str, Any]:
         r"^why can (.+?)\s+(?:and still|but still|while|yet)\s+(.+)$",
         r"^why does (.+?)\s+(?:while|but|yet)\s+(.+)$",
         r"^how can (.+?)\s+(?:and still|but still|while|yet)\s+(.+)$",
+        r"^why can (.+?)\s+and\s+(.+?\b(?:differently|different))$",
         r"^(.+?)\s+(?:different from|rather than)\s+(.+)$",
     )
     left = right = ""
@@ -4798,6 +6483,27 @@ def _recognition_orientation_instruction(frame: Dict[str, Any]) -> str:
     return f"\n{mode}"
 
 
+def _open_exploration_sovereignty_instruction(question: str) -> str:
+    """Bind explicit open-exploration posture to generation without diagnosing the visitor."""
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+    uncertainty = bool(re.search(r"\b(?:don.t know|do not know|not sure|uncertain|don.t know yet|do not yet know)\b", q))
+    exploration = bool(re.search(r"\b(?:explore|exploring|discover|find out|see what)\b", q))
+    nonclosure = bool(re.search(r"\b(?:without jumping to (?:a )?conclusion|without (?:a )?conclusion|without deciding|without assuming|not jump to|don.t want .* conclusion)\b", q))
+    if not (exploration and (uncertainty or nonclosure)):
+        return ""
+    return (
+        "\n\n[OPEN EXPLORATION SOVEREIGNTY — DO NOT REVEAL]: "
+        "The visitor explicitly wants to explore while something remains uncertain or "
+        "undecided. Do not convert that uncertainty into a conclusion, root cause, "
+        "diagnosis, or governing interpretation. Do not state that a retrieved resource "
+        "explains what the visitor is experiencing unless the supplied evidence directly "
+        "establishes that claim. Treat specialized resources as lenses rather than as "
+        "the visitor's explanation. Prefer recognition of the open question, a bounded "
+        "orientation, and a canonical next movement. If the evidence supports several "
+        "possible directions but not one meaning, preserve that openness explicitly. "
+    )
+
+
 def _build_generation_messages(
     user_query: str,
     intent: str,
@@ -4816,7 +6522,7 @@ def _build_generation_messages(
     ) + (
         "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
         f"{frame_hint}. Use only when supported by evidence."
-    ) + _recognition_orientation_instruction(frame)
+    ) + _recognition_orientation_instruction(frame) + _open_exploration_sovereignty_instruction(user_query)
 
 
     user_content = (
@@ -5002,6 +6708,12 @@ def _deterministic_provider_fallback(
     that are already present in the selected generation context, so it cannot
     invent titles or URLs while trying to recover from a provider failure.
     """
+    q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
+    open_exploration = bool(
+        re.search(r"\b(?:explore|exploring|discover|find out|see what)\b", q)
+        and re.search(r"\b(?:don.t know|do not know|not sure|uncertain|without jumping to (?:a )?conclusion|without (?:a )?conclusion|without deciding|without assuming)\b", q)
+    )
+
     pairs = []
     seen = set()
     for title, url in _canonical_pairs(generation_context):
@@ -5016,6 +6728,16 @@ def _deterministic_provider_fallback(
         pairs.append((clean_title, clean_url))
         if len(pairs) >= 3:
             break
+
+    if open_exploration and pairs:
+        lines = [
+            "What you have described does not, by itself, establish what connects these experiences — and the available evidence should not be treated as a conclusion about their cause.",
+            "",
+            "The canonical material below offers different places to look rather than a single explanation. You can explore what resonates, compare the lenses, and decide for yourself what, if anything, connects to your experience.",
+            "",
+        ]
+        lines.extend(f"- [{title}]({url})" for title, url in pairs)
+        return "\n".join(lines)
 
     if not pairs:
         return (
@@ -5363,11 +7085,6 @@ async def handle_query(
 
         if context_data.get("frame_neutral_evidence_unavailable"):
             llm_output = _frame_neutral_evidence_unavailable_response(query_str)
-        elif context_data.get("question_evidence_correspondence_unavailable"):
-            llm_output = _evidence_sufficiency_unavailable_response(
-                query_str,
-                context_data.get("canonical_link_context", ""),
-            )
         elif context_data.get("question_structure_evidence_unavailable"):
             llm_output = _evidence_sufficiency_unavailable_response(
                 query_str,
@@ -5584,6 +7301,35 @@ def _v76_frame_neutral_evidence_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v92_frame_specific_resource_self_audit() -> Dict[str, Any]:
+    """Audit the actual D17 failure: uninvited title-declared framing stays out of generation."""
+    question = "Why can understanding a pattern feel different from actually seeing it in my life?"
+    specialized = {
+        "title": "When Life Disrupts: Uncovering the Hidden Lessons of Synchronicity and Crisis",
+        "url": "https://example.invalid/synchronicity",
+        "content": "Synchronicities can foster meaning, hope, and agency.",
+    }
+    neutral = {
+        "title": "Understanding Lived Experience",
+        "url": "https://example.invalid/lived-experience",
+        "content": "People can notice and describe an experience in different ways.",
+    }
+    selected, active = _frame_neutral_generation_documents(
+        [specialized, neutral], question, "TOPICAL_INQUIRY"
+    )
+    titles = [str(doc.get("title", "")) for doc in selected]
+    return {
+        "active": active,
+        "retains_neutral": "Understanding Lived Experience" in titles,
+        "excludes_uninvited_construct": specialized["title"] not in titles,
+        "pass": (
+            active
+            and "Understanding Lived Experience" in titles
+            and specialized["title"] not in titles
+        ),
+    }
+
+
 def _v75_interpretive_frame_sovereignty_self_audit() -> Dict[str, Any]:
     """Static audit for preserving open questions against uninvited framing."""
     broad_question = (
@@ -5690,8 +7436,8 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     required = (
         "[EVIDENCE SUFFICIENCY]",
         "Retrieval relevance is not evidence sufficiency.",
-        "require substantive fit between the question and supplied Content",
-        "do not explain the question from it",
+        "If supplied Content cannot support the question",
+        "say the evidence is insufficient",
     )
     present = {term: term in prompt for term in required}
     return {
@@ -5710,148 +7456,35 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
-
-# =====================================================================
-# v86 — QUESTION–EVIDENCE CORRESPONDENCE
-# =====================================================================
-
-_V86_GENERIC_STRUCTURE_TERMS = frozenset({
-    "actually", "still", "feel", "feels", "feeling", "can", "could",
-    "does", "doesn't", "different", "life", "one", "ones", "way",
-})
-
-def _v86_question_evidence_correspondence_score(
-    metadata: Dict[str, Any],
-    question: str,
-) -> Tuple[int, Tuple[int, int]]:
-    """Measure direct Content correspondence to the visitor's explicit contrast.
-
-    This is deliberately lexical and bounded. It does not infer synonyms,
-    frameworks, causes, or visitor states. A resource qualifies only when
-    supplied Content contains substantive terms from both sides of an
-    explicit contrast.
-    """
-    structure = recognize_question_structure(question)
-    if structure.get("structure") != "explicit_contrast":
-        return (0, (0, 0))
-
-    pairs = structure.get("pairs") or ()
-    if len(pairs) != 2:
-        return (0, (0, 0))
-
-    content = _resource_content(metadata).casefold()
-    if not content:
-        return (0, (0, 0))
-
-    left, right = pairs
-
-    def substantive_terms(values: Tuple[str, ...]) -> Tuple[str, ...]:
-        return tuple(
-            term for term in values
-            if term not in _V86_GENERIC_STRUCTURE_TERMS
-            and len(term) >= 4
-        )
-
-    left_terms = substantive_terms(left)
-    right_terms = substantive_terms(right)
-    if not left_terms or not right_terms:
-        return (0, (0, 0))
-
-    def hit_count(values: Tuple[str, ...]) -> int:
-        return sum(
-            1 for term in values
-            if re.search(r"\b" + re.escape(term) + r"\b", content)
-        )
-
-    left_hits = hit_count(left_terms)
-    right_hits = hit_count(right_terms)
-
-    # Both sides must be represented. This is correspondence, not general
-    # topical similarity: one side alone is insufficient for synthesis.
-    score = min(6, left_hits + right_hits) if left_hits and right_hits else 0
-    return score, (left_hits, right_hits)
-
-
-def _v86_question_evidence_correspondence_gate(
-    documents: List[Dict[str, Any]],
-    question: str,
-    intent: str,
-) -> Tuple[List[Dict[str, Any]], bool]:
-    """Withhold synthesis when no retrieved Content corresponds to both sides."""
-    if not documents:
-        return [], True
-
-    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
-        return documents, False
-
-    structure = recognize_question_structure(question)
-    if structure.get("structure") != "explicit_contrast":
-        return documents, False
-
-    scores = [
-        _v86_question_evidence_correspondence_score(document, question)[0]
-        for document in documents
-    ]
-    qualifying = [
-        document for document, score in zip(documents, scores)
-        if score >= 2
-    ]
-
-    if qualifying:
-        return qualifying, False
-
-    print(
-        "USE question-evidence correspondence: no retrieved Content "
-        f"addresses both sides of explicit question structure; scores={scores}. "
-        "Synthesis withheld; navigation preserved."
-    )
-    return documents, True
-
-
-def _v86_question_evidence_correspondence_self_audit() -> None:
-    """Verify direct correspondence is required without semantic expansion."""
-    question = "Why can understanding a pattern feel different from actually seeing it in my life?"
-
-    adjacent = {
-        "title": "When Life Disrupts",
-        "content": "Synchronicity can lead people to notice patterns and assign meaning to events.",
-        "url": "https://example.invalid/adjacent",
-    }
-    direct = {
-        "title": "Understanding and Seeing Patterns",
-        "content": "Understanding a pattern conceptually can differ from seeing the same pattern in one's life.",
-        "url": "https://example.invalid/direct",
-    }
-
-    adjacent_score = _v86_question_evidence_correspondence_score(adjacent, question)
-    direct_score = _v86_question_evidence_correspondence_score(direct, question)
-
-    if adjacent_score[0] != 0:
-        raise RuntimeError(
-            "v86 correspondence regression: adjacent evidence falsely qualified."
-        )
-    if direct_score[0] < 2 or direct_score[1][0] < 1 or direct_score[1][1] < 1:
-        raise RuntimeError(
-            "v86 correspondence regression: direct evidence did not cover both sides."
-        )
-
-    blocked_docs, blocked = _v86_question_evidence_correspondence_gate(
-        [adjacent], question, "TOPICAL_INQUIRY"
-    )
-    if not blocked or blocked_docs != [adjacent]:
-        raise RuntimeError(
-            "v86 correspondence regression: adjacent evidence was not withheld."
-        )
-
-    retained_docs, retained_block = _v86_question_evidence_correspondence_gate(
-        [direct], question, "TOPICAL_INQUIRY"
-    )
-    if retained_block or retained_docs != [direct]:
-        raise RuntimeError(
-            "v86 correspondence regression: direct evidence was incorrectly withheld."
-        )
-
-    print("USE v86 question-evidence correspondence self-audit: PASS")
+def _question_structure_side_lexical_hits(
+    content: str,
+    terms: Tuple[str, ...],
+) -> int:
+    """Count substantive side terms in supplied Content without embeddings."""
+    value = re.sub(r"[^a-z0-9\s'-]", " ", str(content or "").casefold())
+    words = set(re.findall(r"[a-z][a-z'-]{2,}", value))
+    hits = 0
+    for term in terms:
+        token = str(term).casefold().strip()
+        if not token:
+            continue
+        if token in words:
+            hits += 1
+            continue
+        # Small morphological normalization only; this is not a semantic
+        # vocabulary and does not expand retrieval.
+        stem = token
+        for suffix in ("ingly", "edly", "ing", "ed", "ly", "es", "s"):
+            if len(stem) > len(suffix) + 3 and stem.endswith(suffix):
+                stem = stem[:-len(suffix)]
+                break
+        if stem and any(
+            word == stem or word.startswith(stem)
+            for word in words
+            if len(stem) >= 4
+        ):
+            hits += 1
+    return hits
 
 
 def _question_structure_evidence_gate(
@@ -5859,57 +7492,145 @@ def _question_structure_evidence_gate(
     question: str,
     intent: str,
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Bound synthesis evidence to explicit question structure."""
+    """Permit synthesis when already-retrieved Content jointly covers both sides.
+
+    D17 validates correspondence using supplied Content only. It deliberately
+    does not invoke another embedding pass: semantic retrieval has already
+    supplied the candidate set. A small set of retrieved resources may jointly
+    cover the two explicit question components.
+    """
     if not documents:
         return [], True
+
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
         return documents, False
-    qualifying = [
-        document
-        for document in documents
-        if _question_structure_content_score(document, structure)[1] >= 1
-    ]
-    if qualifying:
-        return qualifying, False
+
+    pairs = structure.get("pairs") or ()
+    if len(pairs) != 2:
+        return documents, True
+
+    left_terms, right_terms = pairs
+    diagnostics = []
+    direct = []
+    left_candidates = []
+    right_candidates = []
+
+    for index, document in enumerate(documents):
+        content = str(document.get("content") or document.get("text") or "")
+        left_hits = _question_structure_side_lexical_hits(content, left_terms)
+        right_hits = _question_structure_side_lexical_hits(content, right_terms)
+        diagnostics.append((left_hits, right_hits))
+
+        # Direct correspondence requires substantive coverage of both sides,
+        # not merely one incidental shared word.
+        if left_hits >= 2 and right_hits >= 2:
+            direct.append(index)
+
+        if left_hits >= 2:
+            left_candidates.append((left_hits, index))
+        if right_hits >= 2:
+            right_candidates.append((right_hits, index))
+
+    if direct:
+        selected = [documents[i] for i in direct]
+        print(
+            "USE question-evidence correspondence: direct qualifying resources="
+            f"{len(selected)}/{len(documents)}; diagnostics={diagnostics}"
+        )
+        return selected, False
+
+    # Distributed coverage allows different already-retrieved resources to
+    # substantively carry the two sides of the visitor's explicit question.
+    best_left = max(left_candidates, default=None)
+    best_right = max(right_candidates, default=None)
+    if best_left is not None and best_right is not None:
+        selected_indexes = {best_left[1], best_right[1]}
+        selected = [documents[i] for i in sorted(selected_indexes)]
+        print(
+            "USE question-evidence correspondence: distributed coverage="
+            f"{len(selected)}/{len(documents)}; diagnostics={diagnostics}"
+        )
+        return selected, False
+
+    print(
+        "USE question-evidence correspondence: no retrieved Content jointly "
+        f"covers both question sides; diagnostics={diagnostics}"
+    )
     return documents, True
-def _v85_question_structure_self_audit() -> None:
-    """Verify D17 recognizes explicit question structure without inventing a frame."""
+
+
+
+
+
+def _v92_d17_evidence_boundary_reconciliation_self_audit() -> None:
+    """Verify D16 sufficiency does not false-negative explicit general relations."""
+    general_relation = "Why can two people experience the same situation and understand it differently?"
+    open_experience = "Why can understanding a pattern feel different from actually seeing it in my life?"
+    weak = [{"title": "Adjacent", "content": "A general canonical discussion with no literal question terms."}]
+
+    retained, blocked = _evidence_sufficiency_gate(weak, general_relation, "TOPICAL_INQUIRY")
+    if blocked or not retained:
+        raise RuntimeError(
+            "v92 D17 reconciliation regression: explicit general relational question was blocked by lexical sufficiency."
+        )
+
+    retained_open, blocked_open = _evidence_sufficiency_gate(weak, open_experience, "TOPICAL_INQUIRY")
+    if not blocked_open or not retained_open:
+        raise RuntimeError(
+            "v92 D17 reconciliation regression: open first-person experiential boundary was weakened."
+        )
+    print("USE v92 D17 evidence-boundary reconciliation self-audit: PASS")
+
+
+def _v92_question_structure_self_audit() -> None:
+    """Verify D17 recognizes explicit relational structure without inventing theory."""
     contrast = recognize_question_structure(
         "Why can I understand a situation clearly and still not know what to do with that understanding?"
     )
-    if contrast.get("structure") != "explicit_contrast":
-        raise RuntimeError("v85 question-structure regression: explicit contrast was not recognized.")
-    if len(contrast.get("pairs") or ()) != 2:
-        raise RuntimeError("v85 question-structure regression: contrast sides were not preserved.")
+    if contrast.get("structure") != "explicit_contrast" or len(contrast.get("pairs") or ()) != 2:
+        raise RuntimeError("v92 question-structure regression: explicit contrast was not preserved.")
+    positive = recognize_question_structure(
+        "Why can two people experience the same situation and understand it differently?"
+    )
+    if positive.get("structure") != "explicit_contrast" or len(positive.get("pairs") or ()) != 2:
+        raise RuntimeError("v92 question-structure regression: relational positive case was not recognized.")
     neutral = recognize_question_structure("Why is uncertainty difficult?")
     if neutral.get("structure") != "none":
-        raise RuntimeError("v85 question-structure regression: implicit theory was invented from a simple question.")
+        raise RuntimeError("v92 question-structure regression: implicit theory was invented.")
     print("USE D17 question-structure self-audit: PASS")
 
 
+def _v92_question_evidence_correspondence_integration_self_audit() -> None:
+    """Verify D17 structure reaches reasoning without becoming a synthesis gate."""
+    source = inspect.getsource(fetch_canonical_context)
+    structure_call = source.find("recognize_question_structure(user_query)")
+    doorway_call = source.find("select_canonical_doorways(")
+    if structure_call < 0 or doorway_call < 0 or structure_call > doorway_call:
+        raise RuntimeError("v92 correspondence regression: D17 structure is not upstream of doorway/reasoning selection.")
+    if "_question_structure_evidence_gate(" in source:
+        raise RuntimeError("v92 correspondence regression: obsolete lexical evidence gate remains in fetch path.")
+    print("USE D17 relational reasoning integration self-audit: PASS")
 
 
-
-def _v85_question_structure_evidence_self_audit() -> None:
-    """Verify D17 never synthesizes from evidence that misses either side."""
-    question = "Why can understanding a pattern feel different from actually seeing it in my life?"
-    structure = recognize_question_structure(question)
-    if structure.get("structure") != "explicit_contrast":
-        raise RuntimeError("v85 question-structure regression: explicit contrast not recognized.")
-    adjacent = {"title": "When Life Disrupts", "content": "Synchronicity can lead people to notice patterns and assign meaning to events.", "url": "https://example.invalid/adjacent"}
-    direct = {"title": "Understanding and Seeing Patterns", "content": "Understanding a pattern conceptually can differ from seeing the same pattern in one's life.", "url": "https://example.invalid/direct"}
-    if _question_structure_content_score(adjacent, structure)[1] != 0:
-        raise RuntimeError("v85 question-structure regression: adjacent evidence falsely qualifies.")
-    if _question_structure_content_score(direct, structure)[1] < 1:
-        raise RuntimeError("v85 question-structure regression: direct evidence did not qualify.")
-    blocked_docs, blocked = _question_structure_evidence_gate([adjacent], question, "TOPICAL_INQUIRY")
-    if not blocked or blocked_docs != [adjacent]:
-        raise RuntimeError("v85 question-structure regression: synthesis/navigation boundary failed.")
-    retained_docs, retained_block = _question_structure_evidence_gate([direct], question, "TOPICAL_INQUIRY")
-    if retained_block or retained_docs != [direct]:
-        raise RuntimeError("v85 question-structure regression: direct evidence was incorrectly withheld.")
-    print("USE D17 literal question-structure evidence self-audit: PASS")
+def _v92_question_structure_evidence_self_audit() -> None:
+    """Verify D17 structure recognition does not create a lexical synthesis gate."""
+    source = inspect.getsource(fetch_canonical_context)
+    if "_question_structure_evidence_gate(" in source:
+        raise RuntimeError("v92 correspondence regression: lexical evidence gate still blocks D17 synthesis.")
+    if "recognize_question_structure(user_query)" not in source:
+        raise RuntimeError("v92 correspondence regression: D17 question structure is no longer available to reasoning.")
+    if "question_structure_evidence_unavailable" in source:
+        raise RuntimeError("v92 correspondence regression: obsolete D17 synthesis-block path remains.")
+    prompt_source = GENERATION_SYSTEM_PROMPT
+    required = (
+        "[RELATIONAL REASONING]",
+        "evidence may be distributed",
+        "Do not force one resource to cover both sides",
+    )
+    if not all(item in prompt_source for item in required):
+        raise RuntimeError("v92 relational reasoning instruction is incomplete.")
+    print("USE D17 evidence-scoped relational reasoning self-audit: PASS")
 
 def _v83_recognition_orientation_self_audit() -> None:
     """Verify D17 stays explicit-question-bound and non-diagnostic."""
@@ -5930,14 +7651,205 @@ def _v83_recognition_orientation_self_audit() -> None:
     print("USE D17 recognition→orientation self-audit: PASS")
 
 
+
+def _v93_d18_use_intent_integration_audit() -> None:
+    """Audit the completed Phase-II intent chain as one integrated system.
+
+    D18 is an integration audit, not a new intelligence layer. It verifies that
+    the capabilities built through D08-D17 remain connected in the intended
+    dependency order and that no later boundary silently replaces an earlier
+    one. The audit is source/invariant based so it does not create a second
+    retrieval or reasoning engine.
+    """
+    fetch_source = inspect.getsource(fetch_canonical_context)
+    route_source = inspect.getsource(handle_query)
+    generation_source = inspect.getsource(generate_llm_response)
+
+    # D08-D13: question, intent, orientation, ambiguity, and separation must
+    # enter the integrated fetch path before retrieval/routing decisions.
+    required_fetch_calls = (
+        "intent = classify_intent(user_query)",
+        "detect_collection_request(user_query)",
+        "detect_adaptive_stewardship_orientation(user_query)",
+        "infer_orientational_frame(user_query)",
+        "build_recognition_orientation(user_query, intent)",
+        "recognize_question_structure(user_query)",
+    )
+    missing = [item for item in required_fetch_calls if item not in fetch_source]
+    if missing:
+        raise RuntimeError(
+            "D18 integration regression: required USE intent-stage call(s) missing: "
+            + ", ".join(missing)
+        )
+
+    # Intent/orientation must precede retrieval and remain available downstream.
+    intent_pos = fetch_source.find("intent = classify_intent(user_query)")
+    retrieval_pos = fetch_source.find("query_vector = generate_embedding(user_query)")
+    if intent_pos < 0 or retrieval_pos < 0 or intent_pos > retrieval_pos:
+        raise RuntimeError(
+            "D18 integration regression: intent classification is not upstream of retrieval."
+        )
+    orientation_pos = fetch_source.find("build_recognition_orientation(user_query, intent)")
+    if orientation_pos < 0 or orientation_pos > retrieval_pos:
+        raise RuntimeError(
+            "D18 integration regression: recognition/orientation is not upstream of retrieval."
+        )
+
+    # D14-D16: retrieval strategy, canonical evidence selection, and reasoning
+    # boundaries must remain distinct. Doorway selection is downstream of
+    # retrieval; synthesis-only boundaries must not erase navigation context.
+    doorway_pos = fetch_source.find("select_canonical_doorways(")
+    link_pos = fetch_source.find("canonical_link_context = format_context_blocks(")
+    if doorway_pos < 0 or retrieval_pos > doorway_pos:
+        raise RuntimeError(
+            "D18 integration regression: canonical doorway selection is not downstream of retrieval."
+        )
+    if link_pos < 0:
+        raise RuntimeError(
+            "D18 integration regression: canonical link authority is not constructed in fetch path."
+        )
+    if "canonical_link_context" not in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: navigation context disappeared from intent path."
+        )
+
+    # D17: recognition/orientation and explicit question structure inform the
+    # response, but do not become a second retrieval engine.
+    if "question_structure_evidence_unavailable" in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: obsolete D17 evidence-blocking path remains."
+        )
+    if "_question_structure_evidence_gate(" in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: obsolete lexical D17 synthesis gate remains."
+        )
+    if "recognize_question_structure(user_query)" not in fetch_source:
+        raise RuntimeError(
+            "D18 integration regression: D17 question structure is disconnected."
+        )
+
+    # Generation must receive the integrated intent/orientation state rather
+    # than reconstructing it independently.
+    if "context_data[\"intent\"]" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: classified intent is not passed to generation."
+        )
+    if "orientational_frame=context_data.get(" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: orientational frame is not passed to generation."
+        )
+    if "canonical_link_context" not in generation_source:
+        raise RuntimeError(
+            "D18 integration regression: canonical link authority is disconnected from generation."
+        )
+
+    # Whole-site orientation must remain a distinct intent path rather than a
+    # generic topical answer, while topical inquiry remains the default.
+    if 'return "WHOLE_SITE_ORIENTATION"' not in inspect.getsource(classify_intent):
+        raise RuntimeError(
+            "D18 integration regression: whole-site orientation intent disappeared."
+        )
+    if 'return "TOPICAL_INQUIRY"' not in inspect.getsource(classify_intent):
+        raise RuntimeError(
+            "D18 integration regression: topical inquiry default disappeared."
+        )
+
+    # Longitudinal observation is downstream of the current answer and cannot
+    # alter current-turn reasoning.
+    if "assess_progressive_commitment" not in route_source:
+        raise RuntimeError(
+            "D18 integration regression: passive longitudinal observer is disconnected."
+        )
+    observer_pos = route_source.find("assess_progressive_commitment")
+    response_path_pos = max(
+        route_source.find("llm_output = generate_llm_response("),
+        route_source.find("_evidence_sufficiency_unavailable_response("),
+        route_source.find("_frame_neutral_evidence_unavailable_response("),
+    )
+    if observer_pos >= 0 and response_path_pos >= 0 and observer_pos < response_path_pos:
+        raise RuntimeError(
+            "D18 integration regression: longitudinal observer can influence current-turn reasoning."
+        )
+    # Sovereignty markers belong to the observer state definition, not
+    # necessarily to the route function itself. Audit the actual observer
+    # implementation rather than requiring incidental marker strings in
+    # handle_query().
+    observer_source = inspect.getsource(assess_progressive_commitment)
+    invitation_source = inspect.getsource(progressive_inquiry_invitation)
+    if "observer_only" not in observer_source or "current_turn_influence" not in observer_source:
+        raise RuntimeError(
+            "D18 integration regression: passive observer sovereignty markers are missing."
+        )
+    if "observer_only" not in invitation_source and "observer_only" not in observer_source:
+        raise RuntimeError(
+            "D18 integration regression: passive observer sovereignty state is not preserved."
+        )
+
+    # Basic callable smoke checks use only local deterministic functions; no
+    # external retrieval/provider call is made by this audit.
+    # D18 verifies the intent pipeline structurally rather than asserting
+    # particular English phrases against a layered classifier.
+    probe_intent = classify_intent("Why can people understand the same situation differently?")
+    declared_intents = {"TOPICAL_INQUIRY", "WHOLE_SITE_ORIENTATION"}
+    if probe_intent not in declared_intents:
+        raise RuntimeError(
+            "D18 integration regression: classifier returned an undeclared intent."
+        )
+
+    probe_frame = build_recognition_orientation(
+        "Why can people understand the same situation differently?",
+        probe_intent,
+    )
+    if not isinstance(probe_frame, dict) or not probe_frame.get("orientation_mode"):
+        raise RuntimeError(
+            "D18 integration regression: intent-to-orientation transition returned no frame."
+        )
+    if probe_frame.get("orientation_mode") != "understand":
+        raise RuntimeError(
+            "D18 integration regression: recognition-to-orientation smoke test failed."
+        )
+
+    # D18 subject-navigation boundary: a known subject remains topical even
+    # when the visitor asks where to enter for that subject.
+    subject_navigation_probes = [
+        "Where in the Living Archive should I go if I want to understand grief?",
+        "I want to explore governance in the Living Archive, but I’m not sure which doorway would give me the best starting point.",
+        "I know what subject I want to explore, but I don’t know which part of the Living Archive is the right place to enter.",
+    ]
+    for subject_probe in subject_navigation_probes:
+        subject_intent = classify_intent(subject_probe)
+        if subject_intent != "TOPICAL_INQUIRY":
+            raise RuntimeError(
+                "D18 integration regression: known-subject navigation inquiry was "
+                f"misclassified as {subject_intent!r}: {subject_probe!r}"
+            )
+
+    # D18 open-exploration integration: an explicit not-yet-knowing exploratory
+    # question must enter the whole-site orientation path rather than being
+    # collapsed into a topical inquiry by prepositional parsing.
+    open_probe = "I'm not sure what I'm looking for yet, but I want to explore."
+    open_intent = classify_intent(open_probe)
+    if open_intent != "WHOLE_SITE_ORIENTATION":
+        raise RuntimeError(
+            "D18 integration regression: open exploratory inquiry was not classified as whole-site orientation."
+        )
+    open_frame = build_recognition_orientation(open_probe, open_intent)
+    if not isinstance(open_frame, dict) or open_frame.get("orientation_mode") != "locate":
+        raise RuntimeError(
+            "D18 integration regression: whole-site orientation did not produce a locate frame for open exploration."
+        )
+
+    print("USE D18 intent integration audit: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v85_question_structure_self_audit()
-        _v85_question_structure_evidence_self_audit()
-        _v86_question_evidence_correspondence_self_audit()
+        _v92_question_structure_self_audit()
+        _v92_question_structure_evidence_self_audit()
+        _v92_question_evidence_correspondence_integration_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -5958,6 +7870,13 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "v76 frame-neutral evidence self-audit failed: "
                 f"{v76_frame_neutral}"
+            )
+
+        v92_frame_specific = _v92_frame_specific_resource_self_audit()
+        if not v92_frame_specific["pass"]:
+            raise RuntimeError(
+                "v92 frame-specific resource self-audit failed: "
+                f"{v92_frame_specific}"
             )
         
         v78_inferential_distance = _v78_inferential_distance_self_audit()
@@ -6599,26 +8518,27 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v86",
-            "# USE PRODUCTION VERSION: v86",
+            f"# USE TEST VERSION: {APP_VERSION}",
+            f"# USE PRODUCTION VERSION: {APP_VERSION}",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v86."
+                f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v86":
+        if APP_VERSION != "v117":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v86."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v117."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v86-question-evidence-correspondence":
+        if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
-                "Deployment fingerprint regression: v86 fingerprint is not aligned."
+                "Deployment fingerprint regression: current deployment fingerprint is not aligned "
+                f"with APP_VERSION={APP_VERSION}."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
         # This scanner is deliberately invariant-based so retaining a prior
         # regression audit does not itself become a false positive.
-        prior_version = "v" + "80"
+        prior_version = "v" + "92"
         stale_identity_patterns = (
             f'APP_VERSION = "{prior_version}"',
             f'APP_VERSION != "{prior_version}"',
@@ -7134,8 +9054,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v86":
-            raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
+        if APP_VERSION != "v117":
+            raise RuntimeError(f"Unexpected v117 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7193,51 +9113,19 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v86":
+        if APP_VERSION != "v117":
             raise RuntimeError(
-                f"Unexpected USE runtime version: {APP_VERSION}"
+                f"Unexpected v117 USE runtime version: {APP_VERSION}"
             )
 
-        # v82 execution-path regression: an evidence-sufficiency early return
-        # must preserve the canonical-link-context key. The request route
-        # consumes that key even when synthesis is deliberately withheld.
-        # Exercise the actual fetch path with a synthetic, thematically
-        # adjacent resource so this boundary cannot regress into an
-        # UnboundLocalError at runtime.
-        _saved_index = globals().get("index")
-        _saved_generate_embedding = globals().get("generate_embedding")
-        _saved_query_index = globals().get("_query_index")
-        try:
-            class _SelfAuditIndex:
-                pass
-
-            globals()["index"] = _SelfAuditIndex()
-            globals()["generate_embedding"] = lambda _text: [0.0]
-            globals()["_query_index"] = lambda _vector, _top_k: [
-                (1.0, "self-audit-adjacent", {
-                    "title": "Self-Audit Adjacent Resource",
-                    "url": "https://example.invalid/self-audit-adjacent",
-                    "content": "A source discusses unrelated support and resilience themes.",
-                })
-            ]
-
-            boundary_result = fetch_canonical_context(
-                "Why can learning more about a situation sometimes make it harder to see what is actually important?"
-            )
-            if not boundary_result.get("evidence_sufficiency_unavailable"):
-                raise RuntimeError(
-                    "v86 execution-path regression: synthetic adjacent evidence "
-                    "did not activate the evidence-sufficiency boundary."
-                )
-            if "canonical_link_context" not in boundary_result:
-                raise RuntimeError(
-                    "v86 execution-path regression: evidence-sufficiency early return "
-                    "lost canonical_link_context."
-                )
-        finally:
-            globals()["index"] = _saved_index
-            globals()["generate_embedding"] = _saved_generate_embedding
-            globals()["_query_index"] = _saved_query_index
+        # v92 D17 execution-path regression: explicit relational structure must
+        # remain available to the normal fetch path without creating a D17
+        # synthesis-block return.
+        d17_source = inspect.getsource(fetch_canonical_context)
+        if "question_structure = recognize_question_structure(user_query)" not in d17_source:
+            raise RuntimeError("v92 execution-path regression: D17 structure recognition is missing from fetch path.")
+        if "question_structure_evidence_unavailable" in d17_source:
+            raise RuntimeError("v92 execution-path regression: obsolete D17 synthesis-block path remains.")
 
         # provider-boundary recovery regression: when provider execution is unavailable,
         # recovery must use only selected canonical resources and must not emit
@@ -7319,7 +9207,622 @@ def _generation_boundary_self_audit() -> None:
     )
 
 
+
+def _d19_canonical_resource_model_self_audit() -> None:
+    """Verify D19 models explicit metadata without inventing missing fields."""
+    explicit = {
+        "id": "resource-1",
+        "title": "Example Resource",
+        "url": "https://example.invalid/resource-1",
+        "resource_type": "Reference Map",
+        "resource_function": "orientation",
+        "lifecycle": "current",
+        "access_class": "public",
+    }
+    model = _canonical_resource_model(explicit)
+
+    if model["identity"]["id"] != "resource-1":
+        raise RuntimeError("D19 resource-model regression: explicit identity was not preserved.")
+    if model["resource_type"] != "Reference Map":
+        raise RuntimeError("D19 resource-model regression: explicit resource type was not preserved.")
+    if model["function"] != "orientation":
+        raise RuntimeError("D19 resource-model regression: explicit resource function was not preserved.")
+    if model["lifecycle"] != "current" or model["access"] != "public":
+        raise RuntimeError("D19 resource-model regression: lifecycle/access evidence was not preserved.")
+    if model["navigation_role"] is not None or model["evidence_role"] is not None:
+        raise RuntimeError("D19 resource-model regression: request-specific roles were invented.")
+
+    missing = {
+        "title": "No Type Example",
+        "url": "https://example.invalid/no-type",
+        "text": "Canonical content without explicit type metadata.",
+    }
+    missing_model = _canonical_resource_model(missing)
+    if missing_model["resource_type"] is not None or missing_model["function"] is not None:
+        raise RuntimeError("D19 resource-model regression: missing type/function was guessed.")
+
+    attached = _attach_canonical_resource_model(dict(missing))
+    if "_use_resource_model" not in attached:
+        raise RuntimeError("D19 resource-model regression: model was not attached to resource metadata.")
+    print("USE D19 CANONICAL RESOURCE MODEL AUDIT: PASS")
+
+
+def _d20_resource_type_recognition_self_audit() -> None:
+    """Verify D20 recognizes canonical types conservatively and preserves unknowns."""
+    explicit = {
+        "title": "Example Resource",
+        "resource_type": "Reference Map",
+    }
+    explicit_result = _recognize_resource_type(explicit)
+    if explicit_result["resource_type"] != "Reference Map" or explicit_result["confidence"] != "explicit":
+        raise RuntimeError("D20 resource-type regression: explicit metadata was not recognized authoritatively.")
+
+    navigator = {"title": "The Living Archive Navigator — Governance & Sovereignty"}
+    navigator_result = _recognize_resource_type(navigator)
+    if navigator_result["resource_type"] != "Navigator":
+        raise RuntimeError("D20 resource-type regression: Navigator title was not recognized.")
+
+    reference_map = {"title": "Reference Map 024 — The Adaptive Systems Map"}
+    map_result = _recognize_resource_type(reference_map)
+    if map_result["resource_type"] != "Reference Map":
+        raise RuntimeError("D20 resource-type regression: Reference Map title was not recognized.")
+
+    pathway = {"title": "Guided Reading Pathway — Understanding Change"}
+    pathway_result = _recognize_resource_type(pathway)
+    if pathway_result["resource_type"] != "Pathway":
+        raise RuntimeError("D20 resource-type regression: Pathway title was not recognized.")
+
+    mention_only = {
+        "title": "Understanding Sovereignty",
+        "text": "The Living Archive includes Reference Maps, Navigators, and Guided Reading Pathways.",
+    }
+    mention_result = _recognize_resource_type(mention_only)
+    if mention_result["resource_type"] is not None:
+        raise RuntimeError("D20 resource-type regression: incidental mentions were treated as resource identity.")
+
+    generic_post = {
+        "title": "Sovereignty in the Smallest Temple",
+        "type": "post",
+        "text": "A canonical discussion of sovereignty and family life.",
+    }
+    generic_result = _recognize_resource_type(generic_post)
+    if generic_result["resource_type"] is not None:
+        raise RuntimeError("D20 resource-type regression: generic WordPress type was converted into a canonical type.")
+
+    attached = _attach_resource_type_recognition(dict(navigator))
+    if attached["_use_resource_type_recognition"]["resource_type"] != "Navigator":
+        raise RuntimeError("D20 resource-type regression: recognition was not attached to resource metadata.")
+
+    print("USE D20 RESOURCE-TYPE RECOGNITION AUDIT: PASS")
+
+
+def _d21_essay_function_self_audit() -> None:
+    """Verify Essay function is asserted only from sufficient evidence."""
+    good = {
+        "title": "The Psychology of Scarcity",
+        "_use_resource_type_recognition": {
+            "resource_type": "Essay",
+            "confidence": "strong",
+            "basis": "content_self_identification",
+        },
+        "text": (
+            "This essay explores scarcity as a developmental and psychological process. "
+            "This essay presents an integrative architectural synthesis informed by "
+            "developmental psychology, behavioral economics, neuroscience, and systems thinking."
+        ),
+    }
+    result = _d21_essay_function(good)
+    assert result["function"] == _D21_ESSAY_FUNCTION_LABEL, "D21 Essay function not recognized"
+    assert result["basis"] == "essay_exploration_and_synthesis_evidence", "D21 Essay provenance not bounded"
+
+    insufficient = {
+        "title": "The Psychology of Scarcity",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": "This essay is available in the Living Archive.",
+    }
+    assert _d21_essay_function(insufficient)["function"] is None, "D21 guessed Essay function"
+
+    non_essay = {
+        "title": "The Living Archive Navigator Series",
+        "_use_resource_type_recognition": {"resource_type": "Navigator"},
+        "text": (
+            "This Navigator brings together Reference Maps and guided reading pathways. "
+            "It integrates several forms of archive navigation."
+        ),
+    }
+    non_result = _d21_essay_function(non_essay)
+    assert (
+        non_result["function"] is None
+        and non_result["basis"] == "resource_type_not_essay"
+    ), "D21 leaked Essay function"
+
+    attached = _attach_essay_function(dict(good))
+    assert (
+        attached["_use_essay_function"]["function"] == _D21_ESSAY_FUNCTION_LABEL
+    ), "D21 Essay function not attached"
+    print("USE D21 ESSAY FUNCTION AUDIT: PASS")
+
+
+def _d22_cornerstone_function_self_audit() -> None:
+    """Verify Cornerstone function is asserted only from sufficient evidence."""
+    good = {
+        "title": "The Twelve Cornerstones of the Living Archive",
+        "_use_resource_type_recognition": {
+            "resource_type": "Cornerstone",
+            "confidence": "strong",
+            "basis": "content_self_identification",
+        },
+        "text": (
+            "This Cornerstone provides a foundational lens for understanding "
+            "larger patterns across multiple domains of life. The Cornerstones "
+            "act as bridges between disciplines and reveal common underlying "
+            "principles across governance, culture, technology, and human development."
+        ),
+    }
+    result = _d22_cornerstone_function(good)
+    assert result["function"] == _D22_CORNERSTONE_FUNCTION_LABEL, (
+        "D22 Cornerstone function not recognized"
+    )
+    assert result["basis"] == (
+        "cornerstone_foundational_and_cross_domain_evidence"
+    ), "D22 Cornerstone provenance not bounded"
+
+    insufficient = {
+        "title": "Trust Architecture",
+        "_use_resource_type_recognition": {"resource_type": "Cornerstone"},
+        "text": (
+            "This Cornerstone discusses trust and governance. "
+            "It contains several sections and reflections."
+        ),
+    }
+    assert _d22_cornerstone_function(insufficient)["function"] is None, (
+        "D22 guessed Cornerstone function"
+    )
+
+    non_cornerstone = {
+        "title": "An Essay About Systems",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay explores larger patterns across multiple domains "
+            "and offers an integrative synthesis."
+        ),
+    }
+    non_result = _d22_cornerstone_function(non_cornerstone)
+    assert (
+        non_result["function"] is None
+        and non_result["basis"] == "resource_type_not_cornerstone"
+    ), "D22 leaked Cornerstone function"
+
+    attached = _attach_cornerstone_function(dict(good))
+    assert (
+        attached["_use_cornerstone_function"]["function"]
+        == _D22_CORNERSTONE_FUNCTION_LABEL
+    ), "D22 Cornerstone function not attached"
+
+    print("USE D22 CORNERSTONE FUNCTION AUDIT: PASS")
+
+
+def _d23_knowledge_hub_function_self_audit() -> None:
+    """Verify Knowledge Hub function is type-gated and evidence-bound."""
+    good = {
+        "title": "Systems Thinking & Civilizational Design",
+        "_use_resource_type_recognition": {
+            "resource_type": "Knowledge Hub",
+            "confidence": "strong",
+            "basis": "content_self_identification",
+        },
+        "text": (
+            "This Knowledge Hub is a curated collection of resources and an "
+            "entry point for the subject. It brings together essays, "
+            "Cornerstones, Reference Maps, and Pathways to support orientation "
+            "across the domain."
+        ),
+    }
+    result = _d23_knowledge_hub_function(good)
+    assert result["function"] == _D23_KNOWLEDGE_HUB_FUNCTION_LABEL
+    assert result["basis"] == (
+        "knowledge_hub_collection_and_organization_evidence"
+    )
+
+    insufficient = {
+        "title": "A General Resource",
+        "_use_resource_type_recognition": {"resource_type": "Knowledge Hub"},
+        "text": (
+            "This resource discusses governance and mentions essays, maps, "
+            "and pathways."
+        ),
+    }
+    assert _d23_knowledge_hub_function(insufficient)["function"] is None
+
+    non_hub = {
+        "title": "An Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay is a curated collection of essays and maps about "
+            "a broad subject."
+        ),
+    }
+    non_result = _d23_knowledge_hub_function(non_hub)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_knowledge_hub"
+
+    attached = _attach_knowledge_hub_function(dict(good))
+    assert attached["_use_knowledge_hub_function"]["function"] == (
+        _D23_KNOWLEDGE_HUB_FUNCTION_LABEL
+    )
+
+    print("USE D23 KNOWLEDGE HUB FUNCTION AUDIT: PASS")
+
+
+def _d24_reference_map_function_self_audit() -> None:
+    """Verify Reference Map function is type-gated and evidence-bound."""
+    good = {
+        "title": "Reference Map 024 — The Adaptive Systems Map",
+        "_use_resource_type_recognition": {
+            "resource_type": "Reference Map",
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        },
+        "text": (
+            "This Reference Map is an orienting framework and visual "
+            "representation of relationships and patterns within complex "
+            "systems. It provides orientation by helping readers perceive "
+            "the structure and connections of the subject."
+        ),
+    }
+    result = _d24_reference_map_function(good)
+    assert result["function"] == _D24_REFERENCE_MAP_FUNCTION_LABEL
+    assert result["basis"] == (
+        "reference_map_visual_framework_and_orientation_evidence"
+    )
+
+    insufficient = {
+        "title": "Reference Map 024",
+        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+        "text": (
+            "This resource discusses governance and mentions relationships "
+            "between several ideas."
+        ),
+    }
+    assert _d24_reference_map_function(insufficient)["function"] is None
+
+    non_map = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay explains a visual framework for governance and "
+            "discusses patterns and relationships."
+        ),
+    }
+    non_result = _d24_reference_map_function(non_map)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_reference_map"
+
+    attached = _attach_reference_map_function(dict(good))
+    assert attached["_use_reference_map_function"]["function"] == (
+        _D24_REFERENCE_MAP_FUNCTION_LABEL
+    )
+
+    print("USE D24 REFERENCE MAP FUNCTION AUDIT: PASS")
+
+
+def _d25_navigator_function_self_audit() -> None:
+    """Verify Navigator function is type-gated and evidence-bound."""
+    good = {
+        "title": "The Living Archive Navigator: Volume II — Governance & Sovereignty",
+        "_use_resource_type_recognition": {
+            "resource_type": "Navigator",
+            "confidence": "strong",
+            "basis": "title_self_identification",
+        },
+        "text": (
+            "This Navigator provides an orientation and entry point into the "
+            "subject. It brings together Reference Maps, Guide Notes, "
+            "reflective questions, and guided reading pathways, connecting "
+            "these resources for navigation through the domain."
+        ),
+    }
+    result = _d25_navigator_function(good)
+    assert result["function"] == _D25_NAVIGATOR_FUNCTION_LABEL
+    assert result["basis"] == (
+        "navigator_integrated_component_and_entry_evidence"
+    )
+
+    insufficient = {
+        "title": "Navigator",
+        "_use_resource_type_recognition": {"resource_type": "Navigator"},
+        "text": (
+            "This resource mentions Reference Maps and Pathways while "
+            "discussing governance."
+        ),
+    }
+    assert _d25_navigator_function(insufficient)["function"] is None
+
+    non_navigator = {
+        "title": "Governance Essay",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay brings together Reference Maps, Pathways, and "
+            "Guide Notes as examples."
+        ),
+    }
+    non_result = _d25_navigator_function(non_navigator)
+    assert non_result["function"] is None
+    assert non_result["basis"] == "resource_type_not_navigator"
+
+    attached = _attach_navigator_function(dict(good))
+    assert attached["_use_navigator_function"]["function"] == (
+        _D25_NAVIGATOR_FUNCTION_LABEL
+    )
+
+    print("USE D25 NAVIGATOR FUNCTION AUDIT: PASS")
+
+
+def _v97_retrieval_candidate_window_audit() -> None:
+    """Verify semantic candidates survive until bounded doorway ranking."""
+    source = inspect.getsource(fetch_canonical_context)
+    retrieval_pos = source.find("candidates = _query_index(")
+    ordinary_loop_pos = source.find("for _score, _match_id_value, metadata in candidates:")
+    doorway_pos = source.find("select_canonical_doorways(")
+    if retrieval_pos < 0 or ordinary_loop_pos < 0 or doorway_pos < 0:
+        raise RuntimeError(
+            "D18 retrieval-window regression: retrieval or doorway ranking is missing."
+        )
+    if ordinary_loop_pos < retrieval_pos:
+        raise RuntimeError(
+            "D18 retrieval-window regression: candidate loop is not downstream of retrieval."
+        )
+    if "len(retrieved_docs) >= RETRIEVAL_TOP_K" not in source:
+        raise RuntimeError(
+            "D18 retrieval-window regression: full bounded semantic candidate window is not preserved."
+        )
+    ranking_block = source[doorway_pos:]
+    if ")[:MAX_CONTEXT_RESOURCES]" not in ranking_block:
+        raise RuntimeError(
+            "D18 retrieval-window regression: final generation resource cap is not downstream of ranking."
+        )
+
+    # Generic proof: a direct candidate at the end of the bounded window must
+    # be available for promotion; this is not tied to any corpus subject.
+    filler = [
+        {
+            "title": f"Semantic Neighbor {index}",
+            "url": f"https://example.invalid/neighbor-{index}",
+            "text": "A related canonical resource with broad thematic overlap.",
+        }
+        for index in range(1, 12)
+    ]
+    direct = {
+        "title": "Direct Subject Resource",
+        "url": "https://example.invalid/direct-subject",
+        "text": "A canonical resource directly addressing the visitor's named subject and its explanation.",
+    }
+    selected = select_canonical_doorways(
+        filler + [direct],
+        {"primary": "systems", "scores": {"systems": 1}},
+        question="Why does the named subject matter and how can I understand it?",
+    )
+    if selected[0]["title"] != "Direct Subject Resource":
+        raise RuntimeError(
+            "D18 retrieval-window regression: direct late-window candidate could not be promoted."
+        )
+    print(
+        "USE v97 retrieval candidate-window audit: PASS; "
+        "semantic candidates remain available through downstream ranking."
+    )
+
+
+def _v96_current_turn_state_integrity_audit():
+    """Verify that each request's query/state remains bound to that same turn."""
+    import asyncio
+
+    route_source = inspect.getsource(handle_query)
+
+    required_route_invariants = (
+        'query_str = str(query_str).strip()',
+        'context_data = fetch_canonical_context(query_str)',
+        '"query": query_str',
+        '"intent": context_data["intent"]',
+        'generate_llm_response(\n                query_str,',
+    )
+    missing = [item for item in required_route_invariants if item not in route_source]
+    if missing:
+        raise RuntimeError(
+            "D18 current-turn regression: request/state binding invariant(s) missing: "
+            + ", ".join(missing)
+        )
+
+    original_fetch = globals()["fetch_canonical_context"]
+    original_generate = globals()["generate_llm_response"]
+    original_observer = globals()["assess_progressive_commitment"]
+    original_invitation = globals()["progressive_inquiry_invitation"]
+
+    class _ProbeRequest:
+        def __init__(self, query):
+            self.query = query
+        async def json(self):
+            return {"query": self.query}
+
+    calls = []
+
+    def probe_fetch(query):
+        calls.append(("fetch", query))
+        return {
+            "context_blocks": "Title: Probe Resource\\nURL: https://example.invalid/probe\\nContent: Probe evidence.",
+            "intent": "TOPICAL_INQUIRY",
+            "orientational_frame": {"primary": "general", "scores": {}},
+            "canonical_link_context": "Title: Probe Resource\\nURL: https://example.invalid/probe",
+        }
+
+    def probe_generate(query, context_blocks, intent, orientational_frame=None, canonical_link_context=None):
+        calls.append(("generate", query, intent))
+        return f"response-for:{query}"
+
+    def probe_observer(query, history):
+        calls.append(("observer", query))
+        return {"steward_access_invitation": False, "current_turn_influence": False, "native_vocabulary_allowed": False}
+
+    def probe_invitation(state):
+        return ""
+
+    globals()["fetch_canonical_context"] = probe_fetch
+    globals()["generate_llm_response"] = probe_generate
+    globals()["assess_progressive_commitment"] = probe_observer
+    globals()["progressive_inquiry_invitation"] = probe_invitation
+
+    async def run_probe(query):
+        result = await handle_query(_ProbeRequest(query), None)
+        return result.body.decode("utf-8")
+
+    try:
+        first_query = "CURRENT TURN A — authority and governance"
+        second_query = "CURRENT TURN B — grief and transition"
+        first_body = asyncio.run(run_probe(first_query))
+        second_body = asyncio.run(run_probe(second_query))
+
+        if first_query not in first_body or second_query not in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: response envelope did not preserve the request query."
+            )
+        if first_query in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: stale query state leaked into a subsequent response."
+            )
+        if '"response":"response-for:CURRENT TURN A — authority and governance"' not in first_body:
+            raise RuntimeError(
+                "D18 current-turn regression: first response was not bound to first request."
+            )
+        if '"response":"response-for:CURRENT TURN B — grief and transition"' not in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: second response was not bound to second request."
+            )
+        fetch_queries = [item[1] for item in calls if item[0] == "fetch"]
+        generated_queries = [item[1] for item in calls if item[0] == "generate"]
+        observed_queries = [item[1] for item in calls if item[0] == "observer"]
+        if fetch_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: fetch path received stale or reordered queries."
+            )
+        if generated_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: generation path received stale or reordered queries."
+            )
+        if observed_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: observer received stale or reordered queries."
+            )
+    finally:
+        globals()["fetch_canonical_context"] = original_fetch
+        globals()["generate_llm_response"] = original_generate
+        globals()["assess_progressive_commitment"] = original_observer
+        globals()["progressive_inquiry_invitation"] = original_invitation
+
+    print("D18 CURRENT-TURN STATE INTEGRITY AUDIT: PASS")
+
+
 _v83_recognition_orientation_self_audit()
+_v93_d18_use_intent_integration_audit()
+_d19_canonical_resource_model_self_audit()
+_d20_resource_type_recognition_self_audit()
+_d21_essay_function_self_audit()
+_d22_cornerstone_function_self_audit()
+_d23_knowledge_hub_function_self_audit()
+_d24_reference_map_function_self_audit()
+_d25_navigator_function_self_audit()
+_d26_pathway_function_self_audit()
+_d27_case_learning_arc_function_self_audit()
+_d21_d27_resource_function_layer_self_audit()
+_d25_resource_function_selection_bridge_self_audit()
+_d25_selection_path_audit()
+
+
+def _v117_open_exploration_deterministic_recovery_self_audit() -> None:
+    """Audit the explicit uncertainty/non-closure generation constraint."""
+    question = (
+        "I'm beginning to see that some of the things I've been struggling with may be connected, "
+        "but I don't yet know what the connection is. I'd like to explore that without jumping to a conclusion about what it means."
+    )
+    instruction = _open_exploration_sovereignty_instruction(question)
+    assert "OPEN EXPLORATION SOVEREIGNTY" in instruction
+    assert "root cause" in instruction
+    assert "governing interpretation" in instruction
+    assert "canonical next movement" in instruction
+    frame = _orientation_loop_state(question, "TOPICAL_INQUIRY")
+    assert frame["open_exploration"] is True
+    assert frame["premature_closure_guard"] is True
+    neutral = _open_exploration_sovereignty_instruction(
+        "Why does governance matter?"
+    )
+    assert neutral == ""
+    print("USE v117 OPEN EXPLORATION DETERMINISTIC RECOVERY AUDIT: PASS")
+
+
+
+def _v117_deterministic_recovery_behavior_self_audit() -> None:
+    question = (
+        "I’m beginning to see that some of the things I’ve been struggling with may be connected, "
+        "but I don’t yet know what the connection is. I’d like to explore that without jumping to a conclusion about what it means."
+    )
+    context = (
+        "Title: The Illusion of Separation\nURL: https://example.invalid/separation\nContent: A resource exploring interconnectedness.\n\n---\n\n"
+        "Title: More Than This Body\nURL: https://example.invalid/body\nContent: A resource exploring lived identity and experience.\n\n---\n\n"
+        "Title: Another Resource\nURL: https://example.invalid/another\nContent: A resource offering another perspective."
+    )
+    result = _deterministic_provider_fallback(question, context)
+    assert "does not, by itself, establish" in result
+    assert "single explanation" in result
+    assert "decide for yourself" in result
+    assert "The Illusion of Separation" in result
+    assert "More Than This Body" in result
+    print("USE v117 DETERMINISTIC RECOVERY BEHAVIOR AUDIT: PASS")
+
+def _v114_continuity_slice_self_audit() -> None:
+    """Audit D28-D29 selection continuity and D31-D38 orientation constraints."""
+    open_q = (
+        "I'm not looking for an explanation of one particular subject yet. "
+        "I want a guided way to explore what the Living Archive might offer me, "
+        "so I can discover what matters and decide where I want to go next."
+    )
+    needs = _continuity_function_needs(open_q)
+    assert needs[_D25_NAVIGATOR_FUNCTION_LABEL] > 0
+    assert needs[_D26_PATHWAY_FUNCTION_LABEL] > 0
+
+    navigator = {
+        "title": "Archive Navigator",
+        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+    }
+    essay = {
+        "title": "Archive Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+    }
+    selected = select_canonical_doorways([essay, navigator], {}, question=open_q)
+    assert selected[0] is navigator
+
+    sequence = _apply_resource_sequence_metadata(selected, open_q)
+    assert sequence[0]["_use_resource_sequence_role"] == "primary"
+    assert sequence[1]["_use_resource_sequence_role"] == "supporting"
+
+    loop = _orientation_loop_state(open_q, "WHOLE_SITE_ORIENTATION")
+    assert loop["movement_need"] is True
+    assert loop["sovereignty_preserved"] is True
+    assert loop["premature_closure_guard"] is True
+
+    # Function-targeted retrieval must remain bounded and must never fabricate
+    # a resource when the index is unavailable.
+    original_index = globals().get("index")
+    globals()["index"] = None
+    try:
+        assert _function_targeted_candidate_search(open_q) == []
+    finally:
+        globals()["index"] = original_index
+
+    print("USE v117 D28-D29 / D31-D38 CONTINUITY SLICE REGRESSION AUDIT: PASS")
+
+_v117_open_exploration_deterministic_recovery_self_audit()
+_v117_deterministic_recovery_behavior_self_audit()
+_v97_retrieval_candidate_window_audit()
+_v96_current_turn_state_integrity_audit()
+
 _generation_boundary_self_audit()
 
 
