@@ -1,4 +1,4 @@
-# USE TEST VERSION: v111 — D25 Selection Path Audit
+# USE TEST VERSION: v112 — D25 Resource Function Selection Bridge
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v111"
+APP_VERSION = "v112"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v111-d25-selection-path-audit"
+DEPLOYMENT_FINGERPRINT = "USE-v112-d25-resource-function-selection-bridge"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2439,6 +2439,54 @@ def _attach_navigator_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 # being used to compensate for a missing architectural connection.
 # =====================================================================
 
+def _d25_resource_function_selection_bridge_self_audit() -> None:
+    """Verify function fit changes selection only when the visitor need warrants it."""
+    navigator = {
+        "title": "Governance Navigator",
+        "_use_navigator_function": {
+            "function": "integrated orientation and entry"
+        },
+    }
+    essay = {
+        "title": "Governance Essay",
+        "_use_essay_function": {
+            "function": "substantive exploration and sensemaking"
+        },
+    }
+
+    open_navigation_question = (
+        "I want an orientation to the wider body of material, "
+        "see the available routes, and decide where I want to go next. "
+        "Where should I begin?"
+    )
+
+    assert _resource_function_selection_bonus(
+        navigator, open_navigation_question
+    ) == _RESOURCE_FUNCTION_FIT_BONUS
+    assert _resource_function_selection_bonus(
+        essay, open_navigation_question
+    ) == 0.0
+
+    neutral_question = "Why does governance matter?"
+    assert _resource_function_selection_bonus(
+        navigator, neutral_question
+    ) == 0.0
+    assert _resource_function_selection_bonus(
+        essay, neutral_question
+    ) == 0.0
+
+    # Verify the actual canonical selection path consumes the bridge.
+    docs = [essay, navigator]
+    selected = select_canonical_doorways(
+        docs,
+        {},
+        question=open_navigation_question,
+    )
+    assert selected[0]["title"] == "Governance Navigator"
+
+    print("USE D25 RESOURCE-FUNCTION SELECTION BRIDGE AUDIT: PASS")
+
+
 def _d25_selection_path_audit() -> None:
     source = Path(__file__).read_text(encoding="utf-8")
     lines = source.splitlines()
@@ -3303,6 +3351,118 @@ def _frame_neutral_evidence_unavailable_response(question: str) -> str:
     )
 
 
+# =====================================================================
+# D25 RESOURCE-FUNCTION SELECTION BRIDGE
+# =====================================================================
+# Connect the already-recognized canonical resource functions to the
+# existing doorway scorer. This is a selection bridge, not a new retrieval
+# mechanism and not a subject-specific mapping.
+#
+# Functional fit is additive and bounded. Existing relevance, evidence,
+# scope, framework, and centrality logic remains intact.
+# =====================================================================
+
+_RESOURCE_FUNCTION_FIT_BONUS = 2.5
+
+_RESOURCE_FUNCTION_NAMES = (
+    "_use_essay_function",
+    "_use_cornerstone_function",
+    "_use_knowledge_hub_function",
+    "_use_reference_map_function",
+    "_use_navigator_function",
+)
+
+def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
+    """Infer the requested canonical resource function conservatively."""
+    q = (question or "").casefold()
+    fit = {
+        "substantive exploration and sensemaking": 0.0,
+        "cross-domain pattern orientation": 0.0,
+        "curated subject-domain orientation": 0.0,
+        "visual structural orientation": 0.0,
+        "integrated orientation and entry": 0.0,
+    }
+
+    # Integrated entry/orientation: only explicit navigation needs qualify.
+    if any(
+        phrase in q for phrase in (
+            "available routes",
+            "ways through",
+            "where should i begin",
+            "where do i begin",
+            "decide where to go next",
+            "wider body of material",
+            "broader understanding of the available",
+            "orientation to",
+            "orient myself",
+            "navigate the subject",
+        )
+    ):
+        fit["integrated orientation and entry"] = 1.0
+
+    if any(
+        phrase in q for phrase in (
+            "overall structure",
+            "different parts connect",
+            "relationships and patterns",
+            "see how the parts connect",
+            "visual structure",
+        )
+    ):
+        fit["visual structural orientation"] = 1.0
+
+    if any(
+        phrase in q for phrase in (
+            "main areas",
+            "subject areas",
+            "which parts of the subject",
+            "gathered together",
+            "different areas",
+        )
+    ):
+        fit["curated subject-domain orientation"] = 1.0
+
+    if any(
+        phrase in q for phrase in (
+            "larger patterns",
+            "how pieces fit",
+            "cross-domain",
+            "broader framework",
+        )
+    ):
+        fit["cross-domain pattern orientation"] = 1.0
+
+    # Generic "understand" questions remain function-neutral.
+    return fit
+
+
+def _resource_function_name(resource: Dict[str, Any]) -> Optional[str]:
+    """Return the first recognized canonical function attached to a resource."""
+    if not isinstance(resource, dict):
+        return None
+
+    for key in _RESOURCE_FUNCTION_NAMES:
+        value = resource.get(key)
+        if isinstance(value, dict) and value.get("function"):
+            return str(value["function"])
+    return None
+
+
+def _resource_function_selection_bonus(
+    resource: Dict[str, Any], question: str
+) -> float:
+    """Return bounded functional-fit bonus for an already retrieved resource."""
+    function_name = _resource_function_name(resource)
+    if not function_name:
+        return 0.0
+
+    requested = _visitor_resource_function_fit(question)
+    if requested.get(function_name, 0.0) <= 0:
+        return 0.0
+
+    return _RESOURCE_FUNCTION_FIT_BONUS
+
+
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
@@ -3325,15 +3485,23 @@ def select_canonical_doorways(
 
     ranked = []
     for index, document in enumerate(remainder):
-        score, detail = _canonical_doorway_score(document, frame, question)
-        ranked.append((score, detail, -index, document))
+        base_score, detail = _canonical_doorway_score(
+            document, frame, question
+        )
+        function_bonus = _resource_function_selection_bonus(
+            document, question
+        )
+        score = base_score + function_bonus
+        ranked.append(
+            (score, detail, function_bonus, -index, document)
+        )
 
     ranked.sort(
-        key=lambda item: (item[0], item[1], item[2]),
+        key=lambda item: (item[0], item[1], item[2], item[3]),
         reverse=True,
     )
 
-    selected = [document for _score, _detail, _order, document in ranked]
+    selected = [document for _score, _detail, _function_bonus, _order, document in ranked]
 
     if selected:
         primary = selected[0]
@@ -7779,16 +7947,16 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v111",
-            "# USE PRODUCTION VERSION: v111",
+            "# USE TEST VERSION: v112",
+            "# USE PRODUCTION VERSION: v112",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v110."
             )
-        if APP_VERSION != "v111":
+        if APP_VERSION != "v112":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v111."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v112."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -8315,8 +8483,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v111":
-            raise RuntimeError(f"Unexpected v111 USE version: {APP_VERSION}")
+        if APP_VERSION != "v112":
+            raise RuntimeError(f"Unexpected v112 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8374,9 +8542,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v111":
+        if APP_VERSION != "v112":
             raise RuntimeError(
-                f"Unexpected v111 USE runtime version: {APP_VERSION}"
+                f"Unexpected v112 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -8990,6 +9158,7 @@ _d22_cornerstone_function_self_audit()
 _d23_knowledge_hub_function_self_audit()
 _d24_reference_map_function_self_audit()
 _d25_navigator_function_self_audit()
+_d25_resource_function_selection_bridge_self_audit()
 _d25_selection_path_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
