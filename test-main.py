@@ -1,4 +1,4 @@
-# USE TEST VERSION: v81 — Evidence Sufficiency / Domain Fit
+# USE TEST VERSION: v82 — D16 Reconciled USE Intent Baseline
 # Complete experimental production unit reconstructed from the authoritative v80
 # TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -573,7 +573,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v81"
+APP_VERSION = "v82"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +589,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v81-evidence-sufficiency-domain-fit"
+DEPLOYMENT_FINGERPRINT = "USE-v82-d16-reconciled-use-intent-baseline"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1713,9 +1713,71 @@ def _is_archived_canonical_resource(metadata: Dict[str, Any]) -> bool:
     return False
 
 
+def _use_corpus_access_eligible(metadata: Dict[str, Any]) -> bool:
+    """Enforce the USE public-corpus boundary when access metadata is present.
+
+    USE is the T1–T3 public orientation layer. FSD owns T4 and authorized
+    stewardship material. Missing access metadata is not treated as proof of
+    protection, preserving compatibility with older public records; explicit
+    protected/restricted access or a tier above T3 is always rejected.
+    """
+    if not isinstance(metadata, dict) or not metadata:
+        return False
+
+    access_values = []
+    for key, value in metadata.items():
+        normalized_key = re.sub(r"[^a-z0-9]+", "_", str(key).casefold()).strip("_")
+        if normalized_key in {
+            "access_class",
+            "access",
+            "visibility",
+            "audience",
+            "access_level",
+        }:
+            access_values.append(_normalized_lifecycle_value(value))
+
+    protected_values = {
+        "private", "protected", "restricted", "steward", "steward_only",
+        "steward-access", "steward access", "t4", "internal",
+    }
+    if any(value in protected_values for value in access_values):
+        print(
+            "USE corpus boundary: rejected non-public resource "
+            f"'{metadata.get('title', 'Untitled Resource')}'."
+        )
+        return False
+
+    for key, value in metadata.items():
+        normalized_key = re.sub(r"[^a-z0-9]+", "_", str(key).casefold()).strip("_")
+        if normalized_key not in {"tier", "archive_tier", "resource_tier"}:
+            continue
+        raw = str(value or "").strip().casefold()
+        match = re.search(r"t\s*([1-9][0-9]*)", raw)
+        if match and int(match.group(1)) > 3:
+            print(
+                "USE corpus boundary: rejected T4+ resource "
+                f"'{metadata.get('title', 'Untitled Resource')}'."
+            )
+            return False
+        try:
+            if raw.isdigit() and int(raw) > 3:
+                print(
+                    "USE corpus boundary: rejected T4+ resource "
+                    f"'{metadata.get('title', 'Untitled Resource')}'."
+                )
+                return False
+        except ValueError:
+            pass
+
+    return True
+
+
 def _is_navigable_canonical_resource(metadata: Dict[str, Any]) -> bool:
     """Apply the canonical corpus lifecycle boundary before navigation."""
     if not metadata:
+        return False
+
+    if not _use_corpus_access_eligible(metadata):
         return False
 
     if _is_archived_canonical_resource(metadata):
@@ -2517,7 +2579,11 @@ def _evidence_sufficiency_gate(
     question: str,
     intent: str,
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Permit synthesis only when retrieved Content has minimal domain fit."""
+    """Separate synthesis sufficiency from navigational usefulness.
+
+    Retrieved resources remain available for canonical movement even when
+    their Content does not support a reliable explanatory synthesis.
+    """
     if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"} or not documents:
         return documents, False
 
@@ -2525,28 +2591,42 @@ def _evidence_sufficiency_gate(
         _evidence_domain_fit_score(question, document)[0]
         for document in documents
     ]
-    # The gate is intentionally conservative only at the evidence boundary:
-    # retain all resources when at least one has direct substantive fit, but do
-    # not send an entirely adjacent evidence set to synthesis.
     sufficient = any(score >= 2 for score in fit_scores)
     if sufficient:
         return documents, False
 
     print(
         "USE evidence sufficiency gate: insufficient substantive domain fit; "
-        f"scores={fit_scores}. Generation synthesis withheld."
+        f"scores={fit_scores}. Synthesis withheld; navigation preserved."
     )
-    return [], True
+    return documents, True
 
 
-def _evidence_sufficiency_unavailable_response(question: str) -> str:
-    """Return a bounded response when retrieved evidence cannot support synthesis."""
-    return (
-        "The supplied canonical evidence does not establish a sufficient "
-        "substantive connection to this question to support a reliable "
-        "explanation. Rather than fill that gap with an inferred mechanism, "
-        "USE is leaving the question open."
+def _evidence_sufficiency_unavailable_response(
+    question: str,
+    canonical_link_context: str = "",
+) -> str:
+    """Preserve the question while keeping genuine canonical movement open."""
+    pairs = []
+    for title, url in _canonical_pairs(canonical_link_context):
+        clean_title = _canonical_display_title(title)
+        if clean_title and url:
+            pairs.append((clean_title, url))
+        if len(pairs) >= 2:
+            break
+
+    response = (
+        "The canonical material surfaced for this question does not establish "
+        "a reliable explanation, so USE will not fill the gap with an inferred "
+        "mechanism. The question remains open."
     )
+    if pairs:
+        response += (
+            " The closest canonical places surfaced for continuing the inquiry are: "
+            + " ; ".join(f"[{title}]({url})" for title, url in pairs)
+            + "."
+        )
+    return response
 
 
 def fetch_canonical_context(
@@ -2788,6 +2868,14 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )[:MAX_CONTEXT_RESOURCES]
 
+    # Canonical link authority is established before any synthesis-only boundary.
+    # This keeps navigation available even when reasoning evidence is insufficient.
+    canonical_link_context = format_context_blocks(
+        canonical_link_docs,
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
+    )
+
     # v76: for open first-person experiential questions, do not let a retrieved
     # specialized worldview become substantive generation evidence when a
     # frame-neutral canonical resource is already available. Canonical link
@@ -2807,7 +2895,7 @@ def fetch_canonical_context(
             "frame_neutral_evidence_unavailable": True,
         }
 
-    # v81: retrieval relevance does not by itself establish evidence sufficiency.
+    # D16: retrieval relevance does not by itself establish evidence sufficiency.
     # Apply a bounded post-retrieval Content-domain gate before generation.
     # Canonical link authority remains untouched above.
     retrieved_docs, evidence_sufficiency_unavailable = _evidence_sufficiency_gate(
@@ -2861,12 +2949,6 @@ def fetch_canonical_context(
         f"selected={len(retrieved_docs)}, "
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in retrieved_docs ]}"
     )
-    canonical_link_context = format_context_blocks(
-        canonical_link_docs,
-        structural_destination_count=0,
-        adaptive_bridge_count=0,
-    )
-
     return {
         "intent": intent,
         "orientational_frame": orientational_frame,
@@ -4013,6 +4095,83 @@ def _clean_generation_output(
     return _strip_emoji(normalized_answer)
 
 # =====================================================================
+# LONGITUDINAL INQUIRY OBSERVER — PASSIVE 5-WHY BOUNDARY
+# =====================================================================
+# This observer is deliberately outside current-turn reasoning. It observes
+# the completed question sequence and may produce a next-turn Steward Access
+# invitation after five consecutive stewardship-related questions. It never
+# diagnoses readiness, grants access, or changes the current retrieval/answer.
+
+PROGRESSIVE_INQUIRY_TERMS = (
+    "stewardship", "steward", "custodian", "guardian", "responsibility",
+    "accountability", "service", "serve others", "service to others", "entrusted",
+    "future generations", "larger whole", "beyond myself", "contribution",
+)
+
+def _history_questions(history: Any) -> List[str]:
+    """Extract only prior visitor questions from optional client history."""
+    if not isinstance(history, list):
+        return []
+    questions: List[str] = []
+    for item in history[-12:]:
+        if isinstance(item, str):
+            value = item.strip()
+        elif isinstance(item, dict):
+            role = str(item.get("role", "")).casefold()
+            if role and role not in {"user", "visitor", "human"}:
+                continue
+            value = str(
+                item.get("question")
+                or item.get("content")
+                or item.get("text")
+                or ""
+            ).strip()
+        else:
+            continue
+        if value:
+            questions.append(value)
+    return questions
+
+def _is_stewardship_question(question: str) -> bool:
+    clean = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+    return any(
+        re.search(rf"(?<!\w){re.escape(term)}(?!\w)", clean)
+        for term in PROGRESSIVE_INQUIRY_TERMS
+    )
+
+def assess_progressive_commitment(
+    current_question: str,
+    history: Any = None,
+) -> Dict[str, Any]:
+    """Observe completed-turn trajectory without influencing that turn."""
+    prior = _history_questions(history)
+    questions = prior + [str(current_question or "").strip()]
+    consecutive = 0
+    for question in reversed(questions):
+        if _is_stewardship_question(question):
+            consecutive += 1
+        else:
+            break
+
+    return {
+        "turns": len(questions),
+        "stewardship_consecutive": consecutive,
+        "steward_access_invitation": consecutive >= 5,
+        "observer_only": True,
+        "current_turn_influence": False,
+        "native_vocabulary_allowed": False,
+    }
+
+def progressive_inquiry_invitation(state: Dict[str, Any]) -> str:
+    """Return the bounded invitation; never imply readiness or membership."""
+    if not state.get("steward_access_invitation"):
+        return ""
+    return (
+        "If you would like to continue this inquiry into the deeper stewardship "
+        "layer of the Living Archive, Steward Access is available."
+    )
+
+# =====================================================================
 # GROQ GENERATION
 # =====================================================================
 
@@ -4875,7 +5034,7 @@ def generate_llm_response(
 
                 try:
                     compact_messages = _build_generation_messages(
-                        user_query, intent, compact_context, None
+                        user_query, intent, compact_context, orientational_frame
                     )
                     compact_estimate = _estimate_quota_tokens(
                         compact_messages, MAX_COMPACT_GENERATION_TOKENS
@@ -4968,6 +5127,8 @@ class FlexibleQueryRequest(BaseModel):
     user_query: Optional[str] = None
     question: Optional[str] = None
     text: Optional[str] = None
+    history: Optional[List[Any]] = None
+    conversation_history: Optional[List[Any]] = None
 
 
 # =====================================================================
@@ -5031,13 +5192,25 @@ async def handle_query(
 
     query_str = str(query_str).strip()
 
+    supplied_history = None
+    if payload:
+        supplied_history = payload.history or payload.conversation_history
+    if supplied_history is None and raw_body:
+        supplied_history = (
+            raw_body.get("history")
+            or raw_body.get("conversation_history")
+        )
+
     try:
         context_data = fetch_canonical_context(query_str)
 
         if context_data.get("frame_neutral_evidence_unavailable"):
             llm_output = _frame_neutral_evidence_unavailable_response(query_str)
         elif context_data.get("evidence_sufficiency_unavailable"):
-            llm_output = _evidence_sufficiency_unavailable_response(query_str)
+            llm_output = _evidence_sufficiency_unavailable_response(
+                query_str,
+                context_data.get("canonical_link_context", ""),
+            )
         else:
             llm_output = generate_llm_response(
                 query_str,
@@ -5052,6 +5225,15 @@ async def handle_query(
                     context_data["context_blocks"],
                 ),
             )
+
+        # Observe only after the current answer path is complete.
+        progressive_state = assess_progressive_commitment(
+            query_str,
+            supplied_history,
+        )
+        invitation = progressive_inquiry_invitation(progressive_state)
+        if invitation:
+            llm_output = f"{llm_output}\n\n{invitation}"
 
         # Canonical context is deliberately not returned to the browser.
         # Retrieval evidence is an internal generation input; returning it
@@ -5346,13 +5528,14 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     )
     present = {term: term in prompt for term in required}
     return {
-        "adjacent_blocked": unavailable and not blocked,
+        "adjacent_preserved_for_navigation": unavailable and bool(blocked),
+        "adjacent_synthesis_withheld": unavailable,
         "direct_retained": (not retained_unavailable) and bool(retained),
         "prompt_contains_all": all(present.values()),
         "required_present": present,
         "pass": (
             unavailable
-            and not blocked
+            and bool(blocked)
             and not retained_unavailable
             and bool(retained)
             and all(present.values())
@@ -5404,19 +5587,19 @@ def _generation_boundary_self_audit() -> None:
         v81_evidence_sufficiency = _v81_evidence_sufficiency_self_audit()
         if not v81_evidence_sufficiency["pass"]:
             raise RuntimeError(
-                "v81 evidence-sufficiency/domain-fit self-audit failed: "
+                "D16 evidence-sufficiency self-audit failed: "
                 f"{v81_evidence_sufficiency}"
             )
 
-        # v81 response-boundary regression: insufficient evidence must have a
+        # D16 response-boundary regression: insufficient evidence must have a
         # bounded visitor response rather than being passed to generation.
         insuff_response = _evidence_sufficiency_unavailable_response(
             "Why can learning more about a problem make it feel less understandable?"
         )
-        if "does not establish a sufficient substantive connection" not in insuff_response:
+        if "does not establish a reliable explanation" not in insuff_response:
             raise RuntimeError(
-                "v81 evidence-sufficiency response regression: bounded "
-                "insufficiency response is missing."
+                "D16 navigation boundary regression: bounded insufficiency "
+                "response is missing."
             )
 
         # Canonical lifecycle regressions: archived resources may remain
@@ -6026,20 +6209,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v81",
-            "# USE PRODUCTION VERSION: v81",
+            "# USE TEST VERSION: v82",
+            "# USE PRODUCTION VERSION: v82",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v81."
+                "Source version-label regression: line 1 does not identify v82."
             )
-        if APP_VERSION != "v81":
+        if APP_VERSION != "v82":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v81."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v82."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v81-evidence-sufficiency-domain-fit":
+        if DEPLOYMENT_FINGERPRINT != "USE-v82-d16-reconciled-use-intent-baseline":
             raise RuntimeError(
-                "Deployment fingerprint regression: v81 fingerprint is not aligned."
+                "Deployment fingerprint regression: v82 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -6560,13 +6743,72 @@ def _generation_boundary_self_audit() -> None:
                 "instruction was not preserved."
             )
 
+        # D16 reconciliation invariants.
+        if APP_VERSION != "v82":
+            raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
+
+        # USE public corpus boundary: explicit T4/restricted resources are never
+        # eligible, while public T1–T3 resources remain eligible.
+        if _is_navigable_canonical_resource({
+            "title": "Restricted T4 Resource",
+            "url": "https://example.invalid/t4",
+            "tier": "T4",
+            "access_class": "steward",
+            "text": "Protected."
+        }):
+            raise RuntimeError("USE corpus boundary regression: protected T4 resource was admitted.")
+        if not _is_navigable_canonical_resource({
+            "title": "Public T3 Resource",
+            "url": "https://example.invalid/t3",
+            "tier": "T3",
+            "access_class": "public",
+            "text": "Public canonical evidence."
+        }):
+            raise RuntimeError("USE corpus boundary regression: public T3 resource was rejected.")
+
+        # Synthesis insufficiency must preserve navigation.
+        nav_context = (
+            "Title: Nearby Canonical Doorway\n"
+            "URL: https://example.invalid/doorway\n"
+            "Content: A nearby canonical resource."
+        )
+        nav_response = _evidence_sufficiency_unavailable_response(
+            "An under-supported question",
+            nav_context,
+        )
+        if "Nearby Canonical Doorway" not in nav_response:
+            raise RuntimeError("USE navigation boundary regression: insufficient evidence closed navigation.")
+
+        # Passive 5-Why observer: exactly five consecutive stewardship questions
+        # trigger an invitation, never a readiness diagnosis or current-turn control.
+        five_history = [
+            {"role": "user", "content": "How does responsibility affect others?"},
+            {"role": "user", "content": "What does service require?"},
+            {"role": "user", "content": "How do I serve the larger whole?"},
+            {"role": "user", "content": "What does stewardship mean here?"},
+        ]
+        five_state = assess_progressive_commitment(
+            "How do I take responsibility for what I build?",
+            five_history,
+        )
+        if not five_state["steward_access_invitation"]:
+            raise RuntimeError("5-Why boundary regression: five consecutive stewardship questions did not trigger invitation.")
+        if five_state["current_turn_influence"] or five_state["native_vocabulary_allowed"]:
+            raise RuntimeError("5-Why boundary regression: observer gained current-turn authority.")
+        four_state = assess_progressive_commitment(
+            "What should I understand about stewardship?",
+            five_history[:3],
+        )
+        if four_state["steward_access_invitation"]:
+            raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
+
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v81":
+        if APP_VERSION != "v82":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
 
-        # v81 execution-path regression: an evidence-sufficiency early return
+        # v82 execution-path regression: an evidence-sufficiency early return
         # must preserve the canonical-link-context key. The request route
         # consumes that key even when synthesis is deliberately withheld.
         # Exercise the actual fetch path with a synthetic, thematically
@@ -6594,12 +6836,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v81 execution-path regression: synthetic adjacent evidence "
+                    "v82 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v81 execution-path regression: evidence-sufficiency early return "
+                    "v82 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
