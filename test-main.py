@@ -6132,9 +6132,9 @@ def _generation_boundary_self_audit() -> None:
         # v64 regression: the compact generation policy must preserve the
         # constitutional topical-navigation and multi-resource rules using the
         # current v63 wording, without requiring obsolete prompt text.
-        if "For TOPICAL questions, do not answer as a generic encyclopedia." not in GENERATION_SYSTEM_PROMPT:
+        if "For TOPICAL questions, orient through supplied evidence, not generic explanation." not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
-                "Topical navigation regression: generic-answer prevention policy is missing."
+                "Topical navigation regression: evidence-grounded topical orientation policy is missing."
             )
         if "normally use 2–3 only for distinct coverage" not in GENERATION_SYSTEM_PROMPT:
             raise RuntimeError(
