@@ -1,4 +1,4 @@
-# USE TEST VERSION: v97 — D18 Open Exploration Intent Integration
+# USE TEST VERSION: v98 — D19 Canonical Resource Model
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v97"
+APP_VERSION = "v98"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v97-d18-retrieval-candidate-window"
+DEPLOYMENT_FINGERPRINT = "USE-v98-d19-canonical-resource-model"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -1674,6 +1674,140 @@ def _resource_content(doc: Dict[str, Any]) -> str:
 
 
 # =====================================================================
+# D19 CANONICAL RESOURCE MODEL
+# =====================================================================
+# D19 establishes the internal shape of a canonical resource without
+# inventing resource types or functions that are not explicitly present in
+# the supplied corpus/index metadata. Recognition and interpretation of
+# those fields belong to later Phase III chunks (D20+).
+#
+# The model deliberately separates stable resource identity from later
+# request-specific navigation/evidence roles. Missing fields remain None;
+# absence of metadata is not converted into a guessed type or function.
+# =====================================================================
+
+_D19_IDENTITY_KEYS = (
+    "id",
+    "resource_id",
+    "canonical_id",
+    "slug",
+    "url",
+    "title",
+)
+
+_D19_TYPE_KEYS = (
+    "resource_type",
+    "resource_kind",
+    "content_type",
+    "type",
+    "kind",
+)
+
+_D19_FUNCTION_KEYS = (
+    "resource_function",
+    "function",
+    "canonical_function",
+)
+
+_D19_LIFECYCLE_KEYS = (
+    "lifecycle",
+    "canonical_lifecycle",
+)
+
+_D19_ACCESS_KEYS = (
+    "access_class",
+    "access_level",
+    "access",
+    "visibility",
+    "audience",
+)
+
+
+def _d19_first_metadata_value(
+    metadata: Dict[str, Any],
+    keys: Tuple[str, ...],
+) -> Optional[Any]:
+    if not isinstance(metadata, dict):
+        return None
+
+    normalized = {}
+    for key, value in metadata.items():
+        normalized_key = re.sub(
+            r"[^a-z0-9]+",
+            "_",
+            str(key).casefold(),
+        ).strip("_")
+        if normalized_key and normalized_key not in normalized:
+            normalized[normalized_key] = value
+
+    for key in keys:
+        value = normalized.get(key)
+        if value is not None and str(value).strip():
+            return value
+
+    return None
+
+
+def _d19_normalize_model_value(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    normalized = re.sub(r"\s+", " ", str(value)).strip()
+    return normalized or None
+
+
+def _canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the D19 resource shape using only explicit metadata evidence."""
+    if not isinstance(metadata, dict) or not metadata:
+        return {
+            "identity": None,
+            "resource_type": None,
+            "function": None,
+            "navigation_role": None,
+            "evidence_role": None,
+            "lifecycle": None,
+            "access": None,
+        }
+
+    identity_values = {}
+    for key in _D19_IDENTITY_KEYS:
+        value = _d19_first_metadata_value(metadata, (key,))
+        if value is not None:
+            identity_values[key] = _d19_normalize_model_value(value)
+
+    return {
+        "identity": identity_values or None,
+        "resource_type": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_TYPE_KEYS)
+        ),
+        "function": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_FUNCTION_KEYS)
+        ),
+        # These are request/pipeline roles, not properties inferred from
+        # resource wording. They remain unset until later navigation stages
+        # establish them from an explicit relationship.
+        "navigation_role": None,
+        "evidence_role": None,
+        "lifecycle": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_LIFECYCLE_KEYS)
+        ),
+        "access": _d19_normalize_model_value(
+            _d19_first_metadata_value(metadata, _D19_ACCESS_KEYS)
+        ),
+    }
+
+
+def _attach_canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D19's non-destructive internal model to a resource record."""
+    if not isinstance(metadata, dict):
+        return metadata
+
+    if "_use_resource_model" not in metadata:
+        metadata["_use_resource_model"] = _canonical_resource_model(metadata)
+
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -2546,6 +2680,8 @@ def _append_unique_resource(
     if not _is_navigable_canonical_resource(metadata):
         return
 
+    metadata = _attach_canonical_resource_model(metadata)
+
     if require_destination and not _has_usable_destination(metadata):
         print(
             "USE destination validation: rejected non-destination "
@@ -2879,7 +3015,7 @@ def fetch_canonical_context(
                     RETRIEVAL_TOP_K,
                 )
 
-                # v97: preserve the complete bounded semantic candidate window
+                # v97 baseline: preserve the complete bounded semantic candidate window
                 # through downstream ranking. v96 truncated ordinary candidates
                 # at MAX_CONTEXT_RESOURCES before question-conditioned doorway
                 # selection, so a strong canonical match appearing later in the
@@ -6891,20 +7027,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v97",
-            "# USE PRODUCTION VERSION: v97",
+            "# USE TEST VERSION: v98",
+            "# USE PRODUCTION VERSION: v98",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v94."
+                "Source version-label regression: line 1 does not identify v98."
             )
-        if APP_VERSION != "v97":
+        if APP_VERSION != "v98":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v97."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v98."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v97-d18-retrieval-candidate-window":
+        if DEPLOYMENT_FINGERPRINT != "USE-v98-d19-canonical-resource-model":
             raise RuntimeError(
-                "Deployment fingerprint regression: v97 fingerprint is not aligned."
+                "Deployment fingerprint regression: v98 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7426,8 +7562,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v97":
-            raise RuntimeError(f"Unexpected v97 USE version: {APP_VERSION}")
+        if APP_VERSION != "v98":
+            raise RuntimeError(f"Unexpected v98 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7485,9 +7621,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v97":
+        if APP_VERSION != "v98":
             raise RuntimeError(
-                f"Unexpected v97 USE runtime version: {APP_VERSION}"
+                f"Unexpected v98 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -7578,6 +7714,45 @@ def _generation_boundary_self_audit() -> None:
         "canonical lifecycle eligibility, and runtime identification verified."
     )
 
+
+
+def _d19_canonical_resource_model_self_audit() -> None:
+    """Verify D19 models explicit metadata without inventing missing fields."""
+    explicit = {
+        "id": "resource-1",
+        "title": "Example Resource",
+        "url": "https://example.invalid/resource-1",
+        "resource_type": "Reference Map",
+        "resource_function": "orientation",
+        "lifecycle": "current",
+        "access_class": "public",
+    }
+    model = _canonical_resource_model(explicit)
+
+    if model["identity"]["id"] != "resource-1":
+        raise RuntimeError("D19 resource-model regression: explicit identity was not preserved.")
+    if model["resource_type"] != "Reference Map":
+        raise RuntimeError("D19 resource-model regression: explicit resource type was not preserved.")
+    if model["function"] != "orientation":
+        raise RuntimeError("D19 resource-model regression: explicit resource function was not preserved.")
+    if model["lifecycle"] != "current" or model["access"] != "public":
+        raise RuntimeError("D19 resource-model regression: lifecycle/access evidence was not preserved.")
+    if model["navigation_role"] is not None or model["evidence_role"] is not None:
+        raise RuntimeError("D19 resource-model regression: request-specific roles were invented.")
+
+    missing = {
+        "title": "No Type Example",
+        "url": "https://example.invalid/no-type",
+        "text": "Canonical content without explicit type metadata.",
+    }
+    missing_model = _canonical_resource_model(missing)
+    if missing_model["resource_type"] is not None or missing_model["function"] is not None:
+        raise RuntimeError("D19 resource-model regression: missing type/function was guessed.")
+
+    attached = _attach_canonical_resource_model(dict(missing))
+    if "_use_resource_model" not in attached:
+        raise RuntimeError("D19 resource-model regression: model was not attached to resource metadata.")
+    print("USE D19 CANONICAL RESOURCE MODEL AUDIT: PASS")
 
 
 def _v97_retrieval_candidate_window_audit() -> None:
@@ -7744,6 +7919,7 @@ def _v96_current_turn_state_integrity_audit():
 
 _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
+_d19_canonical_resource_model_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
