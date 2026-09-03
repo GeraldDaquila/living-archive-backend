@@ -1,4 +1,4 @@
-# USE TEST VERSION: v86 — D17 Literal Question-Structure Evidence Boundary
+# USE TEST VERSION: v87 — D17 Literal Question-Structure Evidence Boundary
 # Complete experimental production unit reconstructed from the authoritative v80
 # TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v86"
+APP_VERSION = "v87"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v86-literal-question-structure-evidence-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v87-question-evidence-correspondence-calibration"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2871,7 +2871,7 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
-    # D17/v86: correspondence is a synthesis boundary, not another retrieval
+    # D17/v87: correspondence is a synthesis boundary, not another retrieval
     # heuristic. If the visitor's wording contains an explicit contrast, only
     # already-retrieved Content that addresses both sides may enter synthesis.
     # Navigation remains available through the complete canonical link set.
@@ -5712,75 +5712,140 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
+def _semantic_cosine_similarity(text_a: str, text_b: str) -> float:
+    """Use the existing local embedding model only to validate correspondence.
+
+    This is not retrieval: both inputs are already supplied question/evidence
+    material. It tests whether each explicit side of a question is substantively
+    represented in the supplied Content.
+    """
+    if not text_a or not text_b:
+        return 0.0
+    try:
+        vectors = list(embedding_model.embed([text_a, text_b]))
+        if len(vectors) != 2:
+            return 0.0
+        a = vectors[0].tolist() if hasattr(vectors[0], "tolist") else list(vectors[0])
+        b = vectors[1].tolist() if hasattr(vectors[1], "tolist") else list(vectors[1])
+        denom_a = math.sqrt(sum(float(x) * float(x) for x in a))
+        denom_b = math.sqrt(sum(float(x) * float(x) for x in b))
+        if denom_a == 0.0 or denom_b == 0.0:
+            return 0.0
+        return sum(float(x) * float(y) for x, y in zip(a, b)) / (denom_a * denom_b)
+    except Exception as exc:
+        print(f"USE correspondence embedding error: {exc}")
+        return 0.0
+
+
+def _question_structure_content_correspondence(
+    metadata: Dict[str, Any],
+    structure: Dict[str, Any],
+) -> Tuple[float, float, float]:
+    """Measure substantive correspondence to both explicit question sides."""
+    pairs = structure.get("pairs") or ()
+    if len(pairs) != 2:
+        return (0.0, 0.0, 0.0)
+    content = str(metadata.get("content") or metadata.get("text") or "").strip()
+    if not content:
+        return (0.0, 0.0, 0.0)
+    left = " ".join(pairs[0])
+    right = " ".join(pairs[1])
+    left_score = _semantic_cosine_similarity(left, content)
+    right_score = _semantic_cosine_similarity(right, content)
+    return (left_score, right_score, min(left_score, right_score))
+
+
 def _question_structure_evidence_gate(
     documents: List[Dict[str, Any]],
     question: str,
     intent: str,
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Bound synthesis evidence to explicit question structure."""
+    """Allow synthesis when supplied Content substantively covers both sides."""
     if not documents:
         return [], True
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
         return documents, False
-    qualifying = [
-        document
-        for document in documents
-        if _question_structure_content_score(document, structure)[1] >= 1
-    ]
+
+    qualifying: List[Dict[str, Any]] = []
+    diagnostics: List[Tuple[float, float, float]] = []
+    for document in documents:
+        left_score, right_score, minimum = _question_structure_content_correspondence(
+            document, structure
+        )
+        diagnostics.append((round(left_score, 3), round(right_score, 3), round(minimum, 3)))
+        # A single side cannot qualify. The lower side must show meaningful
+        # semantic correspondence to the supplied Content. The lexical test
+        # remains a cheap positive signal; embeddings resolve legitimate
+        # paraphrases that literal word matching misses.
+        lexical_total, lexical_min = _question_structure_content_score(document, structure)
+        if lexical_min >= 1 or minimum >= 0.42:
+            qualifying.append(document)
+
     if qualifying:
+        print(
+            "USE question-evidence correspondence: qualifying resources="
+            f"{len(qualifying)}/{len(documents)}; diagnostics={diagnostics}"
+        )
         return qualifying, False
+
+    print(
+        "USE question-evidence correspondence: no resource substantively "
+        f"covers both question sides; diagnostics={diagnostics}"
+    )
     return documents, True
-def _v86_question_structure_self_audit() -> None:
+
+
+def _v87_question_structure_self_audit() -> None:
     """Verify D17 recognizes explicit question structure without inventing a frame."""
     contrast = recognize_question_structure(
         "Why can I understand a situation clearly and still not know what to do with that understanding?"
     )
     if contrast.get("structure") != "explicit_contrast":
-        raise RuntimeError("v86 question-structure regression: explicit contrast was not recognized.")
+        raise RuntimeError("v87 question-structure regression: explicit contrast was not recognized.")
     if len(contrast.get("pairs") or ()) != 2:
-        raise RuntimeError("v86 question-structure regression: contrast sides were not preserved.")
+        raise RuntimeError("v87 question-structure regression: contrast sides were not preserved.")
     neutral = recognize_question_structure("Why is uncertainty difficult?")
     if neutral.get("structure") != "none":
-        raise RuntimeError("v86 question-structure regression: implicit theory was invented from a simple question.")
+        raise RuntimeError("v87 question-structure regression: implicit theory was invented from a simple question.")
     print("USE D17 question-structure self-audit: PASS")
 
 
 
 
 
-def _v86_question_evidence_correspondence_integration_self_audit() -> None:
+def _v87_question_evidence_correspondence_integration_self_audit() -> None:
     """Verify the correspondence gate is actually wired into the production path."""
     source = inspect.getsource(fetch_canonical_context)
     gate_call = source.find("_question_structure_evidence_gate(")
     doorway_call = source.find("select_canonical_doorways(")
     if gate_call < 0:
-        raise RuntimeError("v86 correspondence regression: gate is not wired into fetch path.")
+        raise RuntimeError("v87 correspondence regression: gate is not wired into fetch path.")
     if doorway_call < 0 or gate_call > doorway_call:
-        raise RuntimeError("v86 correspondence regression: gate is not upstream of doorway/generation selection.")
+        raise RuntimeError("v87 correspondence regression: gate is not upstream of doorway/generation selection.")
     if "question_structure_evidence_unavailable" not in source:
-        raise RuntimeError("v86 correspondence regression: insufficiency return path is missing.")
+        raise RuntimeError("v87 correspondence regression: insufficiency return path is missing.")
     print("USE D17 question-evidence correspondence integration self-audit: PASS")
 
 
-def _v86_question_structure_evidence_self_audit() -> None:
+def _v87_question_structure_evidence_self_audit() -> None:
     """Verify D17 never synthesizes from evidence that misses either side."""
     question = "Why can understanding a pattern feel different from actually seeing it in my life?"
     structure = recognize_question_structure(question)
     if structure.get("structure") != "explicit_contrast":
-        raise RuntimeError("v86 question-structure regression: explicit contrast not recognized.")
+        raise RuntimeError("v87 question-structure regression: explicit contrast not recognized.")
     adjacent = {"title": "When Life Disrupts", "content": "Synchronicity can lead people to notice patterns and assign meaning to events.", "url": "https://example.invalid/adjacent"}
     direct = {"title": "Understanding and Seeing Patterns", "content": "Understanding a pattern conceptually can differ from seeing the same pattern in one's life.", "url": "https://example.invalid/direct"}
     if _question_structure_content_score(adjacent, structure)[1] != 0:
-        raise RuntimeError("v86 question-structure regression: adjacent evidence falsely qualifies.")
+        raise RuntimeError("v87 question-structure regression: adjacent evidence falsely qualifies lexically.")
     if _question_structure_content_score(direct, structure)[1] < 1:
-        raise RuntimeError("v86 question-structure regression: direct evidence did not qualify.")
+        raise RuntimeError("v87 question-structure regression: direct evidence did not qualify lexically.")
     blocked_docs, blocked = _question_structure_evidence_gate([adjacent], question, "TOPICAL_INQUIRY")
     if not blocked or blocked_docs != [adjacent]:
-        raise RuntimeError("v86 question-structure regression: synthesis/navigation boundary failed.")
+        raise RuntimeError("v87 question-structure regression: synthesis/navigation boundary failed.")
     retained_docs, retained_block = _question_structure_evidence_gate([direct], question, "TOPICAL_INQUIRY")
     if retained_block or retained_docs != [direct]:
-        raise RuntimeError("v86 question-structure regression: direct evidence was incorrectly withheld.")
+        raise RuntimeError("v87 question-structure regression: direct evidence was incorrectly withheld.")
     print("USE D17 literal question-structure evidence self-audit: PASS")
 
 def _v83_recognition_orientation_self_audit() -> None:
@@ -5807,9 +5872,9 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v86_question_structure_self_audit()
-        _v86_question_structure_evidence_self_audit()
-        _v86_question_evidence_correspondence_integration_self_audit()
+        _v87_question_structure_self_audit()
+        _v87_question_structure_evidence_self_audit()
+        _v87_question_evidence_correspondence_integration_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -6471,20 +6536,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v86",
-            "# USE PRODUCTION VERSION: v86",
+            "# USE TEST VERSION: v87",
+            "# USE PRODUCTION VERSION: v87",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v86."
+                "Source version-label regression: line 1 does not identify v87."
             )
-        if APP_VERSION != "v86":
+        if APP_VERSION != "v87":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v86."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v87."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v86-literal-question-structure-evidence-boundary":
+        if DEPLOYMENT_FINGERPRINT != "USE-v87-question-evidence-correspondence-calibration":
             raise RuntimeError(
-                "Deployment fingerprint regression: v86 fingerprint is not aligned."
+                "Deployment fingerprint regression: v87 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7006,7 +7071,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v86":
+        if APP_VERSION != "v87":
             raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -7065,7 +7130,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v86":
+        if APP_VERSION != "v87":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -7098,12 +7163,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v86 execution-path regression: synthetic adjacent evidence "
+                    "v87 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v86 execution-path regression: evidence-sufficiency early return "
+                    "v87 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
