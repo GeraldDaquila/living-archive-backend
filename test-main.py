@@ -6090,15 +6090,11 @@ def _v93_d18_use_intent_integration_audit() -> None:
         "Why can people understand the same situation differently?",
         probe_intent,
     )
-    if not isinstance(probe_frame, str) or not probe_frame.strip():
+    if not isinstance(probe_frame, dict) or not probe_frame.get("orientation_mode"):
         raise RuntimeError(
             "D18 integration regression: intent-to-orientation transition returned no frame."
         )
-    frame = build_recognition_orientation(
-        "Why can people understand the same situation differently?",
-        topical,
-    )
-    if frame.get("orientation_mode") != "understand":
+    if probe_frame.get("orientation_mode") != "understand":
         raise RuntimeError(
             "D18 integration regression: recognition-to-orientation smoke test failed."
         )
