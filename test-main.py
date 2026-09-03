@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v95"
+APP_VERSION = "v96"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v95-d18-subject-navigation-intent-integration"
+DEPLOYMENT_FINGERPRINT = "USE-v96-d18-current-turn-state-integrity"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6891,11 +6891,11 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v94."
             )
-        if APP_VERSION != "v95":
+        if APP_VERSION != "v96":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v95."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v96."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v95-d18-subject-navigation-intent-integration":
+        if DEPLOYMENT_FINGERPRINT != "USE-v96-d18-current-turn-state-integrity":
             raise RuntimeError(
                 "Deployment fingerprint regression: v94 fingerprint is not aligned."
             )
@@ -7419,8 +7419,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v95":
-            raise RuntimeError(f"Unexpected v95 USE version: {APP_VERSION}")
+        if APP_VERSION != "v96":
+            raise RuntimeError(f"Unexpected v96 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7478,9 +7478,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v95":
+        if APP_VERSION != "v96":
             raise RuntimeError(
-                f"Unexpected v95 USE runtime version: {APP_VERSION}"
+                f"Unexpected v96 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
@@ -7572,8 +7572,118 @@ def _generation_boundary_self_audit() -> None:
     )
 
 
+
+def _v96_current_turn_state_integrity_audit():
+    """Verify that each request's query/state remains bound to that same turn."""
+    import asyncio
+
+    route_source = inspect.getsource(handle_query)
+
+    required_route_invariants = (
+        'query_str = str(query_str).strip()',
+        'context_data = fetch_canonical_context(query_str)',
+        '"query": query_str',
+        '"intent": context_data["intent"]',
+        'generate_llm_response(\n                query_str,',
+    )
+    missing = [item for item in required_route_invariants if item not in route_source]
+    if missing:
+        raise RuntimeError(
+            "D18 current-turn regression: request/state binding invariant(s) missing: "
+            + ", ".join(missing)
+        )
+
+    original_fetch = globals()["fetch_canonical_context"]
+    original_generate = globals()["generate_llm_response"]
+    original_observer = globals()["assess_progressive_commitment"]
+    original_invitation = globals()["progressive_inquiry_invitation"]
+
+    class _ProbeRequest:
+        def __init__(self, query):
+            self.query = query
+        async def json(self):
+            return {"query": self.query}
+
+    calls = []
+
+    def probe_fetch(query):
+        calls.append(("fetch", query))
+        return {
+            "context_blocks": "Title: Probe Resource\\nURL: https://example.invalid/probe\\nContent: Probe evidence.",
+            "intent": "TOPICAL_INQUIRY",
+            "orientational_frame": {"primary": "general", "scores": {}},
+            "canonical_link_context": "Title: Probe Resource\\nURL: https://example.invalid/probe",
+        }
+
+    def probe_generate(query, context_blocks, intent, orientational_frame=None, canonical_link_context=None):
+        calls.append(("generate", query, intent))
+        return f"response-for:{query}"
+
+    def probe_observer(query, history):
+        calls.append(("observer", query))
+        return {"steward_access_invitation": False, "current_turn_influence": False, "native_vocabulary_allowed": False}
+
+    def probe_invitation(state):
+        return ""
+
+    globals()["fetch_canonical_context"] = probe_fetch
+    globals()["generate_llm_response"] = probe_generate
+    globals()["assess_progressive_commitment"] = probe_observer
+    globals()["progressive_inquiry_invitation"] = probe_invitation
+
+    async def run_probe(query):
+        result = await handle_query(_ProbeRequest(query), None)
+        return result.body.decode("utf-8")
+
+    try:
+        first_query = "CURRENT TURN A — authority and governance"
+        second_query = "CURRENT TURN B — grief and transition"
+        first_body = asyncio.run(run_probe(first_query))
+        second_body = asyncio.run(run_probe(second_query))
+
+        if first_query not in first_body or second_query not in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: response envelope did not preserve the request query."
+            )
+        if first_query in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: stale query state leaked into a subsequent response."
+            )
+        if '"response":"response-for:CURRENT TURN A — authority and governance"' not in first_body:
+            raise RuntimeError(
+                "D18 current-turn regression: first response was not bound to first request."
+            )
+        if '"response":"response-for:CURRENT TURN B — grief and transition"' not in second_body:
+            raise RuntimeError(
+                "D18 current-turn regression: second response was not bound to second request."
+            )
+        fetch_queries = [item[1] for item in calls if item[0] == "fetch"]
+        generated_queries = [item[1] for item in calls if item[0] == "generate"]
+        observed_queries = [item[1] for item in calls if item[0] == "observer"]
+        if fetch_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: fetch path received stale or reordered queries."
+            )
+        if generated_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: generation path received stale or reordered queries."
+            )
+        if observed_queries != [first_query, second_query]:
+            raise RuntimeError(
+                "D18 current-turn regression: observer received stale or reordered queries."
+            )
+    finally:
+        globals()["fetch_canonical_context"] = original_fetch
+        globals()["generate_llm_response"] = original_generate
+        globals()["assess_progressive_commitment"] = original_observer
+        globals()["progressive_inquiry_invitation"] = original_invitation
+
+    print("D18 CURRENT-TURN STATE INTEGRITY AUDIT: PASS")
+
+
 _v83_recognition_orientation_self_audit()
 _v93_d18_use_intent_integration_audit()
+_v96_current_turn_state_integrity_audit()
 
 _generation_boundary_self_audit()
 
