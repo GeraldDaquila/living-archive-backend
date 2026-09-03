@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v102"
+APP_VERSION = "v103"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v102-d21-essay-function"
+DEPLOYMENT_FINGERPRINT = "USE-v103-d22-cornerstone-function"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2062,6 +2062,103 @@ def _attach_essay_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================================================================
+# D22 CORNERSTONE FUNCTION
+# =====================================================================
+# D22 establishes the architectural function of a resource already recognized
+# as a Cornerstone. The corpus describes Cornerstones as foundational lenses
+# that reveal larger patterns across domains and connect essays, frameworks,
+# analyses, and maps around underlying principles.
+#
+# This layer therefore requires evidence from the resource itself for both:
+#   1) a foundational/lens role, and
+#   2) a cross-domain/pattern-orientation role.
+#
+# It does not infer what a visitor's subject means, and it does not promote a
+# Cornerstone merely because the visitor's question contains broad or
+# interdisciplinary language.
+# =====================================================================
+
+_D22_CORNERSTONE_FUNCTION_LABEL = "cross-domain pattern orientation"
+
+
+def _d22_cornerstone_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Recognize Cornerstone function only from sufficient resource evidence."""
+    if not isinstance(metadata, dict):
+        return {"function": None, "confidence": "unknown", "basis": "none"}
+
+    recognition = metadata.get("_use_resource_type_recognition")
+    if not isinstance(recognition, dict):
+        recognition = _recognize_resource_type(metadata)
+
+    if recognition.get("resource_type") != "Cornerstone":
+        return {
+            "function": None,
+            "confidence": "not_applicable",
+            "basis": "resource_type_not_cornerstone",
+        }
+
+    content = html.unescape(_resource_content(metadata)).casefold()
+    if not content:
+        return {
+            "function": None,
+            "confidence": "unknown",
+            "basis": "insufficient_cornerstone_function_evidence",
+        }
+
+    # Structural signals are deliberately generic. They are drawn from the
+    # corpus's own description of Cornerstones as foundational lenses and as
+    # bridges/pattern frameworks across multiple domains.
+    foundational_signals = (
+        r"\bthis cornerstone\b",
+        r"\bcornerstones? (?:are|act as) (?:foundational )?lenses\b",
+        r"\bfoundational lenses?\b",
+        r"\bways of seeing\b",
+        r"\bthe purpose of the cornerstones\b",
+        r"\bthe cornerstone (?:provides|offers)\b",
+    )
+    cross_domain_signals = (
+        r"\bacross (?:multiple|different|various) domains\b",
+        r"\bbetween disciplines\b",
+        r"\bbridges? between disciplines\b",
+        r"\bunderlying (?:principle|patterns?)\b",
+        r"\blarger patterns?\b",
+        r"\bcommon underlying principle\b",
+        r"\binterconnected (?:system|system of|dimensions)\b",
+        r"\bmultiple domains of life\b",
+        r"\binterdisciplinary\b",
+    )
+
+    foundational_hits = sum(
+        1 for pattern in foundational_signals if re.search(pattern, content)
+    )
+    cross_domain_hits = sum(
+        1 for pattern in cross_domain_signals if re.search(pattern, content)
+    )
+
+    if foundational_hits >= 1 and cross_domain_hits >= 1:
+        return {
+            "function": _D22_CORNERSTONE_FUNCTION_LABEL,
+            "confidence": "strong",
+            "basis": "cornerstone_foundational_and_cross_domain_evidence",
+        }
+
+    return {
+        "function": None,
+        "confidence": "unknown",
+        "basis": "insufficient_cornerstone_function_evidence",
+    }
+
+
+def _attach_cornerstone_function(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach D22 Cornerstone function without overwriting earlier models."""
+    if not isinstance(metadata, dict):
+        return metadata
+    if "_use_cornerstone_function" not in metadata:
+        metadata["_use_cornerstone_function"] = _d22_cornerstone_function(metadata)
+    return metadata
+
+
+# =====================================================================
 # CANONICAL CORPUS LIFECYCLE ELIGIBILITY
 # =====================================================================
 #
@@ -2952,6 +3049,7 @@ def _append_unique_resource(
     metadata = _attach_canonical_resource_model(metadata)
     metadata = _attach_resource_type_recognition(metadata)
     metadata = _attach_essay_function(metadata)
+    metadata = _attach_cornerstone_function(metadata)
 
     if require_destination and not _has_usable_destination(metadata):
         print(
@@ -8122,6 +8220,65 @@ def _d21_essay_function_self_audit() -> None:
     print("USE D21 ESSAY FUNCTION AUDIT: PASS")
 
 
+def _d22_cornerstone_function_self_audit() -> None:
+    """Verify Cornerstone function is asserted only from sufficient evidence."""
+    good = {
+        "title": "The Twelve Cornerstones of the Living Archive",
+        "_use_resource_type_recognition": {
+            "resource_type": "Cornerstone",
+            "confidence": "strong",
+            "basis": "content_self_identification",
+        },
+        "text": (
+            "This Cornerstone provides a foundational lens for understanding "
+            "larger patterns across multiple domains of life. The Cornerstones "
+            "act as bridges between disciplines and reveal common underlying "
+            "principles across governance, culture, technology, and human development."
+        ),
+    }
+    result = _d22_cornerstone_function(good)
+    assert result["function"] == _D22_CORNERSTONE_FUNCTION_LABEL, (
+        "D22 Cornerstone function not recognized"
+    )
+    assert result["basis"] == (
+        "cornerstone_foundational_and_cross_domain_evidence"
+    ), "D22 Cornerstone provenance not bounded"
+
+    insufficient = {
+        "title": "Trust Architecture",
+        "_use_resource_type_recognition": {"resource_type": "Cornerstone"},
+        "text": (
+            "This Cornerstone discusses trust and governance. "
+            "It contains several sections and reflections."
+        ),
+    }
+    assert _d22_cornerstone_function(insufficient)["function"] is None, (
+        "D22 guessed Cornerstone function"
+    )
+
+    non_cornerstone = {
+        "title": "An Essay About Systems",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+        "text": (
+            "This essay explores larger patterns across multiple domains "
+            "and offers an integrative synthesis."
+        ),
+    }
+    non_result = _d22_cornerstone_function(non_cornerstone)
+    assert (
+        non_result["function"] is None
+        and non_result["basis"] == "resource_type_not_cornerstone"
+    ), "D22 leaked Cornerstone function"
+
+    attached = _attach_cornerstone_function(dict(good))
+    assert (
+        attached["_use_cornerstone_function"]["function"]
+        == _D22_CORNERSTONE_FUNCTION_LABEL
+    ), "D22 Cornerstone function not attached"
+
+    print("USE D22 CORNERSTONE FUNCTION AUDIT: PASS")
+
+
 def _v97_retrieval_candidate_window_audit() -> None:
     """Verify semantic candidates survive until bounded doorway ranking."""
     source = inspect.getsource(fetch_canonical_context)
@@ -8289,6 +8446,7 @@ _v93_d18_use_intent_integration_audit()
 _d19_canonical_resource_model_self_audit()
 _d20_resource_type_recognition_self_audit()
 _d21_essay_function_self_audit()
+_d22_cornerstone_function_self_audit()
 _v97_retrieval_candidate_window_audit()
 _v96_current_turn_state_integrity_audit()
 
