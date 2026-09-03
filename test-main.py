@@ -1,4 +1,4 @@
-# USE TEST VERSION: v93 — D18 USE Intent Integration Audit — Corrected
+# USE TEST VERSION: v94 — D18 Open Exploration Intent Integration
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v93"
+APP_VERSION = "v94"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v93-d18-use-intent-integration-audit"
+DEPLOYMENT_FINGERPRINT = "USE-v94-d18-open-exploration-intent-integration"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -939,6 +939,24 @@ def classify_intent(query_str: str) -> str:
 
     if not clean_query:
         return "TOPICAL_INQUIRY"
+
+    # Genuine open exploration is a whole-site orientation state even when
+    # the visitor has not named a subject domain. Recognize the combination
+    # of not-yet-knowing + exploratory movement before topical complement
+    # parsing, so an orientation question is not collapsed into a topic.
+    open_exploration = (
+        bool(re.search(r"\b(?:not sure|don.t know|dont know)\b", clean_query))
+        and bool(re.search(r"\b(?:what i.m looking for|what im looking for|where to look)\b", clean_query))
+        and bool(re.search(r"\b(?:explore|exploring)\b", clean_query))
+    ) or bool(
+        re.search(
+            r"\b(?:i(?:\s+am|'m)\s+not\s+sure\s+what\s+i(?:\s+am|'m)\s+looking\s+for)\b",
+            clean_query,
+        )
+        and re.search(r"\b(?:want|would like)\s+to\s+explore\b", clean_query)
+    )
+    if open_exploration:
+        return "WHOLE_SITE_ORIENTATION"
 
     if _has_topical_prepositional_complement(clean_query):
         return "TOPICAL_INQUIRY"
@@ -6099,6 +6117,21 @@ def _v93_d18_use_intent_integration_audit() -> None:
             "D18 integration regression: recognition-to-orientation smoke test failed."
         )
 
+    # D18 open-exploration integration: an explicit not-yet-knowing exploratory
+    # question must enter the whole-site orientation path rather than being
+    # collapsed into a topical inquiry by prepositional parsing.
+    open_probe = "I'm not sure what I'm looking for yet, but I want to explore."
+    open_intent = classify_intent(open_probe)
+    if open_intent != "WHOLE_SITE_ORIENTATION":
+        raise RuntimeError(
+            "D18 integration regression: open exploratory inquiry was not classified as whole-site orientation."
+        )
+    open_frame = build_recognition_orientation(open_probe, open_intent)
+    if not isinstance(open_frame, dict) or open_frame.get("orientation_mode") != "locate":
+        raise RuntimeError(
+            "D18 integration regression: whole-site orientation did not produce a locate frame for open exploration."
+        )
+
     print("USE D18 intent integration audit: PASS")
 
 
@@ -6778,20 +6811,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v93",
-            "# USE PRODUCTION VERSION: v93",
+            "# USE TEST VERSION: v94",
+            "# USE PRODUCTION VERSION: v94",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v92."
+                "Source version-label regression: line 1 does not identify v94."
             )
-        if APP_VERSION != "v93":
+        if APP_VERSION != "v94":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v93."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v94."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v93-d18-use-intent-integration-audit":
+        if DEPLOYMENT_FINGERPRINT != "USE-v94-d18-open-exploration-intent-integration":
             raise RuntimeError(
-                "Deployment fingerprint regression: v92 fingerprint is not aligned."
+                "Deployment fingerprint regression: v94 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7313,8 +7346,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v93":
-            raise RuntimeError(f"Unexpected v93 USE version: {APP_VERSION}")
+        if APP_VERSION != "v94":
+            raise RuntimeError(f"Unexpected v94 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7372,9 +7405,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v93":
+        if APP_VERSION != "v94":
             raise RuntimeError(
-                f"Unexpected v93 USE runtime version: {APP_VERSION}"
+                f"Unexpected v94 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
