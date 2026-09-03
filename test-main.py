@@ -1,4 +1,4 @@
-# USE TEST VERSION: v82 — D16 Reconciled USE Intent Baseline
+# USE TEST VERSION: v83 — D17 Recognition-to-Orientation Transition
 # Complete experimental production unit reconstructed from the authoritative v80
 # TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -573,7 +573,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v82"
+APP_VERSION = "v83"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +589,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v82-d16-reconciled-use-intent-baseline"
+DEPLOYMENT_FINGERPRINT = "USE-v83-recognition-to-orientation-transition"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2636,6 +2636,8 @@ def fetch_canonical_context(
     collection_name = detect_collection_request(user_query)
     adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
     orientational_frame = infer_orientational_frame(user_query)
+    recognition_orientation = build_recognition_orientation(user_query, intent)
+    orientational_frame = {**orientational_frame, **recognition_orientation}
 
     print(
         "USE orientational frame: "
@@ -4641,6 +4643,39 @@ def _interpretive_frame_sovereignty_instruction(question: str, intent: str) -> s
     )
 
 
+def build_recognition_orientation(question: str, intent: str) -> Dict[str, Any]:
+    """Translate explicit question form into a bounded orientation posture."""
+    q = re.sub(r"\s+", " ", str(question or "").strip().casefold())
+    q = re.sub(r"[?!.]+$", "", q).strip()
+    if not q:
+        return {"recognition": "no explicit question supplied", "orientation_mode": "clarify", "orientation_confidence": "low"}
+    if intent == "WHOLE_SITE_ORIENTATION" or q in {"what is the living archive", "what is the archive", "what is this archive", "where do i start", "where should i start"}:
+        return {"recognition": "the visitor is asking for orientation within the Archive", "orientation_mode": "locate", "orientation_confidence": "explicit"}
+    if re.search(r"\b(?:how can i tell|how do i know|is it|whether|or whether)\b", q):
+        mode = "distinguish"
+    elif re.search(r"\b(?:compare|comparison|both|different|difference|versus|vs)\b", q):
+        mode = "compare"
+    elif re.search(r"\b(?:what should i do|what do i do|what now|what next|where do i go)\b", q):
+        mode = "move"
+    elif re.search(r"\b(?:what happens|what changes|what becomes|what can become)\b", q):
+        mode = "explore"
+    elif re.search(r"\b(?:why|how|what does|what is|what makes)\b", q):
+        mode = "understand"
+    else:
+        mode = "clarify"
+    return {
+        "recognition": "the question is seeking understanding, distinction, exploration, or movement rather than a presumed diagnosis",
+        "orientation_mode": mode,
+        "orientation_confidence": "explicit",
+    }
+
+
+def _recognition_orientation_instruction(frame: Dict[str, Any]) -> str:
+    """Return a compact internal transition cue for generation."""
+    mode = str(frame.get("orientation_mode", "understand")).strip()
+    return f"\n{mode}"
+
+
 def _build_generation_messages(
     user_query: str,
     intent: str,
@@ -4659,7 +4694,7 @@ def _build_generation_messages(
     ) + (
         "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
         f"{frame_hint}. Use only when supported by evidence."
-    )
+    ) + _recognition_orientation_instruction(frame)
 
 
     user_content = (
@@ -5543,6 +5578,25 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v83_recognition_orientation_self_audit() -> None:
+    """Verify D17 stays explicit-question-bound and non-diagnostic."""
+    cases = (
+        ("Why can I understand a situation clearly and still not know what to do with that understanding?", "understand"),
+        ("How can I tell whether I am outgrowing an old way of living or interpreting it differently?", "distinguish"),
+        ("What is the Living Archive?", "locate"),
+    )
+    for question, expected_mode in cases:
+        result = build_recognition_orientation(question, classify_intent(question))
+        if result.get("orientation_mode") != expected_mode:
+            raise RuntimeError(f"v83 recognition→orientation regression: expected={expected_mode}, got={result.get('orientation_mode')}")
+        if result.get("recognition") not in {
+            "the visitor is asking for orientation within the Archive",
+            "the question is seeking understanding, distinction, exploration, or movement rather than a presumed diagnosis",
+        }:
+            raise RuntimeError("v83 recognition→orientation regression: unbounded recognition text.")
+    print("USE D17 recognition→orientation self-audit: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
@@ -6209,20 +6263,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v82",
-            "# USE PRODUCTION VERSION: v82",
+            "# USE TEST VERSION: v83",
+            "# USE PRODUCTION VERSION: v83",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v82."
+                "Source version-label regression: line 1 does not identify v83."
             )
-        if APP_VERSION != "v82":
+        if APP_VERSION != "v83":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v82."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v83."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v82-d16-reconciled-use-intent-baseline":
+        if DEPLOYMENT_FINGERPRINT != "USE-v83-recognition-to-orientation-transition":
             raise RuntimeError(
-                "Deployment fingerprint regression: v82 fingerprint is not aligned."
+                "Deployment fingerprint regression: v83 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -6744,7 +6798,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v82":
+        if APP_VERSION != "v83":
             raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -6803,7 +6857,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v82":
+        if APP_VERSION != "v83":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -6836,12 +6890,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v82 execution-path regression: synthetic adjacent evidence "
+                    "v83 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v82 execution-path regression: evidence-sufficiency early return "
+                    "v83 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
@@ -6929,6 +6983,7 @@ def _generation_boundary_self_audit() -> None:
     )
 
 
+_v83_recognition_orientation_self_audit()
 _generation_boundary_self_audit()
 
 
