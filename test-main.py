@@ -1,4 +1,4 @@
-# USE TEST VERSION: v102 — D21 Essay Function
+# USE TEST VERSION: v105 — D22 Cornerstone Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v104"
+APP_VERSION = "v105"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v104-d22-cornerstone-function-runtime-safe"
+DEPLOYMENT_FINGERPRINT = "USE-v105-d22-cornerstone-function-runtime-audit-reconciled"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7396,20 +7396,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v102",
-            "# USE PRODUCTION VERSION: v102",
+            "# USE TEST VERSION: v105",
+            "# USE PRODUCTION VERSION: v105",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v102."
+                "Source version-label regression: line 1 does not identify v105."
             )
-        if APP_VERSION != "v102":
+        if APP_VERSION != "v105":
             raise RuntimeError(
                 f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v104."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v102-d21-essay-function":
+        if DEPLOYMENT_FINGERPRINT != "USE-v105-d22-cornerstone-function-runtime-audit-reconciled":
             raise RuntimeError(
-                "Deployment fingerprint regression: v102 fingerprint is not aligned."
+                "Deployment fingerprint regression: v105 fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -7931,7 +7931,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v102":
+        if APP_VERSION != "v105":
             raise RuntimeError(f"Unexpected v104 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -7990,7 +7990,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v102":
+        if APP_VERSION != "v105":
             raise RuntimeError(
                 f"Unexpected v104 USE runtime version: {APP_VERSION}"
             )
