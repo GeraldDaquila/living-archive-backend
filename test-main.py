@@ -5262,7 +5262,7 @@ def _v78_inferential_distance_self_audit() -> Dict[str, Any]:
     required = (
         "[INFERENTIAL DISTANCE]",
         "Do not invent intermediate facts or mechanisms",
-        "label the connection as inference/possibility/interpretive reading",
+        "label the connection as an inference/possibility/interpretive reading",
     )
     present = {term: term in prompt for term in required}
 
