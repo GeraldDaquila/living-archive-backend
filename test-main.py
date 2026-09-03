@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v94"
+APP_VERSION = "v95"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v94-d18-open-exploration-intent-integration"
+DEPLOYMENT_FINGERPRINT = "USE-v95-d18-subject-navigation-intent-integration"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -934,6 +934,57 @@ def _has_topical_prepositional_complement(query: str) -> bool:
     return False
 
 
+def _has_subject_specific_navigation_signal(query: str) -> bool:
+    """Recognize navigation questions whose object is an explicit subject.
+
+    A visitor can know the subject while still not knowing which part of the
+    archive is the right doorway. That remains TOPICAL_INQUIRY with a
+    navigation need; it must not be promoted to WHOLE_SITE_ORIENTATION.
+    This is structural detection, not a vocabulary list of subjects.
+    """
+    navigation = bool(
+        re.search(
+            r"\b(?:where|which\s+(?:part|place|section|area|doorway|resource|way)|"
+            r"what\s+(?:part|place|section|area|doorway|resource)|"
+            r"how\s+(?:do|can)\s+i\s+(?:find|reach|get\s+to))\b",
+            query,
+            re.IGNORECASE,
+        )
+    )
+    if not navigation:
+        return False
+
+    subject_patterns = (
+        r"\b(?:about|on|for|around)\s+(?!the\s+(?:living\s+)?archive\b)([^?.!,;:]+)",
+        r"\b(?:understand|explore|learn\s+about|look\s+into)\s+([^?.!,;:]+)",
+        r"\b(?:my|a|an)\s+specific\s+(?:question|subject|topic)\s+about\s+([^?.!,;:]+)",
+    )
+    for pattern in subject_patterns:
+        if re.search(pattern, query, re.IGNORECASE):
+            return True
+
+    # Explicit statements that the visitor already knows the subject also
+    # establish topical scope even when the subject itself is not repeated in
+    # the navigation clause.
+    if re.search(
+        r"\b(?:i|we)\s+(?:know|already\s+know)\s+what\s+(?:subject|topic|question)\b",
+        query,
+        re.IGNORECASE,
+    ):
+        return True
+
+    # Explicit possessive/personal subject construction also establishes that
+    # the visitor has an object of inquiry even when the wording is indirect.
+    if re.search(
+        r"\b(?:i|we)\s+(?:want|would\s+like)\s+to\s+(?:explore|understand|learn\s+about)\s+.+",
+        query,
+        re.IGNORECASE,
+    ):
+        return True
+
+    return False
+
+
 def classify_intent(query_str: str) -> str:
     clean_query = re.sub(r"\s+", " ", query_str.strip().lower())
 
@@ -957,6 +1008,13 @@ def classify_intent(query_str: str) -> str:
     )
     if open_exploration:
         return "WHOLE_SITE_ORIENTATION"
+
+    # A known subject plus a request for a place/doorway is still topical
+    # inquiry. The navigation need affects doorway selection downstream; it
+    # does not erase the subject from intent classification. This check must
+    # precede generic site-orientation rules.
+    if _has_subject_specific_navigation_signal(clean_query):
+        return "TOPICAL_INQUIRY"
 
     if _has_topical_prepositional_complement(clean_query):
         return "TOPICAL_INQUIRY"
@@ -6117,6 +6175,21 @@ def _v93_d18_use_intent_integration_audit() -> None:
             "D18 integration regression: recognition-to-orientation smoke test failed."
         )
 
+    # D18 subject-navigation boundary: a known subject remains topical even
+    # when the visitor asks where to enter for that subject.
+    subject_navigation_probes = [
+        "Where in the Living Archive should I go if I want to understand grief?",
+        "I want to explore governance in the Living Archive, but I’m not sure which doorway would give me the best starting point.",
+        "I know what subject I want to explore, but I don’t know which part of the Living Archive is the right place to enter.",
+    ]
+    for subject_probe in subject_navigation_probes:
+        subject_intent = classify_intent(subject_probe)
+        if subject_intent != "TOPICAL_INQUIRY":
+            raise RuntimeError(
+                "D18 integration regression: known-subject navigation inquiry was "
+                f"misclassified as {subject_intent!r}: {subject_probe!r}"
+            )
+
     # D18 open-exploration integration: an explicit not-yet-knowing exploratory
     # question must enter the whole-site orientation path rather than being
     # collapsed into a topical inquiry by prepositional parsing.
@@ -6818,11 +6891,11 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Source version-label regression: line 1 does not identify v94."
             )
-        if APP_VERSION != "v94":
+        if APP_VERSION != "v95":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v94."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v95."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v94-d18-open-exploration-intent-integration":
+        if DEPLOYMENT_FINGERPRINT != "USE-v95-d18-subject-navigation-intent-integration":
             raise RuntimeError(
                 "Deployment fingerprint regression: v94 fingerprint is not aligned."
             )
@@ -7346,8 +7419,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v94":
-            raise RuntimeError(f"Unexpected v94 USE version: {APP_VERSION}")
+        if APP_VERSION != "v95":
+            raise RuntimeError(f"Unexpected v95 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -7405,9 +7478,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v94":
+        if APP_VERSION != "v95":
             raise RuntimeError(
-                f"Unexpected v94 USE runtime version: {APP_VERSION}"
+                f"Unexpected v95 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
