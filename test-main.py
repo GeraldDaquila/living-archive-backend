@@ -1,4 +1,4 @@
-# USE TEST VERSION: v83 — D17 Recognition-to-Orientation Transition
+# USE TEST VERSION: v84 — D17 Question-Structure Recognition
 # Complete experimental production unit reconstructed from the authoritative v80
 # TEST baseline. This experiment adds a bounded post-retrieval evidence-sufficiency gate to
 # the existing question-conditioned doorway layer without replacing semantic
@@ -573,7 +573,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v83"
+APP_VERSION = "v84"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -589,7 +589,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v83-recognition-to-orientation-transition"
+DEPLOYMENT_FINGERPRINT = "USE-v84-question-structure-recognition"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2860,6 +2860,16 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
     )
 
+    # D17: recognize an explicit contrast already present in the visitor's
+    # wording, then refine only the already-retrieved evidence toward resources
+    # whose supplied Content addresses both sides. This is not a second
+    # retrieval engine and does not infer the visitor's underlying state.
+    retrieved_docs = question_structure_rerank_documents(
+        retrieved_docs,
+        user_query,
+        preserve_prefix=protected_prefix,
+    )
+
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority.
@@ -4670,6 +4680,98 @@ def build_recognition_orientation(question: str, intent: str) -> Dict[str, Any]:
     }
 
 
+
+def recognize_question_structure(question: str) -> Dict[str, Any]:
+    """Extract explicit relational structure from the visitor's wording only.
+
+    This is a bounded routing aid, not a theory of the visitor. It identifies
+    contrasts/tensions already stated in the question so retrieval can favor
+    already-retrieved evidence that addresses both sides.
+    """
+    q = re.sub(r"\s+", " ", str(question or "").strip().casefold())
+    q = re.sub(r"[?!.]+$", "", q).strip()
+    if not q:
+        return {"structure": "none", "pairs": (), "confidence": "low"}
+
+    patterns = (
+        r"^why can (.+?)\s+(?:and still|but still|while|yet)\s+(.+)$",
+        r"^why does (.+?)\s+(?:while|but|yet)\s+(.+)$",
+        r"^how can (.+?)\s+(?:and still|but still|while|yet)\s+(.+)$",
+        r"^(.+?)\s+(?:different from|rather than)\s+(.+)$",
+    )
+    left = right = ""
+    for pattern in patterns:
+        match = re.search(pattern, q)
+        if match:
+            left, right = match.group(1).strip(), match.group(2).strip()
+            break
+
+    if not left or not right:
+        # A smaller fallback for explicit "without" contrasts. Keep the
+        # extraction conservative so ordinary questions remain untouched.
+        match = re.search(r"^(.+?)\s+without\s+(.+)$", q)
+        if match:
+            left, right = match.group(1).strip(), match.group(2).strip()
+
+    if not left or not right:
+        return {"structure": "none", "pairs": (), "confidence": "low"}
+
+    stop = set(_QUESTION_STOPWORDS)
+    def terms(text: str) -> Tuple[str, ...]:
+        words = re.findall(r"[a-z][a-z'-]{2,}", text)
+        return tuple(dict.fromkeys(w for w in words if w not in stop))[:8]
+
+    left_terms = terms(left)
+    right_terms = terms(right)
+    if not left_terms or not right_terms:
+        return {"structure": "none", "pairs": (), "confidence": "low"}
+    return {
+        "structure": "explicit_contrast",
+        "pairs": (left_terms, right_terms),
+        "confidence": "explicit",
+    }
+
+
+def _question_structure_content_score(
+    metadata: Dict[str, Any],
+    structure: Dict[str, Any],
+) -> Tuple[int, int]:
+    """Score only supplied substantive Content for coverage of both sides."""
+    pairs = structure.get("pairs") or ()
+    if len(pairs) != 2:
+        return (0, 0)
+    content = str(metadata.get("content") or metadata.get("text") or "").casefold()
+    if not content:
+        return (0, 0)
+    left, right = pairs
+    left_hits = sum(1 for term in left if re.search(r"\b" + re.escape(term) + r"\b", content))
+    right_hits = sum(1 for term in right if re.search(r"\b" + re.escape(term) + r"\b", content))
+    return (left_hits + right_hits, min(left_hits, right_hits))
+
+
+def question_structure_rerank_documents(
+    documents: List[Dict[str, Any]],
+    question: str,
+    *,
+    preserve_prefix: int = 0,
+) -> List[Dict[str, Any]]:
+    """Refine existing retrieval toward an explicit question contrast only."""
+    structure = recognize_question_structure(question)
+    if structure.get("structure") != "explicit_contrast" or not documents:
+        return documents
+    prefix = documents[:preserve_prefix]
+    remainder = documents[preserve_prefix:]
+    ranked = sorted(
+        enumerate(remainder),
+        key=lambda item: (
+            -_question_structure_content_score(item[1], structure)[1],
+            -_question_structure_content_score(item[1], structure)[0],
+            item[0],
+        ),
+    )
+    return prefix + [doc for _index, doc in ranked]
+
+
 def _recognition_orientation_instruction(frame: Dict[str, Any]) -> str:
     """Return a compact internal transition cue for generation."""
     mode = str(frame.get("orientation_mode", "understand")).strip()
@@ -5578,6 +5680,21 @@ def _v81_evidence_sufficiency_self_audit() -> Dict[str, Any]:
     }
 
 
+def _v84_question_structure_self_audit() -> None:
+    """Verify D17 recognizes explicit question structure without inventing a frame."""
+    contrast = recognize_question_structure(
+        "Why can I understand a situation clearly and still not know what to do with that understanding?"
+    )
+    if contrast.get("structure") != "explicit_contrast":
+        raise RuntimeError("v84 question-structure regression: explicit contrast was not recognized.")
+    if len(contrast.get("pairs") or ()) != 2:
+        raise RuntimeError("v84 question-structure regression: contrast sides were not preserved.")
+    neutral = recognize_question_structure("Why is uncertainty difficult?")
+    if neutral.get("structure") != "none":
+        raise RuntimeError("v84 question-structure regression: implicit theory was invented from a simple question.")
+    print("USE D17 question-structure self-audit: PASS")
+
+
 def _v83_recognition_orientation_self_audit() -> None:
     """Verify D17 stays explicit-question-bound and non-diagnostic."""
     cases = (
@@ -5588,12 +5705,12 @@ def _v83_recognition_orientation_self_audit() -> None:
     for question, expected_mode in cases:
         result = build_recognition_orientation(question, classify_intent(question))
         if result.get("orientation_mode") != expected_mode:
-            raise RuntimeError(f"v83 recognition→orientation regression: expected={expected_mode}, got={result.get('orientation_mode')}")
+            raise RuntimeError(f"D17 recognition→orientation regression: expected={expected_mode}, got={result.get('orientation_mode')}")
         if result.get("recognition") not in {
             "the visitor is asking for orientation within the Archive",
             "the question is seeking understanding, distinction, exploration, or movement rather than a presumed diagnosis",
         }:
-            raise RuntimeError("v83 recognition→orientation regression: unbounded recognition text.")
+            raise RuntimeError("D17 recognition→orientation regression: unbounded recognition text.")
     print("USE D17 recognition→orientation self-audit: PASS")
 
 
@@ -5602,6 +5719,7 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
+        _v84_question_structure_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
@@ -6263,18 +6381,18 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v83",
-            "# USE PRODUCTION VERSION: v83",
+            "# USE TEST VERSION: v84",
+            "# USE PRODUCTION VERSION: v84",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v83."
+                "Source version-label regression: line 1 does not identify v84."
             )
-        if APP_VERSION != "v83":
+        if APP_VERSION != "v84":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v83."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v84."
             )
-        if DEPLOYMENT_FINGERPRINT != "USE-v83-recognition-to-orientation-transition":
+        if DEPLOYMENT_FINGERPRINT != "USE-v84-question-structure-recognition":
             raise RuntimeError(
                 "Deployment fingerprint regression: v83 fingerprint is not aligned."
             )
@@ -6798,7 +6916,7 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v83":
+        if APP_VERSION != "v84":
             raise RuntimeError(f"Unexpected reconciled USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
@@ -6857,7 +6975,7 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v83":
+        if APP_VERSION != "v84":
             raise RuntimeError(
                 f"Unexpected USE runtime version: {APP_VERSION}"
             )
@@ -6890,12 +7008,12 @@ def _generation_boundary_self_audit() -> None:
             )
             if not boundary_result.get("evidence_sufficiency_unavailable"):
                 raise RuntimeError(
-                    "v83 execution-path regression: synthetic adjacent evidence "
+                    "v84 execution-path regression: synthetic adjacent evidence "
                     "did not activate the evidence-sufficiency boundary."
                 )
             if "canonical_link_context" not in boundary_result:
                 raise RuntimeError(
-                    "v83 execution-path regression: evidence-sufficiency early return "
+                    "v84 execution-path regression: evidence-sufficiency early return "
                     "lost canonical_link_context."
                 )
         finally:
