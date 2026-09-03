@@ -1,4 +1,4 @@
-# USE TEST VERSION: v105 — D22 Cornerstone Function
+# USE TEST VERSION: v107 — D23 Knowledge Hub Function
 # Complete TEST production unit. D17 recognizes explicit relational question
 # structure and passes that posture into bounded evidence-based reasoning without
 # creating a second retrieval or lexical synthesis gate.
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v106"
+APP_VERSION = "v107"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v106-d23-knowledge-hub-function"
+DEPLOYMENT_FINGERPRINT = "USE-v107-d23-knowledge-hub-function-runtime-audit-fixed"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7482,20 +7482,20 @@ def _generation_boundary_self_audit() -> None:
         # the repeated stale/misaligned top-of-file version problem.
         source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
         expected_source_prefixes = (
-            "# USE TEST VERSION: v105",
-            "# USE PRODUCTION VERSION: v105",
+            "# USE TEST VERSION: v107",
+            "# USE PRODUCTION VERSION: v107",
         )
         if not source_lines or not source_lines[0].startswith(expected_source_prefixes):
             raise RuntimeError(
-                "Source version-label regression: line 1 does not identify v105."
+                "Source version-label regression: line 1 does not identify v107."
             )
-        if APP_VERSION != "v105":
+        if APP_VERSION != "v107":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v106."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v107."
             )
         if DEPLOYMENT_FINGERPRINT != "USE-v106-d23-knowledge-hub-function":
             raise RuntimeError(
-                "Deployment fingerprint regression: v105 fingerprint is not aligned."
+                "Deployment fingerprint regression: current deployment fingerprint is not aligned."
             )
         # Audit the audit surface itself: detect inherited prior-release identity
         # assertions, not legitimate historical audit function names/comments.
@@ -8017,8 +8017,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v105":
-            raise RuntimeError(f"Unexpected v106 USE version: {APP_VERSION}")
+        if APP_VERSION != "v107":
+            raise RuntimeError(f"Unexpected v107 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -8076,9 +8076,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v105":
+        if APP_VERSION != "v107":
             raise RuntimeError(
-                f"Unexpected v106 USE runtime version: {APP_VERSION}"
+                f"Unexpected v107 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
