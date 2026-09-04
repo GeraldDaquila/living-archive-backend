@@ -1,7 +1,7 @@
-# USE PRODUCTION VERSION: v119 — Canonical Movement Relations
+# USE PRODUCTION VERSION: v120 — Canonical Movement Evidence Gate
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
-# D28 establishes evidence-grounded resource sequencing; D29 validates canonical
-# doorway/destination movement without inventing routes; D30 audits the boundary.
+# D28 establishes evidence-grounded resource sequencing; D29 applies a hard
+# canonical movement evidence gate; D30 audits the relevance-vs-movement boundary.
 # Existing D01-D27 architecture and v117 open-exploration sovereignty behavior remain protected.
 
 import os
@@ -566,7 +566,7 @@ For TOPICAL questions, orient through supplied evidence, not generic explanation
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
-For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link or semantic relevance into a route. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
+For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link, semantic relevance, title/description similarity, retrieval rank, or thematic continuity into a route. A resource can be surfaced as an available related place without being called the next step. Never use phrases such as “a logical next step,” “a useful place to continue,” “continue with,” or equivalent positive route language when D29 has not validated a next destination. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
 
 
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. For 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v119"
+APP_VERSION = "v120"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v119-canonical-movement-relations-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v120-canonical-movement-evidence-gate-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2965,6 +2965,10 @@ def format_context_blocks(
                     else "not validated"
                 )
             )
+            architectural_lines.append(
+                "D29 Movement Status: "
+                + movement_info.get("movement_status", "no_validated_movement")
+            )
             if movement_info.get("next_destination_validated"):
                 architectural_lines.append(
                     "D29 Next Canonical Destination: "
@@ -4309,6 +4313,15 @@ def _apply_canonical_movement_logic(
         next_destination = _explicit_next_destination(document, documents)
         linked_destinations = _explicit_linked_destinations(document, documents)
 
+        if next_destination:
+            movement_status = "validated_next"
+        elif linked_destinations:
+            movement_status = "explicit_related"
+        elif own_url:
+            movement_status = "doorway_only"
+        else:
+            movement_status = "no_validated_movement"
+
         movement = {
             "doorway": index == 0,
             "doorway_title": str(primary.get("title", "Untitled Resource")).strip()
@@ -4316,6 +4329,7 @@ def _apply_canonical_movement_logic(
             else "",
             "destination_url": own_url,
             "destination_validated": bool(own_url),
+            "movement_status": movement_status,
             "next_destination_title": (
                 str(next_destination.get("title", "Untitled Resource")).strip()
                 if next_destination
@@ -4430,7 +4444,23 @@ def _d29_canonical_movement_self_audit() -> None:
     external_result = _apply_canonical_movement_logic([external, navigator], question)
     assert external_result[0]["_use_canonical_movement"]["linked_destination_validated"] is False
 
-    print("USE D29 CANONICAL MOVEMENT RELATIONS AUDIT: PASS")
+    # v120 hard boundary: semantic continuity must not be sufficient for a route.
+    no_route_context = format_context_blocks(result)
+    inferred = (
+        "A logical next step would be to explore Archive Navigator because its "
+        "title and description suggest continuity with the current resource."
+    )
+    gated = _apply_movement_evidence_gate(inferred, question, no_route_context)
+    assert "logical next step" not in gated.casefold()
+    assert "canonically defined next step" in gated.casefold()
+
+    validated_context = format_context_blocks(linked_result)
+    validated_answer = "The logical next step is Archive Navigator."
+    assert _apply_movement_evidence_gate(
+        validated_answer, question, validated_context
+    ) == validated_answer
+
+    print("USE D29 CANONICAL MOVEMENT EVIDENCE GATE AUDIT: PASS")
 
 
 def _d30_archive_navigation_audit() -> None:
@@ -4459,6 +4489,18 @@ def _d30_archive_navigation_audit() -> None:
     # silently upgraded to a 'next' route.
     assert selected[1]["_use_canonical_movement"]["linked_destination_validated"] is True
     assert selected[1]["_use_canonical_movement"]["next_destination_validated"] is False
+
+    # D30 boundary: relevance is not movement. A semantically plausible answer
+    # must be rejected when no D29 next destination exists.
+    inferred_answer = (
+        "A useful place to continue would be Archive Essay because it builds on "
+        "the same themes."
+    )
+    gated_inferred = _apply_movement_evidence_gate(
+        inferred_answer, question, format_context_blocks(selected)
+    )
+    assert "useful place to continue" not in gated_inferred.casefold()
+    assert "canonically defined next step" in gated_inferred.casefold()
 
     # D30 boundary: every visitor-facing destination or relation must resolve
     # to a canonical resource already present in the validated evidence set.
@@ -6974,6 +7016,104 @@ def _open_exploration_sovereignty_instruction(question: str) -> str:
     )
 
 
+def _movement_question_requires_canonical_next(user_query: str) -> bool:
+    """Return True for questions that ask USE to establish a route or continuation."""
+    q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
+    if not q:
+        return False
+    return bool(
+        re.search(
+            r"\b(?:where|what)\s+(?:should|would|can)\s+i\s+(?:begin|start|go|look|turn)",
+            q,
+        )
+        or re.search(
+            r"\b(?:what|where)\s+(?:is|would be)\s+(?:a )?(?:good|useful|logical|natural|next)\s+(?:step|place)",
+            q,
+        )
+        or re.search(
+            r"\b(?:next step|next destination|where .* next|continue from|continue with|go next|move next|next place|path forward|where to go)",
+            q,
+        )
+    )
+
+
+def _movement_context_has_validated_next(generation_context: str) -> bool:
+    """Return True only when D29 explicitly validated a next destination."""
+    return bool(
+        re.search(
+            r"^D29 Next Canonical Destination:\s*https?://\S+",
+            str(generation_context or ""),
+            flags=re.MULTILINE | re.IGNORECASE,
+        )
+    )
+
+
+def _movement_positive_route_claim(answer: str) -> bool:
+    """Detect positive route claims that would promote relevance into movement."""
+    text = re.sub(r"\s+", " ", str(answer or "").casefold()).strip()
+    if not text:
+        return False
+    negative_prefix = r"(?:no|not|isn't|is not|doesn't|does not|without)"
+    positive_patterns = (
+        r"\b(?:a |the )?(?:logical|natural|useful|good|best|appropriate|clear|right)\s+next\s+step\b",
+        r"\b(?:a |the )?(?:logical|natural|useful|good|best|appropriate|clear|right)\s+next\s+(?:place|destination)\b",
+        r"\b(?:your|the)\s+next\s+step\s+(?:is|would be|could be)\b",
+        r"\b(?:continue|continuing)\s+(?:with|from)\s+\[?[^\n.?!]+",
+        r"\b(?:a |the )?(?:useful|good|natural|logical)\s+place\s+to\s+continue\b",
+        r"\b(?:i|we)\s+(?:would|recommend)\s+(?:you\s+)?(?:continue|go|move)\b",
+    )
+    for pattern in positive_patterns:
+        for match in re.finditer(pattern, text):
+            start = max(0, match.start() - 24)
+            prefix = text[start:match.start()]
+            if not re.search(negative_prefix + r"\s*$", prefix):
+                return True
+    return False
+
+
+def _deterministic_movement_evidence_fallback(
+    user_query: str,
+    generation_context: str,
+) -> str:
+    """Preserve navigation without inventing a next destination."""
+    pairs = _canonical_pairs(generation_context)
+    if not pairs:
+        return (
+            "The supplied canonical evidence does not establish a next destination "
+            "from this point. The question remains open rather than being assigned "
+            "an inferred route."
+        )
+    title = _canonical_display_title(pairs[0][0])
+    return (
+        "The supplied canonical evidence does not establish a next destination "
+        "from this point. It does surface "
+        f"{title} as an available canonical place to explore, but not as a "
+        "canonically defined next step. You can decide whether it fits your inquiry."
+    )
+
+
+def _apply_movement_evidence_gate(
+    answer: str,
+    user_query: str,
+    generation_context: str,
+) -> str:
+    """Enforce D29 after generation: relevance may surface, but cannot become route."""
+    if not answer or not _movement_question_requires_canonical_next(user_query):
+        return answer
+    if _movement_context_has_validated_next(generation_context):
+        return answer
+    if not _movement_positive_route_claim(answer):
+        return answer
+
+    print(
+        "USE D29 movement evidence gate: rejecting a positive next-step claim "
+        "because no canonical next destination was explicitly validated."
+    )
+    return _deterministic_movement_evidence_fallback(
+        user_query, generation_context
+    )
+
+
 def _build_generation_messages(
     user_query: str,
     intent: str,
@@ -7104,6 +7244,15 @@ def _run_generation_attempt(
         generated_text,
         generation_context,
         canonical_link_context,
+    )
+
+    # v120: a positive movement claim requires explicit D29 canonical evidence.
+    # This is a post-generation hard boundary because prompt instructions alone
+    # cannot be treated as authoritative enforcement.
+    cleaned_answer = _apply_movement_evidence_gate(
+        cleaned_answer,
+        user_query,
+        generation_context,
     )
 
     # v61 root-cause boundary: a topical response that ignores all selected
@@ -8995,9 +9144,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v117":
+        if APP_VERSION != "v120":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v117."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v120."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9524,8 +9673,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v117":
-            raise RuntimeError(f"Unexpected v117 USE version: {APP_VERSION}")
+        if APP_VERSION != "v120":
+            raise RuntimeError(f"Unexpected v120 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9583,9 +9732,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v117":
+        if APP_VERSION != "v120":
             raise RuntimeError(
-                f"Unexpected v117 USE runtime version: {APP_VERSION}"
+                f"Unexpected v120 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
