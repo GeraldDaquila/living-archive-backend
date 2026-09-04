@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v134 — Explicit Resource-Type Selection Preservation + The Guide
+# USE PRODUCTION VERSION: v135 — Canonical Evidence Enrichment on Duplicate + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v134"
+APP_VERSION = "v135"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v134-explicit-resource-type-selection-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v135-canonical-evidence-enrichment-on-duplicate-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4145,6 +4145,49 @@ def _preserve_explicit_type_candidates(
     return result[:MAX_CONTEXT_RESOURCES]
 
 
+def _v135_duplicate_evidence_enrichment_self_audit() -> None:
+    """Verify duplicate canonical records retain stronger D20 recognition."""
+    existing = {
+        "title": "Reference Map Probe",
+        "url": "https://example.invalid/reference-map-probe",
+        "text": "A visual structural orientation resource.",
+        "_use_resource_type_recognition": {"resource_type": None, "basis": "unknown"},
+    }
+    incoming = {
+        "title": "Reference Map Probe",
+        "url": "https://example.invalid/reference-map-probe",
+        "text": "A visual structural orientation resource.",
+        "_use_resource_type_recognition": {
+            "resource_type": "Reference Map",
+            "basis": "explicit metadata",
+        },
+        "_use_reference_map_function": {
+            "function": _D24_REFERENCE_MAP_FUNCTION_LABEL,
+            "basis": "resource evidence",
+        },
+    }
+    documents = [existing]
+    seen = {_resource_key(existing)}
+    _append_unique_resource(documents, seen, incoming)
+
+    recognized = _recognize_resource_type(documents[0]).get("resource_type")
+    if recognized != "Reference Map":
+        raise RuntimeError(
+            "v135 enrichment regression: stronger D20 recognition was lost on duplicate."
+        )
+    if documents[0].get("_use_reference_map_function", {}).get("function") != (
+        _D24_REFERENCE_MAP_FUNCTION_LABEL
+    ):
+        raise RuntimeError(
+            "v135 enrichment regression: stronger D24 function recognition was lost on duplicate."
+        )
+    if len(documents) != 1:
+        raise RuntimeError(
+            "v135 enrichment regression: duplicate canonical resource was not deduplicated."
+        )
+    print("USE v135 DUPLICATE EVIDENCE ENRICHMENT AUDIT: PASS")
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -4892,7 +4935,63 @@ def _append_unique_resource(
     key = _resource_key(metadata)
 
     if key in seen_keys:
-        return
+        # v135: retrieval deduplication is an evidence consolidation boundary,
+        # not an evidence-loss boundary. A function-targeted retrieval may
+        # independently establish stronger D20/D21-D27 recognition for a
+        # canonical resource that was already present in the ordinary semantic
+        # candidate window. Preserve that stronger recognition on the existing
+        # canonical record rather than silently discarding the second sighting.
+        for existing in documents:
+            if _resource_key(existing) != key:
+                continue
+
+            # Preserve previously supplied source metadata, while filling
+            # missing fields discovered by the new canonical retrieval.
+            for field, value in metadata.items():
+                if field not in existing or existing.get(field) in (None, "", [], {}):
+                    existing[field] = value
+
+            # D20 may have been unknown on the first retrieval but positively
+            # recognized on the later type-constrained retrieval. Upgrade only
+            # when the later recognition is stronger; never downgrade an
+            # established canonical type.
+            incoming_type = _recognize_resource_type(metadata).get("resource_type")
+            existing_type = _recognize_resource_type(existing).get("resource_type")
+            if incoming_type and not existing_type:
+                existing["_use_resource_type_recognition"] = _recognize_resource_type(metadata)
+
+            # Likewise preserve independently established function recognition
+            # without allowing a weaker duplicate to overwrite it.
+            annotation_pairs = (
+                "_use_essay_function",
+                "_use_cornerstone_function",
+                "_use_knowledge_hub_function",
+                "_use_reference_map_function",
+                "_use_navigator_function",
+                "_use_pathway_function",
+                "_use_case_learning_arc_function",
+            )
+            for annotation_key in annotation_pairs:
+                incoming_annotation = metadata.get(annotation_key)
+                existing_annotation = existing.get(annotation_key)
+                incoming_function = (
+                    incoming_annotation.get("function")
+                    if isinstance(incoming_annotation, dict)
+                    else None
+                )
+                existing_function = (
+                    existing_annotation.get("function")
+                    if isinstance(existing_annotation, dict)
+                    else None
+                )
+                if incoming_function and not existing_function:
+                    existing[annotation_key] = incoming_annotation
+
+            print(
+                "USE canonical evidence enrichment: merged stronger recognition "
+                f"for duplicate '{_canonical_display_title(existing.get('title', 'Untitled Resource'))}'."
+            )
+            return
 
     if not _resource_content(metadata):
         return
@@ -8909,6 +9008,7 @@ def _generation_boundary_self_audit() -> None:
         _v133_explicit_resource_type_request_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
+        _v135_duplicate_evidence_enrichment_self_audit()
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
