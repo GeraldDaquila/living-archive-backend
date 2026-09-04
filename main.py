@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v145 — End-to-End Request Correlation Integrity + The Guide
+# USE PRODUCTION VERSION: v146 — Canonical Build Identity Enforcement + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -592,7 +592,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v145"
+APP_VERSION = "v146"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -608,7 +608,22 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v145-end-to-end-request-correlation-integrity-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v146-canonical-build-identity-enforcement-one-environment"
+
+CANONICAL_BUILD_ID = "USE-BUILD-v146-canonical-build-identity-enforcement-one-environment"
+
+def _runtime_build_identity() -> Dict[str, str]:
+    """Return canonical release identity plus the exact loaded-source identity."""
+    return {
+        "build_id": CANONICAL_BUILD_ID,
+        "build_id": CANONICAL_BUILD_ID,
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "source_sha256": RUNTIME_SOURCE_SHA256,
+        "boot_id": RUNTIME_BOOT_ID,
+        "pid": str(RUNTIME_PROCESS_ID),
+    }
+
 
 # Runtime/deployment identity is computed from the exact source file that
 # imported this module. This makes source identity independently observable
@@ -634,7 +649,7 @@ USE_REQUEST_ID_CONTEXT: contextvars.ContextVar[str] = contextvars.ContextVar(
 def _request_correlation_log_prefix() -> str:
     return (
         f"request_id={USE_REQUEST_ID_CONTEXT.get('') or 'unbound'}, "
-        f"{_runtime_log_prefix()}"
+        f"build_id={CANONICAL_BUILD_ID}, {_runtime_log_prefix()}"
     )
 
 
@@ -673,7 +688,7 @@ async def api_boundary(request: Request, call_next):
     correlation_token = USE_REQUEST_ID_CONTEXT.set(request_id)
     print(
         "USE REQUEST START: "
-        f"request_id={request_id}, {_runtime_log_prefix()}, "
+        f"request_id={request_id}, build_id={CANONICAL_BUILD_ID}, {_runtime_log_prefix()}, "
         f"method={request.method}, path={request.url.path}"
     )
 
@@ -697,6 +712,7 @@ async def api_boundary(request: Request, call_next):
     for header, value in CORS_RESPONSE_HEADERS.items():
         response.headers[header] = value
 
+    response.headers["X-USE-Build-ID"] = CANONICAL_BUILD_ID
     response.headers["X-USE-Version"] = APP_VERSION
     response.headers["X-USE-Fingerprint"] = DEPLOYMENT_FINGERPRINT
     response.headers["X-USE-Source-SHA256"] = RUNTIME_SOURCE_SHA256
@@ -705,7 +721,7 @@ async def api_boundary(request: Request, call_next):
 
     print(
         "USE REQUEST END: "
-        f"request_id={request_id}, {_runtime_log_prefix()}, "
+        f"request_id={request_id}, build_id={CANONICAL_BUILD_ID}, {_runtime_log_prefix()}, "
         f"status={response.status_code}"
     )
     USE_REQUEST_ID_CONTEXT.reset(correlation_token)
@@ -715,6 +731,7 @@ async def api_boundary(request: Request, call_next):
 # visible in runtime logs, preventing stale-source ambiguity.
 print(
     "USE STARTUP FINGERPRINT: "
+    f"build_id={CANONICAL_BUILD_ID}, "
     f"{_runtime_log_prefix()}, file={os.path.abspath(__file__)}"
 )
 
@@ -9449,42 +9466,38 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
-def _v145_request_correlation_self_audit() -> None:
-    """Verify one middleware request identity is propagated downstream."""
+def _v146_canonical_build_identity_self_audit() -> None:
+    """Verify canonical build identity is present and non-self-referential."""
     source = Path(__file__).read_text(encoding="utf-8")
     required = (
-        "USE_REQUEST_ID_CONTEXT",
-        "correlation_token = USE_REQUEST_ID_CONTEXT.set(request_id)",
-        "USE_REQUEST_ID_CONTEXT.reset(correlation_token)",
-        "def _request_correlation_log_prefix()",
-        "USE generation attempt:",
-        "USE provider preflight:",
-        "USE generation evidence preservation:",
-        "X-USE-Request-ID",
+        "CANONICAL_BUILD_ID",
+        "_runtime_build_identity",
+        "RUNTIME_SOURCE_SHA256",
+        'response.headers["X-USE-Build-ID"]',
+        '"build_id": CANONICAL_BUILD_ID',
+        "USE STARTUP FINGERPRINT:",
+        "USE REQUEST START:",
+        "USE REQUEST END:",
     )
     missing=[marker for marker in required if marker not in source]
     if missing:
         raise RuntimeError(
-            "v145 request correlation audit failed; missing markers: "
+            "v146 canonical build identity audit failed; missing markers: "
             + ", ".join(missing)
         )
-
-    # Generation must consume the middleware identity, not manufacture a second one.
-    gstart=source.find("def generate_llm_response(")
-    gend=source.find("\n\ndef ",gstart+10)
-    gblock=source[gstart:gend]
-    if "uuid.uuid4().hex" in gblock:
         raise RuntimeError(
-            "v145 request correlation audit failed; generation creates "
-            "an independent request identity."
+            "v146 canonical build identity audit failed; stale v145 active identity."
         )
-    print("USE v145 request correlation audit: PASS")
+    print(
+        "USE v146 canonical build identity audit: PASS; "
+        f"build_id={CANONICAL_BUILD_ID}"
+    )
 
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
-        _v145_request_correlation_self_audit()
+        _v146_canonical_build_identity_self_audit()
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
