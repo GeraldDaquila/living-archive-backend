@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v133 — Type-Constrained Function Retrieval + The Guide
+# USE PRODUCTION VERSION: v134 — Explicit Resource-Type Selection Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v133"
+APP_VERSION = "v134"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v133-type-constrained-function-retrieval-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v134-explicit-resource-type-selection-preservation-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4085,6 +4085,66 @@ def _function_target_resource_type(function_name: str) -> Optional[str]:
     return mapping.get(function_name)
 
 
+def _explicit_resource_type_targets(question: str) -> set:
+    """Return publication families explicitly requested by the visitor."""
+    return {
+        required_type
+        for function_name, score in _continuity_function_needs(question).items()
+        if score > 0
+        for required_type in (_function_target_resource_type(function_name),)
+        if required_type
+    }
+
+
+def _preserve_explicit_type_candidates(
+    selected_documents: List[Dict[str, Any]],
+    candidate_documents: List[Dict[str, Any]],
+    explicit_type_targets: set,
+) -> List[Dict[str, Any]]:
+    """Keep D20-recognized explicit publication types inside the final cap.
+
+    This is a selection safeguard only. It does not create a relationship,
+    movement edge, or preference for a resource whose type was not established
+    by D20. At least one candidate for each explicitly requested publication
+    family is preserved when such a candidate already exists in the retrieved
+    evidence.
+    """
+    if not selected_documents or not candidate_documents or not explicit_type_targets:
+        return selected_documents
+
+    protected = [
+        document
+        for document in candidate_documents
+        if _recognize_resource_type(document).get("resource_type") in explicit_type_targets
+    ]
+    if not protected:
+        return selected_documents
+
+    result = list(selected_documents)
+    selected_keys = {_resource_key(document) for document in result}
+    for document in protected:
+        key = _resource_key(document)
+        if key in selected_keys:
+            continue
+        if len(result) >= MAX_CONTEXT_RESOURCES:
+            removable_index = next(
+                (
+                    index
+                    for index in range(len(result) - 1, -1, -1)
+                    if _recognize_resource_type(result[index]).get("resource_type")
+                    not in explicit_type_targets
+                ),
+                None,
+            )
+            if removable_index is None:
+                continue
+            result.pop(removable_index)
+        result.append(document)
+        selected_keys.add(key)
+
+    return result[:MAX_CONTEXT_RESOURCES]
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -5281,6 +5341,19 @@ def fetch_canonical_context(
         adaptive_bridge_count=0,
     )
 
+    # v134: an explicit publication-family request must survive the final
+    # doorway-selection cap once D20 has positively established the requested
+    # resource type. Retrieval precision is not sufficient if the requested
+    # type is subsequently displaced by higher-scoring generic resources.
+    # Capture only explicitly requested types here; generic functional
+    # questions remain governed by the ordinary doorway ranking.
+    explicit_type_targets = _explicit_resource_type_targets(user_query)
+    explicit_type_protected_docs = [
+        document
+        for document in retrieved_docs
+        if _recognize_resource_type(document).get("resource_type") in explicit_type_targets
+    ]
+
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority.
@@ -5289,7 +5362,17 @@ def fetch_canonical_context(
         orientational_frame,
         question=user_query,
         preserve_prefix=protected_prefix,
-    )[:MAX_CONTEXT_RESOURCES]
+    )
+
+    # Preserve at least one D20-recognized candidate for each explicitly
+    # requested publication family. This is a selection safeguard, not a route
+    # or relationship declaration: the resource remains merely available
+    # evidence unless later logic establishes something stronger.
+    retrieved_docs = _preserve_explicit_type_candidates(
+        retrieved_docs,
+        explicit_type_protected_docs,
+        explicit_type_targets,
+    )
     retrieved_docs = _apply_resource_sequence_metadata(
         retrieved_docs, user_query
     )
@@ -8825,6 +8908,7 @@ def _generation_boundary_self_audit() -> None:
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
+        _v134_explicit_type_selection_preservation_self_audit()
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
@@ -10676,6 +10760,48 @@ def _d25_navigator_function_self_audit() -> None:
     )
 
     print("USE D25 NAVIGATOR FUNCTION AUDIT: PASS")
+
+
+def _v134_explicit_type_selection_preservation_self_audit() -> None:
+    """Verify explicit D20 publication types survive final selection."""
+    reference_map = {
+        "title": "Reference Map Probe",
+        "url": "https://example.invalid/reference-map-probe",
+        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+    }
+    essay = {
+        "title": "Essay Probe",
+        "url": "https://example.invalid/essay-probe",
+        "_use_resource_type_recognition": {"resource_type": "Essay"},
+    }
+    generic = {
+        "title": "Generic Probe",
+        "url": "https://example.invalid/generic-probe",
+        "_use_resource_type_recognition": {"resource_type": "Cornerstone"},
+    }
+    targets = {"Reference Map", "Essay"}
+    selected = _preserve_explicit_type_candidates(
+        [generic] * MAX_CONTEXT_RESOURCES,
+        [reference_map, essay],
+        targets,
+    )
+    selected_types = {
+        _recognize_resource_type(document).get("resource_type")
+        for document in selected
+    }
+    if not targets.issubset(selected_types):
+        raise RuntimeError(
+            "v134 selection regression: explicitly requested publication types "
+            "were displaced by generic resources."
+        )
+    generic_only = _preserve_explicit_type_candidates(
+        [generic], [reference_map], set()
+    )
+    if generic_only != [generic]:
+        raise RuntimeError(
+            "v134 selection regression: neutral selection changed without an explicit type request."
+        )
+    print("USE v134 EXPLICIT TYPE SELECTION PRESERVATION AUDIT: PASS")
 
 
 def _v97_retrieval_candidate_window_audit() -> None:
