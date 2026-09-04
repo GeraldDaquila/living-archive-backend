@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v132 — Explicit Resource-Type Retrieval + The Guide
+# USE PRODUCTION VERSION: v133 — Type-Constrained Function Retrieval + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v132"
+APP_VERSION = "v133"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v132-explicit-resource-type-retrieval-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v133-type-constrained-function-retrieval-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3870,7 +3870,7 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
     return fit
 
 
-def _v132_explicit_resource_type_request_self_audit() -> None:
+def _v133_explicit_resource_type_request_self_audit() -> None:
     """Verify explicit publication-family requests activate targeted retrieval needs."""
     probe = (
         "What is the purpose of a Reference Map in the Living Archive, "
@@ -3880,12 +3880,12 @@ def _v132_explicit_resource_type_request_self_audit() -> None:
 
     if fit.get(_D24_REFERENCE_MAP_FUNCTION_LABEL, 0.0) <= 0:
         raise RuntimeError(
-            "v132 resource-type retrieval regression: explicit Reference Map request "
+            "v133 resource-type retrieval regression: explicit Reference Map request "
             "did not activate Reference Map function targeting."
         )
     if fit.get(_D21_ESSAY_FUNCTION_LABEL, 0.0) <= 0:
         raise RuntimeError(
-            "v132 resource-type retrieval regression: explicit Essay comparison "
+            "v133 resource-type retrieval regression: explicit Essay comparison "
             "did not activate Essay function targeting."
         )
 
@@ -3905,11 +3905,11 @@ def _v132_explicit_resource_type_request_self_audit() -> None:
         )
     ):
         raise RuntimeError(
-            "v132 resource-type retrieval regression: neutral question received "
+            "v133 resource-type retrieval regression: neutral question received "
             "an unintended publication-family target."
         )
 
-    print("USE v132 EXPLICIT RESOURCE-TYPE RETRIEVAL AUDIT: PASS")
+    print("USE v133 EXPLICIT RESOURCE-TYPE RETRIEVAL AUDIT: PASS")
 
 
 def _resource_function_name(resource: Dict[str, Any]) -> Optional[str]:
@@ -4070,8 +4070,23 @@ def _continuity_function_needs(question: str) -> Dict[str, float]:
     return fit
 
 
+def _function_target_resource_type(function_name: str) -> Optional[str]:
+    """Return the D20 publication family required by an explicit type request.
+
+    Function-targeted retrieval is normally semantic. When the visitor names a
+    canonical publication family directly, however, semantic similarity alone
+    is insufficient: D20 must independently establish that a candidate belongs
+    to that family before it enters the type-constrained candidate set.
+    """
+    mapping = {
+        _D24_REFERENCE_MAP_FUNCTION_LABEL: "Reference Map",
+        _D21_ESSAY_FUNCTION_LABEL: "Essay",
+    }
+    return mapping.get(function_name)
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
-    """Retrieve a small bounded candidate set for explicitly requested functions."""
+    """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
         return []
     needs = _continuity_function_needs(question)
@@ -4081,8 +4096,14 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
 
     candidates: List[Dict[str, Any]] = []
     seen = set()
+    target_diagnostics: List[str] = []
+
     for function_name in targets[:3]:
         profiles = _RESOURCE_FUNCTION_RETRIEVAL_PROFILES.get(function_name, ())
+        required_type = _function_target_resource_type(function_name)
+        accepted_for_target = 0
+        rejected_for_type = 0
+
         for profile in profiles[:1]:
             try:
                 vector = generate_embedding(profile)
@@ -4092,24 +4113,93 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
             except Exception as exc:
                 print(f"USE function-targeted retrieval error: {exc}")
                 continue
+
             for _score, _match_id, metadata in matches:
+                if not isinstance(metadata, dict):
+                    continue
+
+                # Explicit publication-family requests are constrained by D20.
+                # Unknown type is not promoted merely because semantic retrieval
+                # made the candidate look relevant.
+                if required_type:
+                    recognized = _recognize_resource_type(metadata)
+                    if recognized.get("resource_type") != required_type:
+                        rejected_for_type += 1
+                        continue
+
                 key = _resource_key(metadata)
                 if key in seen:
                     continue
-                seen.add(key)
-                _append_unique_resource(candidates, set(), metadata)
+
+                before = len(candidates)
+                _append_unique_resource(candidates, seen, metadata)
+                if len(candidates) > before:
+                    accepted_for_target += 1
+
                 if len(candidates) >= 8:
                     break
+
             if len(candidates) >= 8:
                 break
+
+        if required_type:
+            target_diagnostics.append(
+                f"{function_name}:type={required_type},accepted={accepted_for_target},"
+                f"rejected={rejected_for_type}"
+            )
+        else:
+            target_diagnostics.append(
+                f"{function_name}:accepted={accepted_for_target}"
+            )
+
         if len(candidates) >= 8:
             break
 
     print(
         "USE function-targeted retrieval: "
-        f"requested={targets[:3]}, candidates={len(candidates)}."
+        f"requested={targets[:3]}, candidates={len(candidates)}"
+        + (f", diagnostics={target_diagnostics}." if target_diagnostics else ".")
     )
     return candidates
+
+
+def _v133_type_constrained_function_retrieval_self_audit() -> None:
+    """Verify explicit publication families require independent D20 recognition."""
+    reference_map = {
+        "title": "Reference Map: Systems of Stewardship",
+        "resource_type": "Reference Map",
+        "text": "A visual structural orientation resource.",
+    }
+    essay = {
+        "title": "Essay: Stewardship and Systems",
+        "resource_type": "Essay",
+        "text": "A substantive exploration of stewardship and systems.",
+    }
+    generic = {
+        "title": "A Discussion of Systems",
+        "text": "A discussion of visual structure and relationships.",
+    }
+
+    if _function_target_resource_type(_D24_REFERENCE_MAP_FUNCTION_LABEL) != "Reference Map":
+        raise RuntimeError("v133 type gate regression: Reference Map function was not mapped to D20 type.")
+    if _function_target_resource_type(_D21_ESSAY_FUNCTION_LABEL) != "Essay":
+        raise RuntimeError("v133 type gate regression: Essay function was not mapped to D20 type.")
+
+    if _recognize_resource_type(reference_map).get("resource_type") != "Reference Map":
+        raise RuntimeError("v133 type gate regression: valid Reference Map was not recognized.")
+    if _recognize_resource_type(essay).get("resource_type") != "Essay":
+        raise RuntimeError("v133 type gate regression: valid Essay was not recognized.")
+    if _recognize_resource_type(generic).get("resource_type") is not None:
+        raise RuntimeError(
+            "v133 type gate regression: semantically suggestive generic resource "
+            "was incorrectly recognized as a canonical publication family."
+        )
+
+    # Explicit-family acceptance is exact; unknown/other types must not pass.
+    if _recognize_resource_type(generic).get("resource_type") == "Reference Map":
+        raise RuntimeError("v133 type gate regression: unknown resource passed Reference Map gate.")
+
+    print("USE v133 TYPE-CONSTRAINED FUNCTION RETRIEVAL AUDIT: PASS")
 
 
 def _resource_sequence_priority(resource: Dict[str, Any], question: str) -> Tuple[int, float]:
@@ -8733,7 +8823,8 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
-        _v132_explicit_resource_type_request_self_audit()
+        _v133_explicit_resource_type_request_self_audit()
+        _v133_type_constrained_function_retrieval_self_audit()
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
@@ -9704,7 +9795,7 @@ def _generation_boundary_self_audit() -> None:
                 "v130 compact provider evidence regression: internal evidence labels remain in provider recovery context."
             )
 
-        # v132 regression: compact generation must validate topical grounding
+        # v133 regression: compact generation must validate topical grounding
         # against the original canonical Title/URL context, not the schema-free
         # provider context. This prevents a model from naming/linking a resource
         # that was never supplied as generation evidence.
@@ -9715,7 +9806,7 @@ def _generation_boundary_self_audit() -> None:
         )
         if not _canonical_pairs(grounding_validation_probe):
             raise RuntimeError(
-                "v132 generation grounding regression: canonical validation context was not parseable."
+                "v133 generation grounding regression: canonical validation context was not parseable."
             )
         unauthorized_answer_probe = (
             "The relevant material is [Unauthorized Resource]"
@@ -9725,14 +9816,14 @@ def _generation_boundary_self_audit() -> None:
             unauthorized_answer_probe, grounding_validation_probe
         ):
             raise RuntimeError(
-                "v132 generation grounding regression: unauthorized resource was treated as selected evidence."
+                "v133 generation grounding regression: unauthorized resource was treated as selected evidence."
             )
         authorized_answer_probe = "The relevant material is Selected Resource."
         if not _contains_canonical_resource_reference(
             authorized_answer_probe, grounding_validation_probe
         ):
             raise RuntimeError(
-                "v132 generation grounding regression: selected canonical resource reference was not recognized."
+                "v133 generation grounding regression: selected canonical resource reference was not recognized."
             )
         compact_fit_probe, compact_fit_messages = _fit_generation_context_to_provider_budget(
             "Probe question",
