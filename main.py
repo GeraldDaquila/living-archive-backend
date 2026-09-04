@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v131 — Generation Grounding Boundary + The Guide
+# USE PRODUCTION VERSION: v132 — Explicit Resource-Type Retrieval + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v131"
+APP_VERSION = "v132"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v131-generation-grounding-boundary-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v132-explicit-resource-type-retrieval-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -3815,6 +3815,25 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
         fit["applied case learning"] = 1.0
         fit["sequenced case-based learning"] = 1.0 if "learning arc" in q or "sequence of cases" in q else 0.0
 
+    # Explicit canonical resource-type references are stronger than generic
+    # functional wording. When a visitor names a publication family directly,
+    # the retrieval layer should request that function before semantic ranking.
+    # This is recognition of an explicit visitor request, not inference about
+    # which resource type the visitor "ought" to use.
+    if re.search(
+        r"\breference\s+maps?\b",
+        q,
+        flags=re.IGNORECASE,
+    ):
+        fit["visual structural orientation"] = 1.0
+
+    if re.search(
+        r"\bessays?\b",
+        q,
+        flags=re.IGNORECASE,
+    ):
+        fit["substantive exploration and sensemaking"] = 1.0
+
     if any(
         phrase in q for phrase in (
             "overall structure",
@@ -3849,6 +3868,48 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
 
     # Generic "understand" questions remain function-neutral.
     return fit
+
+
+def _v132_explicit_resource_type_request_self_audit() -> None:
+    """Verify explicit publication-family requests activate targeted retrieval needs."""
+    probe = (
+        "What is the purpose of a Reference Map in the Living Archive, "
+        "and how is it different from simply reading an essay?"
+    )
+    fit = _visitor_resource_function_fit(probe)
+
+    if fit.get(_D24_REFERENCE_MAP_FUNCTION_LABEL, 0.0) <= 0:
+        raise RuntimeError(
+            "v132 resource-type retrieval regression: explicit Reference Map request "
+            "did not activate Reference Map function targeting."
+        )
+    if fit.get(_D21_ESSAY_FUNCTION_LABEL, 0.0) <= 0:
+        raise RuntimeError(
+            "v132 resource-type retrieval regression: explicit Essay comparison "
+            "did not activate Essay function targeting."
+        )
+
+    neutral = _visitor_resource_function_fit(
+        "What is the meaning of responsibility in this discussion?"
+    )
+    if any(
+        neutral.get(function_name, 0.0) > 0
+        for function_name in (
+            _D21_ESSAY_FUNCTION_LABEL,
+            _D22_CORNERSTONE_FUNCTION_LABEL,
+            _D23_KNOWLEDGE_HUB_FUNCTION_LABEL,
+            _D24_REFERENCE_MAP_FUNCTION_LABEL,
+            _D25_NAVIGATOR_FUNCTION_LABEL,
+            _D26_PATHWAY_FUNCTION_LABEL,
+            _D27_CASE_FUNCTION_LABEL,
+        )
+    ):
+        raise RuntimeError(
+            "v132 resource-type retrieval regression: neutral question received "
+            "an unintended publication-family target."
+        )
+
+    print("USE v132 EXPLICIT RESOURCE-TYPE RETRIEVAL AUDIT: PASS")
 
 
 def _resource_function_name(resource: Dict[str, Any]) -> Optional[str]:
@@ -8672,6 +8733,7 @@ def _generation_boundary_self_audit() -> None:
     try:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
+        _v132_explicit_resource_type_request_self_audit()
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
@@ -9642,7 +9704,7 @@ def _generation_boundary_self_audit() -> None:
                 "v130 compact provider evidence regression: internal evidence labels remain in provider recovery context."
             )
 
-        # v131 regression: compact generation must validate topical grounding
+        # v132 regression: compact generation must validate topical grounding
         # against the original canonical Title/URL context, not the schema-free
         # provider context. This prevents a model from naming/linking a resource
         # that was never supplied as generation evidence.
@@ -9653,7 +9715,7 @@ def _generation_boundary_self_audit() -> None:
         )
         if not _canonical_pairs(grounding_validation_probe):
             raise RuntimeError(
-                "v131 generation grounding regression: canonical validation context was not parseable."
+                "v132 generation grounding regression: canonical validation context was not parseable."
             )
         unauthorized_answer_probe = (
             "The relevant material is [Unauthorized Resource]"
@@ -9663,14 +9725,14 @@ def _generation_boundary_self_audit() -> None:
             unauthorized_answer_probe, grounding_validation_probe
         ):
             raise RuntimeError(
-                "v131 generation grounding regression: unauthorized resource was treated as selected evidence."
+                "v132 generation grounding regression: unauthorized resource was treated as selected evidence."
             )
         authorized_answer_probe = "The relevant material is Selected Resource."
         if not _contains_canonical_resource_reference(
             authorized_answer_probe, grounding_validation_probe
         ):
             raise RuntimeError(
-                "v131 generation grounding regression: selected canonical resource reference was not recognized."
+                "v132 generation grounding regression: selected canonical resource reference was not recognized."
             )
         compact_fit_probe, compact_fit_messages = _fit_generation_context_to_provider_budget(
             "Probe question",
