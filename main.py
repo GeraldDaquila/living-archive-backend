@@ -616,7 +616,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v152-mvp-single-generation-path-explicit-type-gene
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
 CANONICAL_BUILD_ID = "USE-BUILD-v152-mvp-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "c2ae90b86c62185f5f7cff763cab3e1fbb2c37c170935869c1247db475f35651"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "ae0a6534c61a2d7bb7c9b8046ea428244f8313b73cccba0895d5118e9637d6f9"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
