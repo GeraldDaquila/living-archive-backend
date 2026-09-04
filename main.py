@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v128 — Schema-Free Compact Evidence + The Guide
+# USE PRODUCTION VERSION: v129 — Schema-Free Compact Evidence Pipeline Repair + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v128"
+APP_VERSION = "v129"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v128-schema-free-compact-evidence-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v129-schema-free-compact-evidence-pipeline-repair-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6853,22 +6853,37 @@ def _build_provider_evidence_context(
     generation_context: str,
     max_chars: int,
     max_resource_chars: int,
+    *,
+    schema_free: bool = False,
 ) -> str:
-    """Build a dense provider evidence view without canonical URLs."""
+    """Build a dense provider evidence view while preserving the input schema mode.
+
+    Compact recovery receives schema-free blocks from ``_bound_existing_context_blocks``.
+    v128 accidentally passed those blocks into this legacy Title/Content parser, which
+    silently discarded every block and produced ``evidence=0``. v129 keeps the compact
+    representation intact instead of attempting to parse it as the primary schema.
+    """
     if not generation_context or max_chars <= 0:
         return ""
     blocks = []
     used = 0
     for block in generation_context.split("\n\n---\n\n"):
-        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
-        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
-        if not title_match or not content_match:
-            continue
-        title = _canonical_display_title(title_match.group(1).strip())
-        content = content_match.group(1).strip()
+        if schema_free:
+            match = re.match(r"^(.+?)\s+—\s+(.*)$", block, flags=re.DOTALL)
+            if not match:
+                continue
+            title = _canonical_display_title(match.group(1).strip())
+            content = match.group(2).strip()
+        else:
+            title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+            content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+            if not title_match or not content_match:
+                continue
+            title = _canonical_display_title(title_match.group(1).strip())
+            content = content_match.group(1).strip()
         if not title:
             continue
-        prefix = f"Title: {title}\nContent: "
+        prefix = f"{title} — " if schema_free else f"Title: {title}\nContent: "
         separator = "\n\n---\n\n" if blocks else ""
         remaining = max_chars - used - len(separator)
         if remaining <= len(prefix):
@@ -7673,6 +7688,12 @@ def generate_llm_response(
                 # to `context_blocks` anywhere in this fallback path.
                 compact_context = _bound_existing_context_blocks(
                     base_generation_context,
+                    MAX_COMPACT_GENERATION_CONTEXT_CHARS,
+                    MAX_COMPACT_GENERATION_RESOURCE_CHARS,
+                    schema_free=True,
+                )
+                compact_context = _build_provider_evidence_context(
+                    compact_context,
                     MAX_COMPACT_GENERATION_CONTEXT_CHARS,
                     MAX_COMPACT_GENERATION_RESOURCE_CHARS,
                     schema_free=True,
@@ -9578,7 +9599,18 @@ def _generation_boundary_self_audit() -> None:
             )
         if "Probe Resource" not in compact_schema_free_probe or "Probe evidence text." not in compact_schema_free_probe:
             raise RuntimeError(
-                "v128 compact schema-free evidence regression: canonical identity or evidence text was lost."
+                "v129 compact schema-free evidence regression: canonical identity or evidence text was lost."
+            )
+        compact_provider_probe = _build_provider_evidence_context(
+            compact_schema_free_probe, 650, 220, schema_free=True
+        )
+        if "Probe Resource" not in compact_provider_probe or "Probe evidence text." not in compact_provider_probe:
+            raise RuntimeError(
+                "v129 compact provider evidence regression: schema-free evidence was discarded by the provider evidence builder."
+            )
+        if "Title:" in compact_provider_probe or "URL:" in compact_provider_probe or "Content:" in compact_provider_probe:
+            raise RuntimeError(
+                "v129 compact provider evidence regression: internal evidence labels remain in provider recovery context."
             )
 
         compact_prompt_probe = COMPACT_GENERATION_SYSTEM_PROMPT.casefold()
