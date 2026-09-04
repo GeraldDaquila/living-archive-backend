@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v129 — Schema-Free Compact Evidence Pipeline Repair + The Guide
+# USE PRODUCTION VERSION: v130 — Compact Schema-Free Context Propagation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v129"
+APP_VERSION = "v130"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v129-schema-free-compact-evidence-pipeline-repair-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v130-compact-schema-free-context-propagation-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6462,7 +6462,9 @@ def _bound_existing_context_blocks(
     ``schema_free`` is used only for compact provider recovery. It preserves
     canonical title identity and evidence text while removing the internal
     Title/URL/Content field labels that small recovery models were observed
-    to reproduce as visitor-facing schema.
+    to reproduce as visitor-facing schema. It also accepts an already-schema-free
+    block so the compact representation can safely pass through later budget
+    fitting without losing its evidence.
     """
     if not context_blocks or max_chars <= 0 or max_resource_chars <= 0:
         return ""
@@ -6481,12 +6483,25 @@ def _bound_existing_context_blocks(
             r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL
         )
 
-        if not title_match or not url_match or not content_match:
-            continue
+        if schema_free and (not title_match or not content_match):
+            # Compact recovery may already be receiving the schema-free form
+            # produced by the recovery path. Preserve that representation
+            # rather than attempting to parse the primary Title/URL/Content
+            # schema and silently discarding the evidence.
+            compact_match = re.match(r"^(.+?)\s+—\s+(.*)$", block, flags=re.DOTALL)
+            if compact_match:
+                title = _canonical_display_title(compact_match.group(1).strip())
+                url = ""
+                content = compact_match.group(2).strip()
+            else:
+                continue
+        else:
+            if not title_match or not url_match or not content_match:
+                continue
+            title = _canonical_display_title(title_match.group(1).strip())
+            url = url_match.group(1).strip()
+            content = content_match.group(1).strip()
 
-        title = _canonical_display_title(title_match.group(1).strip())
-        url = url_match.group(1).strip()
-        content = content_match.group(1).strip()
         if schema_free:
             prefix = f"{title} — "
         else:
@@ -6799,6 +6814,7 @@ def _fit_generation_context_to_provider_budget(
                 MAX_GENERATION_RESOURCE_CHARS,
                 max(120, target_context_chars),
             ) if target_context_chars > 0 else 0,
+            schema_free=compact,
         )
         candidate = _build_provider_evidence_context(
             bounded_selected,
@@ -6807,6 +6823,7 @@ def _fit_generation_context_to_provider_budget(
                 MAX_GENERATION_RESOURCE_CHARS,
                 max(96, target_context_chars),
             ) if target_context_chars > 0 else 0,
+            schema_free=compact,
         )
 
     while True:
@@ -7259,7 +7276,7 @@ def _build_generation_messages(
     """Build one canonical provider request from one explicit context value.
 
     ``compact`` is an explicit recovery-mode selector used by the provider
-    budget fitter.  It changes only the fixed generation envelope; canonical
+    budget fitter. It changes only the fixed generation envelope; canonical
     evidence remains supplied through the same explicit context boundary.
     """
     safe_context = str(generation_context or "").strip()
@@ -7367,6 +7384,7 @@ def _run_generation_attempt(
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
     canonical_link_context: str = "",
+    validation_context: str = "",
     compact: bool = False,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
@@ -7402,9 +7420,14 @@ def _run_generation_attempt(
         )
         return ""
 
+    # Compact recovery uses a schema-free provider context, but output
+    # validation must retain the original canonical Title/URL context so
+    # resource identity and D29 movement state remain authoritative.
+    effective_validation_context = str(validation_context or generation_context or "")
+
     cleaned_answer = _clean_generation_output(
         generated_text,
-        generation_context,
+        effective_validation_context,
         canonical_link_context,
     )
 
@@ -7414,7 +7437,7 @@ def _run_generation_attempt(
     cleaned_answer = _apply_movement_evidence_gate(
         cleaned_answer,
         user_query,
-        generation_context,
+        effective_validation_context,
     )
 
     # v61 root-cause boundary: a topical response that ignores all selected
@@ -7722,6 +7745,7 @@ def generate_llm_response(
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
                         canonical_link_context=canonical_link_context,
+                        validation_context=base_generation_context,
                         compact=True,
                     )
 
@@ -9599,18 +9623,33 @@ def _generation_boundary_self_audit() -> None:
             )
         if "Probe Resource" not in compact_schema_free_probe or "Probe evidence text." not in compact_schema_free_probe:
             raise RuntimeError(
-                "v129 compact schema-free evidence regression: canonical identity or evidence text was lost."
+                "v130 compact schema-free evidence regression: canonical identity or evidence text was lost."
             )
         compact_provider_probe = _build_provider_evidence_context(
             compact_schema_free_probe, 650, 220, schema_free=True
         )
         if "Probe Resource" not in compact_provider_probe or "Probe evidence text." not in compact_provider_probe:
             raise RuntimeError(
-                "v129 compact provider evidence regression: schema-free evidence was discarded by the provider evidence builder."
+                "v130 compact provider evidence regression: schema-free evidence was discarded by the provider evidence builder."
             )
         if "Title:" in compact_provider_probe or "URL:" in compact_provider_probe or "Content:" in compact_provider_probe:
             raise RuntimeError(
-                "v129 compact provider evidence regression: internal evidence labels remain in provider recovery context."
+                "v130 compact provider evidence regression: internal evidence labels remain in provider recovery context."
+            )
+        compact_fit_probe, compact_fit_messages = _fit_generation_context_to_provider_budget(
+            "Probe question",
+            "TOPICAL_INQUIRY",
+            compact_schema_free_probe,
+            max_tokens=MAX_COMPACT_GENERATION_TOKENS,
+            compact=True,
+        )
+        if "Probe Resource" not in compact_fit_probe or "Probe evidence text." not in compact_fit_probe:
+            raise RuntimeError(
+                "v130 compact context propagation regression: provider budget fitting discarded schema-free evidence."
+            )
+        if _estimate_message_chars(compact_fit_messages) <= 0:
+            raise RuntimeError(
+                "v130 compact context propagation regression: provider messages were not assembled."
             )
 
         compact_prompt_probe = COMPACT_GENERATION_SYSTEM_PROMPT.casefold()
