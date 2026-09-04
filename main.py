@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v139 — Explicit Resource-Type Carry-Forward Cap Repair + The Guide
+# USE PRODUCTION VERSION: v140 — Explicit Resource-Type Selection Identity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v139"
+APP_VERSION = "v140"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v139-explicit-resource-type-carry-forward-cap-repair-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v140-explicit-resource-type-selection-identity-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4101,6 +4101,33 @@ def _function_target_resource_type(function_name: str) -> Optional[str]:
     return mapping.get(function_name)
 
 
+def _explicit_type_selection_identity(
+    document: Dict[str, Any],
+) -> Optional[Dict[str, str]]:
+    """Return validated provenance for an explicitly requested publication type.
+
+    D20 establishes what the resource is. This marker records why an already
+    validated candidate must remain visible through later evidence selection.
+    It establishes neither movement nor relevance nor a semantic relationship.
+    """
+    identity = document.get("_use_explicit_type_selection_identity")
+    if not isinstance(identity, dict):
+        return None
+
+    requested_type = identity.get("requested_type")
+    source = identity.get("source")
+    if not requested_type or source != "D20_type_constrained_function_retrieval":
+        return None
+
+    if _recognize_resource_type(document).get("resource_type") != requested_type:
+        return None
+
+    return {
+        "requested_type": requested_type,
+        "source": source,
+    }
+
+
 def _explicit_resource_type_targets(question: str) -> set:
     """Return publication families explicitly requested by the visitor."""
     return {
@@ -4382,6 +4409,46 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
             "appended beyond the cap and lost by final slicing."
         )
     print("USE v139 EXPLICIT TYPE CARRY-FORWARD CAP AUDIT: PASS")
+    identity_probe = {
+        "title": "Reference Map Identity Probe",
+        "url": "https://example.invalid/reference-map-identity-probe",
+        "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+        "_use_explicit_type_selection_identity": {
+            "requested_type": "Reference Map",
+            "source": "D20_type_constrained_function_retrieval",
+        },
+    }
+    identity = _explicit_type_selection_identity(identity_probe)
+    if not identity or identity["requested_type"] != "Reference Map":
+        raise RuntimeError(
+            "v140 selection identity regression: explicit Reference Map "
+            "identity was not validated."
+        )
+
+    oversized = [
+        {"title": f"Selection Probe {index}", "url": f"https://example.invalid/selection-{index}"}
+        for index in range(12)
+    ]
+    preserved = _preserve_explicit_type_candidates(
+        oversized,
+        [identity_probe],
+        {"Reference Map"},
+    )
+    if len(preserved) != MAX_CONTEXT_RESOURCES:
+        raise RuntimeError(
+            "v140 cap regression: bounded selection did not remain within "
+            "MAX_CONTEXT_RESOURCES."
+        )
+    if not any(
+        _recognize_resource_type(document).get("resource_type") == "Reference Map"
+        for document in preserved
+    ):
+        raise RuntimeError(
+            "v140 cap regression: explicitly requested Reference Map was "
+            "not physically retained inside the bounded selection."
+        )
+    print("USE v140 EXPLICIT TYPE SELECTION IDENTITY AUDIT: PASS")
+
 
     print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
 
@@ -4427,6 +4494,15 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     if recognized.get("resource_type") != required_type:
                         rejected_for_type += 1
                         continue
+                    # v140: D20 has positively established that this candidate
+                    # belongs to a publication family explicitly requested by
+                    # the visitor. Preserve that selection provenance through
+                    # subsequent canonical deduplication and evidence gates.
+                    metadata = dict(metadata)
+                    metadata["_use_explicit_type_selection_identity"] = {
+                        "requested_type": required_type,
+                        "source": "D20_type_constrained_function_retrieval",
+                    }
 
                 key = _resource_key(metadata)
                 if key in seen:
@@ -5158,6 +5234,25 @@ def _append_unique_resource(
             if incoming_type and not existing_type:
                 existing["_use_resource_type_recognition"] = _recognize_resource_type(metadata)
 
+            # v140: preserve explicit publication-family selection provenance
+            # even when the targeted candidate is a duplicate of an ordinary
+            # semantic retrieval result.
+            incoming_selection_identity = metadata.get(
+                "_use_explicit_type_selection_identity"
+            )
+            if isinstance(incoming_selection_identity, dict):
+                requested_type = incoming_selection_identity.get("requested_type")
+                source = incoming_selection_identity.get("source")
+                if (
+                    requested_type
+                    and source == "D20_type_constrained_function_retrieval"
+                    and _recognize_resource_type(existing).get("resource_type")
+                    == requested_type
+                ):
+                    existing["_use_explicit_type_selection_identity"] = dict(
+                        incoming_selection_identity
+                    )
+
             # Likewise preserve independently established function recognition
             # without allowing a weaker duplicate to overwrite it.
             annotation_pairs = (
@@ -5658,8 +5753,11 @@ def fetch_canonical_context(
     explicit_type_protected_seen = set()
     for document in list(function_targeted_docs) + list(retrieved_docs):
         recognized_type = _recognize_resource_type(document).get("resource_type")
+        selection_identity = _explicit_type_selection_identity(document)
         if recognized_type not in explicit_type_targets:
             continue
+        if selection_identity and selection_identity["requested_type"] in explicit_type_targets:
+            recognized_type = selection_identity["requested_type"]
         key = _resource_key(document)
         if key in explicit_type_protected_seen:
             continue
@@ -5746,6 +5844,26 @@ def fetch_canonical_context(
         if adaptive_orientation["active"] and adaptive_docs
         else 0
     )
+
+    # v140: explicit type selection identity is a canonical evidence
+    # requirement, not merely a doorway-ranking preference. Reassert accepted
+    # type-constrained candidates after the downstream frame-neutral and
+    # sufficiency gates so a later generic narrowing step cannot silently erase
+    # the resource family the visitor explicitly asked about. This still uses
+    # only candidates already validated by D20; it creates no route or relation.
+    if explicit_type_targets and explicit_type_protected_docs:
+        before_reassert = list(retrieved_docs)
+        retrieved_docs = _preserve_explicit_type_candidates(
+            retrieved_docs,
+            explicit_type_protected_docs,
+            explicit_type_targets,
+        )
+        if retrieved_docs != before_reassert:
+            print(
+                "USE explicit type selection identity: "
+                f"preserved requested types={sorted(explicit_type_targets)}, "
+                f"selected={len(retrieved_docs)}."
+            )
 
     # v40 root-cause boundary: generation and link authority are two
     # deliberately different contexts. The model receives ONLY the
