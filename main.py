@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v150 — Provider Error Observability + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v151 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v150"
+APP_VERSION = "v151"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v150-provider-error-observability-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v151-mvp-evidence-use-boundary-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v150-provider-error-observability-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "2a084844fac3a9f7cbe24eb5c0f3828ea6ea03bee6b42e271ca71c0cc7835a9c"
+CANONICAL_BUILD_ID = "USE-BUILD-v151-mvp-evidence-use-boundary-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "9ffc042a6806068250fc3ad41396ec52c4d85222c446a7296a636f137cf582c0"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8436,6 +8436,22 @@ def _run_generation_attempt(
         effective_validation_context,
     )
 
+    # v151 MVP boundary: a provider may mention canonical resources while
+    # simultaneously making an unsupported claim that the evidence contains
+    # no information about the visitor question. Canonical presence alone does
+    # not make that negative claim valid. Reject it so another model/fallback
+    # can provide an evidence-first response.
+    if (
+        cleaned_answer
+        and _canonical_pairs(effective_validation_context)
+        and _looks_like_false_evidence_gap_claim(cleaned_answer)
+    ):
+        print(
+            f"USE MVP output boundary: rejected unsupported evidence-gap claim "
+            f"from model '{model_id}'; canonical evidence is present."
+        )
+        return ""
+
     # v61 root-cause boundary: a topical response that ignores all selected
     # canonical resources is a generic knowledge answer, not USE navigation.
     # Reject it before visitor delivery so the model fallback chain can try
@@ -8569,22 +8585,142 @@ def _is_rate_limit_error(error_text: str) -> bool:
     )
 
 
+def _looks_like_false_evidence_gap_claim(answer: str) -> bool:
+    """Detect a provider claim that selected evidence contains no answer.
+
+    This is an MVP response-boundary guard. A provider may correctly mention
+    canonical resources while still making the stronger, unsupported claim
+    that the supplied evidence contains no information about the question.
+    When canonical evidence is present, that claim must not reach the visitor.
+    """
+    value = re.sub(r"\s+", " ", str(answer or "")).casefold().strip()
+    if not value:
+        return False
+
+    markers = (
+        "provided canonical evidence does not contain",
+        "canonical evidence does not contain",
+        "canonical evidence contains no information",
+        "available evidence does not contain",
+        "available evidence contains no information",
+        "evidence does not contain information regarding",
+        "evidence does not contain information about",
+        "the excerpts do not define",
+        "the excerpts do not explain",
+        "no information regarding",
+        "no information about",
+        "does not establish the purpose of",
+    )
+    return any(marker in value for marker in markers)
+
+
+def _extractive_canonical_evidence_fallback(
+    user_query: str,
+    generation_context: str,
+) -> str:
+    """Produce a bounded evidence-first answer when generation is unavailable.
+
+    This is intentionally extractive rather than generative. It may select
+    short sentences that overlap the visitor's question, but it never invents
+    a relationship, definition, causal bridge, or resource identity. Canonical
+    titles/URLs remain authoritative and links are normalized downstream.
+    """
+    documents = context_blocks_to_documents(str(generation_context or ""))
+    if not documents:
+        return ""
+
+    query_tokens = {
+        token
+        for token in re.findall(r"[a-z0-9]{3,}", str(user_query or "").casefold())
+        if token not in {
+            "what", "when", "where", "which", "that", "this", "does", "from",
+            "with", "about", "into", "over", "than", "they", "them", "just",
+            "simply", "reading", "read", "different", "purpose", "living",
+            "archive", "and", "the", "for", "how", "why", "are", "was", "is",
+        }
+    }
+
+    scored = []
+    for doc_index, document in enumerate(documents):
+        title = _canonical_display_title(str(document.get("title", "")).strip())
+        text = re.sub(r"\s+", " ", str(document.get("text", "") or "")).strip()
+        if not title or not text:
+            continue
+
+        # Sentence-level extraction. Keep short, complete evidence units only.
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        for sentence_index, sentence in enumerate(sentences):
+            sentence = sentence.strip(" \t\r\n•-")
+            if len(sentence) < 35 or len(sentence) > 260:
+                continue
+            words = set(re.findall(r"[a-z0-9]{3,}", sentence.casefold()))
+            overlap = len(query_tokens & words)
+            # Explicit resource-family terms are useful anchors when present.
+            family_bonus = 0
+            if "reference map" in str(user_query or "").casefold() and "reference map" in sentence.casefold():
+                family_bonus += 4
+            score = overlap * 3 + family_bonus
+            if score <= 0:
+                continue
+            scored.append((score, -doc_index, -sentence_index, title, sentence))
+
+    if not scored:
+        return ""
+
+    scored.sort(reverse=True)
+    selected = []
+    seen_sentences = set()
+    seen_titles = set()
+    for _score, _doc, _sent, title, sentence in scored:
+        key = sentence.casefold()
+        if key in seen_sentences:
+            continue
+        selected.append((title, sentence))
+        seen_sentences.add(key)
+        seen_titles.add(title.casefold())
+        if len(selected) >= 3:
+            break
+
+    if not selected:
+        return ""
+
+    lines = [
+        "The canonical material available here does contain relevant substance for this question. The most directly relevant passages are:",
+        "",
+    ]
+    for title, sentence in selected:
+        lines.append(f"**{title}**: {sentence}")
+
+    lines.extend([
+        "",
+        "These passages are the evidence available for the question; any connection between them beyond what they explicitly state remains open for your own reading.",
+    ])
+    return "\n".join(lines)
+
+
 def _deterministic_provider_fallback(
     user_query: str,
     generation_context: str,
 ) -> str:
     """Return a safe visitor response without another provider call.
 
-    Movement questions are handled by the D29 state-aware fallback first, so
-    absence of a canonical route is not misreported as an interpretive system
-    failure. All other questions retain the existing canonical-resource-only
-    recovery behavior.
+    MVP correction: when provider generation fails after canonical evidence has
+    already been selected, prefer a bounded extractive evidence response over
+    a flat resource list. The fallback remains strictly evidence-bound and
+    preserves visitor sovereignty.
     """
     if _movement_question_requires_canonical_next(user_query):
         return _deterministic_movement_evidence_fallback(
             user_query,
             generation_context,
         )
+
+    extractive = _extractive_canonical_evidence_fallback(
+        user_query,
+        generation_context,
+    )
+    if extractive:
+        return extractive
 
     q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
     open_exploration = bool(
@@ -8623,12 +8759,8 @@ def _deterministic_provider_fallback(
             "answer for this question. Please try again shortly."
         )
 
-    # This is deliberately factual rather than synthetic: the fallback does
-    # not claim an interpretation the unavailable model did not produce.
     lines = [
-        "The Living Archive could not complete its interpretive response "
-        "right now, but these canonical resources are the relevant material "
-        "available for your question:",
+        "The Living Archive could not complete its interpretive response right now, but these canonical resources are the relevant material available for your question:",
         "",
     ]
     lines.extend(f"- [{title}]({url})" for title, url in pairs)
@@ -9872,6 +10004,20 @@ def _generation_boundary_self_audit() -> None:
                 "D16 evidence-sufficiency self-audit failed: "
                 f"{v81_evidence_sufficiency}"
             )
+
+        # v151 MVP response-boundary regression: a provider cannot convert
+        # canonical presence into a false evidence-gap claim merely by naming
+        # the selected resources. The boundary must reject the claim.
+        false_gap_probe = (
+            "The provided canonical evidence does not contain information "
+            "regarding the purpose of a Reference Map. "
+            "Available resources include Document Types of the Living Archive."
+        )
+        if not _looks_like_false_evidence_gap_claim(false_gap_probe):
+            raise RuntimeError(
+                "v151 MVP regression: false evidence-gap provider claim was not detected."
+            )
+        print("USE v151 MVP FALSE EVIDENCE-GAP BOUNDARY AUDIT: PASS")
 
         # D16 response-boundary regression: insufficient evidence must have a
         # bounded visitor response rather than being passed to generation.
