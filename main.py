@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v146 — Canonical Build Identity Enforcement + The Guide
+# USE PRODUCTION VERSION: v147 — Build Identity Hard Enforcement + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -592,7 +592,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v146"
+APP_VERSION = "v147"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -608,21 +608,60 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v146-canonical-build-identity-enforcement-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v147-build-identity-hard-enforcement-one-environment"
 
-CANONICAL_BUILD_ID = "USE-BUILD-v146-canonical-build-identity-enforcement-one-environment"
+# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
+# The payload hash deliberately excludes only this marked block, so the
+# expected digest is non-self-referential. Any source change outside this
+# block makes the canonical payload hash fail at startup.
+CANONICAL_BUILD_ID = "USE-BUILD-v147-build-identity-hard-enforcement-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "cddd4fe73d40d5351bc1674df69caa1756aaf8f5e84555aecd5f31c4ef83aad1"
+# === END CANONICAL BUILD IDENTITY ===
 
-def _runtime_build_identity() -> Dict[str, str]:
-    """Return canonical release identity plus the exact loaded-source identity."""
-    return {
-        "build_id": CANONICAL_BUILD_ID,
-        "build_id": CANONICAL_BUILD_ID,
-        "version": APP_VERSION,
-        "fingerprint": DEPLOYMENT_FINGERPRINT,
-        "source_sha256": RUNTIME_SOURCE_SHA256,
-        "boot_id": RUNTIME_BOOT_ID,
-        "pid": str(RUNTIME_PROCESS_ID),
-    }
+def _canonical_source_payload(source: str) -> str:
+    """Normalize the marked identity block out of source before hashing."""
+    pattern = re.compile(
+        r"(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n"
+        r".*?"
+        r"^# === END CANONICAL BUILD IDENTITY ===\n?"
+    )
+    normalized, count = pattern.subn(
+        "# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n"
+        "# <CANONICAL_BUILD_IDENTITY_BLOCK>\n"
+        "# === END CANONICAL BUILD IDENTITY ===\n",
+        source,
+        count=1,
+    )
+    if count != 1:
+        raise RuntimeError(
+            "v147 build identity failure: canonical identity block not found exactly once."
+        )
+    return normalized
+
+def _compute_canonical_build_payload_sha256(source: str) -> str:
+    return hashlib.sha256(
+        _canonical_source_payload(source).encode("utf-8")
+    ).hexdigest()
+
+def _enforce_canonical_build_identity() -> None:
+    """Hard-stop startup when the loaded source is not the canonical build."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    actual = _compute_canonical_build_payload_sha256(source)
+    expected = CANONICAL_BUILD_PAYLOAD_SHA256
+    if expected == "__PAYLOAD_SHA256__" or actual != expected:
+        print(
+            "USE BUILD IDENTITY FAILURE: "
+            f"build_id={CANONICAL_BUILD_ID}, expected_payload_sha256={expected}, "
+            f"actual_payload_sha256={actual}, file={os.path.abspath(__file__)}"
+        )
+        raise RuntimeError(
+            "USE canonical build identity mismatch; refusing to serve requests."
+        )
+    print(
+        "USE BUILD IDENTITY: valid=True, "
+        f"build_id={CANONICAL_BUILD_ID}, payload_sha256={actual}"
+    )
+
 
 
 # Runtime/deployment identity is computed from the exact source file that
@@ -638,6 +677,8 @@ def _compute_runtime_source_sha256() -> str:
 RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
 RUNTIME_BOOT_ID = uuid.uuid4().hex
 RUNTIME_PROCESS_ID = os.getpid()
+
+_enforce_canonical_build_identity()
 
 # Sole request correlation identity for the current async request.
 # Middleware creates it once; downstream retrieval/generation code reads it.
@@ -9466,38 +9507,55 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
-def _v146_canonical_build_identity_self_audit() -> None:
-    """Verify canonical build identity is present and non-self-referential."""
+def _v147_canonical_build_identity_self_audit() -> None:
+    """Verify hard build identity enforcement is structurally intact."""
     source = Path(__file__).read_text(encoding="utf-8")
     required = (
         "CANONICAL_BUILD_ID",
-        "_runtime_build_identity",
-        "RUNTIME_SOURCE_SHA256",
+        "CANONICAL_BUILD_PAYLOAD_SHA256",
+        "_canonical_source_payload",
+        "_compute_canonical_build_payload_sha256",
+        "_enforce_canonical_build_identity",
+        "USE BUILD IDENTITY FAILURE",
+        "refusing to serve requests",
         'response.headers["X-USE-Build-ID"]',
         '"build_id": CANONICAL_BUILD_ID',
-        "USE STARTUP FINGERPRINT:",
-        "USE REQUEST START:",
-        "USE REQUEST END:",
     )
-    missing=[marker for marker in required if marker not in source]
+    missing = [marker for marker in required if marker not in source]
     if missing:
         raise RuntimeError(
-            "v146 canonical build identity audit failed; missing markers: "
+            "v147 build identity audit failed; missing markers: "
             + ", ".join(missing)
         )
+    identity_matches = re.findall(
+        r"(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\\n"
+        r".*?"
+        r"^# === END CANONICAL BUILD IDENTITY ===$",
+        source,
+    )
+    if len(identity_matches) != 1:
         raise RuntimeError(
-            "v146 canonical build identity audit failed; stale v145 active identity."
+            "v147 build identity audit failed; identity block count is not one."
+        )
+    if 'APP_VERSION = "v146"' in source:
+        raise RuntimeError(
+            "v147 build identity audit failed; stale active v146 identity."
+        )
+    actual = _compute_canonical_build_payload_sha256(source)
+    if actual != CANONICAL_BUILD_PAYLOAD_SHA256:
+        raise RuntimeError(
+            "v147 build identity audit failed; canonical payload digest mismatch."
         )
     print(
-        "USE v146 canonical build identity audit: PASS; "
-        f"build_id={CANONICAL_BUILD_ID}"
+        "USE v147 canonical build identity audit: PASS; "
+        f"build_id={CANONICAL_BUILD_ID}, payload_sha256={actual}"
     )
 
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
-        _v146_canonical_build_identity_self_audit()
+        _v147_canonical_build_identity_self_audit()
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
