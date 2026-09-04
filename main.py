@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v142 — Primary Generation Budget Repair + The Guide
+# USE PRODUCTION VERSION: v143 — Generation Evidence Preservation Root Repair + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v142"
+APP_VERSION = "v143"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v142-primary-generation-budget-repair-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v143-generation-evidence-preservation-root-repair-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -670,6 +670,10 @@ MAX_GENERATION_RESOURCE_CHARS = 500
 MAX_COMPACT_GENERATION_CONTEXT_CHARS = 650
 MAX_COMPACT_GENERATION_RESOURCE_CHARS = 220
 MAX_GENERATION_TOKENS = 290
+
+# v143 static regression marker: valid generation evidence must remain non-empty
+# when the secondary provider representation cannot reconstruct it.
+_V143_GENERATION_EVIDENCE_PRESERVATION_AUDIT = True
 MAX_COMPACT_GENERATION_TOKENS = 160
 
 # Provider preflight budget. This is measured against the actual assembled
@@ -7520,6 +7524,15 @@ def _fit_generation_context_to_provider_budget(
             ) if target_context_chars > 0 else 0,
             schema_free=compact,
         )
+        # Root preservation invariant: valid bounded canonical context must
+        # never silently become empty during provider evidence formatting.
+        if bounded_selected.strip() and not candidate.strip():
+            candidate = bounded_selected.strip()
+            print(
+                "USE generation evidence preservation: secondary provider "
+                "formatter returned empty evidence; retaining bounded canonical "
+                f"context ({len(candidate)} chars)."
+            )
 
     while True:
         messages = _build_generation_messages(
