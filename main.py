@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v143 — Generation Evidence Preservation Root Repair + The Guide
+# USE PRODUCTION VERSION: v144 — Runtime/Deployment Identity Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -14,6 +14,8 @@ import inspect
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
+import uuid
+import hashlib
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -589,7 +591,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v143"
+APP_VERSION = "v144"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +607,37 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v143-generation-evidence-preservation-root-repair-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v144-runtime-deployment-identity-integrity-one-environment"
+
+# Runtime/deployment identity is computed from the exact source file that
+# imported this module. This makes source identity independently observable
+# from APP_VERSION and prevents deployment-state ambiguity from being inferred
+# solely from Render lifecycle messages.
+def _compute_runtime_source_sha256() -> str:
+    try:
+        return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    except Exception:
+        return "unavailable"
+
+RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
+RUNTIME_BOOT_ID = uuid.uuid4().hex
+RUNTIME_PROCESS_ID = os.getpid()
+
+def _runtime_identity() -> Dict[str, Any]:
+    return {
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "source_sha256": RUNTIME_SOURCE_SHA256,
+        "boot_id": RUNTIME_BOOT_ID,
+        "process_id": RUNTIME_PROCESS_ID,
+    }
+
+def _runtime_log_prefix() -> str:
+    return (
+        f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
+        f"source_sha256={RUNTIME_SOURCE_SHA256}, boot_id={RUNTIME_BOOT_ID}, "
+        f"pid={RUNTIME_PROCESS_ID}"
+    )
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -621,10 +653,21 @@ async def api_boundary(request: Request, call_next):
     if request.method == "OPTIONS":
         return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
 
+    request_id = uuid.uuid4().hex
+    request.state.use_request_id = request_id
+    print(
+        "USE REQUEST START: "
+        f"request_id={request_id}, {_runtime_log_prefix()}, "
+        f"method={request.method}, path={request.url.path}"
+    )
+
     try:
         response = await call_next(request)
     except Exception as exc:
-        print(f"USE API boundary exception: {exc}")
+        print(
+            "USE API boundary exception: "
+            f"request_id={request_id}, {_runtime_log_prefix()}, error={exc}"
+        )
         response = JSONResponse(
             status_code=200,
             content={
@@ -638,14 +681,24 @@ async def api_boundary(request: Request, call_next):
     for header, value in CORS_RESPONSE_HEADERS.items():
         response.headers[header] = value
 
+    response.headers["X-USE-Version"] = APP_VERSION
+    response.headers["X-USE-Fingerprint"] = DEPLOYMENT_FINGERPRINT
+    response.headers["X-USE-Source-SHA256"] = RUNTIME_SOURCE_SHA256
+    response.headers["X-USE-Boot-ID"] = RUNTIME_BOOT_ID
+    response.headers["X-USE-Request-ID"] = request_id
+
+    print(
+        "USE REQUEST END: "
+        f"request_id={request_id}, {_runtime_log_prefix()}, "
+        f"status={response.status_code}"
+    )
     return response
 
 # Deployment fingerprint: makes the complete production unit immediately
 # visible in runtime logs, preventing stale-source ambiguity.
 print(
     "USE STARTUP FINGERPRINT: "
-    f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"file={os.path.abspath(__file__)}"
+    f"{_runtime_log_prefix()}, file={os.path.abspath(__file__)}"
 )
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
@@ -4452,13 +4505,13 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
             "not physically retained inside the bounded selection."
         )
     print("USE v140 EXPLICIT TYPE SELECTION IDENTITY AUDIT: PASS")
-    print("USE v142 EXPLICIT TYPE SELECTION OBSERVABILITY AUDIT: PASS")
+    print("USE v144 EXPLICIT TYPE SELECTION OBSERVABILITY AUDIT: PASS")
     primary_budget_regression = (
         3108 + math.ceil(MAX_GENERATION_TOKENS * 4 * 1.25)
     )
     assert primary_budget_regression <= MAX_PROVIDER_TOTAL_CHARS
     print(
-        "USE v142 primary generation budget audit: "
+        "USE v144 primary generation budget audit: "
         f"3108+estimated_output={primary_budget_regression}<={MAX_PROVIDER_TOTAL_CHARS} PASS"
     )
 
@@ -4518,7 +4571,7 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     }
 
                 print(
-                    "USE v142 explicit type candidate accepted: "
+                    "USE explicit type candidate accepted: "
                     f"requested_type={required_type!r}, "
                     f"title={metadata.get('title')!r}, "
                     f"url={metadata.get('url')!r}, "
@@ -5902,11 +5955,11 @@ def fetch_canonical_context(
     # v56 observability: expose the selected generation set in deployment logs.
     # This makes it possible to distinguish retrieval narrowing from model
     # selection without exposing any internal information to visitors.
-    # v142 diagnostic only: expose exact protected identities and the
+    # v144 diagnostic only: expose exact protected identities and the
     # candidate set immediately before generation selection. No behavior change.
     if explicit_type_targets:
         print(
-            "USE v142 explicit type selection diagnostic: "
+            "USE explicit type selection diagnostic: "
             f"targets={sorted(explicit_type_targets)}, "
             f"protected={[(d.get('title'), d.get('url'), _recognize_resource_type(d).get('resource_type'), _resource_key(d)) for d in explicit_type_protected_docs]}, "
             f"pre_generation={[(d.get('title'), d.get('url'), _recognize_resource_type(d).get('resource_type'), _resource_key(d)) for d in retrieved_docs]}"
@@ -8654,6 +8707,10 @@ async def handle_query(
         response_content: Dict[str, Any] = {
             "ok": True,
             "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "boot_id": RUNTIME_BOOT_ID,
+            "request_id": getattr(request.state, "use_request_id", ""),
             "query": query_str,
             "intent": context_data["intent"],
             "response": llm_output,
@@ -9370,9 +9427,52 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
+def _v144_runtime_deployment_identity_self_audit() -> None:
+    """Verify that runtime identity is internally coherent and independently observable."""
+    if not re.fullmatch(r"v\d+", APP_VERSION):
+        raise RuntimeError("v144 runtime identity regression: APP_VERSION is malformed.")
+    if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
+        raise RuntimeError(
+            "v144 runtime identity regression: deployment fingerprint is not "
+            "aligned with APP_VERSION."
+        )
+    if not re.fullmatch(r"[0-9a-f]{64}", RUNTIME_SOURCE_SHA256):
+        raise RuntimeError(
+            "v144 runtime identity regression: source SHA-256 is unavailable or malformed."
+        )
+    if not RUNTIME_BOOT_ID or len(RUNTIME_BOOT_ID) != 32:
+        raise RuntimeError(
+            "v144 runtime identity regression: boot identity is unavailable or malformed."
+        )
+    if not isinstance(RUNTIME_PROCESS_ID, int) or RUNTIME_PROCESS_ID <= 0:
+        raise RuntimeError(
+            "v144 runtime identity regression: process identity is unavailable."
+        )
+
+    source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
+    expected_prefix = f"# USE PRODUCTION VERSION: {APP_VERSION}"
+    if not source_lines or not source_lines[0].startswith(expected_prefix):
+        raise RuntimeError(
+            "v144 runtime identity regression: source line 1 does not match APP_VERSION."
+        )
+
+    identity = _runtime_identity()
+    if identity["version"] != APP_VERSION or identity["fingerprint"] != DEPLOYMENT_FINGERPRINT:
+        raise RuntimeError(
+            "v144 runtime identity regression: runtime identity dictionary diverged "
+            "from active constants."
+        )
+
+    print(
+        "USE v144 runtime/deployment identity audit: PASS "
+        f"({_runtime_log_prefix()})"
+    )
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
+        _v144_runtime_deployment_identity_self_audit()
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
@@ -10093,10 +10193,8 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v125":
-            raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v125."
-            )
+        if not re.fullmatch(r"v\d+", APP_VERSION):
+            raise RuntimeError(f"Runtime version identity malformed: {APP_VERSION!r}.")
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
                 "Deployment fingerprint regression: current deployment fingerprint is not aligned "
@@ -10730,8 +10828,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v125":
-            raise RuntimeError(f"Unexpected v125 USE version: {APP_VERSION}")
+        if not re.fullmatch(r"v\d+", APP_VERSION):
+            raise RuntimeError(f"Unexpected USE version identity: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -10789,9 +10887,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v125":
+        if not re.fullmatch(r"v\d+", APP_VERSION):
             raise RuntimeError(
-                f"Unexpected v125 USE runtime version: {APP_VERSION}"
+                f"Unexpected USE runtime version identity: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
