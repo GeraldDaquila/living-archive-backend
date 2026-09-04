@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v137 — Explicit Resource-Type Candidate Carry-Forward + The Guide
+# USE PRODUCTION VERSION: v138 — Explicit Resource-Type Identity Replacement + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v137"
+APP_VERSION = "v138"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v137-explicit-resource-type-candidate-carry-forward-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v138-explicit-resource-type-identity-replacement-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4141,6 +4141,25 @@ def _preserve_explicit_type_candidates(
     for document in protected:
         key = _resource_key(document)
         if key in selected_keys:
+            # v138: the same canonical identity may already occupy the final
+            # selection with weaker or conflicting D20 recognition. In that
+            # case, carry the actually accepted type-constrained record forward
+            # by replacing the selected representation at the same position.
+            # This is evidence consolidation, not a new resource or ranking
+            # preference.
+            for index, existing in enumerate(result):
+                if _resource_key(existing) != key:
+                    continue
+                existing_type = _recognize_resource_type(existing).get("resource_type")
+                protected_type = _recognize_resource_type(document).get("resource_type")
+                if protected_type in explicit_type_targets and existing_type != protected_type:
+                    merged = dict(existing)
+                    for field, value in document.items():
+                        if field not in merged or merged.get(field) in (None, "", [], {}):
+                            merged[field] = value
+                    merged["_use_resource_type_recognition"] = _recognize_resource_type(document)
+                    result[index] = merged
+                break
             continue
         if len(result) >= MAX_CONTEXT_RESOURCES:
             removable_index = next(
@@ -4307,6 +4326,19 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
             "v137 carry-forward regression: multiple explicitly requested "
             "resource types were not preserved together."
         )
+    # v138 regression: when the protected candidate shares canonical identity
+    # with a selected weaker record, the accepted type recognition must replace
+    # the weaker representation rather than being treated as already present.
+    selected_weaker = [{"title": "Reference Map Probe", "url": reference_map["url"], "_use_resource_type_recognition": {"resource_type": "Essay"}}]
+    replaced = _preserve_explicit_type_candidates(
+        selected_weaker, [reference_map], {"Reference Map"}
+    )
+    if _recognize_resource_type(replaced[0]).get("resource_type") != "Reference Map":
+        raise RuntimeError(
+            "v138 identity replacement regression: accepted Reference Map "
+            "recognition did not replace the weaker selected representation."
+        )
+    print("USE v138 EXPLICIT TYPE IDENTITY REPLACEMENT AUDIT: PASS")
     print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
 
 
