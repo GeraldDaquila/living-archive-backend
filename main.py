@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v136 — Canonical Evidence Enrichment on Duplicate + The Guide
+# USE PRODUCTION VERSION: v137 — Explicit Resource-Type Candidate Carry-Forward + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v136"
+APP_VERSION = "v137"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v136-canonical-evidence-enrichment-recognition-propagation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v137-explicit-resource-type-candidate-carry-forward-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4250,6 +4250,66 @@ def _v136_enriched_recognition_propagation_self_audit() -> None:
     print("USE v136 ENRICHED RECOGNITION PROPAGATION AUDIT: PASS")
 
 
+def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
+    """Verify explicitly requested resource types survive final evidence selection."""
+    reference_map = {
+        "title": "Reference Map Probe",
+        "url": "https://example.invalid/reference-map-probe",
+        "text": "No publication-family self-identification is present here.",
+        "_use_resource_type_recognition": {
+            "resource_type": "Reference Map",
+            "confidence": "explicit",
+            "basis": "type_constrained_retrieval",
+        },
+    }
+    generic = [
+        {"title": f"Generic {index}", "url": f"https://example.invalid/generic-{index}"}
+        for index in range(MAX_CONTEXT_RESOURCES)
+    ]
+    preserved = _preserve_explicit_type_candidates(
+        generic,
+        [reference_map],
+        {"Reference Map"},
+    )
+    if not any(
+        _recognize_resource_type(document).get("resource_type") == "Reference Map"
+        for document in preserved
+    ):
+        raise RuntimeError(
+            "v137 carry-forward regression: explicitly requested Reference Map "
+            "candidate was lost at the final evidence-selection boundary."
+        )
+    if len(preserved) != MAX_CONTEXT_RESOURCES:
+        raise RuntimeError(
+            "v137 carry-forward regression: final evidence cap changed unexpectedly."
+        )
+
+    essay = {
+        "title": "Essay Probe",
+        "url": "https://example.invalid/essay-probe",
+        "_use_resource_type_recognition": {
+            "resource_type": "Essay",
+            "confidence": "explicit",
+            "basis": "type_constrained_retrieval",
+        },
+    }
+    preserved_both = _preserve_explicit_type_candidates(
+        generic,
+        [reference_map, essay],
+        {"Reference Map", "Essay"},
+    )
+    preserved_types = {
+        _recognize_resource_type(document).get("resource_type")
+        for document in preserved_both
+    }
+    if not {"Reference Map", "Essay"}.issubset(preserved_types):
+        raise RuntimeError(
+            "v137 carry-forward regression: multiple explicitly requested "
+            "resource types were not preserved together."
+        )
+    print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -5289,6 +5349,8 @@ def fetch_canonical_context(
         except Exception as exc:
             print(f"Root node fetch error: {exc}")
 
+    function_targeted_docs: List[Dict[str, Any]] = []
+
     try:
         query_vector = generate_embedding(user_query)
 
@@ -5502,18 +5564,31 @@ def fetch_canonical_context(
         adaptive_bridge_count=0,
     )
 
-    # v134: an explicit publication-family request must survive the final
+    # v137: an explicit publication-family request must survive the final
     # doorway-selection cap once D20 has positively established the requested
     # resource type. Retrieval precision is not sufficient if the requested
     # type is subsequently displaced by higher-scoring generic resources.
     # Capture only explicitly requested types here; generic functional
     # questions remain governed by the ordinary doorway ranking.
     explicit_type_targets = _explicit_resource_type_targets(user_query)
-    explicit_type_protected_docs = [
-        document
-        for document in retrieved_docs
-        if _recognize_resource_type(document).get("resource_type") in explicit_type_targets
-    ]
+    # v137: preserve the actual accepted function-targeted candidate objects
+    # independently of ordinary retrieval deduplication. v134/v135/v136 could
+    # establish D20 identity but still lose the candidate before this boundary
+    # because the ordinary retrieval pool and display-title dedupe had already
+    # collapsed it. Carry-forward is evidence preservation only: it does not
+    # create a relationship, movement edge, or ranking preference beyond the
+    # visitor's explicit resource-family request.
+    explicit_type_protected_docs: List[Dict[str, Any]] = []
+    explicit_type_protected_seen = set()
+    for document in list(function_targeted_docs) + list(retrieved_docs):
+        recognized_type = _recognize_resource_type(document).get("resource_type")
+        if recognized_type not in explicit_type_targets:
+            continue
+        key = _resource_key(document)
+        if key in explicit_type_protected_seen:
+            continue
+        explicit_type_protected_seen.add(key)
+        explicit_type_protected_docs.append(document)
 
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
@@ -9072,6 +9147,7 @@ def _generation_boundary_self_audit() -> None:
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
         _v136_enriched_recognition_propagation_self_audit()
+        _v137_explicit_type_candidate_carry_forward_self_audit()
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
