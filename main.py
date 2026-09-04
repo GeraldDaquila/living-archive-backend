@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v127 — Compact Evidence Schema Guard + The Guide
+# USE PRODUCTION VERSION: v128 — Schema-Free Compact Evidence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -578,7 +578,7 @@ For destination/collection requests, use evidence-established destinations. For 
 
 COMPACT_GENERATION_SYSTEM_PROMPT = """
 You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
-Preserve uncertainty and visitor sovereignty. Use the supplied evidence as source material, but never reproduce its field labels, schema, metadata, or internal formatting in the visitor answer. Do not output or discuss labels such as Title:, URL:, Content:, ID:, canonical evidence, or evidence block.
+Preserve uncertainty and visitor sovereignty. Use the supplied evidence as source material. In recovery mode, evidence is presented as title-and-excerpt prose; never reproduce internal field labels, schema, metadata, or internal formatting in the visitor answer. Do not output or discuss labels such as Title:, URL:, Content:, ID:, canonical evidence, or evidence block.
 Do not invent causes, mechanisms, relationships, resources, or outcomes.
 For movement questions, say “next” only when D29 explicitly validates a next destination; otherwise say no canonical next destination is established. Relevance is not movement.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, metadata, or internal process.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v127"
+APP_VERSION = "v128"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v127-compact-evidence-schema-guard-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v128-schema-free-compact-evidence-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6454,8 +6454,16 @@ def _bound_existing_context_blocks(
     context_blocks: str,
     max_chars: int,
     max_resource_chars: int,
+    *,
+    schema_free: bool = False,
 ) -> str:
-    """Bound canonical blocks to an exact character ceiling without losing identity."""
+    """Bound canonical blocks to an exact character ceiling without losing identity.
+
+    ``schema_free`` is used only for compact provider recovery. It preserves
+    canonical title identity and evidence text while removing the internal
+    Title/URL/Content field labels that small recovery models were observed
+    to reproduce as visitor-facing schema.
+    """
     if not context_blocks or max_chars <= 0 or max_resource_chars <= 0:
         return ""
 
@@ -6479,7 +6487,10 @@ def _bound_existing_context_blocks(
         title = _canonical_display_title(title_match.group(1).strip())
         url = url_match.group(1).strip()
         content = content_match.group(1).strip()
-        prefix = f"Title: {title}\nURL: {url}\nContent: "
+        if schema_free:
+            prefix = f"{title} — "
+        else:
+            prefix = f"Title: {title}\nURL: {url}\nContent: "
         separator = "\n\n---\n\n" if bounded else ""
         remaining = max_chars - used - len(separator)
 
@@ -7664,6 +7675,7 @@ def generate_llm_response(
                     base_generation_context,
                     MAX_COMPACT_GENERATION_CONTEXT_CHARS,
                     MAX_COMPACT_GENERATION_RESOURCE_CHARS,
+                    schema_free=True,
                 )
 
                 print(
@@ -9526,34 +9538,54 @@ def _generation_boundary_self_audit() -> None:
                 f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
             )
 
-        # v127 regression: recovery must materially reduce the fixed generation
+        # v128 regression: recovery must materially reduce the fixed generation
         # envelope beyond v125. The production failure showed that shrinking
         # evidence alone cannot help when the fixed envelope itself is too large.
         if compact_fixed_chars >= 900:
             raise RuntimeError(
-                "v127 compact-envelope regression: compact fixed system/user "
+                "v128 compact-envelope regression: compact fixed system/user "
                 f"envelope is not below provider input capacity "
                 f"(fixed_input={compact_fixed_chars}, limit={MAX_PROVIDER_INPUT_CHARS})."
             )
         if compact_fixed_chars + compact_output_reservation > 2100:
             raise RuntimeError(
-                "v127 compact-envelope regression: compact fixed envelope plus "
+                "v128 compact-envelope regression: compact fixed envelope plus "
                 "output reservation still exceeds provider total capacity."
             )
         if compact_fixed_chars > 900:
             raise RuntimeError(
-                "v127 compact-envelope regression: compact fixed envelope remains "
+                "v128 compact-envelope regression: compact fixed envelope remains "
                 f"too large for provider recovery (fixed_input={compact_fixed_chars})."
             )
         if MAX_COMPACT_GENERATION_CONTEXT_CHARS > 650:
             raise RuntimeError(
-                "v127 evidence-bound regression: recovery evidence ceiling exceeded the audited compact ceiling."
+                "v128 evidence-bound regression: recovery evidence ceiling exceeded the audited compact ceiling."
             )
+        compact_schema_probe_context = (
+            "Title: Probe Resource\n"
+            "URL: https://example.invalid/probe\n"
+            "Content: Probe evidence text."
+        )
+        compact_schema_free_probe = _bound_existing_context_blocks(
+            compact_schema_probe_context,
+            650,
+            220,
+            schema_free=True,
+        )
+        if "Title:" in compact_schema_free_probe or "URL:" in compact_schema_free_probe or "Content:" in compact_schema_free_probe:
+            raise RuntimeError(
+                "v128 compact schema-free evidence regression: internal evidence labels remain in recovery context."
+            )
+        if "Probe Resource" not in compact_schema_free_probe or "Probe evidence text." not in compact_schema_free_probe:
+            raise RuntimeError(
+                "v128 compact schema-free evidence regression: canonical identity or evidence text was lost."
+            )
+
         compact_prompt_probe = COMPACT_GENERATION_SYSTEM_PROMPT.casefold()
         for forbidden in ("never reproduce its field labels", "title:", "url:", "content:"):
             if forbidden not in compact_prompt_probe:
                 raise RuntimeError(
-                    "v127 compact schema-guard regression: required schema-protection instruction missing."
+                    "v128 compact schema-guard regression: required schema-protection instruction missing."
                 )
 
         # v65 regression: doorway selection must prioritize a canonical
