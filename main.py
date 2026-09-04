@@ -615,7 +615,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v148-canonical-evidence-boundary-recovery-one-envi
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
 CANONICAL_BUILD_ID = "USE-BUILD-v148-canonical-evidence-boundary-recovery-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "25fd986c5c0cc0dc95a2c668443bc6b8635a9dda09112bb3dc3f3b01fa04b883"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1ac0c5825b3f66ce628b094de4407c86e58daa2eae4acadcb22a0748b471ac39"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7679,6 +7679,32 @@ def _fit_generation_context_to_provider_budget(
             ) if target_context_chars > 0 else 0,
             schema_free=compact,
         )
+
+        # v148 root-cause boundary: never silently collapse existing canonical
+        # evidence to zero when the primary envelope has positive capacity but
+        # no complete evidence block can survive. Route this through the
+        # established compact recovery path.
+        if (
+            not compact
+            and str(generation_context or "").strip()
+            and target_context_chars > 0
+            and not bounded_selected.strip()
+        ):
+            print(
+                "USE generation boundary: "
+                f"{_request_correlation_log_prefix()}, "
+                "primary evidence capacity cannot preserve a minimally viable "
+                "canonical evidence block; entering compact recovery; "
+                f"context_capacity={context_capacity}, "
+                f"target_context_chars={target_context_chars}, "
+                f"canonical_context={len(str(generation_context or '').strip())}."
+            )
+            raise ValueError(
+                "USE provider preflight could not preserve a minimally viable "
+                "canonical evidence block within the primary envelope: "
+                f"context_capacity={context_capacity}, "
+                f"target_context_chars={target_context_chars}."
+            )
         # Root preservation invariant: valid bounded canonical context must
         # never silently become empty during provider evidence formatting.
         if bounded_selected.strip() and not candidate.strip():
@@ -9556,7 +9582,7 @@ def _v148_canonical_build_identity_self_audit() -> None:
             + ", ".join(missing)
         )
     identity_matches = re.findall(
-        r"(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\\n"
+        r"(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n"
         r".*?"
         r"^# === END CANONICAL BUILD IDENTITY ===$",
         source,
