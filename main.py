@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v148 — Canonical Evidence Boundary Recovery + The Guide
+# USE PRODUCTION VERSION: v149 — Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -592,7 +592,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v148"
+APP_VERSION = "v149"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -608,14 +608,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v148-canonical-evidence-boundary-recovery-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v149-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v148-canonical-evidence-boundary-recovery-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "1ac0c5825b3f66ce628b094de4407c86e58daa2eae4acadcb22a0748b471ac39"
+CANONICAL_BUILD_ID = "USE-BUILD-v149-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b8d3c1c389657a88b0ec292f92fe328d549360132d8c0343ee55ec560ebaf9dd"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4594,6 +4594,93 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
     print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
 
 
+def _prioritize_explicit_type_generation_documents(
+    selected_documents: List[Dict[str, Any]],
+    protected_documents: List[Dict[str, Any]],
+    explicit_type_targets: set,
+) -> List[Dict[str, Any]]:
+    """Place already-D20-validated explicit-type evidence first for generation.
+
+    This is a generation-evidence ordering boundary only. It does not create
+    retrieval candidates, infer resource relationships, establish movement,
+    or alter D28 sequence metadata. It ensures a finite provider evidence
+    window cannot discard an explicitly requested, already-validated resource
+    merely because it appeared late in the selected list.
+    """
+    if not selected_documents or not protected_documents or not explicit_type_targets:
+        return selected_documents
+
+    protected_keys = {
+        _resource_key(document)
+        for document in protected_documents
+        if isinstance(document, dict)
+        and _recognize_resource_type(document).get("resource_type") in explicit_type_targets
+    }
+    if not protected_keys:
+        return selected_documents
+
+    protected = [
+        document
+        for document in selected_documents
+        if _resource_key(document) in protected_keys
+    ]
+    ordinary = [
+        document
+        for document in selected_documents
+        if _resource_key(document) not in protected_keys
+    ]
+    return protected + ordinary if protected else selected_documents
+
+
+def _v149_explicit_type_generation_evidence_preservation_self_audit() -> None:
+    """Verify explicit D20 publication-family evidence is first in generation order."""
+    reference_map = {
+        "title": "Reference Map Probe",
+        "url": "https://example.invalid/reference-map-probe",
+        "text": "A visual framework showing relationships and structure.",
+        "_use_resource_type_recognition": {
+            "resource_type": "Reference Map",
+            "confidence": "explicit",
+            "basis": "type_constrained_retrieval",
+        },
+    }
+    ordinary_one = {
+        "title": "Ordinary One",
+        "url": "https://example.invalid/ordinary-one",
+        "text": "Ordinary canonical evidence.",
+    }
+    ordinary_two = {
+        "title": "Ordinary Two",
+        "url": "https://example.invalid/ordinary-two",
+        "text": "More ordinary canonical evidence.",
+    }
+
+    selected = [ordinary_one, ordinary_two, reference_map]
+    protected = [reference_map]
+    targets = {"Reference Map"}
+
+    reordered = _prioritize_explicit_type_generation_documents(
+        selected,
+        protected,
+        targets,
+    )
+
+    assert reordered[0]["title"] == "Reference Map Probe"
+    assert len(reordered) == len(selected)
+    assert {_resource_key(document) for document in reordered} == {
+        _resource_key(document) for document in selected
+    }
+    assert targets == {"Reference Map"}
+
+    context = format_context_blocks(reordered)
+    first_title = re.search(
+        r"^Title:\s*(.+?)\s*$", context, flags=re.MULTILINE
+    )
+    assert first_title and first_title.group(1) == "Reference Map Probe"
+
+    print("USE v149 EXPLICIT TYPE GENERATION-EVIDENCE PRESERVATION AUDIT: PASS")
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -6021,6 +6108,12 @@ def fetch_canonical_context(
     # complete canonical-link set to generation, bypassing the selected
     # retrieval order and allowing the bounded generation window to change
     # which resources the model could see.
+    retrieved_docs = _prioritize_explicit_type_generation_documents(
+        retrieved_docs,
+        explicit_type_protected_docs,
+        explicit_type_targets,
+    )
+
     generation_context = format_context_blocks(
         retrieved_docs,
         structural_destination_count=structural_destination_count,
