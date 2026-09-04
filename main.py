@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v140 — Explicit Resource-Type Selection Identity + The Guide
+# USE PRODUCTION VERSION: v141 — Explicit Resource-Type Selection Observability + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v140"
+APP_VERSION = "v141"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v140-explicit-resource-type-selection-identity-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v141-explicit-resource-type-selection-observability-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4448,6 +4448,7 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
             "not physically retained inside the bounded selection."
         )
     print("USE v140 EXPLICIT TYPE SELECTION IDENTITY AUDIT: PASS")
+    print("USE v141 EXPLICIT TYPE SELECTION OBSERVABILITY AUDIT: PASS")
 
 
     print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
@@ -4504,6 +4505,13 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                         "source": "D20_type_constrained_function_retrieval",
                     }
 
+                print(
+                    "USE v141 explicit type candidate accepted: "
+                    f"requested_type={required_type!r}, "
+                    f"title={metadata.get('title')!r}, "
+                    f"url={metadata.get('url')!r}, "
+                    f"resource_key={_resource_key(metadata)!r}"
+                )
                 key = _resource_key(metadata)
                 if key in seen:
                     continue
@@ -5882,6 +5890,16 @@ def fetch_canonical_context(
     # v56 observability: expose the selected generation set in deployment logs.
     # This makes it possible to distinguish retrieval narrowing from model
     # selection without exposing any internal information to visitors.
+    # v141 diagnostic only: expose exact protected identities and the
+    # candidate set immediately before generation selection. No behavior change.
+    if explicit_type_targets:
+        print(
+            "USE v141 explicit type selection diagnostic: "
+            f"targets={sorted(explicit_type_targets)}, "
+            f"protected={[(d.get('title'), d.get('url'), _recognize_resource_type(d).get('resource_type'), _resource_key(d)) for d in explicit_type_protected_docs]}, "
+            f"pre_generation={[(d.get('title'), d.get('url'), _recognize_resource_type(d).get('resource_type'), _resource_key(d)) for d in retrieved_docs]}"
+        )
+
     print(
         "USE generation selection: "
         f"selected={len(retrieved_docs)}, "
