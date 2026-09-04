@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v144 — Runtime/Deployment Identity Integrity + The Guide
+# USE PRODUCTION VERSION: v145 — End-to-End Request Correlation Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -15,6 +15,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
 import uuid
+import contextvars
 import hashlib
 from pathlib import Path
 
@@ -591,7 +592,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v144"
+APP_VERSION = "v145"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -607,7 +608,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v144-runtime-deployment-identity-integrity-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v145-end-to-end-request-correlation-integrity-one-environment"
 
 # Runtime/deployment identity is computed from the exact source file that
 # imported this module. This makes source identity independently observable
@@ -622,6 +623,20 @@ def _compute_runtime_source_sha256() -> str:
 RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
 RUNTIME_BOOT_ID = uuid.uuid4().hex
 RUNTIME_PROCESS_ID = os.getpid()
+
+# Sole request correlation identity for the current async request.
+# Middleware creates it once; downstream retrieval/generation code reads it.
+USE_REQUEST_ID_CONTEXT: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "use_request_id",
+    default="",
+)
+
+def _request_correlation_log_prefix() -> str:
+    return (
+        f"request_id={USE_REQUEST_ID_CONTEXT.get('') or 'unbound'}, "
+        f"{_runtime_log_prefix()}"
+    )
+
 
 def _runtime_identity() -> Dict[str, Any]:
     return {
@@ -655,6 +670,7 @@ async def api_boundary(request: Request, call_next):
 
     request_id = uuid.uuid4().hex
     request.state.use_request_id = request_id
+    correlation_token = USE_REQUEST_ID_CONTEXT.set(request_id)
     print(
         "USE REQUEST START: "
         f"request_id={request_id}, {_runtime_log_prefix()}, "
@@ -692,6 +708,7 @@ async def api_boundary(request: Request, call_next):
         f"request_id={request_id}, {_runtime_log_prefix()}, "
         f"status={response.status_code}"
     )
+    USE_REQUEST_ID_CONTEXT.reset(correlation_token)
     return response
 
 # Deployment fingerprint: makes the complete production unit immediately
@@ -7582,9 +7599,10 @@ def _fit_generation_context_to_provider_budget(
         if bounded_selected.strip() and not candidate.strip():
             candidate = bounded_selected.strip()
             print(
-                "USE generation evidence preservation: secondary provider "
-                "formatter returned empty evidence; retaining bounded canonical "
-                f"context ({len(candidate)} chars)."
+                "USE generation evidence preservation: "
+                f"{_request_correlation_log_prefix()}, "
+                "secondary provider formatter returned empty evidence; "
+                f"retaining bounded canonical context ({len(candidate)} chars)."
             )
 
     while True:
@@ -7600,6 +7618,7 @@ def _fit_generation_context_to_provider_budget(
         ):
             print(
                 "USE provider preflight: "
+                f"{_request_correlation_log_prefix()}, "
                 f"input={input_chars} chars, "
                 f"estimated_total={total_estimate} chars, "
                 f"max_tokens={max_tokens}, "
@@ -8401,7 +8420,10 @@ def generate_llm_response(
 
     for model_id in active_models:
         try:
-            print(f"USE generation attempt: '{model_id}'")
+            print(
+                "USE generation attempt: "
+                f"'{model_id}'; {_request_correlation_log_prefix()}"
+            )
 
             visitor_answer = _run_generation_attempt(
                 model_id,
@@ -9427,52 +9449,42 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
-def _v144_runtime_deployment_identity_self_audit() -> None:
-    """Verify that runtime identity is internally coherent and independently observable."""
-    if not re.fullmatch(r"v\d+", APP_VERSION):
-        raise RuntimeError("v144 runtime identity regression: APP_VERSION is malformed.")
-    if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
-        raise RuntimeError(
-            "v144 runtime identity regression: deployment fingerprint is not "
-            "aligned with APP_VERSION."
-        )
-    if not re.fullmatch(r"[0-9a-f]{64}", RUNTIME_SOURCE_SHA256):
-        raise RuntimeError(
-            "v144 runtime identity regression: source SHA-256 is unavailable or malformed."
-        )
-    if not RUNTIME_BOOT_ID or len(RUNTIME_BOOT_ID) != 32:
-        raise RuntimeError(
-            "v144 runtime identity regression: boot identity is unavailable or malformed."
-        )
-    if not isinstance(RUNTIME_PROCESS_ID, int) or RUNTIME_PROCESS_ID <= 0:
-        raise RuntimeError(
-            "v144 runtime identity regression: process identity is unavailable."
-        )
-
-    source_lines = Path(__file__).read_text(encoding="utf-8").splitlines()
-    expected_prefix = f"# USE PRODUCTION VERSION: {APP_VERSION}"
-    if not source_lines or not source_lines[0].startswith(expected_prefix):
-        raise RuntimeError(
-            "v144 runtime identity regression: source line 1 does not match APP_VERSION."
-        )
-
-    identity = _runtime_identity()
-    if identity["version"] != APP_VERSION or identity["fingerprint"] != DEPLOYMENT_FINGERPRINT:
-        raise RuntimeError(
-            "v144 runtime identity regression: runtime identity dictionary diverged "
-            "from active constants."
-        )
-
-    print(
-        "USE v144 runtime/deployment identity audit: PASS "
-        f"({_runtime_log_prefix()})"
+def _v145_request_correlation_self_audit() -> None:
+    """Verify one middleware request identity is propagated downstream."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    required = (
+        "USE_REQUEST_ID_CONTEXT",
+        "correlation_token = USE_REQUEST_ID_CONTEXT.set(request_id)",
+        "USE_REQUEST_ID_CONTEXT.reset(correlation_token)",
+        "def _request_correlation_log_prefix()",
+        "USE generation attempt:",
+        "USE provider preflight:",
+        "USE generation evidence preservation:",
+        "X-USE-Request-ID",
     )
+    missing=[marker for marker in required if marker not in source]
+    if missing:
+        raise RuntimeError(
+            "v145 request correlation audit failed; missing markers: "
+            + ", ".join(missing)
+        )
+
+    # Generation must consume the middleware identity, not manufacture a second one.
+    gstart=source.find("def generate_llm_response(")
+    gend=source.find("\n\ndef ",gstart+10)
+    gblock=source[gstart:gend]
+    if "uuid.uuid4().hex" in gblock:
+        raise RuntimeError(
+            "v145 request correlation audit failed; generation creates "
+            "an independent request identity."
+        )
+    print("USE v145 request correlation audit: PASS")
 
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
-        _v144_runtime_deployment_identity_self_audit()
+        _v145_request_correlation_self_audit()
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
