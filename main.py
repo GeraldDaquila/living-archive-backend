@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v147 — Build Identity Hard Enforcement + The Guide
+# USE PRODUCTION VERSION: v148 — Canonical Evidence Boundary Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -592,7 +592,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v147"
+APP_VERSION = "v148"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -608,14 +608,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v147-build-identity-hard-enforcement-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v148-canonical-evidence-boundary-recovery-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v147-build-identity-hard-enforcement-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "cddd4fe73d40d5351bc1674df69caa1756aaf8f5e84555aecd5f31c4ef83aad1"
+CANONICAL_BUILD_ID = "USE-BUILD-v148-canonical-evidence-boundary-recovery-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "25fd986c5c0cc0dc95a2c668443bc6b8635a9dda09112bb3dc3f3b01fa04b883"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7643,6 +7643,33 @@ def _fit_generation_context_to_provider_budget(
             ) if target_context_chars > 0 else 0,
             schema_free=compact,
         )
+
+        # v148 root-cause boundary: a positive primary evidence capacity must
+        # not silently collapse existing canonical evidence to zero blocks.
+        # Route this recoverable condition through the existing compact
+        # generation path, which rebuilds from the original generation context.
+        if (
+            not compact
+            and candidate.strip()
+            and target_context_chars > 0
+            and not bounded_selected.strip()
+        ):
+            print(
+                "USE generation boundary: "
+                f"{_request_correlation_log_prefix()}, "
+                "primary evidence capacity cannot preserve a minimally viable "
+                "canonical evidence block; entering compact recovery; "
+                f"context_capacity={context_capacity}, "
+                f"target_context_chars={target_context_chars}, "
+                f"canonical_context={len(candidate)}."
+            )
+            raise ValueError(
+                "USE provider preflight could not preserve a minimally viable "
+                "canonical evidence block within the primary envelope: "
+                f"context_capacity={context_capacity}, "
+                f"target_context_chars={target_context_chars}."
+            )
+
         candidate = _build_provider_evidence_context(
             bounded_selected,
             max(0, target_context_chars),
@@ -8323,6 +8350,7 @@ def _is_request_too_large_error(error_text: str) -> bool:
             "too many tokens",
             "413",
             "use provider preflight could not fit the fixed system/user envelope",
+            "use provider preflight could not preserve a minimally viable canonical evidence block",
         )
     )
 
@@ -9507,7 +9535,7 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
-def _v147_canonical_build_identity_self_audit() -> None:
+def _v148_canonical_build_identity_self_audit() -> None:
     """Verify hard build identity enforcement is structurally intact."""
     source = Path(__file__).read_text(encoding="utf-8")
     required = (
@@ -9524,7 +9552,7 @@ def _v147_canonical_build_identity_self_audit() -> None:
     missing = [marker for marker in required if marker not in source]
     if missing:
         raise RuntimeError(
-            "v147 build identity audit failed; missing markers: "
+            "v148 build identity audit failed; missing markers: "
             + ", ".join(missing)
         )
     identity_matches = re.findall(
@@ -9535,19 +9563,19 @@ def _v147_canonical_build_identity_self_audit() -> None:
     )
     if len(identity_matches) != 1:
         raise RuntimeError(
-            "v147 build identity audit failed; identity block count is not one."
+            "v148 build identity audit failed; identity block count is not one."
         )
     if 'APP_VERSION = "v146"' in source:
         raise RuntimeError(
-            "v147 build identity audit failed; stale active v146 identity."
+            "v148 build identity audit failed; stale active v146 identity."
         )
     actual = _compute_canonical_build_payload_sha256(source)
     if actual != CANONICAL_BUILD_PAYLOAD_SHA256:
         raise RuntimeError(
-            "v147 build identity audit failed; canonical payload digest mismatch."
+            "v148 build identity audit failed; canonical payload digest mismatch."
         )
     print(
-        "USE v147 canonical build identity audit: PASS; "
+        "USE v148 canonical build identity audit: PASS; "
         f"build_id={CANONICAL_BUILD_ID}, payload_sha256={actual}"
     )
 
@@ -9555,7 +9583,7 @@ def _v147_canonical_build_identity_self_audit() -> None:
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
-        _v147_canonical_build_identity_self_audit()
+        _v148_canonical_build_identity_self_audit()
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
@@ -10236,6 +10264,25 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "v125 generation recovery regression: fixed-envelope preflight "
                 "failure was not classified as request-size recoverable."
+            )
+
+        # v148 regression: the newly discovered boundary must be recoverable.
+        canonical_evidence_error = (
+            "USE provider preflight could not preserve a minimally viable "
+            "canonical evidence block within the primary envelope: "
+            "context_capacity=42, target_context_chars=42."
+        )
+        if not _is_request_too_large_error(canonical_evidence_error):
+            raise RuntimeError(
+                "v148 generation recovery regression: canonical evidence "
+                "preservation boundary was not classified as request-size recoverable."
+            )
+
+        fitter_source = inspect.getsource(_fit_generation_context_to_provider_budget)
+        if "cannot preserve a minimally viable" not in fitter_source:
+            raise RuntimeError(
+                "v148 generation recovery regression: primary evidence-preservation "
+                "boundary is missing from the provider fitter."
             )
 
         compact_fixed_messages = _build_generation_messages(
