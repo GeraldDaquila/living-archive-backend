@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v122 — Movement Intent Recognition + The Guide
+# USE PRODUCTION VERSION: v123 — Generation Preflight Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -577,7 +577,7 @@ For destination/collection requests, use evidence-established destinations. For 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v122"
+APP_VERSION = "v123"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -593,7 +593,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v122-movement-intent-the-guide-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v123-generation-preflight-recovery-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7392,6 +7392,7 @@ def _is_request_too_large_error(error_text: str) -> bool:
             "maximum context length",
             "too many tokens",
             "413",
+            "use provider preflight could not fit the fixed system/user envelope",
         )
     )
 
@@ -9225,6 +9226,39 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Generation capacity regression: primary output budget did not increase."
             )
+        # v123 regression: the application's own fixed-envelope preflight failure
+        # must enter the existing compact-generation recovery classifier. Without
+        # this marker, every primary provider attempt can fail before the API call
+        # and compact recovery is never reached.
+        preflight_error = (
+            "USE provider preflight could not fit the fixed system/user "
+            "envelope: fixed_input=3200, estimated_output=1600."
+        )
+        if not _is_request_too_large_error(preflight_error):
+            raise RuntimeError(
+                "v123 generation recovery regression: fixed-envelope preflight "
+                "failure was not classified as request-size recoverable."
+            )
+
+        compact_fixed_messages = _build_generation_messages(
+            "A compact recovery test question",
+            "TOPICAL_INQUIRY",
+            "",
+            None,
+        )
+        compact_fixed_chars = _estimate_message_chars(compact_fixed_messages)
+        compact_output_reservation = math.ceil(
+            MAX_COMPACT_GENERATION_TOKENS * 4 * 1.25
+        )
+        if (
+            compact_fixed_chars + compact_output_reservation
+            > MAX_PROVIDER_TOTAL_CHARS
+        ):
+            raise RuntimeError(
+                "v123 generation recovery regression: compact generation still "
+                "cannot fit the fixed provider envelope."
+            )
+
         if primary_evidence_capacity < 700:
             raise RuntimeError(
                 "Generation capacity regression: increased output budget consumed the "
@@ -9243,9 +9277,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v122":
+        if APP_VERSION != "v123":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v122."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v123."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9772,8 +9806,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v122":
-            raise RuntimeError(f"Unexpected v122 USE version: {APP_VERSION}")
+        if APP_VERSION != "v123":
+            raise RuntimeError(f"Unexpected v123 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9831,9 +9865,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v122":
+        if APP_VERSION != "v123":
             raise RuntimeError(
-                f"Unexpected v122 USE runtime version: {APP_VERSION}"
+                f"Unexpected v123 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
