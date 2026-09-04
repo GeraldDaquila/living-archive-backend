@@ -1,8 +1,9 @@
-# USE PRODUCTION VERSION: v121 — Canonical Movement State Propagation
+# USE PRODUCTION VERSION: v122 — Movement Intent Recognition + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
 # Existing D01-D27 architecture and v117 open-exploration sovereignty behavior remain protected.
+# Visitor-facing service identity: The Guide.
 
 import os
 import re
@@ -30,6 +31,8 @@ from fastembed import TextEmbedding
 
 SYSTEM_PROMPT = """
 You are the navigation engine for the Living Archive (USE).
+
+The visitor-facing name of this service is **The Guide**. Use “The Guide” when referring to the service in visitor-facing language. Never expose the internal name USE or describe it as a search engine.
 
 Your goal is to help visitors find their way through the Living Archive
 using the canonical corpus available to the retrieval system.
@@ -566,7 +569,7 @@ For TOPICAL questions, orient through supplied evidence, not generic explanation
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
-For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link, semantic relevance, title/description similarity, retrieval rank, or thematic continuity into a route. A resource can be surfaced as an available related place without being called the next step. Never use phrases such as “a logical next step,” “a useful place to continue,” “continue with,” or equivalent positive route language when D29 has not validated a next destination. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
+For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link, semantic relevance, title/description similarity, retrieval rank, or thematic continuity into a route. A resource can be surfaced as an available related place without being called the next step. Never use phrases such as “a logical next step,” “a useful place to continue,” “continue with,” or equivalent positive route language when D29 has not validated a next destination. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
 """
 
 
@@ -574,7 +577,7 @@ For destination/collection requests, use evidence-established destinations. For 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v121"
+APP_VERSION = "v122"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +593,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v121-canonical-movement-state-propagation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v122-movement-intent-the-guide-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4444,7 +4447,7 @@ def _d29_canonical_movement_self_audit() -> None:
     external_result = _apply_canonical_movement_logic([external, navigator], question)
     assert external_result[0]["_use_canonical_movement"]["linked_destination_validated"] is False
 
-    # v121 hard boundary: semantic continuity must not be sufficient for a route.
+    # v122 hard boundary: semantic continuity must not be sufficient for a route.
     no_route_context = format_context_blocks(result)
     inferred = (
         "A logical next step would be to explore Archive Navigator because its "
@@ -4517,7 +4520,7 @@ def _d30_archive_navigation_audit() -> None:
         for linked_url in movement.get("linked_destination_urls") or []:
             assert _normalize_movement_url(linked_url) in selected_urls
 
-    # v121: an explicit request for an "established next resource" is a
+    # v122: an explicit request for an "established next resource" is a
     # movement question even when it does not use the phrase "next step".
     assert _movement_question_requires_canonical_next(
         "Is there an established next resource from here?"
@@ -7048,24 +7051,48 @@ def _open_exploration_sovereignty_instruction(question: str) -> str:
 
 
 def _movement_question_requires_canonical_next(user_query: str) -> bool:
-    """Return True when the visitor asks USE to establish a canonical route or continuation."""
+    """Recognize explicit requests to establish canonical continuation.
+
+    This is an intent trigger, not a route inference mechanism. Natural
+    formulations such as "an established canonical resource that comes next"
+    must reach the D29 evidence gate, while ordinary topical questions that
+    merely mention "next" should remain ordinary inquiry.
+    """
     q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
     if not q:
         return False
-    return bool(
+
+    direct_route = bool(
         re.search(
-            r"\b(?:where|what)\s+(?:should|would|can)\s+i\s+(?:begin|start|go|look|turn)",
+            r"\b(?:where|what)\s+(?:should|would|can|could)\s+i\s+"
+            r"(?:begin|start|go|look|turn|continue)",
             q,
         )
         or re.search(
-            r"\b(?:what|where)\s+(?:is|would be)\s+(?:a )?(?:good|useful|logical|natural|next)\s+(?:step|place)",
+            r"\b(?:what|where)\s+(?:is|would be|can i find)\s+"
+            r"(?:a )?(?:good|useful|logical|natural|next|following)\s+"
+            r"(?:step|place|destination|resource|path|pathway)",
             q,
         )
         or re.search(
-            r"\b(?:next step|next destination|next resource|established next|where .* next|continue from|continue with|go next|move next|next place|path forward|where to go)",
+            r"\b(?:next step|next destination|next resource|next place|"
+            r"established next|established (?:canonical )?(?:resource|destination|"
+            r"continuation)|canonical (?:next|continuation)|"
+            r"what comes next from here|what comes next from this|what follows from here|where do i go from here|"
+            r"where to go|path forward|continue from|continue with|"
+            r"move next|go next)\b",
+            q,
+        )
+        or re.search(
+            r"\b(?:is there|are there)\b.{0,80}\b(?:next|following|"
+            r"comes next|canonical continuation|established)\b",
             q,
         )
     )
+
+    # Keep ordinary topical questions out of the movement gate unless they
+    # explicitly ask for a route/continuation.
+    return direct_route
 
 
 def _movement_context_has_validated_next(generation_context: str) -> bool:
@@ -7137,7 +7164,7 @@ def _deterministic_movement_evidence_fallback(
             )
         return (
             "The supplied canonical evidence establishes an explicit next "
-            "destination from this point. USE can therefore treat that "
+            "destination from this point. The Guide can therefore treat that "
             "destination as the canonical continuation."
         )
 
@@ -7312,7 +7339,7 @@ def _run_generation_attempt(
         canonical_link_context,
     )
 
-    # v121: a positive movement claim requires explicit D29 canonical evidence.
+    # v122: a positive movement claim requires explicit D29 canonical evidence.
     # This is a post-generation hard boundary because prompt instructions alone
     # cannot be treated as authoritative enforcement.
     cleaned_answer = _apply_movement_evidence_gate(
@@ -9216,9 +9243,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v121":
+        if APP_VERSION != "v122":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v121."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v122."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9745,8 +9772,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v121":
-            raise RuntimeError(f"Unexpected v121 USE version: {APP_VERSION}")
+        if APP_VERSION != "v122":
+            raise RuntimeError(f"Unexpected v122 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9804,9 +9831,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v121":
+        if APP_VERSION != "v122":
             raise RuntimeError(
-                f"Unexpected v121 USE runtime version: {APP_VERSION}"
+                f"Unexpected v122 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
