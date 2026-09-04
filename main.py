@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v118 — Canonical Sequencing & Movement
+# USE PRODUCTION VERSION: v119 — Canonical Movement Relations
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 validates canonical
 # doorway/destination movement without inventing routes; D30 audits the boundary.
@@ -566,7 +566,7 @@ For TOPICAL questions, orient through supplied evidence, not generic explanation
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
-For destination/collection requests, use evidence-established destinations. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
+For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link or semantic relevance into a route. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. USE adds links.
 """
 
 
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v118"
+APP_VERSION = "v119"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v118-canonical-sequencing-movement-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v119-canonical-movement-relations-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2974,6 +2974,15 @@ def format_context_blocks(
                 architectural_lines.append(
                     "D29 Next Canonical Destination: none explicitly validated"
                 )
+            linked_titles = movement_info.get("linked_destination_titles") or []
+            if linked_titles:
+                architectural_lines.append(
+                    "D29 Explicit Canonical Links: " + "; ".join(linked_titles)
+                )
+            else:
+                architectural_lines.append(
+                    "D29 Explicit Canonical Links: none resolved in selected evidence"
+                )
 
         architectural_context = ""
         if architectural_lines:
@@ -4145,6 +4154,14 @@ _D29_EXPLICIT_NEXT_URL_KEYS = (
     "canonical_next_url",
 )
 
+_D29_EXPLICIT_RELATION_KEYS = (
+    "related_canonical_url",
+    "canonical_related_url",
+    "canonical_destination_url",
+)
+
+_D29_INTERNAL_CANONICAL_HOST = "geralddaquila.com"
+
 
 def _canonical_url_for_movement(resource: Dict[str, Any]) -> str:
     if not isinstance(resource, dict):
@@ -4157,6 +4174,63 @@ def _canonical_url_for_movement(resource: Dict[str, Any]) -> str:
     return url
 
 
+def _normalize_movement_url(url: Any) -> str:
+    """Normalize URL identity without changing canonical destination authority."""
+    raw = str(url or "").strip()
+    if not raw:
+        return ""
+    raw = raw.split("#", 1)[0].split("?", 1)[0].rstrip("/")
+    return raw.casefold()
+
+
+def _canonical_document_url_map(
+    canonical_documents: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    return {
+        _normalize_movement_url(_canonical_url_for_movement(document)): document
+        for document in canonical_documents
+        if _normalize_movement_url(_canonical_url_for_movement(document))
+    }
+
+
+def _extract_explicit_canonical_links(resource: Dict[str, Any]) -> List[str]:
+    """Extract explicit internal canonical links present in resource content.
+
+    A link is evidence of a canonical relationship, not automatically a
+    'next' step. This distinction prevents ordinary semantic or hyperlink
+    proximity from becoming an invented sequence edge.
+    """
+    if not isinstance(resource, dict):
+        return []
+
+    content = _resource_content(resource)
+    if not content:
+        return []
+
+    urls: List[str] = []
+    patterns = (
+        r'href=["\'](https?://[^"\'\s>]+)["\']',
+        r'\[[^\]]+\]\((https?://[^)\s]+)(?:\s+[^)]*)?\)',
+    )
+    for pattern in patterns:
+        for match in re.finditer(pattern, content, flags=re.IGNORECASE):
+            url = str(match.group(1)).strip()
+            try:
+                host_match = re.search(r'^https?://([^/]+)', url, flags=re.IGNORECASE)
+                host = host_match.group(1).casefold() if host_match else ""
+                if host.startswith("www."):
+                    host = host[4:]
+                if host != _D29_INTERNAL_CANONICAL_HOST:
+                    continue
+            except Exception:
+                continue
+            normalized = _normalize_movement_url(url)
+            if normalized and normalized not in urls:
+                urls.append(normalized)
+
+    return urls[:12]
+
+
 def _explicit_next_destination(
     resource: Dict[str, Any],
     canonical_documents: List[Dict[str, Any]],
@@ -4165,25 +4239,62 @@ def _explicit_next_destination(
     if not isinstance(resource, dict):
         return None
 
-    allowed = {
-        _canonical_url_for_movement(document): document
-        for document in canonical_documents
-        if _canonical_url_for_movement(document)
-    }
-
+    allowed = _canonical_document_url_map(canonical_documents)
     for key in _D29_EXPLICIT_NEXT_URL_KEYS:
-        candidate_url = str(resource.get(key, "")).strip()
+        candidate_url = _normalize_movement_url(resource.get(key, ""))
         if candidate_url and candidate_url in allowed:
             return allowed[candidate_url]
 
     return None
 
 
+def _explicit_linked_destinations(
+    resource: Dict[str, Any],
+    canonical_documents: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Resolve explicit canonical links to resources already in the evidence set."""
+    allowed = _canonical_document_url_map(canonical_documents)
+    destinations: List[Dict[str, Any]] = []
+    seen = set()
+
+    explicit_urls: List[str] = []
+    for key in _D29_EXPLICIT_RELATION_KEYS:
+        candidate = _normalize_movement_url(resource.get(key, ""))
+        if candidate and candidate not in explicit_urls:
+            explicit_urls.append(candidate)
+    for candidate in _extract_explicit_canonical_links(resource):
+        if candidate not in explicit_urls:
+            explicit_urls.append(candidate)
+
+    own_url = _normalize_movement_url(_canonical_url_for_movement(resource))
+    for candidate in explicit_urls:
+        if candidate == own_url or candidate in seen:
+            continue
+        destination = allowed.get(candidate)
+        if destination is not None:
+            destinations.append(destination)
+            seen.add(candidate)
+        if len(destinations) >= 4:
+            break
+
+    return destinations
+
+
 def _apply_canonical_movement_logic(
     documents: List[Dict[str, Any]],
     question: str,
 ) -> List[Dict[str, Any]]:
-    """Attach validated D29 doorway/destination movement metadata."""
+    """Attach validated D29 movement relations without manufacturing routes.
+
+    D29 now distinguishes three states:
+      1. selected canonical resource = validated doorway/destination;
+      2. explicit canonical next declaration = validated next movement;
+      3. explicit canonical internal link = validated relationship, but NOT
+         automatically a next step.
+
+    Semantic similarity, retrieval rank, resource function, or generic
+    relatedness cannot create a movement edge.
+    """
     if not documents:
         return documents
 
@@ -4196,6 +4307,7 @@ def _apply_canonical_movement_logic(
 
         own_url = _canonical_url_for_movement(document)
         next_destination = _explicit_next_destination(document, documents)
+        linked_destinations = _explicit_linked_destinations(document, documents)
 
         movement = {
             "doorway": index == 0,
@@ -4215,6 +4327,15 @@ def _apply_canonical_movement_logic(
                 else ""
             ),
             "next_destination_validated": bool(next_destination),
+            "linked_destination_titles": [
+                str(destination.get("title", "Untitled Resource")).strip()
+                for destination in linked_destinations
+            ],
+            "linked_destination_urls": [
+                _canonical_url_for_movement(destination)
+                for destination in linked_destinations
+            ],
+            "linked_destination_validated": bool(linked_destinations),
             "movement_basis": (
                 "selected canonical resource"
                 if own_url
@@ -4225,6 +4346,11 @@ def _apply_canonical_movement_logic(
                 if next_destination
                 else "none — no explicit canonical next-resource declaration"
             ),
+            "linked_movement_basis": (
+                "explicit canonical internal link in supplied evidence"
+                if linked_destinations
+                else "none — no explicit canonical internal link resolved"
+            ),
         }
         document["_use_canonical_movement"] = movement
 
@@ -4232,7 +4358,8 @@ def _apply_canonical_movement_logic(
         "USE D29 canonical movement: "
         f"doorway='{_canonical_display_title(str(primary.get('title', 'Untitled Resource')))}', "
         f"destination_validated={bool(primary_url)}, "
-        f"explicit_next={sum(1 for d in documents if (d.get('_use_canonical_movement') or {}).get('next_destination_validated'))}."
+        f"explicit_next={sum(1 for d in documents if (d.get('_use_canonical_movement') or {}).get('next_destination_validated'))}, "
+        f"explicit_links={sum(1 for d in documents if (d.get('_use_canonical_movement') or {}).get('linked_destination_validated'))}."
     )
     return documents
 
@@ -4261,17 +4388,18 @@ def _d28_resource_sequencing_self_audit() -> None:
 
 
 def _d29_canonical_movement_self_audit() -> None:
-    """Verify D29 validates canonical movement without inventing routes."""
+    """Verify explicit next relations and explicit canonical links are distinct."""
     question = "Where should I begin exploring the Living Archive?"
     navigator = {
         "title": "Archive Navigator",
         "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
-        "url": "https://example.invalid/navigator",
+        "url": "https://geralddaquila.com/navigator/",
     }
     essay = {
         "title": "Archive Essay",
         "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
         "url": "https://example.invalid/essay",
+        "text": 'Continue with [Archive Navigator](https://geralddaquila.com/navigator/).',
     }
     result = _apply_resource_sequence_metadata([navigator, essay], question)
     result = _apply_canonical_movement_logic(result, question)
@@ -4279,33 +4407,45 @@ def _d29_canonical_movement_self_audit() -> None:
     assert result[0]["_use_canonical_movement"]["destination_validated"] is True
     assert result[0]["_use_canonical_movement"]["next_destination_validated"] is False
 
-    linked = dict(essay)
-    linked = dict(essay)
-    linked["next_canonical_url"] = navigator["url"]
-    linked_result = _apply_canonical_movement_logic([linked, navigator], question)
+    linked = result[1]["_use_canonical_movement"]
+    assert linked["linked_destination_validated"] is True
+    assert linked["linked_destination_urls"] == [navigator["url"]]
+    assert linked["next_destination_validated"] is False
+
+    explicit_next = dict(essay)
+    explicit_next["next_canonical_url"] = navigator["url"]
+    linked_result = _apply_canonical_movement_logic(
+        [explicit_next, navigator], question
+    )
     assert linked_result[0]["_use_canonical_movement"]["next_destination_url"] == navigator["url"]
 
     invented = dict(essay)
     invented["next_canonical_url"] = "https://example.invalid/not-selected"
     invented_result = _apply_canonical_movement_logic([invented], question)
     assert invented_result[0]["_use_canonical_movement"]["next_destination_validated"] is False
+    assert invented_result[0]["_use_canonical_movement"]["linked_destination_validated"] is False
 
-    print("USE D29 CANONICAL MOVEMENT AUDIT: PASS")
+    external = dict(essay)
+    external["text"] = 'See [External](https://example.org/not-canonical).'
+    external_result = _apply_canonical_movement_logic([external, navigator], question)
+    assert external_result[0]["_use_canonical_movement"]["linked_destination_validated"] is False
 
+    print("USE D29 CANONICAL MOVEMENT RELATIONS AUDIT: PASS")
 
 
 def _d30_archive_navigation_audit() -> None:
-    """Audit the D28/D29 navigation boundary as one canonical unit."""
+    """Audit sequencing, destination validation, and explicit relation integrity."""
     question = "Where should I begin exploring the Living Archive?"
     navigator = {
         "title": "Archive Navigator",
         "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
-        "url": "https://example.invalid/navigator",
+        "url": "https://geralddaquila.com/navigator/",
     }
     essay = {
         "title": "Archive Essay",
         "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
         "url": "https://example.invalid/essay",
+        "text": 'Continue with [Archive Navigator](https://geralddaquila.com/navigator/).',
     }
 
     selected = _apply_resource_sequence_metadata([essay, navigator], question)
@@ -4315,20 +4455,28 @@ def _d30_archive_navigation_audit() -> None:
     assert selected[0]["_use_canonical_movement"]["destination_url"] == navigator["url"]
     assert selected[0]["_use_canonical_movement"]["next_destination_validated"] is False
 
-    # D30 boundary: every visitor-facing movement destination must be a URL
-    # belonging to a canonical resource already present in the selected set.
+    # An explicit internal canonical link is a legitimate relation but is not
+    # silently upgraded to a 'next' route.
+    assert selected[1]["_use_canonical_movement"]["linked_destination_validated"] is True
+    assert selected[1]["_use_canonical_movement"]["next_destination_validated"] is False
+
+    # D30 boundary: every visitor-facing destination or relation must resolve
+    # to a canonical resource already present in the validated evidence set.
     selected_urls = {
-        document.get("url")
+        _normalize_movement_url(document.get("url"))
         for document in selected
         if isinstance(document, dict) and document.get("url")
     }
     for document in selected:
         movement = document.get("_use_canonical_movement") or {}
-        next_url = movement.get("next_destination_url", "")
-        if next_url:
-            assert next_url in selected_urls
+        for next_url in [movement.get("next_destination_url", "")]:
+            if next_url:
+                assert _normalize_movement_url(next_url) in selected_urls
+        for linked_url in movement.get("linked_destination_urls") or []:
+            assert _normalize_movement_url(linked_url) in selected_urls
 
-    print("USE D30 ARCHIVE NAVIGATION AUDIT: PASS")
+    print("USE D30 ARCHIVE NAVIGATION RELATION AUDIT: PASS")
+
 
 def _orientation_loop_state(question: str, intent: str) -> Dict[str, Any]:
     """Represent the D31-D38 visitor-facing loop without diagnosing the visitor."""
