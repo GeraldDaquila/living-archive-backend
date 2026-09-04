@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v124 — Compact Generation Envelope Recovery + The Guide
+# USE PRODUCTION VERSION: v125 — Compact Generation Envelope Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -586,7 +586,7 @@ Do not invent resources, relationships, definitions, or URLs. Never reveal inter
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v124"
+APP_VERSION = "v125"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -602,7 +602,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v124-compact-generation-envelope-recovery-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v125-compact-generation-envelope-recovery-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7224,8 +7224,15 @@ def _build_generation_messages(
     intent: str,
     generation_context: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    *,
+    compact: bool = False,
 ) -> List[Dict[str, str]]:
-    """Build one canonical provider request from one explicit context value."""
+    """Build one canonical provider request from one explicit context value.
+
+    ``compact`` is an explicit recovery-mode selector used by the provider
+    budget fitter.  It changes only the fixed generation envelope; canonical
+    evidence remains supplied through the same explicit context boundary.
+    """
     safe_context = str(generation_context or "").strip()
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
@@ -9264,7 +9271,7 @@ def _generation_boundary_self_audit() -> None:
         )
         if not _is_request_too_large_error(preflight_error):
             raise RuntimeError(
-                "v124 generation recovery regression: fixed-envelope preflight "
+                "v125 generation recovery regression: fixed-envelope preflight "
                 "failure was not classified as request-size recoverable."
             )
 
@@ -9284,7 +9291,7 @@ def _generation_boundary_self_audit() -> None:
             > MAX_PROVIDER_TOTAL_CHARS
         ):
             raise RuntimeError(
-                "v124 generation recovery regression: compact generation still "
+                "v125 generation recovery regression: compact generation still "
                 "cannot fit the fixed provider envelope."
             )
 
@@ -9306,9 +9313,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v124":
+        if APP_VERSION != "v125":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v124."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v125."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9510,19 +9517,19 @@ def _generation_boundary_self_audit() -> None:
                 f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
             )
 
-        # v124 regression: compact recovery must materially reduce the fixed
+        # v125 regression: compact recovery must materially reduce the fixed
         # generation envelope. The production failure showed that shrinking
         # evidence alone cannot help when the fixed envelope itself exceeds
         # the compact provider input boundary.
         if compact_fixed_chars >= MAX_PROVIDER_INPUT_CHARS:
             raise RuntimeError(
-                "v124 compact-envelope regression: compact fixed system/user "
+                "v125 compact-envelope regression: compact fixed system/user "
                 f"envelope is not below provider input capacity "
                 f"(fixed_input={compact_fixed_chars}, limit={MAX_PROVIDER_INPUT_CHARS})."
             )
         if compact_fixed_chars + compact_output_reservation > MAX_PROVIDER_TOTAL_CHARS:
             raise RuntimeError(
-                "v124 compact-envelope regression: compact fixed envelope plus "
+                "v125 compact-envelope regression: compact fixed envelope plus "
                 "output reservation still exceeds provider total capacity."
             )
 
@@ -9852,8 +9859,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v124":
-            raise RuntimeError(f"Unexpected v124 USE version: {APP_VERSION}")
+        if APP_VERSION != "v125":
+            raise RuntimeError(f"Unexpected v125 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9911,9 +9918,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v124":
+        if APP_VERSION != "v125":
             raise RuntimeError(
-                f"Unexpected v124 USE runtime version: {APP_VERSION}"
+                f"Unexpected v125 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
