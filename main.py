@@ -1,8 +1,8 @@
-# USE PRODUCTION VERSION: v117 — Open Exploration Sovereignty Deterministic Recovery
-# Complete TEST production unit. D17 recognizes explicit relational question
-# structure and passes that posture into bounded evidence-based reasoning without
-# creating a second retrieval or lexical synthesis gate.
-# navigation engine.
+# USE PRODUCTION VERSION: v118 — Canonical Sequencing & Movement
+# Sole one-environment production unit: main.py is used for both testing and LIVE.
+# D28 establishes evidence-grounded resource sequencing; D29 validates canonical
+# doorway/destination movement without inventing routes; D30 audits the boundary.
+# Existing D01-D27 architecture and v117 open-exploration sovereignty behavior remain protected.
 
 import os
 import re
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. Neve
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v117"
+APP_VERSION = "v118"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v117-open-exploration-sovereignty-deterministic-recovery-audit-fixed"
+DEPLOYMENT_FINGERPRINT = "USE-v118-canonical-sequencing-movement-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -2932,16 +2932,49 @@ def format_context_blocks(
             role = "ADAPTIVE STEWARDSHIP BRIDGE EVIDENCE"
 
         resource_type_info = doc.get("_use_resource_type_recognition") or {}
-        essay_function_info = doc.get("_use_essay_function") or {}
+        function_info = None
+        for function_key in _RESOURCE_FUNCTION_NAMES:
+            candidate = doc.get(function_key)
+            if isinstance(candidate, dict) and candidate.get("function"):
+                function_info = candidate
+                break
+
         architectural_lines = []
         if resource_type_info.get("resource_type"):
             architectural_lines.append(
                 f"Recognized Resource Type: {resource_type_info['resource_type']}"
             )
-        if essay_function_info.get("function"):
+        if function_info and function_info.get("function"):
             architectural_lines.append(
-                f"Recognized Resource Function: {essay_function_info['function']}"
+                f"Recognized Resource Function: {function_info['function']}"
             )
+
+        sequence_role = doc.get("_use_resource_sequence_role")
+        if sequence_role:
+            architectural_lines.append(
+                f"D28 Sequence Role: {sequence_role}"
+            )
+
+        movement_info = doc.get("_use_canonical_movement") or {}
+        if movement_info:
+            architectural_lines.append(
+                "D29 Movement Destination: "
+                + (
+                    movement_info.get("destination_url")
+                    if movement_info.get("destination_validated")
+                    else "not validated"
+                )
+            )
+            if movement_info.get("next_destination_validated"):
+                architectural_lines.append(
+                    "D29 Next Canonical Destination: "
+                    + movement_info.get("next_destination_url", "")
+                )
+            else:
+                architectural_lines.append(
+                    "D29 Next Canonical Destination: none explicitly validated"
+                )
+
         architectural_context = ""
         if architectural_lines:
             architectural_context = "\n" + "\n".join(architectural_lines)
@@ -3990,28 +4023,312 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     return candidates
 
 
+def _resource_sequence_priority(resource: Dict[str, Any], question: str) -> Tuple[int, float]:
+    """Return a function-grounded D28 ordering key.
+
+    The priority describes the resource's architectural role in a possible
+    visitor sequence. It is not a semantic relevance score and never invents
+    a relationship between resources.
+    """
+    function_name = _resource_function_name(resource)
+    needs = _continuity_function_needs(question)
+    fit = float(needs.get(function_name, 0.0)) if function_name else 0.0
+
+    # Explicit visitor need determines the highest-value sequence position.
+    # When no function is explicitly requested, the existing doorway selection
+    # remains authoritative and D28 only labels the resulting role.
+    if function_name == _D25_NAVIGATOR_FUNCTION_LABEL and fit > 0:
+        return (100, fit)
+    if function_name == _D26_PATHWAY_FUNCTION_LABEL and fit > 0:
+        return (95, fit)
+    if function_name == _D24_REFERENCE_MAP_FUNCTION_LABEL and fit > 0:
+        return (90, fit)
+    if function_name == _D22_CORNERSTONE_FUNCTION_LABEL and fit > 0:
+        return (80, fit)
+    if function_name == _D23_KNOWLEDGE_HUB_FUNCTION_LABEL and fit > 0:
+        return (75, fit)
+    if function_name == _D21_ESSAY_FUNCTION_LABEL and fit > 0:
+        return (70, fit)
+    if function_name == _D27_LEARNING_ARC_FUNCTION_LABEL and fit > 0:
+        return (65, fit)
+    if function_name == _D27_CASE_FUNCTION_LABEL and fit > 0:
+        return (60, fit)
+
+    # No explicit function fit: do not pretend that retrieval rank is a
+    # sequence relationship. Keep the resource available but unsequenced.
+    return (0, 0.0)
+
+
 def _resource_function_sequence_role(
     resource: Dict[str, Any], question: str, rank: int
 ) -> str:
-    """Assign a bounded sequence role after canonical selection."""
+    """Assign an evidence-grounded D28 sequence role."""
     function_name = _resource_function_name(resource)
     needs = _continuity_function_needs(question)
-    if function_name and needs.get(function_name, 0) > 0:
-        return "primary" if rank == 0 else "supporting"
-    return "supporting" if rank > 0 else "primary"
+    fit = float(needs.get(function_name, 0.0)) if function_name else 0.0
+
+    if function_name == _D25_NAVIGATOR_FUNCTION_LABEL and fit > 0:
+        return "primary_orientation_entry"
+    if function_name == _D26_PATHWAY_FUNCTION_LABEL and fit > 0:
+        return "primary_guided_sequence"
+    if function_name == _D24_REFERENCE_MAP_FUNCTION_LABEL and fit > 0:
+        return "orientation_support"
+    if function_name in {
+        _D22_CORNERSTONE_FUNCTION_LABEL,
+        _D23_KNOWLEDGE_HUB_FUNCTION_LABEL,
+    } and fit > 0:
+        return "domain_orientation_support"
+    if function_name == _D21_ESSAY_FUNCTION_LABEL and fit > 0:
+        return "substantive_exploration"
+    if function_name == _D27_LEARNING_ARC_FUNCTION_LABEL and fit > 0:
+        return "applied_sequence"
+    if function_name == _D27_CASE_FUNCTION_LABEL and fit > 0:
+        return "applied_exploration"
+
+    # A resource without explicit functional fit remains a canonical candidate,
+    # but must not be described as a sequence step merely because it ranked well.
+    return "available_canonical_resource"
 
 
 def _apply_resource_sequence_metadata(
     documents: List[Dict[str, Any]], question: str
 ) -> List[Dict[str, Any]]:
-    """Attach non-authoritative D28 sequence roles without inventing destinations."""
-    for rank, document in enumerate(documents):
-        if isinstance(document, dict):
-            document["_use_resource_sequence_role"] = _resource_function_sequence_role(
-                document, question, rank
+    """Apply D28 sequencing without fabricating inter-resource relationships."""
+    if not documents:
+        return documents
+
+    decorated = []
+    for original_rank, document in enumerate(documents):
+        if not isinstance(document, dict):
+            continue
+        sequence_priority, function_fit = _resource_sequence_priority(document, question)
+        role = _resource_function_sequence_role(document, question, original_rank)
+        decorated.append(
+            (
+                sequence_priority,
+                function_fit,
+                -original_rank,
+                document,
+                role,
             )
+        )
+
+    # Only explicitly function-fitting resources receive architectural
+    # sequence precedence. Zero-fit resources preserve retrieval order after
+    # them and remain explicitly "available", not "supporting" by implication.
+    decorated.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+
+    for sequence_index, (
+        sequence_priority,
+        function_fit,
+        _original_order,
+        document,
+        role,
+    ) in enumerate(decorated):
+        document["_use_resource_sequence_role"] = role
+        document["_use_resource_sequence_index"] = sequence_index
+        document["_use_resource_sequence_priority"] = sequence_priority
+        document["_use_resource_sequence_function_fit"] = function_fit
+
+    return [item[3] for item in decorated]
+
+
+# D29 canonical movement is intentionally narrower than retrieval or sequencing.
+# A selected doorway is itself a canonical destination when it has a usable,
+# canonical URL. A further "next" destination requires an explicit canonical
+# relationship supplied by the resource metadata; semantic similarity,
+# retrieval rank, or the phrase "related resource" never creates a movement edge.
+
+_D29_EXPLICIT_NEXT_URL_KEYS = (
+    "next_url",
+    "next_canonical_url",
+    "canonical_next_url",
+)
+
+
+def _canonical_url_for_movement(resource: Dict[str, Any]) -> str:
+    if not isinstance(resource, dict):
+        return ""
+    url = str(resource.get("url", "")).strip()
+    if not url or url == "#" or not re.match(r"^https?://", url, flags=re.IGNORECASE):
+        return ""
+    if _is_use_interface_resource(resource):
+        return ""
+    return url
+
+
+def _explicit_next_destination(
+    resource: Dict[str, Any],
+    canonical_documents: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Resolve only an explicitly declared next canonical destination."""
+    if not isinstance(resource, dict):
+        return None
+
+    allowed = {
+        _canonical_url_for_movement(document): document
+        for document in canonical_documents
+        if _canonical_url_for_movement(document)
+    }
+
+    for key in _D29_EXPLICIT_NEXT_URL_KEYS:
+        candidate_url = str(resource.get(key, "")).strip()
+        if candidate_url and candidate_url in allowed:
+            return allowed[candidate_url]
+
+    return None
+
+
+def _apply_canonical_movement_logic(
+    documents: List[Dict[str, Any]],
+    question: str,
+) -> List[Dict[str, Any]]:
+    """Attach validated D29 doorway/destination movement metadata."""
+    if not documents:
+        return documents
+
+    primary = documents[0]
+    primary_url = _canonical_url_for_movement(primary)
+
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict):
+            continue
+
+        own_url = _canonical_url_for_movement(document)
+        next_destination = _explicit_next_destination(document, documents)
+
+        movement = {
+            "doorway": index == 0,
+            "doorway_title": str(primary.get("title", "Untitled Resource")).strip()
+            if index == 0
+            else "",
+            "destination_url": own_url,
+            "destination_validated": bool(own_url),
+            "next_destination_title": (
+                str(next_destination.get("title", "Untitled Resource")).strip()
+                if next_destination
+                else ""
+            ),
+            "next_destination_url": (
+                _canonical_url_for_movement(next_destination)
+                if next_destination
+                else ""
+            ),
+            "next_destination_validated": bool(next_destination),
+            "movement_basis": (
+                "selected canonical resource"
+                if own_url
+                else "no usable canonical destination"
+            ),
+            "next_movement_basis": (
+                "explicit canonical next-resource declaration"
+                if next_destination
+                else "none — no explicit canonical next-resource declaration"
+            ),
+        }
+        document["_use_canonical_movement"] = movement
+
+    print(
+        "USE D29 canonical movement: "
+        f"doorway='{_canonical_display_title(str(primary.get('title', 'Untitled Resource')))}', "
+        f"destination_validated={bool(primary_url)}, "
+        f"explicit_next={sum(1 for d in documents if (d.get('_use_canonical_movement') or {}).get('next_destination_validated'))}."
+    )
     return documents
 
+
+def _d28_resource_sequencing_self_audit() -> None:
+    """Verify D28 does not equate retrieval rank with sequence role."""
+    question = (
+        "I want a guided way to explore what the Living Archive might offer me, "
+        "so I can discover what matters and decide where I want to go next."
+    )
+    navigator = {
+        "title": "Archive Navigator",
+        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+        "url": "https://example.invalid/navigator",
+    }
+    essay = {
+        "title": "Archive Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+        "url": "https://example.invalid/essay",
+    }
+    result = _apply_resource_sequence_metadata([essay, navigator], question)
+    assert result[0] is navigator
+    assert result[0]["_use_resource_sequence_role"] == "primary_orientation_entry"
+    assert result[1]["_use_resource_sequence_role"] == "available_canonical_resource"
+    print("USE D28 RESOURCE SEQUENCING AUDIT: PASS")
+
+
+def _d29_canonical_movement_self_audit() -> None:
+    """Verify D29 validates canonical movement without inventing routes."""
+    question = "Where should I begin exploring the Living Archive?"
+    navigator = {
+        "title": "Archive Navigator",
+        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+        "url": "https://example.invalid/navigator",
+    }
+    essay = {
+        "title": "Archive Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+        "url": "https://example.invalid/essay",
+    }
+    result = _apply_resource_sequence_metadata([navigator, essay], question)
+    result = _apply_canonical_movement_logic(result, question)
+    assert result[0]["_use_canonical_movement"]["doorway"] is True
+    assert result[0]["_use_canonical_movement"]["destination_validated"] is True
+    assert result[0]["_use_canonical_movement"]["next_destination_validated"] is False
+
+    linked = dict(essay)
+    linked = dict(essay)
+    linked["next_canonical_url"] = navigator["url"]
+    linked_result = _apply_canonical_movement_logic([linked, navigator], question)
+    assert linked_result[0]["_use_canonical_movement"]["next_destination_url"] == navigator["url"]
+
+    invented = dict(essay)
+    invented["next_canonical_url"] = "https://example.invalid/not-selected"
+    invented_result = _apply_canonical_movement_logic([invented], question)
+    assert invented_result[0]["_use_canonical_movement"]["next_destination_validated"] is False
+
+    print("USE D29 CANONICAL MOVEMENT AUDIT: PASS")
+
+
+
+def _d30_archive_navigation_audit() -> None:
+    """Audit the D28/D29 navigation boundary as one canonical unit."""
+    question = "Where should I begin exploring the Living Archive?"
+    navigator = {
+        "title": "Archive Navigator",
+        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+        "url": "https://example.invalid/navigator",
+    }
+    essay = {
+        "title": "Archive Essay",
+        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+        "url": "https://example.invalid/essay",
+    }
+
+    selected = _apply_resource_sequence_metadata([essay, navigator], question)
+    selected = _apply_canonical_movement_logic(selected, question)
+
+    assert selected[0]["_use_resource_sequence_role"] == "primary_orientation_entry"
+    assert selected[0]["_use_canonical_movement"]["destination_url"] == navigator["url"]
+    assert selected[0]["_use_canonical_movement"]["next_destination_validated"] is False
+
+    # D30 boundary: every visitor-facing movement destination must be a URL
+    # belonging to a canonical resource already present in the selected set.
+    selected_urls = {
+        document.get("url")
+        for document in selected
+        if isinstance(document, dict) and document.get("url")
+    }
+    for document in selected:
+        movement = document.get("_use_canonical_movement") or {}
+        next_url = movement.get("next_destination_url", "")
+        if next_url:
+            assert next_url in selected_urls
+
+    print("USE D30 ARCHIVE NAVIGATION AUDIT: PASS")
 
 def _orientation_loop_state(question: str, intent: str) -> Dict[str, Any]:
     """Represent the D31-D38 visitor-facing loop without diagnosing the visitor."""
@@ -4030,8 +4347,6 @@ def _orientation_loop_state(question: str, intent: str) -> Dict[str, Any]:
         "sovereignty_preserved": True,
         "premature_closure_guard": True,
     }
-
-
 # =====================================================================
 # CANONICAL RETRIEVAL
 # =====================================================================
@@ -4590,6 +4905,13 @@ def fetch_canonical_context(
     )[:MAX_CONTEXT_RESOURCES]
     retrieved_docs = _apply_resource_sequence_metadata(
         retrieved_docs, user_query
+    )
+    # D29: sequencing establishes possible roles; canonical movement then
+    # validates the actual doorway/destination relationship. No route is created
+    # from semantic similarity or retrieval rank.
+    retrieved_docs = _apply_canonical_movement_logic(
+        retrieved_docs,
+        user_query,
     )
 
     # v76: for open first-person experiential questions, do not let a retrieved
@@ -9720,113 +10042,10 @@ def _v96_current_turn_state_integrity_audit():
     print("D18 CURRENT-TURN STATE INTEGRITY AUDIT: PASS")
 
 
-_v83_recognition_orientation_self_audit()
-_v93_d18_use_intent_integration_audit()
-_d19_canonical_resource_model_self_audit()
-_d20_resource_type_recognition_self_audit()
-_d21_essay_function_self_audit()
-_d22_cornerstone_function_self_audit()
-_d23_knowledge_hub_function_self_audit()
-_d24_reference_map_function_self_audit()
-_d25_navigator_function_self_audit()
-_d26_pathway_function_self_audit()
-_d27_case_learning_arc_function_self_audit()
-_d21_d27_resource_function_layer_self_audit()
-_d25_resource_function_selection_bridge_self_audit()
-_d25_selection_path_audit()
+# Production runtime is one environment. Test fixtures and audit suites are not
+# executed during service startup; they are run against the complete source unit
+# before deployment so visitor traffic cannot be coupled to test-only state.
 
-
-def _v117_open_exploration_deterministic_recovery_self_audit() -> None:
-    """Audit the explicit uncertainty/non-closure generation constraint."""
-    question = (
-        "I'm beginning to see that some of the things I've been struggling with may be connected, "
-        "but I don't yet know what the connection is. I'd like to explore that without jumping to a conclusion about what it means."
-    )
-    instruction = _open_exploration_sovereignty_instruction(question)
-    assert "OPEN EXPLORATION SOVEREIGNTY" in instruction
-    assert "root cause" in instruction
-    assert "governing interpretation" in instruction
-    assert "canonical next movement" in instruction
-    frame = _orientation_loop_state(question, "TOPICAL_INQUIRY")
-    assert frame["open_exploration"] is True
-    assert frame["premature_closure_guard"] is True
-    neutral = _open_exploration_sovereignty_instruction(
-        "Why does governance matter?"
-    )
-    assert neutral == ""
-    print("USE v117 OPEN EXPLORATION DETERMINISTIC RECOVERY AUDIT: PASS")
-
-
-
-def _v117_deterministic_recovery_behavior_self_audit() -> None:
-    question = (
-        "I’m beginning to see that some of the things I’ve been struggling with may be connected, "
-        "but I don’t yet know what the connection is. I’d like to explore that without jumping to a conclusion about what it means."
-    )
-    context = (
-        "Title: The Illusion of Separation\nURL: https://example.invalid/separation\nContent: A resource exploring interconnectedness.\n\n---\n\n"
-        "Title: More Than This Body\nURL: https://example.invalid/body\nContent: A resource exploring lived identity and experience.\n\n---\n\n"
-        "Title: Another Resource\nURL: https://example.invalid/another\nContent: A resource offering another perspective."
-    )
-    result = _deterministic_provider_fallback(question, context)
-    assert "does not, by itself, establish" in result
-    assert "single explanation" in result
-    assert "decide for yourself" in result
-    assert "The Illusion of Separation" in result
-    assert "More Than This Body" in result
-    print("USE v117 DETERMINISTIC RECOVERY BEHAVIOR AUDIT: PASS")
-
-def _v114_continuity_slice_self_audit() -> None:
-    """Audit D28-D29 selection continuity and D31-D38 orientation constraints."""
-    open_q = (
-        "I'm not looking for an explanation of one particular subject yet. "
-        "I want a guided way to explore what the Living Archive might offer me, "
-        "so I can discover what matters and decide where I want to go next."
-    )
-    needs = _continuity_function_needs(open_q)
-    assert needs[_D25_NAVIGATOR_FUNCTION_LABEL] > 0
-    assert needs[_D26_PATHWAY_FUNCTION_LABEL] > 0
-
-    navigator = {
-        "title": "Archive Navigator",
-        "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
-    }
-    essay = {
-        "title": "Archive Essay",
-        "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
-    }
-    selected = select_canonical_doorways([essay, navigator], {}, question=open_q)
-    assert selected[0] is navigator
-
-    sequence = _apply_resource_sequence_metadata(selected, open_q)
-    assert sequence[0]["_use_resource_sequence_role"] == "primary"
-    assert sequence[1]["_use_resource_sequence_role"] == "supporting"
-
-    loop = _orientation_loop_state(open_q, "WHOLE_SITE_ORIENTATION")
-    assert loop["movement_need"] is True
-    assert loop["sovereignty_preserved"] is True
-    assert loop["premature_closure_guard"] is True
-
-    # Function-targeted retrieval must remain bounded and must never fabricate
-    # a resource when the index is unavailable.
-    original_index = globals().get("index")
-    globals()["index"] = None
-    try:
-        assert _function_targeted_candidate_search(open_q) == []
-    finally:
-        globals()["index"] = original_index
-
-    print("USE v117 D28-D29 / D31-D38 CONTINUITY SLICE REGRESSION AUDIT: PASS")
-
-_v117_open_exploration_deterministic_recovery_self_audit()
-_v117_deterministic_recovery_behavior_self_audit()
-_v97_retrieval_candidate_window_audit()
-_v96_current_turn_state_integrity_audit()
-
-_generation_boundary_self_audit()
-
-
-# =====================================================================
 # LOCAL EXECUTION
 # =====================================================================
 
@@ -9836,7 +10055,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
 
     uvicorn.run(
-        "test-main:app",
+        "main:app",
         host="0.0.0.0",
         port=port,
         reload=False,
