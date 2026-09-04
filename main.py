@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v149 — Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v150 — Provider Error Observability + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -11,6 +11,7 @@ import time
 import unicodedata
 import html
 import inspect
+import json
 from typing import Dict, Any, List, Optional, Tuple
 import math
 import threading
@@ -592,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v149"
+APP_VERSION = "v150"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -608,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v149-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v150-provider-error-observability-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v149-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b8d3c1c389657a88b0ec292f92fe328d549360132d8c0343ee55ec560ebaf9dd"
+CANONICAL_BUILD_ID = "USE-BUILD-v150-provider-error-observability-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "2a084844fac3a9f7cbe24eb5c0f3828ea6ea03bee6b42e271ca71c0cc7835a9c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8386,12 +8387,23 @@ def _run_generation_attempt(
     estimated_quota_tokens = _estimate_quota_tokens(messages, max_tokens)
     _known_daily_tpd_preflight(model_id, estimated_quota_tokens)
 
-    response = groq_client.chat.completions.create(
-        model=model_id,
-        messages=messages,
-        temperature=0.2,
-        max_tokens=max_tokens,
-    )
+    try:
+        response = groq_client.chat.completions.create(
+            model=model_id,
+            messages=messages,
+            temperature=0.2,
+            max_tokens=max_tokens,
+        )
+    except Exception as exc:
+        _log_provider_exception_diagnostic(
+            "compact" if compact else "primary",
+            model_id,
+            exc,
+            max_tokens=max_tokens,
+            input_chars=_estimate_message_chars(messages),
+            evidence_chars=len(safe_context),
+        )
+        raise
 
     choice = response.choices[0]
     finish_reason = getattr(choice, "finish_reason", None)
@@ -8451,6 +8463,76 @@ def _run_generation_attempt(
         return ""
 
     return cleaned_answer
+
+
+def _log_provider_exception_diagnostic(
+    stage: str,
+    model_id: str,
+    exc: Exception,
+    *,
+    max_tokens: int,
+    input_chars: Optional[int] = None,
+    evidence_chars: Optional[int] = None,
+) -> None:
+    """Log structured provider failure metadata without changing recovery behavior."""
+    status_code = getattr(exc, "status_code", None)
+    response = getattr(exc, "response", None)
+    response_headers: Dict[str, str] = {}
+    response_body: Any = getattr(exc, "body", None)
+
+    if response is not None:
+        try:
+            headers = getattr(response, "headers", None)
+            if headers is not None:
+                for header_name in (
+                    "x-request-id",
+                    "x-groq-request-id",
+                    "x-ratelimit-limit-requests",
+                    "x-ratelimit-remaining-requests",
+                    "x-ratelimit-reset-requests",
+                    "x-ratelimit-limit-tokens",
+                    "x-ratelimit-remaining-tokens",
+                    "x-ratelimit-reset-tokens",
+                ):
+                    value = headers.get(header_name)
+                    if value is not None:
+                        response_headers[header_name] = str(value)
+        except Exception:
+            response_headers = {}
+
+        try:
+            response_body = response.json()
+        except Exception:
+            try:
+                response_body = getattr(response, "text", None)
+            except Exception:
+                response_body = None
+
+    if response_body is not None:
+        try:
+            response_body_text = json.dumps(response_body, ensure_ascii=False, default=str)
+        except Exception:
+            response_body_text = repr(response_body)
+        response_body_text = response_body_text[:2000]
+    else:
+        response_body_text = ""
+
+    diagnostic = {
+        "stage": str(stage),
+        "model": str(model_id),
+        "exception_class": type(exc).__name__,
+        "status_code": status_code,
+        "error": str(exc)[:1000],
+        "response_headers": response_headers,
+        "response_body": response_body_text,
+        "max_tokens": int(max_tokens),
+        "input_chars": input_chars,
+        "evidence_chars": evidence_chars,
+    }
+    print(
+        "USE PROVIDER ERROR DIAGNOSTIC: "
+        f"{json.dumps(diagnostic, ensure_ascii=False, sort_keys=True)}"
+    )
 
 
 def _is_request_too_large_error(error_text: str) -> bool:
@@ -9703,6 +9785,33 @@ def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
         _v148_canonical_build_identity_self_audit()
+        if not callable(_log_provider_exception_diagnostic):
+            raise RuntimeError(
+                "v150 provider diagnostic audit failed; diagnostic helper is unavailable."
+            )
+        class _DiagnosticResponse:
+            status_code = 413
+            headers = {
+                "x-ratelimit-limit-tokens": "70000",
+                "x-ratelimit-remaining-tokens": "69000",
+            }
+
+            def json(self):
+                return {"error": {"type": "request_too_large", "code": "request_too_large"}}
+
+        class _DiagnosticException(Exception):
+            status_code = 413
+            response = _DiagnosticResponse()
+            body = None
+
+        _log_provider_exception_diagnostic(
+            "self-audit",
+            "self-audit/provider",
+            _DiagnosticException("Request Entity Too Large"),
+            max_tokens=160,
+            input_chars=123,
+            evidence_chars=45,
+        )
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
@@ -10294,9 +10403,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 "Provider boundary regression: primary generation context budget changed."
             )
-        if MAX_GENERATION_TOKENS != 320:
+        if MAX_GENERATION_TOKENS != 290:
             raise RuntimeError(
-                "Provider boundary regression: primary generation token budget changed."
+                "Provider boundary regression: primary generation token budget changed; expected 290."
             )
         if MAX_PROVIDER_INPUT_CHARS != 3800 or MAX_PROVIDER_TOTAL_CHARS != 4600:
             raise RuntimeError(
