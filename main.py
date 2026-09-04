@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v130 — Compact Schema-Free Context Propagation + The Guide
+# USE PRODUCTION VERSION: v131 — Generation Grounding Boundary + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v130"
+APP_VERSION = "v131"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v130-compact-schema-free-context-propagation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v131-generation-grounding-boundary-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6326,11 +6326,16 @@ def _clean_generation_output(
     if not answer:
         return ""
 
-    link_context = canonical_link_context or generation_context
+    # Generated visitor-facing links must remain inside the same canonical
+    # resource set that authorizes the answer. A broader canonical-link
+    # context may contain related resources, but it cannot authorize a model
+    # to introduce one that was not selected as generation evidence.
+    # Validation context is the authoritative Title/URL set for this boundary.
+    link_context = generation_context
 
-    # Resource eligibility is governed by the selected generation set. Link
-    # authority may be broader, but it must never expand the set of resources
-    # the visitor is offered.
+    # Resource eligibility and link eligibility are governed by the selected
+    # generation set. Broader canonical link authority must never expand the
+    # resources the visitor is offered by a generated answer.
     cleaned_answer = _remove_unresolvable_resource_list_items(
         answer,
         generation_context,
@@ -7447,10 +7452,10 @@ def _run_generation_attempt(
     if (
         cleaned_answer
         and str(intent).upper() == "TOPICAL_INQUIRY"
-        and _canonical_pairs(generation_context)
+        and _canonical_pairs(effective_validation_context)
         and not _contains_canonical_resource_reference(
             cleaned_answer,
-            generation_context,
+            effective_validation_context,
         )
     ):
         print(
@@ -9635,6 +9640,37 @@ def _generation_boundary_self_audit() -> None:
         if "Title:" in compact_provider_probe or "URL:" in compact_provider_probe or "Content:" in compact_provider_probe:
             raise RuntimeError(
                 "v130 compact provider evidence regression: internal evidence labels remain in provider recovery context."
+            )
+
+        # v131 regression: compact generation must validate topical grounding
+        # against the original canonical Title/URL context, not the schema-free
+        # provider context. This prevents a model from naming/linking a resource
+        # that was never supplied as generation evidence.
+        grounding_validation_probe = (
+            "Title: Selected Resource\n"
+            "URL: https://example.invalid/selected\n"
+            "Content: Selected canonical evidence."
+        )
+        if not _canonical_pairs(grounding_validation_probe):
+            raise RuntimeError(
+                "v131 generation grounding regression: canonical validation context was not parseable."
+            )
+        unauthorized_answer_probe = (
+            "The relevant material is [Unauthorized Resource]"
+            "(https://geralddaquila.com/unauthorized-resource/)."
+        )
+        if _contains_canonical_resource_reference(
+            unauthorized_answer_probe, grounding_validation_probe
+        ):
+            raise RuntimeError(
+                "v131 generation grounding regression: unauthorized resource was treated as selected evidence."
+            )
+        authorized_answer_probe = "The relevant material is Selected Resource."
+        if not _contains_canonical_resource_reference(
+            authorized_answer_probe, grounding_validation_probe
+        ):
+            raise RuntimeError(
+                "v131 generation grounding regression: selected canonical resource reference was not recognized."
             )
         compact_fit_probe, compact_fit_messages = _fit_generation_context_to_provider_budget(
             "Probe question",
