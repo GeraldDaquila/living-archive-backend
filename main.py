@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v138 — Explicit Resource-Type Identity Replacement + The Guide
+# USE PRODUCTION VERSION: v139 — Explicit Resource-Type Carry-Forward Cap Repair + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -589,7 +589,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v138"
+APP_VERSION = "v139"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -605,7 +605,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v138-explicit-resource-type-identity-replacement-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v139-explicit-resource-type-carry-forward-cap-repair-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4124,44 +4124,62 @@ def _preserve_explicit_type_candidates(
     by D20. At least one candidate for each explicitly requested publication
     family is preserved when such a candidate already exists in the retrieved
     evidence.
+
+    v139 correction: the selected doorway list can contain more than the final
+    generation cap at this boundary. A single pop followed by append leaves
+    the protected candidate beyond the cap, where the final slice discards it.
+    Capacity is now resolved before insertion so every preserved candidate is
+    physically inside the final bounded list.
     """
     if not selected_documents or not candidate_documents or not explicit_type_targets:
         return selected_documents
 
-    protected = [
-        document
-        for document in candidate_documents
-        if _recognize_resource_type(document).get("resource_type") in explicit_type_targets
-    ]
-    if not protected:
+    protected_by_type: Dict[str, Dict[str, Any]] = {}
+    for document in candidate_documents:
+        recognized_type = _recognize_resource_type(document).get("resource_type")
+        if recognized_type not in explicit_type_targets:
+            continue
+        protected_by_type.setdefault(recognized_type, document)
+
+    if not protected_by_type:
         return selected_documents
 
     result = list(selected_documents)
-    selected_keys = {_resource_key(document) for document in result}
-    for document in protected:
+
+    # First consolidate protected identities already represented in the
+    # working selection. This preserves the stronger D20-recognized record
+    # before capacity trimming can remove it.
+    for protected_type, document in protected_by_type.items():
         key = _resource_key(document)
-        if key in selected_keys:
-            # v138: the same canonical identity may already occupy the final
-            # selection with weaker or conflicting D20 recognition. In that
-            # case, carry the actually accepted type-constrained record forward
-            # by replacing the selected representation at the same position.
-            # This is evidence consolidation, not a new resource or ranking
-            # preference.
-            for index, existing in enumerate(result):
-                if _resource_key(existing) != key:
-                    continue
-                existing_type = _recognize_resource_type(existing).get("resource_type")
-                protected_type = _recognize_resource_type(document).get("resource_type")
-                if protected_type in explicit_type_targets and existing_type != protected_type:
-                    merged = dict(existing)
-                    for field, value in document.items():
-                        if field not in merged or merged.get(field) in (None, "", [], {}):
-                            merged[field] = value
-                    merged["_use_resource_type_recognition"] = _recognize_resource_type(document)
-                    result[index] = merged
-                break
+        for index, existing in enumerate(result):
+            if _resource_key(existing) != key:
+                continue
+            existing_type = _recognize_resource_type(existing).get("resource_type")
+            if existing_type != protected_type:
+                merged = dict(existing)
+                for field, value in document.items():
+                    if field not in merged or merged.get(field) in (None, "", [], {}):
+                        merged[field] = value
+                merged["_use_resource_type_recognition"] = _recognize_resource_type(document)
+                result[index] = merged
+            break
+
+    present_types = {
+        _recognize_resource_type(document).get("resource_type")
+        for document in result
+    }
+
+    for protected_type, document in protected_by_type.items():
+        if protected_type in present_types:
             continue
-        if len(result) >= MAX_CONTEXT_RESOURCES:
+
+        # Make room inside the cap before appending. The previous implementation
+        # removed only one item from an oversized selection, then appended the
+        # protected candidate and finally sliced the list back to eight items.
+        # That could guarantee that the newly appended candidate was the item
+        # discarded by the slice. Continue removing ordinary tail evidence until
+        # an actual slot exists.
+        while len(result) >= MAX_CONTEXT_RESOURCES:
             removable_index = next(
                 (
                     index
@@ -4172,10 +4190,12 @@ def _preserve_explicit_type_candidates(
                 None,
             )
             if removable_index is None:
-                continue
+                break
             result.pop(removable_index)
-        result.append(document)
-        selected_keys.add(key)
+
+        if len(result) < MAX_CONTEXT_RESOURCES:
+            result.append(document)
+            present_types.add(protected_type)
 
     return result[:MAX_CONTEXT_RESOURCES]
 
@@ -4339,6 +4359,30 @@ def _v137_explicit_type_candidate_carry_forward_self_audit() -> None:
             "recognition did not replace the weaker selected representation."
         )
     print("USE v138 EXPLICIT TYPE IDENTITY REPLACEMENT AUDIT: PASS")
+    oversized_selected = [
+        {"title": f"Selected {index}", "url": f"https://example.invalid/selected-{index}"}
+        for index in range(12)
+    ]
+    oversized_preserved = _preserve_explicit_type_candidates(
+        oversized_selected,
+        [reference_map],
+        {"Reference Map"},
+    )
+    if len(oversized_preserved) != MAX_CONTEXT_RESOURCES:
+        raise RuntimeError(
+            "v139 carry-forward cap regression: oversized selected evidence "
+            "did not terminate at the generation cap."
+        )
+    if not any(
+        _recognize_resource_type(document).get("resource_type") == "Reference Map"
+        for document in oversized_preserved
+    ):
+        raise RuntimeError(
+            "v139 carry-forward cap regression: protected Reference Map was "
+            "appended beyond the cap and lost by final slicing."
+        )
+    print("USE v139 EXPLICIT TYPE CARRY-FORWARD CAP AUDIT: PASS")
+
     print("USE v137 EXPLICIT TYPE CANDIDATE CARRY-FORWARD AUDIT: PASS")
 
 
