@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v125 — Compact Generation Envelope Recovery + The Guide
+# USE PRODUCTION VERSION: v126 — Minimal Provider Recovery Envelope + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -573,12 +573,14 @@ For destination/collection requests, use evidence-established destinations. For 
 """
 
 
+ 
+
+
 COMPACT_GENERATION_SYSTEM_PROMPT = """
-You are the Living Archive's Guide. Use only supplied canonical evidence.
-Orient through the supplied evidence; do not provide generic explanation. Name exact canonical titles when supported.
-Preserve the visitor's uncertainty and sovereignty. Do not infer causes, mechanisms, relationships, or outcomes that the evidence does not establish. Titles and URLs are identifiers, not evidence; ground claims in supplied Content only.
-For movement questions, call a resource the next destination only when D29 Next Canonical Destination is explicitly validated. Explicit canonical links are relationships, not automatically next steps. If no next destination is validated, say so plainly; never turn relevance, similarity, retrieval rank, or thematic continuity into a route.
-Do not invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
+You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
+Preserve uncertainty and visitor sovereignty. Use Content as evidence; titles/metadata are identifiers. Do not invent causes, mechanisms, relationships, resources, or outcomes.
+For movement questions, say “next” only when D29 explicitly validates a next destination; otherwise say no canonical next destination is established. Relevance is not movement.
+Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, or internal process.
 """
 
 
@@ -586,7 +588,7 @@ Do not invent resources, relationships, definitions, or URLs. Never reveal inter
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v125"
+APP_VERSION = "v126"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -602,7 +604,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v125-compact-generation-envelope-recovery-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v126-minimal-provider-recovery-envelope-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -664,8 +666,8 @@ MAX_CONTEXT_RESOURCES = 8
 # window so document length cannot make the Groq request unmanageably large.
 MAX_GENERATION_CONTEXT_CHARS = 1800
 MAX_GENERATION_RESOURCE_CHARS = 500
-MAX_COMPACT_GENERATION_CONTEXT_CHARS = 1100
-MAX_COMPACT_GENERATION_RESOURCE_CHARS = 300
+MAX_COMPACT_GENERATION_CONTEXT_CHARS = 200
+MAX_COMPACT_GENERATION_RESOURCE_CHARS = 120
 MAX_GENERATION_TOKENS = 320
 MAX_COMPACT_GENERATION_TOKENS = 160
 
@@ -7260,12 +7262,18 @@ def _build_generation_messages(
             f"{frame_hint}. Use only when supported by evidence."
         ) + _recognition_orientation_instruction(frame) + _open_exploration_sovereignty_instruction(user_query)
 
-    user_content = (
-        user_query
-        + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
-        "Name genuine canonical resources when supported. "
-        "No links, URLs, HTML, slugs, or emoji; USE adds links."
-    )
+    if compact:
+        user_content = (
+            user_query
+            + "\n\nAnswer from evidence; preserve uncertainty. Exact titles only; no links or markup."
+        )
+    else:
+        user_content = (
+            user_query
+            + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
+            "Name genuine canonical resources when supported. "
+            "No links, URLs, HTML, slugs, or emoji; USE adds links."
+        )
 
     return [
         {"role": "system", "content": system_content},
@@ -9510,27 +9518,35 @@ def _generation_boundary_self_audit() -> None:
             MAX_PROVIDER_INPUT_CHARS - compact_fixed_chars,
             MAX_PROVIDER_TOTAL_CHARS - compact_fixed_chars - compact_output_reservation,
         )
-        if compact_evidence_capacity < 700:
+        if compact_evidence_capacity < 150:
             raise RuntimeError(
                 "Compact generation regression: provider envelope leaves insufficient "
                 f"room for canonical evidence "
                 f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
             )
 
-        # v125 regression: compact recovery must materially reduce the fixed
-        # generation envelope. The production failure showed that shrinking
-        # evidence alone cannot help when the fixed envelope itself exceeds
-        # the compact provider input boundary.
-        if compact_fixed_chars >= MAX_PROVIDER_INPUT_CHARS:
+        # v126 regression: recovery must materially reduce the fixed generation
+        # envelope beyond v125. The production failure showed that shrinking
+        # evidence alone cannot help when the fixed envelope itself is too large.
+        if compact_fixed_chars >= 900:
             raise RuntimeError(
-                "v125 compact-envelope regression: compact fixed system/user "
+                "v126 minimal-envelope regression: compact fixed system/user "
                 f"envelope is not below provider input capacity "
                 f"(fixed_input={compact_fixed_chars}, limit={MAX_PROVIDER_INPUT_CHARS})."
             )
-        if compact_fixed_chars + compact_output_reservation > MAX_PROVIDER_TOTAL_CHARS:
+        if compact_fixed_chars + compact_output_reservation > 2100:
             raise RuntimeError(
-                "v125 compact-envelope regression: compact fixed envelope plus "
+                "v126 minimal-envelope regression: compact fixed envelope plus "
                 "output reservation still exceeds provider total capacity."
+            )
+        if compact_fixed_chars > 900:
+            raise RuntimeError(
+                "v126 minimal-envelope regression: compact fixed envelope remains "
+                f"too large for provider recovery (fixed_input={compact_fixed_chars})."
+            )
+        if MAX_COMPACT_GENERATION_CONTEXT_CHARS > 200:
+            raise RuntimeError(
+                "v126 evidence-bound regression: recovery evidence ceiling was not reduced."
             )
 
         # v65 regression: doorway selection must prioritize a canonical
