@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v123 — Generation Preflight Recovery + The Guide
+# USE PRODUCTION VERSION: v124 — Compact Generation Envelope Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -573,11 +573,20 @@ For destination/collection requests, use evidence-established destinations. For 
 """
 
 
+COMPACT_GENERATION_SYSTEM_PROMPT = """
+You are the Living Archive's Guide. Use only supplied canonical evidence.
+Orient through the supplied evidence; do not provide generic explanation. Name exact canonical titles when supported.
+Preserve the visitor's uncertainty and sovereignty. Do not infer causes, mechanisms, relationships, or outcomes that the evidence does not establish. Titles and URLs are identifiers, not evidence; ground claims in supplied Content only.
+For movement questions, call a resource the next destination only when D29 Next Canonical Destination is explicitly validated. Explicit canonical links are relationships, not automatically next steps. If no next destination is validated, say so plainly; never turn relevance, similarity, retrieval rank, or thematic continuity into a route.
+Do not invent resources, relationships, definitions, or URLs. Never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
+"""
+
+
 # =====================================================================
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v123"
+APP_VERSION = "v124"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -593,7 +602,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v123-generation-preflight-recovery-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v124-compact-generation-envelope-recovery-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -6697,13 +6706,15 @@ def _question_is_underdetermined(question: str) -> bool:
 def _build_generation_system_content(
     intent: str,
     generation_context: str,
+    *,
+    compact: bool = False,
 ) -> str:
     """
     Build the complete generation system message from explicitly supplied
     local variables. No generation path relies on an ambient context variable.
     """
     return (
-        f"{GENERATION_SYSTEM_PROMPT}\n\n"
+        f"{COMPACT_GENERATION_SYSTEM_PROMPT if compact else GENERATION_SYSTEM_PROMPT}\n\n"
         f"[CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
         f"[CANONICAL EVIDENCE]:\n"
         f"{generation_context}"
@@ -6723,6 +6734,7 @@ def _fit_generation_context_to_provider_budget(
     *,
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
+    compact: bool = False,
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Preflight the complete provider payload and compact evidence until the
@@ -6740,7 +6752,7 @@ def _fit_generation_context_to_provider_budget(
     # Calculate the non-evidence envelope once. This is the authoritative
     # amount of space consumed before canonical evidence is inserted.
     empty_messages = _build_generation_messages(
-        user_query, intent, "", orientational_frame
+        user_query, intent, "", orientational_frame, compact=compact
     )
     fixed_input_chars = _estimate_message_chars(empty_messages)
     estimated_output_chars = math.ceil(max_tokens * 4 * 1.25)
@@ -6785,7 +6797,7 @@ def _fit_generation_context_to_provider_budget(
 
     while True:
         messages = _build_generation_messages(
-            user_query, intent, candidate, orientational_frame
+            user_query, intent, candidate, orientational_frame, compact=compact
         )
         input_chars = _estimate_message_chars(messages)
         total_estimate = input_chars + estimated_output_chars
@@ -7219,14 +7231,27 @@ def _build_generation_messages(
     frame_hint = str(frame.get("primary", "general"))
     underdetermined = _question_is_underdetermined(user_query)
 
-    system_content = _build_generation_system_content(
-        intent,
-        safe_context,
-    ) + (
-        "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
-        f"{frame_hint}. Use only when supported by evidence."
-    ) + _recognition_orientation_instruction(frame) + _open_exploration_sovereignty_instruction(user_query)
-
+    if compact:
+        # Compact recovery deliberately uses only the essential constitutional
+        # generation boundary. The primary envelope's orientation/recognition
+        # scaffolding is valuable, but it is not necessary to preserve the hard
+        # evidence, sovereignty, provenance, and D29 movement constraints.
+        # Keeping those invariants while removing nonessential fixed-prompt
+        # material is what makes compact recovery executable when the primary
+        # fixed envelope itself is too large.
+        system_content = _build_generation_system_content(
+            intent,
+            safe_context,
+            compact=True,
+        )
+    else:
+        system_content = _build_generation_system_content(
+            intent,
+            safe_context,
+        ) + (
+            "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
+            f"{frame_hint}. Use only when supported by evidence."
+        ) + _recognition_orientation_instruction(frame) + _open_exploration_sovereignty_instruction(user_query)
 
     user_content = (
         user_query
@@ -7300,6 +7325,7 @@ def _run_generation_attempt(
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
     canonical_link_context: str = "",
+    compact: bool = False,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
     # Generation invariant: context is explicit from retrieval boundary
@@ -7310,6 +7336,7 @@ def _run_generation_attempt(
         generation_context,
         max_tokens=max_tokens,
         orientational_frame=orientational_frame,
+        compact=compact,
     )
 
     estimated_quota_tokens = _estimate_quota_tokens(messages, max_tokens)
@@ -7632,7 +7659,7 @@ def generate_llm_response(
 
                 try:
                     compact_messages = _build_generation_messages(
-                        user_query, intent, compact_context, orientational_frame
+                        user_query, intent, compact_context, orientational_frame, compact=True
                     )
                     compact_estimate = _estimate_quota_tokens(
                         compact_messages, MAX_COMPACT_GENERATION_TOKENS
@@ -7646,6 +7673,7 @@ def generate_llm_response(
                         compact_context,
                         max_tokens=MAX_COMPACT_GENERATION_TOKENS,
                         canonical_link_context=canonical_link_context,
+                        compact=True,
                     )
 
                     if compact_answer:
@@ -9236,7 +9264,7 @@ def _generation_boundary_self_audit() -> None:
         )
         if not _is_request_too_large_error(preflight_error):
             raise RuntimeError(
-                "v123 generation recovery regression: fixed-envelope preflight "
+                "v124 generation recovery regression: fixed-envelope preflight "
                 "failure was not classified as request-size recoverable."
             )
 
@@ -9245,6 +9273,7 @@ def _generation_boundary_self_audit() -> None:
             "TOPICAL_INQUIRY",
             "",
             None,
+            compact=True,
         )
         compact_fixed_chars = _estimate_message_chars(compact_fixed_messages)
         compact_output_reservation = math.ceil(
@@ -9255,7 +9284,7 @@ def _generation_boundary_self_audit() -> None:
             > MAX_PROVIDER_TOTAL_CHARS
         ):
             raise RuntimeError(
-                "v123 generation recovery regression: compact generation still "
+                "v124 generation recovery regression: compact generation still "
                 "cannot fit the fixed provider envelope."
             )
 
@@ -9277,9 +9306,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v123":
+        if APP_VERSION != "v124":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v123."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v124."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9466,6 +9495,7 @@ def _generation_boundary_self_audit() -> None:
             "TOPICAL_INQUIRY",
             "",
             None,
+            compact=True,
         )
         compact_fixed_chars = _estimate_message_chars(compact_empty_messages)
         compact_output_reservation = math.ceil(MAX_COMPACT_GENERATION_TOKENS * 4 * 1.25)
@@ -9478,6 +9508,22 @@ def _generation_boundary_self_audit() -> None:
                 "Compact generation regression: provider envelope leaves insufficient "
                 f"room for canonical evidence "
                 f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
+            )
+
+        # v124 regression: compact recovery must materially reduce the fixed
+        # generation envelope. The production failure showed that shrinking
+        # evidence alone cannot help when the fixed envelope itself exceeds
+        # the compact provider input boundary.
+        if compact_fixed_chars >= MAX_PROVIDER_INPUT_CHARS:
+            raise RuntimeError(
+                "v124 compact-envelope regression: compact fixed system/user "
+                f"envelope is not below provider input capacity "
+                f"(fixed_input={compact_fixed_chars}, limit={MAX_PROVIDER_INPUT_CHARS})."
+            )
+        if compact_fixed_chars + compact_output_reservation > MAX_PROVIDER_TOTAL_CHARS:
+            raise RuntimeError(
+                "v124 compact-envelope regression: compact fixed envelope plus "
+                "output reservation still exceeds provider total capacity."
             )
 
         # v65 regression: doorway selection must prioritize a canonical
@@ -9806,8 +9852,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v123":
-            raise RuntimeError(f"Unexpected v123 USE version: {APP_VERSION}")
+        if APP_VERSION != "v124":
+            raise RuntimeError(f"Unexpected v124 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9865,9 +9911,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v123":
+        if APP_VERSION != "v124":
             raise RuntimeError(
-                f"Unexpected v123 USE runtime version: {APP_VERSION}"
+                f"Unexpected v124 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
