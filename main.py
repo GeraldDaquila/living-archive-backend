@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v151 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v152 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v151"
+APP_VERSION = "v152"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v151-mvp-evidence-use-boundary-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v152-mvp-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v151-mvp-evidence-use-boundary-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9ffc042a6806068250fc3ad41396ec52c4d85222c446a7296a636f137cf582c0"
+CANONICAL_BUILD_ID = "USE-BUILD-v152-mvp-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "c2ae90b86c62185f5f7cff763cab3e1fbb2c37c170935869c1247db475f35651"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8816,17 +8816,31 @@ def generate_llm_response(
             MAX_GENERATION_RESOURCE_CHARS,
         )
 
-    active_models = get_live_groq_models()
+    # v152 MVP correction: use one evidence-tested generation path.
+    # The MVP visitor experience must not depend on which heterogeneous live
+    # model happens to produce the first output that passes the boundaries.
+    # groq/compound-mini is retained because the production tests demonstrated
+    # that this provider path can turn the supplied canonical evidence into a
+    # useful visitor synthesis. Availability is still checked against the live
+    # provider list; no alternate model lottery is introduced.
+    live_models = get_live_groq_models()
+    preferred_model = "groq/compound-mini"
 
-    if not active_models:
-        return (
-            "Unable to generate a response. "
-            "No active models are currently available."
+    if preferred_model not in live_models:
+        print(
+            "USE MVP generation path unavailable: "
+            f"preferred_model='{preferred_model}', live_models={live_models}"
+        )
+        return _deterministic_provider_fallback(
+            user_query,
+            base_generation_context,
         )
 
+    active_models = [preferred_model]
+
     print(
-        "USE generation candidates: "
-        f"{active_models}"
+        "USE generation MVP primary path: "
+        f"{preferred_model}"
     )
     print(
         "USE generation context budget: "
