@@ -1,7 +1,7 @@
-# USE PRODUCTION VERSION: v120 — Canonical Movement Evidence Gate
+# USE PRODUCTION VERSION: v121 — Canonical Movement State Propagation
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
-# canonical movement evidence gate; D30 audits the relevance-vs-movement boundary.
+# canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
 # Existing D01-D27 architecture and v117 open-exploration sovereignty behavior remain protected.
 
 import os
@@ -574,7 +574,7 @@ For destination/collection requests, use evidence-established destinations. For 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v120"
+APP_VERSION = "v121"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -590,7 +590,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v120-canonical-movement-evidence-gate-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v121-canonical-movement-state-propagation-one-environment"
 
 CORS_RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -4444,7 +4444,7 @@ def _d29_canonical_movement_self_audit() -> None:
     external_result = _apply_canonical_movement_logic([external, navigator], question)
     assert external_result[0]["_use_canonical_movement"]["linked_destination_validated"] is False
 
-    # v120 hard boundary: semantic continuity must not be sufficient for a route.
+    # v121 hard boundary: semantic continuity must not be sufficient for a route.
     no_route_context = format_context_blocks(result)
     inferred = (
         "A logical next step would be to explore Archive Navigator because its "
@@ -4516,6 +4516,37 @@ def _d30_archive_navigation_audit() -> None:
                 assert _normalize_movement_url(next_url) in selected_urls
         for linked_url in movement.get("linked_destination_urls") or []:
             assert _normalize_movement_url(linked_url) in selected_urls
+
+    # v121: an explicit request for an "established next resource" is a
+    # movement question even when it does not use the phrase "next step".
+    assert _movement_question_requires_canonical_next(
+        "Is there an established next resource from here?"
+    ) is True
+
+    no_route_context = format_context_blocks(selected)
+    no_route_fallback = _deterministic_provider_fallback(
+        "Is there an established next resource from here?",
+        no_route_context,
+    )
+    assert "does not establish a next destination" in no_route_fallback.casefold()
+    assert "could not complete its interpretive response" not in no_route_fallback.casefold()
+
+    explicit_source = {
+        "title": "Explicit Source",
+        "url": "https://geralddaquila.com/explicit-source/",
+        "next_url": essay["url"],
+    }
+    explicit_docs = _apply_canonical_movement_logic(
+        [explicit_source, essay],
+        "Is there an established next resource from Explicit Source?",
+    )
+    explicit_context = format_context_blocks(explicit_docs)
+    assert _movement_context_has_validated_next(explicit_context) is True
+    explicit_fallback = _deterministic_provider_fallback(
+        "Is there an established next resource from Explicit Source?",
+        explicit_context,
+    )
+    assert "Archive Essay" in explicit_fallback
 
     print("USE D30 ARCHIVE NAVIGATION RELATION AUDIT: PASS")
 
@@ -7017,7 +7048,7 @@ def _open_exploration_sovereignty_instruction(question: str) -> str:
 
 
 def _movement_question_requires_canonical_next(user_query: str) -> bool:
-    """Return True for questions that ask USE to establish a route or continuation."""
+    """Return True when the visitor asks USE to establish a canonical route or continuation."""
     q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
     if not q:
         return False
@@ -7031,7 +7062,7 @@ def _movement_question_requires_canonical_next(user_query: str) -> bool:
             q,
         )
         or re.search(
-            r"\b(?:next step|next destination|where .* next|continue from|continue with|go next|move next|next place|path forward|where to go)",
+            r"\b(?:next step|next destination|next resource|established next|where .* next|continue from|continue with|go next|move next|next place|path forward|where to go)",
             q,
         )
     )
@@ -7075,14 +7106,49 @@ def _deterministic_movement_evidence_fallback(
     user_query: str,
     generation_context: str,
 ) -> str:
-    """Preserve navigation without inventing a next destination."""
-    pairs = _canonical_pairs(generation_context)
+    """Propagate the D29 movement state into a safe visitor-facing response.
+
+    A movement question must never fall through to the generic provider-error
+    message merely because no route was validated. If D29 validated a next
+    destination, expose that destination. Otherwise state plainly that no
+    canonical next destination has been established.
+    """
+    context = str(generation_context or "")
+    next_match = re.search(
+        r"^D29 Next Canonical Destination:\s*(https?://\S+)\s*$",
+        context,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    if next_match:
+        next_url = next_match.group(1).strip()
+        normalized_next = _normalize_movement_url(next_url)
+        next_title = ""
+        for title, url in _canonical_pairs(context):
+            if _normalize_movement_url(url) == normalized_next:
+                next_title = _canonical_display_title(title)
+                break
+
+        if next_title:
+            return (
+                "The supplied canonical evidence establishes the following "
+                f"next destination: {next_title}. "
+                "This is an explicitly defined canonical movement from the "
+                "resource you are continuing from."
+            )
+        return (
+            "The supplied canonical evidence establishes an explicit next "
+            "destination from this point. USE can therefore treat that "
+            "destination as the canonical continuation."
+        )
+
+    pairs = _canonical_pairs(context)
     if not pairs:
         return (
-            "The supplied canonical evidence does not establish a next destination "
-            "from this point. The question remains open rather than being assigned "
-            "an inferred route."
+            "The supplied canonical evidence does not establish a next "
+            "destination from this point. The question remains open rather "
+            "than being assigned an inferred route."
         )
+
     title = _canonical_display_title(pairs[0][0])
     return (
         "The supplied canonical evidence does not establish a next destination "
@@ -7246,7 +7312,7 @@ def _run_generation_attempt(
         canonical_link_context,
     )
 
-    # v120: a positive movement claim requires explicit D29 canonical evidence.
+    # v121: a positive movement claim requires explicit D29 canonical evidence.
     # This is a post-generation hard boundary because prompt instructions alone
     # cannot be treated as authoritative enforcement.
     cleaned_answer = _apply_movement_evidence_gate(
@@ -7322,11 +7388,17 @@ def _deterministic_provider_fallback(
 ) -> str:
     """Return a safe visitor response without another provider call.
 
-    This path is used only when the provider is unavailable, rate-limited, or
-    has rejected the request envelope. It can only expose canonical resources
-    that are already present in the selected generation context, so it cannot
-    invent titles or URLs while trying to recover from a provider failure.
+    Movement questions are handled by the D29 state-aware fallback first, so
+    absence of a canonical route is not misreported as an interpretive system
+    failure. All other questions retain the existing canonical-resource-only
+    recovery behavior.
     """
+    if _movement_question_requires_canonical_next(user_query):
+        return _deterministic_movement_evidence_fallback(
+            user_query,
+            generation_context,
+        )
+
     q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
     open_exploration = bool(
         re.search(r"\b(?:explore|exploring|discover|find out|see what)\b", q)
@@ -9144,9 +9216,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError(
                 f"Source version-label regression: line 1 does not identify {APP_VERSION}."
             )
-        if APP_VERSION != "v120":
+        if APP_VERSION != "v121":
             raise RuntimeError(
-                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v120."
+                f"Runtime version mismatch: APP_VERSION={APP_VERSION}, expected v121."
             )
         if not DEPLOYMENT_FINGERPRINT.startswith(f"USE-{APP_VERSION}-"):
             raise RuntimeError(
@@ -9673,8 +9745,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         # D16 reconciliation invariants.
-        if APP_VERSION != "v120":
-            raise RuntimeError(f"Unexpected v120 USE version: {APP_VERSION}")
+        if APP_VERSION != "v121":
+            raise RuntimeError(f"Unexpected v121 USE version: {APP_VERSION}")
 
         # USE public corpus boundary: explicit T4/restricted resources are never
         # eligible, while public T1–T3 resources remain eligible.
@@ -9732,9 +9804,9 @@ def _generation_boundary_self_audit() -> None:
             raise RuntimeError("5-Why threshold regression: invitation triggered before five consecutive questions.")
 
         # Runtime identity must be explicit and current.
-        if APP_VERSION != "v120":
+        if APP_VERSION != "v121":
             raise RuntimeError(
-                f"Unexpected v120 USE runtime version: {APP_VERSION}"
+                f"Unexpected v121 USE runtime version: {APP_VERSION}"
             )
 
         # v92 D17 execution-path regression: explicit relational structure must
