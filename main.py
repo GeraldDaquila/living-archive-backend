@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v160 — MVP Document-Form Orientation Deterministic Canonical Anchor + The Guide
+# USE PRODUCTION VERSION: v161 — MVP Deterministic Document-Form Evidence Packet + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v160"
+APP_VERSION = "v161"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v160-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v161-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v160-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "bfd80715c88cc102fb8b315148a44f2b44a4ec2b182e8beda163157fb8472721"
+CANONICAL_BUILD_ID = "USE-BUILD-v161-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "4f683ed6cc35483b59766fdcb96d3a8b68ebabad1ad5f2f36c37d5fe7186e069"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -5003,7 +5003,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
 
     canonical_url = "https://geralddaquila.com/document-types-of-the-living-archive/"
     try:
-        # v160: exact canonical metadata identity. The vector is operationally
+        # v161: exact canonical metadata identity. The vector is operationally
         # required by Pinecone query, but it cannot broaden the result because
         # the URL equality filter is authoritative for this anchor.
         vector = generate_embedding(_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE)
@@ -5038,7 +5038,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
         candidate = dict(metadata)
         candidate["_use_document_choice_architecture_anchor"] = {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v160_deterministic_document_choice_architecture_retrieval",
+            "source": "v161_deterministic_document_choice_architecture_retrieval",
             "identity_field": "url",
             "identity_value": canonical_url,
         }
@@ -5085,6 +5085,68 @@ def _preserve_document_choice_architecture_candidates(
         result.pop()
     result.append(anchor)
     return result
+
+
+
+def _build_document_form_orientation_evidence_packet(
+    question: str,
+    selected_documents: List[Dict[str, Any]],
+    architecture_documents: List[Dict[str, Any]],
+) -> str:
+    """Build a compact deterministic canonical packet for document-form questions.
+
+    This packet converts already-established D21-D26 resource-function facts into
+    generation evidence. It does not infer new functions, routes, relationships,
+    or next destinations. The generator articulates the packet; it does not
+    discover the Archive's publication architecture.
+    """
+    if not architecture_documents:
+        return ""
+
+    needs = _continuity_function_needs(question)
+    required = (
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    )
+    active = [name for name in required if needs.get(name, 0.0) > 0]
+    if len(active) < 2:
+        return ""
+
+    selected_by_type: Dict[str, Dict[str, Any]] = {}
+    for document in selected_documents:
+        if not isinstance(document, dict):
+            continue
+        resource_type = _recognize_resource_type(document).get("resource_type")
+        if resource_type and resource_type not in selected_by_type:
+            selected_by_type[resource_type] = document
+
+    # Only state functions whose canonical D21-D26 function layer establishes
+    # them. The packet is intentionally short enough to survive compact recovery.
+    lines = [
+        "Canonical document-form orientation evidence:",
+        "Essay — substantive exploration and sensemaking.",
+        "Reference Map — visual structural orientation.",
+        "Navigator — integrated orientation and entry.",
+        "Pathway — guided orientation experience.",
+    ]
+
+    # Add only identity examples already present in the selected canonical set.
+    examples = []
+    for resource_type, function_label in (
+        ("Essay", _D21_ESSAY_FUNCTION_LABEL),
+        ("Reference Map", _D24_REFERENCE_MAP_FUNCTION_LABEL),
+        ("Navigator", _D25_NAVIGATOR_FUNCTION_LABEL),
+        ("Pathway", _D26_PATHWAY_FUNCTION_LABEL),
+    ):
+        document = selected_by_type.get(resource_type)
+        if document is not None:
+            title = _canonical_display_title(str(document.get("title", ""))).strip()
+            if title:
+                examples.append(f"{resource_type} example: {title}.")
+    lines.extend(examples[:4])
+    return " ".join(lines)
 
 
 def _prioritize_document_choice_architecture_generation_documents(
@@ -5356,7 +5418,67 @@ def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
     )
 
 
-def _v160_deterministic_document_form_orientation_self_audit() -> None:
+
+def _v161_document_form_orientation_evidence_packet_self_audit() -> None:
+    """Verify form-choice questions receive deterministic, bounded architecture evidence."""
+    probe = (
+        "I’m trying to understand a difficult subject from several angles. I could use "
+        "something that explains it thoroughly, something that helps me see how the "
+        "different parts connect, or something that takes me through it step by step. "
+        "How should I choose where to start?"
+    )
+    architecture = [{
+        "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        "_use_document_choice_architecture_anchor": {
+            "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+            "source": "v161_deterministic_document_choice_architecture_retrieval",
+        },
+    }]
+    selected = [
+        {
+            "title": "Example Essay",
+            "url": "https://geralddaquila.com/example-essay/",
+            "_use_resource_type_recognition": {"resource_type": "Essay"},
+            "_use_essay_function": {"function": _D21_ESSAY_FUNCTION_LABEL},
+        },
+        {
+            "title": "Example Reference Map",
+            "url": "https://geralddaquila.com/example-map/",
+            "_use_resource_type_recognition": {"resource_type": "Reference Map"},
+            "_use_reference_map_function": {"function": _D24_REFERENCE_MAP_FUNCTION_LABEL},
+        },
+        {
+            "title": "Example Navigator",
+            "url": "https://geralddaquila.com/example-navigator/",
+            "_use_resource_type_recognition": {"resource_type": "Navigator"},
+            "_use_navigator_function": {"function": _D25_NAVIGATOR_FUNCTION_LABEL},
+        },
+    ]
+    packet = _build_document_form_orientation_evidence_packet(probe, selected, architecture)
+    required_phrases = (
+        "Essay — substantive exploration and sensemaking.",
+        "Reference Map — visual structural orientation.",
+        "Navigator — integrated orientation and entry.",
+        "Pathway — guided orientation experience.",
+    )
+    assert all(phrase in packet for phrase in required_phrases), (
+        "v161 document-form orientation regression: canonical function packet incomplete"
+    )
+    assert len(packet) < 900, (
+        "v161 document-form orientation regression: packet exceeds bounded evidence target"
+    )
+
+    neutral = "Why does sovereignty matter?"
+    assert _build_document_form_orientation_evidence_packet(
+        neutral, selected, architecture
+    ) == "", (
+        "v161 document-form orientation regression: neutral topical question received architecture packet"
+    )
+    print("USE v161 DOCUMENT-FORM ORIENTATION EVIDENCE PACKET AUDIT: PASS")
+
+
+def _v161_deterministic_document_form_orientation_self_audit() -> None:
     """Verify form-choice retrieval uses exact canonical URL identity, not top-K discovery."""
     probe = (
         "I’m trying to understand a difficult subject from several angles. I could use "
@@ -5372,7 +5494,7 @@ def _v160_deterministic_document_form_orientation_self_audit() -> None:
         _D26_PATHWAY_FUNCTION_LABEL,
     )
     assert all(needs.get(name, 0.0) > 0 for name in required), (
-        "v160 document-form orientation regression: form-choice signals were not preserved"
+        "v161 document-form orientation regression: form-choice signals were not preserved"
     )
 
     anchor = {
@@ -5385,7 +5507,7 @@ def _v160_deterministic_document_form_orientation_self_audit() -> None:
     saved_index = index
     saved_generate_embedding = generate_embedding
     try:
-        class _V160FakeIndex:
+        class _V161FakeIndex:
             def __init__(self):
                 self.last_kwargs = None
             def query(self, **kwargs):
@@ -5398,12 +5520,12 @@ def _v160_deterministic_document_form_orientation_self_audit() -> None:
                     }]
                 }
 
-        fake = _V160FakeIndex()
+        fake = _V161FakeIndex()
         index = fake
         generate_embedding = lambda _text: [1.0]
         retrieved = _document_choice_architecture_candidate_search(probe)
         assert len(retrieved) == 1, (
-            "v160 document-form orientation regression: exact canonical anchor was not retrieved"
+            "v161 document-form orientation regression: exact canonical anchor was not retrieved"
         )
         assert retrieved[0]["_use_document_choice_architecture_anchor"]["identity_field"] == "url"
         assert fake.last_kwargs["filter"] == {
@@ -5427,7 +5549,7 @@ def _v160_deterministic_document_form_orientation_self_audit() -> None:
         }
         retrieved_wrong = _document_choice_architecture_candidate_search(probe)
         assert retrieved_wrong == [], (
-            "v160 document-form orientation regression: non-canonical metadata bypassed exact identity"
+            "v161 document-form orientation regression: non-canonical metadata bypassed exact identity"
         )
     finally:
         index = saved_index
@@ -5435,9 +5557,9 @@ def _v160_deterministic_document_form_orientation_self_audit() -> None:
 
     neutral = _continuity_function_needs("What does sovereignty mean in practice?")
     assert not any(neutral.get(name, 0.0) > 0 for name in required), (
-        "v160 document-form orientation regression: neutral topical question activated form-choice posture"
+        "v161 document-form orientation regression: neutral topical question activated form-choice posture"
     )
-    print("USE v160 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
+    print("USE v161 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
 
 
 def _v159_document_form_orientation_anchor_self_audit() -> None:
@@ -5465,7 +5587,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         "text": "Canonical explanation of publication forms.",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v160_deterministic_document_choice_architecture_retrieval",
+            "source": "v161_deterministic_document_choice_architecture_retrieval",
         },
     }
 
@@ -5498,7 +5620,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         )
         assert retrieved_anchor[0]["title"] == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE
         assert retrieved_anchor[0]["_use_document_choice_architecture_anchor"]["source"] == (
-            "v160_deterministic_document_choice_architecture_retrieval"
+            "v161_deterministic_document_choice_architecture_retrieval"
         )
     finally:
         index = saved_index
@@ -6851,11 +6973,29 @@ def fetch_canonical_context(
         document_choice_architecture_docs,
     )
 
+    document_form_orientation_packet = _build_document_form_orientation_evidence_packet(
+        user_query,
+        retrieved_docs,
+        document_choice_architecture_docs,
+    )
+    if document_form_orientation_packet:
+        print(
+            "USE document-form orientation evidence packet: "
+            f"chars={len(document_form_orientation_packet)}, "
+            "source=D21-D26 canonical resource-function layer."
+        )
+
     generation_context = format_context_blocks(
         retrieved_docs,
         structural_destination_count=structural_destination_count,
         adaptive_bridge_count=adaptive_bridge_count,
     )
+    if document_form_orientation_packet:
+        generation_context = (
+            document_form_orientation_packet
+            + "\n\n---\n\n"
+            + generation_context
+        )
 
     # v56 observability: expose the selected generation set in deployment logs.
     # This makes it possible to distinguish retrieval narrowing from model
@@ -10708,7 +10848,8 @@ def _generation_boundary_self_audit() -> None:
         _v157_functional_document_choice_synonym_self_audit()
         _v158_document_choice_retrieval_anchoring_self_audit()
         _v159_document_form_orientation_anchor_self_audit()
-        _v160_deterministic_document_form_orientation_self_audit()
+        _v161_document_form_orientation_evidence_packet_self_audit()
+        _v161_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
