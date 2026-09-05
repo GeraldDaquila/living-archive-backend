@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v159 — MVP Document-Form Orientation Anchor + The Guide
+# USE PRODUCTION VERSION: v160 — MVP Document-Form Orientation Deterministic Canonical Anchor + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v159"
+APP_VERSION = "v160"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v159-mvp-document-form-orientation-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v160-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v159-mvp-document-form-orientation-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "302e3e690da70e9abda1ecc553c74ec50ba3d5b4ab50e68bcb4f1ffc462d5681"
+CANONICAL_BUILD_ID = "USE-BUILD-v160-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bfd80715c88cc102fb8b315148a44f2b44a4ec2b182e8beda163157fb8472721"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4097,6 +4097,10 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
         r"\b(?:thoroughly|deeply|in\s+depth|in\s+detail)\b",
         q,
     )) or bool(re.search(
+        r"\b(?:understand|understanding)\b.*"
+        r"\b(?:deeply|thoroughly|comprehensively|in\s+depth|in\s+detail)\b",
+        q,
+    )) or bool(re.search(
         r"\b(?:explain|explains|explaining)\s+(?:a|the)\s+"
         r"(?:subject|topic|issue)\s+(?:in\s+)?(?:depth|detail)\b",
         q,
@@ -4971,13 +4975,15 @@ def _v149_explicit_type_generation_evidence_preservation_self_audit() -> None:
 
 
 def _document_choice_architecture_candidate_search(question: str) -> List[Dict[str, Any]]:
-    """Retrieve canonical archive-architecture evidence for form-choice questions.
+    """Retrieve the canonical archive-architecture anchor by exact metadata identity.
 
     A form-choice question asks how the Archive is organized and how its
-    publication forms differ. It therefore needs canonical architecture
-    evidence in addition to function-specific examples. The search remains
-    canonical because every returned record still comes directly from the
-    archive index.
+    publication forms differ. The canonical architecture resource is therefore
+    retrieved by its exact canonical URL metadata, not by semantic top-K
+    discovery. A semantic vector is retained only as the required Pinecone
+    query operand; the metadata filter determines identity. This prevents
+    ordinary topical similarity from deciding whether the architecture anchor
+    exists in the evidence set.
     """
     if not question or not index:
         return []
@@ -4995,37 +5001,56 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
     ):
         return []
 
+    canonical_url = "https://geralddaquila.com/document-types-of-the-living-archive/"
     try:
+        # v160: exact canonical metadata identity. The vector is operationally
+        # required by Pinecone query, but it cannot broaden the result because
+        # the URL equality filter is authoritative for this anchor.
         vector = generate_embedding(_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE)
         if not vector:
             return []
-        matches = _query_index(vector, min(12, RETRIEVAL_TOP_K))
+        result = index.query(
+            vector=vector,
+            top_k=1,
+            include_metadata=True,
+            filter={"url": {"$eq": canonical_url}},
+        )
+        matches = (
+            result.get("matches", [])
+            if hasattr(result, "get")
+            else getattr(result, "matches", [])
+        )
     except Exception as exc:
-        print(f"USE document-choice architecture retrieval error: {exc}")
+        print(f"USE document-choice deterministic architecture retrieval error: {exc}")
         return []
 
     candidates: List[Dict[str, Any]] = []
-    for _score, _match_id, metadata in matches:
+    for match in matches:
+        metadata = _match_metadata(match)
         if not isinstance(metadata, dict):
             continue
         title = _canonical_display_title(str(metadata.get("title", ""))).strip()
+        url = str(metadata.get("url", "")).strip().rstrip("/") + "/"
         if title.casefold() != _DOCUMENT_CHOICE_ARCHITECTURE_TITLE.casefold():
+            continue
+        if url.casefold() != canonical_url.casefold():
             continue
         candidate = dict(metadata)
         candidate["_use_document_choice_architecture_anchor"] = {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v159_document_choice_architecture_retrieval",
+            "source": "v160_deterministic_document_choice_architecture_retrieval",
+            "identity_field": "url",
+            "identity_value": canonical_url,
         }
         candidates.append(candidate)
         break
 
     print(
-        "USE document-choice architecture retrieval: "
+        "USE document-choice deterministic architecture retrieval: "
         f"anchor_candidates={len(candidates)}, "
-        f"title={_DOCUMENT_CHOICE_ARCHITECTURE_TITLE!r}."
+        f"identity_url={canonical_url!r}."
     )
     return candidates
-
 
 def _preserve_document_choice_architecture_candidates(
     selected_documents: List[Dict[str, Any]],
@@ -5331,6 +5356,90 @@ def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
     )
 
 
+def _v160_deterministic_document_form_orientation_self_audit() -> None:
+    """Verify form-choice retrieval uses exact canonical URL identity, not top-K discovery."""
+    probe = (
+        "I’m trying to understand a difficult subject from several angles. I could use "
+        "something that explains it thoroughly, something that helps me see how the "
+        "different parts connect, or something that takes me through it step by step. "
+        "How should I choose where to start?"
+    )
+    needs = _continuity_function_needs(probe)
+    required = (
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    )
+    assert all(needs.get(name, 0.0) > 0 for name in required), (
+        "v160 document-form orientation regression: form-choice signals were not preserved"
+    )
+
+    anchor = {
+        "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        "text": "Canonical explanation of publication forms.",
+    }
+
+    global index, generate_embedding
+    saved_index = index
+    saved_generate_embedding = generate_embedding
+    try:
+        class _V160FakeIndex:
+            def __init__(self):
+                self.last_kwargs = None
+            def query(self, **kwargs):
+                self.last_kwargs = kwargs
+                return {
+                    "matches": [{
+                        "id": "architecture-anchor",
+                        "score": 0.01,
+                        "metadata": dict(anchor),
+                    }]
+                }
+
+        fake = _V160FakeIndex()
+        index = fake
+        generate_embedding = lambda _text: [1.0]
+        retrieved = _document_choice_architecture_candidate_search(probe)
+        assert len(retrieved) == 1, (
+            "v160 document-form orientation regression: exact canonical anchor was not retrieved"
+        )
+        assert retrieved[0]["_use_document_choice_architecture_anchor"]["identity_field"] == "url"
+        assert fake.last_kwargs["filter"] == {
+            "url": {"$eq": "https://geralddaquila.com/document-types-of-the-living-archive/"}
+        }
+        assert fake.last_kwargs["top_k"] == 1
+
+        # A semantically weak score is intentionally accepted: identity, not
+        # semantic rank, determines whether the canonical anchor is returned.
+        fake.last_kwargs = None
+        fake.query = lambda **kwargs: {
+            "matches": [{
+                "id": "wrong",
+                "score": 0.99,
+                "metadata": {
+                    "title": "Topical Resource",
+                    "url": "https://geralddaquila.com/topical/",
+                    "text": "Topical evidence.",
+                },
+            }]
+        }
+        retrieved_wrong = _document_choice_architecture_candidate_search(probe)
+        assert retrieved_wrong == [], (
+            "v160 document-form orientation regression: non-canonical metadata bypassed exact identity"
+        )
+    finally:
+        index = saved_index
+        generate_embedding = saved_generate_embedding
+
+    neutral = _continuity_function_needs("What does sovereignty mean in practice?")
+    assert not any(neutral.get(name, 0.0) > 0 for name in required), (
+        "v160 document-form orientation regression: neutral topical question activated form-choice posture"
+    )
+    print("USE v160 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
+
+
 def _v159_document_form_orientation_anchor_self_audit() -> None:
     """Verify the form-choice anchor is canonical, preserved, and generation-first."""
     probe = (
@@ -5352,11 +5461,11 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
 
     anchor = {
         "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-        "url": "https://example.invalid/document-types",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
         "text": "Canonical explanation of publication forms.",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v159_document_choice_architecture_retrieval",
+            "source": "v160_deterministic_document_choice_architecture_retrieval",
         },
     }
 
@@ -5364,36 +5473,36 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
     # response. This verifies that the architecture anchor is accepted only
     # when the canonical index returns the exact title, rather than merely
     # testing downstream preservation with a hand-created candidate.
-    global index, generate_embedding, _query_index
+    global index, generate_embedding
     saved_index = index
     saved_generate_embedding = generate_embedding
-    saved_query_index = _query_index
     try:
         class _V159FakeIndex:
-            pass
+            def query(self, **kwargs):
+                return {
+                    "matches": [{
+                        "id": "anchor",
+                        "score": 0.99,
+                        "metadata": {
+                            **dict(anchor),
+                            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+                        },
+                    }]
+                }
 
         index = _V159FakeIndex()
         generate_embedding = lambda _text: [1.0]
-        _query_index = lambda _vector, _limit: [
-            (0.99, "anchor", dict(anchor)),
-            (0.50, "other", {
-                "title": "Unrelated Canonical Resource",
-                "url": "https://example.invalid/other",
-                "text": "Other evidence.",
-            }),
-        ]
         retrieved_anchor = _document_choice_architecture_candidate_search(probe)
         assert len(retrieved_anchor) == 1, (
             "v159 document-form orientation regression: architecture retrieval did not isolate the canonical anchor"
         )
         assert retrieved_anchor[0]["title"] == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE
         assert retrieved_anchor[0]["_use_document_choice_architecture_anchor"]["source"] == (
-            "v159_document_choice_architecture_retrieval"
+            "v160_deterministic_document_choice_architecture_retrieval"
         )
     finally:
         index = saved_index
         generate_embedding = saved_generate_embedding
-        _query_index = saved_query_index
     ordinary = [
         {"title": "Topical Resource", "url": "https://example.invalid/topical", "text": "Topical evidence."}
         for _ in range(MAX_CONTEXT_RESOURCES)
@@ -10599,6 +10708,7 @@ def _generation_boundary_self_audit() -> None:
         _v157_functional_document_choice_synonym_self_audit()
         _v158_document_choice_retrieval_anchoring_self_audit()
         _v159_document_form_orientation_anchor_self_audit()
+        _v160_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
