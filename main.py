@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v162 — MVP Deterministic Document-Form Evidence Packet + The Guide
+# USE PRODUCTION VERSION: v163 — MVP Deterministic Document-Form Evidence Packet + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -564,16 +564,17 @@ CONSTITUTIONAL RULES
 # =====================================================================
 
 GENERATION_SYSTEM_PROMPT = """
-You are USE, the Living Archive navigation engine. Use only supplied canonical evidence.
+You are USE, the Living Archive navigation engine. Answer only from supplied canonical evidence.
 
-For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway. If evidence is supplied, name one canonical Title; normally use 2–3 only for distinct coverage.
+For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway; normally use 2–3 only for distinct coverage. [RELATIONAL REASONING]: For explicit relationships or synthesis, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference or possibility.
 
-[RELATIONAL REASONING]: For explicit relationships, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference.
-[FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Otherwise it is that resource's lens; do not imply the visitor is undergoing it or that its outcome follows. If evidence is mainly specialized, say its fit is limited/framework-specific. Preserve uncertainty.
+[FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it; otherwise it is that resource's lens. A specialized framework may govern the explanation only when the visitor names it. Preserve uncertainty and do not imply an imposed framework, experience, or outcome.
 
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; no metadata/outside knowledge. Never turn thematic compatibility into causation. [INFERENTIAL DISTANCE]: Do not invent intermediate facts or mechanisms. If A and B are supported but their connection is not, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: An inference cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic compatibility into causation. Do not invent intermediate facts or mechanisms. If a connection is not established, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
-For destination/collection requests, use evidence-established destinations. For movement questions, a resource may be called the next destination only when D29 Next Canonical Destination is explicitly validated. An explicit canonical link is evidence of a relationship, but do not describe it as the next step unless the supplied D29 metadata establishes that. If no next destination is validated, say so plainly rather than converting an explicit link, semantic relevance, title/description similarity, retrieval rank, or thematic continuity into a route. A resource can be surfaced as an available related place without being called the next step. Never use phrases such as “a logical next step,” “a useful place to continue,” “continue with,” or equivalent positive route language when D29 has not validated a next destination. Never invent resources, relationships, definitions, or URLs; never reveal internal process. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
+For destination/collection requests, use evidence-established destinations. For movement questions, call a resource the next destination only when D29 explicitly validates it. An explicit link is a relationship, not automatically a next step. If no D29 next destination is validated, say so plainly. Never invent resources, relationships, definitions, or URLs; never reveal internal process.
+
+Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
 """
 
 
@@ -593,7 +594,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v162"
+APP_VERSION = "v163"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +610,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v162-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v163-mvp-generation-envelope-optimization-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v162-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9a7a6f635a3d93b3405e199420218693c93254515008f17c97af2db4d69f7f4c"
+CANONICAL_BUILD_ID = "USE-BUILD-v163-mvp-generation-envelope-optimization-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "847fa99d595409db8c5b25742627df9b998e3740ac0fed09690689c1baeb1470"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -5003,7 +5004,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
 
     canonical_url = "https://geralddaquila.com/document-types-of-the-living-archive/"
     try:
-        # v162: exact canonical metadata identity. The vector is operationally
+        # v163: exact canonical metadata identity. The vector is operationally
         # required by Pinecone query, but it cannot broaden the result because
         # the URL equality filter is authoritative for this anchor.
         vector = generate_embedding(_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE)
@@ -5038,7 +5039,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
         candidate = dict(metadata)
         candidate["_use_document_choice_architecture_anchor"] = {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v162_deterministic_document_choice_architecture_retrieval",
+            "source": "v163_deterministic_document_choice_architecture_retrieval",
             "identity_field": "url",
             "identity_value": canonical_url,
         }
@@ -5419,7 +5420,7 @@ def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
 
 
 
-def _v162_document_form_orientation_evidence_packet_self_audit() -> None:
+def _v163_document_form_orientation_evidence_packet_self_audit() -> None:
     """Verify form-choice questions receive deterministic, bounded architecture evidence."""
     probe = (
         "I’m trying to understand a difficult subject from several angles. I could use "
@@ -5432,7 +5433,7 @@ def _v162_document_form_orientation_evidence_packet_self_audit() -> None:
         "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v162_deterministic_document_choice_architecture_retrieval",
+            "source": "v163_deterministic_document_choice_architecture_retrieval",
         },
     }]
     selected = [
@@ -5463,22 +5464,22 @@ def _v162_document_form_orientation_evidence_packet_self_audit() -> None:
         "Pathway — guided orientation experience.",
     )
     assert all(phrase in packet for phrase in required_phrases), (
-        "v162 document-form orientation regression: canonical function packet incomplete"
+        "v163 document-form orientation regression: canonical function packet incomplete"
     )
     assert len(packet) < 900, (
-        "v162 document-form orientation regression: packet exceeds bounded evidence target"
+        "v163 document-form orientation regression: packet exceeds bounded evidence target"
     )
 
     neutral = "Why does sovereignty matter?"
     assert _build_document_form_orientation_evidence_packet(
         neutral, selected, architecture
     ) == "", (
-        "v162 document-form orientation regression: neutral topical question received architecture packet"
+        "v163 document-form orientation regression: neutral topical question received architecture packet"
     )
-    print("USE v162 DOCUMENT-FORM ORIENTATION EVIDENCE PACKET AUDIT: PASS")
+    print("USE v163 DOCUMENT-FORM ORIENTATION EVIDENCE PACKET AUDIT: PASS")
 
 
-def _v162_deterministic_document_form_orientation_self_audit() -> None:
+def _v163_deterministic_document_form_orientation_self_audit() -> None:
     """Verify form-choice retrieval uses exact canonical URL identity, not top-K discovery."""
     probe = (
         "I’m trying to understand a difficult subject from several angles. I could use "
@@ -5494,7 +5495,7 @@ def _v162_deterministic_document_form_orientation_self_audit() -> None:
         _D26_PATHWAY_FUNCTION_LABEL,
     )
     assert all(needs.get(name, 0.0) > 0 for name in required), (
-        "v162 document-form orientation regression: form-choice signals were not preserved"
+        "v163 document-form orientation regression: form-choice signals were not preserved"
     )
 
     anchor = {
@@ -5525,7 +5526,7 @@ def _v162_deterministic_document_form_orientation_self_audit() -> None:
         generate_embedding = lambda _text: [1.0]
         retrieved = _document_choice_architecture_candidate_search(probe)
         assert len(retrieved) == 1, (
-            "v162 document-form orientation regression: exact canonical anchor was not retrieved"
+            "v163 document-form orientation regression: exact canonical anchor was not retrieved"
         )
         assert retrieved[0]["_use_document_choice_architecture_anchor"]["identity_field"] == "url"
         assert fake.last_kwargs["filter"] == {
@@ -5549,7 +5550,7 @@ def _v162_deterministic_document_form_orientation_self_audit() -> None:
         }
         retrieved_wrong = _document_choice_architecture_candidate_search(probe)
         assert retrieved_wrong == [], (
-            "v162 document-form orientation regression: non-canonical metadata bypassed exact identity"
+            "v163 document-form orientation regression: non-canonical metadata bypassed exact identity"
         )
     finally:
         index = saved_index
@@ -5557,9 +5558,9 @@ def _v162_deterministic_document_form_orientation_self_audit() -> None:
 
     neutral = _continuity_function_needs("What does sovereignty mean in practice?")
     assert not any(neutral.get(name, 0.0) > 0 for name in required), (
-        "v162 document-form orientation regression: neutral topical question activated form-choice posture"
+        "v163 document-form orientation regression: neutral topical question activated form-choice posture"
     )
-    print("USE v162 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
+    print("USE v163 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
 
 
 def _v159_document_form_orientation_anchor_self_audit() -> None:
@@ -5587,7 +5588,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         "text": "Canonical explanation of publication forms.",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v162_deterministic_document_choice_architecture_retrieval",
+            "source": "v163_deterministic_document_choice_architecture_retrieval",
         },
     }
 
@@ -5620,7 +5621,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         )
         assert retrieved_anchor[0]["title"] == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE
         assert retrieved_anchor[0]["_use_document_choice_architecture_anchor"]["source"] == (
-            "v162_deterministic_document_choice_architecture_retrieval"
+            "v163_deterministic_document_choice_architecture_retrieval"
         )
     finally:
         index = saved_index
@@ -9175,9 +9176,7 @@ def _build_generation_messages(
     else:
         user_content = (
             user_query
-            + "\n\nAnswer using the supplied evidence; preserve uncertainty. "
-            "Name genuine canonical resources when supported. "
-            "No links, URLs, HTML, slugs, or emoji; USE adds links."
+            + "\n\nAnswer only from supplied evidence; preserve uncertainty. Exact titles; no links or markup."
         )
 
     return [
@@ -9727,19 +9726,42 @@ def _classify_generation_complexity(
     }
 
 
-def _v162_model_routing_self_audit() -> None:
+def _v163_generation_envelope_self_audit() -> None:
+    """Verify the primary fixed envelope is materially smaller without removing hard invariants."""
+    empty = _build_generation_messages(
+        "Why do systems change?", "TOPICAL_INQUIRY", "", None, compact=False
+    )
+    fixed_chars = _estimate_message_chars(empty)
+    if fixed_chars >= 2700:
+        raise RuntimeError(
+            f"v163 generation-envelope regression: fixed primary envelope remains too large ({fixed_chars} chars)."
+        )
+    for marker in (
+        "For TOPICAL questions, orient through supplied evidence, not generic explanation.",
+        "normally use 2–3 only for distinct coverage",
+        "[FRAME SOVEREIGNTY]",
+        "[PROVENANCE + SYNTHESIS]",
+        "D29 explicitly validates",
+        "Never invent resources, relationships, definitions, or URLs",
+    ):
+        if marker not in GENERATION_SYSTEM_PROMPT:
+            raise RuntimeError(f"v163 generation-envelope regression: required invariant missing: {marker}")
+    print(f"USE v163 GENERATION ENVELOPE AUDIT: PASS (fixed_input={fixed_chars})")
+
+
+def _v163_model_routing_self_audit() -> None:
     """Verify deterministic task-to-model routing without calling a provider."""
     simple = _classify_generation_complexity(
         "What is sovereignty?", "TOPICAL_INQUIRY", "A" * 500
     )
     if simple["complexity"] != 1 or simple["model"] != "openai/gpt-oss-20b":
-        raise RuntimeError(f"v162 model-routing regression: simple task routed incorrectly: {simple}")
+        raise RuntimeError(f"v163 model-routing regression: simple task routed incorrectly: {simple}")
 
     ordinary = _classify_generation_complexity(
         "What does this resource explain?", "TOPICAL_INQUIRY", "A" * 900
     )
     if ordinary["complexity"] != 2 or ordinary["model"] != "groq/compound-mini":
-        raise RuntimeError(f"v162 model-routing regression: ordinary task routed incorrectly: {ordinary}")
+        raise RuntimeError(f"v163 model-routing regression: ordinary task routed incorrectly: {ordinary}")
 
     synthesis = _classify_generation_complexity(
         "I see essays, Reference Maps, Navigators and Pathways. What is the difference between them and how should I choose?",
@@ -9747,7 +9769,7 @@ def _v162_model_routing_self_audit() -> None:
         "A" * 1596,
     )
     if synthesis["complexity"] != 3 or synthesis["model"] != "openai/gpt-oss-120b":
-        raise RuntimeError(f"v162 model-routing regression: synthesis task routed incorrectly: {synthesis}")
+        raise RuntimeError(f"v163 model-routing regression: synthesis task routed incorrectly: {synthesis}")
 
     complex_task = _classify_generation_complexity(
         "How do I reconcile conflicting interpretations across multiple resources?",
@@ -9755,9 +9777,9 @@ def _v162_model_routing_self_audit() -> None:
         "A" * 1900,
     )
     if complex_task["complexity"] != 4 or complex_task["model"] != "groq/compound":
-        raise RuntimeError(f"v162 model-routing regression: complex task routed incorrectly: {complex_task}")
+        raise RuntimeError(f"v163 model-routing regression: complex task routed incorrectly: {complex_task}")
 
-    print("USE v162 MODEL ROUTING AUDIT: PASS")
+    print("USE v163 MODEL ROUTING AUDIT: PASS")
 
 
 def generate_llm_response(
@@ -9809,7 +9831,7 @@ def generate_llm_response(
             MAX_GENERATION_RESOURCE_CHARS,
         )
 
-    # v162 MVP correction: select the reasoning model deterministically from
+    # v163 MVP correction: select the reasoning model deterministically from
     # the task complexity before any provider call. There is no heterogeneous
     # model lottery and no sequential cycling after an output-boundary failure.
     routing = _classify_generation_complexity(
@@ -10980,9 +11002,10 @@ def _generation_boundary_self_audit() -> None:
         _v157_functional_document_choice_synonym_self_audit()
         _v158_document_choice_retrieval_anchoring_self_audit()
         _v159_document_form_orientation_anchor_self_audit()
-        _v162_document_form_orientation_evidence_packet_self_audit()
-        _v162_model_routing_self_audit()
-        _v162_deterministic_document_form_orientation_self_audit()
+        _v163_document_form_orientation_evidence_packet_self_audit()
+        _v163_generation_envelope_self_audit()
+        _v163_model_routing_self_audit()
+        _v163_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
@@ -11601,11 +11624,10 @@ def _generation_boundary_self_audit() -> None:
                 "Provider boundary regression: compact fallback is not smaller than primary generation."
             )
 
-        # v55 adaptive-fit regression: the provider fitter must adapt the evidence
-        # window to the actual fixed system/user envelope. The current production
-        # prompt intentionally leaves too little primary capacity to preserve a
-        # complete canonical block, so the primary path raises a recoverable
-        # boundary and the established compact path performs the actual fit.
+        # v163 adaptive-fit regression: after reducing the fixed primary envelope,
+        # a large canonical context must be bounded into a request that fits the
+        # authoritative provider envelope, rather than requiring a forced primary
+        # failure merely because the old fixed prompt was oversized.
         synthetic_context = (
             "Title: Institutional Cornerstones\n"
             "URL: https://example.invalid/institutional-cornerstones\n"
@@ -11615,24 +11637,18 @@ def _generation_boundary_self_audit() -> None:
             "URL: https://example.invalid/governance-foundations\n"
             "Content: " + ("governance foundations evidence " * 80)
         )
-        try:
-            _fit_generation_context_to_provider_budget(
-                "Why can adding more rules to a system sometimes make the system less governable?",
-                "TOPICAL_INQUIRY",
-                synthetic_context,
-                max_tokens=MAX_GENERATION_TOKENS,
-            )
-        except ValueError as exc:
-            if not _is_request_too_large_error(str(exc)):
-                raise RuntimeError(
-                    "Provider adaptive-fit regression: primary boundary was not "
-                    "classified as recoverable."
-                ) from exc
-        else:
-            raise RuntimeError(
-                "Provider adaptive-fit regression: primary oversized-context "
-                "boundary did not trigger."
-            )
+        fitted_primary_context, fitted_primary_messages = _fit_generation_context_to_provider_budget(
+            "Why can adding more rules to a system sometimes make the system less governable?",
+            "TOPICAL_INQUIRY",
+            synthetic_context,
+            max_tokens=MAX_GENERATION_TOKENS,
+        )
+        fitted_primary_input = _estimate_message_chars(fitted_primary_messages)
+        fitted_primary_total = fitted_primary_input + math.ceil(MAX_GENERATION_TOKENS * 4 * 1.25)
+        if not fitted_primary_context.strip():
+            raise RuntimeError("v163 adaptive-fit regression: primary canonical evidence was lost.")
+        if fitted_primary_input > MAX_PROVIDER_INPUT_CHARS or fitted_primary_total > MAX_PROVIDER_TOTAL_CHARS:
+            raise RuntimeError("v163 adaptive-fit regression: primary fitted request exceeds provider envelope.")
 
         fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
             "Why can adding more rules to a system sometimes make the system less governable?",
