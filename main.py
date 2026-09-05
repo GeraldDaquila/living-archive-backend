@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v165 — MVP Lean Generation Envelope + Canonical Evidence Use + The Guide
+# USE PRODUCTION VERSION: v166 — MVP Reasoning Evidence Authority + Canonical Evidence Use + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -597,7 +597,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v165"
+APP_VERSION = "v166"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -613,14 +613,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v165-mvp-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v166-mvp-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v165-mvp-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e522b0f0c33e99e9d62637a7a95f0381baf607ac937307c65101ba434ff99a66"
+CANONICAL_BUILD_ID = "USE-BUILD-v166-mvp-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "daa6cbfd1e70902d764d87d5ac70b3c603af3308bdbdf17658d2315f08e467a3"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8113,6 +8113,56 @@ def _dedupe_canonical_resource_items_across_answer(
     return "\n".join(filtered).strip()
 
 
+def _provider_evidence_identity_context(
+    safe_context: str,
+    canonical_identity_context: str,
+) -> str:
+    """Authorize only canonical resources actually represented in safe evidence.
+
+    Compact provider evidence can be schema-free and omit URL fields. This helper
+    restores canonical URL identity only for titles that are actually present in
+    the provider-safe representation. It never expands authority to an omitted
+    resource. D29 movement authorization remains a separate system boundary.
+    """
+    if not safe_context or not canonical_identity_context:
+        return ""
+
+    canonical_by_title = {}
+    for title, url in _canonical_pairs(canonical_identity_context):
+        display = _canonical_display_title(title)
+        if display and url:
+            canonical_by_title[display.casefold()] = (display, url)
+
+    if not canonical_by_title:
+        return ""
+
+    represented = []
+    represented_keys = set()
+    for block in safe_context.split("\n\n---\n\n"):
+        title_match = re.search(
+            r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE
+        )
+        if title_match:
+            title = _canonical_display_title(title_match.group(1).strip())
+        else:
+            compact_match = re.match(
+                r"^(.+?)\s+—\s+(.*)$", block, flags=re.DOTALL
+            )
+            if not compact_match:
+                continue
+            title = _canonical_display_title(compact_match.group(1).strip())
+
+        key = title.casefold() if title else ""
+        if key in canonical_by_title and key not in represented_keys:
+            represented_keys.add(key)
+            represented.append(canonical_by_title[key])
+
+    return "\n\n---\n\n".join(
+        f"Title: {title}\nURL: {url}\nContent:"
+        for title, url in represented
+    )
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -9299,10 +9349,14 @@ def _run_generation_attempt(
         )
         return ""
 
-    # Compact recovery uses a schema-free provider context, but output
-    # validation must retain the original canonical Title/URL context so
-    # resource identity and D29 movement state remain authoritative.
-    effective_validation_context = str(validation_context or generation_context or "")
+    # v166: visitor-facing resource authority is limited to canonical evidence
+    # actually represented in the provider-safe evidence for this attempt.
+    # The broader selected context remains an upstream reasoning/selection field.
+    reasoning_evidence_identity = _provider_evidence_identity_context(
+        safe_context,
+        str(validation_context or generation_context or ""),
+    )
+    effective_validation_context = reasoning_evidence_identity
 
     cleaned_answer = _clean_generation_output(
         generated_text,
@@ -9310,13 +9364,14 @@ def _run_generation_attempt(
         canonical_link_context,
     )
 
-    # v122: a positive movement claim requires explicit D29 canonical evidence.
-    # This is a post-generation hard boundary because prompt instructions alone
-    # cannot be treated as authoritative enforcement.
+    # D29 remains an independent system-level navigation authorization boundary.
+    # It is intentionally evaluated against validated movement metadata rather
+    # than inferred from the provider-safe evidence representation.
+    movement_authority_context = str(validation_context or generation_context or "")
     cleaned_answer = _apply_movement_evidence_gate(
         cleaned_answer,
         user_query,
-        effective_validation_context,
+        movement_authority_context,
     )
 
     # v151 MVP boundary: a provider may mention canonical resources while
@@ -11147,13 +11202,47 @@ def _v165_lean_generation_envelope_self_audit() -> None:
                 f"v165 lean-envelope regression: required invariant missing: {marker_text}"
             )
     print(
-        f"USE v165 LEAN GENERATION ENVELOPE AUDIT: PASS "
+        f"USE v166 LEAN GENERATION ENVELOPE AUDIT: PASS "
         f"(fixed_input={fixed_chars}, class3_evidence_capacity={capacity})"
     )
 
 
+def _v166_reasoning_evidence_authority_self_audit() -> None:
+    """Prove omitted provider evidence cannot authorize visitor-facing resources."""
+    full = (
+        "Title: Resource A\nURL: https://example.invalid/a\nContent: Evidence A."
+        "\n\n---\n\n"
+        "Title: Resource B\nURL: https://example.invalid/b\nContent: Evidence B."
+    )
+    safe_a = "Resource A — Evidence A."
+    identity = _provider_evidence_identity_context(safe_a, full)
+    assert _canonical_pairs(identity) == [("Resource A", "https://example.invalid/a")]
+    assert _contains_canonical_resource_reference("Resource A", identity)
+    assert not _contains_canonical_resource_reference("Resource B", identity)
+
+    # The cleaner is presentation-oriented; substantive authorization is
+    # enforced by the final canonical-reference boundary below.
+    assert not _contains_canonical_resource_reference(
+        "Resource B provides the relevant explanation.", identity
+    )
+    assert _contains_canonical_resource_reference(
+        "Resource A provides the relevant explanation.", identity
+    )
+
+    linked_b = "[Resource B](https://example.invalid/b)"
+    sanitized_b = sanitize_canonical_links(linked_b, identity)
+    assert "example.invalid/b" not in sanitized_b
+
+    linked_a = "[Resource A](https://example.invalid/a)"
+    sanitized_a = sanitize_canonical_links(linked_a, identity)
+    assert "example.invalid/a" in sanitized_a
+
+    print("USE v166 reasoning-evidence authority audit: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
+    _v166_reasoning_evidence_authority_self_audit()
     try:
         _v148_canonical_build_identity_self_audit()
         if not callable(_log_provider_exception_diagnostic):
