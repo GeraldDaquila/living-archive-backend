@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v154 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v155 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v154"
+APP_VERSION = "v155"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v154-mvp-document-choice-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v155-mvp-functional-document-choice-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v154-mvp-document-choice-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "299d62016c2fc3121f89cc4220c24a6d6c63a6147bb5f58c27ed276127cbe5e1"
+CANONICAL_BUILD_ID = "USE-BUILD-v155-mvp-functional-document-choice-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "64a2ed362a500e5532eef01b3bad52e6dc555b499f0e040b98b9738915df8103"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4078,6 +4078,64 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
                 fit.get("guided orientation experience", 0.0), 1.0
             )
 
+    # Functional descriptions can express publication-choice needs without
+    # naming the publication form itself. These signals are deliberately
+    # bounded to the visitor's stated need:
+    #   explains a subject in depth -> substantive exploration
+    #   see how ideas fit/connect -> visual structural orientation
+    #   more guided way through -> guided orientation experience
+    # This recognizes the requested function; it does not prescribe a resource.
+    if (
+        bool(re.search(
+            r"\b(?:deep|thorough|comprehensive|in-depth)\b",
+            q,
+        ))
+        and bool(re.search(
+            r"\b(?:explanation|exposition|understanding|explains?|treatment)\b",
+            q,
+        ))
+    ) or bool(re.search(
+        r"\bexplains?\s+(?:a|the)\s+(?:subject|topic|issue)\s+in\s+depth\b",
+        q,
+    )):
+        fit["substantive exploration and sensemaking"] = max(
+            fit.get("substantive exploration and sensemaking", 0.0), 1.0
+        )
+
+    if bool(re.search(
+        r"\b(?:see|understand)\s+(?:how\s+)?(?:the\s+)?"
+        r"(?:ideas?|concepts?|parts?)\s+"
+        r"(?:fit|connect|relate|come together)\b",
+        q,
+    )):
+        fit["visual structural orientation"] = max(
+            fit.get("visual structural orientation", 0.0), 1.0
+        )
+
+    if bool(re.search(
+        r"\b(?:more\s+)?guided\s+(?:way|route|approach|path|pathway|through)\b",
+        q,
+    )):
+        fit["guided orientation experience"] = max(
+            fit.get("guided orientation experience", 0.0), 1.0
+        )
+
+    if (
+        (
+            fit.get("substantive exploration and sensemaking", 0.0) > 0
+            or fit.get("visual structural orientation", 0.0) > 0
+            or fit.get("guided orientation experience", 0.0) > 0
+        )
+        and bool(re.search(
+            r"\b(?:which|what|how)\b.*\b(?:approach|right|start|begin|choose|decide)\b"
+            r"|\b(?:approach|way)\b.*\b(?:right|start|begin)\b",
+            q,
+        ))
+    ):
+        fit["integrated orientation and entry"] = max(
+            fit.get("integrated orientation and entry", 0.0), 1.0
+        )
+
     # Generic "understand" questions remain function-neutral.
     return fit
 
@@ -4299,6 +4357,38 @@ def _v154_document_choice_orientation_self_audit() -> None:
             "v154 document-choice regression: Essay signal was not retained."
         )
     print("USE v154 DOCUMENT CHOICE ORIENTATION AUDIT: PASS")
+
+
+def _v155_functional_document_choice_self_audit() -> None:
+    """Verify functional language activates all three requested document functions."""
+    probe = (
+        "I’m not sure whether I need something that explains a subject in depth, "
+        "helps me see how the ideas fit together, or gives me a more guided way "
+        "through the material. How can I tell which approach is right for me?"
+    )
+    fit = _visitor_resource_function_fit(probe)
+
+    expected = (
+        "substantive exploration and sensemaking",
+        "visual structural orientation",
+        "guided orientation experience",
+        "integrated orientation and entry",
+    )
+    for name in expected:
+        if fit.get(name, 0.0) < 1.0:
+            raise RuntimeError(
+                "v155 functional document-choice regression: " + name + " not recognized."
+            )
+
+    neutral = _visitor_resource_function_fit("Why does this subject matter?")
+    for name in expected:
+        if neutral.get(name, 0.0) != 0.0:
+            raise RuntimeError(
+                "v155 functional document-choice regression: neutral question "
+                "received signal for " + name
+            )
+
+    print("USE v155 FUNCTIONAL DOCUMENT CHOICE AUDIT: PASS")
 
 
 def _continuity_function_needs(question: str) -> Dict[str, float]:
@@ -10075,6 +10165,7 @@ def _generation_boundary_self_audit() -> None:
         _v133_explicit_resource_type_request_self_audit()
         _v153_document_architecture_orientation_self_audit()
         _v154_document_choice_orientation_self_audit()
+        _v155_functional_document_choice_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
