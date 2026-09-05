@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v152 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v153 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v152"
+APP_VERSION = "v153"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v152-mvp-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v153-mvp-document-architecture-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v152-mvp-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "ae0a6534c61a2d7bb7c9b8046ea428244f8313b73cccba0895d5118e9637d6f9"
+CANONICAL_BUILD_ID = "USE-BUILD-v153-mvp-document-architecture-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e3d274098bcf75818d69460ffd5ed433e017a824512b3b021f2f0376b7ce0a87"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4015,6 +4015,31 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
     ):
         fit["cross-domain pattern orientation"] = 1.0
 
+    # Archive/document-architecture questions are navigational even when the
+    # visitor does not use explicit location language. The question is about
+    # choosing among canonical publication forms, not about the subject matter
+    # of an individual resource. This targets integrated orientation only; it
+    # does not force a particular document type.
+    document_architecture_question = (
+        bool(re.search(
+            r"\b(?:different|various|different kinds|different types|kinds|types)\s+"
+            r"(?:of\s+)?(?:documents?|resources?|material)\b",
+            q,
+        ))
+        and bool(re.search(
+            r"\b(?:which|what)\s+(?:kind|type)\b|\bwhich\s+(?:document|resource)\b",
+            q,
+        ))
+        and bool(re.search(
+            r"\b(?:use|choose|start|begin|understand|find information|information)\b",
+            q,
+        ))
+    )
+    if document_architecture_question:
+        fit["integrated orientation and entry"] = max(
+            fit.get("integrated orientation and entry", 0.0), 1.0
+        )
+
     # Generic "understand" questions remain function-neutral.
     return fit
 
@@ -4059,6 +4084,29 @@ def _v133_explicit_resource_type_request_self_audit() -> None:
         )
 
     print("USE v133 EXPLICIT RESOURCE-TYPE RETRIEVAL AUDIT: PASS")
+
+
+def _v153_document_architecture_orientation_self_audit() -> None:
+    """Verify document-selection questions activate structural orientation."""
+    probe = (
+        "I understand that the Living Archive has different kinds of documents, "
+        "but how do I know which kind I should use when I’m trying to understand "
+        "something rather than just find information?"
+    )
+    fit = _visitor_resource_function_fit(probe)
+    assert fit.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0) == 1.0, (
+        "v153 document-architecture regression: document-selection question "
+        "did not activate integrated orientation."
+    )
+
+    neutral = _visitor_resource_function_fit(
+        "What does sovereignty mean in practice?"
+    )
+    assert neutral.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0) == 0.0, (
+        "v153 document-architecture regression: ordinary topical question "
+        "received unintended integrated orientation."
+    )
+    print("USE v153 DOCUMENT-ARCHITECTURE ORIENTATION AUDIT: PASS")
 
 
 def _resource_function_name(resource: Dict[str, Any]) -> Optional[str]:
@@ -4163,7 +4211,9 @@ def select_canonical_doorways(
 
 _RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
     _D25_NAVIGATOR_FUNCTION_LABEL: (
-        "navigator orientation entry point ways through archive available routes",
+        "navigator orientation entry point ways through archive available routes "
+        "document types publication types kinds of documents choose which kind to use "
+        "understand rather than find information archive structure",
     ),
     _D26_PATHWAY_FUNCTION_LABEL: (
         "guided pathway guided reading guided journey sequence reflection question",
@@ -9961,6 +10011,7 @@ def _generation_boundary_self_audit() -> None:
         _strip_model_link_markup("", "")
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
+        _v153_document_architecture_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
