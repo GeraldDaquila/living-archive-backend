@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v169 — MVP Structural Relational Orientation Detection + v168 protections + The Guide
+# USE PRODUCTION VERSION: v170 — Generation Output Boundary Diagnostic + v169 protections + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v169"
+APP_VERSION = "v170"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v169-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v170-generation-output-boundary-diagnostic-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v169-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b572ebdfff003802fb7e37f7950639cff35a233c1756f7c0593639c956e2f27e"
+CANONICAL_BUILD_ID = "USE-BUILD-v170-generation-output-boundary-diagnostic-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d0cbd57bbd421ca508a12762e1ebb742018e321cf6d73adeefa85006b634cecb"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9361,6 +9361,96 @@ def _looks_like_finished_visitor_answer(text: str) -> bool:
     return False
 
 
+def _generation_output_boundary_diagnostic(
+    generated_text: str,
+    cleaned_answer: str,
+    finish_reason: Any,
+    generation_context: str,
+) -> Dict[str, Any]:
+    """Return non-content diagnostics for provider-output boundary decisions.
+
+    This intentionally does not log visitor prose. It records enough structure
+    to distinguish provider failure, empty output, cleaning loss, and canonical
+    reference rejection without exposing generated visitor text in production
+    logs.
+    """
+    generated = str(generated_text or "")
+    cleaned = str(cleaned_answer or "")
+    titles = [
+        _canonical_display_title(match.group(1).strip())
+        for match in re.finditer(
+            r"^Title:\s*(.+?)\s*$", generation_context or "", flags=re.MULTILINE
+        )
+        if _canonical_display_title(match.group(1).strip())
+    ]
+    if not titles:
+        titles = [
+            _canonical_display_title(title)
+            for title, _url in _canonical_pairs(generation_context or "")
+            if _canonical_display_title(title)
+        ]
+
+    exact_matches = [
+        title for title in titles
+        if re.search(
+            rf"(?<![\w]){re.escape(title)}(?![\w])",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+    ]
+
+    # Diagnostic only: identify the strongest title-prefix overlap without
+    # treating that overlap as authorization. A partial match is evidence for
+    # investigating an over-strict visitor-facing gate, not permission to pass it.
+    best_prefix_chars = 0
+    best_prefix_title = ""
+    folded_cleaned = re.sub(r"\s+", " ", cleaned.casefold()).strip()
+    for title in titles:
+        folded_title = re.sub(r"\s+", " ", title.casefold()).strip()
+        prefix_chars = 0
+        for left, right in zip(folded_title, folded_cleaned):
+            if left != right:
+                break
+            prefix_chars += 1
+        if prefix_chars > best_prefix_chars:
+            best_prefix_chars = prefix_chars
+            best_prefix_title = title
+
+    return {
+        "finish_reason": str(finish_reason or ""),
+        "generated_chars": len(generated),
+        "cleaned_chars": len(cleaned),
+        "generated_sha256": hashlib.sha256(generated.encode("utf-8")).hexdigest()
+        if generated else "",
+        "canonical_titles_available": len(titles),
+        "exact_canonical_title_matches": len(exact_matches),
+        "best_canonical_title_prefix_chars": best_prefix_chars,
+        "best_canonical_title": best_prefix_title if best_prefix_chars else "",
+        "cleaning_removed_all_output": bool(generated) and not cleaned,
+    }
+
+
+def _log_generation_output_boundary_diagnostic(
+    stage: str,
+    model_id: str,
+    diagnostic: Dict[str, Any],
+) -> None:
+    """Emit generation-output structure without emitting visitor prose."""
+    print(
+        "USE GENERATION OUTPUT DIAGNOSTIC: "
+        f"stage={stage}, model={model_id}, "
+        f"finish_reason={diagnostic.get('finish_reason', '')}, "
+        f"generated_chars={diagnostic.get('generated_chars', 0)}, "
+        f"cleaned_chars={diagnostic.get('cleaned_chars', 0)}, "
+        f"canonical_titles={diagnostic.get('canonical_titles_available', 0)}, "
+        f"exact_title_matches={diagnostic.get('exact_canonical_title_matches', 0)}, "
+        f"best_title_prefix_chars={diagnostic.get('best_canonical_title_prefix_chars', 0)}, "
+        f"best_title={diagnostic.get('best_canonical_title', '')!r}, "
+        f"cleaning_removed_all={diagnostic.get('cleaning_removed_all_output', False)}, "
+        f"generated_sha256={diagnostic.get('generated_sha256', '')}"
+    )
+
+
 def _run_generation_attempt(
     model_id: str,
     user_query: str,
@@ -9434,6 +9524,18 @@ def _run_generation_attempt(
         generated_text,
         effective_validation_context,
         canonical_link_context,
+    )
+
+    output_diagnostic = _generation_output_boundary_diagnostic(
+        generated_text,
+        cleaned_answer,
+        finish_reason,
+        effective_validation_context,
+    )
+    _log_generation_output_boundary_diagnostic(
+        "compact" if compact else "primary",
+        model_id,
+        output_diagnostic,
     )
 
     # D29 remains an independent system-level navigation authorization boundary.
@@ -11415,8 +11517,50 @@ def _v167_canonical_fallback_link_self_audit() -> None:
     print("USE v167 canonical fallback link preservation audit: PASS")
 
 
+def _v170_generation_output_diagnostic_self_audit() -> None:
+    """Verify output diagnostics remain non-content and distinguish gate states."""
+    context = (
+        "Title: Canonical Doorway\n"
+        "URL: https://example.invalid/canonical-doorway\n"
+        "Content: Evidence."
+    )
+    exact = _generation_output_boundary_diagnostic(
+        "Canonical Doorway provides the relevant evidence.",
+        "Canonical Doorway provides the relevant evidence.",
+        "stop",
+        context,
+    )
+    assert exact["generated_chars"] > 0
+    assert exact["cleaned_chars"] > 0
+    assert exact["exact_canonical_title_matches"] == 1
+    assert exact["best_canonical_title_prefix_chars"] > 0
+    assert "Canonical Doorway provides" not in str(exact)
+
+    partial_context = (
+        "Title: When Experience Can Change Us: The Two Capacities of a Living System\n"
+        "URL: https://example.invalid/experience\n"
+        "Content: Evidence."
+    )
+    partial = _generation_output_boundary_diagnostic(
+        "When Experience Can Change Us suggests that change can be sustained.",
+        "When Experience Can Change Us suggests that change can be sustained.",
+        "stop",
+        partial_context,
+    )
+    assert partial["exact_canonical_title_matches"] == 0
+    assert partial["best_canonical_title_prefix_chars"] == len("When Experience Can Change Us")
+    assert partial["generated_chars"] == partial["cleaned_chars"]
+
+    empty = _generation_output_boundary_diagnostic("", "", "stop", context)
+    assert empty["generated_chars"] == 0
+    assert empty["cleaned_chars"] == 0
+    assert empty["generated_sha256"] == ""
+    print("USE v170 GENERATION OUTPUT DIAGNOSTIC AUDIT: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
+    _v170_generation_output_diagnostic_self_audit()
     _v169_clean_runtime_boot_provenance_self_audit()
     _v166_reasoning_evidence_authority_self_audit()
     _v169_structural_relational_orientation_self_audit()
