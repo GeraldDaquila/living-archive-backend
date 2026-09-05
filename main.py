@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v163 — MVP Deterministic Document-Form Evidence Packet + The Guide
+# USE PRODUCTION VERSION: v164 — MVP Task-Aware Generation Budget + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -594,7 +594,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v163"
+APP_VERSION = "v164"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -610,14 +610,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v163-mvp-generation-envelope-optimization-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v164-mvp-task-aware-generation-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v163-mvp-generation-envelope-optimization-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "847fa99d595409db8c5b25742627df9b998e3740ac0fed09690689c1baeb1470"
+CANONICAL_BUILD_ID = "USE-BUILD-v164-mvp-task-aware-generation-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "845615e81d4fd3a8f080030c015df682a82c7447c3e653c7599b011f5f05eb57"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9242,6 +9242,7 @@ def _run_generation_attempt(
     generation_context: str,
     *,
     max_tokens: int,
+    reasoning_effort: Optional[str] = None,
     orientational_frame: Optional[Dict[str, Any]] = None,
     canonical_link_context: str = "",
     validation_context: str = "",
@@ -9263,12 +9264,15 @@ def _run_generation_attempt(
     _known_daily_tpd_preflight(model_id, estimated_quota_tokens)
 
     try:
-        response = groq_client.chat.completions.create(
-            model=model_id,
-            messages=messages,
-            temperature=0.2,
-            max_tokens=max_tokens,
-        )
+        provider_kwargs = {
+            "model": model_id,
+            "messages": messages,
+            "temperature": 0.2,
+            "max_completion_tokens": max_tokens,
+        }
+        if reasoning_effort and model_id.startswith("openai/gpt-oss-"):
+            provider_kwargs["reasoning_effort"] = reasoning_effort
+        response = groq_client.chat.completions.create(**provider_kwargs)
     except Exception as exc:
         _log_provider_exception_diagnostic(
             "compact" if compact else "primary",
@@ -9726,6 +9730,125 @@ def _classify_generation_complexity(
     }
 
 
+def _generation_budget_profile(routing: Dict[str, Any], *, compact: bool = False) -> Dict[str, Any]:
+    """Return the deterministic provider budget matched to the selected task class.
+
+    The model class and completion/reasoning budget are one routing decision.
+    This prevents a complex reasoning task from inheriting the old global 290-token
+    ceiling, while keeping the conservative provider envelope authoritative.
+    """
+    complexity = int(routing.get("complexity", 1))
+    profiles = {
+        1: {"model": "openai/gpt-oss-20b", "max_completion_tokens": 256, "reasoning_effort": "low", "compact_tokens": 256},
+        2: {"model": "groq/compound-mini", "max_completion_tokens": 320, "reasoning_effort": None, "compact_tokens": 320},
+        3: {"model": "openai/gpt-oss-120b", "max_completion_tokens": 384, "reasoning_effort": "low", "compact_tokens": 320},
+        4: {"model": "groq/compound", "max_completion_tokens": 384, "reasoning_effort": None, "compact_tokens": 320},
+    }
+    profile = dict(profiles.get(complexity, profiles[1]))
+    if compact:
+        profile["max_completion_tokens"] = profile["compact_tokens"]
+    profile.pop("compact_tokens", None)
+    return profile
+
+
+def _v164_task_aware_generation_budget_self_audit() -> None:
+    """Verify model, completion budget, and reasoning effort are deterministic by task class."""
+    probes = [
+        (1, "What is sovereignty?", "A" * 500, "openai/gpt-oss-20b", 256, "low"),
+        (2, "What does this resource explain?", "A" * 900, "groq/compound-mini", 320, None),
+        (3, "I see essays, Reference Maps, Navigators and Pathways. What is the difference between them and how should I choose?", "A" * 1596, "openai/gpt-oss-120b", 384, "low"),
+        (4, "How do I reconcile conflicting interpretations across multiple resources?", "A" * 1900, "groq/compound", 384, None),
+    ]
+    for expected_class, question, context, expected_model, expected_tokens, expected_reasoning in probes:
+        routing = _classify_generation_complexity(question, "TOPICAL_INQUIRY", context)
+        profile = _generation_budget_profile(routing)
+        if routing["complexity"] != expected_class:
+            raise RuntimeError(f"v164 routing class regression: {routing}")
+        if profile["model"] != expected_model or profile["max_completion_tokens"] != expected_tokens or profile["reasoning_effort"] != expected_reasoning:
+            raise RuntimeError(f"v164 generation budget regression: routing={routing}, profile={profile}")
+        compact = _generation_budget_profile(routing, compact=True)
+        if compact["max_completion_tokens"] > profile["max_completion_tokens"]:
+            raise RuntimeError(f"v164 compact budget regression: {compact}")
+
+    fixed_messages = _build_generation_messages("v164 envelope probe", "TOPICAL_INQUIRY", "", None)
+    fixed_chars = _estimate_message_chars(fixed_messages)
+    class3 = _generation_budget_profile({"complexity": 3})
+    output_reservation = math.ceil(class3["max_completion_tokens"] * 4 * 1.25)
+    evidence_capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - output_reservation,
+    )
+    if evidence_capacity < 0:
+        raise RuntimeError(
+            f"v164 provider-envelope regression: class-3 budget leaves negative evidence capacity ({evidence_capacity}); fixed_input={fixed_chars}."
+        )
+    compact_messages = _build_generation_messages("v164 compact probe", "TOPICAL_INQUIRY", "", None, compact=True)
+    compact_fixed = _estimate_message_chars(compact_messages)
+    compact_profile = _generation_budget_profile({"complexity": 3}, compact=True)
+    compact_reservation = math.ceil(compact_profile["max_completion_tokens"] * 4 * 1.25)
+    if compact_fixed + compact_reservation > MAX_PROVIDER_TOTAL_CHARS:
+        raise RuntimeError("v164 provider-envelope regression: compact class-3 budget does not fit.")
+
+    realistic_context = (
+        "Title: At the Edge of Explanation\n"
+        "URL: https://example.invalid/edge\n"
+        "Content: This essay examines the limits of explanation and how questions can remain open.\n\n---\n\n"
+        "Title: Document Types of the Living Archive\n"
+        "URL: https://geralddaquila.com/document-types-of-the-living-archive/\n"
+        "Content: The Living Archive contains distinct publication forms designed for different orientational functions.\n\n---\n\n"
+        "Title: Scarcity vs Abundance Is a Mental Map Problem (Not a Resource Problem)\n"
+        "URL: https://geralddaquila.com/map\n"
+        "Content: This Reference Map provides visual structural orientation to relationships and patterns.\n"
+    )
+    realistic_question = (
+        "I’m trying to understand a complex subject in the Living Archive, but I’m unsure whether I should read one piece deeply or bring several resources together. "
+        "How does The Guide decide when a question calls for simple explanation versus synthesis, and what should I expect to be different in the way it responds?"
+    )
+    realistic_routing = _classify_generation_complexity(
+        realistic_question, "TOPICAL_INQUIRY", realistic_context
+    )
+    if realistic_routing["complexity"] != 3 or realistic_routing["model"] != "openai/gpt-oss-120b":
+        raise RuntimeError(f"v164 realistic routing regression: {realistic_routing}")
+    realistic_profile = _generation_budget_profile(realistic_routing)
+    if realistic_profile["max_completion_tokens"] != 384 or realistic_profile["reasoning_effort"] != "low":
+        raise RuntimeError(f"v164 realistic budget regression: {realistic_profile}")
+    realistic_compact_profile = _generation_budget_profile(realistic_routing, compact=True)
+    realistic_compact_context = _bound_existing_context_blocks(
+        realistic_context,
+        MAX_COMPACT_GENERATION_CONTEXT_CHARS,
+        MAX_COMPACT_GENERATION_RESOURCE_CHARS,
+        schema_free=True,
+    )
+    realistic_compact_context = _build_provider_evidence_context(
+        realistic_compact_context,
+        MAX_COMPACT_GENERATION_CONTEXT_CHARS,
+        MAX_COMPACT_GENERATION_RESOURCE_CHARS,
+        schema_free=True,
+    )
+    compact_probe_messages = _build_generation_messages(
+        realistic_question, "TOPICAL_INQUIRY", realistic_compact_context, None, compact=True
+    )
+    compact_probe_total = _estimate_message_chars(compact_probe_messages) + math.ceil(
+        realistic_compact_profile["max_completion_tokens"] * 4 * 1.25
+    )
+    if not realistic_compact_context.strip() or compact_probe_total > MAX_PROVIDER_TOTAL_CHARS:
+        raise RuntimeError(
+            "v164 realistic compact envelope regression: compact evidence path does not fit "
+            f"(evidence={len(realistic_compact_context)}, total={compact_probe_total})."
+        )
+
+    provider_source = inspect.getsource(_run_generation_attempt)
+    if '"max_completion_tokens": max_tokens' not in provider_source or "create(**provider_kwargs)" not in provider_source:
+        raise RuntimeError("v164 provider-parameter regression: max_completion_tokens is not the active provider request parameter.")
+    if 'provider_kwargs["reasoning_effort"] = reasoning_effort' not in provider_source:
+        raise RuntimeError("v164 reasoning-effort regression: GPT-OSS reasoning control is not wired.")
+    print(
+        "USE v164 TASK-AWARE GENERATION BUDGET AUDIT: PASS "
+        f"(class3_tokens={class3['max_completion_tokens']}, class3_reasoning={class3['reasoning_effort']}, "
+        f"fixed_input={fixed_chars}, evidence_capacity={evidence_capacity})"
+    )
+
+
 def _v163_generation_envelope_self_audit() -> None:
     """Verify the primary fixed envelope is materially smaller without removing hard invariants."""
     empty = _build_generation_messages(
@@ -9842,6 +9965,7 @@ def generate_llm_response(
     )
     live_models = get_live_groq_models()
     preferred_model = routing["model"]
+    generation_profile = _generation_budget_profile(routing)
 
     print(
         "USE generation model routing: "
@@ -9873,9 +9997,15 @@ def generate_llm_response(
         f"{preferred_model}; no model cycling."
     )
     print(
+        "USE generation task budget: "
+        f"model={preferred_model}; "
+        f"max_completion_tokens={generation_profile['max_completion_tokens']}; "
+        f"reasoning_effort={generation_profile['reasoning_effort']}."
+    )
+    print(
         "USE generation context budget: "
         f"{len(base_generation_context)}/{MAX_GENERATION_CONTEXT_CHARS} chars; "
-        f"max_tokens={MAX_GENERATION_TOKENS}."
+        f"max_completion_tokens={generation_profile['max_completion_tokens']}."
     )
 
     last_error: Optional[str] = None
@@ -9893,7 +10023,8 @@ def generate_llm_response(
                 user_query,
                 intent,
                 base_generation_context,
-                max_tokens=MAX_GENERATION_TOKENS,
+                max_tokens=generation_profile["max_completion_tokens"],
+                reasoning_effort=generation_profile["reasoning_effort"],
                 canonical_link_context=canonical_link_context,
             )
 
@@ -9968,11 +10099,13 @@ def generate_llm_response(
                     schema_free=True,
                 )
 
+                compact_profile = _generation_budget_profile(routing, compact=True)
                 print(
                     "USE generation compact fallback: "
                     f"{len(compact_context)}/"
                     f"{MAX_COMPACT_GENERATION_CONTEXT_CHARS} chars; "
-                    f"max_tokens={MAX_COMPACT_GENERATION_TOKENS}."
+                    f"max_completion_tokens={compact_profile['max_completion_tokens']}; "
+                    f"reasoning_effort={compact_profile['reasoning_effort']}."
                 )
 
                 try:
@@ -9989,7 +10122,8 @@ def generate_llm_response(
                         user_query,
                         intent,
                         compact_context,
-                        max_tokens=MAX_COMPACT_GENERATION_TOKENS,
+                        max_tokens=compact_profile["max_completion_tokens"],
+                        reasoning_effort=compact_profile["reasoning_effort"],
                         canonical_link_context=canonical_link_context,
                         validation_context=base_generation_context,
                         compact=True,
@@ -11005,6 +11139,7 @@ def _generation_boundary_self_audit() -> None:
         _v163_document_form_orientation_evidence_packet_self_audit()
         _v163_generation_envelope_self_audit()
         _v163_model_routing_self_audit()
+        _v164_task_aware_generation_budget_self_audit()
         _v163_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
