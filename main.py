@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v161 — MVP Deterministic Document-Form Evidence Packet + The Guide
+# USE PRODUCTION VERSION: v162 — MVP Deterministic Document-Form Evidence Packet + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v161"
+APP_VERSION = "v162"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v161-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v162-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v161-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "4f683ed6cc35483b59766fdcb96d3a8b68ebabad1ad5f2f36c37d5fe7186e069"
+CANONICAL_BUILD_ID = "USE-BUILD-v162-mvp-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "9a7a6f635a3d93b3405e199420218693c93254515008f17c97af2db4d69f7f4c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -5003,7 +5003,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
 
     canonical_url = "https://geralddaquila.com/document-types-of-the-living-archive/"
     try:
-        # v161: exact canonical metadata identity. The vector is operationally
+        # v162: exact canonical metadata identity. The vector is operationally
         # required by Pinecone query, but it cannot broaden the result because
         # the URL equality filter is authoritative for this anchor.
         vector = generate_embedding(_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE)
@@ -5038,7 +5038,7 @@ def _document_choice_architecture_candidate_search(question: str) -> List[Dict[s
         candidate = dict(metadata)
         candidate["_use_document_choice_architecture_anchor"] = {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v161_deterministic_document_choice_architecture_retrieval",
+            "source": "v162_deterministic_document_choice_architecture_retrieval",
             "identity_field": "url",
             "identity_value": canonical_url,
         }
@@ -5419,7 +5419,7 @@ def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
 
 
 
-def _v161_document_form_orientation_evidence_packet_self_audit() -> None:
+def _v162_document_form_orientation_evidence_packet_self_audit() -> None:
     """Verify form-choice questions receive deterministic, bounded architecture evidence."""
     probe = (
         "I’m trying to understand a difficult subject from several angles. I could use "
@@ -5432,7 +5432,7 @@ def _v161_document_form_orientation_evidence_packet_self_audit() -> None:
         "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v161_deterministic_document_choice_architecture_retrieval",
+            "source": "v162_deterministic_document_choice_architecture_retrieval",
         },
     }]
     selected = [
@@ -5463,22 +5463,22 @@ def _v161_document_form_orientation_evidence_packet_self_audit() -> None:
         "Pathway — guided orientation experience.",
     )
     assert all(phrase in packet for phrase in required_phrases), (
-        "v161 document-form orientation regression: canonical function packet incomplete"
+        "v162 document-form orientation regression: canonical function packet incomplete"
     )
     assert len(packet) < 900, (
-        "v161 document-form orientation regression: packet exceeds bounded evidence target"
+        "v162 document-form orientation regression: packet exceeds bounded evidence target"
     )
 
     neutral = "Why does sovereignty matter?"
     assert _build_document_form_orientation_evidence_packet(
         neutral, selected, architecture
     ) == "", (
-        "v161 document-form orientation regression: neutral topical question received architecture packet"
+        "v162 document-form orientation regression: neutral topical question received architecture packet"
     )
-    print("USE v161 DOCUMENT-FORM ORIENTATION EVIDENCE PACKET AUDIT: PASS")
+    print("USE v162 DOCUMENT-FORM ORIENTATION EVIDENCE PACKET AUDIT: PASS")
 
 
-def _v161_deterministic_document_form_orientation_self_audit() -> None:
+def _v162_deterministic_document_form_orientation_self_audit() -> None:
     """Verify form-choice retrieval uses exact canonical URL identity, not top-K discovery."""
     probe = (
         "I’m trying to understand a difficult subject from several angles. I could use "
@@ -5494,7 +5494,7 @@ def _v161_deterministic_document_form_orientation_self_audit() -> None:
         _D26_PATHWAY_FUNCTION_LABEL,
     )
     assert all(needs.get(name, 0.0) > 0 for name in required), (
-        "v161 document-form orientation regression: form-choice signals were not preserved"
+        "v162 document-form orientation regression: form-choice signals were not preserved"
     )
 
     anchor = {
@@ -5525,7 +5525,7 @@ def _v161_deterministic_document_form_orientation_self_audit() -> None:
         generate_embedding = lambda _text: [1.0]
         retrieved = _document_choice_architecture_candidate_search(probe)
         assert len(retrieved) == 1, (
-            "v161 document-form orientation regression: exact canonical anchor was not retrieved"
+            "v162 document-form orientation regression: exact canonical anchor was not retrieved"
         )
         assert retrieved[0]["_use_document_choice_architecture_anchor"]["identity_field"] == "url"
         assert fake.last_kwargs["filter"] == {
@@ -5549,7 +5549,7 @@ def _v161_deterministic_document_form_orientation_self_audit() -> None:
         }
         retrieved_wrong = _document_choice_architecture_candidate_search(probe)
         assert retrieved_wrong == [], (
-            "v161 document-form orientation regression: non-canonical metadata bypassed exact identity"
+            "v162 document-form orientation regression: non-canonical metadata bypassed exact identity"
         )
     finally:
         index = saved_index
@@ -5557,9 +5557,9 @@ def _v161_deterministic_document_form_orientation_self_audit() -> None:
 
     neutral = _continuity_function_needs("What does sovereignty mean in practice?")
     assert not any(neutral.get(name, 0.0) > 0 for name in required), (
-        "v161 document-form orientation regression: neutral topical question activated form-choice posture"
+        "v162 document-form orientation regression: neutral topical question activated form-choice posture"
     )
-    print("USE v161 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
+    print("USE v162 DETERMINISTIC DOCUMENT-FORM ORIENTATION AUDIT: PASS")
 
 
 def _v159_document_form_orientation_anchor_self_audit() -> None:
@@ -5587,7 +5587,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         "text": "Canonical explanation of publication forms.",
         "_use_document_choice_architecture_anchor": {
             "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
-            "source": "v161_deterministic_document_choice_architecture_retrieval",
+            "source": "v162_deterministic_document_choice_architecture_retrieval",
         },
     }
 
@@ -5620,7 +5620,7 @@ def _v159_document_form_orientation_anchor_self_audit() -> None:
         )
         assert retrieved_anchor[0]["title"] == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE
         assert retrieved_anchor[0]["_use_document_choice_architecture_anchor"]["source"] == (
-            "v161_deterministic_document_choice_architecture_retrieval"
+            "v162_deterministic_document_choice_architecture_retrieval"
         )
     finally:
         index = saved_index
@@ -9343,14 +9343,14 @@ def _run_generation_attempt(
     ):
         print(
             f"USE output boundary: topical response ignored all selected "
-            f"canonical resources for model '{model_id}'; trying the next live model."
+            f"canonical resources for model '{model_id}'; no alternate model will be attempted."
         )
         return ""
 
     if cleaned_answer and not _looks_like_finished_visitor_answer(cleaned_answer):
         print(
             f"USE output boundary: model '{model_id}' returned an incomplete "
-            "visitor answer; trying the next live model."
+            "visitor answer; no alternate model will be attempted."
         )
         return ""
 
@@ -9643,6 +9643,123 @@ def _deterministic_provider_fallback(
     return "\n".join(lines)
 
 
+
+def _classify_generation_complexity(
+    user_query: str,
+    intent: str,
+    generation_context: str,
+    orientational_frame: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Classify the visitor task before provider selection.
+
+    Complexity is deterministic. Evidence volume is a primary signal, but
+    task structure can raise the class because a short comparative question
+    may require more reasoning than a longer single-resource explanation.
+    Exactly one model is selected from the class; this is not a model lottery.
+    """
+    query = re.sub(r"\s+", " ", str(user_query or "")).strip().casefold()
+    context_chars = len(str(generation_context or ""))
+    resource_count = len(_canonical_pairs(str(generation_context or "")))
+
+    synthesis_signals = [
+        bool(re.search(r"\b(?:compare|comparison|different|difference|differences|versus|vs\.?|between|which|choose|decide|how should i choose|what would help me decide)\b", query)),
+        bool(re.search(r"\b(?:relationship|relationships|relate|relates|connect|connections|fit together|how .* work together|across|multiple|several|sequences|forms|formats)\b", query)),
+        bool(re.search(r"\b(?:essay|reference map|navigator|pathway)\b", query)) and bool(re.search(r"\b(?:what|which|how|difference|choose|start|use|offer|meant)\b", query)),
+    ]
+    complex_signals = [
+        bool(re.search(r"\b(?:competing|conflicting|conflict|contradictory|ambiguity|ambiguous|uncertain|uncertainty|trade-?off|reconcile|reconciliation)\b", query)),
+        bool(re.search(r"\b(?:synthesize|synthesis|integrate|integration|cross-resource|across multiple|multiple perspectives|multiple resources)\b", query)),
+        resource_count >= 8 and context_chars >= 1400,
+    ]
+
+    # Evidence volume provides the requested simple-to-complex baseline.
+    if context_chars <= 650:
+        complexity = 1
+    elif context_chars <= 1200:
+        complexity = 2
+    elif context_chars <= 1800:
+        complexity = 3
+    else:
+        complexity = 4
+
+    # Structural task requirements may raise the class, never lower it.
+    synthesis_count = sum(1 for signal in synthesis_signals if signal)
+    complex_count = sum(1 for signal in complex_signals if signal)
+    if synthesis_count >= 2:
+        complexity = max(complexity, 3)
+    if complex_count >= 2:
+        complexity = 4
+
+    # Explicit movement remains governed by D29; complexity only chooses the
+    # reasoning model and does not create a destination.
+    if _movement_question_requires_canonical_next(query):
+        complexity = max(complexity, 2)
+
+    model_by_complexity = {
+        1: "openai/gpt-oss-20b",
+        2: "groq/compound-mini",
+        3: "openai/gpt-oss-120b",
+        4: "groq/compound",
+    }
+    selected_model = model_by_complexity[complexity]
+    reason = []
+    if context_chars <= 650:
+        reason.append("compact evidence volume")
+    elif context_chars <= 1200:
+        reason.append("moderate evidence volume")
+    elif context_chars <= 1800:
+        reason.append("high evidence volume")
+    else:
+        reason.append("very high evidence volume")
+    if synthesis_count:
+        reason.append(f"synthesis_signals={synthesis_count}")
+    if complex_count:
+        reason.append(f"complex_signals={complex_count}")
+
+    return {
+        "complexity": complexity,
+        "context_chars": context_chars,
+        "resource_count": resource_count,
+        "synthesis_signals": synthesis_count,
+        "complex_signals": complex_count,
+        "model": selected_model,
+        "reason": "; ".join(reason),
+    }
+
+
+def _v162_model_routing_self_audit() -> None:
+    """Verify deterministic task-to-model routing without calling a provider."""
+    simple = _classify_generation_complexity(
+        "What is sovereignty?", "TOPICAL_INQUIRY", "A" * 500
+    )
+    if simple["complexity"] != 1 or simple["model"] != "openai/gpt-oss-20b":
+        raise RuntimeError(f"v162 model-routing regression: simple task routed incorrectly: {simple}")
+
+    ordinary = _classify_generation_complexity(
+        "What does this resource explain?", "TOPICAL_INQUIRY", "A" * 900
+    )
+    if ordinary["complexity"] != 2 or ordinary["model"] != "groq/compound-mini":
+        raise RuntimeError(f"v162 model-routing regression: ordinary task routed incorrectly: {ordinary}")
+
+    synthesis = _classify_generation_complexity(
+        "I see essays, Reference Maps, Navigators and Pathways. What is the difference between them and how should I choose?",
+        "WHOLE_SITE_ORIENTATION",
+        "A" * 1596,
+    )
+    if synthesis["complexity"] != 3 or synthesis["model"] != "openai/gpt-oss-120b":
+        raise RuntimeError(f"v162 model-routing regression: synthesis task routed incorrectly: {synthesis}")
+
+    complex_task = _classify_generation_complexity(
+        "How do I reconcile conflicting interpretations across multiple resources?",
+        "TOPICAL_INQUIRY",
+        "A" * 1900,
+    )
+    if complex_task["complexity"] != 4 or complex_task["model"] != "groq/compound":
+        raise RuntimeError(f"v162 model-routing regression: complex task routed incorrectly: {complex_task}")
+
+    print("USE v162 MODEL ROUTING AUDIT: PASS")
+
+
 def generate_llm_response(
     user_query: str,
     retrieved_context_blocks: str,
@@ -9692,31 +9809,46 @@ def generate_llm_response(
             MAX_GENERATION_RESOURCE_CHARS,
         )
 
-    # v152 MVP correction: use one evidence-tested generation path.
-    # The MVP visitor experience must not depend on which heterogeneous live
-    # model happens to produce the first output that passes the boundaries.
-    # groq/compound-mini is retained because the production tests demonstrated
-    # that this provider path can turn the supplied canonical evidence into a
-    # useful visitor synthesis. Availability is still checked against the live
-    # provider list; no alternate model lottery is introduced.
+    # v162 MVP correction: select the reasoning model deterministically from
+    # the task complexity before any provider call. There is no heterogeneous
+    # model lottery and no sequential cycling after an output-boundary failure.
+    routing = _classify_generation_complexity(
+        user_query,
+        intent,
+        base_generation_context,
+        orientational_frame,
+    )
     live_models = get_live_groq_models()
-    preferred_model = "groq/compound-mini"
+    preferred_model = routing["model"]
+
+    print(
+        "USE generation model routing: "
+        f"complexity={routing['complexity']}, "
+        f"context_chars={routing['context_chars']}, "
+        f"resources={routing['resource_count']}, "
+        f"synthesis_signals={routing['synthesis_signals']}, "
+        f"complex_signals={routing['complex_signals']}, "
+        f"selected_model={preferred_model}, "
+        f"reason={routing['reason']}"
+    )
 
     if preferred_model not in live_models:
         print(
-            "USE MVP generation path unavailable: "
-            f"preferred_model='{preferred_model}', live_models={live_models}"
+            "USE generation selected model unavailable: "
+            f"selected_model='{preferred_model}', live_models={live_models}; "
+            "using deterministic fallback without model cycling."
         )
         return _deterministic_provider_fallback(
             user_query,
             base_generation_context,
         )
 
+    # Exactly one provider model is eligible for this visitor request.
     active_models = [preferred_model]
 
     print(
-        "USE generation MVP primary path: "
-        f"{preferred_model}"
+        "USE generation MVP selected path: "
+        f"{preferred_model}; no model cycling."
     )
     print(
         "USE generation context budget: "
@@ -9748,7 +9880,7 @@ def generate_llm_response(
 
             print(
                 f"USE output boundary: model '{model_id}' returned no usable "
-                "visitor answer; trying the next live model."
+                "visitor answer; no alternate model will be attempted."
             )
             last_error = "Model returned empty visitor answer."
             continue
@@ -10848,8 +10980,9 @@ def _generation_boundary_self_audit() -> None:
         _v157_functional_document_choice_synonym_self_audit()
         _v158_document_choice_retrieval_anchoring_self_audit()
         _v159_document_form_orientation_anchor_self_audit()
-        _v161_document_form_orientation_evidence_packet_self_audit()
-        _v161_deterministic_document_form_orientation_self_audit()
+        _v162_document_form_orientation_evidence_packet_self_audit()
+        _v162_model_routing_self_audit()
+        _v162_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
