@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v158 — MVP Document-Choice Retrieval Anchoring + The Guide
+# USE PRODUCTION VERSION: v159 — MVP Document-Form Orientation Anchor + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v158"
+APP_VERSION = "v159"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v158-mvp-document-choice-retrieval-anchoring-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v159-mvp-document-form-orientation-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v158-mvp-document-choice-retrieval-anchoring-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "a4c50d45c7da3f9afc795f03bcbe16a1dccb742efe2f7b83e82b3ad0473e4e8c"
+CANONICAL_BUILD_ID = "USE-BUILD-v159-mvp-document-form-orientation-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "302e3e690da70e9abda1ecc553c74ec50ba3d5b4ab50e68bcb4f1ffc462d5681"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4336,6 +4336,17 @@ def select_canonical_doorways(
 # constraints rather than diagnoses.
 # =====================================================================
 
+# v159: canonical archive-architecture anchor used only when the visitor is
+# asking how to choose among publication forms. This is a retrieval posture,
+# not a hard-coded visitor answer: the candidate must still come from the
+# canonical index.
+_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE = (
+    "Document Types of the Living Archive essay Reference Map Navigator Pathway "
+    "what each publication form is when to use each form choose the right kind "
+    "of material explanation visual structure guided orientation"
+)
+_DOCUMENT_CHOICE_ARCHITECTURE_TITLE = "Document Types of the Living Archive"
+
 _RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
     _D25_NAVIGATOR_FUNCTION_LABEL: (
         "navigator orientation entry point ways through archive available routes "
@@ -4959,6 +4970,133 @@ def _v149_explicit_type_generation_evidence_preservation_self_audit() -> None:
     print("USE v149 EXPLICIT TYPE GENERATION-EVIDENCE PRESERVATION AUDIT: PASS")
 
 
+def _document_choice_architecture_candidate_search(question: str) -> List[Dict[str, Any]]:
+    """Retrieve canonical archive-architecture evidence for form-choice questions.
+
+    A form-choice question asks how the Archive is organized and how its
+    publication forms differ. It therefore needs canonical architecture
+    evidence in addition to function-specific examples. The search remains
+    canonical because every returned record still comes directly from the
+    archive index.
+    """
+    if not question or not index:
+        return []
+
+    needs = _continuity_function_needs(question)
+    required = (
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    )
+    if not (
+        needs.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0) > 0
+        and sum(needs.get(name, 0.0) > 0 for name in required[1:]) >= 2
+    ):
+        return []
+
+    try:
+        vector = generate_embedding(_DOCUMENT_CHOICE_ARCHITECTURE_PROFILE)
+        if not vector:
+            return []
+        matches = _query_index(vector, min(12, RETRIEVAL_TOP_K))
+    except Exception as exc:
+        print(f"USE document-choice architecture retrieval error: {exc}")
+        return []
+
+    candidates: List[Dict[str, Any]] = []
+    for _score, _match_id, metadata in matches:
+        if not isinstance(metadata, dict):
+            continue
+        title = _canonical_display_title(str(metadata.get("title", ""))).strip()
+        if title.casefold() != _DOCUMENT_CHOICE_ARCHITECTURE_TITLE.casefold():
+            continue
+        candidate = dict(metadata)
+        candidate["_use_document_choice_architecture_anchor"] = {
+            "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+            "source": "v159_document_choice_architecture_retrieval",
+        }
+        candidates.append(candidate)
+        break
+
+    print(
+        "USE document-choice architecture retrieval: "
+        f"anchor_candidates={len(candidates)}, "
+        f"title={_DOCUMENT_CHOICE_ARCHITECTURE_TITLE!r}."
+    )
+    return candidates
+
+
+def _preserve_document_choice_architecture_candidates(
+    selected_documents: List[Dict[str, Any]],
+    architecture_documents: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Keep canonical archive-architecture evidence inside the final cap.
+
+    This is evidence preservation for a form-choice question. It does not
+    create a movement edge, infer a relationship, or declare that the anchor
+    is the visitor's next destination.
+    """
+    if not selected_documents or not architecture_documents:
+        return selected_documents
+
+    anchors = [
+        document for document in architecture_documents
+        if isinstance(document, dict)
+        and document.get("_use_document_choice_architecture_anchor")
+        and _canonical_display_title(str(document.get("title", ""))).casefold()
+        == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE.casefold()
+    ]
+    if not anchors:
+        return selected_documents
+
+    result = list(selected_documents)
+    anchor = anchors[0]
+    anchor_key = _resource_key(anchor)
+    if any(_resource_key(document) == anchor_key for document in result):
+        return result
+
+    while len(result) >= MAX_CONTEXT_RESOURCES:
+        result.pop()
+    result.append(anchor)
+    return result
+
+
+def _prioritize_document_choice_architecture_generation_documents(
+    selected_documents: List[Dict[str, Any]],
+    architecture_documents: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Place the canonical form-architecture anchor first for generation.
+
+    This changes evidence ordering only. It does not establish a route or
+    relationship between publication forms.
+    """
+    if not selected_documents or not architecture_documents:
+        return selected_documents
+
+    anchor_keys = {
+        _resource_key(document)
+        for document in architecture_documents
+        if isinstance(document, dict)
+        and document.get("_use_document_choice_architecture_anchor")
+    }
+    if not anchor_keys:
+        return selected_documents
+
+    anchors = [
+        document for document in selected_documents
+        if _resource_key(document) in anchor_keys
+    ]
+    if not anchors:
+        return selected_documents
+
+    remainder = [
+        document for document in selected_documents
+        if _resource_key(document) not in anchor_keys
+    ]
+    return anchors + remainder
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -5191,6 +5329,89 @@ def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
         "USE v158 DOCUMENT-CHOICE RETRIEVAL ANCHORING AUDIT: PASS; "
         "Navigator + Essay + Reference Map + Pathway targets preserved."
     )
+
+
+def _v159_document_form_orientation_anchor_self_audit() -> None:
+    """Verify the form-choice anchor is canonical, preserved, and generation-first."""
+    probe = (
+        "I’m trying to understand a difficult subject from several angles. I could use "
+        "something that explains it thoroughly, something that helps me see how the "
+        "different parts connect, or something that takes me through it step by step. "
+        "How should I choose where to start?"
+    )
+    needs = _continuity_function_needs(probe)
+    required = (
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    )
+    assert all(needs.get(name, 0.0) > 0 for name in required), (
+        "v159 document-form orientation regression: form-choice signals were not preserved"
+    )
+
+    anchor = {
+        "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+        "url": "https://example.invalid/document-types",
+        "text": "Canonical explanation of publication forms.",
+        "_use_document_choice_architecture_anchor": {
+            "title": _DOCUMENT_CHOICE_ARCHITECTURE_TITLE,
+            "source": "v159_document_choice_architecture_retrieval",
+        },
+    }
+
+    # Exercise the actual retrieval helper with a controlled canonical-index
+    # response. This verifies that the architecture anchor is accepted only
+    # when the canonical index returns the exact title, rather than merely
+    # testing downstream preservation with a hand-created candidate.
+    global index, generate_embedding, _query_index
+    saved_index = index
+    saved_generate_embedding = generate_embedding
+    saved_query_index = _query_index
+    try:
+        class _V159FakeIndex:
+            pass
+
+        index = _V159FakeIndex()
+        generate_embedding = lambda _text: [1.0]
+        _query_index = lambda _vector, _limit: [
+            (0.99, "anchor", dict(anchor)),
+            (0.50, "other", {
+                "title": "Unrelated Canonical Resource",
+                "url": "https://example.invalid/other",
+                "text": "Other evidence.",
+            }),
+        ]
+        retrieved_anchor = _document_choice_architecture_candidate_search(probe)
+        assert len(retrieved_anchor) == 1, (
+            "v159 document-form orientation regression: architecture retrieval did not isolate the canonical anchor"
+        )
+        assert retrieved_anchor[0]["title"] == _DOCUMENT_CHOICE_ARCHITECTURE_TITLE
+        assert retrieved_anchor[0]["_use_document_choice_architecture_anchor"]["source"] == (
+            "v159_document_choice_architecture_retrieval"
+        )
+    finally:
+        index = saved_index
+        generate_embedding = saved_generate_embedding
+        _query_index = saved_query_index
+    ordinary = [
+        {"title": "Topical Resource", "url": "https://example.invalid/topical", "text": "Topical evidence."}
+        for _ in range(MAX_CONTEXT_RESOURCES)
+    ]
+    preserved = _preserve_document_choice_architecture_candidates(ordinary, [anchor])
+    assert any(_resource_key(doc) == _resource_key(anchor) for doc in preserved), (
+        "v159 document-form orientation regression: canonical architecture anchor was lost"
+    )
+    ordered = _prioritize_document_choice_architecture_generation_documents(preserved, [anchor])
+    assert _resource_key(ordered[0]) == _resource_key(anchor), (
+        "v159 document-form orientation regression: architecture anchor was not generation-first"
+    )
+
+    neutral = _continuity_function_needs("What does sovereignty mean in practice?")
+    assert not any(neutral.get(name, 0.0) > 0 for name in required), (
+        "v159 document-form orientation regression: neutral topical question activated form-choice posture"
+    )
+    print("USE v159 DOCUMENT-FORM ORIENTATION ANCHOR AUDIT: PASS")
 
 
 def _resource_sequence_priority(resource: Dict[str, Any], question: str) -> Tuple[int, float]:
@@ -6089,6 +6310,7 @@ def fetch_canonical_context(
     adaptive_docs: List[Dict[str, Any]] = []
     retrieved_docs: List[Dict[str, Any]] = []
     candidates: List[Tuple[float, str, Dict[str, Any]]] = []
+    document_choice_architecture_docs: List[Dict[str, Any]] = []
     seen_keys = set()
     # Initialize before any bounded early-return path. The query route must
     # always be able to preserve canonical link context, including when the
@@ -6248,8 +6470,9 @@ def fetch_canonical_context(
             # before the final context cap. This closes the v113 gap where the
             # correct function could never be selected because it was absent from
             # the semantic top-K window.
+            document_choice_architecture_docs = _document_choice_architecture_candidate_search(user_query)
             function_targeted_docs = _function_targeted_candidate_search(user_query)
-            for metadata in function_targeted_docs:
+            for metadata in document_choice_architecture_docs + function_targeted_docs:
                 _append_unique_resource(retrieved_docs, seen_keys, metadata)
                 if len(retrieved_docs) >= RETRIEVAL_TOP_K + 8:
                     break
@@ -6257,6 +6480,7 @@ def fetch_canonical_context(
             print(
                 "USE retrieval: "
                 f"{len(candidates)} candidates + "
+                f"{len(document_choice_architecture_docs)} architecture + "
                 f"{len(function_targeted_docs)} function-targeted -> "
                 f"{len(retrieved_docs)} unique resources."
             )
@@ -6291,6 +6515,12 @@ def fetch_canonical_context(
             require_destination=False,
         )
     for document in adaptive_docs:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            document,
+        )
+    for document in document_choice_architecture_docs:
         _append_unique_resource(
             canonical_link_docs,
             canonical_link_seen_keys,
@@ -6479,6 +6709,21 @@ def fetch_canonical_context(
                 f"selected={len(retrieved_docs)}."
             )
 
+    # v159: a form-choice question requires the Archive's own publication-
+    # architecture evidence to survive downstream narrowing. Preserve the
+    # canonical anchor inside the generation set when retrieval found it.
+    before_document_choice_preservation = list(retrieved_docs)
+    retrieved_docs = _preserve_document_choice_architecture_candidates(
+        retrieved_docs,
+        document_choice_architecture_docs,
+    )
+    if retrieved_docs != before_document_choice_preservation:
+        print(
+            "USE document-choice architecture evidence preservation: "
+            f"anchor={_DOCUMENT_CHOICE_ARCHITECTURE_TITLE!r}, "
+            f"selected={len(retrieved_docs)}."
+        )
+
     # v40 root-cause boundary: generation and link authority are two
     # deliberately different contexts. The model receives ONLY the
     # selected, deduplicated, orientationally-reranked resources. The
@@ -6491,6 +6736,10 @@ def fetch_canonical_context(
         retrieved_docs,
         explicit_type_protected_docs,
         explicit_type_targets,
+    )
+    retrieved_docs = _prioritize_document_choice_architecture_generation_documents(
+        retrieved_docs,
+        document_choice_architecture_docs,
     )
 
     generation_context = format_context_blocks(
@@ -10349,6 +10598,7 @@ def _generation_boundary_self_audit() -> None:
         _v155_functional_document_choice_self_audit()
         _v157_functional_document_choice_synonym_self_audit()
         _v158_document_choice_retrieval_anchoring_self_audit()
+        _v159_document_form_orientation_anchor_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
