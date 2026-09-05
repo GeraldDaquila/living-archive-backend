@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v155 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v156 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v155"
+APP_VERSION = "v156"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v155-mvp-functional-document-choice-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v156-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v155-mvp-functional-document-choice-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "64a2ed362a500e5532eef01b3bad52e6dc555b499f0e040b98b9738915df8103"
+CANONICAL_BUILD_ID = "USE-BUILD-v156-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "38df86b40644741ed664a3c56450fc10017fbc0820df3f397ac300f70979812f"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -678,6 +678,8 @@ def _compute_runtime_source_sha256() -> str:
 RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
 RUNTIME_BOOT_ID = uuid.uuid4().hex
 RUNTIME_PROCESS_ID = os.getpid()
+
+_v156_functional_document_choice_synonym_self_audit()
 
 _enforce_canonical_build_identity()
 
@@ -4078,44 +4080,66 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
                 fit.get("guided orientation experience", 0.0), 1.0
             )
 
-    # Functional descriptions can express publication-choice needs without
-    # naming the publication form itself. These signals are deliberately
-    # bounded to the visitor's stated need:
-    #   explains a subject in depth -> substantive exploration
-    #   see how ideas fit/connect -> visual structural orientation
-    #   more guided way through -> guided orientation experience
-    # This recognizes the requested function; it does not prescribe a resource.
-    if (
+    # Functional descriptions may use ordinary language rather than the
+    # internal function vocabulary. Recognize bounded semantic forms without
+    # requiring the visitor to name Essay / Reference Map / Navigator / Pathway.
+    #
+    # These are need signals only. They do not select a resource by themselves.
+    substantive_language = (
         bool(re.search(
-            r"\b(?:deep|thorough|comprehensive|in-depth)\b",
+            r"\b(?:deep|thorough|comprehensive|in-depth|detailed)\b",
             q,
         ))
         and bool(re.search(
-            r"\b(?:explanation|exposition|understanding|explains?|treatment)\b",
+            r"\b(?:explanation|exposition|understanding|treatment|account|discussion)\b",
             q,
         ))
     ) or bool(re.search(
-        r"\bexplains?\s+(?:a|the)\s+(?:subject|topic|issue)\s+in\s+depth\b",
+        r"\b(?:explain|explains|explaining)\s+(?:a|the)\s+"
+        r"(?:subject|topic|issue)\s+(?:in\s+)?(?:depth|detail)\b",
         q,
-    )):
+    )) or bool(re.search(
+        r"\b(?:detailed|thorough|comprehensive)\s+"
+        r"(?:treatment|account|discussion|explanation)\b",
+        q,
+    ))
+    if substantive_language:
         fit["substantive exploration and sensemaking"] = max(
             fit.get("substantive exploration and sensemaking", 0.0), 1.0
         )
 
-    if bool(re.search(
-        r"\b(?:see|understand)\s+(?:how\s+)?(?:the\s+)?"
-        r"(?:ideas?|concepts?|parts?)\s+"
-        r"(?:fit|connect|relate|come together)\b",
+    structural_language = bool(re.search(
+        r"\b(?:visual|visual\s+sense|big[-\s]?picture|overview)\b.*"
+        r"\b(?:ideas?|concepts?|parts?|elements?|relationships?)\b.*"
+        r"\b(?:relat(?:e|ed|ing)|connect(?:ed|ing)?|fit|"
+        r"come\s+together|structure|relationships?)\b",
         q,
-    )):
+    )) or bool(re.search(
+        r"\b(?:see|get|understand)\b.*\b(?:how)\b.*"
+        r"\b(?:ideas?|concepts?|parts?)\b.*\b"
+        r"(?:relat(?:e|ed|ing)|connect(?:ed|ing)?|fit)\b",
+        q,
+    ))
+    if structural_language:
         fit["visual structural orientation"] = max(
             fit.get("visual structural orientation", 0.0), 1.0
         )
 
-    if bool(re.search(
-        r"\b(?:more\s+)?guided\s+(?:way|route|approach|path|pathway|through)\b",
+    guided_language = bool(re.search(
+        r"\b(?:guide|guides|guided|guiding)\b.*"
+        r"\b(?:me|us|you|someone|visitor)\b.*"
+        r"\bthrough\b",
         q,
-    )):
+    )) or bool(re.search(
+        r"\b(?:guided|step[-\s]?by[-\s]?step|"
+        r"walk\s+me|take\s+me)\b.*\bthrough\b",
+        q,
+    )) or bool(re.search(
+        r"\b(?:a|some|something|more)\s+guided\s+"
+        r"(?:way|approach|route|path|pathway)\b",
+        q,
+    ))
+    if guided_language:
         fit["guided orientation experience"] = max(
             fit.get("guided orientation experience", 0.0), 1.0
         )
@@ -4127,8 +4151,9 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
             or fit.get("guided orientation experience", 0.0) > 0
         )
         and bool(re.search(
-            r"\b(?:which|what|how)\b.*\b(?:approach|right|start|begin|choose|decide)\b"
-            r"|\b(?:approach|way)\b.*\b(?:right|start|begin)\b",
+            r"\b(?:which|what|how)\b.*\b"
+            r"(?:approach|right|help|start|begin|choose|decide|decision)\b"
+            r"|\b(?:help\s+me\s+decide|what\s+would\s+help\s+me)\b",
             q,
         ))
     ):
@@ -4389,6 +4414,50 @@ def _v155_functional_document_choice_self_audit() -> None:
             )
 
     print("USE v155 FUNCTIONAL DOCUMENT CHOICE AUDIT: PASS")
+
+
+def _v156_functional_document_choice_synonym_self_audit() -> None:
+    """Verify ordinary functional language survives into continuity needs."""
+    probe = (
+        "I’ve found a topic I want to understand, but I’m torn between reading "
+        "a detailed treatment of it, getting a visual sense of how the different "
+        "ideas relate, or having something guide me through the material. What "
+        "would help me decide?"
+    )
+    fit = _visitor_resource_function_fit(probe)
+
+    expected = (
+        "substantive exploration and sensemaking",
+        "visual structural orientation",
+        "guided orientation experience",
+        "integrated orientation and entry",
+    )
+    for name in expected:
+        if fit.get(name, 0.0) < 1.0:
+            raise RuntimeError(
+                "v156 functional-choice regression: " + name + " not recognized."
+            )
+
+    # Confirm the downstream continuity layer receives the same signals.
+    needs = _continuity_function_needs(probe)
+    for name in expected:
+        if needs.get(name, 0.0) < 1.0:
+            raise RuntimeError(
+                "v156 functional-choice regression: continuity need " + name
+                + " was not preserved."
+            )
+
+    neutral = _visitor_resource_function_fit(
+        "What does sovereignty mean in practice?"
+    )
+    for name in expected:
+        if neutral.get(name, 0.0) != 0.0:
+            raise RuntimeError(
+                "v156 functional-choice regression: neutral question received "
+                "signal for " + name
+            )
+
+    print("USE v156 FUNCTIONAL DOCUMENT-CHOICE SYNONYM AUDIT: PASS")
 
 
 def _continuity_function_needs(question: str) -> Dict[str, float]:
