@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v168 — MVP Relational Orientation Morphology + Canonical Fallback Link Preservation + Reasoning Evidence Authority + The Guide
+# USE PRODUCTION VERSION: v169 — MVP Structural Relational Orientation Detection + v168 protections + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -597,7 +597,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v168"
+APP_VERSION = "v169"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -613,14 +613,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v168-mvp-relational-orientation-morphology-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v169-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v168-mvp-relational-orientation-morphology-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "5e7334d450475c51b7d29f3ed0ceb73d9e9580bd69ee93f8f6ce88251fba605f"
+CANONICAL_BUILD_ID = "USE-BUILD-v169-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e371c2664c49af901d6116a1b33256611fa3bdda6333558111603d196d6fb859"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -3214,22 +3214,45 @@ ORIENTATIONAL_DOMAIN_TERMS = {
 
 
 def detect_relational_orientation(question: str) -> bool:
-    """Detect explicit questions connecting personal and systemic dimensions."""
+    """Detect explicit or structurally expressed questions connecting personal and systemic dimensions."""
     q = re.sub(r"\s+", " ", str(question or "").lower()).strip()
     if not q:
         return False
     personal = bool(re.search(
-        r"\b(?:personal|self|myself|individual|inner|internal|within myself)\b", q
+        r"\b(?:personal|self|myself|individual|person|people|inner|internal|within myself)\b", q
     ))
     systemic = bool(re.search(
-        r"\b(?:system|systems|systemic|social|society|institution|collective|external)\b", q
+        r"\b(?:system|systems|systemic|social|society|institution|collective|external|environment|organization|organisation)\b", q
     ))
-    relation = bool(re.search(
+    explicit_relation = bool(re.search(
         r"\b(?:between|relationship|relational|interplay|interaction|"
         r"interact|interacts|interacting|interacted|connection|"
         r"tension|dynamic|mutually exclusive)\b", q
     ))
-    return personal and systemic and relation
+
+    # Natural-language relationality is often expressed structurally rather
+    # than with an explicit word such as "interaction". Preserve that signal
+    # when the question places personal and systemic dimensions into the same
+    # contrast, dependency, surrounding-condition, or change/persistence frame.
+    structural_connector = bool(re.search(
+        r"\b(?:but|while|whereas|although|when|if|as|around|within|across|"
+        r"against|alongside|despite|unless|because|affect|affects|affecting|"
+        r"influence|influences|influencing|shape|shapes|shaping|depends|"
+        r"dependent|adapt|adapts|adaptation|conflict|conflicts|conflicting|"
+        r"unchanged|unchanged|same|stays|remain|remains|last|"
+        r"lasting|sustain|sustains|sustainable|persist|persists|persistence)\b", q
+    ))
+    structural_change = bool(re.search(
+        r"\b(?:change|changes|changed|changing|transformation|transform|"
+        r"transformed|adapt|adapts|adaptation|conflict|conflicts|conflicting|resilient|resilience|"
+        r"persist|persists|persistence|last|lasting|sustain|sustains|"
+        r"sustainable|remain|remains|stays|same|conditions|context|"
+        r"environment)\b", q
+    ))
+
+    if not (personal and systemic):
+        return False
+    return explicit_relation or (structural_connector and structural_change)
 
 
 def infer_orientational_frame(question: str) -> Dict[str, Any]:
@@ -11251,7 +11274,7 @@ def _v166_reasoning_evidence_authority_self_audit() -> None:
     print("USE v166 reasoning-evidence authority audit: PASS")
 
 
-def _v168_relational_orientation_morphology_self_audit() -> None:
+def _v169_structural_relational_orientation_self_audit() -> None:
     """Verify natural relational phrasing is recognized as a routing signal."""
     cases = (
         (
@@ -11262,12 +11285,18 @@ def _v168_relational_orientation_morphology_self_audit() -> None:
         ),
         ("How does a system change when its conditions change?", "systems"),
         ("How does inner change affect how I understand myself?", "inward"),
+        (
+            "If an individual changes but the system around them stays the same, what does the Living Archive suggest about whether that change can actually last?",
+            "relational",
+        ),
+        ("How does a person adapt to an institution's rules?", "relational"),
+        ("What happens when an individual's values conflict with an organization's culture?", "relational"),
     )
     for question, expected_primary in cases:
         result = infer_orientational_frame(question)
         if result.get("primary") != expected_primary:
             raise RuntimeError(
-                "v168 relational-orientation morphology regression: "
+                "v169 structural-relational orientation regression: "
                 f"expected={expected_primary}, got={result.get('primary')} "
                 f"for question={question!r}"
             )
@@ -11279,7 +11308,7 @@ def _v168_relational_orientation_morphology_self_audit() -> None:
             "v168 relational-orientation regression: orientation morphology "
             "must not restore an evidence-blocking gate."
         )
-    print("USE v168 RELATIONAL ORIENTATION MORPHOLOGY AUDIT: PASS")
+    print("USE v169 STRUCTURAL RELATIONAL ORIENTATION AUDIT: PASS")
 
 
 def _v167_canonical_fallback_link_self_audit() -> None:
@@ -11303,7 +11332,7 @@ def _v167_canonical_fallback_link_self_audit() -> None:
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     _v166_reasoning_evidence_authority_self_audit()
-    _v168_relational_orientation_morphology_self_audit()
+    _v169_structural_relational_orientation_self_audit()
     _v167_canonical_fallback_link_self_audit()
     try:
         _v148_canonical_build_identity_self_audit()
