@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v164 — MVP Task-Aware Generation Budget + The Guide
+# USE PRODUCTION VERSION: v165 — MVP Lean Generation Envelope + Canonical Evidence Use + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -564,18 +564,19 @@ CONSTITUTIONAL RULES
 # =====================================================================
 
 GENERATION_SYSTEM_PROMPT = """
-You are USE, the Living Archive navigation engine. Answer only from supplied canonical evidence.
+You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
 
-For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway; normally use 2–3 only for distinct coverage. [RELATIONAL REASONING]: For explicit relationships or synthesis, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. Bound unsupported links as inference or possibility.
+For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway; normally use 2–3 only for distinct coverage. [RELATIONAL REASONING]: For explicit relationships or synthesis, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. For comparison questions, compare only what the supplied resources establish and explain what each contributes.
 
-[FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it; otherwise it is that resource's lens. A specialized framework may govern the explanation only when the visitor names it. Preserve uncertainty and do not imply an imposed framework, experience, or outcome.
+[FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Preserve uncertainty and do not imply an imposed framework, experience, or outcome.
 
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic compatibility into causation. Do not invent intermediate facts or mechanisms. If a connection is not established, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
 
-For destination/collection requests, use evidence-established destinations. For movement questions, call a resource the next destination only when D29 explicitly validates it. An explicit link is a relationship, not automatically a next step. If no D29 next destination is validated, say so plainly. Never invent resources, relationships, definitions, or URLs; never reveal internal process.
+For resource-form questions, distinguish forms only when the supplied evidence establishes their functions. For destination/collection requests, use evidence-established destinations. For movement questions, call a resource the next destination only when D29 explicitly validates it. An explicit link is a relationship, not automatically a next step. If no D29 next destination is validated, say so plainly. Never invent resources, relationships, definitions, or URLs; never reveal internal process.
 
-Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
+Use at least one exact supplied canonical title when making a resource-grounded topical claim. Answer the visitor's question directly; do not merely list resources. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
 """
+
 
 
  
@@ -583,18 +584,20 @@ Output only the finished answer inside <visitor_answer> tags. Use exact canonica
 
 COMPACT_GENERATION_SYSTEM_PROMPT = """
 You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
-Preserve uncertainty and visitor sovereignty. Use the supplied evidence as source material. In recovery mode, evidence is presented as title-and-excerpt prose; never reproduce internal field labels, schema, metadata, or internal formatting in the visitor answer. Do not output or discuss labels such as Title:, URL:, Content:, ID:, canonical evidence, or evidence block.
-Do not invent causes, mechanisms, relationships, resources, or outcomes.
-For movement questions, say “next” only when D29 explicitly validates a next destination; otherwise say no canonical next destination is established. Relevance is not movement.
-Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, metadata, or internal process.
+Answer the visitor's question directly; do not merely list resources. For comparison or synthesis, compare only what supplied evidence establishes and explain what each relevant resource contributes. Use at least one exact supplied canonical title when making a resource-grounded claim.
+Preserve uncertainty and visitor sovereignty. [FRAME SOVEREIGNTY]: A specialized framework may govern the explanation only when the visitor names it. Do not imply an imposed framework, experience, or outcome. [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic compatibility into causation. Do not invent intermediate facts or mechanisms. If a connection is not established, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
+For movement questions, say “next” only when D29 explicitly validates a next destination; otherwise say no canonical next destination is established. Relevance is not movement. Never invent resources, relationships, definitions, or URLs. Never reproduce internal field labels; do not output or discuss Title:, URL:, Content:, ID:, canonical evidence, or evidence block.
+Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
+
+
 
 
 # =====================================================================
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v164"
+APP_VERSION = "v165"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -610,14 +613,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v164-mvp-task-aware-generation-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v165-mvp-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v164-mvp-task-aware-generation-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "845615e81d4fd3a8f080030c015df682a82c7447c3e653c7599b011f5f05eb57"
+CANONICAL_BUILD_ID = "USE-BUILD-v165-mvp-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e522b0f0c33e99e9d62637a7a95f0381baf607ac937307c65101ba434ff99a66"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9160,13 +9163,14 @@ def _build_generation_messages(
             compact=True,
         )
     else:
+        # v165: use the lean constitutional envelope on the primary path too.
+        # The prior primary-only orientation scaffolding consumed enough fixed
+        # budget to leave almost no canonical evidence for complex tasks.
         system_content = _build_generation_system_content(
             intent,
             safe_context,
-        ) + (
-            "\n\n[INTERNAL ORIENTATION — DO NOT REVEAL]: "
-            f"{frame_hint}. Use only when supported by evidence."
-        ) + _recognition_orientation_instruction(frame) + _open_exploration_sovereignty_instruction(user_query)
+            compact=True,
+        )
 
     if compact:
         user_content = (
@@ -9763,12 +9767,12 @@ def _v164_task_aware_generation_budget_self_audit() -> None:
         routing = _classify_generation_complexity(question, "TOPICAL_INQUIRY", context)
         profile = _generation_budget_profile(routing)
         if routing["complexity"] != expected_class:
-            raise RuntimeError(f"v164 routing class regression: {routing}")
+            raise RuntimeError(f"v165 routing class regression: {routing}")
         if profile["model"] != expected_model or profile["max_completion_tokens"] != expected_tokens or profile["reasoning_effort"] != expected_reasoning:
             raise RuntimeError(f"v164 generation budget regression: routing={routing}, profile={profile}")
         compact = _generation_budget_profile(routing, compact=True)
         if compact["max_completion_tokens"] > profile["max_completion_tokens"]:
-            raise RuntimeError(f"v164 compact budget regression: {compact}")
+            raise RuntimeError(f"v165 compact budget regression: {compact}")
 
     fixed_messages = _build_generation_messages("v164 envelope probe", "TOPICAL_INQUIRY", "", None)
     fixed_chars = _estimate_message_chars(fixed_messages)
@@ -9780,14 +9784,14 @@ def _v164_task_aware_generation_budget_self_audit() -> None:
     )
     if evidence_capacity < 0:
         raise RuntimeError(
-            f"v164 provider-envelope regression: class-3 budget leaves negative evidence capacity ({evidence_capacity}); fixed_input={fixed_chars}."
+            f"v165 provider-envelope regression: class-3 budget leaves negative evidence capacity ({evidence_capacity}); fixed_input={fixed_chars}."
         )
     compact_messages = _build_generation_messages("v164 compact probe", "TOPICAL_INQUIRY", "", None, compact=True)
     compact_fixed = _estimate_message_chars(compact_messages)
     compact_profile = _generation_budget_profile({"complexity": 3}, compact=True)
     compact_reservation = math.ceil(compact_profile["max_completion_tokens"] * 4 * 1.25)
     if compact_fixed + compact_reservation > MAX_PROVIDER_TOTAL_CHARS:
-        raise RuntimeError("v164 provider-envelope regression: compact class-3 budget does not fit.")
+        raise RuntimeError("v165 provider-envelope regression: compact class-3 budget does not fit.")
 
     realistic_context = (
         "Title: At the Edge of Explanation\n"
@@ -9808,10 +9812,10 @@ def _v164_task_aware_generation_budget_self_audit() -> None:
         realistic_question, "TOPICAL_INQUIRY", realistic_context
     )
     if realistic_routing["complexity"] != 3 or realistic_routing["model"] != "openai/gpt-oss-120b":
-        raise RuntimeError(f"v164 realistic routing regression: {realistic_routing}")
+        raise RuntimeError(f"v165 realistic routing regression: {realistic_routing}")
     realistic_profile = _generation_budget_profile(realistic_routing)
     if realistic_profile["max_completion_tokens"] != 384 or realistic_profile["reasoning_effort"] != "low":
-        raise RuntimeError(f"v164 realistic budget regression: {realistic_profile}")
+        raise RuntimeError(f"v165 realistic budget regression: {realistic_profile}")
     realistic_compact_profile = _generation_budget_profile(realistic_routing, compact=True)
     realistic_compact_context = _bound_existing_context_blocks(
         realistic_context,
@@ -10113,7 +10117,7 @@ def generate_llm_response(
                         user_query, intent, compact_context, orientational_frame, compact=True
                     )
                     compact_estimate = _estimate_quota_tokens(
-                        compact_messages, MAX_COMPACT_GENERATION_TOKENS
+                        compact_messages, compact_profile["max_completion_tokens"]
                     )
                     _known_daily_tpd_preflight(model_id, compact_estimate)
 
@@ -11096,6 +11100,58 @@ def _v148_canonical_build_identity_self_audit() -> None:
     )
 
 
+def _v165_lean_generation_envelope_self_audit() -> None:
+    """Verify the primary path preserves canonical evidence under the task-aware budget."""
+    question = (
+        "I need to understand a complex subject and decide between one deep "
+        "resource and synthesis."
+    )
+    fixed_messages = _build_generation_messages(
+        question, "TOPICAL_INQUIRY", "", None, compact=False
+    )
+    fixed_chars = _estimate_message_chars(fixed_messages)
+    class3 = _generation_budget_profile({"complexity": 3})
+    reservation = math.ceil(class3["max_completion_tokens"] * 4 * 1.25)
+    capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - reservation,
+    )
+    if fixed_chars >= 2100:
+        raise RuntimeError(
+            f"v165 lean-envelope regression: primary fixed envelope too large ({fixed_chars})."
+        )
+    if capacity < 600:
+        raise RuntimeError(
+            f"v165 lean-envelope regression: class-3 evidence capacity too small ({capacity}); fixed={fixed_chars}, reservation={reservation}."
+        )
+    compact_messages = _build_generation_messages(
+        question, "TOPICAL_INQUIRY", "", None, compact=True
+    )
+    compact_fixed = _estimate_message_chars(compact_messages)
+    if abs(compact_fixed - fixed_chars) > 32:
+        raise RuntimeError(
+            f"v165 lean-envelope regression: primary and compact fixed envelopes diverged materially ({fixed_chars} != {compact_fixed})."
+        )
+    for marker_text in (
+        "Answer the visitor's question directly",
+        "Use at least one exact supplied canonical title",
+        "[RELATIONAL REASONING]",
+        "[FRAME SOVEREIGNTY]",
+        "[PROVENANCE + SYNTHESIS]",
+        "[INFERENTIAL DISTANCE]",
+        "[BRIDGE INTEGRITY]",
+        "[EVIDENCE SUFFICIENCY]",
+    ):
+        if marker_text not in GENERATION_SYSTEM_PROMPT:
+            raise RuntimeError(
+                f"v165 lean-envelope regression: required invariant missing: {marker_text}"
+            )
+    print(
+        f"USE v165 LEAN GENERATION ENVELOPE AUDIT: PASS "
+        f"(fixed_input={fixed_chars}, class3_evidence_capacity={capacity})"
+    )
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     try:
@@ -11140,6 +11196,7 @@ def _generation_boundary_self_audit() -> None:
         _v163_generation_envelope_self_audit()
         _v163_model_routing_self_audit()
         _v164_task_aware_generation_budget_self_audit()
+        _v165_lean_generation_envelope_self_audit()
         _v163_deterministic_document_form_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
