@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v153 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v154 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v153"
+APP_VERSION = "v154"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v153-mvp-document-architecture-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v154-mvp-document-choice-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v153-mvp-document-architecture-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e3d274098bcf75818d69460ffd5ed433e017a824512b3b021f2f0376b7ce0a87"
+CANONICAL_BUILD_ID = "USE-BUILD-v154-mvp-document-choice-orientation-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "299d62016c2fc3121f89cc4220c24a6d6c63a6147bb5f58c27ed276127cbe5e1"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4040,6 +4040,44 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
             fit.get("integrated orientation and entry", 0.0), 1.0
         )
 
+    # Comparative publication-form choice is an archive-architecture need even
+    # when the visitor does not say "different kinds/types of documents".
+    # Naming two or more canonical forms plus a choice/start/use question is
+    # sufficient to establish that the visitor is choosing how to enter the
+    # Archive, not asking for the subject matter of one retrieved resource.
+    publication_forms_named = sum(
+        bool(re.search(pattern, q))
+        for pattern in (
+            r"\bessays?\b",
+            r"\b(?:reference\s+)?maps?\b",
+            r"\bnavigators?\b",
+            r"\bpathways?\b",
+        )
+    )
+    comparative_publication_choice = (
+        publication_forms_named >= 2
+        and bool(re.search(
+            r"\b(?:which|what|how)\b|\b(?:choose|decide|use|start|begin)\b",
+            q,
+        ))
+        and bool(re.search(
+            r"\b(?:among|between|one|another|each|different|kind|type|document|resource|where)\b",
+            q,
+        ))
+    )
+    if comparative_publication_choice:
+        fit["integrated orientation and entry"] = max(
+            fit.get("integrated orientation and entry", 0.0), 1.0
+        )
+        if re.search(r"\b(?:reference\s+)?maps?\b", q):
+            fit["visual structural orientation"] = max(
+                fit.get("visual structural orientation", 0.0), 1.0
+            )
+        if re.search(r"\b(?:guided|pathways?)\b", q):
+            fit["guided orientation experience"] = max(
+                fit.get("guided orientation experience", 0.0), 1.0
+            )
+
     # Generic "understand" questions remain function-neutral.
     return fit
 
@@ -4237,6 +4275,30 @@ _RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
         "essay substantive exploration explanation sensemaking",
     ),
 }
+
+
+def _v154_document_choice_orientation_self_audit() -> None:
+    """Verify comparative publication-form questions activate archive orientation."""
+    probe = (
+        "I found several things in the Living Archive that seem related to my "
+        "question—an essay, a Reference Map, and a Navigator. What is the "
+        "difference between them, and when would I choose one over another?"
+    )
+    fit = _visitor_resource_function_fit(probe)
+    if fit.get("integrated orientation and entry", 0.0) < 1.0:
+        raise RuntimeError(
+            "v154 document-choice regression: comparative publication-form "
+            "question did not activate archive orientation."
+        )
+    if fit.get("visual structural orientation", 0.0) < 1.0:
+        raise RuntimeError(
+            "v154 document-choice regression: Reference Map signal was not retained."
+        )
+    if fit.get("substantive exploration and sensemaking", 0.0) < 1.0:
+        raise RuntimeError(
+            "v154 document-choice regression: Essay signal was not retained."
+        )
+    print("USE v154 DOCUMENT CHOICE ORIENTATION AUDIT: PASS")
 
 
 def _continuity_function_needs(question: str) -> Dict[str, float]:
@@ -10012,6 +10074,7 @@ def _generation_boundary_self_audit() -> None:
         _build_generation_messages("self-audit", "TOPICAL_INQUIRY", "")
         _v133_explicit_resource_type_request_self_audit()
         _v153_document_architecture_orientation_self_audit()
+        _v154_document_choice_orientation_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
