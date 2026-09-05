@@ -19,6 +19,22 @@ import uuid
 import contextvars
 import hashlib
 from pathlib import Path
+import gc
+
+# ---------------------------------------------------------------------
+# CLEAN RUNTIME BOOT
+# ---------------------------------------------------------------------
+# Render should launch USE in a fresh Python process. This explicit boot
+# boundary also collects any unreachable Python objects before application
+# initialization and makes the process boundary observable. It is cleanup,
+# not a substitute for source provenance: loaded code is never treated as
+# replaceable merely because garbage collection ran.
+_USE_BOOT_GC_COLLECTED = gc.collect()
+_USE_BOOT_PID = os.getpid()
+print(
+    "USE CLEAN RUNTIME BOOT: "
+    f"pid={_USE_BOOT_PID}, gc_collected={_USE_BOOT_GC_COLLECTED}"
+)
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -620,7 +636,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v169-mvp-structural-relational-orientation-detecti
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
 CANONICAL_BUILD_ID = "USE-BUILD-v169-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e371c2664c49af901d6116a1b33256611fa3bdda6333558111603d196d6fb859"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b572ebdfff003802fb7e37f7950639cff35a233c1756f7c0593639c956e2f27e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -682,6 +698,37 @@ def _compute_runtime_source_sha256() -> str:
 RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
 RUNTIME_BOOT_ID = uuid.uuid4().hex
 RUNTIME_PROCESS_ID = os.getpid()
+
+# Optional-but-hard production provenance gate. The expected raw source hash
+# is supplied out-of-band (Render environment variable) so the expected value
+# cannot alter the source bytes whose hash it is checking. This avoids the
+# impossible self-referential construction of embedding a raw file hash inside
+# the same file. Local development may leave it unset; LIVE deployment must
+# provide it.
+EXPECTED_RUNTIME_SOURCE_SHA256 = os.getenv(
+    "USE_EXPECTED_SOURCE_SHA256", ""
+).strip().lower()
+if EXPECTED_RUNTIME_SOURCE_SHA256:
+    if RUNTIME_SOURCE_SHA256 != EXPECTED_RUNTIME_SOURCE_SHA256:
+        print(
+            "USE SOURCE PROVENANCE FAILURE: "
+            f"expected_source_sha256={EXPECTED_RUNTIME_SOURCE_SHA256}, "
+            f"actual_source_sha256={RUNTIME_SOURCE_SHA256}, "
+            f"file={os.path.abspath(__file__)}"
+        )
+        raise RuntimeError(
+            "USE source provenance mismatch; refusing to serve requests."
+        )
+    print(
+        "USE SOURCE PROVENANCE: valid=True, "
+        f"source_sha256={RUNTIME_SOURCE_SHA256}"
+    )
+else:
+    print(
+        "USE SOURCE PROVENANCE: expected SHA not configured; "
+        f"source_sha256={RUNTIME_SOURCE_SHA256}. "
+        "LIVE Render deployment must provide USE_EXPECTED_SOURCE_SHA256."
+    )
 
 _enforce_canonical_build_identity()
 
@@ -11139,6 +11186,45 @@ def _v93_d18_use_intent_integration_audit() -> None:
     print("USE D18 intent integration audit: PASS")
 
 
+def _v169_clean_runtime_boot_provenance_self_audit() -> None:
+    """Verify the explicit clean-boot and out-of-band source provenance boundary."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    required = (
+        "import gc",
+        "_USE_BOOT_GC_COLLECTED = gc.collect()",
+        "USE CLEAN RUNTIME BOOT",
+        "USE_EXPECTED_SOURCE_SHA256",
+        "USE SOURCE PROVENANCE FAILURE",
+        "refusing to serve requests",
+        'RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()',
+    )
+    missing = [marker for marker in required if marker not in source]
+    if missing:
+        raise RuntimeError(
+            "v169 clean-runtime provenance audit failed; missing markers: "
+            + ", ".join(missing)
+        )
+    actual = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    if actual != RUNTIME_SOURCE_SHA256:
+        raise RuntimeError(
+            "v169 clean-runtime provenance audit failed; runtime source SHA is not the exact loaded file SHA."
+        )
+    if EXPECTED_RUNTIME_SOURCE_SHA256 and EXPECTED_RUNTIME_SOURCE_SHA256 != actual:
+        raise RuntimeError(
+            "v169 clean-runtime provenance audit failed; configured expected source SHA does not match the loaded file."
+        )
+    if _USE_BOOT_PID != os.getpid():
+        raise RuntimeError(
+            "v169 clean-runtime boot audit failed; boot PID identity drifted."
+        )
+    print(
+        "USE v169 CLEAN RUNTIME + SOURCE PROVENANCE AUDIT: PASS; "
+        f"boot_pid={_USE_BOOT_PID}, gc_collected={_USE_BOOT_GC_COLLECTED}, "
+        f"source_sha256={RUNTIME_SOURCE_SHA256}, "
+        f"expected_configured={bool(EXPECTED_RUNTIME_SOURCE_SHA256)}"
+    )
+
+
 def _v148_canonical_build_identity_self_audit() -> None:
     """Verify hard build identity enforcement is structurally intact."""
     source = Path(__file__).read_text(encoding="utf-8")
@@ -11331,6 +11417,7 @@ def _v167_canonical_fallback_link_self_audit() -> None:
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
+    _v169_clean_runtime_boot_provenance_self_audit()
     _v166_reasoning_evidence_authority_self_audit()
     _v169_structural_relational_orientation_self_audit()
     _v167_canonical_fallback_link_self_audit()
