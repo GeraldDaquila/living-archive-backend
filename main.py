@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v166 — MVP Reasoning Evidence Authority + Canonical Evidence Use + The Guide
+# USE PRODUCTION VERSION: v167 — MVP Canonical Fallback Link Preservation + Reasoning Evidence Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -597,7 +597,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v166"
+APP_VERSION = "v167"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -613,14 +613,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v166-mvp-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v167-mvp-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v166-mvp-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "daa6cbfd1e70902d764d87d5ac70b3c603af3308bdbdf17658d2315f08e467a3"
+CANONICAL_BUILD_ID = "USE-BUILD-v167-mvp-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7bc326cb02015198b023567b20853e1b89bec0fc7cf295dc8ac62165ac904846"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9658,7 +9658,16 @@ def _deterministic_provider_fallback(
         generation_context,
     )
     if extractive:
-        return extractive
+        # v167: deterministic/extractive fallback must pass through the same
+        # canonical presentation boundary as provider-generated output.
+        # The fallback may identify canonical evidence, but it must not strand
+        # the visitor at an unlinked title when a canonical doorway exists.
+        normalized_fallback = _clean_generation_output(
+            extractive,
+            generation_context,
+            generation_context,
+        )
+        return normalized_fallback or extractive
 
     q = re.sub(r"\s+", " ", str(user_query or "").casefold()).strip()
     open_exploration = bool(
@@ -11240,9 +11249,28 @@ def _v166_reasoning_evidence_authority_self_audit() -> None:
     print("USE v166 reasoning-evidence authority audit: PASS")
 
 
+def _v167_canonical_fallback_link_self_audit() -> None:
+    """Prove extractive fallback preserves canonical visitor doorways."""
+    context = (
+        "Title: Oversoul Law: The Sovereignty of the Higher Self\n"
+        "URL: https://example.invalid/oversoul-law\n"
+        "Content: Oversoul Law awakens the sovereignty of the Higher Self from within. "
+        "It describes autonomy as an inward principle of sovereignty."
+    )
+    answer = _deterministic_provider_fallback(
+        "How does the Archive distinguish respecting autonomy from leaving someone without guidance?",
+        context,
+    )
+    assert "Oversoul Law: The Sovereignty of the Higher Self" in answer
+    assert "https://example.invalid/oversoul-law" in answer
+    assert "[Oversoul Law: The Sovereignty of the Higher Self](https://example.invalid/oversoul-law)" in answer
+    print("USE v167 canonical fallback link preservation audit: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     _v166_reasoning_evidence_authority_self_audit()
+    _v167_canonical_fallback_link_self_audit()
     try:
         _v148_canonical_build_identity_self_audit()
         if not callable(_log_provider_exception_diagnostic):
