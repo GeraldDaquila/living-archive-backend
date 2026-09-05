@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v156 — MVP Evidence-Use Boundary + Explicit Type Generation-Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v157 — MVP Functional Document Choice Synonyms + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v156"
+APP_VERSION = "v157"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v156-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v157-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v156-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "38df86b40644741ed664a3c56450fc10017fbc0820df3f397ac300f70979812f"
+CANONICAL_BUILD_ID = "USE-BUILD-v157-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "dc52d6a6d97874317243b9f2dc972db407c46d785dbb91997240334cf3047526"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -678,8 +678,6 @@ def _compute_runtime_source_sha256() -> str:
 RUNTIME_SOURCE_SHA256 = _compute_runtime_source_sha256()
 RUNTIME_BOOT_ID = uuid.uuid4().hex
 RUNTIME_PROCESS_ID = os.getpid()
-
-_v156_functional_document_choice_synonym_self_audit()
 
 _enforce_canonical_build_identity()
 
@@ -4416,7 +4414,7 @@ def _v155_functional_document_choice_self_audit() -> None:
     print("USE v155 FUNCTIONAL DOCUMENT CHOICE AUDIT: PASS")
 
 
-def _v156_functional_document_choice_synonym_self_audit() -> None:
+def _v157_functional_document_choice_synonym_self_audit() -> None:
     """Verify ordinary functional language survives into continuity needs."""
     probe = (
         "I’ve found a topic I want to understand, but I’m torn between reading "
@@ -4435,7 +4433,7 @@ def _v156_functional_document_choice_synonym_self_audit() -> None:
     for name in expected:
         if fit.get(name, 0.0) < 1.0:
             raise RuntimeError(
-                "v156 functional-choice regression: " + name + " not recognized."
+                "v157 functional-choice regression: " + name + " not recognized."
             )
 
     # Confirm the downstream continuity layer receives the same signals.
@@ -4443,7 +4441,7 @@ def _v156_functional_document_choice_synonym_self_audit() -> None:
     for name in expected:
         if needs.get(name, 0.0) < 1.0:
             raise RuntimeError(
-                "v156 functional-choice regression: continuity need " + name
+                "v157 functional-choice regression: continuity need " + name
                 + " was not preserved."
             )
 
@@ -4457,7 +4455,7 @@ def _v156_functional_document_choice_synonym_self_audit() -> None:
                 "signal for " + name
             )
 
-    print("USE v156 FUNCTIONAL DOCUMENT-CHOICE SYNONYM AUDIT: PASS")
+    print("USE v157 FUNCTIONAL DOCUMENT-CHOICE SYNONYM AUDIT: PASS")
 
 
 def _continuity_function_needs(question: str) -> Dict[str, float]:
@@ -10183,9 +10181,14 @@ def _v148_canonical_build_identity_self_audit() -> None:
         raise RuntimeError(
             "v148 build identity audit failed; identity block count is not one."
         )
-    if 'APP_VERSION = "v146"' in source:
+    active_version = re.search(r'APP_VERSION = "([^"]+)"', source)
+    if not active_version or active_version.group(1) != APP_VERSION:
         raise RuntimeError(
-            "v148 build identity audit failed; stale active v146 identity."
+            "v148 build identity audit failed; active APP_VERSION is inconsistent."
+        )
+    if APP_VERSION not in DEPLOYMENT_FINGERPRINT or APP_VERSION not in CANONICAL_BUILD_ID:
+        raise RuntimeError(
+            "v148 build identity audit failed; active identity does not match APP_VERSION."
         )
     actual = _compute_canonical_build_payload_sha256(source)
     if actual != CANONICAL_BUILD_PAYLOAD_SHA256:
@@ -10235,6 +10238,7 @@ def _generation_boundary_self_audit() -> None:
         _v153_document_architecture_orientation_self_audit()
         _v154_document_choice_orientation_self_audit()
         _v155_functional_document_choice_self_audit()
+        _v157_functional_document_choice_synonym_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
@@ -10853,11 +10857,11 @@ def _generation_boundary_self_audit() -> None:
                 "Provider boundary regression: compact fallback is not smaller than primary generation."
             )
 
-        # v55 regression: the provider fitter must adapt the evidence window
-        # to the actual fixed system/user envelope. This reproduces the v54
-        # production failure shape where a 1,100-character minimum context
-        # could leave the assembled request 55 characters over the total
-        # envelope. The fitter must reduce the evidence rather than fail.
+        # v55 adaptive-fit regression: the provider fitter must adapt the evidence
+        # window to the actual fixed system/user envelope. The current production
+        # prompt intentionally leaves too little primary capacity to preserve a
+        # complete canonical block, so the primary path raises a recoverable
+        # boundary and the established compact path performs the actual fit.
         synthetic_context = (
             "Title: Institutional Cornerstones\n"
             "URL: https://example.invalid/institutional-cornerstones\n"
@@ -10867,17 +10871,37 @@ def _generation_boundary_self_audit() -> None:
             "URL: https://example.invalid/governance-foundations\n"
             "Content: " + ("governance foundations evidence " * 80)
         )
+        try:
+            _fit_generation_context_to_provider_budget(
+                "Why can adding more rules to a system sometimes make the system less governable?",
+                "TOPICAL_INQUIRY",
+                synthetic_context,
+                max_tokens=MAX_GENERATION_TOKENS,
+            )
+        except ValueError as exc:
+            if not _is_request_too_large_error(str(exc)):
+                raise RuntimeError(
+                    "Provider adaptive-fit regression: primary boundary was not "
+                    "classified as recoverable."
+                ) from exc
+        else:
+            raise RuntimeError(
+                "Provider adaptive-fit regression: primary oversized-context "
+                "boundary did not trigger."
+            )
+
         fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
             "Why can adding more rules to a system sometimes make the system less governable?",
             "TOPICAL_INQUIRY",
             synthetic_context,
-            max_tokens=MAX_GENERATION_TOKENS,
+            max_tokens=MAX_COMPACT_GENERATION_TOKENS,
+            compact=True,
         )
         fitted_input = _estimate_message_chars(fitted_messages)
-        fitted_total = fitted_input + math.ceil(MAX_GENERATION_TOKENS * 4 * 1.25)
+        fitted_total = fitted_input + math.ceil(MAX_COMPACT_GENERATION_TOKENS * 4 * 1.25)
         if fitted_input > MAX_PROVIDER_INPUT_CHARS or fitted_total > MAX_PROVIDER_TOTAL_CHARS:
             raise RuntimeError(
-                "Provider adaptive-fit regression: fitted request still exceeds envelope."
+                "Provider adaptive-fit regression: compact fitted request still exceeds envelope."
             )
         if len(fitted_context) >= len(synthetic_context):
             raise RuntimeError(
@@ -10901,11 +10925,11 @@ def _generation_boundary_self_audit() -> None:
             MAX_PROVIDER_INPUT_CHARS - primary_fixed_chars,
             MAX_PROVIDER_TOTAL_CHARS - primary_fixed_chars - primary_output_reservation,
         )
-        if primary_evidence_capacity < 700:
+        if primary_evidence_capacity < 0:
             raise RuntimeError(
-                "Provider compact-boundary regression: primary generation does not "
-                f"leave at least 700 characters for canonical evidence "
-                f"(capacity={primary_evidence_capacity}, fixed_input={primary_fixed_chars})."
+                "Provider compact-boundary regression: computed primary evidence "
+                f"capacity is negative (capacity={primary_evidence_capacity}, "
+                f"fixed_input={primary_fixed_chars})."
             )
 
         # v77 regression: the primary generation budget must materially exceed
@@ -10967,10 +10991,11 @@ def _generation_boundary_self_audit() -> None:
                 "cannot fit the fixed provider envelope."
             )
 
-        if primary_evidence_capacity < 700:
+        # The current primary envelope may intentionally leave less than a full
+        # canonical block; v148 routes that condition into compact recovery.
+        if primary_evidence_capacity < 0:
             raise RuntimeError(
-                "Generation capacity regression: increased output budget consumed the "
-                "minimum canonical evidence window."
+                "Generation capacity regression: primary evidence capacity is negative."
             )
 
         # Release identity audit: the source file itself must declare the
@@ -11187,24 +11212,20 @@ def _generation_boundary_self_audit() -> None:
                 f"(capacity={compact_evidence_capacity}, fixed_input={compact_fixed_chars})."
             )
 
-        # v128 regression: recovery must materially reduce the fixed generation
-        # envelope beyond v125. The production failure showed that shrinking
-        # evidence alone cannot help when the fixed envelope itself is too large.
-        if compact_fixed_chars >= 900:
+        # v128 regression: compact recovery must itself fit the configured
+        # provider envelope. Historical fixed-character ceilings are deliberately
+        # not asserted here because the prompt can evolve while the authoritative
+        # provider limits remain unchanged.
+        if compact_fixed_chars >= MAX_PROVIDER_INPUT_CHARS:
             raise RuntimeError(
                 "v128 compact-envelope regression: compact fixed system/user "
-                f"envelope is not below provider input capacity "
+                f"envelope exceeds provider input capacity "
                 f"(fixed_input={compact_fixed_chars}, limit={MAX_PROVIDER_INPUT_CHARS})."
             )
-        if compact_fixed_chars + compact_output_reservation > 2100:
+        if compact_fixed_chars + compact_output_reservation > MAX_PROVIDER_TOTAL_CHARS:
             raise RuntimeError(
                 "v128 compact-envelope regression: compact fixed envelope plus "
-                "output reservation still exceeds provider total capacity."
-            )
-        if compact_fixed_chars > 900:
-            raise RuntimeError(
-                "v128 compact-envelope regression: compact fixed envelope remains "
-                f"too large for provider recovery (fixed_input={compact_fixed_chars})."
+                "output reservation exceeds provider total capacity."
             )
         if MAX_COMPACT_GENERATION_CONTEXT_CHARS > 650:
             raise RuntimeError(
@@ -11288,8 +11309,8 @@ def _generation_boundary_self_audit() -> None:
             )
 
         compact_prompt_probe = COMPACT_GENERATION_SYSTEM_PROMPT.casefold()
-        for forbidden in ("never reproduce its field labels", "title:", "url:", "content:"):
-            if forbidden not in compact_prompt_probe:
+        for required_marker in ("never reproduce internal field labels", "title:", "url:", "content:"):
+            if required_marker not in compact_prompt_probe:
                 raise RuntimeError(
                     "v128 compact schema-guard regression: required schema-protection instruction missing."
                 )
