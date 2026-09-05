@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v170 — Generation Output Boundary Diagnostic + v169 protections + The Guide
+# USE PRODUCTION VERSION: v171 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v170"
+APP_VERSION = "v171"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v170-generation-output-boundary-diagnostic-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v171-extractive-fallback-internal-markup-sanitization-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v170-generation-output-boundary-diagnostic-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d0cbd57bbd421ca508a12762e1ebb742018e321cf6d73adeefa85006b634cecb"
+CANONICAL_BUILD_ID = "USE-BUILD-v171-extractive-fallback-internal-markup-sanitization-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1b4e41a1e173fdc8933ba2ae251343638415c9c6385b87667e4bc4a39559f749"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8235,12 +8235,30 @@ def _provider_evidence_identity_context(
     )
 
 
+def _strip_internal_corpus_markup(answer: str) -> str:
+    """Remove internal corpus HTML comments before visitor-facing presentation.
+
+    Canonical source text may contain WordPress/editor comments and other
+    non-visible authoring metadata. Those bytes are evidence content, not
+    visitor-facing prose, and must not cross the final presentation boundary.
+    """
+    cleaned = re.sub(r"<!--.*?-->", "", str(answer or ""), flags=re.DOTALL)
+    return cleaned.strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
     canonical_link_context: str = "",
 ) -> str:
     answer = _extract_visitor_answer(generated_text)
+    if not answer:
+        return ""
+
+    # v171: canonical evidence may contain internal WordPress/editor comments.
+    # They are never visitor-facing content and must be removed before any
+    # presentation normalization or fallback output is returned.
+    answer = _strip_internal_corpus_markup(answer)
     if not answer:
         return ""
 
@@ -11517,6 +11535,35 @@ def _v167_canonical_fallback_link_self_audit() -> None:
     print("USE v167 canonical fallback link preservation audit: PASS")
 
 
+def _v171_internal_corpus_markup_sanitization_self_audit() -> None:
+    """Prove internal HTML comments cannot cross the visitor boundary."""
+    contaminated = (
+        "Canonical evidence sentence. <!-- /wp:paragraph --> "
+        "Visible continuation."
+    )
+    cleaned = _strip_internal_corpus_markup(contaminated)
+    assert "<!--" not in cleaned
+    assert "-->" not in cleaned
+    assert "/wp:paragraph" not in cleaned
+    assert "Canonical evidence sentence." in cleaned
+    assert "Visible continuation." in cleaned
+
+    context = (
+        "Title: Canonical Doorway\n"
+        "URL: https://example.invalid/canonical-doorway\n"
+        "Content: Canonical evidence sentence. <!-- /wp:paragraph --> "
+        "Visible continuation."
+    )
+    answer = _deterministic_provider_fallback(
+        "What does the canonical doorway say about evidence?",
+        context,
+    )
+    assert "<!--" not in answer
+    assert "-->" not in answer
+    assert "/wp:paragraph" not in answer
+    print("USE v171 internal corpus markup sanitization audit: PASS")
+
+
 def _v170_generation_output_diagnostic_self_audit() -> None:
     """Verify output diagnostics remain non-content and distinguish gate states."""
     context = (
@@ -11560,6 +11607,7 @@ def _v170_generation_output_diagnostic_self_audit() -> None:
 
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
+    _v171_internal_corpus_markup_sanitization_self_audit()
     _v170_generation_output_diagnostic_self_audit()
     _v169_clean_runtime_boot_provenance_self_audit()
     _v166_reasoning_evidence_authority_self_audit()
