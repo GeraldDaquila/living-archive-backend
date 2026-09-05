@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v157 — MVP Functional Document Choice Synonyms + The Guide
+# USE PRODUCTION VERSION: v158 — MVP Document-Choice Retrieval Anchoring + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -593,7 +593,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v157"
+APP_VERSION = "v158"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -609,14 +609,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v157-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v158-mvp-document-choice-retrieval-anchoring-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v157-mvp-functional-document-choice-synonyms-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "dc52d6a6d97874317243b9f2dc972db407c46d785dbb91997240334cf3047526"
+CANONICAL_BUILD_ID = "USE-BUILD-v158-mvp-document-choice-retrieval-anchoring-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "a4c50d45c7da3f9afc795f03bcbe16a1dccb742efe2f7b83e82b3ad0473e4e8c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4093,6 +4093,10 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
             q,
         ))
     ) or bool(re.search(
+        r"\b(?:explain|explains|explaining)\b.*"
+        r"\b(?:thoroughly|deeply|in\s+depth|in\s+detail)\b",
+        q,
+    )) or bool(re.search(
         r"\b(?:explain|explains|explaining)\s+(?:a|the)\s+"
         r"(?:subject|topic|issue)\s+(?:in\s+)?(?:depth|detail)\b",
         q,
@@ -4131,6 +4135,10 @@ def _visitor_resource_function_fit(question: str) -> Dict[str, float]:
     )) or bool(re.search(
         r"\b(?:guided|step[-\s]?by[-\s]?step|"
         r"walk\s+me|take\s+me)\b.*\bthrough\b",
+        q,
+    )) or bool(re.search(
+        r"\b(?:take|takes|taking)\s+me\s+through\b.*"
+        r"\b(?:step[-\s]?by[-\s]?step)\b",
         q,
     )) or bool(re.search(
         r"\b(?:a|some|something|more)\s+guided\s+"
@@ -4451,7 +4459,7 @@ def _v157_functional_document_choice_synonym_self_audit() -> None:
     for name in expected:
         if neutral.get(name, 0.0) != 0.0:
             raise RuntimeError(
-                "v156 functional-choice regression: neutral question received "
+                "v157 functional-choice regression: neutral question received "
                 "signal for " + name
             )
 
@@ -4960,11 +4968,58 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     if not targets:
         return []
 
+    # v158: a comparative document-form question is not adequately served by
+    # taking the first three function labels in dictionary order. The previous
+    # boundary could select substantive + structural functions while dropping
+    # the Navigator/document-architecture function and the guided function.
+    # That left retrieval anchored to topical resources instead of the Archive's
+    # own explanation of how its publication forms differ.
+    document_choice_functions = [
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    ]
+    document_choice_active = (
+        needs.get(_D25_NAVIGATOR_FUNCTION_LABEL, 0.0) > 0
+        and sum(
+            needs.get(function_name, 0.0) > 0
+            for function_name in (
+                _D21_ESSAY_FUNCTION_LABEL,
+                _D24_REFERENCE_MAP_FUNCTION_LABEL,
+                _D26_PATHWAY_FUNCTION_LABEL,
+            )
+        ) >= 2
+    )
+    if document_choice_active:
+        ordered_targets = [
+            function_name
+            for function_name in document_choice_functions
+            if needs.get(function_name, 0.0) > 0
+        ]
+        # Preserve any additional explicitly requested function after the four
+        # document-form targets; it cannot displace them from the first pass.
+        ordered_targets.extend(
+            function_name
+            for function_name in targets
+            if function_name not in ordered_targets
+        )
+        target_limit = 4
+        per_target_limit = 2
+        print(
+            "USE document-choice retrieval anchoring: "
+            f"targets={ordered_targets[:target_limit]}, per_target={per_target_limit}."
+        )
+    else:
+        ordered_targets = targets
+        target_limit = 3
+        per_target_limit = 8
+
     candidates: List[Dict[str, Any]] = []
     seen = set()
     target_diagnostics: List[str] = []
 
-    for function_name in targets[:3]:
+    for function_name in ordered_targets[:target_limit]:
         profiles = _RESOURCE_FUNCTION_RETRIEVAL_PROFILES.get(function_name, ())
         required_type = _function_target_resource_type(function_name)
         accepted_for_target = 0
@@ -5018,10 +5073,12 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 if len(candidates) > before:
                     accepted_for_target += 1
 
+                if accepted_for_target >= per_target_limit:
+                    break
                 if len(candidates) >= 8:
                     break
 
-            if len(candidates) >= 8:
+            if accepted_for_target >= per_target_limit or len(candidates) >= 8:
                 break
 
         if required_type:
@@ -5039,7 +5096,7 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
 
     print(
         "USE function-targeted retrieval: "
-        f"requested={targets[:3]}, candidates={len(candidates)}"
+        f"requested={ordered_targets[:target_limit]}, candidates={len(candidates)}"
         + (f", diagnostics={target_diagnostics}." if target_diagnostics else ".")
     )
     return candidates
@@ -5082,6 +5139,58 @@ def _v133_type_constrained_function_retrieval_self_audit() -> None:
         raise RuntimeError("v133 type gate regression: unknown resource passed Reference Map gate.")
 
     print("USE v133 TYPE-CONSTRAINED FUNCTION RETRIEVAL AUDIT: PASS")
+
+
+def _v158_document_choice_retrieval_anchoring_self_audit() -> None:
+    """Verify comparative form-choice intent prioritizes and preserves all requested modes."""
+    probe = (
+        "I’m trying to understand a difficult subject from several angles. I could use "
+        "something that explains it thoroughly, something that helps me see how the "
+        "different parts connect, or something that takes me through it step by step. "
+        "How should I choose where to start?"
+    )
+    needs = _continuity_function_needs(probe)
+    required = (
+        _D25_NAVIGATOR_FUNCTION_LABEL,
+        _D21_ESSAY_FUNCTION_LABEL,
+        _D24_REFERENCE_MAP_FUNCTION_LABEL,
+        _D26_PATHWAY_FUNCTION_LABEL,
+    )
+    if sum(
+        needs.get(function_name, 0.0) > 0
+        for function_name in required
+    ) < 4:
+        raise RuntimeError(
+            "v158 document-choice retrieval regression: ordinary-language form-choice "
+            "probe did not activate all four required signals."
+        )
+    missing = [name for name in required if needs.get(name, 0.0) <= 0]
+    if missing:
+        raise RuntimeError(
+            "v158 document-choice retrieval regression: missing functional targets: "
+            + ", ".join(missing)
+        )
+
+    ordered = [
+        name for name in required
+        if needs.get(name, 0.0) > 0
+    ]
+    if ordered != list(required):
+        raise RuntimeError(
+            "v158 document-choice retrieval regression: required target order changed."
+        )
+
+    neutral = _continuity_function_needs("What does sovereignty mean in practice?")
+    if any(neutral.get(name, 0.0) > 0 for name in required):
+        raise RuntimeError(
+            "v158 document-choice retrieval regression: neutral topical question "
+            "received document-choice targets."
+        )
+
+    print(
+        "USE v158 DOCUMENT-CHOICE RETRIEVAL ANCHORING AUDIT: PASS; "
+        "Navigator + Essay + Reference Map + Pathway targets preserved."
+    )
 
 
 def _resource_sequence_priority(resource: Dict[str, Any], question: str) -> Tuple[int, float]:
@@ -10239,6 +10348,7 @@ def _generation_boundary_self_audit() -> None:
         _v154_document_choice_orientation_self_audit()
         _v155_functional_document_choice_self_audit()
         _v157_functional_document_choice_synonym_self_audit()
+        _v158_document_choice_retrieval_anchoring_self_audit()
         _v133_type_constrained_function_retrieval_self_audit()
         _v134_explicit_type_selection_preservation_self_audit()
         _v135_duplicate_evidence_enrichment_self_audit()
