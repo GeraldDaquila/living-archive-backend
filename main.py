@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v200 — Complementary Evidence Selection + The Guide
+# USE PRODUCTION VERSION: v201 — Conceptual Complementarity Selection + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v200"
+APP_VERSION = "v201"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v200-complementary-evidence-selection"
+DEPLOYMENT_FINGERPRINT = "USE-v201-conceptual-complementarity-selection"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v200-complementary-evidence-selection"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f03ed293ad7299b045f57ed213d6f7843c9c7b6798a6c35e3c1a2052e49b810d"
+CANONICAL_BUILD_ID = "USE-BUILD-v201-conceptual-complementarity-selection"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7a33d5ee21caff957e2633344a31450d6e2e25c5ba20cff13ed7c4ce26a469de"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v200 build identity failure: canonical identity block not found exactly once."
+            "v201 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -6959,6 +6959,86 @@ def _evidence_sufficiency_unavailable_response(
 
 MAX_COMPLEMENTARY_EVIDENCE_RESOURCES = 6
 
+# v201: bounded content-concept complementarity. Literal question-term
+# coverage remains useful for direct fit, but it is no longer the condition
+# that admits a second resource. A candidate may complement the strongest
+# evidence by contributing a distinct substantive vocabulary/dimension even
+# when it does not repeat the question's literal terms.
+_COMPLEMENTARY_MIN_DIRECT_FIT = 1
+_COMPLEMENTARY_MIN_NOVEL_CONCEPTS = 3
+_COMPLEMENTARY_MAX_CONTENT_OVERLAP = 0.45
+_COMPLEMENTARY_MAX_NOVEL_CONCEPTS = 24
+
+_COMPLEMENTARY_STOPWORDS = frozenset({
+    "about", "after", "again", "against", "also", "among", "and", "are",
+    "because", "been", "being", "between", "both", "but", "can", "could",
+    "does", "doesnt", "during", "each", "even", "for", "from", "further",
+    "have", "having", "how", "into", "its", "itself", "just", "more", "most",
+    "not", "our", "over", "same", "should", "some", "such", "than", "that",
+    "their", "them", "then", "there", "these", "they", "this", "those", "through",
+    "under", "very", "was", "were", "what", "when", "where", "which", "while",
+    "who", "why", "with", "would", "you", "your", "people", "person", "way", "ways",
+    "system", "systems", "institution", "institutions", "community", "communities",
+    "organization", "organizations", "thing", "things", "question", "questions",
+    "material", "available", "content", "resource", "resources", "archive", "living",
+})
+
+
+def _content_concept_set(document: Dict[str, Any]) -> set:
+    """Return a bounded normalized vocabulary from supplied Content only.
+
+    This is deliberately lexical rather than semantic: it provides a safe,
+    deterministic proxy for distinct substantive dimensions without claiming
+    latent relationships the corpus has not established.
+    """
+    content = _resource_content(document).casefold()
+    if not content:
+        return set()
+    tokens = re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content)
+
+    def stem(value: str) -> str:
+        value = value.replace("-", "")
+        for suffix in (
+            "ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"
+        ):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    concepts = set()
+    for token in tokens:
+        normalized = token.replace("-", "")
+        if len(normalized) < 5 or normalized in _COMPLEMENTARY_STOPWORDS:
+            continue
+        concepts.add(stem(normalized))
+    return concepts
+
+
+def _content_concept_novelty(
+    document: Dict[str, Any],
+    represented_concepts: set,
+) -> int:
+    """Count substantive concepts not already represented by selected evidence."""
+    concepts = _content_concept_set(document)
+    return min(_COMPLEMENTARY_MAX_NOVEL_CONCEPTS, len(concepts - represented_concepts))
+
+
+def _max_content_concept_overlap(
+    concepts: set,
+    selected_concept_sets: List[set],
+) -> float:
+    """Return the strongest Jaccard overlap with already selected Content."""
+    if not concepts or not selected_concept_sets:
+        return 0.0
+    overlaps = []
+    for selected in selected_concept_sets:
+        if not selected:
+            continue
+        union = concepts | selected
+        if union:
+            overlaps.append(len(concepts & selected) / len(union))
+    return max(overlaps, default=0.0)
+
 
 def _question_evidence_term_coverage(
     question: str,
@@ -7000,10 +7080,6 @@ def _question_evidence_term_coverage(
             or stem(term) in content_stems
         ):
             covered.add(term)
-
-    # Phrases are represented by their constituent substantive terms through
-    # the same bounded lexical test; phrase presence is handled separately in
-    # the candidate score and never creates a semantic relationship.
     return covered
 
 
@@ -7025,15 +7101,15 @@ def _select_complementary_generation_evidence(
     *,
     protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
-    """Select a small evidence-dense, non-redundant generation set.
+    """Select a small evidence-dense set with bounded conceptual complementarity.
 
-    v200 sits after retrieval and canonical gating but before provider
-    generation. The full retrieved set remains available to doorway/link
-    logic. This selector only determines which already-validated resources
-    may inform synthesis. Selection is deterministic and uses supplied
-    Content only: direct question-term coverage, evidence-domain fit, and
-    incremental coverage of question concepts. It does not infer latent
-    relationships or create resources.
+    v201 preserves v200's separation between retrieval/doorway authority and
+    generation evidence, but removes literal query-term coverage as the gate
+    for additional evidence. After the strongest candidate is retained, later
+    candidates can enter when they have modest direct question fit AND add a
+    meaningful amount of distinct substantive Content vocabulary. This is a
+    deterministic lexical proxy for complementary dimensions; it does not
+    infer latent relationships or create resources.
     """
     if not documents:
         return []
@@ -7050,75 +7126,117 @@ def _select_complementary_generation_evidence(
             continue
         score = _complementary_evidence_selection_score(question, document)
         coverage = _question_evidence_term_coverage(question, document)
-        indexed.append((index, document, score, coverage))
+        concepts = _content_concept_set(document)
+        indexed.append((index, document, score, coverage, concepts))
 
     if not indexed:
         return []
 
     selected: List[Dict[str, Any]] = []
     selected_keys = set()
+    represented_concepts = set()
+    selected_concept_sets: List[set] = []
     covered_terms = set()
 
-    # Protected candidates are preserved first, but still bounded by the same
-    # generation cap. Their protection comes only from an already-established
-    # canonical request/architecture constraint upstream.
-    for index, document, score, coverage in indexed:
+    # Protected candidates are preserved first, as in v200.
+    for index, document, score, coverage, concepts in indexed:
         key = _resource_key(document)
         if key not in protected_keys or key in selected_keys:
             continue
         selected.append(document)
         selected_keys.add(key)
+        represented_concepts.update(concepts)
+        selected_concept_sets.append(concepts)
         covered_terms.update(coverage)
         if len(selected) >= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES:
             break
 
     remaining = [item for item in indexed if _resource_key(item[1]) not in selected_keys]
 
-    while remaining and len(selected) < MAX_COMPLEMENTARY_EVIDENCE_RESOURCES:
-        best_item = None
-        best_rank = None
-        for index, document, score, coverage in remaining:
-            incremental = len(coverage - covered_terms)
-            direct_fit, coverage_count, phrase_hits = score
-            # Relevance remains primary. Incremental question coverage breaks
-            # ties and then original retrieval order keeps the choice stable.
-            rank = (
-                direct_fit,
-                incremental,
-                coverage_count,
-                phrase_hits,
-                -index,
-            )
-            if best_rank is None or rank > best_rank:
-                best_rank = rank
-                best_item = (index, document, score, coverage)
-
-        if best_item is None:
-            break
-
-        index, document, score, coverage = best_item
-        # Once useful evidence is selected, a candidate that adds no new
-        # substantive question concept is redundant. Do not spend the scarce
-        # generation budget on another document merely because it is relevant
-        # to a concept already covered. This is the core v200 complementarity
-        # constraint.
-        if selected and incremental <= 0:
-            break
-        if selected and score[0] <= 0:
-            break
-
+    # Preserve the strongest directly relevant candidate as the primary
+    # evidence anchor. Complementarity is evaluated only after this first
+    # choice, so novelty cannot cause a weakly relevant document to displace
+    # the strongest supported explanation.
+    if not selected and remaining:
+        strongest = max(
+            remaining,
+            key=lambda item: (
+                item[2][0], item[2][1], item[2][2], -item[0]
+            ),
+        )
+        index, document, score, coverage, concepts = strongest
         selected.append(document)
         selected_keys.add(_resource_key(document))
+        represented_concepts.update(concepts)
+        selected_concept_sets.append(concepts)
         covered_terms.update(coverage)
         remaining = [
             item for item in remaining
             if _resource_key(item[1]) != _resource_key(document)
         ]
 
-    # If the question has usable evidence but the lexical fit is unusually low,
-    # preserve the strongest single canonical candidate rather than returning
-    # an empty generation set. The existing sufficiency boundary remains the
-    # authority for genuine abstention.
+    while remaining and len(selected) < MAX_COMPLEMENTARY_EVIDENCE_RESOURCES:
+        best_item = None
+        best_rank = None
+        best_novelty = 0
+        for index, document, score, coverage, concepts in remaining:
+            direct_fit, coverage_count, phrase_hits = score
+            novelty = min(
+                _COMPLEMENTARY_MAX_NOVEL_CONCEPTS,
+                len(concepts - represented_concepts),
+            )
+            incremental_terms = len(coverage - covered_terms)
+            max_overlap = _max_content_concept_overlap(
+                concepts, selected_concept_sets
+            )
+
+            # Direct fit establishes that the candidate is at least boundedly
+            # relevant. Novel concepts then determine whether it contributes a
+            # distinct explanatory dimension. Query-term novelty is retained as
+            # a tie-breaker, not as the admission gate.
+            rank = (
+                direct_fit,
+                novelty,
+                incremental_terms,
+                -max_overlap,
+                coverage_count,
+                phrase_hits,
+                -index,
+            )
+            if best_rank is None or rank > best_rank:
+                best_rank = rank
+                best_item = (index, document, score, coverage, concepts)
+                best_novelty = novelty
+
+        if best_item is None:
+            break
+
+        index, document, score, coverage, concepts = best_item
+        direct_fit = score[0]
+
+        # The key v201 correction: do not require a new literal query term.
+        # Require modest direct fit plus substantive content novelty instead.
+        best_concepts = best_item[4]
+        best_overlap = _max_content_concept_overlap(
+            best_concepts, selected_concept_sets
+        )
+        if (
+            direct_fit < _COMPLEMENTARY_MIN_DIRECT_FIT
+            or best_novelty < _COMPLEMENTARY_MIN_NOVEL_CONCEPTS
+            or best_overlap > _COMPLEMENTARY_MAX_CONTENT_OVERLAP
+        ):
+            break
+        selected.append(document)
+        selected_keys.add(_resource_key(document))
+        represented_concepts.update(concepts)
+        selected_concept_sets.append(concepts)
+        covered_terms.update(coverage)
+
+        remaining = [
+            item for item in remaining
+            if _resource_key(item[1]) != _resource_key(document)
+        ]
+
     if not selected and indexed:
         strongest = max(
             indexed,
@@ -7129,16 +7247,51 @@ def _select_complementary_generation_evidence(
         selected = [strongest[1]]
 
     print(
-        "USE v200 complementary evidence selection: "
+        "USE v201 conceptual complementarity selection: "
         f"input={len(documents)}, selected={len(selected)}, "
         f"covered_terms={len(covered_terms)}, "
+        f"represented_concepts={len(represented_concepts)}, "
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in selected ]}"
     )
     return selected
 
 
-def _v200_complementary_evidence_selection_self_audit() -> None:
-    """Verify complementary selection prefers coverage over redundant relevance."""
+def _v201_conceptual_complementarity_self_audit() -> None:
+    """Verify a second resource can enter without repeating literal question terms."""
+    docs = [
+        {
+            "title": "Institutional Protection Lens",
+            "url": "https://example.invalid/protection",
+            "text": "Protective rules can formalize safeguards, procedures, compliance, and standardized decisions intended to reduce harm.",
+        },
+        {
+            "title": "Powerlessness Lens",
+            "url": "https://example.invalid/powerlessness",
+            "text": "People can feel powerless when authority, discretion, dependency, and voice are distributed unevenly, even when procedures appear fair.",
+        },
+        {
+            "title": "Redundant Rules Lens",
+            "url": "https://example.invalid/rules-2",
+            "text": "Rules and procedures establish standardized safeguards and compliance expectations for institutional decisions.",
+        },
+    ]
+    question = "Why can an institution have rules designed to protect people while still producing conditions in which people feel powerless?"
+    selected = _select_complementary_generation_evidence(docs, question)
+    titles = [doc["title"] for doc in selected]
+    assert titles[0] in {"Institutional Protection Lens", "Powerlessness Lens"}
+    assert "Institutional Protection Lens" in titles, (
+        "v201 complementarity regression: distinct powerlessness evidence was not preserved."
+    )
+    assert "Redundant Rules Lens" not in titles, (
+        "v201 complementarity regression: redundant rule evidence displaced a distinct dimension."
+    )
+    assert len(selected) >= 2
+    assert len(selected) <= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES
+    print("USE v201 CONCEPTUAL COMPLEMENTARITY AUDIT: PASS")
+
+
+def _v201_v200_regression_self_audit() -> None:
+    """Verify the original v200 redundancy boundary still holds."""
     docs = [
         {
             "title": "Accountability Lens",
@@ -7164,16 +7317,14 @@ def _v200_complementary_evidence_selection_self_audit() -> None:
     question = "What happens when accountability is separated from decision-making power?"
     selected = _select_complementary_generation_evidence(docs, question)
     titles = [doc["title"] for doc in selected]
-    assert titles[0] == "Governance Lens" or "Accountability Lens" in titles
     assert "Power Lens" in titles, (
-        "v200 complementary selection regression: distinct power evidence was not preserved."
+        "v201 regression: distinct power evidence was not preserved."
     )
     assert "Redundant Accountability" not in titles, (
-        "v200 complementary selection regression: redundant evidence consumed the evidence set."
+        "v201 regression: redundant evidence was admitted."
     )
     assert len(selected) <= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES
-    print("USE v200 COMPLEMENTARY EVIDENCE SELECTION AUDIT: PASS")
-
+    print("USE v201 V200-REGRESSION AUDIT: PASS")
 
 def fetch_canonical_context(
     user_query: str,
