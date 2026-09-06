@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v179 — Substantive Doorway Fit Calibration + v178 presentation/audit baseline + The Guide
+# USE PRODUCTION VERSION: v180 — Visitor Language Barrier Calibration + v179 doorway-fit baseline + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v179"
+APP_VERSION = "v180"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v179-mvp-substantive-doorway-fit-calibration"
+DEPLOYMENT_FINGERPRINT = "USE-v180-mvp-visitor-language-barrier-calibration"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v179-mvp-substantive-doorway-fit-calibration"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "429499a2538dad8e59b0f1b6f2e6f7f3dbcf212c5fa6e904cb30fd446081bbdc"
+CANONICAL_BUILD_ID = "USE-BUILD-v180-mvp-visitor-language-barrier-calibration"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "10a28bdf1b09064eb53f492469f5d1313c0faa0f81f5fbcd7749eddc47aec5aa"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6163,7 +6163,7 @@ def _d29_canonical_movement_self_audit() -> None:
     )
     gated = _apply_movement_evidence_gate(inferred, question, no_route_context)
     assert "logical next step" not in gated.casefold()
-    assert "canonically defined next step" in gated.casefold()
+    assert "defined next step" in gated.casefold()
 
     validated_context = format_context_blocks(linked_result)
     validated_answer = "The logical next step is Archive Navigator."
@@ -6211,7 +6211,7 @@ def _d30_archive_navigation_audit() -> None:
         inferred_answer, question, format_context_blocks(selected)
     )
     assert "useful place to continue" not in gated_inferred.casefold()
-    assert "canonically defined next step" in gated_inferred.casefold()
+    assert "defined next step" in gated_inferred.casefold()
 
     # D30 boundary: every visitor-facing destination or relation must resolve
     # to a canonical resource already present in the validated evidence set.
@@ -6608,13 +6608,13 @@ def _evidence_sufficiency_unavailable_response(
             break
 
     response = (
-        "The canonical material surfaced for this question does not establish "
+        "The material surfaced for this question does not establish "
         "a reliable explanation, so USE will not fill the gap with an inferred "
         "mechanism. The question remains open."
     )
     if pairs:
         response += (
-            " The closest canonical places surfaced for continuing the inquiry are: "
+            " The closest places surfaced for continuing the inquiry are: "
             + " ; ".join(f"[{title}]({url})" for title, url in pairs)
             + "."
         )
@@ -9269,8 +9269,8 @@ def _deterministic_movement_evidence_fallback(
     return (
         "The supplied canonical evidence does not establish a next destination "
         "from this point. It does surface "
-        f"{title} as an available canonical place to explore, but not as a "
-        "canonically defined next step. You can decide whether it fits your inquiry."
+        f"{title} as an available place to explore, but not as a "
+        "defined next step. You can decide whether it fits your inquiry."
     )
 
 
@@ -9629,7 +9629,7 @@ def _run_generation_attempt(
             first_url = canonical_pairs[0][1]
             first_link = f"[{first_title}]({first_url})"
             cleaned_answer = (
-                f"A useful canonical place to begin with this question is "
+                f"A useful place to begin with this question is "
                 f"{first_link}.\n\n{cleaned_answer}"
             )
 
@@ -9851,7 +9851,7 @@ def _extractive_canonical_evidence_fallback(
     _score, _doc, _sent, title, sentence = scored[0]
 
     return (
-        f"A useful canonical place to begin with this question is **{title}**. "
+        f"A useful place to begin with this question is **{title}**. "
         f"The supplied material addresses it this way: {sentence}"
     )
 
