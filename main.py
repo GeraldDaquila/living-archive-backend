@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v173 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
+# USE PRODUCTION VERSION: v174 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v173"
+APP_VERSION = "v174"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v173-mvp-deterministic-doorway-anchoring"
+DEPLOYMENT_FINGERPRINT = "USE-v174-mvp-deterministic-doorway-anchoring"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v173-mvp-deterministic-doorway-anchoring"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9d3f6e860457a30c060d33c61373218de8a32f911cc25a979f02fe9a3de49393"
+CANONICAL_BUILD_ID = "USE-BUILD-v174-mvp-deterministic-doorway-anchoring"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "0247904b805e8fc3cb596b710e51091917f5e59ffde9c6b6d181b147e7c807cf"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9582,12 +9582,12 @@ def _run_generation_attempt(
         )
         return ""
 
-    # v173 MVP correction: canonical resource identity remains deterministic,
-    # but the model is not required to repeat the exact title verbatim. If a
-    # finished topical answer does not name a selected canonical resource, add
-    # the first selected doorway deterministically before the navigation gate.
-    # This preserves the hard provenance boundary: the doorway comes only from
-    # the validated canonical evidence set, and no new resource is invented.
+    # v174 MVP correction: a provider response may be substantively grounded in
+    # the selected canonical evidence without repeating a canonical title
+    # verbatim. Preserve that useful generated interpretation and deterministically
+    # anchor it to the first validated doorway. The existing second check remains
+    # the hard provenance boundary, so only a title from the validated evidence
+    # set can satisfy it.
     if (
         cleaned_answer
         and str(intent).upper() == "TOPICAL_INQUIRY"
@@ -9615,8 +9615,8 @@ def _run_generation_attempt(
         )
     ):
         print(
-            f"USE output boundary: topical response still ignored all selected "
-            f"canonical resources for model '{model_id}'; no alternate model will be attempted."
+            f"USE output boundary: topical response still lacks a validated "
+            f"canonical resource anchor for model '{model_id}'; rejecting."
         )
         return ""
 
