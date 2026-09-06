@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v204 — Adaptive Provider Budget + The Guide
+# USE PRODUCTION VERSION: v205 — Evidence-Role Binding + Evidence-Gap Calibration + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v204"
+APP_VERSION = "v205"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v204-adaptive-provider-budget"
+DEPLOYMENT_FINGERPRINT = "USE-v205-evidence-role-binding"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v204-adaptive-provider-budget"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e78d893f9aafc4394c8648a84c9ce726bea2322bb8909f5dbeda811a5a6f9353"
+CANONICAL_BUILD_ID = "USE-BUILD-v205-evidence-role-binding"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "9d183ec32b62f6cc6eda13445daa0317cf844dd17f40c9da0a9e55104b3a6f8f"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9876,6 +9876,10 @@ def _build_provider_evidence_context(
 ) -> str:
     """Build a dense provider evidence view while preserving the input schema mode.
 
+    Each block receives a compact evidence ordinal so distributed supporting perspectives
+    remain distinguishable without treating the first resource as the whole answer.
+    Canonical Title/URL authority remains unchanged.
+
     Compact recovery receives schema-free blocks from ``_bound_existing_context_blocks``.
     v128 accidentally passed those blocks into this legacy Title/Content parser, which
     silently discarded every block and produced ``evidence=0``. v129 keeps the compact
@@ -9909,10 +9913,13 @@ def _build_provider_evidence_context(
         capacity = min(max_resource_chars, remaining - len(prefix))
         if capacity <= 0:
             break
-        bounded = content[:capacity].rstrip()
-        if len(content) > capacity and capacity > 18:
+        role_marker = f"[Evidence {len(blocks) + 1}] "
+        role_capacity = max(0, capacity - len(role_marker))
+        bounded = content[:role_capacity].rstrip()
+        bounded = role_marker + bounded
+        if len(content) > role_capacity and role_capacity > 18:
             marker = " … [bounded]"
-            bounded = content[:capacity - len(marker)].rstrip() + marker
+            bounded = role_marker + content[:role_capacity - len(marker)].rstrip() + marker
         candidate = prefix + bounded
         if len(candidate) > remaining:
             break
@@ -10308,15 +10315,30 @@ def _build_generation_messages(
             compact=True,
         )
 
+    attribution_instruction = ""
+    routing_probe = _classify_generation_complexity(
+        user_query, intent, safe_context, None
+    )
+    if (
+        routing_probe.get("synthesis_signals", 0) >= 1
+        and routing_probe.get("resource_count", 0) >= 3
+    ):
+        attribution_instruction = (
+            " Name each distinct supplied source that materially supports the synthesis "
+            "by its exact canonical title."
+        )
+
     if compact:
         user_content = (
             user_query
             + "\n\nAnswer from evidence; preserve uncertainty. Exact titles only; no links or markup."
+            + attribution_instruction
         )
     else:
         user_content = (
             user_query
             + "\n\nAnswer only from supplied evidence; preserve uncertainty. Exact titles; no links or markup."
+            + attribution_instruction
         )
 
     return [
@@ -10755,6 +10777,17 @@ def _looks_like_false_evidence_gap_claim(answer: str) -> bool:
         "the retrieved excerpts do not contain information",
         "there is no information in the supplied material",
         "the supplied material contains no information",
+        "the material available here does not provide information",
+        "the material available here does not provide enough information",
+        "the material available here does not provide sufficient information",
+        "the available material does not provide information",
+        "the available material does not provide enough information",
+        "the available material does not provide sufficient information",
+        "the material available does not provide information",
+        "the material available does not provide enough information",
+        "the material available does not provide sufficient information",
+        "the available material does not explain",
+        "the material available here does not explain",
     )
     return any(marker in value for marker in markers)
 
