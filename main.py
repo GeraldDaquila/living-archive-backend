@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v190 — Evidence-Gap Grounded Synthesis + The Guide
+# USE PRODUCTION VERSION: v194 — Proportionate Doorway Selection + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v190"
+APP_VERSION = "v194"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v190-mvp-evidence-gap-grounded-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v194-mvp-proportionate-doorway-selection"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v190-mvp-evidence-gap-grounded-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "41e39d34a58997a7bfa6bbda4ebd7d036b8d9f4e06aec2c8df3fcfed0003b249"
+CANONICAL_BUILD_ID = "USE-BUILD-v194-mvp-proportionate-doorway-selection"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "979a5d8dce2679dbea3b9d0f81e56ce3604b37767cddb70ed218b3e3a3fc40b1"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4429,6 +4429,98 @@ def _resource_function_selection_bonus(
 
     return _RESOURCE_FUNCTION_FIT_BONUS
 
+
+
+def _v194_broad_question_specialization_penalty(
+    question: str,
+    document: Dict[str, Any],
+) -> int:
+    """Penalize disproportionate specialized framing for broad questions only."""
+    q = re.sub(r"\s+", " ", str(question or "").casefold()).strip()
+    title = str(document.get("title") or "").casefold()
+    text = str(document.get("text") or document.get("content") or "").casefold()
+
+    explicit_specialized = bool(re.search(
+        r"\b(?:awakening|spiritual|soul|ascension|ego death|higher self|"
+        r"synchronicity|kundalini|reincarnation|metaphysical|esoteric)\b",
+        q,
+    ))
+    if explicit_specialized:
+        return 0
+
+    broad = (
+        len(re.findall(r"\b[a-z][a-z'-]{3,}\b", q)) <= 18
+        and not re.search(
+            r"\b(?:i|me|my|mine|after|during|following|because of)\b", q
+        )
+    )
+    specialized_signal = bool(re.search(
+        r"\b(?:awakening|spiritual|soul|ascension|ego death|higher self|"
+        r"synchronicity|kundalini|reincarnation|metaphysical|esoteric)\b",
+        title + " " + text,
+    ))
+    if broad and specialized_signal:
+        return 3
+    return 0
+
+
+def select_canonical_doorways_with_proportionality(
+    documents: List[Dict[str, Any]],
+    orientation: Dict[str, Any],
+    question: str = "",
+    preserve_prefix: int = 0,
+) -> List[Dict[str, Any]]:
+    """Re-rank only the already-retrieved set, respecting question breadth."""
+    selected = select_canonical_doorways(
+        documents,
+        orientation,
+        question=question,
+        preserve_prefix=preserve_prefix,
+    )
+    if not question:
+        return selected
+
+    prefix = selected[:preserve_prefix]
+    remainder = selected[preserve_prefix:]
+    scored = []
+    for idx, doc in enumerate(remainder):
+        penalty = _v194_broad_question_specialization_penalty(question, doc)
+        scored.append((penalty, idx, doc))
+    scored.sort(key=lambda item: (item[0], item[1]))
+    return prefix + [doc for _penalty, _idx, doc in scored]
+
+
+def _v194_doorway_proportionality_self_audit() -> None:
+    broad_question = "Why can people agree on the goal but disagree about how to achieve it?"
+    docs = [
+        {
+            "title": "The Hidden Dance of Polarity and the Path to Spiritual Ascension",
+            "url": "https://example.invalid/specialized",
+            "text": "A spiritual exploration of polarity and ascension."
+        },
+        {
+            "title": "Understanding Conflict and Cooperation",
+            "url": "https://example.invalid/general",
+            "text": "Explores why people with shared goals can still choose different ways to act."
+        },
+    ]
+    ranked = select_canonical_doorways_with_proportionality(
+        docs,
+        {"primary": "relational", "scores": {"relational": 1}},
+        question=broad_question,
+    )
+    assert ranked[0]["title"] == "Understanding Conflict and Cooperation"
+
+    explicit = select_canonical_doorways_with_proportionality(
+        docs,
+        {"primary": "inward", "scores": {"inward": 1}},
+        question="Why can awakening create a crisis of identity?",
+    )
+    assert explicit[0]["title"] == "The Hidden Dance of Polarity and the Path to Spiritual Ascension"
+
+    # Boundary: same supplied resources, only order may change.
+    assert {_resource_key(x) for x in ranked} == {_resource_key(x) for x in docs}
+    print("USE v194 doorway proportionality audit: PASS")
 
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
@@ -12974,7 +13066,7 @@ def _generation_boundary_self_audit() -> None:
                 "text": "An overview of institutional foundations and where to begin exploring the question.",
             },
         ]
-        doorway_selected = select_canonical_doorways(
+        doorway_selected = select_canonical_doorways_with_proportionality(
             doorway_documents,
             {"primary": "systems", "scores": {"systems": 1}},
         )
