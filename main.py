@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v203 — Synthesis Completion Boundary + The Guide
+# USE PRODUCTION VERSION: v204 — Adaptive Provider Budget + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v203"
+APP_VERSION = "v204"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v203-synthesis-completion-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v204-adaptive-provider-budget"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v203-synthesis-completion-boundary"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "cee0dd15ebf8173e06076e1d84bac098088c0ed7209a5afe2eb08a7c667b9df5"
+CANONICAL_BUILD_ID = "USE-BUILD-v204-adaptive-provider-budget"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e78d893f9aafc4394c8648a84c9ce726bea2322bb8909f5dbeda811a5a6f9353"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v203 build identity failure: canonical identity block not found exactly once."
+            "v204 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -7256,19 +7256,18 @@ def _select_complementary_generation_evidence(
     return selected
 
 
-def _v203_synthesis_completion_boundary_self_audit() -> None:
-    """Verify class-3 synthesis keeps completion headroom while the provider envelope still fits."""
-    question = "A broad conceptual question with several supporting perspectives."
-    routing = _classify_generation_complexity(
-        question,
+def _v204_adaptive_provider_budget_self_audit() -> None:
+    """Verify adaptive completion reservation improves evidence capacity without reducing synthesis headroom."""
+    volume_only = _classify_generation_complexity(
+        "Explain this broad conceptual subject from the supplied evidence.",
         "TOPICAL_INQUIRY",
         "A" * 1596,
     )
-    profile = _generation_budget_profile(routing)
-    assert routing["complexity"] == 3
-    assert profile["model"] == "openai/gpt-oss-120b"
-    assert profile["max_completion_tokens"] == 384
-    assert profile["reasoning_effort"] == "low"
+    volume_profile = _generation_budget_profile(volume_only)
+    assert volume_only["complexity"] == 3
+    assert volume_profile["model"] == "openai/gpt-oss-120b"
+    assert volume_profile["max_completion_tokens"] == 352
+    assert volume_profile["reasoning_effort"] == "low"
 
     structural_question = (
         "How can an organization become more confident in its knowledge while "
@@ -7285,61 +7284,59 @@ def _v203_synthesis_completion_boundary_self_audit() -> None:
     structural_routing = _classify_generation_complexity(
         structural_question, "TOPICAL_INQUIRY", structural_context
     )
+    structural_profile = _generation_budget_profile(structural_routing)
     assert structural_routing["complexity"] == 3
     assert structural_routing["synthesis_signals"] >= 1
-    assert structural_routing["model"] == "openai/gpt-oss-120b"
+    assert structural_routing["resource_count"] >= 3
+    assert structural_profile["model"] == "openai/gpt-oss-120b"
+    assert structural_profile["max_completion_tokens"] == 384
 
-    fixed_messages = _build_generation_messages(question, "TOPICAL_INQUIRY", "", None)
-    fixed_chars = _estimate_message_chars(fixed_messages)
-    reservation = math.ceil(profile["max_completion_tokens"] * 4 * 1.25)
-    capacity = min(
-        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
-        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - reservation,
+    fixed_messages = _build_generation_messages(
+        "Explain this broad conceptual subject from the supplied evidence.",
+        "TOPICAL_INQUIRY", "", None
     )
-    assert capacity >= 600
+    fixed_chars = _estimate_message_chars(fixed_messages)
+    volume_reservation = math.ceil(volume_profile["max_completion_tokens"] * 4 * 1.25)
+    v203_reservation = math.ceil(384 * 4 * 1.25)
+    adaptive_capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - volume_reservation,
+    )
+    legacy_capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - v203_reservation,
+    )
+    assert adaptive_capacity > legacy_capacity
+    assert adaptive_capacity - legacy_capacity == 160
 
-    realistic_documents = [
-        {
-            "title": "Perspective A",
-            "url": "https://example.invalid/a",
-            "text": "A substantive perspective explains how stable structures can become orderly while narrowing the ability to learn from experience.",
-        },
-        {
-            "title": "Perspective B",
-            "url": "https://example.invalid/b",
-            "text": "Another perspective describes learning as the capacity for experience to alter assumptions and practices when outcomes expose limits.",
-        },
-        {
-            "title": "Perspective C",
-            "url": "https://example.invalid/c",
-            "text": "A third perspective connects accountability with noticing consequences and making room for correction rather than merely enforcing procedure.",
-        },
-    ]
     distributed = _allocate_question_shaped_evidence(
-        realistic_documents,
-        max_chars=1800,
-        max_resource_chars=500,
+        [
+            {"title": "Perspective A", "url": "https://example.invalid/a", "text": "Stable structures can become orderly while narrowing learning. " * 12},
+            {"title": "Perspective B", "url": "https://example.invalid/b", "text": "Learning allows experience to alter assumptions when limits appear. " * 12},
+            {"title": "Perspective C", "url": "https://example.invalid/c", "text": "Feedback makes consequences visible and supports correction. " * 12},
+        ],
+        max_chars=1800, max_resource_chars=500,
     )
     fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
-        question,
-        "TOPICAL_INQUIRY",
-        distributed,
-        max_tokens=profile["max_completion_tokens"],
+        "Explain this broad conceptual subject from the supplied evidence.",
+        "TOPICAL_INQUIRY", distributed,
+        max_tokens=volume_profile["max_completion_tokens"],
     )
-    total_estimate = _estimate_message_chars(fitted_messages) + reservation
+    total_estimate = _estimate_message_chars(fitted_messages) + volume_reservation
     assert fitted_context
-    assert len(fitted_context) >= 400
+    assert len(fitted_context) >= 500
     assert total_estimate <= MAX_PROVIDER_TOTAL_CHARS
     assert len(re.findall(r"^Title:\s*.+$", fitted_context, flags=re.MULTILINE)) >= 2
 
-    compact = _generation_budget_profile(routing, compact=True)
+    compact = _generation_budget_profile(volume_only, compact=True)
     assert compact["max_completion_tokens"] == 320
-    assert compact["max_completion_tokens"] < profile["max_completion_tokens"]
+    assert compact["max_completion_tokens"] < volume_profile["max_completion_tokens"]
 
     print(
-        "USE v203 SYNTHESIS COMPLETION BOUNDARY AUDIT: PASS "
-        f"(class3_tokens={profile['max_completion_tokens']}, "
-        f"fixed_input={fixed_chars}, evidence_capacity={capacity}, "
+        "USE v204 ADAPTIVE PROVIDER BUDGET AUDIT: PASS "
+        f"(class3_volume_tokens={volume_profile['max_completion_tokens']}, "
+        f"class3_synthesis_tokens={structural_profile['max_completion_tokens']}, "
+        f"legacy_capacity={legacy_capacity}, adaptive_capacity={adaptive_capacity}, "
         f"fitted_evidence={len(fitted_context)}, total_estimate={total_estimate})"
     )
 
@@ -11017,25 +11014,52 @@ def _classify_generation_complexity(
     }
 
 
-def _generation_budget_profile(routing: Dict[str, Any], *, compact: bool = False) -> Dict[str, Any]:
-    """Return the deterministic provider budget matched to the selected task class.
+def _adaptive_provider_completion_tokens(routing: Dict[str, Any], *, compact: bool = False) -> int:
+    """Allocate completion headroom to the actual reasoning task.
 
-    The model class and completion/reasoning budget are one routing decision.
-    This prevents a complex reasoning task from inheriting the old global
-    completion ceiling, while keeping the conservative provider envelope authoritative.
+    v204 keeps model selection unchanged and adapts only the provider
+    completion reservation. Class-3 tasks that are high-evidence by volume
+    alone receive a slightly smaller reservation so the provider preflight can
+    preserve more substantive canonical evidence. Explicit multi-resource
+    synthesis retains the v203 384-token completion headroom because that work
+    is more vulnerable to output-boundary truncation.
     """
     complexity = int(routing.get("complexity", 1))
-    profiles = {
-        1: {"model": "openai/gpt-oss-20b", "max_completion_tokens": 256, "reasoning_effort": "low", "compact_tokens": 256},
-        2: {"model": "groq/compound-mini", "max_completion_tokens": 320, "reasoning_effort": None, "compact_tokens": 320},
-        3: {"model": "openai/gpt-oss-120b", "max_completion_tokens": 384, "reasoning_effort": "low", "compact_tokens": 320},
-        4: {"model": "groq/compound", "max_completion_tokens": 384, "reasoning_effort": None, "compact_tokens": 320},
-    }
-    profile = dict(profiles.get(complexity, profiles[1]))
     if compact:
-        profile["max_completion_tokens"] = profile["compact_tokens"]
-    profile.pop("compact_tokens", None)
-    return profile
+        return {1: 256, 2: 320, 3: 320, 4: 320}.get(complexity, 256)
+
+    if complexity == 1:
+        return 256
+    if complexity == 2:
+        return 320
+    if complexity == 4:
+        return 384
+
+    # Class 3: preserve the larger completion reserve when the question asks
+    # for synthesis and the question contains a genuine synthesis signal.
+    # Otherwise, reclaim 32 tokens (~160 provider-envelope chars) for evidence.
+    synthesis_signals = int(routing.get("synthesis_signals", 0))
+    resource_count = int(routing.get("resource_count", 0))
+    if synthesis_signals >= 1:
+        return 384
+    return 352
+
+
+def _generation_budget_profile(routing: Dict[str, Any], *, compact: bool = False) -> Dict[str, Any]:
+    """Return deterministic model/reasoning plus adaptive provider budget."""
+    complexity = int(routing.get("complexity", 1))
+    models = {
+        1: ("openai/gpt-oss-20b", "low"),
+        2: ("groq/compound-mini", None),
+        3: ("openai/gpt-oss-120b", "low"),
+        4: ("groq/compound", None),
+    }
+    model, reasoning_effort = models.get(complexity, models[1])
+    return {
+        "model": model,
+        "max_completion_tokens": _adaptive_provider_completion_tokens(routing, compact=compact),
+        "reasoning_effort": reasoning_effort,
+    }
 
 
 def _v164_task_aware_generation_budget_self_audit() -> None:
