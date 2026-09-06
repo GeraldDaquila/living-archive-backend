@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v178 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
+# USE PRODUCTION VERSION: v179 — Substantive Doorway Fit Calibration + v178 presentation/audit baseline + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v178"
+APP_VERSION = "v179"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v178-mvp-doorway-link-newline-audit-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v179-mvp-substantive-doorway-fit-calibration"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v178-mvp-doorway-link-newline-audit-correction"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "53b18c2ba063122446ae20649bc4e838e0d2ab380f65b314a4a224caa4750859"
+CANONICAL_BUILD_ID = "USE-BUILD-v179-mvp-substantive-doorway-fit-calibration"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "429499a2538dad8e59b0f1b6f2e6f7f3dbcf212c5fa6e904cb30fd446081bbdc"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -3661,6 +3661,31 @@ def _canonical_doorway_score(
     # a resource whose title is itself a specialized worldview.
     framework_penalty = _framework_neutrality_penalty(question, title)
 
+    # v179: use the existing post-retrieval substantive Content-fit measure as
+    # a bounded doorway calibration signal. A resource with zero substantive
+    # domain fit should not be elevated above materially fitting resources merely
+    # because its title/content carries generic doorway language. This is not a
+    # new retrieval pass and does not remove the resource from canonical
+    # navigation; it only prevents "doorway" status from outrunning evidence fit.
+    #
+    # Explicit relational questions retain their existing D17 reconciliation:
+    # the sufficiency layer may legitimately preserve a relational inquiry even
+    # when literal lexical fit is sparse. Accordingly, the zero-fit penalty here
+    # is limited to non-relational topical questions.
+    evidence_fit, _evidence_fit_detail = _evidence_domain_fit_score(
+        question, metadata
+    ) if question else (0, (0, 0))
+    evidence_fit_penalty = 0
+    if (
+        question
+        and evidence_fit == 0
+        and not (
+            recognize_question_structure(question).get("structure")
+            == "explicit_contrast"
+        )
+    ):
+        evidence_fit_penalty = 4
+
     # v72: doorway centrality asks whether the candidate's own conceptual
     # territory is actually established by the visitor's wording. This is not
     # another retrieval pass. It is a bounded safeguard against promoting a
@@ -3697,6 +3722,7 @@ def _canonical_doorway_score(
         + (question_fit * 2)
         - scope_penalty
         - framework_penalty
+        - evidence_fit_penalty
         - centrality_penalty
     )
     return score, (
