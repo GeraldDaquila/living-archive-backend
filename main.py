@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v187 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
+# USE PRODUCTION VERSION: v188 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v187"
+APP_VERSION = "v188"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v187-mvp-bounded-grounded-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v188-mvp-bounded-grounded-synthesis"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v187-mvp-bounded-grounded-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "2c0ad65d426b50016a6dc46b05f631b85b12eef096cae2a977ae835b7b4a4ea8"
+CANONICAL_BUILD_ID = "USE-BUILD-v188-mvp-bounded-grounded-synthesis"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bc70c0fa6f9e21f92560616e596dc79f7085ece9f5904e22c185b1f31597553d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8279,8 +8279,17 @@ def _calibrate_visitor_style(visitor_text: str) -> str:
     replacements = (
         (r"\bThe evidence (?:on|in|available here)\b", "The material"),
         (r"\bthe evidence (?:on|in|available here)\b", "the material"),
+        (r"\bThe evidence (?:notes?|shows?|suggests?|indicates?)\b", ""),
+        (r"\bthe evidence (?:notes?|shows?|suggests?|indicates?)\b", ""),
+        (r"\bThe material (?:notes?|shows?|suggests?|indicates?)\b", ""),
+        (r"\bthe material (?:notes?|shows?|suggests?|indicates?)\b", ""),
+        (r"\bThe supplied evidence\b", "The material available here"),
+        (r"\bthe supplied evidence\b", "the material available here"),
+        (r"\bThe available evidence\b", "The material available here"),
+        (r"\bthe available evidence\b", "the material available here"),
+        (r"\bThe retrieved evidence\b", "The material"),
         (r"\bthe retrieved evidence\b", "the material"),
-        (r"\bretrieved evidence\b", "the material"),
+        (r"\bretrieved evidence\b", "material"),
         (r"\bthe retrieval\b", "the search"),
         (r"\bretrieval\b", "search"),
         (r"\bretrieved material\b", "material"),
@@ -8290,7 +8299,11 @@ def _calibrate_visitor_style(visitor_text: str) -> str:
     result = visitor_text
     for pattern, replacement in replacements:
         result = re.sub(pattern, replacement, result)
-    return result
+    result = re.sub(r"\s{2,}", " ", result)
+    result = re.sub(r"(^|[.!?])\s*,", r"\1", result)
+    result = re.sub(r"\s+([,.;:])", r"\1", result)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result.strip()
 
 def _clean_generation_output(
     generated_text: str,
