@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v188 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
+# USE PRODUCTION VERSION: v189 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v188"
+APP_VERSION = "v189"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -636,7 +636,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v188-mvp-bounded-grounded-synthesis"
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
 CANONICAL_BUILD_ID = "USE-BUILD-v188-mvp-bounded-grounded-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "bc70c0fa6f9e21f92560616e596dc79f7085ece9f5904e22c185b1f31597553d"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b2e321f7fa7c5a8ebc97fa131988dfec51f85238a106e79534a84b5b48d9a82e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -3466,6 +3466,58 @@ _SPECIALIZED_FRAMEWORK_TERMS = frozenset({
     "synchronicity", "synchronicities", "apophenia",
 })
 
+# v189 proportionality refinement: broad human questions should not be pulled
+# into a specialized explanatory frame merely because the retrieved title has
+# strong semantic overlap. This penalty applies only to already-retrieved
+# candidates and never removes them from the canonical set.
+_SPECIALIZED_PROPORTIONALITY_TERMS = frozenset({
+    "ascension", "awakening", "kundalini", "reincarnation", "soul",
+    "ego death", "nonduality", "non-duality", "manifestation", "channeling",
+    "channeled", "akashic", "twin flame", "twin-flame", "synchronicity",
+    "starseed", "starseeds", "apophenia",
+    "psychological", "psychiatric", "clinical", "therapeutic",
+    "trauma", "ptsd", "abuse", "addiction", "suicide", "self-harm",
+})
+
+def _broad_question_proportionality_penalty(question: str, title: str) -> int:
+    """Penalize a specialized doorway when the visitor asked a general question."""
+    if not question or not title:
+        return 0
+
+    q_terms, _phrases = _question_condition_terms(question)
+    q_set = set(q_terms)
+    if not q_set:
+        return 0
+
+    # Explicitly named specialized domains/frameworks remain eligible.
+    named = {term for term in _SPECIALIZED_PROPORTIONALITY_TERMS if term in q_set}
+    title_specialized = {
+        term for term in _SPECIALIZED_PROPORTIONALITY_TERMS
+        if re.search(rf"\b{re.escape(term)}\b", title)
+    }
+    if not title_specialized or named:
+        return 0
+
+    # Broad questions tend to use ordinary relational/social terms without
+    # naming a specialized worldview or clinical frame.
+    broad_terms = {
+        "people", "person", "group", "community", "communities", "organization",
+        "organizations", "society", "societies", "team", "teams", "leaders",
+        "leadership", "trust", "disagreement", "disagreements", "goal", "goals",
+        "decision", "decisions", "culture", "cooperate", "cooperation", "conflict",
+        "difference", "differences", "fair", "fairness", "change", "changes",
+        "crisis", "crises", "resilience", "resilient", "divide", "divided",
+        "together", "belong", "belonging", "agreement", "agree",
+    }
+    broad_signal_count = len(q_set & broad_terms)
+
+    # Only apply the new penalty when the question reads as a general human/
+    # organizational inquiry rather than an explicitly specialized inquiry.
+    if broad_signal_count < 1:
+        return 0
+
+    return min(8, len(title_specialized) * 4)
+
 _QUESTION_STOPWORDS = frozenset({
     "a", "about", "after", "all", "always", "am", "an", "and", "are",
     "as", "at", "be", "because", "been", "being", "but", "by", "can",
@@ -3700,6 +3752,13 @@ def _canonical_doorway_score(
         elif centrality_score <= 1 and question_fit <= 3:
             centrality_penalty = 2
 
+    # v189: broader proportionality safeguard. A specialized title should not
+    # become the primary doorway for a plainly general human/organizational
+    # question unless the visitor named that specialized frame.
+    broad_proportionality_penalty = _broad_question_proportionality_penalty(
+        question, title
+    )
+
     # v72 generalizes framework proportionality for open experiential questions:
     # if the visitor has not named a specialized worldview, that worldview must
     # not become the primary doorway simply because retrieval found it relevant.
@@ -3724,6 +3783,7 @@ def _canonical_doorway_score(
         - framework_penalty
         - evidence_fit_penalty
         - centrality_penalty
+        - broad_proportionality_penalty
     )
     return score, (
         title_hits,
@@ -3735,6 +3795,7 @@ def _canonical_doorway_score(
         framework_penalty,
         centrality_score,
         centrality_penalty,
+        broad_proportionality_penalty,
     )
 
 
