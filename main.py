@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v189 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
+# USE PRODUCTION VERSION: v190 — Evidence-Gap Grounded Synthesis + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v189"
+APP_VERSION = "v190"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v188-mvp-bounded-grounded-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v190-mvp-evidence-gap-grounded-synthesis"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v188-mvp-bounded-grounded-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b2e321f7fa7c5a8ebc97fa131988dfec51f85238a106e79534a84b5b48d9a82e"
+CANONICAL_BUILD_ID = "USE-BUILD-v190-mvp-evidence-gap-grounded-synthesis"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "41e39d34a58997a7bfa6bbda4ebd7d036b8d9f4e06aec2c8df3fcfed0003b249"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6615,21 +6615,19 @@ def _evidence_sufficiency_gate(
     question: str,
     intent: str,
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Separate synthesis sufficiency from navigational usefulness.
+    """Keep relevant retrieved material available for bounded generation.
 
-    Retrieved resources remain available for canonical movement even when
-    their Content does not support a reliable explanatory synthesis.
+    The gate blocks synthesis only when the retrieved set is both weak in
+    substantive Content fit and unable to support even a modest question-
+    grounded synthesis posture. Explicit relational questions retain the
+    existing reconciliation path. Broad topical questions with a meaningful
+    doorway remain available to generation so the provider can explain the
+    closest supported pattern rather than collapsing immediately to a
+    limitation report.
     """
     if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"} or not documents:
         return documents, False
 
-    # D17 reconciliation: an explicit relational question is allowed to
-    # proceed to the existing evidence-bound generation boundary even when
-    # lexical domain-fit is low. D16 must not turn a relational question into
-    # a navigation-only result merely because no single vocabulary match was
-    # found. First-person open experiential questions retain the stronger
-    # evidence-sufficiency boundary because interpretive-frame sovereignty
-    # remains active there.
     if (
         recognize_question_structure(question).get("structure") == "explicit_contrast"
         and not _question_is_frame_open(question)
@@ -6648,12 +6646,42 @@ def _evidence_sufficiency_gate(
     if sufficient:
         return documents, False
 
+    # v190: do not convert every low-lexical-fit broad question into a
+    # navigation-only result. A bounded generation attempt may still produce
+    # useful synthesis when the retrieved set contains substantive material and
+    # a plausible doorway. Reserve the hard stop for genuinely empty/adjacent
+    # evidence, preserving the existing evidence boundary.
+    substantive_documents = [
+        document
+        for document in documents
+        if _resource_content(document).strip()
+        and len(_resource_content(document).strip()) >= 80
+    ]
+    question_terms, _question_phrases = _question_condition_terms(question)
+    broad_terms = {
+        "people", "person", "group", "community", "communities", "organization",
+        "organizations", "society", "societies", "team", "teams", "leaders",
+        "leadership", "trust", "disagreement", "disagreements", "goal", "goals",
+        "decision", "decisions", "culture", "cooperate", "cooperation", "conflict",
+        "difference", "differences", "fair", "fairness", "change", "changes",
+        "crisis", "crises", "resilience", "resilient", "divide", "divided",
+        "together", "belong", "belonging", "agreement", "agree", "way", "ways",
+        "choose", "chooses", "choice", "choices", "achieve", "achievement",
+    }
+    broad_signal = bool(set(question_terms) & broad_terms)
+
+    if substantive_documents and broad_signal:
+        print(
+            "USE evidence sufficiency reconciliation v190: broad topical "
+            "question retained for bounded synthesis despite low literal fit."
+        )
+        return documents, False
+
     print(
         "USE evidence sufficiency gate: insufficient substantive domain fit; "
         f"scores={fit_scores}. Synthesis withheld; navigation preserved."
     )
     return documents, True
-
 
 def _evidence_sufficiency_unavailable_response(
     question: str,
@@ -11165,6 +11193,48 @@ def _question_structure_evidence_gate(
 
 
 
+def _v190_broad_topical_synthesis_boundary_self_audit() -> None:
+    """Verify broad questions with substantive retrieved Content reach generation."""
+    broad = [
+        {
+            "title": "Community Relationships",
+            "text": (
+                "Communities can remain connected when members have ways of "
+                "handling differences, preserving trust, and maintaining "
+                "shared expectations about how people relate to one another."
+            ),
+        }
+    ]
+    retained, blocked = _evidence_sufficiency_gate(
+        broad,
+        "Why can two people who share the same goal still choose completely different ways to reach it?",
+        "TOPICAL_INQUIRY",
+    )
+    if blocked or not retained:
+        raise RuntimeError(
+            "v190 broad-topical synthesis regression: substantive broad question "
+            "was incorrectly converted into navigation-only response."
+        )
+
+    empty_adjacent = [
+        {
+            "title": "Unrelated Material",
+            "text": "A short unrelated note about archive navigation."
+        }
+    ]
+    retained_empty, blocked_empty = _evidence_sufficiency_gate(
+        empty_adjacent,
+        "Why can two people who share the same goal still choose completely different ways to reach it?",
+        "TOPICAL_INQUIRY",
+    )
+    if not blocked_empty or not retained_empty:
+        raise RuntimeError(
+            "v190 evidence-boundary regression: genuinely weak adjacent evidence "
+            "was incorrectly opened to synthesis."
+        )
+    print("USE v190 BROAD TOPICAL SYNTHESIS BOUNDARY AUDIT: PASS")
+
+
 def _v92_d17_evidence_boundary_reconciliation_self_audit() -> None:
     """Verify D16 sufficiency does not false-negative explicit general relations."""
     general_relation = "Why can two people experience the same situation and understand it differently?"
@@ -11827,6 +11897,7 @@ def _generation_boundary_self_audit() -> None:
         _v92_question_structure_self_audit()
         _v92_question_structure_evidence_self_audit()
         _v92_question_evidence_correspondence_integration_self_audit()
+        _v190_broad_topical_synthesis_boundary_self_audit()
 
         v72_centrality = _v72_question_doorway_centrality_self_audit()
         if not v72_centrality["pass"]:
