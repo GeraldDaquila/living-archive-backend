@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v180 — Visitor Language Barrier Calibration + v179 doorway-fit baseline + The Guide
+# USE PRODUCTION VERSION: v181 — Visitor Jargon Suppression + v180 language-barrier baseline + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v180"
+APP_VERSION = "v181"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v180-mvp-visitor-language-barrier-calibration"
+DEPLOYMENT_FINGERPRINT = "USE-v181-mvp-visitor-jargon-suppression"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v180-mvp-visitor-language-barrier-calibration"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "10a28bdf1b09064eb53f492469f5d1313c0faa0f81f5fbcd7749eddc47aec5aa"
+CANONICAL_BUILD_ID = "USE-BUILD-v181-mvp-visitor-jargon-suppression"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1a8197b9f06be209bb369157101e6659aaafd8ec91e68f16f8e21f4e4b7670ad"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
