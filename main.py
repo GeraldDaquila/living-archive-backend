@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v205 — Evidence-Role Binding + Evidence-Gap Calibration + The Guide
+# USE PRODUCTION VERSION: v206 — Evidence Sufficiency Allocation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v205"
+APP_VERSION = "v206"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v205-evidence-role-binding"
+DEPLOYMENT_FINGERPRINT = "USE-v206-evidence-sufficiency-allocation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v205-evidence-role-binding"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9d183ec32b62f6cc6eda13445daa0317cf844dd17f40c9da0a9e55104b3a6f8f"
+CANONICAL_BUILD_ID = "USE-BUILD-v206-evidence-sufficiency-allocation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "50e21f7ed7d34cb9155a064d3f2bb6eb5ce7dbfa375dad1964765b83899281b3"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v204 build identity failure: canonical identity block not found exactly once."
+            "v206 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -7256,6 +7256,241 @@ def _select_complementary_generation_evidence(
     return selected
 
 
+
+MAX_SYNTHESIS_EVIDENCE_RESOURCES = 3
+_SYNTHESIS_MIN_DIRECT_FIT = 1
+_SYNTHESIS_MIN_NOVEL_CONCEPTS = 3
+_SYNTHESIS_MAX_CONTENT_OVERLAP = 0.65
+_SYNTHESIS_MAX_EVIDENCE_CHARS = 700
+
+
+def _synthesis_evidence_quality_score(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int, int]:
+    """Rank a synthesis role by fit, conceptual novelty, and evidence density."""
+    fit_score, (term_hits, phrase_hits) = _evidence_domain_fit_score(
+        question, document
+    )
+    coverage = len(_question_evidence_term_coverage(question, document))
+    concepts = _content_concept_set(document)
+    content_chars = len(_resource_content(document).strip())
+    evidence_density = min(_SYNTHESIS_MAX_EVIDENCE_CHARS, content_chars)
+    return (fit_score, coverage, phrase_hits, evidence_density)
+
+
+def _select_evidence_rich_synthesis_roles(
+    documents: List[Dict[str, Any]],
+    question: str,
+    *,
+    max_resources: int = MAX_SYNTHESIS_EVIDENCE_RESOURCES,
+) -> List[Dict[str, Any]]:
+    """Narrow a broad complementary pool into 2–3 evidence-rich synthesis roles.
+
+    v206 is the selection -> provider allocation boundary. The complementary
+    selector may preserve up to six distinct candidates for navigation and
+    observability, but the provider should not be asked to synthesize six
+    resources from a tightly bounded evidence envelope. This selector keeps
+    the strongest direct evidence first, then adds candidates that contribute
+    distinct substantive Content while preserving enough evidence volume for
+    each retained role.
+
+    The function is deterministic and does not infer latent relationships. It
+    only selects supplied resources using direct fit, conceptual novelty,
+    overlap, and bounded Content length.
+    """
+    if not documents:
+        return []
+
+    limit = max(1, min(int(max_resources), MAX_SYNTHESIS_EVIDENCE_RESOURCES))
+    indexed = []
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict) or not document:
+            continue
+        content = _resource_content(document).strip()
+        if not content:
+            continue
+        score = _synthesis_evidence_quality_score(question, document)
+        concepts = _content_concept_set(document)
+        coverage = _question_evidence_term_coverage(question, document)
+        indexed.append((index, document, score, concepts, coverage))
+
+    if not indexed:
+        return []
+
+    # Primary role: strongest direct supported explanation, with evidence
+    # density as a late tie-breaker so a longer document cannot displace a
+    # materially better direct fit.
+    primary = max(
+        indexed,
+        key=lambda item: (
+            item[2][0],  # direct fit
+            item[2][1],  # question-term coverage
+            item[2][2],  # phrase fit
+            item[2][3],  # evidence density
+            -item[0],    # stable earlier-order preference
+        ),
+    )
+
+    selected = [primary[1]]
+    selected_keys = {_resource_key(primary[1])}
+    represented_concepts = set(primary[3])
+    selected_concept_sets = [primary[3]]
+    covered_terms = set(primary[4])
+
+    remaining = [
+        item for item in indexed
+        if _resource_key(item[1]) not in selected_keys
+    ]
+
+    while remaining and len(selected) < limit:
+        best_item = None
+        best_rank = None
+        for index, document, score, concepts, coverage in remaining:
+            direct_fit, coverage_count, phrase_hits, evidence_density = score
+            novelty = min(
+                _COMPLEMENTARY_MAX_NOVEL_CONCEPTS,
+                len(concepts - represented_concepts),
+            )
+            incremental_terms = len(coverage - covered_terms)
+            overlap = _max_content_concept_overlap(
+                concepts, selected_concept_sets
+            )
+
+            # Direct fit is primary; distinct conceptual evidence is next;
+            # evidence density is deliberately meaningful but cannot rescue
+            # weakly relevant content.
+            rank = (
+                direct_fit,
+                novelty,
+                coverage_count,
+                phrase_hits,
+                evidence_density,
+                incremental_terms,
+                -overlap,
+                -index,
+            )
+            if best_rank is None or rank > best_rank:
+                best_rank = rank
+                best_item = (index, document, score, concepts, coverage)
+
+        if best_item is None:
+            break
+
+        index, document, score, concepts, coverage = best_item
+        direct_fit = score[0]
+        novelty = min(
+            _COMPLEMENTARY_MAX_NOVEL_CONCEPTS,
+            len(concepts - represented_concepts),
+        )
+        overlap = _max_content_concept_overlap(
+            concepts, selected_concept_sets
+        )
+
+        if (
+            direct_fit < _SYNTHESIS_MIN_DIRECT_FIT
+            or novelty < _SYNTHESIS_MIN_NOVEL_CONCEPTS
+            or overlap > _SYNTHESIS_MAX_CONTENT_OVERLAP
+        ):
+            break
+
+        selected.append(document)
+        selected_keys.add(_resource_key(document))
+        represented_concepts.update(concepts)
+        selected_concept_sets.append(concepts)
+        covered_terms.update(coverage)
+        remaining = [
+            item for item in remaining
+            if _resource_key(item[1]) != _resource_key(document)
+        ]
+
+    print(
+        "USE v206 evidence sufficiency allocation: "
+        f"candidate_set={len(documents)}, synthesis_set={len(selected)}, "
+        f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in selected ]}"
+    )
+    return selected
+
+
+def _v206_evidence_sufficiency_allocation_self_audit() -> None:
+    """Verify broad candidates narrow to a small evidence-rich synthesis set."""
+    docs = [
+        {
+            "title": "Governance Lens",
+            "url": "https://example.invalid/governance",
+            "text": (
+                "Distributed governance can coordinate decisions across a network "
+                "while preserving local judgment, feedback, and accountability. " * 6
+            ),
+        },
+        {
+            "title": "Learning Lens",
+            "url": "https://example.invalid/learning",
+            "text": (
+                "Organizations learn when experience changes assumptions and "
+                "feedback becomes part of collective understanding rather than "
+                "being handled only as isolated cases. " * 6
+            ),
+        },
+        {
+            "title": "Incentive Lens",
+            "url": "https://example.invalid/incentive",
+            "text": (
+                "Incentives shape behavior through relationships among authority, "
+                "reward, dependency, and institutional expectations. " * 6
+            ),
+        },
+        {
+            "title": "Redundant Governance Lens",
+            "url": "https://example.invalid/redundant",
+            "text": (
+                "Governance coordinates decisions through authority, accountability, "
+                "and institutional procedures. " * 6
+            ),
+        },
+        {
+            "title": "Context Lens",
+            "url": "https://example.invalid/context",
+            "text": (
+                "Context changes how people interpret events, coordinate action, "
+                "and decide what consequences mean. " * 6
+            ),
+        },
+    ]
+    question = (
+        "Why can an organization become more efficient at resolving individual "
+        "problems while becoming less capable of recognizing patterns across those problems?"
+    )
+    broad = _select_complementary_generation_evidence(docs, question)
+    synthesis = _select_evidence_rich_synthesis_roles(broad, question)
+    assert len(broad) >= len(synthesis)
+    assert len(synthesis) <= MAX_SYNTHESIS_EVIDENCE_RESOURCES
+    assert len(synthesis) >= 2
+    assert synthesis[0]["title"] in {
+        "Governance Lens", "Learning Lens", "Context Lens"
+    }
+    assert "Redundant Governance Lens" not in [doc["title"] for doc in synthesis]
+    formatted = format_context_blocks(
+        synthesis,
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
+    )
+    assert len(formatted) > 400
+    provider_view = _build_provider_evidence_context(
+        formatted,
+        max_chars=900,
+        max_resource_chars=400,
+        schema_free=False,
+    )
+    assert len(provider_view) >= 400
+    assert len(re.findall(r"\[Evidence \d+\]", provider_view)) >= 2
+    print(
+        "USE v206 EVIDENCE SUFFICIENCY ALLOCATION AUDIT: PASS "
+        f"(candidate_set={len(broad)}, synthesis_set={len(synthesis)}, "
+        f"provider_evidence={len(provider_view)})"
+    )
+
+
 def _v204_adaptive_provider_budget_self_audit() -> None:
     """Verify adaptive completion reservation improves evidence capacity without reducing synthesis headroom."""
     volume_only = _classify_generation_complexity(
@@ -7898,7 +8133,7 @@ def fetch_canonical_context(
             "source=D21-D26 canonical resource-function layer."
         )
 
-    generation_evidence_docs = _select_complementary_generation_evidence(
+    generation_evidence_candidates = _select_complementary_generation_evidence(
         retrieved_docs,
         user_query,
         protected_documents=(
@@ -7906,8 +8141,18 @@ def fetch_canonical_context(
             + document_choice_architecture_docs
         ),
     )
-    if not generation_evidence_docs:
-        generation_evidence_docs = list(retrieved_docs[:1])
+    if not generation_evidence_candidates:
+        generation_evidence_candidates = list(retrieved_docs[:1])
+
+    # v206 separates the broad complementary candidate pool from the smaller
+    # evidence-rich provider synthesis set. Navigation retains the broader
+    # canonical context; generation receives only the strongest distinct roles
+    # so each selected source retains enough substantive Content to support
+    # actual synthesis.
+    generation_evidence_docs = _select_evidence_rich_synthesis_roles(
+        generation_evidence_candidates,
+        user_query,
+    )
 
     generation_context = format_context_blocks(
         generation_evidence_docs,
@@ -7942,7 +8187,8 @@ def fetch_canonical_context(
     print(
         "USE generation selection: "
         f"retrieved={len(retrieved_docs)}, "
-        f"evidence_set={len(generation_evidence_docs)}, "
+        f"candidate_set={len(generation_evidence_candidates)}, "
+        f"synthesis_set={len(generation_evidence_docs)}, "
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
     )
     return {
