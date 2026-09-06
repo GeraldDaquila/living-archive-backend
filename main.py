@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v174 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
+# USE PRODUCTION VERSION: v178 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v174"
+APP_VERSION = "v178"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v174-mvp-deterministic-doorway-anchoring"
+DEPLOYMENT_FINGERPRINT = "USE-v178-mvp-doorway-link-newline-audit-correction"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v174-mvp-deterministic-doorway-anchoring"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "0247904b805e8fc3cb596b710e51091917f5e59ffde9c6b6d181b147e7c807cf"
+CANONICAL_BUILD_ID = "USE-BUILD-v178-mvp-doorway-link-newline-audit-correction"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "53b18c2ba063122446ae20649bc4e838e0d2ab380f65b314a4a224caa4750859"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9600,9 +9600,11 @@ def _run_generation_attempt(
         canonical_pairs = _canonical_pairs(effective_validation_context)
         first_title = _canonical_display_title(canonical_pairs[0][0])
         if first_title:
+            first_url = canonical_pairs[0][1]
+            first_link = f"[{first_title}]({first_url})"
             cleaned_answer = (
                 f"A useful canonical place to begin with this question is "
-                f"{first_title}.\\n\\n{cleaned_answer}"
+                f"{first_link}.\n\n{cleaned_answer}"
             )
 
     if (
@@ -13617,9 +13619,23 @@ def _v97_retrieval_candidate_window_audit() -> None:
             "D18 retrieval-window regression: full bounded semantic candidate window is not preserved."
         )
     ranking_block = source[doorway_pos:]
-    if ")[:MAX_CONTEXT_RESOURCES]" not in ranking_block:
+    context_pos = ranking_block.find("generation_context = format_context_blocks(")
+    if context_pos < 0:
         raise RuntimeError(
-            "D18 retrieval-window regression: final generation resource cap is not downstream of ranking."
+            "D18 retrieval-window regression: final generation context is not downstream of ranking."
+        )
+    generation_function_source = inspect.getsource(generate_llm_response)
+    if "generation_context" not in generation_function_source:
+        raise RuntimeError(
+            "D18 retrieval-window regression: generation function does not consume the ranked context."
+        )
+    if "_fit_generation_context_to_provider_budget(" not in inspect.getsource(_run_generation_attempt):
+        raise RuntimeError(
+            "D18 retrieval-window regression: provider budget fitting boundary is missing."
+        )
+    if "MAX_CONTEXT_RESOURCES" in ranking_block[context_pos:]:
+        raise RuntimeError(
+            "D18 retrieval-window regression: retrieval cap has leaked downstream of doorway ranking."
         )
 
     # Generic proof: a direct candidate at the end of the bounded window must
@@ -13680,6 +13696,7 @@ def _v96_current_turn_state_integrity_audit():
     class _ProbeRequest:
         def __init__(self, query):
             self.query = query
+            self.state = {}
         async def json(self):
             return {"query": self.query}
 
@@ -13714,25 +13731,50 @@ def _v96_current_turn_state_integrity_audit():
         result = await handle_query(_ProbeRequest(query), None)
         return result.body.decode("utf-8")
 
+    def _run_probe_safely(query):
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(run_probe(query))
+
+        import threading
+        result = []
+        error = []
+
+        def _worker():
+            try:
+                result.append(asyncio.run(run_probe(query)))
+            except Exception as exc:
+                error.append(exc)
+
+        thread = threading.Thread(target=_worker)
+        thread.start()
+        thread.join()
+        if error:
+            raise error[0]
+        return result[0]
+
     try:
         first_query = "CURRENT TURN A — authority and governance"
         second_query = "CURRENT TURN B — grief and transition"
-        first_body = asyncio.run(run_probe(first_query))
-        second_body = asyncio.run(run_probe(second_query))
+        first_body = _run_probe_safely(first_query)
+        second_body = _run_probe_safely(second_query)
 
-        if first_query not in first_body or second_query not in second_body:
+        first_payload = json.loads(first_body)
+        second_payload = json.loads(second_body)
+        if first_payload.get("query") != first_query or second_payload.get("query") != second_query:
             raise RuntimeError(
                 "D18 current-turn regression: response envelope did not preserve the request query."
             )
-        if first_query in second_body:
+        if first_query in str(second_payload.get("response", "")):
             raise RuntimeError(
                 "D18 current-turn regression: stale query state leaked into a subsequent response."
             )
-        if '"response":"response-for:CURRENT TURN A — authority and governance"' not in first_body:
+        if first_payload.get("response") != f"response-for:{first_query}":
             raise RuntimeError(
                 "D18 current-turn regression: first response was not bound to first request."
             )
-        if '"response":"response-for:CURRENT TURN B — grief and transition"' not in second_body:
+        if second_payload.get("response") != f"response-for:{second_query}":
             raise RuntimeError(
                 "D18 current-turn regression: second response was not bound to second request."
             )
