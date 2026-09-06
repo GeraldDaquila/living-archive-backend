@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v198 — Question-Shaped Evidence Allocation + The Guide
+# USE PRODUCTION VERSION: v199 — Retrieval Coverage Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -630,7 +630,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v198"
+APP_VERSION = "v199"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -646,14 +646,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v198-question-shaped-evidence-allocation"
+DEPLOYMENT_FINGERPRINT = "USE-v199-retrieval-coverage-recovery"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v198-question-shaped-evidence-allocation"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b4b500691d572fd5e1376dfa950df6365e0d8d40e35a4a6129b5ba6f435f9e59"
+CANONICAL_BUILD_ID = "USE-BUILD-v199-retrieval-coverage-recovery"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "950c92fbbe51be0770c8e08ba1e208312c79d07c690eaef7fb6617b1d68ee2ee"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -672,7 +672,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v198 build identity failure: canonical identity block not found exactly once."
+            "v199 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -6737,6 +6737,73 @@ def _query_index(
     return candidates
 
 
+MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K = 40
+
+
+def _retrieval_coverage_recovery_candidates(
+    query_vector: List[float],
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+) -> List[Dict[str, Any]]:
+    """Recover deeper semantic candidates before declaring evidence insufficient.
+
+    v199 is deliberately narrower than a general second retrieval engine. It
+    activates only for topical/comparative inquiries when the current selected
+    set has no resource with modest substantive Content fit. The same semantic
+    query vector is extended from the normal top-K window to a bounded deeper
+    neighborhood, then only newly surfaced canonical resources are returned.
+    This tests whether insufficiency came from retrieval depth rather than from
+    absence of supporting material. Existing ranking, selection, provenance,
+    and evidence boundaries remain downstream authorities.
+    """
+    if (
+        not query_vector
+        or intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}
+        or not documents
+    ):
+        return []
+
+    current_fit_scores = [
+        _evidence_domain_fit_score(question, document)[0]
+        for document in documents
+    ]
+    if any(score >= 2 for score in current_fit_scores):
+        return []
+
+    deep_candidates = _query_index(
+        query_vector,
+        max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K),
+    )
+
+    existing_keys = {_resource_key(document) for document in documents}
+    recovered: List[Dict[str, Any]] = []
+    recovered_keys = set()
+
+    for _score, _match_id_value, metadata in deep_candidates:
+        key = _resource_key(metadata)
+        if key in existing_keys or key in recovered_keys:
+            continue
+        recovered_keys.add(key)
+        recovered.append(metadata)
+
+    if recovered:
+        print(
+            "USE v199 retrieval coverage recovery: "
+            f"initial_fit_scores={current_fit_scores}, "
+            f"deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}, "
+            f"recovered={len(recovered)}."
+        )
+    else:
+        print(
+            "USE v199 retrieval coverage recovery: no new canonical candidates "
+            f"from deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}; "
+            f"initial_fit_scores={current_fit_scores}."
+        )
+
+    return recovered
+
+
 def _evidence_domain_fit_score(
     question: str,
     metadata: Dict[str, Any],
@@ -7079,6 +7146,27 @@ def fetch_canonical_context(
                 f"{len(function_targeted_docs)} function-targeted -> "
                 f"{len(retrieved_docs)} unique resources."
             )
+
+            # v199: if the current candidate window cannot establish even
+            # modest substantive fit for a topical/comparative question,
+            # recover a bounded deeper semantic neighborhood before the
+            # evidence-sufficiency gate is allowed to withhold synthesis.
+            # This is deliberately the same query vector, not a second
+            # conceptual retrieval engine or an LLM-generated query.
+            coverage_recovery_docs = _retrieval_coverage_recovery_candidates(
+                query_vector,
+                retrieved_docs,
+                user_query,
+                intent,
+            )
+            for metadata in coverage_recovery_docs:
+                _append_unique_resource(
+                    retrieved_docs,
+                    seen_keys,
+                    metadata,
+                )
+                if len(retrieved_docs) >= RETRIEVAL_TOP_K + MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K:
+                    break
 
     except Exception as exc:
         print(f"Index query error: {exc}")
@@ -11472,6 +11560,74 @@ def _question_structure_evidence_gate(
 
 
 
+
+
+def _v199_retrieval_coverage_recovery_self_audit() -> None:
+    """Verify deeper retrieval activates only when the initial set is substantively weak."""
+    question = "Why does a community need structures that cultivate trust?"
+    weak_docs = [
+        {
+            "title": "Adjacent Resource",
+            "url": "https://example.com/adjacent",
+            "text": "A general discussion of archives and orientation."
+        }
+    ]
+    strong_docs = [
+        {
+            "title": "Strong Resource",
+            "url": "https://example.com/strong",
+            "text": "Community structures can cultivate trust by creating reliable conditions for cooperation."
+        }
+    ]
+
+    global _query_index
+    saved_query_index = _query_index
+    calls = []
+    try:
+        def fake_query_index(_vector, top_k):
+            calls.append(top_k)
+            return [
+                (0.50, "deep-1", {
+                    "title": "Recovered Trust Resource",
+                    "url": "https://example.com/recovered",
+                    "text": "Trust can be cultivated through community structures and reliable shared conditions."
+                }),
+                (0.40, "existing", weak_docs[0]),
+            ]
+
+        _query_index = fake_query_index
+        recovered = _retrieval_coverage_recovery_candidates(
+            [1.0], weak_docs, question, "TOPICAL_INQUIRY"
+        )
+        assert len(recovered) == 1, (
+            "v199 retrieval coverage regression: weak initial evidence did not recover a new candidate"
+        )
+        assert calls == [MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K], (
+            "v199 retrieval coverage regression: recovery did not use the bounded deep retrieval window"
+        )
+
+        calls.clear()
+        recovered_strong = _retrieval_coverage_recovery_candidates(
+            [1.0], strong_docs, question, "TOPICAL_INQUIRY"
+        )
+        assert recovered_strong == [], (
+            "v199 retrieval coverage regression: strong initial evidence triggered unnecessary recovery"
+        )
+        assert calls == [], (
+            "v199 retrieval coverage regression: sufficient evidence still triggered deep retrieval"
+        )
+    finally:
+        _query_index = saved_query_index
+
+    assert _retrieval_coverage_recovery_candidates(
+        [1.0], weak_docs, question, "WHOLE_SITE_ORIENTATION"
+    ) == [], (
+        "v199 retrieval coverage regression: non-topical intent activated recovery"
+    )
+    print(
+        "USE v199 RETRIEVAL COVERAGE RECOVERY AUDIT: PASS; "
+        f"deep_top_k={MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K}"
+    )
 
 
 def _v190_broad_topical_synthesis_boundary_self_audit() -> None:
