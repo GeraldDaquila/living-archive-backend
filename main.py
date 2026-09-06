@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v171 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
+# USE PRODUCTION VERSION: v172 — Extractive Fallback Internal Corpus Markup Sanitization + v170 diagnostics + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v171"
+APP_VERSION = "v172"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v171-extractive-fallback-internal-markup-sanitization-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
+DEPLOYMENT_FINGERPRINT = "USE-v172-mvp-doorway-oriented-deterministic-fallback"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v171-extractive-fallback-internal-markup-sanitization-mvp-structural-relational-orientation-detection-canonical-fallback-link-preservation-reasoning-evidence-authority-lean-generation-envelope-canonical-evidence-use-task-aware-budget-document-form-orientation-deterministic-canonical-anchor-single-generation-path-explicit-type-generation-evidence-preservation-one-environment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "1b4e41a1e173fdc8933ba2ae251343638415c9c6385b87667e4bc4a39559f749"
+CANONICAL_BUILD_ID = "USE-BUILD-v172-mvp-doorway-oriented-deterministic-fallback"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bbe933d5f42fbbc576e42d2ed4c1101814a31755dec11088f88565cc57b57275"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9748,12 +9748,12 @@ def _extractive_canonical_evidence_fallback(
     user_query: str,
     generation_context: str,
 ) -> str:
-    """Produce a bounded evidence-first answer when generation is unavailable.
+    """Produce a bounded MVP doorway-oriented answer without generation.
 
-    This is intentionally extractive rather than generative. It may select
-    short sentences that overlap the visitor's question, but it never invents
-    a relationship, definition, causal bridge, or resource identity. Canonical
-    titles/URLs remain authoritative and links are normalized downstream.
+    This fallback remains strictly extractive. It uses the already-selected
+    canonical generation context and presents one strongest doorway with a
+    short evidence passage. It does not invent interpretation, relationships,
+    definitions, causal bridges, or resource identity.
     """
     documents = context_blocks_to_documents(str(generation_context or ""))
     if not documents:
@@ -9777,7 +9777,6 @@ def _extractive_canonical_evidence_fallback(
         if not title or not text:
             continue
 
-        # Sentence-level extraction. Keep short, complete evidence units only.
         sentences = re.split(r"(?<=[.!?])\s+", text)
         for sentence_index, sentence in enumerate(sentences):
             sentence = sentence.strip(" \t\r\n•-")
@@ -9785,47 +9784,29 @@ def _extractive_canonical_evidence_fallback(
                 continue
             words = set(re.findall(r"[a-z0-9]{3,}", sentence.casefold()))
             overlap = len(query_tokens & words)
-            # Explicit resource-family terms are useful anchors when present.
             family_bonus = 0
-            if "reference map" in str(user_query or "").casefold() and "reference map" in sentence.casefold():
+            if (
+                "reference map" in str(user_query or "").casefold()
+                and "reference map" in sentence.casefold()
+            ):
                 family_bonus += 4
             score = overlap * 3 + family_bonus
             if score <= 0:
                 continue
-            scored.append((score, -doc_index, -sentence_index, title, sentence))
+            scored.append(
+                (score, -doc_index, -sentence_index, title, sentence)
+            )
 
     if not scored:
         return ""
 
     scored.sort(reverse=True)
-    selected = []
-    seen_sentences = set()
-    seen_titles = set()
-    for _score, _doc, _sent, title, sentence in scored:
-        key = sentence.casefold()
-        if key in seen_sentences:
-            continue
-        selected.append((title, sentence))
-        seen_sentences.add(key)
-        seen_titles.add(title.casefold())
-        if len(selected) >= 3:
-            break
+    _score, _doc, _sent, title, sentence = scored[0]
 
-    if not selected:
-        return ""
-
-    lines = [
-        "The canonical material available here does contain relevant substance for this question. The most directly relevant passages are:",
-        "",
-    ]
-    for title, sentence in selected:
-        lines.append(f"**{title}**: {sentence}")
-
-    lines.extend([
-        "",
-        "These passages are the evidence available for the question; any connection between them beyond what they explicitly state remains open for your own reading.",
-    ])
-    return "\n".join(lines)
+    return (
+        f"A useful canonical place to begin with this question is **{title}**. "
+        f"The supplied material addresses it this way: {sentence}"
+    )
 
 
 def _deterministic_provider_fallback(
