@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v202 — Provider Evidence Rebalance + The Guide
+# USE PRODUCTION VERSION: v203 — Synthesis Completion Boundary + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v202"
+APP_VERSION = "v203"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v202-provider-evidence-rebalance"
+DEPLOYMENT_FINGERPRINT = "USE-v203-synthesis-completion-boundary"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v202-provider-evidence-rebalance"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "6b041bc8b9e4cb3fb0398015a3046d9b02fa1cfa5a7ab823333e7cda7b60ee9d"
+CANONICAL_BUILD_ID = "USE-BUILD-v203-synthesis-completion-boundary"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "cee0dd15ebf8173e06076e1d84bac098088c0ed7209a5afe2eb08a7c667b9df5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v202 build identity failure: canonical identity block not found exactly once."
+            "v203 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -7256,40 +7256,91 @@ def _select_complementary_generation_evidence(
     return selected
 
 
-def _v202_provider_evidence_rebalance_self_audit() -> None:
-    """Verify class-3 synthesis reserves more provider envelope for canonical evidence."""
+def _v203_synthesis_completion_boundary_self_audit() -> None:
+    """Verify class-3 synthesis keeps completion headroom while the provider envelope still fits."""
+    question = "A broad conceptual question with several supporting perspectives."
     routing = _classify_generation_complexity(
-        "A broad conceptual question with several supporting perspectives.",
+        question,
         "TOPICAL_INQUIRY",
         "A" * 1596,
     )
     profile = _generation_budget_profile(routing)
     assert routing["complexity"] == 3
     assert profile["model"] == "openai/gpt-oss-120b"
-    assert profile["max_completion_tokens"] == 320
+    assert profile["max_completion_tokens"] == 384
     assert profile["reasoning_effort"] == "low"
 
-    fixed_messages = _build_generation_messages(
-        "A broad conceptual question with several supporting perspectives.",
-        "TOPICAL_INQUIRY", "", None
+    structural_question = (
+        "How can an organization become more confident in its knowledge while "
+        "becoming less capable of noticing what it does not know?"
     )
+    structural_context = (
+        "Title: Perspective A\nURL: https://example.invalid/a\n"
+        "Content: Stable structures can increase confidence in established knowledge.\n\n---\n\n"
+        "Title: Perspective B\nURL: https://example.invalid/b\n"
+        "Content: Learning requires experience to alter assumptions when outcomes expose limits.\n\n---\n\n"
+        "Title: Perspective C\nURL: https://example.invalid/c\n"
+        "Content: Feedback can make consequences visible and support correction.\n"
+    )
+    structural_routing = _classify_generation_complexity(
+        structural_question, "TOPICAL_INQUIRY", structural_context
+    )
+    assert structural_routing["complexity"] == 3
+    assert structural_routing["synthesis_signals"] >= 1
+    assert structural_routing["model"] == "openai/gpt-oss-120b"
+
+    fixed_messages = _build_generation_messages(question, "TOPICAL_INQUIRY", "", None)
     fixed_chars = _estimate_message_chars(fixed_messages)
-    old_reservation = math.ceil(384 * 4 * 1.25)
-    new_reservation = math.ceil(320 * 4 * 1.25)
-    old_capacity = min(
+    reservation = math.ceil(profile["max_completion_tokens"] * 4 * 1.25)
+    capacity = min(
         MAX_PROVIDER_INPUT_CHARS - fixed_chars,
-        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - old_reservation,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - reservation,
     )
-    new_capacity = min(
-        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
-        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - new_reservation,
+    assert capacity >= 600
+
+    realistic_documents = [
+        {
+            "title": "Perspective A",
+            "url": "https://example.invalid/a",
+            "text": "A substantive perspective explains how stable structures can become orderly while narrowing the ability to learn from experience.",
+        },
+        {
+            "title": "Perspective B",
+            "url": "https://example.invalid/b",
+            "text": "Another perspective describes learning as the capacity for experience to alter assumptions and practices when outcomes expose limits.",
+        },
+        {
+            "title": "Perspective C",
+            "url": "https://example.invalid/c",
+            "text": "A third perspective connects accountability with noticing consequences and making room for correction rather than merely enforcing procedure.",
+        },
+    ]
+    distributed = _allocate_question_shaped_evidence(
+        realistic_documents,
+        max_chars=1800,
+        max_resource_chars=500,
     )
-    assert new_capacity >= old_capacity
-    assert new_capacity - old_capacity >= 300
+    fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
+        question,
+        "TOPICAL_INQUIRY",
+        distributed,
+        max_tokens=profile["max_completion_tokens"],
+    )
+    total_estimate = _estimate_message_chars(fitted_messages) + reservation
+    assert fitted_context
+    assert len(fitted_context) >= 400
+    assert total_estimate <= MAX_PROVIDER_TOTAL_CHARS
+    assert len(re.findall(r"^Title:\s*.+$", fitted_context, flags=re.MULTILINE)) >= 2
+
+    compact = _generation_budget_profile(routing, compact=True)
+    assert compact["max_completion_tokens"] == 320
+    assert compact["max_completion_tokens"] < profile["max_completion_tokens"]
+
     print(
-        "USE v202 PROVIDER EVIDENCE REBALANCE AUDIT: PASS "
-        f"(old_capacity={old_capacity}, new_capacity={new_capacity}, "
-        f"delta={new_capacity-old_capacity})"
+        "USE v203 SYNTHESIS COMPLETION BOUNDARY AUDIT: PASS "
+        f"(class3_tokens={profile['max_completion_tokens']}, "
+        f"fixed_input={fixed_chars}, evidence_capacity={capacity}, "
+        f"fitted_evidence={len(fitted_context)}, total_estimate={total_estimate})"
     )
 
 
@@ -10893,6 +10944,11 @@ def _classify_generation_complexity(
         bool(re.search(r"\b(?:compare|comparison|different|difference|differences|versus|vs\.?|between|which|choose|decide|how should i choose|what would help me decide)\b", query)),
         bool(re.search(r"\b(?:relationship|relationships|relate|relates|connect|connections|fit together|how .* work together|across|multiple|several|sequences|forms|formats)\b", query)),
         bool(re.search(r"\b(?:essay|reference map|navigator|pathway)\b", query)) and bool(re.search(r"\b(?:what|which|how|difference|choose|start|use|offer|meant)\b", query)),
+        # Natural synthesis questions often express two conditions in tension
+        # without using words such as compare, relationship, or synthesis.
+        # Recognize the structural form, but require a causal/exploratory
+        # question frame so ordinary uses of while/but are not over-routed.
+        bool(re.search(r"\b(?:why|how)\b.{0,140}\b(?:while|but|even when|although|despite|yet|without)\b", query)),
     ]
     complex_signals = [
         bool(re.search(r"\b(?:competing|conflicting|conflict|contradictory|ambiguity|ambiguous|uncertain|uncertainty|trade-?off|reconcile|reconciliation)\b", query)),
@@ -10913,7 +10969,13 @@ def _classify_generation_complexity(
     # Structural task requirements may raise the class, never lower it.
     synthesis_count = sum(1 for signal in synthesis_signals if signal)
     complex_count = sum(1 for signal in complex_signals if signal)
-    if synthesis_count >= 2:
+    # One explicit synthesis structure is sufficient to raise a moderate
+    # evidence task when several resources are actually available. This keeps
+    # model selection tied to the work the question asks the model to do, not
+    # merely to the character length of the evidence window.
+    if synthesis_count >= 1 and resource_count >= 3:
+        complexity = max(complexity, 3)
+    elif synthesis_count >= 2:
         complexity = max(complexity, 3)
     if complex_count >= 2:
         complexity = 4
@@ -10959,14 +11021,14 @@ def _generation_budget_profile(routing: Dict[str, Any], *, compact: bool = False
     """Return the deterministic provider budget matched to the selected task class.
 
     The model class and completion/reasoning budget are one routing decision.
-    This prevents a complex reasoning task from inheriting the old global 290-token
-    ceiling, while keeping the conservative provider envelope authoritative.
+    This prevents a complex reasoning task from inheriting the old global
+    completion ceiling, while keeping the conservative provider envelope authoritative.
     """
     complexity = int(routing.get("complexity", 1))
     profiles = {
         1: {"model": "openai/gpt-oss-20b", "max_completion_tokens": 256, "reasoning_effort": "low", "compact_tokens": 256},
         2: {"model": "groq/compound-mini", "max_completion_tokens": 320, "reasoning_effort": None, "compact_tokens": 320},
-        3: {"model": "openai/gpt-oss-120b", "max_completion_tokens": 320, "reasoning_effort": "low", "compact_tokens": 256},
+        3: {"model": "openai/gpt-oss-120b", "max_completion_tokens": 384, "reasoning_effort": "low", "compact_tokens": 320},
         4: {"model": "groq/compound", "max_completion_tokens": 384, "reasoning_effort": None, "compact_tokens": 320},
     }
     profile = dict(profiles.get(complexity, profiles[1]))
@@ -10981,7 +11043,7 @@ def _v164_task_aware_generation_budget_self_audit() -> None:
     probes = [
         (1, "What is sovereignty?", "A" * 500, "openai/gpt-oss-20b", 256, "low"),
         (2, "What does this resource explain?", "A" * 900, "groq/compound-mini", 320, None),
-        (3, "I see essays, Reference Maps, Navigators and Pathways. What is the difference between them and how should I choose?", "A" * 1596, "openai/gpt-oss-120b", 320, "low"),
+        (3, "I see essays, Reference Maps, Navigators and Pathways. What is the difference between them and how should I choose?", "A" * 1596, "openai/gpt-oss-120b", 384, "low"),
         (4, "How do I reconcile conflicting interpretations across multiple resources?", "A" * 1900, "groq/compound", 384, None),
     ]
     for expected_class, question, context, expected_model, expected_tokens, expected_reasoning in probes:
@@ -11035,7 +11097,7 @@ def _v164_task_aware_generation_budget_self_audit() -> None:
     if realistic_routing["complexity"] != 3 or realistic_routing["model"] != "openai/gpt-oss-120b":
         raise RuntimeError(f"v165 realistic routing regression: {realistic_routing}")
     realistic_profile = _generation_budget_profile(realistic_routing)
-    if realistic_profile["max_completion_tokens"] != 320 or realistic_profile["reasoning_effort"] != "low":
+    if realistic_profile["max_completion_tokens"] != 384 or realistic_profile["reasoning_effort"] != "low":
         raise RuntimeError(f"v165 realistic budget regression: {realistic_profile}")
     realistic_compact_profile = _generation_budget_profile(realistic_routing, compact=True)
     realistic_compact_context = _bound_existing_context_blocks(
