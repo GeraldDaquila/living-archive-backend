@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v206 — Evidence Sufficiency Allocation + The Guide
+# USE PRODUCTION VERSION: v207 — Question-Evidence Fit Gate + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v206"
+APP_VERSION = "v207"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v206-evidence-sufficiency-allocation"
+DEPLOYMENT_FINGERPRINT = "USE-v207-question-evidence-fit-gate"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v206-evidence-sufficiency-allocation"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "50e21f7ed7d34cb9155a064d3f2bb6eb5ce7dbfa375dad1964765b83899281b3"
+CANONICAL_BUILD_ID = "USE-BUILD-v207-question-evidence-fit-gate"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "89663f85585fed221abd15b96894605065dcbaf0d9510d0596dd95b7c8362bc8"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -3162,7 +3162,7 @@ def format_context_blocks(
     for index_number, doc in enumerate(documents):
         title = doc.get("title", "Untitled Resource")
         url = doc.get("url", "#")
-        content = _resource_content(doc)
+        content = _strip_internal_corpus_markup(_resource_content(doc))
 
         role = "CANONICAL CORPUS EVIDENCE"
         if index_number < structural_destination_count:
@@ -6753,16 +6753,14 @@ def _retrieval_coverage_recovery_candidates(
     question: str,
     intent: str,
 ) -> List[Dict[str, Any]]:
-    """Recover deeper semantic candidates before declaring evidence insufficient.
+    """Recover deeper candidates, preserving those whose Content can bear the question.
 
-    v199 is deliberately narrower than a general second retrieval engine. It
-    activates only for topical/comparative inquiries when the current selected
-    set has no resource with modest substantive Content fit. The same semantic
-    query vector is extended from the normal top-K window to a bounded deeper
-    neighborhood, then only newly surfaced canonical resources are returned.
-    This tests whether insufficiency came from retrieval depth rather than from
-    absence of supporting material. Existing ranking, selection, provenance,
-    and evidence boundaries remain downstream authorities.
+    v207 keeps v199's single semantic query vector and bounded deep window, but
+    closes a downstream recall defect: recovered candidates were previously
+    appended in raw semantic order and could be truncated before question-fit
+    ranking ever saw them. Recovery now ranks newly surfaced candidates by
+    bounded Content fit first, then question-term coverage, then semantic score.
+    This is still evidence preservation, not a second retrieval engine.
     """
     if (
         not query_vector
@@ -6784,26 +6782,55 @@ def _retrieval_coverage_recovery_candidates(
     )
 
     existing_keys = {_resource_key(document) for document in documents}
-    recovered: List[Dict[str, Any]] = []
+    recovered_items = []
     recovered_keys = set()
 
-    for _score, _match_id_value, metadata in deep_candidates:
+    for semantic_score, match_id_value, metadata in deep_candidates:
         key = _resource_key(metadata)
         if key in existing_keys or key in recovered_keys:
             continue
         recovered_keys.add(key)
-        recovered.append(metadata)
+        fit_score, (term_hits, phrase_hits) = _evidence_domain_fit_score(
+            question, metadata
+        )
+        coverage = len(_question_evidence_term_coverage(question, metadata))
+        recovered_items.append(
+            (
+                fit_score,
+                coverage,
+                phrase_hits,
+                float(semantic_score or 0.0),
+                str(match_id_value or ""),
+                metadata,
+            )
+        )
+
+    # Keep a bounded recovery slice. Content fit outranks raw semantic rank
+    # because the purpose of this pass is to recover answer-bearing evidence.
+    recovered_items.sort(
+        key=lambda item: (
+            item[0],
+            item[1],
+            item[2],
+            item[3],
+            item[4],
+        ),
+        reverse=True,
+    )
+    keep_limit = min(8, len(recovered_items))
+    recovered = [item[5] for item in recovered_items[:keep_limit]]
 
     if recovered:
+        best_fit = recovered_items[0][0]
         print(
-            "USE v199 retrieval coverage recovery: "
+            "USE v207 retrieval relevance recovery: "
             f"initial_fit_scores={current_fit_scores}, "
             f"deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}, "
-            f"recovered={len(recovered)}."
+            f"recovered={len(recovered)}, best_content_fit={best_fit}."
         )
     else:
         print(
-            "USE v199 retrieval coverage recovery: no new canonical candidates "
+            "USE v207 retrieval relevance recovery: no new canonical candidates "
             f"from deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}; "
             f"initial_fit_scores={current_fit_scores}."
         )
@@ -6929,6 +6956,100 @@ def _evidence_sufficiency_gate(
         f"scores={fit_scores}. Synthesis withheld; navigation preserved."
     )
     return documents, True
+
+def _question_evidence_fit_profile(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int, int]:
+    """Score whether supplied Content can actually bear the visitor's question.
+
+    The profile is deterministic and Content-only. It combines the existing
+    substantive term fit with question-term coverage and a small relational
+    signal for contrast questions. It does not use titles, URLs, or inferred
+    semantic relationships as evidence.
+    """
+    direct_fit, (term_hits, phrase_hits) = _evidence_domain_fit_score(
+        question, document
+    )
+    coverage = len(_question_evidence_term_coverage(question, document))
+    content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+
+    relation_terms = (
+        "because", "therefore", "while", "although", "however", "but",
+        "when", "depends", "dependent", "incentive", "feedback", "pattern",
+        "assumption", "condition", "relationship", "interaction", "coordination",
+        "accountability", "adapt", "learning", "interpret", "understanding",
+    )
+    relation_hits = sum(
+        1 for term in relation_terms
+        if re.search(rf"\b{re.escape(term)}\b", content)
+    )
+
+    structure = recognize_question_structure(question)
+    relational_bonus = 1 if (
+        structure.get("structure") == "explicit_contrast" and relation_hits >= 1
+    ) else 0
+
+    answerability = min(
+        8,
+        direct_fit + min(3, coverage) + relational_bonus,
+    )
+    return direct_fit, coverage, relation_hits, answerability
+
+
+def _v207_question_evidence_fit_gate(
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Keep only answer-bearing candidates for synthesis while preserving navigation.
+
+    This gate is generation-side only. Canonical doorway/link authority remains
+    upstream and is never reduced by removing a weak evidence candidate here.
+    A topical/comparative question may proceed when at least one candidate has
+    bounded answerability; weak adjacent resources are excluded from synthesis.
+    If no candidate can bear the question, synthesis is withheld rather than
+    manufactured.
+    """
+    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"} or not documents:
+        return documents, False
+
+    profiles = [
+        (document, _question_evidence_fit_profile(question, document))
+        for document in documents
+        if isinstance(document, dict) and document
+    ]
+    if not profiles:
+        return [], True
+
+    structure = recognize_question_structure(question).get("structure")
+    viable = []
+    for document, profile in profiles:
+        direct_fit, coverage, relation_hits, answerability = profile
+        if direct_fit >= 1:
+            viable.append(document)
+        elif (
+            structure == "explicit_contrast"
+            and coverage >= 1
+            and relation_hits >= 2
+        ):
+            viable.append(document)
+
+    if not viable:
+        best = max(profiles, key=lambda item: item[1][3])
+        print(
+            "USE v207 question-evidence fit gate: no answer-bearing candidate; "
+            f"best_profile={best[1]}. Synthesis withheld; navigation preserved."
+        )
+        return [], True
+
+    print(
+        "USE v207 question-evidence fit gate: "
+        f"input={len(documents)}, viable={len(viable)}, "
+        f"best_profile={max(profile[1][3] for profile in profiles)}."
+    )
+    return viable, False
+
 
 def _evidence_sufficiency_unavailable_response(
     question: str,
@@ -8051,6 +8172,25 @@ def fetch_canonical_context(
             "context_blocks": "",
             "canonical_link_context": canonical_link_context,
             "evidence_sufficiency_unavailable": True,
+        }
+
+    # v207: question-evidence fit is a generation-side boundary. The complete
+    # canonical link context was already preserved above, so weakly adjacent
+    # candidates can be removed from synthesis without removing their possible
+    # navigation value.
+    retrieved_docs, question_evidence_unavailable = _v207_question_evidence_fit_gate(
+        retrieved_docs,
+        user_query,
+        intent,
+    )
+    if question_evidence_unavailable:
+        return {
+            "intent": intent,
+            "orientational_frame": orientational_frame,
+            "context_blocks": "",
+            "canonical_link_context": canonical_link_context,
+            "evidence_sufficiency_unavailable": True,
+            "question_evidence_fit_unavailable": True,
         }
 
     structural_destination_count = (
@@ -13067,6 +13207,113 @@ def _v185_bounded_grounded_synthesis_self_audit() -> None:
         raise RuntimeError("v185 synthesis regression: internal retrieval language crossed visitor boundary.")
     print("USE v185 BOUNDED GROUNDED SYNTHESIS AUDIT: PASS")
 
+
+
+def _v207_question_evidence_fit_self_audit() -> None:
+    """Verify weak adjacent evidence cannot enter synthesis while strong evidence can."""
+    relevant = {
+        "title": "Learning From Experience",
+        "url": "https://example.invalid/learning",
+        "text": (
+            "Organizations learn when experience changes assumptions and "
+            "when individual cases are integrated into collective understanding."
+        ),
+    }
+    adjacent = {
+        "title": "Workshop Services",
+        "url": "https://example.invalid/workshops",
+        "text": (
+            "Workshops and advisory services help teams discuss a range of "
+            "organizational topics and practical concerns."
+        ),
+    }
+    contrast_support = {
+        "title": "Distributed Coordination",
+        "url": "https://example.invalid/coordination",
+        "text": (
+            "Coordination can improve reliability while creating blind spots "
+            "when feedback across boundaries is not integrated."
+        ),
+    }
+    question = (
+        "Why can an organization accumulate experience without becoming better "
+        "at recognizing the assumptions shaping its interpretation of that experience?"
+    )
+
+    selected, unavailable = _v207_question_evidence_fit_gate(
+        [relevant, adjacent],
+        question,
+        "TOPICAL_INQUIRY",
+    )
+    assert not unavailable
+    assert [doc["title"] for doc in selected] == ["Learning From Experience"]
+
+    contrast_question = (
+        "How can improved coordination make an organization function smoothly "
+        "while making it harder to notice problems across departmental boundaries?"
+    )
+    selected_contrast, unavailable_contrast = _v207_question_evidence_fit_gate(
+        [contrast_support, adjacent],
+        contrast_question,
+        "TOPICAL_INQUIRY",
+    )
+    assert not unavailable_contrast
+    assert "Distributed Coordination" in [doc["title"] for doc in selected_contrast]
+    assert "Workshop Services" not in [doc["title"] for doc in selected_contrast]
+
+    contaminated = {
+        "title": "Markup Probe",
+        "url": "https://example.invalid/markup",
+        "text": "Evidence sentence. <!-- wp:list-item --> Visible continuation.",
+    }
+    formatted = format_context_blocks([contaminated])
+    assert "<!--" not in formatted
+    assert "-->" not in formatted
+    assert "/wp:list-item" not in formatted
+    assert "Visible continuation." in formatted
+
+    source = inspect.getsource(_retrieval_coverage_recovery_candidates)
+    for marker in (
+        "fit_score",
+        "coverage",
+        "recovered_items.sort",
+        "best_content_fit",
+    ):
+        assert marker in source, (
+            f"v207 retrieval relevance recovery audit: missing marker {marker!r}"
+        )
+
+    # Recovery regression: a strong Content-fit candidate appearing deeper in
+    # the semantic window must survive ahead of weaker adjacent candidates.
+    global _query_index
+    saved_query_index = _query_index
+    try:
+        _query_index = lambda _vector, _top_k: [
+            (0.99, "weak", {
+                "title": "Weak Neighbor",
+                "url": "https://example.invalid/weak",
+                "text": "A broad organizational discussion without the question's substantive concepts.",
+            }),
+            (0.80, "strong", {
+                "title": "Recovered Direct Evidence",
+                "url": "https://example.invalid/strong",
+                "text": (
+                    "Organizations learn when experience changes assumptions "
+                    "and individual cases become part of collective understanding."
+                ),
+            }),
+        ]
+        recovered = _retrieval_coverage_recovery_candidates(
+            [1.0],
+            [{"title": "Existing", "url": "https://example.invalid/existing", "text": "Existing evidence."}],
+            question,
+            "TOPICAL_INQUIRY",
+        )
+        assert recovered and recovered[0]["title"] == "Recovered Direct Evidence"
+    finally:
+        _query_index = saved_query_index
+
+    print("USE v207 QUESTION-EVIDENCE FIT + MARKUP BOUNDARY AUDIT: PASS")
 
 def _generation_boundary_self_audit() -> None:
     """Run every deterministic zero-argument self-audit before deployment."""
