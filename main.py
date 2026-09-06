@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v209 — Relational Evidence Adjudication + The Guide
+# USE PRODUCTION VERSION: v210 — Scope-Safe Relational Evidence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v209"
+APP_VERSION = "v210"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v209-relational-evidence-adjudication"
+DEPLOYMENT_FINGERPRINT = "USE-v210-scope-safe-relational-evidence"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v209-relational-evidence-adjudication"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "55f919446c8b0c8795d541fd03ab74af1d81685d451eba3cfc2084d336eda5e9"
+CANONICAL_BUILD_ID = "USE-BUILD-v210-scope-safe-relational-evidence"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "71af328348d18f4ce59d5badefbacc6daa0e86be929fa1f7d934f26a0d594883"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v208 build identity failure: canonical identity block not found exactly once."
+            "v210 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -8311,6 +8311,16 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:RETRIEVAL_TOP_K + 8]
 
+    # v210: establish the structural preservation boundary before any
+    # downstream adjudication can consume it. Python treats a name assigned
+    # anywhere in this function as local, so the later legacy assignment
+    # cannot safely serve an earlier call. Keep the invariant explicit here.
+    protected_prefix = (
+        min(len(structural_docs), len(retrieved_docs))
+        if collection_name
+        else 0
+    )
+
     # v209: adjudicate the retrieved candidate set by the relationship
     # expressed in the visitor's literal question. This only reorders
     # already-retrieved canonical evidence; it never creates or removes
@@ -13608,6 +13618,35 @@ def _v209_relational_evidence_adjudication_self_audit() -> None:
         "USE v209 RELATIONAL EVIDENCE ADJUDICATION AUDIT: PASS "
         f"(balanced_profile={balanced_profile}, synthesis_titles={titles})"
     )
+
+
+def _v210_relational_scope_safety_self_audit() -> None:
+    """Verify the relational adjudication boundary cannot consume a later local assignment."""
+    source = inspect.getsource(fetch_canonical_context)
+    call_marker = "_v209_relational_evidence_adjudication("
+    assignment_marker = "protected_prefix = ("
+    call_pos = source.find(call_marker)
+    assignment_pos = source.find(assignment_marker)
+    if call_pos < 0:
+        raise RuntimeError(
+            "v210 scope-safety audit failed; relational adjudication call is missing."
+        )
+    if assignment_pos < 0:
+        raise RuntimeError(
+            "v210 scope-safety audit failed; protected_prefix assignment is missing."
+        )
+    if assignment_pos >= call_pos:
+        raise RuntimeError(
+            "v210 scope-safety audit failed; protected_prefix is assigned after its first use."
+        )
+    # The later assignment is retained intentionally for the post-dedupe
+    # orientational boundary, but the pre-adjudication assignment must exist.
+    later_assignments = [m.start() for m in re.finditer(r"protected_prefix\s*=", source)]
+    if len(later_assignments) < 2:
+        raise RuntimeError(
+            "v210 scope-safety audit failed; post-dedupe protected_prefix boundary is missing."
+        )
+    print("USE v210 RELATIONAL SCOPE-SAFETY AUDIT: PASS")
 
 
 def _v208_question_decomposition_multi_axis_retrieval_self_audit() -> None:
