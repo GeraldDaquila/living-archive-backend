@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v207 — Question-Evidence Fit Gate + The Guide
+# USE PRODUCTION VERSION: v208 — Question Decomposition + Multi-Axis Retrieval + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v207"
+APP_VERSION = "v208"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v207-question-evidence-fit-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v208-question-decomposition-multi-axis-retrieval"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v207-question-evidence-fit-gate"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "89663f85585fed221abd15b96894605065dcbaf0d9510d0596dd95b7c8362bc8"
+CANONICAL_BUILD_ID = "USE-BUILD-v208-question-decomposition-multi-axis-retrieval"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "0bd31b176c37e97d8c9962006a4d9b0795067a0748c531a8d5597e869fc487c3"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -679,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v206 build identity failure: canonical identity block not found exactly once."
+            "v208 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -6744,6 +6744,145 @@ def _query_index(
     return candidates
 
 
+
+MAX_V208_MULTI_AXIS_RETRIEVAL_AXES = 3
+MAX_V208_MULTI_AXIS_AXIS_TOP_K = 8
+MAX_V208_MULTI_AXIS_NEW_CANDIDATES = 8
+
+
+def _v208_question_retrieval_axes(question: str) -> List[Tuple[str, str]]:
+    """Derive bounded literal retrieval axes from explicit question structure.
+
+    v208 strengthens only the Question -> Retrieval Strategy boundary. Axes are
+    extracted from wording already present in the visitor's question; no LLM,
+    diagnosis, framework inference, or invented conceptual vocabulary is added.
+    The original question remains the primary retrieval axis.
+    """
+    clean = re.sub(r"\s+", " ", str(question or "").strip()).strip()
+    clean = re.sub(r"[?!.]+$", "", clean).strip()
+    if not clean:
+        return []
+
+    axes: List[Tuple[str, str]] = [("primary", clean)]
+
+    structure = recognize_question_structure(clean)
+    pairs = structure.get("pairs") or ()
+    if structure.get("structure") == "explicit_contrast" and len(pairs) == 2:
+        left = " ".join(pairs[0]).strip()
+        right = " ".join(pairs[1]).strip()
+        # Preserve literal wording while removing the interrogative shell.
+        if left:
+            axes.append(("left", left))
+        if right:
+            axes.append(("right", right))
+        return axes[:MAX_V208_MULTI_AXIS_RETRIEVAL_AXES]
+
+    # Some natural relational questions do not match the conservative D17
+    # contrast grammar. Split only explicit causal/conditional punctuation or
+    # comparative consequence wording already present in the question.
+    match = re.match(
+        r"^when\s+(.+?),\s*(.+)$",
+        clean,
+        re.IGNORECASE,
+    )
+    if match:
+        first, second = match.group(1).strip(), match.group(2).strip()
+        if first and second:
+            axes.extend((("condition", first), ("outcome", second)))
+            return axes[:MAX_V208_MULTI_AXIS_RETRIEVAL_AXES]
+
+    match = re.match(
+        r"^why can\s+(.+?)\s+sometimes\s+make\s+it\s+(?:harder|easier)\s+(.+)$",
+        clean,
+        re.IGNORECASE,
+    )
+    if match:
+        first, second = match.group(1).strip(), match.group(2).strip()
+        if first and second:
+            axes.extend((("phenomenon", first), ("consequence", second)))
+            return axes[:MAX_V208_MULTI_AXIS_RETRIEVAL_AXES]
+
+    # A bounded "X rather than Y" form may not be recognized if the question
+    # begins with an interrogative shell that D17 intentionally leaves alone.
+    match = re.search(r"^(.+?)\s+rather than\s+(.+)$", clean, re.IGNORECASE)
+    if match:
+        first, second = match.group(1).strip(), match.group(2).strip()
+        if first and second:
+            axes.extend((("first", first), ("alternative", second)))
+            return axes[:MAX_V208_MULTI_AXIS_RETRIEVAL_AXES]
+
+    return axes[:MAX_V208_MULTI_AXIS_RETRIEVAL_AXES]
+
+
+def _v208_multi_axis_retrieval_candidates(
+    query: str,
+    existing_documents: List[Dict[str, Any]],
+    intent: str,
+) -> List[Dict[str, Any]]:
+    """Retrieve a bounded union across literal question axes.
+
+    The primary semantic query remains authoritative. Additional axes are only
+    used for topical/comparative inquiries and only when the visitor's wording
+    contains an explicit separable relation. New candidates are ranked by how
+    many literal axes surfaced them, then semantic score and stable identity.
+    """
+    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
+        return []
+
+    axes = _v208_question_retrieval_axes(query)
+    if len(axes) <= 1:
+        return []
+
+    existing_keys = {_resource_key(document) for document in existing_documents}
+    candidate_map: Dict[str, Dict[str, Any]] = {}
+    candidate_axes: Dict[str, set] = {}
+    candidate_scores: Dict[str, float] = {}
+
+    for axis_name, axis_query in axes[1:]:
+        if not axis_query or len(axis_query.split()) < 2:
+            continue
+        vector = generate_embedding(axis_query)
+        if not vector:
+            continue
+        for semantic_score, match_id_value, metadata in _query_index(
+            vector,
+            MAX_V208_MULTI_AXIS_AXIS_TOP_K,
+        ):
+            key = _resource_key(metadata)
+            if key in existing_keys:
+                continue
+            candidate_map[key] = metadata
+            candidate_axes.setdefault(key, set()).add(axis_name)
+            candidate_scores[key] = max(
+                candidate_scores.get(key, float("-inf")),
+                float(semantic_score or 0.0),
+            )
+
+    ranked = sorted(
+        candidate_map.items(),
+        key=lambda item: (
+            len(candidate_axes.get(item[0], set())),
+            candidate_scores.get(item[0], 0.0),
+            item[0],
+        ),
+        reverse=True,
+    )
+    selected = [metadata for key, metadata in ranked[:MAX_V208_MULTI_AXIS_NEW_CANDIDATES]]
+    if selected:
+        print(
+            "USE v208 multi-axis retrieval: "
+            f"axes={[name for name, _query in axes]}, "
+            f"new_candidates={len(selected)}, "
+            f"multi_axis_hits={max((len(candidate_axes.get(key, set())) for key, _doc in ranked), default=0)}."
+        )
+    else:
+        print(
+            "USE v208 multi-axis retrieval: "
+            f"axes={[name for name, _query in axes]}, no new canonical candidates."
+        )
+    return selected
+
+
 MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K = 40
 
 
@@ -6755,7 +6894,7 @@ def _retrieval_coverage_recovery_candidates(
 ) -> List[Dict[str, Any]]:
     """Recover deeper candidates, preserving those whose Content can bear the question.
 
-    v207 keeps v199's single semantic query vector and bounded deep window, but
+    v208 keeps v199's single semantic query vector and bounded deep window, but
     closes a downstream recall defect: recovered candidates were previously
     appended in raw semantic order and could be truncated before question-fit
     ranking ever saw them. Recovery now ranks newly surfaced candidates by
@@ -6823,14 +6962,14 @@ def _retrieval_coverage_recovery_candidates(
     if recovered:
         best_fit = recovered_items[0][0]
         print(
-            "USE v207 retrieval relevance recovery: "
+            "USE v208 retrieval relevance recovery: "
             f"initial_fit_scores={current_fit_scores}, "
             f"deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}, "
             f"recovered={len(recovered)}, best_content_fit={best_fit}."
         )
     else:
         print(
-            "USE v207 retrieval relevance recovery: no new canonical candidates "
+            "USE v208 retrieval relevance recovery: no new canonical candidates "
             f"from deep_top_k={max(RETRIEVAL_TOP_K, MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K)}; "
             f"initial_fit_scores={current_fit_scores}."
         )
@@ -6997,7 +7136,7 @@ def _question_evidence_fit_profile(
     return direct_fit, coverage, relation_hits, answerability
 
 
-def _v207_question_evidence_fit_gate(
+def _v208_question_evidence_fit_gate(
     documents: List[Dict[str, Any]],
     question: str,
     intent: str,
@@ -7038,13 +7177,13 @@ def _v207_question_evidence_fit_gate(
     if not viable:
         best = max(profiles, key=lambda item: item[1][3])
         print(
-            "USE v207 question-evidence fit gate: no answer-bearing candidate; "
+            "USE v208 question-evidence fit gate: no answer-bearing candidate; "
             f"best_profile={best[1]}. Synthesis withheld; navigation preserved."
         )
         return [], True
 
     print(
-        "USE v207 question-evidence fit gate: "
+        "USE v208 question-evidence fit gate: "
         f"input={len(documents)}, viable={len(viable)}, "
         f"best_profile={max(profile[1][3] for profile in profiles)}."
     )
@@ -7836,6 +7975,7 @@ def fetch_canonical_context(
             print(f"Root node fetch error: {exc}")
 
     function_targeted_docs: List[Dict[str, Any]] = []
+    multi_axis_docs: List[Dict[str, Any]] = []
 
     try:
         query_vector = generate_embedding(user_query)
@@ -7964,6 +8104,24 @@ def fetch_canonical_context(
                 f"{len(retrieved_docs)} unique resources."
             )
 
+            # v208: for explicit relational/conditional questions, retrieve a
+            # bounded union across literal axes already present in the visitor's
+            # wording. This strengthens question representation without creating
+            # an LLM-generated query or inventing the visitor's underlying intent.
+            multi_axis_docs = _v208_multi_axis_retrieval_candidates(
+                user_query,
+                retrieved_docs,
+                intent,
+            )
+            for metadata in multi_axis_docs:
+                _append_unique_resource(
+                    retrieved_docs,
+                    seen_keys,
+                    metadata,
+                )
+                if len(retrieved_docs) >= RETRIEVAL_TOP_K + 8:
+                    break
+
             # v199: if the current candidate window cannot establish even
             # modest substantive fit for a topical/comparative question,
             # recover a bounded deeper semantic neighborhood before the
@@ -8021,6 +8179,12 @@ def fetch_canonical_context(
             document,
         )
     for document in document_choice_architecture_docs:
+        _append_unique_resource(
+            canonical_link_docs,
+            canonical_link_seen_keys,
+            document,
+        )
+    for document in multi_axis_docs:
         _append_unique_resource(
             canonical_link_docs,
             canonical_link_seen_keys,
@@ -8174,11 +8338,11 @@ def fetch_canonical_context(
             "evidence_sufficiency_unavailable": True,
         }
 
-    # v207: question-evidence fit is a generation-side boundary. The complete
+    # v208: question-evidence fit is a generation-side boundary. The complete
     # canonical link context was already preserved above, so weakly adjacent
     # candidates can be removed from synthesis without removing their possible
     # navigation value.
-    retrieved_docs, question_evidence_unavailable = _v207_question_evidence_fit_gate(
+    retrieved_docs, question_evidence_unavailable = _v208_question_evidence_fit_gate(
         retrieved_docs,
         user_query,
         intent,
@@ -13209,7 +13373,65 @@ def _v185_bounded_grounded_synthesis_self_audit() -> None:
 
 
 
-def _v207_question_evidence_fit_self_audit() -> None:
+
+def _v208_question_decomposition_multi_axis_retrieval_self_audit() -> None:
+    """Verify literal question axes expand retrieval without inventing concepts."""
+    contrast = _v208_question_retrieval_axes(
+        "How can improved coordination between departments make an organization "
+        "function more smoothly while making it harder to notice problems across boundaries?"
+    )
+    assert [name for name, _text in contrast] == ["primary", "left", "right"]
+    assert "coordination" in contrast[1][1]
+    assert "problems" in contrast[2][1]
+
+    conditional = _v208_question_retrieval_axes(
+        "When people behave responsibly within the rules they are given, how can "
+        "the resulting system still produce outcomes that nobody intended?"
+    )
+    assert [name for name, _text in conditional] == ["primary", "condition", "outcome"]
+
+    comparative = _v208_question_retrieval_axes(
+        "Why can giving decision-makers more information sometimes make it harder "
+        "to recognize what information actually matters?"
+    )
+    assert [name for name, _text in comparative] == ["primary", "phenomenon", "consequence"]
+
+    neutral = _v208_question_retrieval_axes("Why is uncertainty difficult?")
+    assert [name for name, _text in neutral] == ["primary"]
+
+    saved_embedding = generate_embedding
+    saved_query_index = _query_index
+    try:
+        globals()["generate_embedding"] = lambda text: [float(len(text))]
+        def fake_query(vector, top_k):
+            return [
+                (0.91, "left", {
+                    "title": "Coordination Lens",
+                    "url": "https://example.invalid/coordination",
+                    "text": "Coordination between departments can improve reliability.",
+                }),
+                (0.88, "right", {
+                    "title": "Boundary Lens",
+                    "url": "https://example.invalid/boundary",
+                    "text": "Problems can remain hidden across departmental boundaries.",
+                }),
+            ]
+        globals()["_query_index"] = fake_query
+        docs = _v208_multi_axis_retrieval_candidates(
+            "How can improved coordination between departments make an organization "
+            "function more smoothly while making it harder to notice problems across boundaries?",
+            [],
+            "TOPICAL_INQUIRY",
+        )
+        assert {doc["title"] for doc in docs} == {"Coordination Lens", "Boundary Lens"}
+    finally:
+        globals()["generate_embedding"] = saved_embedding
+        globals()["_query_index"] = saved_query_index
+
+    print("USE v208 QUESTION DECOMPOSITION + MULTI-AXIS RETRIEVAL AUDIT: PASS")
+
+
+def _v208_question_evidence_fit_self_audit() -> None:
     """Verify weak adjacent evidence cannot enter synthesis while strong evidence can."""
     relevant = {
         "title": "Learning From Experience",
@@ -13240,7 +13462,7 @@ def _v207_question_evidence_fit_self_audit() -> None:
         "at recognizing the assumptions shaping its interpretation of that experience?"
     )
 
-    selected, unavailable = _v207_question_evidence_fit_gate(
+    selected, unavailable = _v208_question_evidence_fit_gate(
         [relevant, adjacent],
         question,
         "TOPICAL_INQUIRY",
@@ -13252,7 +13474,7 @@ def _v207_question_evidence_fit_self_audit() -> None:
         "How can improved coordination make an organization function smoothly "
         "while making it harder to notice problems across departmental boundaries?"
     )
-    selected_contrast, unavailable_contrast = _v207_question_evidence_fit_gate(
+    selected_contrast, unavailable_contrast = _v208_question_evidence_fit_gate(
         [contrast_support, adjacent],
         contrast_question,
         "TOPICAL_INQUIRY",
@@ -13280,7 +13502,7 @@ def _v207_question_evidence_fit_self_audit() -> None:
         "best_content_fit",
     ):
         assert marker in source, (
-            f"v207 retrieval relevance recovery audit: missing marker {marker!r}"
+            f"v208 retrieval relevance recovery audit: missing marker {marker!r}"
         )
 
     # Recovery regression: a strong Content-fit candidate appearing deeper in
@@ -13313,7 +13535,7 @@ def _v207_question_evidence_fit_self_audit() -> None:
     finally:
         _query_index = saved_query_index
 
-    print("USE v207 QUESTION-EVIDENCE FIT + MARKUP BOUNDARY AUDIT: PASS")
+    print("USE v208 QUESTION-EVIDENCE FIT + MARKUP BOUNDARY AUDIT: PASS")
 
 def _generation_boundary_self_audit() -> None:
     """Run every deterministic zero-argument self-audit before deployment."""
