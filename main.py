@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v208 — Question Decomposition + Multi-Axis Retrieval + The Guide
+# USE PRODUCTION VERSION: v209 — Relational Evidence Adjudication + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v208"
+APP_VERSION = "v209"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v208-question-decomposition-multi-axis-retrieval"
+DEPLOYMENT_FINGERPRINT = "USE-v209-relational-evidence-adjudication"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v208-question-decomposition-multi-axis-retrieval"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "0bd31b176c37e97d8c9962006a4d9b0795067a0748c531a8d5597e869fc487c3"
+CANONICAL_BUILD_ID = "USE-BUILD-v209-relational-evidence-adjudication"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "55f919446c8b0c8795d541fd03ab74af1d81685d451eba3cfc2084d336eda5e9"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6745,6 +6745,157 @@ def _query_index(
 
 
 
+# =====================================================================
+# v209 RELATIONAL EVIDENCE ADJUDICATION
+# =====================================================================
+# v208 widens retrieval across literal question axes. v209 adjudicates the
+# resulting candidate set for the RELATION the visitor actually asked about.
+# This remains deterministic and Content-only: no latent relationship is
+# invented, no new resource is created, and canonical link authority remains
+# separate from generation evidence.
+
+_V209_RELATION_TERMS = (
+    "because", "therefore", "while", "although", "however", "but", "yet",
+    "when", "depends", "dependent", "incentive", "feedback", "pattern",
+    "patterns", "assumption", "assumptions", "condition", "conditions",
+    "relationship", "relationships", "interaction", "interactions",
+    "coordination", "accountability", "adapt", "adaptation", "learning",
+    "understanding", "interpret", "interpretation", "trade-off", "tradeoffs",
+    "consequence", "consequences", "context", "contexts", "purpose", "purposes",
+)
+
+
+def _v209_axis_terms(axis_text: str) -> Tuple[str, ...]:
+    tokens = re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", str(axis_text or "").casefold())
+    return tuple(
+        token
+        for token in dict.fromkeys(tokens)
+        if len(token) >= 3 and token not in _QUESTION_STOPWORDS
+        and token not in _CENTRALITY_GENERIC_TERMS
+    )
+
+
+def _v209_distinct_axis_term_sets(question: str) -> List[Tuple[str, Tuple[str, ...]]]:
+    """Return literal axis terms after removing terms shared across axes."""
+    axes = _v208_question_retrieval_axes(question)
+    raw = [(name, set(_v209_axis_terms(text))) for name, text in axes[1:]]
+    if len(raw) <= 1:
+        return raw
+    all_sets = [terms for _name, terms in raw]
+    distinct = []
+    for index, (name, terms) in enumerate(raw):
+        other_terms = set().union(
+            *(all_sets[offset] for offset in range(len(all_sets)) if offset != index)
+        )
+        distinct.append((name, tuple(sorted(terms - other_terms))))
+    return distinct
+
+
+def _v209_relational_evidence_profile(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int, int, int]:
+    """Score whether supplied Content bears on multiple literal question axes."""
+    direct_fit, (term_hits, phrase_hits) = _evidence_domain_fit_score(
+        question, document
+    )
+    content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+    if not content:
+        return (direct_fit, 0, 0, 0, 0)
+
+    axes = _v208_question_retrieval_axes(question)
+    distinct_axes = _v209_distinct_axis_term_sets(question)
+    axis_hits_total = 0
+    axes_covered = 0
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in (
+            "ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"
+        ):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+    content_stems = {stem(token) for token in content_tokens}
+    for _axis_name, terms in distinct_axes:
+        hits = 0
+        for term in terms:
+            normalized = term.replace("-", "")
+            if (
+                term in content_tokens
+                or normalized in content_tokens
+                or stem(term) in content_stems
+            ):
+                hits += 1
+        axis_hits_total += hits
+        if hits > 0:
+            axes_covered += 1
+
+    relation_hits = sum(
+        1 for term in _V209_RELATION_TERMS
+        if re.search(rf"\b{re.escape(term)}\b", content)
+    )
+    balanced = 1 if len(axes) > 2 and axes_covered >= 2 else 0
+    # Relational vocabulary is a bounded tie-breaker. Coverage of the
+    # question's actual axes must dominate it, so generic relationship-rich
+    # material cannot outrank evidence addressing both sides.
+    relationship_score = min(
+        10,
+        (balanced * 6) + (min(3, axes_covered) * 2) + min(2, relation_hits),
+    )
+    return (
+        direct_fit,
+        axes_covered,
+        axis_hits_total,
+        min(6, relation_hits),
+        relationship_score,
+    )
+
+
+def _v209_relational_evidence_adjudication(
+    documents: List[Dict[str, Any]],
+    question: str,
+    intent: str,
+    *,
+    preserve_prefix: int = 0,
+) -> List[Dict[str, Any]]:
+    """Reorder retrieved candidates toward evidence bearing on the question's relation."""
+    if (
+        not documents
+        or intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}
+        or len(_v208_question_retrieval_axes(question)) <= 1
+    ):
+        return documents
+
+    prefix = documents[:preserve_prefix]
+    remainder = documents[preserve_prefix:]
+    ranked = []
+    for index, document in enumerate(remainder):
+        profile = _v209_relational_evidence_profile(question, document)
+        ranked.append((
+            profile[4],
+            profile[1],
+            profile[0],
+            profile[2],
+            profile[3],
+            -index,
+            document,
+        ))
+    ranked.sort(reverse=True)
+    selected = [item[-1] for item in ranked]
+    if selected:
+        best = _v209_relational_evidence_profile(question, selected[0])
+        print(
+            "USE v209 relational evidence adjudication: "
+            f"axes={[name for name, _text in _v208_question_retrieval_axes(question)]}, "
+            f"candidates={len(selected)}, best_profile={best}, "
+            f"primary='{_canonical_display_title(str(selected[0].get('title', 'Untitled Resource')))}'."
+        )
+    return prefix + selected
+
+
 MAX_V208_MULTI_AXIS_RETRIEVAL_AXES = 3
 MAX_V208_MULTI_AXIS_AXIS_TOP_K = 8
 MAX_V208_MULTI_AXIS_NEW_CANDIDATES = 8
@@ -7584,7 +7735,9 @@ def _select_evidence_rich_synthesis_roles(
     primary = max(
         indexed,
         key=lambda item: (
-            item[2][0],  # direct fit
+            _v209_relational_evidence_profile(question, item[1])[4],
+            item[2][0],  # direct fit remains a hard quality floor/tie-breaker
+            _v209_relational_evidence_profile(question, item[1])[1],
             item[2][1],  # question-term coverage
             item[2][2],  # phrase fit
             item[2][3],  # evidence density
@@ -7616,12 +7769,17 @@ def _select_evidence_rich_synthesis_roles(
             overlap = _max_content_concept_overlap(
                 concepts, selected_concept_sets
             )
+            relational = _v209_relational_evidence_profile(question, document)
+            axis_novelty = relational[1]
 
-            # Direct fit is primary; distinct conceptual evidence is next;
-            # evidence density is deliberately meaningful but cannot rescue
-            # weakly relevant content.
+            # Direct fit remains primary. For explicit multi-axis questions,
+            # candidates that cover an additional literal axis get priority
+            # before generic conceptual novelty, so the synthesis bundle is
+            # shaped by the actual relation in the visitor's wording.
             rank = (
+                relational[4],
                 direct_fit,
+                axis_novelty,
                 novelty,
                 coverage_count,
                 phrase_hits,
@@ -7639,6 +7797,7 @@ def _select_evidence_rich_synthesis_roles(
 
         index, document, score, concepts, coverage = best_item
         direct_fit = score[0]
+        relational = _v209_relational_evidence_profile(question, document)
         novelty = min(
             _COMPLEMENTARY_MAX_NOVEL_CONCEPTS,
             len(concepts - represented_concepts),
@@ -8151,6 +8310,17 @@ def fetch_canonical_context(
         for doc in retrieved_docs
         if isinstance(doc, dict) and doc
     ][:RETRIEVAL_TOP_K + 8]
+
+    # v209: adjudicate the retrieved candidate set by the relationship
+    # expressed in the visitor's literal question. This only reorders
+    # already-retrieved canonical evidence; it never creates or removes
+    # a resource and never changes canonical link authority.
+    retrieved_docs = _v209_relational_evidence_adjudication(
+        retrieved_docs,
+        user_query,
+        intent,
+        preserve_prefix=protected_prefix,
+    )
 
     # Keep the complete canonical evidence returned by retrieval available
     # to the final link-construction boundary. Generation may use a smaller,
@@ -13372,6 +13542,72 @@ def _v185_bounded_grounded_synthesis_self_audit() -> None:
     print("USE v185 BOUNDED GROUNDED SYNTHESIS AUDIT: PASS")
 
 
+
+
+def _v209_relational_evidence_adjudication_self_audit() -> None:
+    """Verify multi-axis evidence is ranked by the relation, not just topic proximity."""
+    balanced = {
+        "title": "Balanced Relation Lens",
+        "url": "https://example.invalid/balanced",
+        "text": (
+            "An institution can become increasingly precise about enforcing its standards "
+            "while becoming less able to recognize situations in which those standards no "
+            "longer describe reality accurately. Feedback and adaptation connect the two sides."
+        ),
+    }
+    left_only = {
+        "title": "Procedure Lens",
+        "url": "https://example.invalid/procedure",
+        "text": (
+            "Precise procedures can improve reliability, consistency, standards, enforcement, "
+            "and coordination across an institution."
+        ),
+    }
+    right_only = {
+        "title": "Change Lens",
+        "url": "https://example.invalid/change",
+        "text": (
+            "Recognizing changing situations requires adaptation, learning, judgment, and a "
+            "new understanding of reality."
+        ),
+    }
+    redundant = {
+        "title": "Generic Institution Lens",
+        "url": "https://example.invalid/generic",
+        "text": "Institutions coordinate people and decisions through organizational systems without addressing the specific tension in the question.",
+    }
+    question = (
+        "Why can an institution become increasingly precise about enforcing its standards "
+        "while becoming less able to recognize situations in which those standards no "
+        "longer describe reality accurately?"
+    )
+    axes = _v208_question_retrieval_axes(question)
+    assert len(axes) == 3
+    distinct_axes = dict(_v209_distinct_axis_term_sets(question))
+    assert "standards" not in set(distinct_axes["right"])
+    assert "standards" not in set(distinct_axes["left"]) or "recognize" not in set(distinct_axes["left"])
+    ranked = _v209_relational_evidence_adjudication(
+        [left_only, right_only, balanced, redundant],
+        question,
+        "TOPICAL_INQUIRY",
+    )
+    assert ranked[0]["title"] == "Balanced Relation Lens"
+    balanced_profile = _v209_relational_evidence_profile(question, balanced)
+    assert balanced_profile[1] >= 2
+    assert balanced_profile[4] > _v209_relational_evidence_profile(question, left_only)[4]
+
+    synthesis = _select_evidence_rich_synthesis_roles(
+        [left_only, right_only, balanced, redundant],
+        question,
+    )
+    titles = [doc["title"] for doc in synthesis]
+    assert "Balanced Relation Lens" in titles
+    assert "Generic Institution Lens" not in titles
+    assert len(synthesis) >= 2
+    print(
+        "USE v209 RELATIONAL EVIDENCE ADJUDICATION AUDIT: PASS "
+        f"(balanced_profile={balanced_profile}, synthesis_titles={titles})"
+    )
 
 
 def _v208_question_decomposition_multi_axis_retrieval_self_audit() -> None:
