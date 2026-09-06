@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v182 — Conversational Style Calibration + v181 visitor-language baseline + The Guide
+# USE PRODUCTION VERSION: v183 — Conversational Style Calibration Bugfix + v181 visitor-language baseline + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v182"
+APP_VERSION = "v183"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,13 +629,13 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v182-mvp-conversational-style-calibration"
+DEPLOYMENT_FINGERPRINT = "USE-v183-mvp-conversational-style-calibration-bugfix"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v182-mvp-conversational-style-calibration"
+CANONICAL_BUILD_ID = "USE-BUILD-v183-mvp-conversational-style-calibration-bugfix"
 CANONICAL_BUILD_PAYLOAD_SHA256 = "65882ea0def12ffe217719a72a103dda18a4be115edce625285a0f410822cfc6"
 # === END CANONICAL BUILD IDENTITY ===
 
@@ -8353,8 +8353,8 @@ def _clean_generation_output(
     # normalization so no emoji/decorative symbol or HTML entity encoding can
     # survive in visitor-facing text. Internal corpus metadata is never modified.
     normalized_answer = html.unescape(normalized_answer)
-    _calibrate_visitor_style_result = _calibrate_visitor_style(visitor_text)
-    return _calibrate_visitor_style_result
+    normalized_answer = _calibrate_visitor_style(normalized_answer)
+    return normalized_answer
 
 
 # =====================================================================
