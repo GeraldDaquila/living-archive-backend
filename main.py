@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v197 — Question-Shaped Synthesis + The Guide
+# USE PRODUCTION VERSION: v198 — Question-Shaped Evidence Allocation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -189,7 +189,11 @@ CONSTITUTIONAL RULES
     supplied evidence genuinely establishes that it is central to the
     question. Where multiple retrieved resources illuminate different
     parts of the question, synthesize those parts naturally before naming
-    the most useful route into the Archive.
+    the most useful route into the Archive. Treat the evidence field as a
+    distributed set of supporting perspectives: do not assume that earlier
+    evidence is more authoritative merely because it appears first, and do
+    not let one resource stand in for the whole question when other supplied
+    resources materially illuminate different dimensions.
 
 
 15. NAVIGATION OVER ENUMERATION
@@ -626,7 +630,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v197"
+APP_VERSION = "v198"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -642,14 +646,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v197-mvp-question-shaped-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v198-question-shaped-evidence-allocation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v197-mvp-question-shaped-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "a6b47f83ca63096d250467048357fbf0f1edd9e298c837067b539c43c6ed4167"
+CANONICAL_BUILD_ID = "USE-BUILD-v198-question-shaped-evidence-allocation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b4b500691d572fd5e1376dfa950df6365e0d8d40e35a4a6129b5ba6f435f9e59"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -668,7 +672,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v147 build identity failure: canonical identity block not found exactly once."
+            "v198 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -4503,6 +4507,45 @@ def select_canonical_doorways_with_proportionality(
     return prefix + [doc for _penalty, _idx, doc in scored]
 
 
+def _v198_question_shaped_evidence_allocation_self_audit() -> None:
+    """Verify that bounded generation evidence preserves multiple perspectives."""
+    docs = [
+        {
+            "title": "First Canonical Resource",
+            "url": "https://example.invalid/first",
+            "text": "First perspective. " * 40,
+        },
+        {
+            "title": "Second Canonical Resource",
+            "url": "https://example.invalid/second",
+            "text": "Second perspective. " * 40,
+        },
+        {
+            "title": "Third Canonical Resource",
+            "url": "https://example.invalid/third",
+            "text": "Third perspective. " * 40,
+        },
+    ]
+
+    context = build_generation_context(
+        docs,
+        max_chars=720,
+        max_resource_chars=300,
+    )
+    parsed = context_blocks_to_documents(context)
+
+    assert len(parsed) == 3
+    assert [doc["title"] for doc in parsed] == [
+        "First Canonical Resource",
+        "Second Canonical Resource",
+        "Third Canonical Resource",
+    ]
+    lengths = [len(doc["text"]) for doc in parsed]
+    assert all(length >= 96 for length in lengths)
+    assert max(lengths) - min(lengths) <= 2
+    assert all(doc["url"].startswith("https://example.invalid/") for doc in parsed)
+
+
 def _v194_doorway_proportionality_self_audit() -> None:
     broad_question = "Why can people agree on the goal but disagree about how to achieve it?"
     docs = [
@@ -4540,8 +4583,8 @@ def _v194_doorway_proportionality_self_audit() -> None:
 def _v195_answer_first_orientation_self_audit() -> None:
     """Verify substantive topical prose remains ahead of deterministic navigation."""
     source = inspect.getsource(_run_generation_attempt)
-    anchor_phrase = "A useful place to begin with this question is {first_link}."
-    assignment_start = source.find("cleaned_answer = (", source.find("v174 MVP correction"))
+    anchor_phrase = "For a canonical route into the Archive, a strong place to begin is {first_link}."
+    assignment_start = source.find("cleaned_answer = (", source.find("v198 movement correction"))
     anchor_start = source.find(anchor_phrase, assignment_start)
     if assignment_start < 0 or anchor_start < 0:
         raise RuntimeError("v195 answer-first regression: anchor assignment missing.")
@@ -4550,7 +4593,7 @@ def _v195_answer_first_orientation_self_audit() -> None:
     link_probe = "[Understanding Conflict and Cooperation](https://example.invalid/general)"
     arranged = (
         f"{answer_probe.rstrip()}\n\n"
-        f"A useful place to begin with this question is {link_probe}."
+        f"For a canonical route into the Archive, a strong place to begin is {link_probe}."
     )
     if not arranged.startswith(answer_probe):
         raise RuntimeError("v195 answer-first regression: substantive answer was not retained first.")
@@ -7752,6 +7795,137 @@ def _truncate_evidence_content(content: str, limit: int) -> str:
     return truncated + " … [evidence excerpt bounded by USE]"
 
 
+def _allocate_question_shaped_evidence(
+    documents: List[Dict[str, Any]],
+    *,
+    max_chars: int,
+    max_resource_chars: int,
+) -> str:
+    """
+    Build a bounded evidence field that preserves substantive representation
+    across the strongest selected resources instead of consuming the entire
+    generation budget sequentially from the first resource onward.
+
+    v198 Pareto intervention:
+    - retrieval/selection ordering remains unchanged;
+    - canonical title/URL identity remains exact;
+    - evidence budget is distributed across a small number of selected
+      resources when the provider envelope permits it;
+    - the first resource no longer receives the entire evidence budget merely
+      because it was ranked first;
+    - the first resource may still receive slightly more evidence when the
+      budget does not divide cleanly, but every represented resource receives
+      a substantive minimum.
+    """
+    if not documents or max_chars <= 0 or max_resource_chars <= 0:
+        return ""
+
+    prepared: List[Tuple[str, str, str]] = []
+    for doc in documents:
+        title = _canonical_display_title(
+            str(doc.get("title", "Untitled Resource")).strip()
+        )
+        url = str(doc.get("url", "#")).strip()
+        content = _resource_content(doc)
+        if title and url and content:
+            prepared.append((title, url, content))
+
+    if not prepared:
+        return ""
+
+    # Keep the resource set intentionally small enough that each represented
+    # resource can contribute real evidence rather than a token fragment.
+    # The minimum is adaptive to the available envelope and the actual
+    # identity overhead of the selected resources.
+    separator_len = len("\n\n---\n\n")
+    min_evidence_chars = min(
+        140,
+        max(96, max_resource_chars // 2),
+    )
+
+    def block_overhead(item: Tuple[str, str, str]) -> int:
+        title, url, _ = item
+        return len(f"Title: {title}\nURL: {url}\nContent: ")
+
+    represented: List[Tuple[str, str, str]] = []
+    total = 0
+    for item in prepared:
+        overhead = block_overhead(item)
+        additional_separator = separator_len if represented else 0
+        if (
+            total
+            + additional_separator
+            + overhead
+            + min(min_evidence_chars, len(item[2]))
+            <= max_chars
+        ):
+            represented.append(item)
+            total += additional_separator + overhead + min(
+                min_evidence_chars, len(item[2])
+            )
+        else:
+            break
+
+    # At least the strongest resource must remain representable whenever the
+    # caller supplies a positive budget. The normal provider preflight will
+    # enforce the final envelope.
+    if not represented:
+        represented = [prepared[0]]
+
+    n = len(represented)
+    overheads = [block_overhead(item) for item in represented]
+    separator_total = separator_len * max(0, n - 1)
+    evidence_budget = max_chars - separator_total - sum(overheads)
+
+    if evidence_budget <= 0:
+        return ""
+
+    # Equal base allocation makes the evidence field genuinely multi-resource.
+    # Any remainder is assigned deterministically from the first resource
+    # forward, without allowing it to consume another resource's allocation.
+    allocations = [evidence_budget // n] * n
+    for idx in range(evidence_budget % n):
+        allocations[idx] += 1
+
+    blocks: List[str] = []
+    for (title, url, content), allocation in zip(represented, allocations):
+        limit = min(max_resource_chars, max(1, allocation))
+        bounded_content = _truncate_evidence_content(content, limit)
+        marker = " … [evidence excerpt bounded by USE]"
+        if len(bounded_content) > limit:
+            content_limit = max(1, limit - len(marker))
+            bounded_content = (
+                content[:content_limit].rsplit(" ", 1)[0].strip()
+                + marker
+            )
+
+        prefix = f"Title: {title}\nURL: {url}\nContent: "
+        block = prefix + bounded_content
+
+        # Exact-fit guard. Identity remains canonical even if evidence must
+        # be shortened further.
+        current_used = sum(len(b) for b in blocks) + separator_len * len(blocks)
+        allowed = max_chars - current_used - (separator_len if blocks else 0)
+        if len(block) > allowed:
+            available = max(1, allowed - len(prefix))
+            bounded_content = _truncate_evidence_content(content, available)
+            marker = " … [evidence excerpt bounded by USE]"
+            if len(bounded_content) > available:
+                content_limit = max(1, available - len(marker))
+                bounded_content = (
+                    content[:content_limit].rsplit(" ", 1)[0].strip()
+                    + marker
+                )
+            block = prefix + bounded_content
+
+        if len(block) > allowed:
+            break
+
+        blocks.append(block)
+
+    return "\n\n---\n\n".join(blocks).strip()
+
+
 def build_generation_context(
     documents: List[Dict[str, Any]],
     *,
@@ -7759,59 +7933,25 @@ def build_generation_context(
     max_resource_chars: int = MAX_GENERATION_RESOURCE_CHARS,
 ) -> str:
     """
-    Create a bounded evidence window for LLM generation.
+    Create a bounded, question-shaped evidence window for LLM generation.
 
     Retrieval remains broad and preserves its ordering. Generation is a
     separate budget: every selected resource retains its exact canonical
-    title and URL, while only a bounded amount of content is exposed to the
-    model. This prevents a large corpus excerpt from determining request
-    size and causing provider-level 413 failures.
+    title and URL, while the available evidence budget is deliberately
+    distributed across a small number of strongest selected resources.
+
+    v198's Pareto correction is at the selection -> generation boundary:
+    selection order no longer determines evidence visibility simply because
+    the first resource consumes the budget sequentially. This gives the
+    generator a compact multi-resource evidence field capable of supporting
+    synthesis across complementary canonical perspectives.
     """
-    if not documents or max_chars <= 0:
-        return ""
+    return _allocate_question_shaped_evidence(
+        documents,
+        max_chars=max_chars,
+        max_resource_chars=max_resource_chars,
+    )
 
-    blocks: List[str] = []
-    used = 0
-
-    for doc in documents:
-        title = _canonical_display_title(str(doc.get("title", "Untitled Resource")).strip())
-        url = str(doc.get("url", "#")).strip()
-        content = _resource_content(doc)
-
-        if not title or not content:
-            continue
-
-        block_prefix = (
-            "Title: " + title + "\n"
-            "URL: " + url + "\n"
-            "Content: "
-        )
-        separator = "\n\n---\n\n" if blocks else ""
-        remaining = max_chars - used - len(separator) - len(block_prefix)
-
-        if remaining <= 120:
-            break
-
-        content_limit = min(max_resource_chars, remaining)
-        bounded_content = _truncate_evidence_content(content, content_limit)
-
-        block = block_prefix + bounded_content
-
-        # A truncation marker can itself push the block slightly beyond the
-        # remaining budget. Trim once more if necessary while retaining the
-        # title and URL, which are the canonical link identity.
-        if len(block) > remaining:
-            available = max(1, remaining - len(block_prefix) - 20)
-            bounded_content = _truncate_evidence_content(content, available)
-            block = block_prefix + bounded_content
-
-        if len(block) > remaining:
-            break
-
-        blocks.append(block)
-        used += len(separator) + len(block)
-
-    return "\n\n---\n\n".join(blocks).strip()
 
 
 def _contains_internal_reasoning_leak(text: str) -> bool:
@@ -9028,15 +9168,25 @@ def _fit_generation_context_to_provider_budget(
             context_capacity,
             MAX_GENERATION_CONTEXT_CHARS,
         )
-        bounded_selected = _bound_existing_context_blocks(
-            candidate,
-            max(0, target_context_chars),
-            min(
-                MAX_GENERATION_RESOURCE_CHARS,
-                max(120, target_context_chars),
-            ) if target_context_chars > 0 else 0,
-            schema_free=compact,
-        )
+        if compact:
+            bounded_selected = _bound_existing_context_blocks(
+                candidate,
+                max(0, target_context_chars),
+                min(
+                    MAX_GENERATION_RESOURCE_CHARS,
+                    max(120, target_context_chars),
+                ) if target_context_chars > 0 else 0,
+                schema_free=True,
+            )
+        else:
+            bounded_selected = _allocate_question_shaped_evidence(
+                context_blocks_to_documents(candidate),
+                max_chars=max(0, target_context_chars),
+                max_resource_chars=min(
+                    MAX_GENERATION_RESOURCE_CHARS,
+                    max(120, target_context_chars),
+                ) if target_context_chars > 0 else 0,
+            )
 
         # v148 root-cause boundary: a positive primary evidence capacity must
         # not silently collapse existing canonical evidence to zero blocks.
@@ -9862,12 +10012,13 @@ def _run_generation_attempt(
         )
         return ""
 
-    # v174 MVP correction: a provider response may be substantively grounded in
-    # the selected canonical evidence without repeating a canonical title
-    # verbatim. Preserve that useful generated interpretation and deterministically
-    # anchor it to the first validated doorway. The existing second check remains
-    # the hard provenance boundary, so only a title from the validated evidence
-    # set can satisfy it.
+    # v198 movement correction: a provider response may be substantively
+    # grounded in distributed canonical evidence without repeating a canonical
+    # title verbatim. Preserve the synthesis, then add only the independently
+    # validated doorway required by the movement boundary. The doorway is a
+    # route into the Archive, not evidence that the first resource explains the
+    # whole question. The existing second check remains the hard provenance
+    # boundary, so only a title from the validated evidence set can satisfy it.
     if (
         cleaned_answer
         and str(intent).upper() == "TOPICAL_INQUIRY"
@@ -9884,7 +10035,7 @@ def _run_generation_attempt(
             first_link = f"[{first_title}]({first_url})"
             cleaned_answer = (
                 f"{cleaned_answer.rstrip()}\n\n"
-                f"A useful place to begin with this question is {first_link}."
+                f"For a canonical route into the Archive, a strong place to begin is {first_link}."
             )
 
     if (
