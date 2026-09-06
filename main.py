@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v196 — Answer-First Visitor Orientation Correction + The Guide
+# USE PRODUCTION VERSION: v197 — Question-Shaped Synthesis + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -179,6 +179,18 @@ CONSTITUTIONAL RULES
 
     The answer is NOT a research log, retrieval report, diagnostic trace,
     prompt explanation, or account of the model's internal process.
+
+    QUESTION-SHAPED SYNTHESIS:
+    For broad, conceptual, or general human questions, construct the
+    explanation around the visitor's actual question before introducing
+    any individual canonical resource. Retrieved resources are supporting
+    lenses and evidence, not mandatory conceptual frames. Do not make the
+    first or strongest resource synonymous with the answer unless its
+    supplied evidence genuinely establishes that it is central to the
+    question. Where multiple retrieved resources illuminate different
+    parts of the question, synthesize those parts naturally before naming
+    the most useful route into the Archive.
+
 
 15. NAVIGATION OVER ENUMERATION
     When several resources are relevant, do not simply list everything
@@ -614,7 +626,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v196"
+APP_VERSION = "v197"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -630,14 +642,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v196-mvp-answer-first-visitor-orientation-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v197-mvp-question-shaped-synthesis"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v196-mvp-answer-first-visitor-orientation-correction"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "2e3bc2844379b22457420fadfbf3fb3773e3a251065d7e394688a7f11cf1fb34"
+CANONICAL_BUILD_ID = "USE-BUILD-v197-mvp-question-shaped-synthesis"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "a6b47f83ca63096d250467048357fbf0f1edd9e298c837067b539c43c6ed4167"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
