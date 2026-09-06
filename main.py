@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v199 — Retrieval Coverage Recovery + The Guide
+# USE PRODUCTION VERSION: v200 — Complementary Evidence Selection + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -83,6 +83,13 @@ CONSTITUTIONAL RULES
    relationships among resources, complementary roles, sequences,
    themes, and routes of movement. Do not assume that the best answer
    is simply the highest-scoring result.
+
+   When several resources are supplied, treat them as a candidate
+   evidence set rather than a flat list. Prefer evidence that covers
+   different substantive dimensions of the question. Do not let one
+   resource stand in for the whole question when other supplied
+   resources illuminate distinct dimensions. Do not add a resource
+   merely for variety when its supplied Content does not contribute.
 
 4. RETRIEVAL LIMITATION
    If the supplied evidence is insufficient to establish a claim,
@@ -630,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v199"
+APP_VERSION = "v200"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -646,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v199-retrieval-coverage-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v200-complementary-evidence-selection"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v199-retrieval-coverage-recovery"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "950c92fbbe51be0770c8e08ba1e208312c79d07c690eaef7fb6617b1d68ee2ee"
+CANONICAL_BUILD_ID = "USE-BUILD-v200-complementary-evidence-selection"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f03ed293ad7299b045f57ed213d6f7843c9c7b6798a6c35e3c1a2052e49b810d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -672,7 +679,7 @@ def _canonical_source_payload(source: str) -> str:
     )
     if count != 1:
         raise RuntimeError(
-            "v199 build identity failure: canonical identity block not found exactly once."
+            "v200 build identity failure: canonical identity block not found exactly once."
         )
     return normalized
 
@@ -6950,6 +6957,224 @@ def _evidence_sufficiency_unavailable_response(
     return response
 
 
+MAX_COMPLEMENTARY_EVIDENCE_RESOURCES = 6
+
+
+def _question_evidence_term_coverage(
+    question: str,
+    document: Dict[str, Any],
+) -> set:
+    """Return substantive question concepts directly represented in Content."""
+    content = _resource_content(document).casefold()
+    if not question or not content:
+        return set()
+
+    terms, phrases = _question_condition_terms(question)
+    substantive = [
+        term for term in dict.fromkeys(terms)
+        if term not in _CENTRALITY_GENERIC_TERMS
+    ]
+    if not substantive:
+        substantive = list(dict.fromkeys(terms))
+
+    content_tokens = set(
+        re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content)
+    )
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in (
+            "ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"
+        ):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    content_stems = {stem(token) for token in content_tokens}
+    covered = set()
+    for term in substantive:
+        normalized = term.replace("-", "")
+        if (
+            term in content_tokens
+            or normalized in content_tokens
+            or stem(term) in content_stems
+        ):
+            covered.add(term)
+
+    # Phrases are represented by their constituent substantive terms through
+    # the same bounded lexical test; phrase presence is handled separately in
+    # the candidate score and never creates a semantic relationship.
+    return covered
+
+
+def _complementary_evidence_selection_score(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int]:
+    """Score one candidate by bounded direct Content fit, not title similarity."""
+    fit_score, (term_hits, phrase_hits) = _evidence_domain_fit_score(
+        question, document
+    )
+    coverage = len(_question_evidence_term_coverage(question, document))
+    return (fit_score, coverage, phrase_hits)
+
+
+def _select_complementary_generation_evidence(
+    documents: List[Dict[str, Any]],
+    question: str,
+    *,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Select a small evidence-dense, non-redundant generation set.
+
+    v200 sits after retrieval and canonical gating but before provider
+    generation. The full retrieved set remains available to doorway/link
+    logic. This selector only determines which already-validated resources
+    may inform synthesis. Selection is deterministic and uses supplied
+    Content only: direct question-term coverage, evidence-domain fit, and
+    incremental coverage of question concepts. It does not infer latent
+    relationships or create resources.
+    """
+    if not documents:
+        return []
+
+    protected_keys = {
+        _resource_key(document)
+        for document in (protected_documents or [])
+        if isinstance(document, dict)
+    }
+
+    indexed = []
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict) or not document:
+            continue
+        score = _complementary_evidence_selection_score(question, document)
+        coverage = _question_evidence_term_coverage(question, document)
+        indexed.append((index, document, score, coverage))
+
+    if not indexed:
+        return []
+
+    selected: List[Dict[str, Any]] = []
+    selected_keys = set()
+    covered_terms = set()
+
+    # Protected candidates are preserved first, but still bounded by the same
+    # generation cap. Their protection comes only from an already-established
+    # canonical request/architecture constraint upstream.
+    for index, document, score, coverage in indexed:
+        key = _resource_key(document)
+        if key not in protected_keys or key in selected_keys:
+            continue
+        selected.append(document)
+        selected_keys.add(key)
+        covered_terms.update(coverage)
+        if len(selected) >= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES:
+            break
+
+    remaining = [item for item in indexed if _resource_key(item[1]) not in selected_keys]
+
+    while remaining and len(selected) < MAX_COMPLEMENTARY_EVIDENCE_RESOURCES:
+        best_item = None
+        best_rank = None
+        for index, document, score, coverage in remaining:
+            incremental = len(coverage - covered_terms)
+            direct_fit, coverage_count, phrase_hits = score
+            # Relevance remains primary. Incremental question coverage breaks
+            # ties and then original retrieval order keeps the choice stable.
+            rank = (
+                direct_fit,
+                incremental,
+                coverage_count,
+                phrase_hits,
+                -index,
+            )
+            if best_rank is None or rank > best_rank:
+                best_rank = rank
+                best_item = (index, document, score, coverage)
+
+        if best_item is None:
+            break
+
+        index, document, score, coverage = best_item
+        # Once useful evidence is selected, a candidate that adds no new
+        # substantive question concept is redundant. Do not spend the scarce
+        # generation budget on another document merely because it is relevant
+        # to a concept already covered. This is the core v200 complementarity
+        # constraint.
+        if selected and incremental <= 0:
+            break
+        if selected and score[0] <= 0:
+            break
+
+        selected.append(document)
+        selected_keys.add(_resource_key(document))
+        covered_terms.update(coverage)
+        remaining = [
+            item for item in remaining
+            if _resource_key(item[1]) != _resource_key(document)
+        ]
+
+    # If the question has usable evidence but the lexical fit is unusually low,
+    # preserve the strongest single canonical candidate rather than returning
+    # an empty generation set. The existing sufficiency boundary remains the
+    # authority for genuine abstention.
+    if not selected and indexed:
+        strongest = max(
+            indexed,
+            key=lambda item: (
+                item[2][0], item[2][1], item[2][2], -item[0]
+            ),
+        )
+        selected = [strongest[1]]
+
+    print(
+        "USE v200 complementary evidence selection: "
+        f"input={len(documents)}, selected={len(selected)}, "
+        f"covered_terms={len(covered_terms)}, "
+        f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in selected ]}"
+    )
+    return selected
+
+
+def _v200_complementary_evidence_selection_self_audit() -> None:
+    """Verify complementary selection prefers coverage over redundant relevance."""
+    docs = [
+        {
+            "title": "Accountability Lens",
+            "url": "https://example.invalid/accountability",
+            "text": "Accountability concerns responsibility and answerability in institutional decisions.",
+        },
+        {
+            "title": "Power Lens",
+            "url": "https://example.invalid/power",
+            "text": "Decision-making power determines who can authorize institutional action and change.",
+        },
+        {
+            "title": "Governance Lens",
+            "url": "https://example.invalid/governance",
+            "text": "Governance structures connect accountability, authority, and institutional decision processes.",
+        },
+        {
+            "title": "Redundant Accountability",
+            "url": "https://example.invalid/accountability-2",
+            "text": "Accountability means responsibility and answerability for institutional decisions.",
+        },
+    ]
+    question = "What happens when accountability is separated from decision-making power?"
+    selected = _select_complementary_generation_evidence(docs, question)
+    titles = [doc["title"] for doc in selected]
+    assert titles[0] == "Governance Lens" or "Accountability Lens" in titles
+    assert "Power Lens" in titles, (
+        "v200 complementary selection regression: distinct power evidence was not preserved."
+    )
+    assert "Redundant Accountability" not in titles, (
+        "v200 complementary selection regression: redundant evidence consumed the evidence set."
+    )
+    assert len(selected) <= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES
+    print("USE v200 COMPLEMENTARY EVIDENCE SELECTION AUDIT: PASS")
+
+
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
@@ -7437,10 +7662,26 @@ def fetch_canonical_context(
             "source=D21-D26 canonical resource-function layer."
         )
 
-    generation_context = format_context_blocks(
+    generation_evidence_docs = _select_complementary_generation_evidence(
         retrieved_docs,
-        structural_destination_count=structural_destination_count,
-        adaptive_bridge_count=adaptive_bridge_count,
+        user_query,
+        protected_documents=(
+            explicit_type_protected_docs
+            + document_choice_architecture_docs
+        ),
+    )
+    if not generation_evidence_docs:
+        generation_evidence_docs = list(retrieved_docs[:1])
+
+    generation_context = format_context_blocks(
+        generation_evidence_docs,
+        structural_destination_count=min(
+            structural_destination_count, len(generation_evidence_docs)
+        ),
+        adaptive_bridge_count=min(
+            adaptive_bridge_count,
+            max(0, len(generation_evidence_docs) - structural_destination_count),
+        ),
     )
     if document_form_orientation_packet:
         generation_context = (
@@ -7464,8 +7705,9 @@ def fetch_canonical_context(
 
     print(
         "USE generation selection: "
-        f"selected={len(retrieved_docs)}, "
-        f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in retrieved_docs ]}"
+        f"retrieved={len(retrieved_docs)}, "
+        f"evidence_set={len(generation_evidence_docs)}, "
+        f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
     )
     return {
         "intent": intent,
