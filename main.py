@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v181 — Visitor Jargon Suppression + v180 language-barrier baseline + The Guide
+# USE PRODUCTION VERSION: v182 — Conversational Style Calibration + v181 visitor-language baseline + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v181"
+APP_VERSION = "v182"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v181-mvp-visitor-jargon-suppression"
+DEPLOYMENT_FINGERPRINT = "USE-v182-mvp-conversational-style-calibration"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v181-mvp-visitor-jargon-suppression"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "1a8197b9f06be209bb369157101e6659aaafd8ec91e68f16f8e21f4e4b7670ad"
+CANONICAL_BUILD_ID = "USE-BUILD-v182-mvp-conversational-style-calibration"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "65882ea0def12ffe217719a72a103dda18a4be115edce625285a0f410822cfc6"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8272,6 +8272,26 @@ def _strip_internal_corpus_markup(answer: str) -> str:
     return cleaned.strip()
 
 
+def _calibrate_visitor_style(visitor_text: str) -> str:
+    """Convert internal process phrasing into plain visitor-facing language."""
+    if not visitor_text:
+        return visitor_text
+    replacements = (
+        (r"\bThe evidence (?:on|in|available here)\b", "The material"),
+        (r"\bthe evidence (?:on|in|available here)\b", "the material"),
+        (r"\bthe retrieved evidence\b", "the material"),
+        (r"\bretrieved evidence\b", "the material"),
+        (r"\bthe retrieval\b", "the search"),
+        (r"\bretrieval\b", "search"),
+        (r"\bretrieved material\b", "material"),
+        (r"\bthe corpus\b", "the collection"),
+        (r"\bthe system\b", "this work"),
+    )
+    result = visitor_text
+    for pattern, replacement in replacements:
+        result = re.sub(pattern, replacement, result)
+    return result
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -8333,7 +8353,9 @@ def _clean_generation_output(
     # normalization so no emoji/decorative symbol or HTML entity encoding can
     # survive in visitor-facing text. Internal corpus metadata is never modified.
     normalized_answer = html.unescape(normalized_answer)
-    return _strip_emoji(normalized_answer)
+    _calibrate_visitor_style_result = _calibrate_visitor_style(visitor_text)
+    return _calibrate_visitor_style_result
+
 
 # =====================================================================
 # LONGITUDINAL INQUIRY OBSERVER — PASSIVE 5-WHY BOUNDARY
@@ -9852,7 +9874,7 @@ def _extractive_canonical_evidence_fallback(
 
     return (
         f"A useful place to begin with this question is **{title}**. "
-        f"The supplied material addresses it this way: {sentence}"
+        f"The material addresses it this way: {sentence}"
     )
 
 
@@ -9880,7 +9902,7 @@ def _deterministic_provider_fallback(
     if extractive:
         # v167: deterministic/extractive fallback must pass through the same
         # canonical presentation boundary as provider-generated output.
-        # The fallback may identify canonical evidence, but it must not strand
+        # The fallback may identify relevant material, but it must not strand
         # the visitor at an unlinked title when a canonical doorway exists.
         normalized_fallback = _clean_generation_output(
             extractive,
