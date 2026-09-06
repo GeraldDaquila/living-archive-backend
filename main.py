@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v210 — Scope-Safe Relational Evidence + The Guide
+# USE PRODUCTION VERSION: v211 — Question-Structure Evidence-Role Binding + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -606,7 +606,7 @@ CONSTITUTIONAL RULES
 GENERATION_SYSTEM_PROMPT = """
 You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
 
-For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway; normally use 2–3 only for distinct coverage. [RELATIONAL REASONING]: For explicit relationships or synthesis, reason across supplied resources; evidence may be distributed. Do not force one resource to cover both sides. For comparison questions, compare only what the supplied resources establish and explain what each contributes.
+For TOPICAL questions, orient through supplied evidence, not generic explanation. Give a canonical doorway; normally use 2–3 only for distinct coverage. [RELATIONAL REASONING]: For explicit relationships or synthesis, reason across supplied resources; evidence may be distributed. Explain the visitor's stated relationship before using any source as an example or lens. Do not force one resource to cover both sides or let the first evidence block become the whole answer. For comparison questions, compare only what the supplied resources establish and explain what each contributes.
 
 [FRAME SOVEREIGNTY]: Keep the visitor's question in their terms. A specialized framework may govern the explanation only when the visitor names it. Preserve uncertainty and do not imply an imposed framework, experience, or outcome.
 
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v210"
+APP_VERSION = "v211"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v210-scope-safe-relational-evidence"
+DEPLOYMENT_FINGERPRINT = "USE-v211-question-structure-evidence-role-binding"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v210-scope-safe-relational-evidence"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "71af328348d18f4ce59d5badefbacc6daa0e86be929fa1f7d934f26a0d594883"
+CANONICAL_BUILD_ID = "USE-BUILD-v211-question-structure-evidence-role-binding"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7b72dd231c634acfbfc8c19a9d87285c86e028cbc0a98f18acdd15549d8b564b"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10408,6 +10408,49 @@ def _build_generation_system_content(
 
 
 
+def _v211_question_evidence_role_binding_instruction(
+    user_query: str,
+    intent: str,
+    generation_context: str,
+) -> str:
+    """Bind explicit question structure to evidence roles without inventing content.
+
+    v211 is a generation-boundary intervention. It does not change retrieval,
+    doorway selection, or evidence selection. It tells the provider how to use
+    evidence that has already been selected: explain the visitor's stated
+    relationship first, then use the bounded evidence blocks as distinct lenses.
+    The canonical doorway remains navigation rather than explanatory authority.
+    """
+    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
+        return ""
+
+    structure = recognize_question_structure(user_query)
+    axes = _v208_question_retrieval_axes(user_query)
+    documents = context_blocks_to_documents(str(generation_context or ""))
+    resource_count = len(documents)
+    # The provider-safe evidence view deliberately removes URLs, so its
+    # canonical Title/Content blocks are not recoverable through the ordinary
+    # document parser. Preserve the role-binding boundary by reading the
+    # deterministic evidence ordinals already added at that stage.
+    evidence_ordinals = [
+        int(match.group(1))
+        for match in re.finditer(r"\[Evidence (\d+)\]", str(generation_context or ""))
+    ]
+    if evidence_ordinals:
+        resource_count = max(resource_count, max(evidence_ordinals))
+
+    if resource_count < 2:
+        return ""
+    if structure.get("structure") != "explicit_contrast" and len(axes) <= 1:
+        return ""
+
+    lines = [
+        "[QUESTION–EVIDENCE ROLE BINDING]: Explain the stated relationship first. Evidence 1 is primary; Evidence 2–%d are complementary. Use distinct supported points; do not let Evidence 1 or a resource title stand in for the whole answer. The doorway is navigation, not explanation." % resource_count,
+    ]
+
+    return " ".join(lines)
+
+
 def _estimate_message_chars(messages: List[Dict[str, str]]) -> int:
     """Return the actual character count of the assembled provider messages."""
     return sum(len(str(message.get("content", ""))) for message in messages)
@@ -11058,16 +11101,22 @@ def _build_generation_messages(
             "by its exact canonical title."
         )
 
+    role_binding_instruction = _v211_question_evidence_role_binding_instruction(
+        user_query, intent, safe_context
+    )
+
     if compact:
         user_content = (
             user_query
             + "\n\nAnswer from evidence; preserve uncertainty. Exact titles only; no links or markup."
+            + ("\n\n" + role_binding_instruction if role_binding_instruction else "")
             + attribution_instruction
         )
     else:
         user_content = (
             user_query
             + "\n\nAnswer only from supplied evidence; preserve uncertainty. Exact titles; no links or markup."
+            + ("\n\n" + role_binding_instruction if role_binding_instruction else "")
             + attribution_instruction
         )
 
@@ -13617,6 +13666,93 @@ def _v209_relational_evidence_adjudication_self_audit() -> None:
     print(
         "USE v209 RELATIONAL EVIDENCE ADJUDICATION AUDIT: PASS "
         f"(balanced_profile={balanced_profile}, synthesis_titles={titles})"
+    )
+
+
+def _v211_question_structure_evidence_role_binding_self_audit() -> None:
+    """Verify explicit relational structure reaches generation as an evidence-role instruction."""
+    relational_question = (
+        "What happens when an organization becomes better at identifying who was responsible "
+        "for an outcome without becoming better at understanding why the outcome was possible "
+        "in the first place?"
+    )
+    context = (
+        "Title: Responsibility Lens\nURL: https://example.invalid/responsibility\n"
+        "Content: Responsibility concerns choices and accountability within an organization.\n\n---\n\n"
+        "Title: Systems Lens\nURL: https://example.invalid/systems\n"
+        "Content: Outcomes can depend on conditions that make particular actions possible.\n\n---\n\n"
+        "Title: Learning Lens\nURL: https://example.invalid/learning\n"
+        "Content: Learning requires attention to consequences and the conditions producing them.\n"
+    )
+    instruction = _v211_question_evidence_role_binding_instruction(
+        relational_question, "TOPICAL_INQUIRY", context
+    )
+    required = (
+        "[QUESTION–EVIDENCE ROLE BINDING]",
+        "Explain the stated relationship first",
+        "Evidence 1 is primary",
+        "Evidence 2–3 are complementary",
+        "The doorway is navigation, not explanation",
+    )
+    for marker in required:
+        if marker not in instruction:
+            raise RuntimeError(
+                "v211 role-binding regression: missing required instruction marker: "
+                + marker
+            )
+
+    messages = _build_generation_messages(
+        relational_question, "TOPICAL_INQUIRY", context, None, compact=False
+    )
+    user_content = messages[-1]["content"]
+    if instruction not in user_content:
+        raise RuntimeError(
+            "v211 role-binding regression: role-binding instruction did not reach provider user content."
+        )
+    if "Evidence 2–3" not in user_content:
+        raise RuntimeError(
+            "v211 role-binding regression: selected evidence count was not bound deterministically."
+        )
+
+    fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
+        relational_question, "TOPICAL_INQUIRY", context, max_tokens=352
+    )
+    fitted_user_content = fitted_messages[-1]["content"]
+    if instruction not in fitted_user_content:
+        raise RuntimeError(
+            "v211 role-binding regression: provider preflight stripped the role-binding instruction."
+        )
+    for marker in ("[Evidence 1]", "[Evidence 2]", "[Evidence 3]"):
+        if marker not in fitted_context:
+            raise RuntimeError(
+                "v211 role-binding regression: provider preflight lost " + marker + "."
+            )
+    fitted_total = _estimate_message_chars(fitted_messages) + math.ceil(352 * 4 * 1.25)
+    if fitted_total > MAX_PROVIDER_TOTAL_CHARS:
+        raise RuntimeError(
+            f"v211 role-binding regression: fitted provider payload exceeds hard envelope ({fitted_total})."
+        )
+
+    neutral = _v211_question_evidence_role_binding_instruction(
+        "Why is uncertainty difficult?", "TOPICAL_INQUIRY", context
+    )
+    if neutral:
+        raise RuntimeError(
+            "v211 role-binding regression: neutral question received relational role binding."
+        )
+
+    fixed = _build_generation_messages(
+        "Explain a broad conceptual subject from the supplied evidence.",
+        "TOPICAL_INQUIRY", "", None, compact=False
+    )
+    fixed_chars = _estimate_message_chars(fixed)
+    if fixed_chars >= 2100:
+        raise RuntimeError(
+            f"v211 role-binding regression: fixed generation envelope became too large ({fixed_chars})."
+        )
+    print(
+        "USE v211 QUESTION-STRUCTURE EVIDENCE-ROLE BINDING AUDIT: PASS; "
+        f"fixed_input={fixed_chars}, relational_instruction_chars={len(instruction)}"
     )
 
 
