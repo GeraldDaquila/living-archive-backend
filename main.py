@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v184 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
+# USE PRODUCTION VERSION: v187 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v184"
+APP_VERSION = "v187"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v184-mvp-conversational-style-calibration-bugfix-rebuilt"
+DEPLOYMENT_FINGERPRINT = "USE-v187-mvp-bounded-grounded-synthesis"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v184-mvp-conversational-style-calibration-bugfix-rebuilt"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "1d89e6d6c566da46cfadc729cc44560688be5787f97107e5972e3ab32d88143c"
+CANONICAL_BUILD_ID = "USE-BUILD-v187-mvp-bounded-grounded-synthesis"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "2c0ad65d426b50016a6dc46b05f631b85b12eef096cae2a977ae835b7b4a4ea8"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9787,28 +9787,25 @@ def _is_rate_limit_error(error_text: str) -> bool:
 def _looks_like_false_evidence_gap_claim(answer: str) -> bool:
     """Detect a provider claim that selected evidence contains no answer.
 
-    This is an MVP response-boundary guard. A provider may correctly mention
-    canonical resources while still making the stronger, unsupported claim
-    that the supplied evidence contains no information about the question.
-    When canonical evidence is present, that claim must not reach the visitor.
+    The provider may legitimately signal that the available material is partial.
+    This guard therefore rejects only categorical machinery-facing claims that
+    imply the supplied material contains no usable information at all.
     """
     value = re.sub(r"\s+", " ", str(answer or "")).casefold().strip()
     if not value:
         return False
 
     markers = (
-        "provided canonical evidence does not contain",
-        "canonical evidence does not contain",
-        "canonical evidence contains no information",
-        "available evidence does not contain",
-        "available evidence contains no information",
-        "evidence does not contain information regarding",
-        "evidence does not contain information about",
-        "the excerpts do not define",
-        "the excerpts do not explain",
-        "no information regarding",
-        "no information about",
-        "does not establish the purpose of",
+        "provided canonical evidence does not contain any information",
+        "provided canonical evidence does not contain information",
+        "canonical evidence contains no information at all",
+        "canonical evidence does not contain information",
+        "available evidence contains no information at all",
+        "available evidence does not contain information",
+        "the retrieved excerpts contain no information at all",
+        "the retrieved excerpts do not contain information",
+        "there is no information in the supplied material",
+        "the supplied material contains no information",
     )
     return any(marker in value for marker in markers)
 
@@ -9817,12 +9814,12 @@ def _extractive_canonical_evidence_fallback(
     user_query: str,
     generation_context: str,
 ) -> str:
-    """Produce a bounded MVP doorway-oriented answer without generation.
+    """Produce a bounded evidence-grounded answer without generation.
 
-    This fallback remains strictly extractive. It uses the already-selected
-    canonical generation context and presents one strongest doorway with a
-    short evidence passage. It does not invent interpretation, relationships,
-    definitions, causal bridges, or resource identity.
+    Prefer a concise synthesis assembled from the strongest one or two
+    evidence-bearing sentences across the already-selected resources. The
+    synthesis is strictly limited to what those sentences jointly support.
+    No outside knowledge, causal bridge, or resource meaning is invented.
     """
     documents = context_blocks_to_documents(str(generation_context or ""))
     if not documents:
@@ -9870,11 +9867,28 @@ def _extractive_canonical_evidence_fallback(
         return ""
 
     scored.sort(reverse=True)
-    _score, _doc, _sent, title, sentence = scored[0]
+    top = scored[:2]
+    _score, _doc, _sent, title, sentence = top[0]
+
+    # Keep the answer compact, but allow two complementary sentences when
+    # they come from distinct selected resources. This is the smallest useful
+    # deterministic synthesis available without inventing interpretation.
+    supporting_sentences = [sentence]
+    seen_text = {sentence.casefold()}
+    for candidate in top[1:]:
+        candidate_text = candidate[-1]
+        if candidate_text.casefold() not in seen_text:
+            supporting_sentences.append(candidate_text)
+            seen_text.add(candidate_text.casefold())
+
+    if len(supporting_sentences) == 1:
+        body = supporting_sentences[0]
+    else:
+        body = " ".join(supporting_sentences)
 
     return (
         f"A useful place to begin with this question is **{title}**. "
-        f"The material addresses it this way: {sentence}"
+        f"The material points to this: {body}"
     )
 
 
@@ -11655,9 +11669,33 @@ def _v170_generation_output_diagnostic_self_audit() -> None:
     print("USE v170 GENERATION OUTPUT DIAGNOSTIC AUDIT: PASS")
 
 
+def _v185_bounded_grounded_synthesis_self_audit() -> None:
+    """Verify bounded synthesis keeps complementary supplied evidence grounded."""
+    context = (
+        "Title: Community Resilience\n"
+        "URL: https://example.invalid/resilience\n"
+        "Content: Resilient communities create ways to remain connected while differences are visible and workable.\n\n---\n\n"
+        "Title: Shared Responsibility\n"
+        "URL: https://example.invalid/responsibility\n"
+        "Content: Shared responsibility allows people to respond to disagreement without requiring everyone to think alike."
+    )
+    answer = _extractive_canonical_evidence_fallback(
+        "What makes a community resilient when people disagree about what should happen next?",
+        context,
+    )
+    if "Community Resilience" not in answer:
+        raise RuntimeError("v185 synthesis regression: strongest doorway was not preserved.")
+    if "remain connected" not in answer or "Shared responsibility" not in answer:
+        raise RuntimeError("v185 synthesis regression: complementary evidence was not retained.")
+    if "canonical evidence" in answer.casefold() or "retrieval" in answer.casefold():
+        raise RuntimeError("v185 synthesis regression: internal retrieval language crossed visitor boundary.")
+    print("USE v185 BOUNDED GROUNDED SYNTHESIS AUDIT: PASS")
+
+
 def _generation_boundary_self_audit() -> None:
     """Fail loudly at startup if known visitor-boundary defects return."""
     _v171_internal_corpus_markup_sanitization_self_audit()
+    _v185_bounded_grounded_synthesis_self_audit()
     _v170_generation_output_diagnostic_self_audit()
     _v169_clean_runtime_boot_provenance_self_audit()
     _v166_reasoning_evidence_authority_self_audit()
