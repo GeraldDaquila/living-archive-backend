@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v183 — Conversational Style Calibration Bugfix + v181 visitor-language baseline + The Guide
+# USE PRODUCTION VERSION: v184 — Conversational Style Calibration Bugfix + Canonical Identity Rebuild + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -613,7 +613,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v183"
+APP_VERSION = "v184"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -629,14 +629,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v183-mvp-conversational-style-calibration-bugfix"
+DEPLOYMENT_FINGERPRINT = "USE-v184-mvp-conversational-style-calibration-bugfix-rebuilt"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v183-mvp-conversational-style-calibration-bugfix"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "65882ea0def12ffe217719a72a103dda18a4be115edce625285a0f410822cfc6"
+CANONICAL_BUILD_ID = "USE-BUILD-v184-mvp-conversational-style-calibration-bugfix-rebuilt"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1d89e6d6c566da46cfadc729cc44560688be5787f97107e5972e3ab32d88143c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
