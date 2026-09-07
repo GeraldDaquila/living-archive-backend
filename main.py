@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v215 — Relational Evidence Budgeting + The Guide
+# USE PRODUCTION VERSION: v216 — Question-Pole Evidence Binding + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v215"
+APP_VERSION = "v216"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v215-relational-evidence-budgeting"
+DEPLOYMENT_FINGERPRINT = "USE-v216-question-pole-evidence-binding"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-# The payload hash deliberately excludes only this marked block, so the
-# expected digest is non-self-referential. Any source change outside this
-# block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v215-relational-evidence-budgeting"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "54205477c817535cdae1bdadcc42ad3a214162a08537b5e5c5d1457e2eabab9e"
+# The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
+CANONICAL_BUILD_ID = "USE-BUILD-v216-question-pole-evidence-binding"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "460b8f9916396dc53846c618fcd6545d5dace52a7099c091dada7fa21b9c4218"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7746,6 +7744,305 @@ def _v214_document_axis_coverage(
     return coverage
 
 
+
+def _v216_question_pole_coverage_profile(
+    question: str,
+    document: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Profile supplied evidence against the distinct literal poles of a question.
+
+    v216 treats explicit relational questions as having coverage obligations, not
+    merely relevance scores. The profile remains strictly Content-derived: it
+    does not infer hidden concepts or assign authority. A pole is covered only
+    when distinct literal terms from that side of the visitor's wording appear
+    in the supplied Content.
+    """
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2:
+        return {"axes": [], "covered": set(), "hits": {}, "direct_fit": 0, "bridge": False}
+
+    raw_axis_sets = [(name, set(_v209_axis_terms(text))) for name, text in axes[1:]]
+    all_sets = [terms for _name, terms in raw_axis_sets]
+    distinct_axes: List[Tuple[str, Tuple[str, ...]]] = []
+    for index, (name, terms) in enumerate(raw_axis_sets):
+        other_terms = set().union(
+            *(all_sets[offset] for offset in range(len(all_sets)) if offset != index)
+        )
+        distinct_axes.append((name, tuple(sorted(terms - other_terms))))
+
+    content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in (
+            "ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"
+        ):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    content_stems = {stem(token) for token in content_tokens}
+    covered: set = set()
+    hits: Dict[str, int] = {}
+    for axis_name, terms in distinct_axes:
+        axis_hits = 0
+        for term in terms:
+            normalized = term.replace("-", "")
+            if (
+                term in content_tokens
+                or normalized in content_tokens
+                or stem(term) in content_stems
+            ):
+                axis_hits += 1
+        if axis_hits:
+            covered.add(axis_name)
+            hits[axis_name] = axis_hits
+
+    direct_fit = _synthesis_evidence_quality_score(question, document)[0]
+    return {
+        "axes": [name for name, _terms in distinct_axes],
+        "covered": covered,
+        "hits": hits,
+        "direct_fit": direct_fit,
+        "bridge": len(covered) >= 2,
+    }
+
+
+def _v216_bind_question_poles_to_evidence(
+    selected: List[Dict[str, Any]],
+    candidates: List[Dict[str, Any]],
+    question: str,
+    *,
+    max_resources: int = 3,
+) -> List[Dict[str, Any]]:
+    """Bind final synthesis evidence to distinct literal poles of the question.
+
+    v215 improved the amount of evidence reaching the provider, but a conceptually
+    diverse bundle could still omit the evidence needed for one side of an explicit
+    relation. v216 changes the final selection rule: when eligible evidence exists
+    for a missing question pole, that evidence is admitted ahead of merely novel
+    adjacent material. A bridge resource covering both poles is preferred when its
+    direct fit is strong. Navigation and canonical doorway selection are untouched.
+    """
+    if not selected or not candidates:
+        return selected
+
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2:
+        return selected
+
+    limit = max(1, min(int(max_resources), MAX_SYNTHESIS_EVIDENCE_RESOURCES))
+    working: List[Dict[str, Any]] = list(selected[:limit])
+    selected_keys = {_resource_key(doc) for doc in working}
+
+    profiled: List[Tuple[int, Dict[str, Any], Dict[str, Any], Tuple[int, int, int, int]]] = []
+    for index, document in enumerate(candidates):
+        if not isinstance(document, dict) or not _resource_content(document).strip():
+            continue
+        quality = _synthesis_evidence_quality_score(question, document)
+        if quality[0] < _SYNTHESIS_MIN_DIRECT_FIT:
+            continue
+        profile = _v216_question_pole_coverage_profile(question, document)
+        if not profile["covered"]:
+            continue
+        profiled.append((index, document, profile, quality))
+
+    if not profiled:
+        return working
+
+    def union_covered(docs: List[Dict[str, Any]]) -> set:
+        result = set()
+        for doc in docs:
+            result.update(_v216_question_pole_coverage_profile(question, doc)["covered"])
+        return result
+
+    all_poles = set(_v216_question_pole_coverage_profile(question, candidates[0])["axes"])
+    if len(all_poles) < 2:
+        return working
+
+    covered = union_covered(working)
+    if covered >= all_poles:
+        return working
+
+    # First, admit the strongest candidate that covers the greatest number of
+    # missing poles. Direct fit dominates; relational/bridge coverage is next.
+    while covered < all_poles and len(working) < limit:
+        missing = all_poles - covered
+        pool = [
+            item for item in profiled
+            if _resource_key(item[1]) not in selected_keys
+            and item[2]["covered"] & missing
+        ]
+        if not pool:
+            break
+        pool.sort(
+            key=lambda item: (
+                len(item[2]["covered"] & missing),
+                1 if item[2]["bridge"] else 0,
+                item[3][0],
+                len(item[2]["covered"]),
+                sum(item[2]["hits"].values()),
+                item[3][1],
+                item[3][2],
+                item[3][3],
+                -item[0],
+            ),
+            reverse=True,
+        )
+        chosen = pool[0][1]
+        working.append(chosen)
+        selected_keys.add(_resource_key(chosen))
+        covered = union_covered(working)
+
+    if covered < all_poles and len(working) >= limit:
+        # At capacity, replace the weakest non-primary role only when the
+        # replacement adds an uncovered pole and preserves all currently covered
+        # poles that would otherwise disappear.
+        missing = all_poles - covered
+        pool = [
+            item for item in profiled
+            if _resource_key(item[1]) not in selected_keys
+            and item[2]["covered"] & missing
+        ]
+        if pool:
+            pool.sort(
+                key=lambda item: (
+                    len(item[2]["covered"] & missing),
+                    1 if item[2]["bridge"] else 0,
+                    item[3][0],
+                    sum(item[2]["hits"].values()),
+                    item[3][1],
+                    item[3][2],
+                    item[3][3],
+                    -item[0],
+                ),
+                reverse=True,
+            )
+            replacement = pool[0][1]
+            replacement_profile = pool[0][2]
+            replacement_quality = pool[0][3]
+            replacement_position = None
+            replacement_rank = None
+            for position, current in enumerate(working):
+                if position == 0:
+                    continue
+                remaining = union_covered(working[:position] + working[position + 1:])
+                current_profile = _v216_question_pole_coverage_profile(question, current)
+                current_quality = _synthesis_evidence_quality_score(question, current)
+                if not current_profile["covered"].issubset(remaining):
+                    continue
+                rank = (
+                    current_quality[0],
+                    len(current_profile["covered"]),
+                    sum(current_profile["hits"].values()),
+                    current_quality[1],
+                    current_quality[2],
+                    current_quality[3],
+                    position,
+                )
+                if replacement_position is None or rank < replacement_rank:
+                    replacement_position = position
+                    replacement_rank = rank
+            if replacement_position is not None:
+                old_replaced = working[replacement_position]
+                selected_keys.discard(_resource_key(old_replaced))
+                working[replacement_position] = replacement
+                selected_keys.add(_resource_key(replacement))
+                covered = union_covered(working)
+
+    if covered >= all_poles:
+        print(
+            "USE v216 question-pole evidence binding: "
+            f"poles={sorted(all_poles)}, covered={sorted(covered)}, "
+            f"selected={len(working)}, "
+            f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in working ]}"
+        )
+    else:
+        print(
+            "USE v216 question-pole evidence binding: "
+            f"eligible_poles={sorted(all_poles)}, covered={sorted(covered)}, "
+            f"selected={len(working)}, no complete pole coverage available in supplied candidates"
+        )
+    return working
+
+
+def _v216_question_pole_role_binding_instruction(
+    user_query: str,
+    intent: str,
+    generation_context: str,
+) -> str:
+    """Use the existing compact role schema after v216 pole-bound selection.
+
+    The selection layer performs the pole binding; the provider instruction stays
+    compact so the hard evidence envelope is not consumed by metadata. Existing
+    E2/E3 role labels remain Content-derived and explicitly non-authoritative.
+    """
+    return _v213_evidence_role_binding_instruction(user_query, intent, generation_context)
+
+
+def _v216_question_pole_evidence_binding_self_audit() -> None:
+    """Verify explicit two-sided questions retain evidence for both literal poles."""
+    question = (
+        "How can improving decision speed make an organization faster at familiar problems "
+        "while making it slower to recognize when the surrounding conditions have changed?"
+    )
+    speed = {
+        "title": "Speed Lens",
+        "url": "https://example.invalid/speed",
+        "content": (
+            "Decision speed can make familiar problem-solving faster by reducing delay and repetition. "
+            "Established routines can improve rapid execution."
+        ),
+    }
+    change = {
+        "title": "Changed Conditions Lens",
+        "url": "https://example.invalid/change",
+        "content": (
+            "Surrounding conditions can change while familiar routines remain in place. "
+            "Recognizing changed conditions requires attention to signals outside established patterns."
+        ),
+    }
+    adjacent = {
+        "title": "Generic Coordination Lens",
+        "url": "https://example.invalid/coordination",
+        "content": (
+            "Coordination can improve organizational efficiency and shared outcomes. "
+            "Teams often benefit from clearer communication."
+        ),
+    }
+    selected = _select_evidence_rich_synthesis_roles([speed, adjacent], question)
+    bound = _v216_bind_question_poles_to_evidence(
+        selected, [speed, adjacent, change], question
+    )
+    coverage = set().union(
+        *(_v216_question_pole_coverage_profile(question, doc)["covered"] for doc in bound)
+    )
+    if len(coverage) < 2:
+        raise RuntimeError(
+            "v216 question-pole binding failed to preserve both explicit question poles."
+        )
+    titles = {doc.get("title") for doc in bound}
+    if "Changed Conditions Lens" not in titles:
+        raise RuntimeError(
+            "v216 question-pole binding failed to admit supplied missing-pole evidence."
+        )
+    instruction = _v216_question_pole_role_binding_instruction(
+        question, "TOPICAL_INQUIRY", format_context_blocks(bound)
+    )
+    for marker in ("[ROLES]", "E1=primary", "E2=", "roles=contribution,not-authority", "synthesize-relation-first"):
+        if marker not in instruction:
+            raise RuntimeError("v216 question-pole role instruction missing marker: " + marker)
+    neutral = _v216_question_pole_role_binding_instruction(
+        "Why is uncertainty difficult?", "TOPICAL_INQUIRY", format_context_blocks(bound)
+    )
+    if neutral:
+        raise RuntimeError("v216 question-pole role binding activated for a non-relational question.")
+    print(
+        "USE v216 QUESTION-POLE EVIDENCE BINDING AUDIT: PASS; "
+        f"covered={sorted(coverage)}, titles={sorted(titles)}, instruction_chars={len(instruction)}"
+    )
+
 def _v214_preserve_relational_synthesis_coverage(
     selected: List[Dict[str, Any]],
     candidates: List[Dict[str, Any]],
@@ -8935,7 +9232,7 @@ def fetch_canonical_context(
     # question to a single-sided explanation. This lock changes only the final
     # provider evidence set; retrieval, doorway selection, canonical authority,
     # and navigation remain unchanged.
-    generation_evidence_docs = _v214_preserve_relational_synthesis_coverage(
+    generation_evidence_docs = _v216_bind_question_poles_to_evidence(
         generation_evidence_docs,
         generation_evidence_candidates,
         user_query,
@@ -10803,7 +11100,7 @@ def _v215_trim_role_binding_instruction(
     role_instruction: str,
     retained_evidence_count: int,
 ) -> str:
-    """Trim pre-bound roles to the evidence blocks actually retained by v215."""
+    """Trim pre-bound roles to the evidence blocks actually retained by v215/v216."""
     instruction = str(role_instruction or "").strip()
     count = max(0, int(retained_evidence_count))
     if not instruction or count <= 0:
@@ -10811,21 +11108,16 @@ def _v215_trim_role_binding_instruction(
     match = re.search(r"^\[ROLES\]\s*(.*)$", instruction, flags=re.DOTALL)
     if not match:
         return instruction
-    body = match.group(1)
-    roles = re.findall(r"E\d+=[^;]+", body)
+    body = match.group(1).strip()
+    role_part, separator, suffix = body.partition("; roles=contribution,not-authority;")
+    if not separator:
+        return instruction
+    roles = re.findall(r"E\d+=[^;]+", role_part)
     retained_roles = roles[:count]
     if not retained_roles:
         return instruction
-    suffix_match = re.search(
-        r"roles=contribution,not-authority;\s*synthesize-relation-first;\s*doorway=navigation\.",
-        body,
-    )
-    suffix = (
-        "roles=contribution,not-authority; synthesize-relation-first; doorway=navigation."
-        if suffix_match
-        else ""
-    )
-    return "[ROLES] " + "; ".join(retained_roles) + ("; " if suffix else "") + suffix
+    suffix = suffix.strip()
+    return "[ROLES] " + "; ".join(retained_roles) + "; roles=contribution,not-authority;" + (" " + suffix if suffix else "")
 
 
 def _estimate_message_chars(messages: List[Dict[str, str]]) -> int:
@@ -10896,7 +11188,7 @@ def _fit_generation_context_to_provider_budget(
                 schema_free=True,
             )
         else:
-            role_instruction = _v213_evidence_role_binding_instruction(
+            role_instruction = _v216_question_pole_role_binding_instruction(
                 user_query, intent, role_binding_context
             )
             evidence_capacity = max(
@@ -14341,11 +14633,18 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
         relational_question, "TOPICAL_INQUIRY", context, max_tokens=352
     )
     fitted_user_content = fitted_messages[-1]["content"]
-    for marker in ("[ROLES]", "E1=primary", "E2=", "E3="):
+    for marker in ("[ROLES]", "E1=primary", "E2="):
         if marker not in fitted_context:
             raise RuntimeError(
                 "v212 evidence-representation regression: provider preflight lost role-binding marker: " + marker
             )
+    # v215/v216 may deliberately reduce a three-role bundle to two when the
+    # hard provider envelope cannot preserve three substantive evidence blocks.
+    retained_blocks = fitted_context.count("[Evidence ")
+    if retained_blocks >= 3 and "E3=" not in fitted_context:
+        raise RuntimeError(
+            "v212 evidence-representation regression: three retained evidence blocks lost E3 role binding."
+        )
     if "[Evidence 1]" not in fitted_context:
         raise RuntimeError(
             "v212 evidence-representation regression: provider preflight lost primary evidence."
