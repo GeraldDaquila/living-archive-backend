@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v224 — Final Authority Survival Guard + The Guide
+# USE PRODUCTION VERSION: v225 — Provider Completion Recovery + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v224"
+APP_VERSION = "v225"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v224-final-authority-survival-guard"
+DEPLOYMENT_FINGERPRINT = "USE-v225-provider-completion-recovery"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v224-final-authority-survival-guard"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "264b8a33b559a9e378047892fc5ad07acebea903acbb963ca6586b7cda81300b"
+CANONICAL_BUILD_ID = "USE-BUILD-v225-provider-completion-recovery"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "743ec5b58843b0b992f975610036f6be6211434d77d0b0c5bb3221c9c9b02846"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12947,6 +12947,138 @@ def _log_generation_output_boundary_diagnostic(
     )
 
 
+def _run_provider_completion_recovery(
+    model_id: str,
+    user_query: str,
+    intent: str,
+    safe_context: str,
+    *,
+    max_tokens: int,
+    reasoning_effort: Optional[str] = None,
+    orientational_frame: Optional[Dict[str, Any]] = None,
+    canonical_link_context: str = "",
+    validation_context: str = "",
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """Retry one provider completion when evidence is present but the model emitted a false evidence-gap claim.
+
+    This is a narrow generation-boundary recovery. It does not retrieve new
+    material, change evidence selection, cycle models, or authorize unsupported
+    claims. The retry uses the exact already-bounded evidence payload and asks
+    the same model to answer directly from that evidence.
+    """
+    messages = _build_generation_messages(
+        user_query,
+        intent,
+        safe_context,
+        orientational_frame,
+        compact=True,
+        role_binding_context=validation_context or safe_context,
+    )
+    messages[1]["content"] = (
+        str(messages[1].get("content", "")).rstrip()
+        + "\n\nRECOVERY: Supplied evidence is present. Do not respond that the evidence is insufficient merely because no single source states the entire answer. Synthesize only the supported relationship across the supplied evidence. Answer the visitor's question directly in finished prose inside <visitor_answer> tags."
+    )
+
+    estimated_quota_tokens = _estimate_quota_tokens(messages, max_tokens)
+    _known_daily_tpd_preflight(model_id, estimated_quota_tokens)
+
+    print(
+        "USE provider completion recovery: retrying same model with the exact "
+        f"bounded evidence payload; model={model_id}, evidence_chars={len(safe_context)}."
+    )
+
+    try:
+        provider_kwargs = {
+            "model": model_id,
+            "messages": messages,
+            "temperature": 0.2,
+            "max_completion_tokens": max_tokens,
+        }
+        if reasoning_effort and model_id.startswith("openai/gpt-oss-"):
+            provider_kwargs["reasoning_effort"] = reasoning_effort
+        response = groq_client.chat.completions.create(**provider_kwargs)
+    except Exception as exc:
+        _log_provider_exception_diagnostic(
+            "recovery",
+            model_id,
+            exc,
+            max_tokens=max_tokens,
+            input_chars=_estimate_message_chars(messages),
+            evidence_chars=len(safe_context),
+        )
+        raise
+
+    choice = response.choices[0]
+    finish_reason = getattr(choice, "finish_reason", None)
+    generated_text = choice.message.content or ""
+    if str(finish_reason or "").lower() in {"length", "max_tokens"}:
+        print(
+            f"USE provider completion recovery: model '{model_id}' reached its "
+            "generation limit; rejecting incomplete visitor answer."
+        )
+        return ""
+
+    reasoning_evidence_identity = _provider_evidence_identity_context(
+        safe_context,
+        str(validation_context or safe_context or ""),
+    )
+    cleaned_answer = _clean_generation_output(
+        generated_text,
+        reasoning_evidence_identity,
+        canonical_link_context,
+    )
+    diagnostic = _generation_output_boundary_diagnostic(
+        generated_text,
+        cleaned_answer,
+        finish_reason,
+        reasoning_evidence_identity,
+    )
+    _log_generation_output_boundary_diagnostic(
+        "recovery",
+        model_id,
+        diagnostic,
+    )
+
+    cleaned_answer = _apply_movement_evidence_gate(
+        cleaned_answer,
+        user_query,
+        str(validation_context or safe_context or ""),
+    )
+
+    if (
+        cleaned_answer
+        and _canonical_pairs(reasoning_evidence_identity)
+        and _looks_like_false_evidence_gap_claim(cleaned_answer)
+    ):
+        print(
+            f"USE provider completion recovery: model '{model_id}' repeated an "
+            "unsupported evidence-gap claim; rejecting recovery output."
+        )
+        return ""
+
+    if (
+        cleaned_answer
+        and str(intent).upper() == "TOPICAL_INQUIRY"
+        and _canonical_pairs(reasoning_evidence_identity)
+        and not _contains_canonical_resource_reference(
+            cleaned_answer,
+            reasoning_evidence_identity,
+        )
+    ):
+        canonical_pairs = _canonical_pairs(reasoning_evidence_identity)
+        first_title = _canonical_display_title(canonical_pairs[0][0])
+        if first_title:
+            first_url = canonical_pairs[0][1]
+            first_link = f"[{first_title}]({first_url})"
+            cleaned_answer = (
+                f"{cleaned_answer.rstrip()}\n\n"
+                f"For a canonical route into the Archive, a strong place to begin is {first_link}."
+            )
+
+    return cleaned_answer
+
+
 def _run_generation_attempt(
     model_id: str,
     user_query: str,
@@ -13060,6 +13192,30 @@ def _run_generation_attempt(
             f"USE MVP output boundary: rejected unsupported evidence-gap claim "
             f"from model '{model_id}'; canonical evidence is present."
         )
+        try:
+            recovery_answer = _run_provider_completion_recovery(
+                model_id,
+                user_query,
+                intent,
+                safe_context,
+                max_tokens=max_tokens,
+                reasoning_effort=reasoning_effort,
+                orientational_frame=orientational_frame,
+                canonical_link_context=canonical_link_context,
+                validation_context=validation_context,
+                protected_documents=protected_documents,
+            )
+            if recovery_answer:
+                print(
+                    f"USE provider completion recovery: usable visitor answer "
+                    f"returned by same model '{model_id}'."
+                )
+                return recovery_answer
+        except Exception as recovery_exc:
+            print(
+                f"USE provider completion recovery failed for model '{model_id}': "
+                f"{recovery_exc}"
+            )
         return ""
 
     # v198 movement correction: a provider response may be substantively
@@ -16147,6 +16303,18 @@ def _v208_question_evidence_fit_self_audit() -> None:
         _query_index = saved_query_index
 
     print("USE v208 QUESTION-EVIDENCE FIT + MARKUP BOUNDARY AUDIT: PASS")
+
+def _v225_provider_completion_recovery_self_audit() -> None:
+    """Verify the v225 recovery remains a narrow evidence-present retry boundary."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    assert source.count("def _run_provider_completion_recovery(") == 1
+    assert "RECOVERY: Supplied evidence is present." in source
+    assert "do not respond that the evidence is insufficient" in source
+    assert "safe_context," in source
+    assert "_looks_like_false_evidence_gap_claim(cleaned_answer)" in source
+    assert "recovery" in source
+    print("USE v225 provider completion recovery audit: PASS")
+
 
 def _generation_boundary_self_audit() -> None:
     """Run every deterministic zero-argument self-audit before deployment."""
