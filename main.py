@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v219 — Relational Candidate-Set Integrity + The Guide
+# USE PRODUCTION VERSION: v220 — Final Relational Evidence Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v219"
+APP_VERSION = "v220"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v219-relational-candidate-set-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v220-final-relational-evidence-integrity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v219-relational-candidate-set-integrity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "8a3a0cc01873e97c94e33b88cf652267b5e6118e957ccc437f2d5614c80d47a1"
+CANONICAL_BUILD_ID = "USE-BUILD-v220-final-relational-evidence-integrity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "5abff6ee1ad4ccc00f1820a6d22958660aa4573ad5d8e761070dbf82ddc114c5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11675,6 +11675,108 @@ def _v217_pole_preserving_evidence_excerpt(
     return text[:limit].rstrip()
 
 
+def _v220_relational_provider_subset(
+    prepared: List[Tuple[str, str]],
+    question: str,
+    max_chars: int,
+    separator_len: int,
+    prefix_func: Any,
+    min_content: int,
+    selected_n: int,
+) -> Tuple[List[Tuple[str, str]], int, int, bool]:
+    """Preserve final literal-pole coverage in the actual provider evidence payload.
+
+    v220 closes the gap between v219 candidate-set integrity and the evidence
+    that actually reaches the provider. When a relational question has viable
+    evidence for both explicit poles, the bounded provider subset must retain
+    both poles whenever the hard character envelope can support two substantive
+    evidence blocks. A narrowly budget-constrained two-block bundle may reduce
+    the per-source floor only as far as 120 characters; it never invents a pole.
+    """
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2 or len(prepared) <= 1:
+        return prepared[:selected_n], selected_n, min_content, False
+
+    profiles = []
+    for index, (title, content) in enumerate(prepared):
+        document = {"title": title, "text": content}
+        profile = _v216_question_pole_coverage_profile(question, document)
+        profiles.append((index, title, content, profile))
+
+    all_poles = set()
+    for _index, _title, _content, profile in profiles:
+        all_poles.update(profile.get("axes", []))
+    if len(all_poles) < 2:
+        return prepared[:selected_n], selected_n, min_content, False
+
+    def covers(indices: Tuple[int, ...]) -> bool:
+        covered = set()
+        for index in indices:
+            covered.update(profiles[index][3].get("covered", set()))
+        return covered >= all_poles
+
+    def rank(indices: Tuple[int, ...]) -> Tuple[Any, ...]:
+        covered = set()
+        for index in indices:
+            covered.update(profiles[index][3].get("covered", set()))
+        direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)
+        hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)
+        return (1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))
+
+    effective_min = min_content
+    effective_n = selected_n
+    pair_rescue = False
+
+    # If the ordinary substantive floor misses a two-source bundle by only a
+    # small amount, preserve both literal poles rather than silently collapsing
+    # the relational question to a single source. The floor may be reduced only
+    # to the bounded 120-character minimum.
+    if selected_n < 2:
+        import itertools
+        fitting_pairs = []
+        for indices in itertools.combinations(range(len(prepared)), 2):
+            if not covers(indices):
+                continue
+            prefixes = [prefix_func(i + 1, prepared[i][0]) for i in indices]
+            pair_base = sum(len(p) for p in prefixes) + separator_len
+            pair_capacity = max_chars - pair_base
+            if pair_capacity < 240:
+                continue
+            pair_min = min(min_content, pair_capacity // 2)
+            if pair_min >= 120:
+                fitting_pairs.append((pair_min, rank(indices), indices))
+        if fitting_pairs:
+            fitting_pairs.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            pair_min, _pair_rank, best_pair = fitting_pairs[0]
+            effective_n = 2
+            effective_min = pair_min
+            pair_rescue = True
+
+    # If two or more blocks are already affordable, choose a subset at that same
+    # cardinality that preserves all literal poles whenever viable evidence exists.
+    if effective_n >= 2:
+        import itertools
+        subset_n = min(effective_n, len(prepared), 3)
+        complete = [
+            indices for indices in itertools.combinations(range(len(prepared)), subset_n)
+            if covers(indices)
+        ]
+        if complete:
+            best = max(complete, key=rank)
+            chosen = [prepared[index] for index in best]
+            if best != tuple(range(subset_n)) or pair_rescue:
+                print(
+                    "USE v220 final relational evidence integrity: "
+                    f"poles={sorted(all_poles)}, selected={len(chosen)}, "
+                    f"indices={list(best)}, pair_rescue={pair_rescue}, "
+                    f"min_content={effective_min}, "
+                    f"titles={[title for title, _ in chosen]}"
+                )
+            return chosen, subset_n, effective_min, pair_rescue
+
+    return prepared[:effective_n], effective_n, effective_min, pair_rescue
+
+
 def _v217_build_provider_evidence_context(
     generation_context: str,
     max_chars: int,
@@ -11733,7 +11835,9 @@ def _v217_build_provider_evidence_context(
         else:
             break
 
-    selected = prepared[:selected_n]
+    selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(
+        prepared, question, max_chars, separator_len, prefix, min_content, selected_n
+    )
     prefixes = [prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
     available = max_chars - separator_len * (selected_n - 1) - sum(len(p) for p in prefixes)
     if available <= 0:
@@ -11779,7 +11883,7 @@ def _v217_build_provider_evidence_context(
     result = "\n\n---\n\n".join(blocks).strip()
     if len(result) <= max_chars:
         print(
-            "USE v218 pole-preserving evidence allocation: "
+            "USE v220 final relational evidence integrity: "
             f"selected={selected_n}, max_chars={max_chars}, evidence_chars={len(result)}, "
             f"allocations={allocations}, titles={[title for title, _ in selected]}"
         )
@@ -11794,7 +11898,7 @@ def _v217_build_provider_evidence_context(
         blocks[-1] = last[:len(last) - excess].rstrip()
     result = "\n\n---\n\n".join(blocks).strip()
     print(
-        "USE v218 pole-preserving evidence allocation: "
+        "USE v220 final relational evidence integrity: "
         f"selected={len(blocks)}, max_chars={max_chars}, evidence_chars={len(result)}, "
         "exact_ceiling_guard=True"
     )
@@ -15218,6 +15322,43 @@ def _v212_provider_evidence_representation_self_audit() -> None:
         f"chars={len(dense)}, blocks={dense.count('[Evidence ')}"
     )
 
+
+
+def _v220_final_relational_evidence_integrity_self_audit() -> None:
+    """Verify the final provider payload cannot collapse viable two-pole evidence to one source."""
+    question = (
+        "Why can optimizing each stage of a process improve the performance of individual stages "
+        "while weakening the outcome of the process as a whole?"
+    )
+    context = (
+        "Title: Simulation-Based Leadership: Why Real Capability Only Shows Under Constraint\n"
+        "Content: Optimizing individual stages can improve local performance and capability within each stage.\n\n---\n\n"
+        "Title: Decision-Making Under Constraint: What Pressure Reveals About Capability\n"
+        "Content: A process can appear stronger locally while interactions between stages weaken the outcome of the whole process.\n\n---\n\n"
+        "Title: The Collapse That Revealed You\n"
+        "Content: Local improvements can hide broader process consequences when the surrounding system is not examined.\n"
+    )
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=494, max_resource_chars=494, question=question, schema_free=False
+    )
+    lowered = bounded.casefold()
+    assert bounded.count("[Evidence ") >= 2, (
+        "v220 final relational evidence integrity collapsed a viable two-pole payload to one block"
+    )
+    assert "individual stages" in lowered and "whole process" in lowered, (
+        "v220 final relational evidence integrity lost one of the literal poles"
+    )
+
+    neutral = _v217_build_provider_evidence_context(
+        context, max_chars=494, max_resource_chars=494, question="Why is uncertainty difficult?", schema_free=False
+    )
+    assert neutral.count("[Evidence ") >= 1
+    assert "Optimizing individual stages" in neutral
+    print(
+        "USE v220 FINAL RELATIONAL EVIDENCE INTEGRITY AUDIT: PASS; "
+        f"relational_blocks={bounded.count('[Evidence ')}, relational_chars={len(bounded)}, "
+        f"neutral_blocks={neutral.count('[Evidence ')}"
+    )
 
 
 def _v219_relational_candidate_set_integrity_self_audit() -> None:
