@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v220 — Final Relational Evidence Integrity + The Guide
+# USE PRODUCTION VERSION: v221 — Question-Specific Resource Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v220"
+APP_VERSION = "v221"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v220-final-relational-evidence-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v221-question-specific-resource-authority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v220-final-relational-evidence-integrity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "5abff6ee1ad4ccc00f1820a6d22958660aa4573ad5d8e761070dbf82ddc114c5"
+CANONICAL_BUILD_ID = "USE-BUILD-v221-question-specific-resource-authority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "aee6a07e2332c63122d00235c5425c0646d9558f33073c9da1718e03a8e1a7c5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7538,6 +7538,83 @@ def _complementary_evidence_selection_score(
     return (fit_score, coverage, phrase_hits)
 
 
+def _v221_question_specific_resource_authority(
+    documents: List[Dict[str, Any]],
+    question: str,
+) -> List[Dict[str, Any]]:
+    """Preserve the strongest Content-grounded representative for each explicit question axis.
+
+    v221 addresses a selection-boundary failure exposed by fresh testing: a
+    candidate can be directly useful for a required dimension of the question
+    yet lose practical authority during generic complementarity narrowing.
+    Authority here is functional and question-specific, not a permanent score
+    attached to a resource. It is established only by supplied Content.
+
+    The intervention is deliberately small: identify the explicit axes already
+    recognized by the existing relational layer, choose the strongest viable
+    Content-bearing representative for each uncovered axis, and return those
+    documents to the existing protected-document mechanism. No retrieval,
+    doorway, movement, provider, or navigation rule is replaced.
+    """
+    if not documents:
+        return []
+
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2:
+        return []
+
+    profiled = []
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict) or not _resource_content(document).strip():
+            continue
+        quality = _synthesis_evidence_quality_score(question, document)
+        if quality[0] < _SYNTHESIS_MIN_DIRECT_FIT:
+            continue
+        profile = _v216_question_pole_coverage_profile(question, document)
+        if not profile.get("covered"):
+            continue
+        profiled.append((index, document, profile, quality))
+
+    if not profiled:
+        return []
+
+    selected: List[Dict[str, Any]] = []
+    selected_keys = set()
+    for axis_name, _axis_text in axes[1:]:
+        pool = [
+            item for item in profiled
+            if axis_name in item[2].get("covered", set())
+        ]
+        if not pool:
+            continue
+
+        best = max(
+            pool,
+            key=lambda item: (
+                item[2].get("hits", {}).get(axis_name, 0),
+                item[3][0],
+                item[3][1],
+                item[3][2],
+                item[3][3],
+                1 if item[2].get("bridge") else 0,
+                -item[0],
+            ),
+        )
+        document = best[1]
+        key = _resource_key(document)
+        if key not in selected_keys:
+            selected.append(document)
+            selected_keys.add(key)
+
+    if selected:
+        print(
+            "USE v221 question-specific resource authority: "
+            f"axes={[name for name, _text in axes[1:]]}, "
+            f"selected={[str(doc.get('title', '')) for doc in selected]}"
+        )
+    return selected
+
+
 def _select_complementary_generation_evidence(
     documents: List[Dict[str, Any]],
     question: str,
@@ -8665,6 +8742,70 @@ def _select_evidence_rich_synthesis_roles(
     return selected
 
 
+def _v221_question_specific_resource_authority_self_audit() -> None:
+    """Verify direct Content authority for each explicit question axis survives narrowing."""
+    question = (
+        "How can a standardized procedure become more reliable for familiar situations "
+        "while making an institution less sensitive to unusual situations that fall outside it?"
+    )
+    generic = {
+        "title": "Generic Institutional Lens",
+        "url": "https://example.invalid/generic",
+        "text": (
+            "Institutions coordinate work through rules, expectations, roles, and "
+            "shared procedures. These structures can create consistency and improve "
+            "organizational performance across many conditions. " * 5
+        ),
+    }
+    reliable = {
+        "title": "Procedure Reliability Lens",
+        "url": "https://example.invalid/reliability",
+        "text": (
+            "A standardized procedure can become increasingly reliable when familiar "
+            "situations are handled repeatedly through stable steps and consistent "
+            "expectations. " * 8
+        ),
+    }
+    sensitive = {
+        "title": "Exception Sensitivity Lens",
+        "url": "https://example.invalid/sensitivity",
+        "text": (
+            "An institution can become less sensitive to unusual situations and "
+            "situations that fall outside a procedure when familiar cases are treated "
+            "as the normal pattern and exceptions receive less attention. " * 8
+        ),
+    }
+
+    protected = _v221_question_specific_resource_authority(
+        [generic, reliable, sensitive],
+        question,
+    )
+    titles = [doc["title"] for doc in protected]
+    assert "Procedure Reliability Lens" in titles
+    assert "Exception Sensitivity Lens" in titles
+
+    narrowed = _select_complementary_generation_evidence(
+        [generic, reliable, sensitive],
+        question,
+        protected_documents=protected,
+    )
+    narrowed_titles = [doc["title"] for doc in narrowed]
+    assert "Procedure Reliability Lens" in narrowed_titles
+    assert "Exception Sensitivity Lens" in narrowed_titles
+
+    synthesis = _select_evidence_rich_synthesis_roles(narrowed, question)
+    synthesis_titles = [doc["title"] for doc in synthesis]
+    bound = _v216_bind_question_poles_to_evidence(synthesis, narrowed, question)
+    bound_titles = [doc["title"] for doc in bound]
+    assert "Procedure Reliability Lens" in bound_titles or "Procedure Reliability Lens" in synthesis_titles
+    assert "Exception Sensitivity Lens" in bound_titles or "Exception Sensitivity Lens" in synthesis_titles
+
+    print(
+        "USE v221 QUESTION-SPECIFIC RESOURCE AUTHORITY AUDIT: PASS; "
+        f"protected={titles}, synthesis={synthesis_titles}, bound={bound_titles}"
+    )
+
+
 def _v206_evidence_sufficiency_allocation_self_audit() -> None:
     """Verify broad candidates narrow to a small evidence-rich synthesis set."""
     docs = [
@@ -9451,12 +9592,21 @@ def fetch_canonical_context(
             "source=D21-D26 canonical resource-function layer."
         )
 
+    # v221: preserve question-specific authority before generic complementarity
+    # can narrow the broad candidate pool. This uses the existing protected-doc
+    # mechanism rather than introducing a second selection engine.
+    question_authority_protected_docs = _v221_question_specific_resource_authority(
+        retrieved_docs,
+        user_query,
+    )
+
     generation_evidence_candidates = _select_complementary_generation_evidence(
         retrieved_docs,
         user_query,
         protected_documents=(
             explicit_type_protected_docs
             + document_choice_architecture_docs
+            + question_authority_protected_docs
         ),
     )
     if not generation_evidence_candidates:
