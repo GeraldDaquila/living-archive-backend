@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v218 — Relational Primary Evidence Integrity + The Guide
+# USE PRODUCTION VERSION: v219 — Relational Candidate-Set Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v218"
+APP_VERSION = "v219"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v218-relational-primary-evidence-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v219-relational-candidate-set-integrity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v218-relational-primary-evidence-integrity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "faeb563c967f0b15134221b07d98af984231c6f5c7f0c0673e1c030085a0f04c"
+CANONICAL_BUILD_ID = "USE-BUILD-v219-relational-candidate-set-integrity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "8a3a0cc01873e97c94e33b88cf652267b5e6118e957ccc437f2d5614c80d47a1"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7689,6 +7689,17 @@ def _select_complementary_generation_evidence(
         )
         selected = [strongest[1]]
 
+    # v219: before the broad candidate set leaves this boundary, preserve the
+    # literal poles of an explicit relational question. Conceptual novelty may
+    # enrich the set only after the question's explicit structure has survived.
+    selected = _v219_preserve_relational_candidate_set_integrity(
+        selected,
+        [item[1] for item in indexed],
+        question,
+        protected_keys=protected_keys,
+        max_resources=MAX_COMPLEMENTARY_EVIDENCE_RESOURCES,
+    )
+
     print(
         "USE v201 conceptual complementarity selection: "
         f"input={len(documents)}, selected={len(selected)}, "
@@ -7698,6 +7709,201 @@ def _select_complementary_generation_evidence(
     )
     return selected
 
+
+
+
+def _v219_preserve_relational_candidate_set_integrity(
+    selected: List[Dict[str, Any]],
+    documents: List[Dict[str, Any]],
+    question: str,
+    *,
+    protected_keys: Optional[set] = None,
+    max_resources: int = MAX_COMPLEMENTARY_EVIDENCE_RESOURCES,
+) -> List[Dict[str, Any]]:
+    """Preserve literal relational poles in the broad generation candidate set.
+
+    v219 moves the relational coverage invariant upstream of conceptual
+    complementarity. v201 can otherwise spend the bounded candidate budget on
+    conceptually novel material that is relevant in theme but does not represent
+    one side of the visitor's explicit relation. This helper operates only on
+    supplied canonical candidates and preserves the existing broad-set purpose:
+    it does not infer hidden concepts or create evidence.
+
+    For an explicit multi-axis question, if viable supplied evidence covers a
+    distinct literal pole, the candidate set must retain that pole whenever the
+    bounded candidate budget permits. At capacity, a non-protected selected
+    candidate is replaced only when the replacement adds a missing pole without
+    dropping a pole already represented by the remaining selected candidates.
+    """
+    if not selected or not documents:
+        return selected
+
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2:
+        return selected
+
+    limit = max(1, min(int(max_resources), MAX_COMPLEMENTARY_EVIDENCE_RESOURCES))
+    working = list(selected[:limit])
+    protected = set(protected_keys or set())
+    selected_keys = {_resource_key(doc) for doc in working}
+
+    def coverage(document: Dict[str, Any]) -> set:
+        return set(_v214_document_axis_coverage(question, document))
+
+    def union_coverage(documents_: List[Dict[str, Any]]) -> set:
+        result = set()
+        for doc in documents_:
+            result.update(coverage(doc))
+        return result
+
+    # Use the pole universe exposed by the actual question structure rather
+    # than by a particular candidate. This keeps the invariant question-shaped.
+    distinct_axis_names = [name for name, _text in _v209_distinct_axis_term_sets(question)]
+    if len(distinct_axis_names) < 2:
+        return working
+    all_poles = set(distinct_axis_names)
+
+    profiled = []
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict) or not _resource_content(document).strip():
+            continue
+        pole_coverage = coverage(document)
+        if not pole_coverage:
+            continue
+        quality = _synthesis_evidence_quality_score(question, document)
+        direct_fit = quality[0]
+        if direct_fit < _COMPLEMENTARY_MIN_DIRECT_FIT:
+            continue
+        relational = _v209_relational_evidence_profile(question, document)
+        concepts = _content_concept_set(document)
+        profiled.append((index, document, pole_coverage, quality, relational, concepts))
+
+    if not profiled:
+        return working
+
+    available_poles = set().union(*(item[2] for item in profiled))
+    required_poles = all_poles & available_poles
+    covered = union_coverage(working)
+    if required_poles <= covered:
+        return working
+
+    # First, append missing-pole candidates while capacity remains. Bridge
+    # candidates are preferred, but one-pole evidence remains valid: two
+    # complementary pole-specific resources can be stronger than a generic
+    # bridge, and v218 already established that boundary.
+    while required_poles - covered and len(working) < limit:
+        missing = required_poles - covered
+        pool = [
+            item for item in profiled
+            if _resource_key(item[1]) not in selected_keys
+            and item[2] & missing
+        ]
+        if not pool:
+            break
+        pool.sort(
+            key=lambda item: (
+                len(item[2] & missing),
+                1 if len(item[2]) >= 2 else 0,
+                item[4][4],
+                item[4][1],
+                item[4][0],
+                item[3][1],
+                item[3][2],
+                item[3][3],
+                -item[0],
+            ),
+            reverse=True,
+        )
+        chosen = pool[0][1]
+        working.append(chosen)
+        selected_keys.add(_resource_key(chosen))
+        covered = union_coverage(working)
+
+    if required_poles <= covered or len(working) < limit:
+        if required_poles <= covered:
+            print(
+                "USE v219 relational candidate-set integrity: "
+                f"poles={sorted(required_poles)}, covered={sorted(covered)}, "
+                f"selected={len(working)}, "
+                f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in working ]}"
+            )
+        return working
+
+    # At capacity, replace only a non-protected member whose removal does not
+    # erase a pole that is already represented elsewhere. This keeps explicit
+    # resource-type/document-form protections intact.
+    missing = required_poles - covered
+    replacement_pool = [
+        item for item in profiled
+        if _resource_key(item[1]) not in selected_keys
+        and item[2] & missing
+    ]
+    if not replacement_pool:
+        return working
+    replacement_pool.sort(
+        key=lambda item: (
+            len(item[2] & missing),
+            1 if len(item[2]) >= 2 else 0,
+            item[4][4],
+            item[4][1],
+            item[4][0],
+            item[3][1],
+            item[3][2],
+            item[3][3],
+            -item[0],
+        ),
+        reverse=True,
+    )
+    replacement = replacement_pool[0][1]
+    replacement_coverage = replacement_pool[0][2]
+
+    candidates_for_replacement = []
+    for position, current in enumerate(working):
+        if _resource_key(current) in protected:
+            continue
+        remaining = working[:position] + working[position + 1:]
+        remaining_coverage = union_coverage(remaining)
+        current_coverage = coverage(current)
+        if not current_coverage.issubset(remaining_coverage):
+            continue
+        current_quality = _synthesis_evidence_quality_score(question, current)
+        # Prefer replacing the least useful non-protected candidate, while
+        # requiring the replacement to add a genuinely missing pole.
+        rank = (
+            current_quality[0],
+            len(current_coverage),
+            sum(_v216_question_pole_coverage_profile(question, current)["hits"].values()),
+            current_quality[1],
+            current_quality[2],
+            current_quality[3],
+            position,
+        )
+        candidates_for_replacement.append((rank, position))
+
+    if not candidates_for_replacement:
+        print(
+            "USE v219 relational candidate-set integrity: "
+            f"poles={sorted(required_poles)}, covered={sorted(covered)}, "
+            "capacity reached but no safe replacement available."
+        )
+        return working
+
+    candidates_for_replacement.sort(key=lambda item: item[0])
+    position = candidates_for_replacement[0][1]
+    old = working[position]
+    working[position] = replacement
+    selected_keys.discard(_resource_key(old))
+    selected_keys.add(_resource_key(replacement))
+    covered = union_coverage(working)
+
+    print(
+        "USE v219 relational candidate-set integrity: "
+        f"poles={sorted(required_poles)}, covered={sorted(covered)}, "
+        f"replaced='{_canonical_display_title(str(old.get('title', 'Untitled Resource')))}' "
+        f"with='{_canonical_display_title(str(replacement.get('title', 'Untitled Resource')))}', "
+        f"replacement_poles={sorted(replacement_coverage)}"
+    )
+    return working
 
 
 def _v214_document_axis_coverage(
@@ -15010,6 +15216,72 @@ def _v212_provider_evidence_representation_self_audit() -> None:
     print(
         "USE v212 PROVIDER EVIDENCE REPRESENTATION AUDIT: PASS; "
         f"chars={len(dense)}, blocks={dense.count('[Evidence ')}"
+    )
+
+
+
+def _v219_relational_candidate_set_integrity_self_audit() -> None:
+    """Verify broad relational candidates preserve both literal poles before synthesis."""
+    question = (
+        "Why can increasing specialization improve performance within individual departments "
+        "while making the organization less capable of seeing problems created between those departments?"
+    )
+    local = {
+        "title": "Local Specialization Lens",
+        "url": "https://example.invalid/local-specialization",
+        "text": (
+            "Specialization can improve performance, precision, and expertise within individual departments. "
+            "Local teams can become more effective at the work inside their own domain."
+        ),
+    }
+    boundary = {
+        "title": "Cross-Department Boundary Lens",
+        "url": "https://example.invalid/cross-department",
+        "text": (
+            "Problems created between departments can become harder to see when relationships across "
+            "departmental boundaries are not examined. Cross-department effects may fall between specialties."
+        ),
+    }
+    generic = {
+        "title": "Generic Novelty Lens",
+        "url": "https://example.invalid/generic",
+        "text": (
+            "Organizations depend on trust, resilience, adaptation, learning, feedback, and shared routines. "
+            "These concepts can illuminate many institutional situations and unintended consequences."
+        ),
+    }
+    extra = {
+        "title": "Institutional Learning Lens",
+        "url": "https://example.invalid/learning",
+        "text": (
+            "Institutions can learn through feedback, reflection, and changes in assumptions when experience "
+            "reveals limitations in established practices."
+        ),
+    }
+    docs = [generic, extra, local, boundary]
+    selected = _select_complementary_generation_evidence(docs, question)
+    titles = [doc["title"] for doc in selected]
+    covered = set().union(*(_v214_document_axis_coverage(question, doc) for doc in selected))
+    required = set(name for name, _text in _v209_distinct_axis_term_sets(question))
+    assert required <= covered, (
+        "v219 relational candidate-set integrity failed to preserve all available literal poles: "
+        f"required={sorted(required)}, covered={sorted(covered)}, titles={titles}"
+    )
+    assert "Local Specialization Lens" in titles
+    assert "Cross-Department Boundary Lens" in titles
+
+    # Regression: when one pole is unavailable in the supplied corpus, v219 must
+    # not manufacture it or replace valid evidence merely to satisfy the invariant.
+    missing_boundary_docs = [generic, extra, local]
+    selected_missing = _select_complementary_generation_evidence(missing_boundary_docs, question)
+    covered_missing = set().union(
+        *(_v214_document_axis_coverage(question, doc) for doc in selected_missing)
+    )
+    assert covered_missing <= required
+    assert "Cross-Department Boundary Lens" not in [doc["title"] for doc in selected_missing]
+    print(
+        "USE v219 RELATIONAL CANDIDATE-SET INTEGRITY AUDIT: PASS; "
+        f"required={sorted(required)}, covered={sorted(covered)}, titles={titles}"
     )
 
 
