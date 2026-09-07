@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v231 — Question-Axis Coverage Gate + The Guide
+# USE PRODUCTION VERSION: v232 — Higher-Self Visitor Voice + Question-Axis Coverage Gate + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -614,7 +614,11 @@ For TOPICAL questions, orient through supplied evidence, not generic explanation
 
 For resource-form questions, distinguish forms only when the supplied evidence establishes their functions. For destination/collection requests, use evidence-established destinations. For movement questions, call a resource the next destination only when D29 explicitly validates it. An explicit link is a relationship, not automatically a next step. If no D29 next destination is validated, say so plainly. Never invent resources, relationships, definitions, or URLs; never reveal internal process.
 
-Use at least one exact supplied canonical title when making a resource-grounded topical claim. Answer the visitor's question directly; do not merely list resources. Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
+Use at least one exact supplied canonical title when making a resource-grounded topical claim. Answer the visitor's question directly; do not merely list resources.
+
+[VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
+
+Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
 """
 
 
@@ -624,11 +628,14 @@ Use at least one exact supplied canonical title when making a resource-grounded 
 
 COMPACT_GENERATION_SYSTEM_PROMPT = """
 You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
-Answer the visitor's question directly; do not merely list resources. For comparison or synthesis, compare only what supplied evidence establishes and explain what each relevant resource contributes. Use at least one exact supplied canonical title when making a resource-grounded claim.
-Preserve uncertainty and visitor sovereignty. [FRAME SOVEREIGNTY]: A specialized framework may govern the explanation only when the visitor names it. Do not imply an imposed framework, experience, or outcome. [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources, not evidence. Ground claims in supplied Content; use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic compatibility into causation. Do not invent intermediate facts or mechanisms. If a connection is not established, label the connection as an inference/possibility/interpretive reading. [BRIDGE INTEGRITY]: cannot add unstated factual premises as stepping stones or build a chain of plausible mechanisms; say the evidence does not establish the connection. [EVIDENCE SUFFICIENCY]: Retrieval relevance is not evidence sufficiency. If supplied Content cannot support the question, say the evidence is insufficient.
-For movement questions, say “next” only when D29 explicitly validates a next destination; otherwise say no canonical next destination is established. Relevance is not movement. Never invent resources, relationships, definitions, or URLs. Never reproduce internal field labels; do not output or discuss Title:, URL:, Content:, ID:, canonical evidence, or evidence block.
+Answer directly, not as a resource list. For synthesis/comparison, use only established evidence and explain each relevant source's contribution. Use an exact supplied canonical title for resource-grounded claims.
+[FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
+For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
+[VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
+
 
 
 
@@ -637,7 +644,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v231"
+APP_VERSION = "v232"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +660,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v231-question-axis-coverage-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v232-higher-self-visitor-voice"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-# The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v231-question-axis-coverage-gate"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "cc024a3b7eec58b589ceb084c908843a143bbd43873431c42df1944cd236e396"
+CANONICAL_BUILD_ID = "USE-BUILD-v232-higher-self-visitor-voice"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "75c88d8499141ee8c1ef3d4aa044f47d474ee0ff1d6332146c7f3075559e705d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -17035,6 +17041,32 @@ def _v225_provider_completion_recovery_self_audit() -> None:
     assert "_looks_like_false_evidence_gap_claim(cleaned_answer)" in source
     assert "recovery" in source
     print("USE v225 provider completion recovery audit: PASS")
+
+
+
+def _v232_higher_self_visitor_voice_self_audit() -> None:
+    """Verify the visitor voice remains grounded, non-coercive, and plain-spoken."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    required = (
+        "[VISITOR VOICE]",
+        "high emotional intelligence and quiet empathy",
+        "scholarly in thought but conversational in language",
+        "prefer clear, ordinary words over jargon",
+        "Do not flatter, impress, persuade, perform wisdom",
+        "create emotional dependency",
+        "claim to be the visitor's Higher Self",
+        "Preserve the visitor's dignity, agency",
+    )
+    missing = [marker for marker in required if marker not in source]
+    if missing:
+        raise RuntimeError(
+            "v232 visitor voice audit failed; missing markers: " + ", ".join(missing)
+        )
+    if source.count("[VISITOR VOICE]") < 2:
+        raise RuntimeError(
+            "v232 visitor voice audit failed; runtime and constitutional generation prompts are not both protected."
+        )
+    print("USE v232 HIGHER-SELF VISITOR VOICE AUDIT: PASS")
 
 
 def _generation_boundary_self_audit() -> None:
