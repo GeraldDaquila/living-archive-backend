@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v221 — Question-Specific Resource Authority + The Guide
+# USE PRODUCTION VERSION: v222 — Final Evidence Authority Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v221"
+APP_VERSION = "v222"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v221-question-specific-resource-authority"
+DEPLOYMENT_FINGERPRINT = "USE-v222-final-evidence-authority-preservation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v221-question-specific-resource-authority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "aee6a07e2332c63122d00235c5425c0646d9558f33073c9da1718e03a8e1a7c5"
+CANONICAL_BUILD_ID = "USE-BUILD-v222-final-evidence-authority-preservation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "97fac0bc5305aea0dfd48cdefa286eb99c389aad957e0817f84d713968b06a3d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9592,7 +9592,7 @@ def fetch_canonical_context(
             "source=D21-D26 canonical resource-function layer."
         )
 
-    # v221: preserve question-specific authority before generic complementarity
+    # v221/v222: preserve question-specific authority before generic complementarity
     # can narrow the broad candidate pool. This uses the existing protected-doc
     # mechanism rather than introducing a second selection engine.
     question_authority_protected_docs = _v221_question_specific_resource_authority(
@@ -11833,6 +11833,7 @@ def _v220_relational_provider_subset(
     prefix_func: Any,
     min_content: int,
     selected_n: int,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> Tuple[List[Tuple[str, str]], int, int, bool]:
     """Preserve final literal-pole coverage in the actual provider evidence payload.
 
@@ -11846,6 +11847,34 @@ def _v220_relational_provider_subset(
     axes = _v214_relational_axis_texts(question)
     if len(axes) <= 2 or len(prepared) <= 1:
         return prepared[:selected_n], selected_n, min_content, False
+
+    # v222: Question-Specific Resource Authority must survive the final
+    # provider-evidence compression boundary. v221 establishes functional
+    # authority upstream; this boundary prevents that authority from being
+    # displaced by a merely more generic resource during final allocation.
+    # Supplied protected documents are carried explicitly when available; the
+    # prepared provider set is also profiled directly so the invariant remains
+    # local to the actual evidence that can reach the provider.
+    authority_documents = list(protected_documents or [])
+    authority_documents.extend(
+        _v221_question_specific_resource_authority(
+            [
+                {"title": title, "text": content}
+                for title, content in prepared
+            ],
+            question,
+        )
+    )
+    authority_keys = {
+        _resource_key(document)
+        for document in authority_documents
+        if isinstance(document, dict)
+    }
+    protected_indices = {
+        index
+        for index, (title, _content) in enumerate(prepared)
+        if _resource_key({"title": title, "text": _content}) in authority_keys
+    }
 
     profiles = []
     for index, (title, content) in enumerate(prepared):
@@ -11871,11 +11900,24 @@ def _v220_relational_provider_subset(
             covered.update(profiles[index][3].get("covered", set()))
         direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)
         hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)
-        return (1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))
+        protected_count = len(set(indices) & protected_indices)
+        return (protected_count, 1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))
 
     effective_min = min_content
     effective_n = selected_n
     pair_rescue = False
+
+    # If the ordinary floor can afford only one block, retain a QSRA-authority
+    # resource rather than allowing generic ranking to select a different block.
+    if effective_n < 2 and protected_indices:
+        effective_index = max(protected_indices, key=lambda index: rank((index,)))
+        chosen = [prepared[effective_index]]
+        print(
+            "USE v222 final evidence authority preservation: "
+            f"protected_single=True, index={effective_index}, "
+            f"title={chosen[0][0]!r}"
+        )
+        return chosen, 1, effective_min, False
 
     # If the ordinary substantive floor misses a two-source bundle by only a
     # small amount, preserve both literal poles rather than silently collapsing
@@ -11885,6 +11927,8 @@ def _v220_relational_provider_subset(
         import itertools
         fitting_pairs = []
         for indices in itertools.combinations(range(len(prepared)), 2):
+            if protected_indices and not protected_indices.issubset(set(indices)):
+                continue
             if not covers(indices):
                 continue
             prefixes = [prefix_func(i + 1, prepared[i][0]) for i in indices]
@@ -11909,14 +11953,15 @@ def _v220_relational_provider_subset(
         subset_n = min(effective_n, len(prepared), 3)
         complete = [
             indices for indices in itertools.combinations(range(len(prepared)), subset_n)
-            if covers(indices)
+            if (not protected_indices or protected_indices.issubset(set(indices)))
+            and covers(indices)
         ]
         if complete:
             best = max(complete, key=rank)
             chosen = [prepared[index] for index in best]
             if best != tuple(range(subset_n)) or pair_rescue:
                 print(
-                    "USE v220 final relational evidence integrity: "
+                    "USE v220/v222 final evidence integrity: "
                     f"poles={sorted(all_poles)}, selected={len(chosen)}, "
                     f"indices={list(best)}, pair_rescue={pair_rescue}, "
                     f"min_content={effective_min}, "
@@ -11986,7 +12031,11 @@ def _v217_build_provider_evidence_context(
             break
 
     selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(
-        prepared, question, max_chars, separator_len, prefix, min_content, selected_n
+        prepared, question, max_chars, separator_len, prefix, min_content, selected_n,
+        protected_documents=_v221_question_specific_resource_authority(
+            [{"title": title, "text": content} for title, content in prepared],
+            question,
+        ),
     )
     prefixes = [prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
     available = max_chars - separator_len * (selected_n - 1) - sum(len(p) for p in prefixes)
@@ -12033,7 +12082,7 @@ def _v217_build_provider_evidence_context(
     result = "\n\n---\n\n".join(blocks).strip()
     if len(result) <= max_chars:
         print(
-            "USE v220 final relational evidence integrity: "
+            "USE v220/v222 final evidence integrity: "
             f"selected={selected_n}, max_chars={max_chars}, evidence_chars={len(result)}, "
             f"allocations={allocations}, titles={[title for title, _ in selected]}"
         )
@@ -12048,7 +12097,7 @@ def _v217_build_provider_evidence_context(
         blocks[-1] = last[:len(last) - excess].rstrip()
     result = "\n\n---\n\n".join(blocks).strip()
     print(
-        "USE v220 final relational evidence integrity: "
+        "USE v220/v222 final evidence integrity: "
         f"selected={len(blocks)}, max_chars={max_chars}, evidence_chars={len(result)}, "
         "exact_ceiling_guard=True"
     )
@@ -15472,6 +15521,48 @@ def _v212_provider_evidence_representation_self_audit() -> None:
         f"chars={len(dense)}, blocks={dense.count('[Evidence ')}"
     )
 
+
+
+def _v222_final_evidence_authority_preservation_self_audit() -> None:
+    """Verify QSRA-authoritative evidence survives final provider compression."""
+    question = (
+        "How can clearer division of responsibilities reduce duplication and conflict "
+        "while making an organization slower to adapt when a problem crosses those "
+        "established boundaries?"
+    )
+    context = (
+        "Title: Why Cooperation Breaks Down: Trust, Competition, and Survival\n"
+        "Content: Cooperation can reduce conflict and improve collective effectiveness, "
+        "but interdependence can also create constraints between parts of a system.\n\n---\n\n"
+        "Title: Work Sequence — The Protocol\n"
+        "Content: Clear division of responsibilities can reduce duplication and conflict "
+        "by assigning work through defined sequences and boundaries.\n\n---\n\n"
+        "Title: Capability Must Be Shared\n"
+        "Content: Shared capability helps organizations coordinate and respond when work "
+        "requires contribution across multiple parts."
+    )
+    prepared = []
+    for block in context.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if title_match and content_match:
+            prepared.append((title_match.group(1).strip(), content_match.group(1).strip()))
+
+    authority = _v221_question_specific_resource_authority(
+        [{"title": title, "text": content} for title, content in prepared],
+        question,
+    )
+    authority_titles = {doc["title"] for doc in authority}
+    assert "Work Sequence — The Protocol" in authority_titles
+
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=700, max_resource_chars=700, question=question, schema_free=False
+    )
+    assert "Work Sequence — The Protocol" in bounded
+    print(
+        "USE v222 FINAL EVIDENCE AUTHORITY PRESERVATION AUDIT: PASS; "
+        f"authority={sorted(authority_titles)}, bounded_chars={len(bounded)}"
+    )
 
 
 def _v220_final_relational_evidence_integrity_self_audit() -> None:
