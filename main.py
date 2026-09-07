@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v223 — Final Evidence Authority Carry-Through + The Guide
+# USE PRODUCTION VERSION: v224 — Final Authority Survival Guard + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v223"
+APP_VERSION = "v224"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v223-final-evidence-authority-carry-through"
+DEPLOYMENT_FINGERPRINT = "USE-v224-final-authority-survival-guard"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v223-final-evidence-authority-carry-through"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "10ab546de5ae0e4366940ce1a9a442382ec6d600df207a3b92d4d767570cf973"
+CANONICAL_BUILD_ID = "USE-BUILD-v224-final-authority-survival-guard"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "264b8a33b559a9e378047892fc5ad07acebea903acbb963ca6586b7cda81300b"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12089,9 +12089,51 @@ def _v217_build_provider_evidence_context(
         blocks.append(pfx + bounded)
 
     result = "\n\n---\n\n".join(blocks).strip()
+
+    # v224: final authority survival guard. The upstream QSRA set is now
+    # carried explicitly, but the final string is the actual provider boundary.
+    # Verify that every protected resource that was selected still has a
+    # represented block. This is deliberately title/identity based here only
+    # as a provenance check; substantive authority was established from
+    # Content upstream by v221. If a later formatting/ceiling operation ever
+    # drops a protected block, rebuild deterministically from the already
+    # selected protected resources rather than silently returning a weaker set.
+    if protected_documents:
+        protected_keys = {
+            _resource_key(document)
+            for document in protected_documents
+            if isinstance(document, dict)
+        }
+        selected_protected = [
+            (title, content)
+            for title, content in selected
+            if _resource_key({"title": title, "text": content}) in protected_keys
+        ]
+        missing_protected = [
+            (title, content)
+            for title, content in selected_protected
+            if f"Title: {_canonical_display_title(title)}" not in result
+        ]
+        if missing_protected:
+            guard_blocks = []
+            guard_alloc = max(1, (max_chars - separator_len * (len(selected_protected) - 1)) // len(selected_protected))
+            for i, (title, content) in enumerate(selected_protected):
+                pfx = prefix(i + 1, title)
+                limit = max(1, min(max_resource_chars, guard_alloc - len(pfx)))
+                excerpt = _v217_pole_preserving_evidence_excerpt(content, question, limit) if question else content[:limit].rstrip()
+                guard_blocks.append(pfx + excerpt)
+            guarded = "\n\n---\n\n".join(guard_blocks).strip()
+            if len(guarded) <= max_chars and guarded:
+                result = guarded
+                print(
+                    "USE v224 final authority survival guard: "
+                    f"reconstructed=True, protected={len(selected_protected)}, "
+                    f"evidence_chars={len(result)}"
+                )
+
     if len(result) <= max_chars:
         print(
-            "USE v220/v222 final evidence integrity: "
+            "USE v224 final evidence integrity: "
             f"selected={selected_n}, max_chars={max_chars}, evidence_chars={len(result)}, "
             f"allocations={allocations}, titles={[title for title, _ in selected]}"
         )
@@ -15540,6 +15582,49 @@ def _v212_provider_evidence_representation_self_audit() -> None:
 
 
 
+def _v224_final_authority_survival_guard_self_audit() -> None:
+    """Verify the final evidence string retains every selected QSRA authority block."""
+    question = (
+        "How can clearer division of responsibilities reduce duplication and conflict "
+        "while making an organization slower to adapt when a problem crosses those "
+        "established boundaries?"
+    )
+    docs = [
+        {
+            "title": "Why Cooperation Breaks Down: Trust, Competition, and Survival",
+            "url": "https://example.invalid/cooperation",
+            "text": "Cooperation can improve collective effectiveness, but interdependence can also create constraints between parts of a system.",
+        },
+        {
+            "title": "Work Sequence — The Protocol",
+            "url": "https://example.invalid/work-sequence",
+            "text": "Clear division of responsibilities can reduce duplication and conflict by assigning work through defined sequences and boundaries.",
+        },
+        {
+            "title": "Capability Must Be Shared",
+            "url": "https://example.invalid/capability",
+            "text": "Shared capability helps organizations coordinate and respond when work requires contribution across multiple parts.",
+        },
+    ]
+    authority = _v221_question_specific_resource_authority(docs, question)
+    assert authority, "v224 guard audit: QSRA returned no authority documents."
+    context = format_context_blocks(docs, structural_destination_count=0, adaptive_bridge_count=0)
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=700, max_resource_chars=700, question=question,
+        schema_free=False, protected_documents=authority,
+    )
+    for document in authority:
+        title = _canonical_display_title(str(document.get("title", "")))
+        assert f"Title: {title}" in bounded, (
+            "v224 guard audit: selected QSRA authority disappeared from final evidence: " + title
+        )
+    assert len(bounded) <= 700
+    print(
+        "USE v224 FINAL AUTHORITY SURVIVAL GUARD AUDIT: PASS; "
+        f"authority={[d.get('title') for d in authority]}, bounded_chars={len(bounded)}"
+    )
+
+
 def _v223_final_evidence_authority_carry_through_self_audit() -> None:
     """Verify upstream QSRA authority survives the final provider compression boundary."""
     question = (
@@ -15586,19 +15671,19 @@ def _v223_final_evidence_authority_carry_through_self_audit() -> None:
     fit_source = inspect.getsource(_fit_generation_context_to_provider_budget)
     run_source = inspect.getsource(_run_generation_attempt)
     assert "protected_documents=context_data.get" in query_source, (
-        "v223 authority carry-through regression: query endpoint drops upstream authority."
+        "v224 authority survival regression: query endpoint drops upstream authority."
     )
     assert "protected_documents=protected_documents" in generation_source, (
-        "v223 authority carry-through regression: generation boundary drops authority."
+        "v224 authority survival regression: generation boundary drops authority."
     )
     assert "protected_documents=protected_documents" in fit_source, (
-        "v223 authority carry-through regression: budget fitter drops authority."
+        "v224 authority survival regression: budget fitter drops authority."
     )
     assert "protected_documents=protected_documents" in run_source, (
-        "v223 authority carry-through regression: provider attempt drops authority."
+        "v224 authority survival regression: provider attempt drops authority."
     )
     print(
-        "USE v223 FINAL EVIDENCE AUTHORITY CARRY-THROUGH AUDIT: PASS; "
+        "USE v224 FINAL AUTHORITY SURVIVAL AUDIT: PASS; "
         f"authority={sorted(authority_titles)}, bounded_chars={len(bounded)}"
     )
 
