@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v225 — Provider Completion Recovery + The Guide
+# USE PRODUCTION VERSION: v226 — Question-Aligned Canonical Movement Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v225"
+APP_VERSION = "v226"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v225-provider-completion-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v226-question-aligned-canonical-movement-authority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v225-provider-completion-recovery"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "743ec5b58843b0b992f975610036f6be6211434d77d0b0c5bb3221c9c9b02846"
+CANONICAL_BUILD_ID = "USE-BUILD-v226-question-aligned-canonical-movement-authority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d533d92b8ba0cb3fe33ca8a5d76bc5742d3f04726cfa40409997d54bf62922da"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4608,12 +4608,109 @@ def _v195_answer_first_orientation_self_audit() -> None:
     print("USE v195 answer-first orientation audit: PASS")
 
 
+def _v226_question_aligned_doorway_authority_bonus(
+    question: str,
+    metadata: Dict[str, Any],
+    question_authority_documents: Optional[List[Dict[str, Any]]] = None,
+) -> Tuple[int, Tuple[int, int, int]]:
+    """Give an already-established QSRA authority resource bounded doorway weight.
+
+    This is a navigation refinement only. It never adds retrieval candidates or
+    creates authority from a title. The authority list is produced upstream by
+    v221 from substantive Content and explicit question axes.
+    """
+    if not question or not metadata or not question_authority_documents:
+        return 0, (0, 0, 0)
+
+    current_key = _resource_key(metadata)
+    authority_profiles = []
+    for document in question_authority_documents:
+        if _resource_key(document) != current_key:
+            continue
+        content = _resource_content(document)
+        quality = _synthesis_evidence_quality_score(question, document)
+        direct_fit = quality[0]
+        phrase_hits = quality[2]
+        axis_profile = _v216_question_pole_coverage_profile(question, document)
+        axis_hits = sum(
+            1
+            for axis in ("left", "right")
+            if axis in axis_profile.get("covered", set())
+        )
+        if not content.strip():
+            continue
+        authority_profiles.append((direct_fit, axis_hits, phrase_hits))
+
+    if not authority_profiles:
+        return 0, (0, 0, 0)
+
+    direct_fit, axis_hits, phrase_hits = max(authority_profiles)
+    # Small, deterministic bonus: enough to let established question authority
+    # outrank a generic doorway, without replacing ordinary doorway scoring.
+    bonus = min(8, 4 + min(2, axis_hits) + min(2, direct_fit // 4))
+    return bonus, (direct_fit, axis_hits, phrase_hits)
+
+
+def _v226_question_aligned_doorway_authority_self_audit() -> None:
+    """Verify QSRA authority can influence movement without changing retrieval."""
+    question = (
+        "How can giving departments more autonomy improve their ability to respond "
+        "quickly while making it harder for an organization to maintain a consistent "
+        "strategic direction?"
+    )
+    authority = {
+        "title": "Governance & Decentralization",
+        "url": "https://example.invalid/governance",
+        "content": (
+            "Decentralized departments can respond quickly to local conditions, "
+            "while dispersed decision-making can make coherent strategic direction "
+            "harder to maintain across an organization."
+        ),
+    }
+    generic = {
+        "title": "The Game of Life: Uncovering Hidden Rules Through Forgiveness and Multidisciplinary Wisdom",
+        "url": "https://example.invalid/game-of-life",
+        "content": "A broad reflection on hidden rules, life, and organizational change.",
+    }
+    bonus, detail = _v226_question_aligned_doorway_authority_bonus(
+        question, authority, [authority]
+    )
+    if bonus <= 0 or detail[1] <= 0:
+        raise RuntimeError(
+            "v226 doorway-authority audit failed: established QSRA authority did not receive a bounded bonus."
+        )
+
+    frame = {"primary": "systems", "scores": {"systems": 1}}
+    ranked_without = select_canonical_doorways(
+        [generic, authority], frame, question=question
+    )
+    ranked_with = select_canonical_doorways(
+        [generic, authority],
+        frame,
+        question=question,
+        question_authority_documents=[authority],
+    )
+    if ranked_with[0]["title"] != authority["title"]:
+        raise RuntimeError(
+            "v226 doorway-authority audit failed: established authority could not become the doorway."
+        )
+    if {d["title"] for d in ranked_without} != {d["title"] for d in ranked_with}:
+        raise RuntimeError(
+            "v226 doorway-authority audit failed: doorway refinement altered the supplied resource set."
+        )
+    print(
+        "USE v226 question-aligned doorway authority audit: PASS; "
+        f"bonus={bonus}, detail={detail}, supplied_candidates={len(ranked_with)}"
+    )
+
+
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
     *,
     question: str = "",
     preserve_prefix: int = 0,
+    question_authority_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prioritize the strongest already-retrieved canonical doorway.
@@ -4636,9 +4733,12 @@ def select_canonical_doorways(
         function_bonus = _resource_function_selection_bonus(
             document, question
         )
-        score = base_score + function_bonus
+        authority_bonus, authority_detail = _v226_question_aligned_doorway_authority_bonus(
+            question, document, question_authority_documents
+        )
+        score = base_score + function_bonus + authority_bonus
         ranked.append(
-            (score, detail, function_bonus, -index, document)
+            (score, detail, function_bonus, authority_bonus, authority_detail, -index, document)
         )
 
     ranked.sort(
@@ -4646,7 +4746,7 @@ def select_canonical_doorways(
         reverse=True,
     )
 
-    selected = [document for _score, _detail, _function_bonus, _order, document in ranked]
+    selected = [document for _score, _detail, _function_bonus, _authority_bonus, _authority_detail, _order, document in ranked]
 
     if selected:
         primary = selected[0]
@@ -9427,14 +9527,24 @@ def fetch_canonical_context(
         explicit_type_protected_seen.add(key)
         explicit_type_protected_docs.append(document)
 
+    # v221/v226: carry the already-established question-specific authority into
+    # canonical movement. This is only a ranking refinement over the same
+    # retrieved set; it does not create or remove resources.
+    question_authority_protected_docs = _v221_question_specific_resource_authority(
+        retrieved_docs,
+        user_query,
+    )
+
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
-    # retrieval or alter canonical link authority.
+    # retrieval or alter canonical link authority. v226 additionally respects
+    # question-specific authority already established by v221.
     retrieved_docs = select_canonical_doorways(
         retrieved_docs,
         orientational_frame,
         question=user_query,
         preserve_prefix=protected_prefix,
+        question_authority_documents=question_authority_protected_docs,
     )
 
     # Preserve at least one D20-recognized candidate for each explicitly
@@ -9591,14 +9701,6 @@ def fetch_canonical_context(
             f"chars={len(document_form_orientation_packet)}, "
             "source=D21-D26 canonical resource-function layer."
         )
-
-    # v221/v222: preserve question-specific authority before generic complementarity
-    # can narrow the broad candidate pool. This uses the existing protected-doc
-    # mechanism rather than introducing a second selection engine.
-    question_authority_protected_docs = _v221_question_specific_resource_authority(
-        retrieved_docs,
-        user_query,
-    )
 
     generation_evidence_candidates = _select_complementary_generation_evidence(
         retrieved_docs,
@@ -15858,8 +15960,23 @@ def _v220_final_relational_evidence_integrity_self_audit() -> None:
         "Title: The Collapse That Revealed You\n"
         "Content: Local improvements can hide broader process consequences when the surrounding system is not examined.\n"
     )
+    pole_documents = [
+        {
+            "title": "Simulation-Based Leadership: Why Real Capability Only Shows Under Constraint",
+            "text": "Optimizing individual stages can improve local performance and capability within each stage.",
+        },
+        {
+            "title": "Decision-Making Under Constraint: What Pressure Reveals About Capability",
+            "text": "A process can appear stronger locally while interactions between stages weaken the outcome of the whole process.",
+        },
+    ]
     bounded = _v217_build_provider_evidence_context(
-        context, max_chars=494, max_resource_chars=494, question=question, schema_free=False
+        context,
+        max_chars=700,
+        max_resource_chars=700,
+        question=question,
+        schema_free=False,
+        protected_documents=pole_documents,
     )
     lowered = bounded.casefold()
     assert bounded.count("[Evidence ") >= 2, (
@@ -16307,7 +16424,7 @@ def _v208_question_evidence_fit_self_audit() -> None:
 def _v225_provider_completion_recovery_self_audit() -> None:
     """Verify the v225 recovery remains a narrow evidence-present retry boundary."""
     source = Path(__file__).read_text(encoding="utf-8")
-    assert source.count("def _run_provider_completion_recovery(") == 1
+    assert source.count("def _run_provider_completion_recovery(\n") == 1
     assert "RECOVERY: Supplied evidence is present." in source
     assert "do not respond that the evidence is insufficient" in source
     assert "safe_context," in source
@@ -16854,7 +16971,7 @@ def _v96_current_turn_state_integrity_audit():
             "canonical_link_context": "Title: Probe Resource\\nURL: https://example.invalid/probe",
         }
 
-    def probe_generate(query, context_blocks, intent, orientational_frame=None, canonical_link_context=None):
+    def probe_generate(query, context_blocks, intent, orientational_frame=None, canonical_link_context=None, protected_documents=None):
         calls.append(("generate", query, intent))
         return f"response-for:{query}"
 
