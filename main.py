@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v222 — Final Evidence Authority Preservation + The Guide
+# USE PRODUCTION VERSION: v223 — Final Evidence Authority Carry-Through + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v222"
+APP_VERSION = "v223"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v222-final-evidence-authority-preservation"
+DEPLOYMENT_FINGERPRINT = "USE-v223-final-evidence-authority-carry-through"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v222-final-evidence-authority-preservation"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "97fac0bc5305aea0dfd48cdefa286eb99c389aad957e0817f84d713968b06a3d"
+CANONICAL_BUILD_ID = "USE-BUILD-v223-final-evidence-authority-carry-through"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "10ab546de5ae0e4366940ce1a9a442382ec6d600df207a3b92d4d767570cf973"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9677,6 +9677,7 @@ def fetch_canonical_context(
         "orientational_frame": orientational_frame,
         "context_blocks": generation_context,
         "canonical_link_context": canonical_link_context,
+        "question_authority_protected_docs": question_authority_protected_docs,
     }
 
 
@@ -11530,6 +11531,7 @@ def _fit_generation_context_to_provider_budget(
     max_tokens: int,
     orientational_frame: Optional[Dict[str, Any]] = None,
     compact: bool = False,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> Tuple[str, List[Dict[str, str]]]:
     """
     Preflight the complete provider payload and compact evidence until the
@@ -11600,6 +11602,7 @@ def _fit_generation_context_to_provider_budget(
                 ) if evidence_capacity > 0 else 0,
                 question=user_query,
                 schema_free=False,
+                protected_documents=protected_documents,
             )
 
         # v148 root-cause boundary: a positive primary evidence capacity must
@@ -11848,23 +11851,26 @@ def _v220_relational_provider_subset(
     if len(axes) <= 2 or len(prepared) <= 1:
         return prepared[:selected_n], selected_n, min_content, False
 
-    # v222: Question-Specific Resource Authority must survive the final
+    # v223: Question-Specific Resource Authority must survive the final
     # provider-evidence compression boundary. v221 establishes functional
     # authority upstream; this boundary prevents that authority from being
     # displaced by a merely more generic resource during final allocation.
     # Supplied protected documents are carried explicitly when available; the
     # prepared provider set is also profiled directly so the invariant remains
     # local to the actual evidence that can reach the provider.
-    authority_documents = list(protected_documents or [])
-    authority_documents.extend(
-        _v221_question_specific_resource_authority(
+    if protected_documents is None:
+        # Backward-compatible local derivation for direct/internal callers that
+        # do not have the upstream QSRA result. The production generation path
+        # supplies the exact upstream authority set explicitly.
+        authority_documents = _v221_question_specific_resource_authority(
             [
                 {"title": title, "text": content}
                 for title, content in prepared
             ],
             question,
         )
-    )
+    else:
+        authority_documents = list(protected_documents)
     authority_keys = {
         _resource_key(document)
         for document in authority_documents
@@ -11913,7 +11919,7 @@ def _v220_relational_provider_subset(
         effective_index = max(protected_indices, key=lambda index: rank((index,)))
         chosen = [prepared[effective_index]]
         print(
-            "USE v222 final evidence authority preservation: "
+            "USE v223 final evidence authority carry-through: "
             f"protected_single=True, index={effective_index}, "
             f"title={chosen[0][0]!r}"
         )
@@ -11979,6 +11985,7 @@ def _v217_build_provider_evidence_context(
     *,
     question: str = "",
     schema_free: bool = False,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """Build provider evidence with explicit relational poles preserved in excerpts.
 
@@ -12032,7 +12039,9 @@ def _v217_build_provider_evidence_context(
 
     selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(
         prepared, question, max_chars, separator_len, prefix, min_content, selected_n,
-        protected_documents=_v221_question_specific_resource_authority(
+        protected_documents=protected_documents
+        if protected_documents is not None
+        else _v221_question_specific_resource_authority(
             [{"title": title, "text": content} for title, content in prepared],
             question,
         ),
@@ -12908,6 +12917,7 @@ def _run_generation_attempt(
     canonical_link_context: str = "",
     validation_context: str = "",
     compact: bool = False,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """Execute exactly one provider call using only the supplied context."""
     # Generation invariant: context is explicit from retrieval boundary
@@ -12919,6 +12929,7 @@ def _run_generation_attempt(
         max_tokens=max_tokens,
         orientational_frame=orientational_frame,
         compact=compact,
+        protected_documents=protected_documents,
     )
 
     estimated_quota_tokens = _estimate_quota_tokens(messages, max_tokens)
@@ -13664,6 +13675,7 @@ def generate_llm_response(
     intent: str,
     orientational_frame: Optional[Dict[str, Any]] = None,
     canonical_link_context: str = "",
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """
     Generate a visitor answer behind a hard, single-context provider boundary.
@@ -13779,6 +13791,7 @@ def generate_llm_response(
                 max_tokens=generation_profile["max_completion_tokens"],
                 reasoning_effort=generation_profile["reasoning_effort"],
                 canonical_link_context=canonical_link_context,
+                protected_documents=protected_documents,
             )
 
             if visitor_answer:
@@ -13880,6 +13893,7 @@ def generate_llm_response(
                         canonical_link_context=canonical_link_context,
                         validation_context=base_generation_context,
                         compact=True,
+                        protected_documents=protected_documents,
                     )
 
                     if compact_answer:
@@ -14060,6 +14074,9 @@ async def handle_query(
                 canonical_link_context=context_data.get(
                     "canonical_link_context",
                     context_data["context_blocks"],
+                ),
+                protected_documents=context_data.get(
+                    "question_authority_protected_docs",
                 ),
             )
 
@@ -15523,8 +15540,8 @@ def _v212_provider_evidence_representation_self_audit() -> None:
 
 
 
-def _v222_final_evidence_authority_preservation_self_audit() -> None:
-    """Verify QSRA-authoritative evidence survives final provider compression."""
+def _v223_final_evidence_authority_carry_through_self_audit() -> None:
+    """Verify upstream QSRA authority survives the final provider compression boundary."""
     question = (
         "How can clearer division of responsibilities reduce duplication and conflict "
         "while making an organization slower to adapt when a problem crosses those "
@@ -15556,11 +15573,32 @@ def _v222_final_evidence_authority_preservation_self_audit() -> None:
     assert "Work Sequence — The Protocol" in authority_titles
 
     bounded = _v217_build_provider_evidence_context(
-        context, max_chars=700, max_resource_chars=700, question=question, schema_free=False
+        context,
+        max_chars=700,
+        max_resource_chars=700,
+        question=question,
+        schema_free=False,
+        protected_documents=authority,
     )
     assert "Work Sequence — The Protocol" in bounded
+    query_source = inspect.getsource(handle_query)
+    generation_source = inspect.getsource(generate_llm_response)
+    fit_source = inspect.getsource(_fit_generation_context_to_provider_budget)
+    run_source = inspect.getsource(_run_generation_attempt)
+    assert "protected_documents=context_data.get" in query_source, (
+        "v223 authority carry-through regression: query endpoint drops upstream authority."
+    )
+    assert "protected_documents=protected_documents" in generation_source, (
+        "v223 authority carry-through regression: generation boundary drops authority."
+    )
+    assert "protected_documents=protected_documents" in fit_source, (
+        "v223 authority carry-through regression: budget fitter drops authority."
+    )
+    assert "protected_documents=protected_documents" in run_source, (
+        "v223 authority carry-through regression: provider attempt drops authority."
+    )
     print(
-        "USE v222 FINAL EVIDENCE AUTHORITY PRESERVATION AUDIT: PASS; "
+        "USE v223 FINAL EVIDENCE AUTHORITY CARRY-THROUGH AUDIT: PASS; "
         f"authority={sorted(authority_titles)}, bounded_chars={len(bounded)}"
     )
 
