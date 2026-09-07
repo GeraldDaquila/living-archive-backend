@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v227 — QSRA Authority Precedence + The Guide
+# USE PRODUCTION VERSION: v228 — Question-Specific Authority Diversity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v227"
+APP_VERSION = "v228"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v227-qsra-authority-precedence"
+DEPLOYMENT_FINGERPRINT = "USE-v228-question-authority-diversity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v227-qsra-authority-precedence"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "c0dd918be1100419dd18273ca74852bd4b4ae7dbba85671b868be584b2ec440a"
+CANONICAL_BUILD_ID = "USE-BUILD-v228-question-authority-diversity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "79e81ece08c904755b53dcdf0da3f56b8771043ec4283c3cc1207bd90cc9a4d6"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4704,6 +4704,50 @@ def _v226_question_aligned_doorway_authority_self_audit() -> None:
     )
 
 
+def _v228_question_authority_diversity_self_audit() -> None:
+    """Verify a strong axis-specific authority survives beside a bridge authority."""
+    question = (
+        "How can preserving different interpretations of the same event improve "
+        "an organization's ability to understand what happened while making it "
+        "harder to produce a single agreed account of the event?"
+    )
+    bridge = {
+        "title": "Signal Bridge",
+        "url": "https://example.invalid/bridge",
+        "content": (
+            "Different interpretations can create competing signals about an event, "
+            "while abundant information can make agreement harder to achieve."
+        ),
+    }
+    specialist = {
+        "title": "Interpretive Plurality",
+        "url": "https://example.invalid/plurality",
+        "content": (
+            "Preserving different interpretations of the same event can improve an "
+            "organization's ability to understand what happened by retaining distinct "
+            "interpretations and perspectives. " + "Additional substantive evidence. " * 12
+        ),
+    }
+    authority = _v221_question_specific_resource_authority(
+        [bridge, specialist], question
+    )
+    keys = {_resource_key(doc) for doc in authority}
+    if _resource_key(specialist) not in keys:
+        raise RuntimeError(
+            "v228 authority-diversity audit failed: strong axis specialist was not "
+            "preserved beside bridge authority."
+        )
+    if _resource_key(bridge) not in keys:
+        raise RuntimeError(
+            "v228 authority-diversity audit failed: bridge authority was unexpectedly removed."
+        )
+    if len(authority) != 2:
+        raise RuntimeError(
+            "v228 authority-diversity audit failed: bounded authority set changed unexpectedly."
+        )
+    print("USE v228 question-specific authority diversity audit: PASS; selected=2")
+
+
 def _v227_question_authority_precedence_self_audit() -> None:
     """Verify established QSRA authority outranks a stronger generic doorway score."""
     question = (
@@ -7776,6 +7820,44 @@ def _v221_question_specific_resource_authority(
         if key not in selected_keys:
             selected.append(document)
             selected_keys.add(key)
+
+    # v228 authority-diversity safeguard: a single bridge resource can satisfy
+    # every literal axis while a distinct candidate has materially stronger
+    # direct fit to one axis. Preserve that stronger axis-specific authority
+    # instead of allowing bridge coverage alone to collapse interpretive
+    # plurality into one source. This is still Content-derived and bounded.
+    if len(selected) == 1 and len(axes) >= 3:
+        bridge = selected[0]
+        bridge_key = _resource_key(bridge)
+        bridge_quality = _synthesis_evidence_quality_score(question, bridge)
+        for axis_name, _axis_text in axes[1:]:
+            specialist_pool = [
+                item for item in profiled
+                if (
+                    axis_name in item[2].get("covered", set())
+                    and _resource_key(item[1]) != bridge_key
+                    and item[3][0] >= bridge_quality[0] and item[2].get("hits", {}).get(axis_name, 0) >= 2
+                )
+            ]
+            if not specialist_pool:
+                continue
+            specialist = max(
+                specialist_pool,
+                key=lambda item: (
+                    item[3][0],
+                    item[2].get("hits", {}).get(axis_name, 0),
+                    item[3][1],
+                    item[3][2],
+                    item[3][3],
+                    -item[0],
+                ),
+            )[1]
+            specialist_key = _resource_key(specialist)
+            if specialist_key not in selected_keys:
+                selected.append(specialist)
+                selected_keys.add(specialist_key)
+            if len(selected) >= 2:
+                break
 
     if selected:
         print(
