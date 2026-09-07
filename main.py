@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v229 — Final Question-Specific Authority Diversity Survival + The Guide
+# USE PRODUCTION VERSION: v230 — Minimum Sufficient Question-Axis Evidence Survival + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v229"
+APP_VERSION = "v230"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v229-final-question-authority-diversity-survival"
+DEPLOYMENT_FINGERPRINT = "USE-v230-minimum-sufficient-question-axis-evidence-survival"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v229-final-question-authority-diversity-survival"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "25ae9ccd7f8728e122e7a747cec0dece1dd49467537046dcbade271031ce184b"
+CANONICAL_BUILD_ID = "USE-BUILD-v230-minimum-sufficient-question-axis-evidence-survival"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d23e18eff4a02cf8b1aa1e1dfba7642ec020816803d390edaff6d8a13380ee04"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4704,6 +4704,47 @@ def _v226_question_aligned_doorway_authority_self_audit() -> None:
     )
 
 
+def _v230_minimum_sufficient_question_axis_evidence_survival_self_audit() -> None:
+    """Verify axis-specific evidence is not suppressed by a broader bridge resource."""
+    question = (
+        "How can preserving different interpretations of the same event improve "
+        "an organization's ability to understand what happened while making it "
+        "harder to produce a single agreed account of the event?"
+    )
+    bridge = {
+        "title": "Broad Interpretive Bridge",
+        "url": "https://example.invalid/bridge-v230",
+        "content": (
+            "Different interpretations create competing accounts, and abundant "
+            "information can make agreement harder when signals conflict."
+        ),
+    }
+    specialist = {
+        "title": "Interpretive Plurality Specialist",
+        "url": "https://example.invalid/specialist-v230",
+        "content": (
+            "Preserving different interpretations and distinct perspectives can "
+            "improve an organization's understanding of what happened. "
+            "Retaining those differing interpretations preserves evidence that a "
+            "single account would otherwise discard. " + "Distinct interpretation evidence. " * 8
+        ),
+    }
+    authority = _v221_question_specific_resource_authority(
+        [bridge, specialist], question
+    )
+    keys = {_resource_key(document) for document in authority}
+    assert _resource_key(specialist) in keys, (
+        "v230 audit: axis-specific specialist was suppressed by the bridge authority."
+    )
+    assert len(authority) >= 2, (
+        "v230 audit: minimum sufficient question-axis authority diversity was not retained."
+    )
+    print(
+        "USE v230 MINIMUM SUFFICIENT QUESTION-AXIS EVIDENCE SURVIVAL AUDIT: PASS; "
+        f"authority={len(authority)}, titles={[str(d.get('title', '')) for d in authority]}"
+    )
+
+
 def _v229_final_authority_diversity_survival_self_audit() -> None:
     """Verify established QSRA authority diversity survives a tight provider envelope."""
     question = (
@@ -7888,7 +7929,11 @@ def _v221_question_specific_resource_authority(
                 if (
                     axis_name in item[2].get("covered", set())
                     and _resource_key(item[1]) != bridge_key
-                    and item[3][0] >= bridge_quality[0] and item[2].get("hits", {}).get(axis_name, 0) >= 2
+                    and item[2].get("hits", {}).get(axis_name, 0) >= 2
+                    and (
+                        item[3][0] >= bridge_quality[0]
+                        or item[2].get("hits", {}).get(axis_name, 0) > max(0, bridge_quality[0] // 4)
+                    )
                 )
             ]
             if not specialist_pool:
