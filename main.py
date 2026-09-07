@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v233 — Breathing-Room Visitor Voice + Higher-Self + Question-Axis Coverage Gate + The Guide
+# USE PRODUCTION VERSION: v234 — Visitor Presentation Boundary + v233 Breathing-Room Voice + Higher-Self + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -647,7 +647,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v233"
+APP_VERSION = "v234"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -663,11 +663,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v233-breathing-room-visitor-voice"
+DEPLOYMENT_FINGERPRINT = "USE-v234-visitor-presentation-boundary"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v233-breathing-room-visitor-voice"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "bc5280a301aa62f40b32d848a0f6b8aacede0debc1aebc9225056e128b7eca2a"
+CANONICAL_BUILD_ID = "USE-BUILD-v234-visitor-presentation-boundary"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d6746fa4cfd54de6948de49f3fc331d5ec089da735d620243e3cd373ce765875"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4597,7 +4597,7 @@ def _v194_doorway_proportionality_self_audit() -> None:
 def _v195_answer_first_orientation_self_audit() -> None:
     """Verify substantive topical prose remains ahead of deterministic navigation."""
     source = inspect.getsource(_run_generation_attempt)
-    anchor_phrase = "For a canonical route into the Archive, a strong place to begin is {first_link}."
+    anchor_phrase = "A good place to begin is {first_link}."
     assignment_start = source.find("cleaned_answer = (", source.find("v198 movement correction"))
     anchor_start = source.find(anchor_phrase, assignment_start)
     if assignment_start < 0 or anchor_start < 0:
@@ -11662,6 +11662,67 @@ def _v233_chunk_visitor_answer(text: str) -> str:
     return "\n\n".join(chunks)
 
 
+def _v234_visitor_presentation_boundary(text: str) -> str:
+    """Remove internal navigation jargon and raw URLs from visitor prose.
+
+    Canonical Markdown links are temporarily protected because their URLs are
+    the deterministic link destinations supplied by the Archive. Everything
+    else is treated as visitor-facing prose: internal terms such as
+    ``canonical route`` must not leak, and raw URLs must never be shown.
+    This is presentation-only and does not alter resource identity.
+    """
+    value = str(text or "").strip()
+    if not value:
+        return value
+
+    protected_links: List[str] = []
+
+    def protect_link(match: re.Match) -> str:
+        protected_links.append(match.group(0))
+        return f"__USE_V234_LINK_{len(protected_links) - 1}__"
+
+    value = re.sub(
+        r"\[[^\]\n]{1,500}\]\(https?://[^)\n]+\)",
+        protect_link,
+        value,
+        flags=re.IGNORECASE,
+    )
+
+    # Visitor-facing route language should describe usefulness, not internal
+    # architecture. Keep this intentionally narrow so legitimate source
+    # titles containing the word "canonical" are not rewritten.
+    route_replacements = (
+        (
+            r"\bFor a canonical route into the Archive, a strong place to begin is\b",
+            "A good place to begin is",
+        ),
+        (r"\bcanonical route\b", "route"),
+        (r"\bcanonical resource\b", "resource"),
+        (r"\bcanonical resources\b", "resources"),
+        (r"\bcanonical link\b", "resource link"),
+        (r"\bcanonical links\b", "resource links"),
+    )
+    for pattern, replacement in route_replacements:
+        value = re.sub(pattern, replacement, value, flags=re.IGNORECASE)
+
+    # Remove every raw URL that is not part of a protected, validated link.
+    value = re.sub(r"https?://\S+", "", value, flags=re.IGNORECASE)
+    value = re.sub(r"(?<!\w)www\.[^\s)]+", "", value, flags=re.IGNORECASE)
+
+    # Restore only the exact Markdown links created/validated before this
+    # boundary. Their URLs remain functional but are never visible as text.
+    for index, link in enumerate(protected_links):
+        value = value.replace(f"__USE_V234_LINK_{index}__", link)
+
+    # Removing a raw URL can otherwise leave a stranded cue such as
+    # "See too.". Remove only these presentation-only remnants.
+    value = re.sub(r"(?im)\bSee(?:\s+it)?\s+too\.?", "", value)
+    value = re.sub(r"[ \t]{2,}", " ", value)
+    value = re.sub(r" +([,.;:])", r"\1", value)
+    value = re.sub(r"\n[ \t]+", "\n", value)
+    return value.strip()
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -11725,6 +11786,7 @@ def _clean_generation_output(
     normalized_answer = html.unescape(normalized_answer)
     normalized_answer = _calibrate_visitor_style(normalized_answer)
     normalized_answer = _v233_chunk_visitor_answer(normalized_answer)
+    normalized_answer = _v234_visitor_presentation_boundary(normalized_answer)
     return normalized_answer
 
 
@@ -13834,7 +13896,7 @@ def _run_provider_completion_recovery(
             first_link = f"[{first_title}]({first_url})"
             cleaned_answer = (
                 f"{cleaned_answer.rstrip()}\n\n"
-                f"For a canonical route into the Archive, a strong place to begin is {first_link}."
+                f"A good place to begin is {first_link}."
             )
 
     return cleaned_answer
@@ -14002,7 +14064,7 @@ def _run_generation_attempt(
             first_link = f"[{first_title}]({first_url})"
             cleaned_answer = (
                 f"{cleaned_answer.rstrip()}\n\n"
-                f"For a canonical route into the Archive, a strong place to begin is {first_link}."
+                f"A good place to begin is {first_link}."
             )
 
     if (
@@ -17091,6 +17153,26 @@ def _v225_provider_completion_recovery_self_audit() -> None:
     assert "recovery" in source
     print("USE v225 provider completion recovery audit: PASS")
 
+
+
+def _v234_visitor_presentation_boundary_self_audit() -> None:
+    """Verify internal navigation terms and raw URLs cannot leak to visitors."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    assert source.count("def _v234_visitor_presentation_boundary(text: str) -> str:\n") == 1
+    assert "A good place to begin is {first_link}." in source
+    assert "normalized_answer = _v234_visitor_presentation_boundary(normalized_answer)" in source
+
+    link = "[A Useful Resource](https://example.invalid/resource)"
+    raw = (
+        "A canonical route into the Archive is worth considering. "
+        "See https://example.invalid/raw for more. "
+        f"{link}"
+    )
+    cleaned = _v234_visitor_presentation_boundary(raw)
+    assert "canonical route" not in cleaned.lower()
+    assert "https://example.invalid/raw" not in cleaned
+    assert link in cleaned
+    print("USE v234 VISITOR PRESENTATION BOUNDARY AUDIT: PASS")
 
 
 def _v233_breathing_room_visitor_voice_self_audit() -> None:
