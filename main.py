@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v213 — Evidence Role Binding + The Guide
+# USE PRODUCTION VERSION: v214 — Relational Synthesis Coverage Lock + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v213"
+APP_VERSION = "v214"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v213-evidence-role-binding"
+DEPLOYMENT_FINGERPRINT = "USE-v214-relational-synthesis-coverage-lock"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v213-evidence-role-binding"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "560694346a2ee07d4b8c92fdac0108e2437289c76f7199e7968b3698c61972a9"
+CANONICAL_BUILD_ID = "USE-BUILD-v214-relational-synthesis-coverage-lock"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "cf3662bd6869e45ffa13e6528c26f03bdd09e94356c18cb9c512efeca103559d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6896,6 +6896,40 @@ def _v209_relational_evidence_adjudication(
     return prefix + selected
 
 
+def _v214_relational_axis_texts(question: str) -> List[Tuple[str, str]]:
+    """Extend bounded literal axis recognition for common relational connectives.
+
+    v214 does not infer a hidden concept. It only splits explicit connective
+    wording already present in the visitor's question when v208's conservative
+    structural parser did not expose separate axes.
+    """
+    axes = _v208_question_retrieval_axes(question)
+    if len(axes) >= 3:
+        return axes
+
+    clean = re.sub(r"\s+", " ", str(question or "").strip()).strip()
+    clean = re.sub(r"[?!.]+$", "", clean).strip()
+    if not clean:
+        return []
+
+    patterns = (
+        ("while", r"^(.+?)\s+while\s+(.+)$"),
+        ("without", r"^(.+?)\s+without\s+(.+)$"),
+        ("but", r"^(.+?)\s+but\s+(.+)$"),
+        ("although", r"^(.+?)\s+although\s+(.+)$"),
+        ("even_when", r"^(.+?)\s+even when\s+(.+)$"),
+        ("rather_than", r"^(.+?)\s+rather than\s+(.+)$"),
+    )
+    for connector, pattern in patterns:
+        match = re.match(pattern, clean, re.IGNORECASE)
+        if not match:
+            continue
+        left, right = match.group(1).strip(), match.group(2).strip()
+        if left and right:
+            return [("primary", clean), (f"left_{connector}", left), (f"right_{connector}", right)]
+    return axes
+
+
 MAX_V208_MULTI_AXIS_RETRIEVAL_AXES = 3
 MAX_V208_MULTI_AXIS_AXIS_TOP_K = 8
 MAX_V208_MULTI_AXIS_NEW_CANDIDATES = 8
@@ -7666,6 +7700,262 @@ def _select_complementary_generation_evidence(
     )
     return selected
 
+
+
+def _v214_document_axis_coverage(
+    question: str,
+    document: Dict[str, Any],
+) -> Dict[str, int]:
+    """Return deterministic coverage of the distinct literal question axes."""
+    distinct_axes = []
+    axes = _v214_relational_axis_texts(question)
+    raw_axis_sets = [(name, set(_v209_axis_terms(text))) for name, text in axes[1:]]
+    if len(raw_axis_sets) < 2:
+        return {}
+    all_sets = [terms for _name, terms in raw_axis_sets]
+    for index, (name, terms) in enumerate(raw_axis_sets):
+        other_terms = set().union(*(all_sets[offset] for offset in range(len(all_sets)) if offset != index))
+        distinct_axes.append((name, tuple(sorted(terms - other_terms))))
+
+    content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in (
+            "ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"
+        ):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[: -len(suffix)]
+        return value
+
+    content_stems = {stem(token) for token in content_tokens}
+    coverage: Dict[str, int] = {}
+    for axis_name, terms in distinct_axes:
+        hits = 0
+        for term in terms:
+            normalized = term.replace("-", "")
+            if (
+                term in content_tokens
+                or normalized in content_tokens
+                or stem(term) in content_stems
+            ):
+                hits += 1
+        if hits:
+            coverage[axis_name] = hits
+    return coverage
+
+
+def _v214_preserve_relational_synthesis_coverage(
+    selected: List[Dict[str, Any]],
+    candidates: List[Dict[str, Any]],
+    question: str,
+    *,
+    max_resources: int = 3,
+) -> List[Dict[str, Any]]:
+    """Prevent final synthesis selection from collapsing an explicit relation to one side.
+
+    The function operates only on already-selected/retrieved canonical documents.
+    For a multi-axis question it requires the final synthesis bundle to represent
+    at least two distinct literal axes when the candidate pool contains eligible
+    evidence for both. A bridge resource covering both axes is preferred, but two
+    complementary resources are sufficient. No latent concept or authority is added.
+    """
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2 or not selected or not candidates:
+        return selected
+
+    raw_axis_sets = [(name, set(_v209_axis_terms(text))) for name, text in axes[1:]]
+    all_sets = [terms for _name, terms in raw_axis_sets]
+    distinct_axis_names = []
+    distinct_axes = []
+    for index, (name, terms) in enumerate(raw_axis_sets):
+        other_terms = set().union(*(all_sets[offset] for offset in range(len(all_sets)) if offset != index))
+        unique_terms = tuple(sorted(terms - other_terms))
+        distinct_axis_names.append(name)
+        distinct_axes.append((name, unique_terms))
+    if len(distinct_axis_names) < 2:
+        return selected
+
+    limit = max(1, min(int(max_resources), MAX_SYNTHESIS_EVIDENCE_RESOURCES))
+    selected = list(selected[:limit])
+    selected_keys = {_resource_key(doc) for doc in selected}
+
+    def eligible(document: Dict[str, Any]) -> bool:
+        if not isinstance(document, dict) or not _resource_content(document).strip():
+            return False
+        return _synthesis_evidence_quality_score(question, document)[0] >= _SYNTHESIS_MIN_DIRECT_FIT
+
+    indexed_candidates = []
+    for index, document in enumerate(candidates):
+        if not eligible(document):
+            continue
+        coverage = _v214_document_axis_coverage(question, document)
+        if not coverage:
+            continue
+        relational = _v209_relational_evidence_profile(question, document)
+        score = _synthesis_evidence_quality_score(question, document)
+        indexed_candidates.append((index, document, coverage, relational, score))
+
+    if not indexed_candidates:
+        return selected
+
+    def union_coverage(documents: List[Dict[str, Any]]) -> set:
+        return set().union(
+            *(set(_v214_document_axis_coverage(question, doc)) for doc in documents)
+        ) if documents else set()
+
+    covered = union_coverage(selected)
+    if len(covered) >= 2:
+        return selected
+
+    missing = [name for name in distinct_axis_names if name not in covered]
+    if not missing:
+        return selected
+
+    additions = []
+    for missing_axis in missing:
+        pool = [
+            item for item in indexed_candidates
+            if _resource_key(item[1]) not in selected_keys
+            and missing_axis in item[2]
+        ]
+        if not pool:
+            continue
+        pool.sort(
+            key=lambda item: (
+                1 if len(item[2]) >= 2 else 0,
+                item[3][4],
+                item[3][1],
+                item[3][0],
+                item[2].get(missing_axis, 0),
+                item[4][1],
+                item[4][2],
+                item[4][3],
+                -item[0],
+            ),
+            reverse=True,
+        )
+        additions.append(pool[0])
+
+    for item in additions:
+        document = item[1]
+        if _resource_key(document) in selected_keys:
+            continue
+        if len(selected) < limit:
+            selected.append(document)
+            selected_keys.add(_resource_key(document))
+            covered = union_coverage(selected)
+            if len(covered) >= 2:
+                break
+            continue
+
+        # At capacity: replace the weakest non-primary member only if doing so
+        # preserves every axis already represented and adds the missing axis.
+        replacement_candidates = []
+        for position, current in enumerate(selected):
+            if position == 0:
+                continue
+            current_coverage = _v214_document_axis_coverage(question, current)
+            if not current_coverage:
+                replacement_candidates.append((position, current, current_coverage))
+                continue
+            remaining_coverage = union_coverage(
+                selected[:position] + selected[position + 1:]
+            )
+            if set(current_coverage).issubset(remaining_coverage):
+                current_score = _synthesis_evidence_quality_score(question, current)
+                replacement_candidates.append((position, current, current_coverage, current_score))
+
+        if not replacement_candidates:
+            continue
+
+        replacement_candidates.sort(
+            key=lambda item: (
+                item[3][0] if len(item) > 3 else 0,
+                item[3][1] if len(item) > 3 else 0,
+                item[3][2] if len(item) > 3 else 0,
+                item[3][3] if len(item) > 3 else 0,
+                -item[0],
+            )
+        )
+        position = replacement_candidates[0][0]
+        selected[position] = document
+        selected_keys.add(_resource_key(document))
+        covered = union_coverage(selected)
+        if len(covered) >= 2:
+            break
+
+    if len(union_coverage(selected)) >= 2:
+        print(
+            "USE v214 relational synthesis coverage lock: "
+            f"axes={distinct_axis_names}, selected={len(selected)}, "
+            f"covered={sorted(union_coverage(selected))}, "
+            f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in selected ]}"
+        )
+    return selected
+
+
+def _v214_relational_synthesis_coverage_lock_self_audit() -> None:
+    """Verify final synthesis selection preserves both sides when eligible evidence exists."""
+    question = (
+        "How can improving an institution's decision efficiency increase speed while making it "
+        "harder to recognize when the decision is framed around the wrong problem?"
+    )
+    left = {
+        "title": "Efficiency Lens",
+        "url": "https://example.invalid/efficiency",
+        "content": (
+            "Efficiency can shorten decision cycles and increase speed of execution. "
+            "Faster procedures can reduce the time available for reconsideration."
+        ),
+    }
+    right = {
+        "title": "Framing Lens",
+        "url": "https://example.invalid/framing",
+        "content": (
+            "A decision may be framed around the wrong problem when underlying assumptions "
+            "are not examined. Recognizing a framing error requires time to reconsider the question."
+        ),
+    }
+    bridge = {
+        "title": "Bridge Lens",
+        "url": "https://example.invalid/bridge",
+        "content": (
+            "Efficiency changes the time available for reconsideration, while problem framing "
+            "determines whether the decision addresses the right problem. Their interaction "
+            "can make a faster process less able to notice a framing error."
+        ),
+    }
+    redundant = {
+        "title": "Redundant Efficiency Lens",
+        "url": "https://example.invalid/redundant",
+        "content": (
+            "Efficiency improves speed and reduces delay. Faster execution can make processes "
+            "more efficient and consistent."
+        ),
+    }
+    selected = _select_evidence_rich_synthesis_roles(
+        [left, redundant], question
+    )
+    locked = _v214_preserve_relational_synthesis_coverage(
+        selected, [left, redundant, right, bridge], question
+    )
+    coverage = set().union(
+        *(_v214_document_axis_coverage(question, doc) for doc in locked)
+    )
+    if len(coverage) < 2:
+        raise RuntimeError(
+            "v214 relational synthesis coverage lock failed to preserve both question axes."
+        )
+    if not any(doc.get("title") in {"Framing Lens", "Bridge Lens"} for doc in locked):
+        raise RuntimeError(
+            "v214 relational synthesis coverage lock failed to retain missing-side evidence."
+        )
+    print(
+        "USE v214 RELATIONAL SYNTHESIS COVERAGE LOCK AUDIT: PASS; "
+        f"covered={sorted(coverage)}, titles={[doc.get('title') for doc in locked]}"
+    )
 
 
 MAX_SYNTHESIS_EVIDENCE_RESOURCES = 3
@@ -8634,6 +8924,19 @@ def fetch_canonical_context(
     # so each selected source retains enough substantive Content to support
     # actual synthesis.
     generation_evidence_docs = _select_evidence_rich_synthesis_roles(
+        generation_evidence_candidates,
+        user_query,
+    )
+
+    # v214: once relational adjudication has established the candidate pool,
+    # preserve explicit question-axis coverage through the final synthesis-set
+    # boundary. v206/v201 can legitimately optimize for conceptual novelty and
+    # evidence density, but that optimization can still collapse a two-sided
+    # question to a single-sided explanation. This lock changes only the final
+    # provider evidence set; retrieval, doorway selection, canonical authority,
+    # and navigation remain unchanged.
+    generation_evidence_docs = _v214_preserve_relational_synthesis_coverage(
+        generation_evidence_docs,
         generation_evidence_candidates,
         user_query,
     )
@@ -10426,10 +10729,17 @@ def _v213_evidence_role_binding_instruction(
     if len(documents) < 2:
         return ""
 
-    axes = _v208_question_retrieval_axes(user_query)
+    axes = _v214_relational_axis_texts(user_query)
     if len(axes) <= 1:
         return ""
-    distinct_axes = _v209_distinct_axis_term_sets(user_query)
+    raw_axis_sets = [(name, set(_v209_axis_terms(text))) for name, text in axes[1:]]
+    if len(raw_axis_sets) <= 1:
+        return ""
+    all_sets = [terms for _name, terms in raw_axis_sets]
+    distinct_axes = []
+    for index, (name, terms) in enumerate(raw_axis_sets):
+        other_terms = set().union(*(all_sets[offset] for offset in range(len(all_sets)) if offset != index))
+        distinct_axes.append((name, tuple(sorted(terms - other_terms))))
 
     def _stem(value: str) -> str:
         value = value.casefold().replace("-", "")
