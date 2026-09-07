@@ -15,20 +15,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Transform and audit v221 to v222
-        env:
-          TARGET_BRANCH: main
         run: |
           python - <<'PY'
           from pathlib import Path
+          import ast
           import hashlib
           import re
 
           p = Path("main.py")
-          raw = p.read_bytes()
-          s = raw.decode("utf-8")
-          newline = "\\r\\n" if "\\r\\n" in s else "\\n"
-          s = s.replace("\\r\\n", "\\n")
-
+          s = p.read_text(encoding="utf-8").replace("\r\n", "\n")
           assert s.startswith("# USE PRODUCTION VERSION: v221 — Question-Specific Resource Authority + The Guide")
           assert 'APP_VERSION = "v221"' in s
           assert 'DEPLOYMENT_FINGERPRINT = "USE-v221-question-specific-resource-authority"' in s
@@ -39,64 +34,220 @@ jobs:
           s = s.replace('DEPLOYMENT_FINGERPRINT = "USE-v221-question-specific-resource-authority"', 'DEPLOYMENT_FINGERPRINT = "USE-v222-final-evidence-authority-preservation"', 1)
           s = s.replace('CANONICAL_BUILD_ID = "USE-BUILD-v221-question-specific-resource-authority"', 'CANONICAL_BUILD_ID = "USE-BUILD-v222-final-evidence-authority-preservation"', 1)
 
-          old = '''def _v220_relational_provider_subset(\n    prepared: List[Tuple[str, str]],\n    question: str,\n    max_chars: int,\n    separator_len: int,\n    prefix_func: Any,\n    min_content: int,\n    selected_n: int,\n) -> Tuple[List[Tuple[str, str]], int, int, bool]:'''
-          new = '''def _v220_relational_provider_subset(\n    prepared: List[Tuple[str, str]],\n    question: str,\n    max_chars: int,\n    separator_len: int,\n    prefix_func: Any,\n    min_content: int,\n    selected_n: int,\n    protected_documents: Optional[List[Dict[str, Any]]] = None,\n) -> Tuple[List[Tuple[str, str]], int, int, bool]:'''
+          old = '''def _v220_relational_provider_subset(
+    prepared: List[Tuple[str, str]],
+    question: str,
+    max_chars: int,
+    separator_len: int,
+    prefix_func: Any,
+    min_content: int,
+    selected_n: int,
+) -> Tuple[List[Tuple[str, str]], int, int, bool]:'''
+          new = '''def _v220_relational_provider_subset(
+    prepared: List[Tuple[str, str]],
+    question: str,
+    max_chars: int,
+    separator_len: int,
+    prefix_func: Any,
+    min_content: int,
+    selected_n: int,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
+) -> Tuple[List[Tuple[str, str]], int, int, bool]:'''
           assert old in s
           s = s.replace(old, new, 1)
 
-          old = '''    axes = _v214_relational_axis_texts(question)\n    if len(axes) <= 2 or len(prepared) <= 1:\n        return prepared[:selected_n], selected_n, min_content, False\n\n    profiles = []'''
-          new = '''    axes = _v214_relational_axis_texts(question)\n    if len(axes) <= 2 or len(prepared) <= 1:\n        return prepared[:selected_n], selected_n, min_content, False\n\n    # v222: Question-Specific Resource Authority must survive the final\n    # provider-evidence compression boundary. v221 establishes functional\n    # authority upstream; this boundary prevents that authority from being\n    # displaced by a merely more generic resource during final allocation.\n    authority_documents = list(protected_documents or [])\n    authority_documents.extend(\n        _v221_question_specific_resource_authority(\n            [{"title": title, "text": content} for title, content in prepared],\n            question,\n        )\n    )\n    authority_keys = {\n        _resource_key(document)\n        for document in authority_documents\n        if isinstance(document, dict)\n    }\n    protected_indices = {\n        index\n        for index, (title, content) in enumerate(prepared)\n        if _resource_key({"title": title, "text": content}) in authority_keys\n    }\n\n    profiles = []'''
+          old = '''    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2 or len(prepared) <= 1:
+        return prepared[:selected_n], selected_n, min_content, False
+
+    profiles = []'''
+          new = '''    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2 or len(prepared) <= 1:
+        return prepared[:selected_n], selected_n, min_content, False
+
+    # v222: Question-Specific Resource Authority must survive the final
+    # provider-evidence compression boundary. v221 establishes functional
+    # authority upstream; this boundary prevents that authority from being
+    # displaced by a merely more generic resource during final allocation.
+    authority_documents = list(protected_documents or [])
+    authority_documents.extend(
+        _v221_question_specific_resource_authority(
+            [{"title": title, "text": content} for title, content in prepared],
+            question,
+        )
+    )
+    authority_keys = {
+        _resource_key(document)
+        for document in authority_documents
+        if isinstance(document, dict)
+    }
+    protected_indices = {
+        index
+        for index, (title, content) in enumerate(prepared)
+        if _resource_key({"title": title, "text": content}) in authority_keys
+    }
+
+    profiles = []'''
           assert old in s
           s = s.replace(old, new, 1)
 
-          old = '''    def rank(indices: Tuple[int, ...]) -> Tuple[Any, ...]:\n        covered = set()\n        for index in indices:\n            covered.update(profiles[index][3].get("covered", set()))\n        direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)\n        hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)\n        return (1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))\n\n    effective_min = min_content\n    effective_n = selected_n\n    pair_rescue = False\n'''
-          new = '''    def rank(indices: Tuple[int, ...]) -> Tuple[Any, ...]:\n        covered = set()\n        for index in indices:\n            covered.update(profiles[index][3].get("covered", set()))\n        direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)\n        hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)\n        protected_count = len(set(indices) & protected_indices)\n        return (protected_count, 1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))\n\n    effective_min = min_content\n    effective_n = selected_n\n    pair_rescue = False\n\n    # If the ordinary floor can afford only one block, retain a QSRA-authority\n    # resource rather than allowing generic ranking to select a different block.\n    if effective_n < 2 and protected_indices:\n        effective_index = max(protected_indices, key=lambda index: rank((index,)))\n        chosen = [prepared[effective_index]]\n        print(\n            "USE v222 final evidence authority preservation: "\n            f"protected_single=True, index={effective_index}, "\n            f"title={chosen[0][0]!r}"\n        )\n        return chosen, 1, effective_min, False\n'''
+          old = '''    def rank(indices: Tuple[int, ...]) -> Tuple[Any, ...]:
+        covered = set()
+        for index in indices:
+            covered.update(profiles[index][3].get("covered", set()))
+        direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)
+        hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)
+        return (1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))
+
+    effective_min = min_content
+    effective_n = selected_n
+    pair_rescue = False
+'''
+          new = '''    def rank(indices: Tuple[int, ...]) -> Tuple[Any, ...]:
+        covered = set()
+        for index in indices:
+            covered.update(profiles[index][3].get("covered", set()))
+        direct = sum(profiles[index][3].get("direct_fit", 0) for index in indices)
+        hits = sum(sum(profiles[index][3].get("hits", {}).values()) for index in indices)
+        protected_count = len(set(indices) & protected_indices)
+        return (protected_count, 1 if 0 in indices else 0, len(covered), direct, hits, -sum(indices))
+
+    effective_min = min_content
+    effective_n = selected_n
+    pair_rescue = False
+
+    # If the ordinary floor can afford only one block, retain a QSRA-authority
+    # resource rather than allowing generic ranking to select a different block.
+    if effective_n < 2 and protected_indices:
+        effective_index = max(protected_indices, key=lambda index: rank((index,)))
+        chosen = [prepared[effective_index]]
+        print(
+            "USE v222 final evidence authority preservation: "
+            f"protected_single=True, index={effective_index}, "
+            f"title={chosen[0][0]!r}"
+        )
+        return chosen, 1, effective_min, False
+'''
           assert old in s
           s = s.replace(old, new, 1)
 
-          old = '''        for indices in itertools.combinations(range(len(prepared)), 2):\n            if not covers(indices):\n                continue'''
-          new = '''        for indices in itertools.combinations(range(len(prepared)), 2):\n            if protected_indices and not protected_indices.issubset(set(indices)):\n                continue\n            if not covers(indices):\n                continue'''
+          old = '''        for indices in itertools.combinations(range(len(prepared)), 2):
+            if not covers(indices):
+                continue'''
+          new = '''        for indices in itertools.combinations(range(len(prepared)), 2):
+            if protected_indices and not protected_indices.issubset(set(indices)):
+                continue
+            if not covers(indices):
+                continue'''
           assert old in s
           s = s.replace(old, new, 1)
 
-          old = '''        complete = [\n            indices for indices in itertools.combinations(range(len(prepared)), subset_n)\n            if covers(indices)\n        ]\n        if complete:\n            best = max(complete, key=rank)'''
-          new = '''        complete = [\n            indices for indices in itertools.combinations(range(len(prepared)), subset_n)\n            if (not protected_indices or protected_indices.issubset(set(indices)))\n            and covers(indices)\n        ]\n        if complete:\n            best = max(complete, key=rank)'''
+          old = '''        complete = [
+            indices for indices in itertools.combinations(range(len(prepared)), subset_n)
+            if covers(indices)
+        ]
+        if complete:
+            best = max(complete, key=rank)'''
+          new = '''        complete = [
+            indices for indices in itertools.combinations(range(len(prepared)), subset_n)
+            if (not protected_indices or protected_indices.issubset(set(indices)))
+            and covers(indices)
+        ]
+        if complete:
+            best = max(complete, key=rank)'''
           assert old in s
           s = s.replace(old, new, 1)
 
-          old = '''    selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(\n        prepared, question, max_chars, separator_len, prefix, min_content, selected_n\n    )'''
-          new = '''    selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(\n        prepared, question, max_chars, separator_len, prefix, min_content, selected_n,\n        protected_documents=_v221_question_specific_resource_authority(\n            [{"title": title, "text": content} for title, content in prepared],\n            question,\n        ),\n    )'''
+          old = '''    selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(
+        prepared, question, max_chars, separator_len, prefix, min_content, selected_n
+    )'''
+          new = '''    selected, selected_n, min_content, _pair_rescue = _v220_relational_provider_subset(
+        prepared, question, max_chars, separator_len, prefix, min_content, selected_n,
+        protected_documents=_v221_question_specific_resource_authority(
+            [{"title": title, "text": content} for title, content in prepared],
+            question,
+        ),
+    )'''
           assert old in s
           s = s.replace(old, new, 1)
 
           marker = 'def _v220_final_relational_evidence_integrity_self_audit() -> None:\n'
-          audit = '''def _v222_final_evidence_authority_preservation_self_audit() -> None:\n    """Verify QSRA-authoritative evidence survives final provider compression."""\n    question = (\n        "How can clearer division of responsibilities reduce duplication and conflict "\n        "while making an organization slower to adapt when a problem crosses those "\n        "established boundaries?"\n    )\n    context = (\n        "Title: Why Cooperation Breaks Down: Trust, Competition, and Survival\\n"\n        "Content: Cooperation can reduce conflict and improve collective effectiveness, "\n        "but interdependence can also create constraints between parts of a system.\\n\\n---\\n\\n"\n        "Title: Work Sequence — The Protocol\\n"\n        "Content: Clear division of responsibilities can reduce duplication and conflict "\n        "by assigning work through defined sequences and boundaries.\\n\\n---\\n\\n"\n        "Title: Capability Must Be Shared\\n"\n        "Content: Shared capability helps organizations coordinate and respond when work "\n        "requires contribution across multiple parts."\n    )\n    prepared = []\n    for block in context.split("\\n\\n---\\n\\n"):\n        title_match = re.search(r"^Title:\\s*(.+?)\\s*$", block, flags=re.MULTILINE)\n        content_match = re.search(r"^Content:\\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)\n        if title_match and content_match:\n            prepared.append((title_match.group(1).strip(), content_match.group(1).strip()))\n\n    authority = _v221_question_specific_resource_authority(\n        [{"title": title, "text": content} for title, content in prepared],\n        question,\n    )\n    authority_titles = {doc["title"] for doc in authority}\n    assert "Work Sequence — The Protocol" in authority_titles\n\n    bounded = _v217_build_provider_evidence_context(\n        context, max_chars=700, max_resource_chars=700, question=question, schema_free=False\n    )\n    assert "Work Sequence — The Protocol" in bounded\n    print(\n        "USE v222 FINAL EVIDENCE AUTHORITY PRESERVATION AUDIT: PASS; "\n        f"authority={sorted(authority_titles)}, bounded_chars={len(bounded)}"\n    )\n\n\n'''
+          audit = '''def _v222_final_evidence_authority_preservation_self_audit() -> None:
+    """Verify QSRA-authoritative evidence survives final provider compression."""
+    question = (
+        "How can clearer division of responsibilities reduce duplication and conflict "
+        "while making an organization slower to adapt when a problem crosses those "
+        "established boundaries?"
+    )
+    context = (
+        "Title: Why Cooperation Breaks Down: Trust, Competition, and Survival\n"
+        "Content: Cooperation can reduce conflict and improve collective effectiveness, "
+        "but interdependence can also create constraints between parts of a system.\n\n---\n\n"
+        "Title: Work Sequence — The Protocol\n"
+        "Content: Clear division of responsibilities can reduce duplication and conflict "
+        "by assigning work through defined sequences and boundaries.\n\n---\n\n"
+        "Title: Capability Must Be Shared\n"
+        "Content: Shared capability helps organizations coordinate and respond when work "
+        "requires contribution across multiple parts."
+    )
+    prepared = []
+    for block in context.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if title_match and content_match:
+            prepared.append((title_match.group(1).strip(), content_match.group(1).strip()))
+
+    authority = _v221_question_specific_resource_authority(
+        [{"title": title, "text": content} for title, content in prepared],
+        question,
+    )
+    authority_titles = {doc["title"] for doc in authority}
+    assert "Work Sequence — The Protocol" in authority_titles
+
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=700, max_resource_chars=700, question=question, schema_free=False
+    )
+    assert "Work Sequence — The Protocol" in bounded
+    print(
+        "USE v222 FINAL EVIDENCE AUTHORITY PRESERVATION AUDIT: PASS; "
+        f"authority={sorted(authority_titles)}, bounded_chars={len(bounded)}"
+    )
+
+
+'''
           assert marker in s
           s = s.replace(marker, audit + marker, 1)
 
           s = s.replace('v221: preserve question-specific authority', 'v221/v222: preserve question-specific authority')
           s = s.replace('USE v220 final relational evidence integrity: ', 'USE v220/v222 final evidence integrity: ')
 
-          pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\\n.*?^# === END CANONICAL BUILD IDENTITY ===\\n?')
-          normalized, count = pattern.subn('# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\\n# === END CANONICAL BUILD IDENTITY ===\\n', s)
-          assert count == 1
+          start = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n'
+          end = '# === END CANONICAL BUILD IDENTITY ===\n'
+          i = s.index(start)
+          j = s.index(end, i) + len(end)
+          normalized = s[:i] + '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n' + s[j:]
           payload = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-          s = re.sub(r'(?m)^CANONICAL_BUILD_PAYLOAD_SHA256 = "[0-9a-f]+"$', f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"', s, count=1)
-          normalized2, _ = pattern.subn('# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\\n# === END CANONICAL BUILD IDENTITY ===\\n', s)
+          lines = s.splitlines()
+          replaced = False
+          for n, line in enumerate(lines):
+              if line.startswith('CANONICAL_BUILD_PAYLOAD_SHA256 = '):
+                  lines[n] = f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"'
+                  replaced = True
+                  break
+          assert replaced
+          s = "\n".join(lines) + "\n"
+          i = s.index(start)
+          j = s.index(end, i) + len(end)
+          normalized2 = s[:i] + '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n' + s[j:]
           assert hashlib.sha256(normalized2.encode("utf-8")).hexdigest() == payload
 
-          # Preserve the canonical CRLF source representation used by v221.
-          s = s.replace("\\n", newline)
-          Path("main.py").write_bytes(s.encode("utf-8"))
-
-          # Hard source checks before any commit.
-          import ast
-          ast.parse(Path("main.py").read_text(encoding="utf-8"))
-          source_sha = hashlib.sha256(Path("main.py").read_bytes()).hexdigest()
+          s = s.replace("\n", "\r\n")
+          p.write_bytes(s.encode("utf-8"))
+          ast.parse(p.read_text(encoding="utf-8"))
           print("v222 payload_sha256=", payload)
-          print("v222 source_sha256=", source_sha)
-          print("v222 bytes=", Path("main.py").stat().st_size)
-          print("v222 lines=", len(Path("main.py").read_text(encoding="utf-8").splitlines()))
+          print("v222 source_sha256=", hashlib.sha256(p.read_bytes()).hexdigest())
+          print("v222 bytes=", p.stat().st_size)
+          print("v222 lines=", len(p.read_text(encoding="utf-8").splitlines()))
           PY
 
       - name: Commit v222 to main
