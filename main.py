@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v217 — Pole-Eligible Relational Evidence + The Guide
+# USE PRODUCTION VERSION: v218 — Relational Primary Evidence Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v217"
+APP_VERSION = "v218"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v217-pole-eligible-relational-evidence"
+DEPLOYMENT_FINGERPRINT = "USE-v218-relational-primary-evidence-integrity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v217-pole-eligible-relational-evidence"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "861d3b7cd5fb06f921e6bbd52cafccf44b56d985fb7726d6ca2d6d188297cb2e"
+CANONICAL_BUILD_ID = "USE-BUILD-v218-relational-primary-evidence-integrity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "faeb563c967f0b15134221b07d98af984231c6f5c7f0c0673e1c030085a0f04c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7809,28 +7809,6 @@ def _v216_question_pole_coverage_profile(
     }
 
 
-def _v217_pole_eligible_evidence(question: str, document: Dict[str, Any]) -> bool:
-    """Allow explicit pole evidence to survive even when whole-question lexical fit is low.
-
-    v217 addresses the remaining v216 failure mode: a resource can contain strong
-    evidence for one literal pole of an explicit relation yet score below the
-    global direct-fit floor because the question is expressed relationally. Such
-    evidence is eligible for the missing-pole obligation when it has enough literal
-    pole hits and substantive Content to be useful, without becoming a generic
-    relevance override.
-    """
-    if not isinstance(document, dict) or not _resource_content(document).strip():
-        return False
-    profile = _v216_question_pole_coverage_profile(question, document)
-    if not profile.get("covered"):
-        return False
-    if profile.get("direct_fit", 0) >= _SYNTHESIS_MIN_DIRECT_FIT:
-        return True
-    pole_hits = sum(profile.get("hits", {}).values())
-    content_chars = len(_resource_content(document).strip())
-    return pole_hits >= 2 and content_chars >= 180
-
-
 def _v216_bind_question_poles_to_evidence(
     selected: List[Dict[str, Any]],
     candidates: List[Dict[str, Any]],
@@ -7860,10 +7838,14 @@ def _v216_bind_question_poles_to_evidence(
 
     profiled: List[Tuple[int, Dict[str, Any], Dict[str, Any], Tuple[int, int, int, int]]] = []
     for index, document in enumerate(candidates):
-        if not _v217_pole_eligible_evidence(question, document):
+        if not isinstance(document, dict) or not _resource_content(document).strip():
             continue
         quality = _synthesis_evidence_quality_score(question, document)
+        if quality[0] < _SYNTHESIS_MIN_DIRECT_FIT:
+            continue
         profile = _v216_question_pole_coverage_profile(question, document)
+        if not profile["covered"]:
+            continue
         profiled.append((index, document, profile, quality))
 
     if not profiled:
@@ -7971,14 +7953,14 @@ def _v216_bind_question_poles_to_evidence(
 
     if covered >= all_poles:
         print(
-            "USE v217 pole-eligible relational evidence: "
+            "USE v216 question-pole evidence binding: "
             f"poles={sorted(all_poles)}, covered={sorted(covered)}, "
             f"selected={len(working)}, "
             f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in working ]}"
         )
     else:
         print(
-            "USE v217 pole-eligible relational evidence: "
+            "USE v216 question-pole evidence binding: "
             f"eligible_poles={sorted(all_poles)}, covered={sorted(covered)}, "
             f"selected={len(working)}, no complete pole coverage available in supplied candidates"
         )
@@ -7997,56 +7979,6 @@ def _v216_question_pole_role_binding_instruction(
     E2/E3 role labels remain Content-derived and explicitly non-authoritative.
     """
     return _v213_evidence_role_binding_instruction(user_query, intent, generation_context)
-
-
-def _v217_pole_eligibility_self_audit() -> None:
-    """Verify low whole-question fit cannot suppress substantive missing-pole evidence."""
-    question = (
-        "How can specialized knowledge within separate disciplines increase precision "
-        "while making relationships between their findings harder to recognize?"
-    )
-    primary = {
-        "title": "Disciplinary Precision",
-        "url": "https://example.invalid/precision",
-        "content": (
-            "Specialized knowledge can increase precision within a discipline by narrowing "
-            "methods and measures to a defined area of expertise."
-        ),
-    }
-    bridge = {
-        "title": "Cross-Disciplinary Relationships",
-        "url": "https://example.invalid/relationships",
-        "content": (
-            "Separate disciplines can produce precise findings while relationships between "
-            "their findings become harder to recognize when knowledge is organized into "
-            "specialized areas. Connecting findings across disciplines requires seeing how "
-            "different kinds of knowledge interact."
-        ),
-    }
-    selected = [primary]
-    profile = _v216_question_pole_coverage_profile(question, bridge)
-    if len(profile.get("covered", set())) < 1 or sum(profile.get("hits", {}).values()) < 2:
-        raise RuntimeError("v217 audit fixture did not produce substantive pole evidence.")
-    saved_quality = _synthesis_evidence_quality_score
-    try:
-        # Force the whole-question fit to zero so this audit exercises the new
-        # pole-only eligibility branch rather than the legacy direct-fit branch.
-        globals()["_synthesis_evidence_quality_score"] = lambda q, d: (0, 0, 0, len(_resource_content(d)))
-        profile["direct_fit"] = 0
-        if not _v217_pole_eligible_evidence(question, bridge):
-            raise RuntimeError("v217 pole eligibility rejected substantive missing-pole evidence.")
-        bound = _v216_bind_question_poles_to_evidence(
-            selected, [primary, bridge], question
-        )
-    finally:
-        globals()["_synthesis_evidence_quality_score"] = saved_quality
-    titles = {doc.get("title") for doc in bound}
-    if "Cross-Disciplinary Relationships" not in titles:
-        raise RuntimeError("v217 pole eligibility failed to admit low-fit missing-pole evidence.")
-    print(
-        "USE v217 POLE-ELIGIBLE RELATIONAL EVIDENCE AUDIT: PASS; "
-        f"direct_fit={profile['direct_fit']}, hits={profile['hits']}, titles={sorted(titles)}"
-    )
 
 
 def _v216_question_pole_evidence_binding_self_audit() -> None:
@@ -8345,6 +8277,44 @@ def _synthesis_evidence_quality_score(
     return (fit_score, coverage, phrase_hits, evidence_density)
 
 
+def _v218_relational_primary_candidates(
+    indexed: List[Tuple[int, Dict[str, Any], Tuple[int, int, int, int], set, set]],
+    question: str,
+) -> List[Tuple[int, Dict[str, Any], Tuple[int, int, int, int], set, set]]:
+    """Prefer evidence that actually addresses an explicit relational pole.
+
+    v217 preserved pole-bearing sentences after a source had already been selected.
+    The remaining failure mode is earlier: a generic but relationship-rich document
+    can become the primary synthesis source even when another supplied document
+    directly bears on one or both literal poles. For explicit multi-axis questions,
+    v218 therefore applies a bounded source-level integrity gate before primary
+    selection. If any viable candidate covers a distinct pole, candidates with no
+    pole coverage are not eligible to become the primary source. A two-pole bridge
+    is preferred when available. Non-relational questions retain the prior pool.
+    """
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2 or not indexed:
+        return indexed
+
+    profiles = []
+    for item in indexed:
+        index, document, score, concepts, coverage = item
+        profile = _v216_question_pole_coverage_profile(question, document)
+        profiles.append((item, profile))
+
+    pole_bearing = [item for item, profile in profiles if profile["covered"]]
+    if not pole_bearing:
+        return indexed
+
+    # Keep every pole-bearing candidate in the eligible pool. A bridge source
+    # remains preferred by the existing relational ranking, but excluding
+    # one-pole sources here would be too aggressive: when a bridge is weak or
+    # generic, two complementary pole-specific sources may be the stronger
+    # evidence pair. The v218 gate therefore removes only candidates that cover
+    # neither explicit pole.
+    return pole_bearing
+
+
 def _select_evidence_rich_synthesis_roles(
     documents: List[Dict[str, Any]],
     question: str,
@@ -8384,19 +8354,22 @@ def _select_evidence_rich_synthesis_roles(
     if not indexed:
         return []
 
-    # Primary role: strongest direct supported explanation, with evidence
-    # density as a late tie-breaker so a longer document cannot displace a
-    # materially better direct fit.
+    # v218: for explicit relational questions, do not allow a generic
+    # relationship-rich document to become the primary lens when supplied
+    # evidence directly covers the question's literal poles. If a true bridge
+    # exists, prefer the bridge; otherwise prefer a pole-bearing source. For
+    # non-relational questions the full indexed pool remains unchanged.
+    primary_pool = _v218_relational_primary_candidates(indexed, question)
     primary = max(
-        indexed,
+        primary_pool,
         key=lambda item: (
             _v209_relational_evidence_profile(question, item[1])[4],
-            item[2][0],  # direct fit remains a hard quality floor/tie-breaker
+            item[2][0],
             _v209_relational_evidence_profile(question, item[1])[1],
-            item[2][1],  # question-term coverage
-            item[2][2],  # phrase fit
-            item[2][3],  # evidence density
-            -item[0],    # stable earlier-order preference
+            item[2][1],
+            item[2][2],
+            item[2][3],
+            -item[0],
         ),
     )
 
@@ -9300,13 +9273,9 @@ def fetch_canonical_context(
     # question to a single-sided explanation. This lock changes only the final
     # provider evidence set; retrieval, doorway selection, canonical authority,
     # and navigation remain unchanged.
-    # v217: pole binding adjudicates against the broader retrieved set, not only
-    # the already-narrowed six-resource complement pool. This closes the case
-    # where the missing literal pole was retrieved but discarded before the final
-    # synthesis boundary. The bounded final set remains capped at three resources.
     generation_evidence_docs = _v216_bind_question_poles_to_evidence(
         generation_evidence_docs,
-        retrieved_docs,
+        generation_evidence_candidates,
         user_query,
     )
 
@@ -11266,13 +11235,14 @@ def _fit_generation_context_to_provider_budget(
             evidence_capacity = max(
                 0, target_context_chars - (len(role_instruction) + 2 if role_instruction else 0)
             )
-            bounded_selected = _v215_build_provider_evidence_context(
+            bounded_selected = _v217_build_provider_evidence_context(
                 candidate,
                 max_chars=evidence_capacity,
                 max_resource_chars=min(
                     MAX_GENERATION_RESOURCE_CHARS,
                     max(120, evidence_capacity),
                 ) if evidence_capacity > 0 else 0,
+                question=user_query,
                 schema_free=False,
             )
 
@@ -11393,6 +11363,236 @@ def _fit_generation_context_to_provider_budget(
 
         candidate = candidate[:target_context_chars].rstrip()
 
+
+
+def _v217_pole_preserving_evidence_excerpt(
+    content: str,
+    question: str,
+    max_chars: int,
+) -> str:
+    """Select evidence text so explicit question-pole terms survive compression.
+
+    v217 changes only the final textual excerpting step. When an explicit
+    relational question has distinct literal poles, sentences carrying those
+    pole terms are promoted before ordinary prefix truncation. This prevents a
+    source from technically remaining in the provider bundle while the
+    characters containing the relevant side of the relation are cut away.
+    """
+    text = str(content or "").strip()
+    limit = max(0, int(max_chars))
+    if not text or limit <= 0:
+        return ""
+
+    axes = _v214_relational_axis_texts(question)
+    if len(axes) <= 2:
+        return text[:limit].rstrip()
+
+    raw_axis_sets = [(name, set(_v209_axis_terms(axis_text))) for name, axis_text in axes[1:]]
+    all_sets = [terms for _name, terms in raw_axis_sets]
+    distinct_axes = []
+    for index, (name, terms) in enumerate(raw_axis_sets):
+        other_terms = set().union(
+            *(all_sets[offset] for offset in range(len(all_sets)) if offset != index)
+        )
+        distinct_axes.append((name, tuple(sorted(terms - other_terms))))
+
+    def stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in ("ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[:-len(suffix)]
+        return value
+
+    def sentence_hits(sentence: str, terms: tuple[str, ...]) -> int:
+        normalized = sentence.casefold()
+        tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", normalized))
+        stems = {stem(token) for token in tokens}
+        return sum(
+            1
+            for term in terms
+            if term in tokens or term.replace("-", "") in tokens or stem(term) in stems
+        )
+
+    # Keep sentence boundaries where possible. The corpus content is ordinary
+    # prose, so sentence-level selection is preferable to arbitrary character
+    # windows because it preserves enough local meaning for the provider.
+    sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+    if not sentences:
+        return text[:limit].rstrip()
+
+    scored = []
+    for index, sentence in enumerate(sentences):
+        hits = [sentence_hits(sentence, terms) for _name, terms in distinct_axes]
+        covered = sum(1 for hit in hits if hit)
+        total_hits = sum(hits)
+        # Bridge sentences get first priority; then sentences that carry either
+        # explicit pole. Original order is retained as the final tie-break.
+        score = (1 if covered >= 2 else 0, covered, total_hits, -index)
+        scored.append((score, index, sentence, hits))
+
+    useful = [item for item in scored if item[0][1] > 0]
+    if not useful:
+        return text[:limit].rstrip()
+
+    # Choose a compact set of useful sentences. First guarantee the strongest
+    # sentence for each distinct pole when possible, then fill remaining space
+    # with the highest-value unused sentences. This is allocation within a
+    # single source, not a new authority rule.
+    chosen_indices = set()
+    for axis_index in range(len(distinct_axes)):
+        candidates = [item for item in scored if item[3][axis_index] > 0]
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        if candidates:
+            chosen_indices.add(candidates[0][1])
+
+    ordered_candidates = sorted(scored, key=lambda item: item[0], reverse=True)
+    for item in ordered_candidates:
+        if item[1] in chosen_indices:
+            continue
+        chosen_indices.add(item[1])
+        candidate_text = " ".join(sentences[index] for index in sorted(chosen_indices)).strip()
+        if len(candidate_text) >= limit:
+            chosen_indices.remove(item[1])
+            break
+
+    ordered = [sentences[index] for index in sorted(chosen_indices)]
+    result = " ".join(ordered).strip()
+    if len(result) <= limit:
+        return result
+
+    # If the guaranteed pole sentences themselves exceed the allocation, choose
+    # a single best sentence rather than cutting through it arbitrarily.
+    for item in ordered_candidates:
+        if len(item[2]) <= limit and item[0][1] > 0:
+            return item[2].strip()
+
+    return text[:limit].rstrip()
+
+
+def _v217_build_provider_evidence_context(
+    generation_context: str,
+    max_chars: int,
+    max_resource_chars: int,
+    *,
+    question: str = "",
+    schema_free: bool = False,
+) -> str:
+    """Build provider evidence with explicit relational poles preserved in excerpts.
+
+    v215 decides how many resources can remain substantive. v217 retains that
+    anti-starvation decision, but changes what text is taken from each retained
+    resource: evidence-bearing sentences are selected before prefix truncation
+    when the visitor's question contains distinct relational poles.
+    """
+    if not generation_context or max_chars <= 0 or max_resource_chars <= 0:
+        return ""
+
+    prepared = []
+    for block in generation_context.split("\n\n---\n\n"):
+        if schema_free:
+            match = re.match(r"^(.+?)\s+—\s+(.*)$", block, flags=re.DOTALL)
+            if not match:
+                continue
+            title = _canonical_display_title(match.group(1).strip())
+            content = match.group(2).strip()
+        else:
+            title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+            content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+            if not title_match or not content_match:
+                continue
+            title = _canonical_display_title(title_match.group(1).strip())
+            content = re.sub(r"^\[Evidence \d+\]\s*", "", content_match.group(1).strip())
+        if title and content:
+            prepared.append((title, content))
+
+    if not prepared:
+        return ""
+
+    separator_len = len("\n\n---\n\n")
+    min_content = min(140, max(90, max_resource_chars // 3))
+
+    def prefix(index: int, title: str) -> str:
+        if schema_free:
+            return f"[Evidence {index}] {_canonical_display_title(title)} — "
+        return f"Title: {_canonical_display_title(title)}\nContent: [Evidence {index}] "
+
+    def required(n: int) -> int:
+        prefixes = [prefix(i + 1, prepared[i][0]) for i in range(n)]
+        return sum(len(p) for p in prefixes) + separator_len * (n - 1) + min_content * n
+
+    selected_n = 1
+    for n in range(1, min(len(prepared), 3) + 1):
+        if required(n) <= max_chars:
+            selected_n = n
+        else:
+            break
+
+    selected = prepared[:selected_n]
+    prefixes = [prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
+    available = max_chars - separator_len * (selected_n - 1) - sum(len(p) for p in prefixes)
+    if available <= 0:
+        return ""
+
+    if selected_n == 1:
+        weights = [1.0]
+    elif selected_n == 2:
+        weights = [0.55, 0.45]
+    else:
+        weights = [0.50, 0.25, 0.25]
+
+    allocations = [int(available * weight) for weight in weights]
+    remainder = available - sum(allocations)
+    for i in range(remainder):
+        allocations[i % selected_n] += 1
+
+    for i in range(selected_n):
+        if allocations[i] < min_content:
+            deficit = min_content - allocations[i]
+            donors = sorted((j for j in range(selected_n) if j != i), key=lambda j: allocations[j], reverse=True)
+            for donor in donors:
+                transferable = max(0, allocations[donor] - min_content)
+                moved = min(deficit, transferable)
+                allocations[donor] -= moved
+                allocations[i] += moved
+                deficit -= moved
+                if deficit <= 0:
+                    break
+
+    blocks = []
+    for (title, content), pfx, allocation in zip(selected, prefixes, allocations):
+        content_limit = min(max_resource_chars, max(1, allocation))
+        if question:
+            bounded = _v217_pole_preserving_evidence_excerpt(content, question, content_limit)
+        else:
+            bounded = content[:content_limit].rstrip()
+        if len(content) > len(bounded) and content_limit > 24 and len(bounded) >= content_limit:
+            marker = " … [bounded]"
+            bounded = bounded[:max(1, content_limit - len(marker))].rstrip() + marker
+        blocks.append(pfx + bounded)
+
+    result = "\n\n---\n\n".join(blocks).strip()
+    if len(result) <= max_chars:
+        print(
+            "USE v218 pole-preserving evidence allocation: "
+            f"selected={selected_n}, max_chars={max_chars}, evidence_chars={len(result)}, "
+            f"allocations={allocations}, titles={[title for title, _ in selected]}"
+        )
+        return result
+
+    excess = len(result) - max_chars
+    last = blocks[-1]
+    prefix_len = len(prefixes[-1])
+    if excess >= len(last) - prefix_len:
+        blocks = blocks[:-1]
+    else:
+        blocks[-1] = last[:len(last) - excess].rstrip()
+    result = "\n\n---\n\n".join(blocks).strip()
+    print(
+        "USE v218 pole-preserving evidence allocation: "
+        f"selected={len(blocks)}, max_chars={max_chars}, evidence_chars={len(result)}, "
+        "exact_ceiling_guard=True"
+    )
+    return result
 
 
 def _v215_build_provider_evidence_context(
@@ -14813,6 +15013,112 @@ def _v212_provider_evidence_representation_self_audit() -> None:
     )
 
 
+def _v218_relational_primary_integrity_self_audit() -> None:
+    """Verify generic relational material cannot displace supplied pole-bearing evidence."""
+    question = (
+        "How can deeper expertise within each department improve local judgment "
+        "while making cross-department problems harder to recognize?"
+    )
+    generic = {
+        "title": "Generic Relationship Lens",
+        "url": "https://example.invalid/generic",
+        "text": (
+            "Organizations depend on trust, coordination, feedback, and shared routines. "
+            "These mechanisms influence cooperation and can create unintended "
+            "consequences across a system."
+        ),
+    }
+    local = {
+        "title": "Local Expertise Lens",
+        "url": "https://example.invalid/local",
+        "text": (
+            "Specialized expertise within each department can improve local judgment and "
+            "precision. Teams may become highly capable within their own area."
+        ),
+    }
+    boundary = {
+        "title": "Boundary Lens",
+        "url": "https://example.invalid/boundary",
+        "text": (
+            "Problems can emerge between departments when relationships among separate "
+            "areas of expertise become harder to recognize. Cross-department findings "
+            "may therefore require attention beyond any single specialty."
+        ),
+    }
+    indexed = []
+    for index, document in enumerate([generic, local, boundary]):
+        score = _synthesis_evidence_quality_score(question, document)
+        concepts = _content_concept_set(document)
+        coverage = _question_evidence_term_coverage(question, document)
+        indexed.append((index, document, score, concepts, coverage))
+
+    pool = _v218_relational_primary_candidates(indexed, question)
+    titles = [item[1]["title"] for item in pool]
+    if "Generic Relationship Lens" in titles:
+        raise RuntimeError("v218 relational primary integrity allowed generic relational evidence into the primary pool.")
+    if not {"Local Expertise Lens", "Boundary Lens"}.intersection(titles):
+        raise RuntimeError("v218 relational primary integrity removed all pole-bearing evidence.")
+
+    selected = _select_evidence_rich_synthesis_roles([generic, local, boundary], question)
+    selected_titles = [doc["title"] for doc in selected]
+    if selected_titles[0] == "Generic Relationship Lens":
+        raise RuntimeError("v218 relational primary integrity failed to protect a pole-bearing primary source.")
+    print(
+        "USE v218 RELATIONAL PRIMARY EVIDENCE INTEGRITY AUDIT: PASS; "
+        f"primary_pool={titles}, selected={selected_titles}"
+    )
+
+
+def _v217_pole_preserving_evidence_allocation_self_audit() -> None:
+    """Verify evidence compression retains both explicit question poles in supplied Content."""
+    question = (
+        "How can deeper expertise within each department improve local judgment "
+        "while making cross-department problems harder to recognize?"
+    )
+    context = (
+        "Title: Local Expertise Lens\nURL: https://example.invalid/local\n"
+        "Content: Specialized practice can improve precision and local judgment. "
+        "Teams may become highly capable within their own domain. "
+        "The important cross-department problem is that relationships between departments can become harder to recognize.\n\n---\n\n"
+        "Title: Boundary Lens\nURL: https://example.invalid/boundary\n"
+        "Content: Separate disciplines can develop precise internal methods. "
+        "Their strongest difficulty appears at the boundary, where findings from different departments interact. "
+        "Cross-department relationships may therefore require attention that no single specialty supplies.\n"
+    )
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=500, max_resource_chars=220, question=question, schema_free=False
+    )
+    if bounded.count("[Evidence ") < 2:
+        raise RuntimeError("v217 pole-preserving allocation collapsed a two-pole bundle below two evidence blocks.")
+    lowered = bounded.casefold()
+    if "local judgment" not in lowered:
+        raise RuntimeError("v217 pole-preserving allocation lost evidence for the local-judgment pole.")
+    if "cross-department" not in lowered and "cross department" not in lowered:
+        raise RuntimeError("v217 pole-preserving allocation lost evidence for the cross-department pole.")
+
+    prefix_context = (
+        "Title: Late Pole Lens\nURL: https://example.invalid/late\n"
+        "Content: This source begins with generic background that consumes the early characters. "
+        "Only later does it state that specialized knowledge improves local judgment while relationships between departments become harder to recognize.\n"
+    )
+    late = _v217_build_provider_evidence_context(
+        prefix_context, max_chars=230, max_resource_chars=170, question=question, schema_free=False
+    )
+    late_lowered = late.casefold()
+    if "local judgment" not in late_lowered or "departments" not in late_lowered:
+        raise RuntimeError("v217 pole-preserving allocation failed to recover late evidence-bearing text.")
+
+    neutral = _v217_build_provider_evidence_context(
+        context, max_chars=500, max_resource_chars=220, question="Why is uncertainty difficult?", schema_free=False
+    )
+    if "local judgment" not in neutral.casefold():
+        raise RuntimeError("v217 neutral evidence formatting unexpectedly discarded ordinary leading evidence.")
+    print(
+        "USE v217 POLE-PRESERVING EVIDENCE ALLOCATION AUDIT: PASS; "
+        f"relational_chars={len(bounded)}, relational_blocks={bounded.count('[Evidence ')}, late_chars={len(late)}"
+    )
+
+
 def _v215_relational_evidence_budgeting_self_audit() -> None:
     """Verify relational bundles reduce before evidence becomes fragmentary."""
     context = (
@@ -14865,8 +15171,8 @@ def _v215_relational_evidence_budgeting_self_audit() -> None:
     assert len(first_content.group(1)) > len(second_content.group(1))
 
     source = inspect.getsource(_fit_generation_context_to_provider_budget)
-    assert "_v215_build_provider_evidence_context(" in source
-    assert "_v212_build_provider_evidence_context(" not in source
+    assert "_v217_build_provider_evidence_context(" in source
+    assert "_v215_build_provider_evidence_context(" not in source
     print(
         "USE v215 RELATIONAL EVIDENCE BUDGETING AUDIT: PASS; "
         f"three_resource_view={len(three)} chars/2 blocks, two_resource_view={len(two)} chars/2 blocks"
