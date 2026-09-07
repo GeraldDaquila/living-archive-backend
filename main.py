@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v214 — Relational Synthesis Coverage Lock + The Guide
+# USE PRODUCTION VERSION: v215 — Relational Evidence Budgeting + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v214"
+APP_VERSION = "v215"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v214-relational-synthesis-coverage-lock"
+DEPLOYMENT_FINGERPRINT = "USE-v215-relational-evidence-budgeting"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v214-relational-synthesis-coverage-lock"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "cf3662bd6869e45ffa13e6528c26f03bdd09e94356c18cb9c512efeca103559d"
+CANONICAL_BUILD_ID = "USE-BUILD-v215-relational-evidence-budgeting"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "54205477c817535cdae1bdadcc42ad3a214162a08537b5e5c5d1457e2eabab9e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10799,6 +10799,35 @@ def _v212_question_evidence_role_binding_instruction(
     return _v213_evidence_role_binding_instruction(user_query, intent, generation_context)
 
 
+def _v215_trim_role_binding_instruction(
+    role_instruction: str,
+    retained_evidence_count: int,
+) -> str:
+    """Trim pre-bound roles to the evidence blocks actually retained by v215."""
+    instruction = str(role_instruction or "").strip()
+    count = max(0, int(retained_evidence_count))
+    if not instruction or count <= 0:
+        return ""
+    match = re.search(r"^\[ROLES\]\s*(.*)$", instruction, flags=re.DOTALL)
+    if not match:
+        return instruction
+    body = match.group(1)
+    roles = re.findall(r"E\d+=[^;]+", body)
+    retained_roles = roles[:count]
+    if not retained_roles:
+        return instruction
+    suffix_match = re.search(
+        r"roles=contribution,not-authority;\s*synthesize-relation-first;\s*doorway=navigation\.",
+        body,
+    )
+    suffix = (
+        "roles=contribution,not-authority; synthesize-relation-first; doorway=navigation."
+        if suffix_match
+        else ""
+    )
+    return "[ROLES] " + "; ".join(retained_roles) + ("; " if suffix else "") + suffix
+
+
 def _estimate_message_chars(messages: List[Dict[str, str]]) -> int:
     """Return the actual character count of the assembled provider messages."""
     return sum(len(str(message.get("content", ""))) for message in messages)
@@ -10873,7 +10902,7 @@ def _fit_generation_context_to_provider_budget(
             evidence_capacity = max(
                 0, target_context_chars - (len(role_instruction) + 2 if role_instruction else 0)
             )
-            bounded_selected = _v212_build_provider_evidence_context(
+            bounded_selected = _v215_build_provider_evidence_context(
                 candidate,
                 max_chars=evidence_capacity,
                 max_resource_chars=min(
@@ -10914,8 +10943,12 @@ def _fit_generation_context_to_provider_budget(
         # capacity for substantive evidence.
         candidate = bounded_selected.strip()
         if not compact:
-            role_instruction = _v213_evidence_role_binding_instruction(
-                user_query, intent, role_binding_context
+            # Recompute role binding from the bounded provider evidence itself.
+            # If v215 reduced a three-role bundle to two to prevent starvation,
+            # the provider must not receive a stale E3 role with no E3 evidence.
+            retained_evidence_count = bounded_selected.count("[Evidence ")
+            role_instruction = _v215_trim_role_binding_instruction(
+                role_instruction, retained_evidence_count
             )
             if role_instruction:
                 candidate = role_instruction + "\n\n" + candidate
@@ -10998,21 +11031,22 @@ def _fit_generation_context_to_provider_budget(
 
 
 
-def _v212_build_provider_evidence_context(
+def _v215_build_provider_evidence_context(
     generation_context: str,
     max_chars: int,
     max_resource_chars: int,
     *,
     schema_free: bool = False,
 ) -> str:
-    """Build an equal-share, schema-light evidence view for provider synthesis.
+    """Build a role-aware provider evidence view under the hard input envelope.
 
-    v213 Pareto intervention: canonical Title/URL/Content blocks remain authoritative
-    upstream, but the provider receives compact ``[Evidence n] Title — Content`` blocks.
-    The available provider evidence budget is allocated across all representable
-    selected resources rather than allowing the first block to consume the budget.
-    URLs are intentionally excluded here because deterministic navigation retains them
-    outside the provider evidence window.
+    v215 is the Pareto correction after v214 exposed evidence starvation: a
+    three-resource synthesis bundle could preserve relational coverage while
+    leaving each source with only fragment-level evidence. The provider view
+    therefore keeps at most three resources, but reduces the bundle to two when
+    three cannot each retain a substantive minimum. Allocation is role-aware:
+    the primary evidence receives the largest share, while complementary roles
+    retain bounded but meaningful evidence. Canonical identity remains upstream.
     """
     if not generation_context or max_chars <= 0 or max_resource_chars <= 0:
         return ""
@@ -11027,81 +11061,141 @@ def _v212_build_provider_evidence_context(
             content = match.group(2).strip()
         else:
             title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
-            content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+            content_match = re.search(
+                r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL
+            )
             if not title_match or not content_match:
                 continue
             title = _canonical_display_title(title_match.group(1).strip())
-            content = re.sub(r"^\[Evidence \d+\]\s*", "", content_match.group(1).strip())
+            content = re.sub(
+                r"^\[Evidence \d+\]\s*", "", content_match.group(1).strip()
+            )
         if title and content:
             prepared.append((title, content))
 
     if not prepared:
         return ""
 
-    separator = "\n\n---\n\n"
-    # Determine the largest number of resources for which every block can retain
-    # a substantive minimum. This prevents the first resource from monopolizing
-    # the evidence envelope while avoiding token fragments from later resources.
-    min_content = min(80, max(56, max_resource_chars // 2))
-    selected_n = 0
-    for n in range(1, len(prepared) + 1):
-        prefixes = [
-            (
-                f"[Evidence {i + 1}] {_canonical_display_title(prepared[i][0])} — "
-                if schema_free
-                else f"Title: {_canonical_display_title(prepared[i][0])}\nContent: [Evidence {i + 1}] "
-            )
-            for i in range(n)
-        ]
-        required = sum(len(prefix) for prefix in prefixes) + separator.__len__() * (n - 1) + min_content * n
-        if required <= max_chars:
+    separator_len = len("\n\n---\n\n")
+    # A retained role must have enough substantive text to contribute an idea,
+    # not merely a title or a token fragment. Scale the floor modestly with the
+    # caller's per-resource ceiling so small audit/compact envelopes remain safe.
+    min_content = min(140, max(90, max_resource_chars // 3))
+
+    def _prefix(index: int, title: str) -> str:
+        if schema_free:
+            return f"[Evidence {index}] {_canonical_display_title(title)} — "
+        return f"Title: {_canonical_display_title(title)}\nContent: [Evidence {index}] "
+
+    def _required(n: int) -> int:
+        prefixes = [_prefix(i + 1, prepared[i][0]) for i in range(n)]
+        return (
+            sum(len(prefix) for prefix in prefixes)
+            + separator_len * (n - 1)
+            + min_content * n
+        )
+
+    # Prefer the full relational bundle only when every role can retain a
+    # substantive minimum. Otherwise deliberately reduce to two roles rather
+    # than starving three resources. If even two cannot fit, retain one strong
+    # primary resource rather than emitting fragments.
+    selected_n = 1
+    for n in range(1, min(len(prepared), 3) + 1):
+        if _required(n) <= max_chars:
             selected_n = n
         else:
             break
 
-    if selected_n == 0:
-        selected_n = 1
-
     selected = prepared[:selected_n]
-    prefixes = [
-        (
-            f"[Evidence {i + 1}] {_canonical_display_title(title)} — "
-            if schema_free
-            else f"Title: {_canonical_display_title(title)}\nContent: [Evidence {i + 1}] "
-        )
-        for i, (title, _content) in enumerate(selected)
-    ]
-    available = max_chars - separator.__len__() * (selected_n - 1) - sum(len(p) for p in prefixes)
+    prefixes = [_prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
+    available = max_chars - separator_len * (selected_n - 1) - sum(len(p) for p in prefixes)
     if available <= 0:
         return ""
 
-    allocations = [available // selected_n] * selected_n
-    for i in range(available % selected_n):
-        allocations[i] += 1
+    # Role-aware distribution. The first selected resource is the primary
+    # explanatory role; remaining resources are complementary/relational roles.
+    if selected_n == 1:
+        weights = [1.0]
+    elif selected_n == 2:
+        weights = [0.55, 0.45]
+    else:
+        weights = [0.50, 0.25, 0.25]
+
+    allocations = [int(available * weight) for weight in weights]
+    remainder = available - sum(allocations)
+    for i in range(remainder):
+        allocations[i % selected_n] += 1
+
+    # Preserve the substantive minimum after rounding. With the selected_n
+    # decision above, there is enough room for the floor in normal operation.
+    # If a tight edge case appears, transfer characters from the largest role.
+    for i in range(selected_n):
+        if allocations[i] < min_content:
+            deficit = min_content - allocations[i]
+            donor_candidates = sorted(
+                (j for j in range(selected_n) if j != i),
+                key=lambda j: allocations[j],
+                reverse=True,
+            )
+            for donor in donor_candidates:
+                transferable = max(0, allocations[donor] - min_content)
+                moved = min(deficit, transferable)
+                allocations[donor] -= moved
+                allocations[i] += moved
+                deficit -= moved
+                if deficit <= 0:
+                    break
 
     blocks: List[str] = []
     for (title, content), prefix, allocation in zip(selected, prefixes, allocations):
-        limit = min(max_resource_chars, max(1, allocation))
-        bounded = content[:limit].rstrip()
-        if len(content) > limit and limit > 24:
+        content_limit = min(max_resource_chars, max(1, allocation))
+        bounded = content[:content_limit].rstrip()
+        if len(content) > content_limit and content_limit > 24:
             marker = " … [bounded]"
-            bounded = content[:max(1, limit - len(marker))].rstrip() + marker
-        block = prefix + bounded
-        if len(block) > allocation + len(prefix):
-            block = prefix + content[:max(1, allocation)].rstrip()
-        blocks.append(block)
+            bounded = content[:max(1, content_limit - len(marker))].rstrip() + marker
+        blocks.append(prefix + bounded)
 
-    # Exact final ceiling guard. Reduce the last block only if an unusual Unicode
-    # or truncation edge case caused an overrun. Never remove an earlier evidence block.
-    result = separator.join(blocks).strip()
+    result = "\n\n---\n\n".join(blocks).strip()
     if len(result) <= max_chars:
+        print(
+            "USE v215 relational evidence budgeting: "
+            f"selected={selected_n}, max_chars={max_chars}, evidence_chars={len(result)}, "
+            f"allocations={allocations}, titles={[title for title, _ in selected]}"
+        )
         return result
+
+    # Exact ceiling guard; reduce only the final block and never silently remove
+    # an earlier retained role after the allocation decision has been made.
     excess = len(result) - max_chars
     last = blocks[-1]
-    if excess >= len(last) - len(prefixes[-1]):
-        return separator.join(blocks[:-1]).strip()
-    blocks[-1] = last[:len(last) - excess].rstrip()
-    return separator.join(blocks).strip()
+    prefix_len = len(prefixes[-1])
+    if excess >= len(last) - prefix_len:
+        blocks = blocks[:-1]
+    else:
+        blocks[-1] = last[: len(last) - excess].rstrip()
+    result = "\n\n---\n\n".join(blocks).strip()
+    print(
+        "USE v215 relational evidence budgeting: "
+        f"selected={len(blocks)}, max_chars={max_chars}, evidence_chars={len(result)}, "
+        f"allocations={allocations}, exact_ceiling_guard=True"
+    )
+    return result
+
+
+# Backward-compatible alias: older audits/tests refer to the v212 builder.
+def _v212_build_provider_evidence_context(
+    generation_context: str,
+    max_chars: int,
+    max_resource_chars: int,
+    *,
+    schema_free: bool = False,
+) -> str:
+    return _v215_build_provider_evidence_context(
+        generation_context,
+        max_chars,
+        max_resource_chars,
+        schema_free=schema_free,
+    )
 
 
 def _build_provider_evidence_context(
@@ -14171,8 +14265,11 @@ def _v213_evidence_role_binding_self_audit() -> None:
     )
     if "[ROLES]" not in fitted_context:
         raise RuntimeError("v213 evidence-role binding was lost during provider preflight.")
-    if fitted_context.count("[Evidence ") < 3:
-        raise RuntimeError("v213 evidence-role binding collapsed multi-resource evidence.")
+    retained_count = fitted_context.count("[Evidence ")
+    if retained_count < 2:
+        raise RuntimeError("v215 evidence-role binding collapsed relational evidence below two roles.")
+    if retained_count == 2 and "E3=" in fitted_context:
+        raise RuntimeError("v215 evidence-role binding retained a stale E3 role after evidence reduction.")
     total = _estimate_message_chars(fitted_messages) + math.ceil(352 * 4 * 1.25)
     if total > MAX_PROVIDER_TOTAL_CHARS:
         raise RuntimeError(f"v213 evidence-role binding exceeded provider envelope: {total}")
@@ -14271,10 +14368,24 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
     long_fitted, long_messages = _fit_generation_context_to_provider_budget(
         relational_question, "TOPICAL_INQUIRY", long_context, max_tokens=384
     )
-    for marker in ("[Evidence 1]", "[Evidence 2]", "[Evidence 3]"):
-        if marker not in long_fitted:
+    long_blocks = long_fitted.count("[Evidence ")
+    if long_blocks < 2:
+        raise RuntimeError(
+            "v215 evidence-representation regression: tight fit reduced relational evidence below two substantive roles."
+        )
+    if long_blocks == 3:
+        for marker in ("[Evidence 1]", "[Evidence 2]", "[Evidence 3]"):
+            if marker not in long_fitted:
+                raise RuntimeError(
+                    "v215 evidence-representation regression: three-role fit lost " + marker + "."
+                )
+    else:
+        # Under the 384-token hard output reservation, the provider envelope can
+        # legitimately require a three-role bundle to reduce to two roles. That
+        # is the v215 anti-starvation behavior, not evidence loss.
+        if "[Evidence 1]" not in long_fitted or "[Evidence 2]" not in long_fitted:
             raise RuntimeError(
-                "v212 evidence-representation regression: tight fit lost " + marker + "."
+                "v215 evidence-representation regression: reduced bundle did not preserve the first two roles."
             )
     fitted_total = _estimate_message_chars(fitted_messages) + math.ceil(352 * 4 * 1.25)
     if fitted_total > MAX_PROVIDER_TOTAL_CHARS:
@@ -14328,6 +14439,66 @@ def _v212_provider_evidence_representation_self_audit() -> None:
     print(
         "USE v212 PROVIDER EVIDENCE REPRESENTATION AUDIT: PASS; "
         f"chars={len(dense)}, blocks={dense.count('[Evidence ')}"
+    )
+
+
+def _v215_relational_evidence_budgeting_self_audit() -> None:
+    """Verify relational bundles reduce before evidence becomes fragmentary."""
+    context = (
+        "Title: Primary Lens\nURL: https://example.invalid/primary\n"
+        "Content: Established routines can improve speed and consistency while making changed conditions harder to recognize. " * 4
+        + "\n\n---\n\n"
+        + "Title: Uncertainty Lens\nURL: https://example.invalid/uncertainty\n"
+        + "Content: More information can sharpen apparent precision while leaving important uncertainty unresolved and harder to see. " * 4
+        + "\n\n---\n\n"
+        + "Title: Coordination Lens\nURL: https://example.invalid/coordination\n"
+        + "Content: Distributed coordination can improve local responsiveness while making system-wide consequences harder to recognize. " * 4
+    )
+    three = _v215_build_provider_evidence_context(
+        context, max_chars=565, max_resource_chars=500, schema_free=False
+    )
+    assert three.count("[Evidence ") == 2, (
+        "v215 should reduce a three-resource bundle to two when 565 characters "
+        "cannot support three substantive evidence roles"
+    )
+    assert "Primary Lens" in three and "Uncertainty Lens" in three
+    assert "Coordination Lens" not in three
+    # The role binding must describe only evidence actually retained.
+    original_roles = _v213_evidence_role_binding_instruction(
+        "How can an organization become faster at resolving familiar problems while becoming slower at recognizing changed conditions?",
+        "TOPICAL_INQUIRY",
+        context,
+    )
+    bounded_roles = _v215_trim_role_binding_instruction(
+        original_roles, three.count("[Evidence ")
+    )
+    assert "E1=primary" in bounded_roles and "E2=" in bounded_roles
+    assert "E3=" not in bounded_roles
+
+    two = _v215_build_provider_evidence_context(
+        "\n\n---\n\n".join(context.split("\n\n---\n\n")[:2]),
+        max_chars=565, max_resource_chars=500, schema_free=False,
+    )
+    assert two.count("[Evidence ") == 2
+    first_content = re.search(
+        r"Title: Primary Lens\nContent: \[Evidence 1\] (.*?)(?:\n\n---\n\n|$)",
+        two,
+        flags=re.DOTALL,
+    )
+    second_content = re.search(
+        r"Title: Uncertainty Lens\nContent: \[Evidence 2\] (.*)$",
+        two,
+        flags=re.DOTALL,
+    )
+    assert first_content and second_content
+    assert len(first_content.group(1)) > len(second_content.group(1))
+
+    source = inspect.getsource(_fit_generation_context_to_provider_budget)
+    assert "_v215_build_provider_evidence_context(" in source
+    assert "_v212_build_provider_evidence_context(" not in source
+    print(
+        "USE v215 RELATIONAL EVIDENCE BUDGETING AUDIT: PASS; "
+        f"three_resource_view={len(three)} chars/2 blocks, two_resource_view={len(two)} chars/2 blocks"
     )
 
 
