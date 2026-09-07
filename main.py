@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v228 — Question-Specific Authority Diversity + The Guide
+# USE PRODUCTION VERSION: v229 — Final Question-Specific Authority Diversity Survival + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v228"
+APP_VERSION = "v229"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v228-question-authority-diversity"
+DEPLOYMENT_FINGERPRINT = "USE-v229-final-question-authority-diversity-survival"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v228-question-authority-diversity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "79e81ece08c904755b53dcdf0da3f56b8771043ec4283c3cc1207bd90cc9a4d6"
+CANONICAL_BUILD_ID = "USE-BUILD-v229-final-question-authority-diversity-survival"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "25ae9ccd7f8728e122e7a747cec0dece1dd49467537046dcbade271031ce184b"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4701,6 +4701,58 @@ def _v226_question_aligned_doorway_authority_self_audit() -> None:
     print(
         "USE v226 question-aligned doorway authority audit: PASS; "
         f"bonus={bonus}, detail={detail}, supplied_candidates={len(ranked_with)}"
+    )
+
+
+def _v229_final_authority_diversity_survival_self_audit() -> None:
+    """Verify established QSRA authority diversity survives a tight provider envelope."""
+    question = (
+        "How can preserving different interpretations of the same event improve "
+        "an organization's ability to understand what happened while making it "
+        "harder to produce a single agreed account of the event?"
+    )
+    bridge = {
+        "title": "Signal Bridge",
+        "url": "https://example.invalid/bridge",
+        "content": (
+            "Different interpretations can create competing signals about an event, "
+            "while abundant information can make agreement harder to achieve."
+        ),
+    }
+    specialist = {
+        "title": "Interpretive Plurality",
+        "url": "https://example.invalid/plurality",
+        "content": (
+            "Preserving different interpretations of the same event can improve an "
+            "organization's ability to understand what happened by retaining distinct "
+            "interpretations and perspectives. " + "Additional substantive evidence. " * 12
+        ),
+    }
+    authority = _v221_question_specific_resource_authority(
+        [bridge, specialist], question
+    )
+    assert len(authority) == 2, (
+        "v229 audit: expected both established QSRA authorities in the synthetic diversity case."
+    )
+    context = format_context_blocks(
+        [bridge, specialist], structural_destination_count=0, adaptive_bridge_count=0
+    )
+    bounded = _v217_build_provider_evidence_context(
+        context, max_chars=300, max_resource_chars=300, question=question,
+        schema_free=False, protected_documents=authority,
+    )
+    for document in authority:
+        title = _canonical_display_title(str(document.get("title", "")))
+        assert f"Title: {title}" in bounded, (
+            "v229 audit: established QSRA authority disappeared from final evidence: " + title
+        )
+    assert bounded.count("[Evidence ") >= 2, (
+        "v229 audit: authority-diversity survival collapsed to one provider evidence block."
+    )
+    assert len(bounded) <= 300
+    print(
+        "USE v229 FINAL AUTHORITY-DIVERSITY SURVIVAL AUDIT: PASS; "
+        f"authority={len(authority)}, blocks={bounded.count('[Evidence ')}, chars={len(bounded)}"
     )
 
 
@@ -12083,6 +12135,20 @@ def _v217_pole_preserving_evidence_excerpt(
     return text[:limit].rstrip()
 
 
+def _v229_authority_identity_keys(document: Dict[str, Any]) -> set:
+    """Return stable authority identities across canonical and provider views."""
+    keys = set()
+    if not isinstance(document, dict):
+        return keys
+    resource_key = _resource_key(document)
+    if resource_key:
+        keys.add(resource_key)
+    title = str(document.get("title", "")).strip().lower()
+    if title:
+        keys.add(title)
+    return keys
+
+
 def _v220_relational_provider_subset(
     prepared: List[Tuple[str, str]],
     question: str,
@@ -12126,15 +12192,20 @@ def _v220_relational_provider_subset(
         )
     else:
         authority_documents = list(protected_documents)
-    authority_keys = {
-        _resource_key(document)
-        for document in authority_documents
-        if isinstance(document, dict)
-    }
+    # v229: provider formatting intentionally strips URLs from the compact
+    # prepared representation. Preserve established authority identity across
+    # that boundary by carrying both canonical URL identity and exact-title
+    # fallback identity. The title fallback is used only because the prepared
+    # provider tuple no longer contains the URL; it does not create authority.
+    authority_identity_keys = set()
+    for document in authority_documents:
+        authority_identity_keys.update(_v229_authority_identity_keys(document))
+
     protected_indices = {
         index
         for index, (title, _content) in enumerate(prepared)
-        if _resource_key({"title": title, "text": _content}) in authority_keys
+        if _v229_authority_identity_keys({"title": title, "text": _content})
+        & authority_identity_keys
     }
 
     profiles = []
@@ -12167,6 +12238,44 @@ def _v220_relational_provider_subset(
     effective_min = min_content
     effective_n = selected_n
     pair_rescue = False
+
+    # v229: final question-specific authority-diversity survival. v228 can
+    # correctly establish more than one QSRA authority upstream, but the hard
+    # provider envelope may make the ordinary substantive floor report only one
+    # affordable block. When ALL established protected authorities are available
+    # in the prepared provider set, preserve that complete authority set when a
+    # bounded two-block representation can still retain meaningful evidence.
+    # This is a final allocation rule only: it creates no new authority and does
+    # not infer authority from titles or lexical proximity.
+    if effective_n < 2 and len(protected_indices) >= 2:
+        import itertools
+        authority_pairs = []
+        protected_tuple = tuple(sorted(protected_indices))
+        for indices in itertools.combinations(range(len(prepared)), len(protected_tuple)):
+            if set(indices) != set(protected_tuple):
+                continue
+            if not covers(indices):
+                continue
+            prefixes = [prefix_func(i + 1, prepared[i][0]) for i in indices]
+            pair_base = sum(len(p) for p in prefixes) + separator_len
+            pair_capacity = max_chars - pair_base
+            pair_min = pair_capacity // len(indices) if indices else 0
+            # 90 chars is the existing lower substantive floor used by this
+            # provider evidence builder; never trade authority survival for
+            # title-only or token-level fragments.
+            if pair_min >= 90:
+                authority_pairs.append((pair_min, rank(indices), indices))
+        if authority_pairs:
+            authority_pairs.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            pair_min, _pair_rank, best_authority_pair = authority_pairs[0]
+            effective_n = len(best_authority_pair)
+            effective_min = pair_min
+            pair_rescue = True
+            print(
+                "USE v229 final authority-diversity survival: "
+                f"protected={len(protected_indices)}, indices={list(best_authority_pair)}, "
+                f"min_content={effective_min}"
+            )
 
     # If the ordinary floor can afford only one block, retain a QSRA-authority
     # resource rather than allowing generic ranking to select a different block.
@@ -12354,15 +12463,14 @@ def _v217_build_provider_evidence_context(
     # drops a protected block, rebuild deterministically from the already
     # selected protected resources rather than silently returning a weaker set.
     if protected_documents:
-        protected_keys = {
-            _resource_key(document)
-            for document in protected_documents
-            if isinstance(document, dict)
-        }
+        protected_keys = set()
+        for document in protected_documents:
+            protected_keys.update(_v229_authority_identity_keys(document))
         selected_protected = [
             (title, content)
             for title, content in selected
-            if _resource_key({"title": title, "text": content}) in protected_keys
+            if _v229_authority_identity_keys({"title": title, "text": content})
+            & protected_keys
         ]
         missing_protected = [
             (title, content)
