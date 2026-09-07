@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v232 — Higher-Self Visitor Voice + Question-Axis Coverage Gate + The Guide
+# USE PRODUCTION VERSION: v233 — Breathing-Room Visitor Voice + Higher-Self + Question-Axis Coverage Gate + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -618,6 +618,8 @@ Use at least one exact supplied canonical title when making a resource-grounded 
 
 [VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
 
+[BREATHE BETWEEN IDEAS]: Give the answer room to breathe. Organize the reasoning into 3–5 short paragraphs when the answer contains several distinct ideas. Each paragraph should advance one idea or one side of the relationship, then leave a natural pause before the next. Prefer 1–2 sentences per paragraph and ordinary sentence length. Do not compress the whole answer into one dense block, and do not use headings, bullets, or numbered sections merely to create structure. Keep the answer concise enough that the visitor can absorb one idea before meeting the next.
+
 Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
 """
 
@@ -633,6 +635,7 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
 [VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
+[BREATHE BETWEEN IDEAS]: When the answer contains several distinct ideas, use 3–5 short paragraphs, usually 1–2 sentences each. Let each paragraph complete one idea before moving to the next. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
 
@@ -644,7 +647,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v232"
+APP_VERSION = "v233"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -660,11 +663,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v232-higher-self-visitor-voice"
+DEPLOYMENT_FINGERPRINT = "USE-v233-breathing-room-visitor-voice"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v232-higher-self-visitor-voice"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "75c88d8499141ee8c1ef3d4aa044f47d474ee0ff1d6332146c7f3075559e705d"
+CANONICAL_BUILD_ID = "USE-BUILD-v233-breathing-room-visitor-voice"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bc5280a301aa62f40b32d848a0f6b8aacede0debc1aebc9225056e128b7eca2a"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11614,6 +11617,51 @@ def _calibrate_visitor_style(visitor_text: str) -> str:
     result = re.sub(r"\n{3,}", "\n\n", result)
     return result.strip()
 
+def _v233_chunk_visitor_answer(text: str) -> str:
+    """Give dense visitor prose breathing room without changing its content.
+
+    This is a presentation-only boundary. It activates only when the provider
+    returns a single long paragraph; existing intentional paragraph structure is
+    preserved. Sentences are grouped into small semantic-sized units so the
+    visitor can absorb one idea before moving to the next.
+    """
+    value = str(text or "").strip()
+    if not value or "\n\n" in value or len(value) < 620:
+        return value
+
+    # Keep sentence boundaries intact. The provider is already instructed to
+    # create semantic paragraphs; this deterministic fallback only supplies
+    # breathing room when it does not.
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9“\"'])", value)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if len(sentences) < 3:
+        return value
+
+    chunks = []
+    current = []
+    current_len = 0
+    for sentence in sentences:
+        proposed = current_len + (1 if current else 0) + len(sentence)
+        if current and (len(current) >= 2 or proposed > 430):
+            chunks.append(" ".join(current))
+            current = [sentence]
+            current_len = len(sentence)
+        else:
+            current.append(sentence)
+            current_len = proposed
+    if current:
+        chunks.append(" ".join(current))
+
+    # Avoid over-fragmenting a short response and never create a one-sentence
+    # orphan solely to satisfy the formatter.
+    if len(chunks) < 2:
+        return value
+    if len(chunks[-1]) < 90 and len(chunks) > 2:
+        chunks[-2] = f"{chunks[-2]} {chunks[-1]}"
+        chunks.pop()
+    return "\n\n".join(chunks)
+
+
 def _clean_generation_output(
     generated_text: str,
     generation_context: str,
@@ -11676,6 +11724,7 @@ def _clean_generation_output(
     # survive in visitor-facing text. Internal corpus metadata is never modified.
     normalized_answer = html.unescape(normalized_answer)
     normalized_answer = _calibrate_visitor_style(normalized_answer)
+    normalized_answer = _v233_chunk_visitor_answer(normalized_answer)
     return normalized_answer
 
 
@@ -17042,6 +17091,31 @@ def _v225_provider_completion_recovery_self_audit() -> None:
     assert "recovery" in source
     print("USE v225 provider completion recovery audit: PASS")
 
+
+
+def _v233_breathing_room_visitor_voice_self_audit() -> None:
+    """Verify v233 adds only bounded presentation-level paragraph chunking."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    assert source.count("def _v233_chunk_visitor_answer(text: str) -> str:\n") == 1
+    assert "BREATHE BETWEEN IDEAS" in source
+    assert "\n\n" in source
+    assert "normalized_answer = _v233_chunk_visitor_answer(normalized_answer)" in source
+
+    one_block = (
+        "First idea is clear and grounded in the question, and it names the central relationship without rushing past it. "
+        "Second idea adds the other side of the relationship without overstating what follows, so the reader can see the tension rather than being handed a conclusion. "
+        "Third idea marks an important limit in what the evidence establishes, so the answer does not turn an interpretation into a fact or quietly introduce a mechanism the sources did not provide. "
+        "Fourth idea returns to the visitor's question in ordinary language and leaves room for the visitor to make their own judgment about what matters next, rather than ending with a directive or a claim of special authority."
+    )
+    chunked = _v233_chunk_visitor_answer(one_block)
+    assert "\n\n" not in one_block
+    assert "\n\n" in chunked
+    assert "First idea is clear and grounded in the question" in chunked
+    assert "Fourth idea returns" in chunked
+
+    already_chunked = "First idea.\n\nSecond idea."
+    assert _v233_chunk_visitor_answer(already_chunked) == already_chunked
+    print("USE v233 BREATHING-ROOM VISITOR VOICE AUDIT: PASS")
 
 
 def _v232_higher_self_visitor_voice_self_audit() -> None:
