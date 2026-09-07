@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v216 — Question-Pole Evidence Binding + The Guide
+# USE PRODUCTION VERSION: v217 — Pole-Eligible Relational Evidence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v216"
+APP_VERSION = "v217"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v216-question-pole-evidence-binding"
+DEPLOYMENT_FINGERPRINT = "USE-v217-pole-eligible-relational-evidence"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v216-question-pole-evidence-binding"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "460b8f9916396dc53846c618fcd6545d5dace52a7099c091dada7fa21b9c4218"
+CANONICAL_BUILD_ID = "USE-BUILD-v217-pole-eligible-relational-evidence"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "861d3b7cd5fb06f921e6bbd52cafccf44b56d985fb7726d6ca2d6d188297cb2e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7809,6 +7809,28 @@ def _v216_question_pole_coverage_profile(
     }
 
 
+def _v217_pole_eligible_evidence(question: str, document: Dict[str, Any]) -> bool:
+    """Allow explicit pole evidence to survive even when whole-question lexical fit is low.
+
+    v217 addresses the remaining v216 failure mode: a resource can contain strong
+    evidence for one literal pole of an explicit relation yet score below the
+    global direct-fit floor because the question is expressed relationally. Such
+    evidence is eligible for the missing-pole obligation when it has enough literal
+    pole hits and substantive Content to be useful, without becoming a generic
+    relevance override.
+    """
+    if not isinstance(document, dict) or not _resource_content(document).strip():
+        return False
+    profile = _v216_question_pole_coverage_profile(question, document)
+    if not profile.get("covered"):
+        return False
+    if profile.get("direct_fit", 0) >= _SYNTHESIS_MIN_DIRECT_FIT:
+        return True
+    pole_hits = sum(profile.get("hits", {}).values())
+    content_chars = len(_resource_content(document).strip())
+    return pole_hits >= 2 and content_chars >= 180
+
+
 def _v216_bind_question_poles_to_evidence(
     selected: List[Dict[str, Any]],
     candidates: List[Dict[str, Any]],
@@ -7838,14 +7860,10 @@ def _v216_bind_question_poles_to_evidence(
 
     profiled: List[Tuple[int, Dict[str, Any], Dict[str, Any], Tuple[int, int, int, int]]] = []
     for index, document in enumerate(candidates):
-        if not isinstance(document, dict) or not _resource_content(document).strip():
+        if not _v217_pole_eligible_evidence(question, document):
             continue
         quality = _synthesis_evidence_quality_score(question, document)
-        if quality[0] < _SYNTHESIS_MIN_DIRECT_FIT:
-            continue
         profile = _v216_question_pole_coverage_profile(question, document)
-        if not profile["covered"]:
-            continue
         profiled.append((index, document, profile, quality))
 
     if not profiled:
@@ -7953,14 +7971,14 @@ def _v216_bind_question_poles_to_evidence(
 
     if covered >= all_poles:
         print(
-            "USE v216 question-pole evidence binding: "
+            "USE v217 pole-eligible relational evidence: "
             f"poles={sorted(all_poles)}, covered={sorted(covered)}, "
             f"selected={len(working)}, "
             f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in working ]}"
         )
     else:
         print(
-            "USE v216 question-pole evidence binding: "
+            "USE v217 pole-eligible relational evidence: "
             f"eligible_poles={sorted(all_poles)}, covered={sorted(covered)}, "
             f"selected={len(working)}, no complete pole coverage available in supplied candidates"
         )
@@ -7979,6 +7997,56 @@ def _v216_question_pole_role_binding_instruction(
     E2/E3 role labels remain Content-derived and explicitly non-authoritative.
     """
     return _v213_evidence_role_binding_instruction(user_query, intent, generation_context)
+
+
+def _v217_pole_eligibility_self_audit() -> None:
+    """Verify low whole-question fit cannot suppress substantive missing-pole evidence."""
+    question = (
+        "How can specialized knowledge within separate disciplines increase precision "
+        "while making relationships between their findings harder to recognize?"
+    )
+    primary = {
+        "title": "Disciplinary Precision",
+        "url": "https://example.invalid/precision",
+        "content": (
+            "Specialized knowledge can increase precision within a discipline by narrowing "
+            "methods and measures to a defined area of expertise."
+        ),
+    }
+    bridge = {
+        "title": "Cross-Disciplinary Relationships",
+        "url": "https://example.invalid/relationships",
+        "content": (
+            "Separate disciplines can produce precise findings while relationships between "
+            "their findings become harder to recognize when knowledge is organized into "
+            "specialized areas. Connecting findings across disciplines requires seeing how "
+            "different kinds of knowledge interact."
+        ),
+    }
+    selected = [primary]
+    profile = _v216_question_pole_coverage_profile(question, bridge)
+    if len(profile.get("covered", set())) < 1 or sum(profile.get("hits", {}).values()) < 2:
+        raise RuntimeError("v217 audit fixture did not produce substantive pole evidence.")
+    saved_quality = _synthesis_evidence_quality_score
+    try:
+        # Force the whole-question fit to zero so this audit exercises the new
+        # pole-only eligibility branch rather than the legacy direct-fit branch.
+        globals()["_synthesis_evidence_quality_score"] = lambda q, d: (0, 0, 0, len(_resource_content(d)))
+        profile["direct_fit"] = 0
+        if not _v217_pole_eligible_evidence(question, bridge):
+            raise RuntimeError("v217 pole eligibility rejected substantive missing-pole evidence.")
+        bound = _v216_bind_question_poles_to_evidence(
+            selected, [primary, bridge], question
+        )
+    finally:
+        globals()["_synthesis_evidence_quality_score"] = saved_quality
+    titles = {doc.get("title") for doc in bound}
+    if "Cross-Disciplinary Relationships" not in titles:
+        raise RuntimeError("v217 pole eligibility failed to admit low-fit missing-pole evidence.")
+    print(
+        "USE v217 POLE-ELIGIBLE RELATIONAL EVIDENCE AUDIT: PASS; "
+        f"direct_fit={profile['direct_fit']}, hits={profile['hits']}, titles={sorted(titles)}"
+    )
 
 
 def _v216_question_pole_evidence_binding_self_audit() -> None:
@@ -9232,9 +9300,13 @@ def fetch_canonical_context(
     # question to a single-sided explanation. This lock changes only the final
     # provider evidence set; retrieval, doorway selection, canonical authority,
     # and navigation remain unchanged.
+    # v217: pole binding adjudicates against the broader retrieved set, not only
+    # the already-narrowed six-resource complement pool. This closes the case
+    # where the missing literal pole was retrieved but discarded before the final
+    # synthesis boundary. The bounded final set remains capped at three resources.
     generation_evidence_docs = _v216_bind_question_poles_to_evidence(
         generation_evidence_docs,
-        generation_evidence_candidates,
+        retrieved_docs,
         user_query,
     )
 
