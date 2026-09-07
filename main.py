@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v212 — Evidence Representation for Relational Synthesis + The Guide
+# USE PRODUCTION VERSION: v213 — Evidence Role Binding + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v212"
+APP_VERSION = "v213"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,14 +653,14 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v212-evidence-representation-relational-synthesis"
+DEPLOYMENT_FINGERPRINT = "USE-v213-evidence-role-binding"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the
 # expected digest is non-self-referential. Any source change outside this
 # block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v212-evidence-representation-relational-synthesis"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "6dbc9f5321473309d5a7634889e56f8442672dc5418d0b9ebdd22e001ca50991"
+CANONICAL_BUILD_ID = "USE-BUILD-v213-evidence-role-binding"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "560694346a2ee07d4b8c92fdac0108e2437289c76f7199e7968b3698c61972a9"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10408,41 +10408,85 @@ def _build_generation_system_content(
 
 
 
+def _v213_evidence_role_binding_instruction(
+    user_query: str,
+    intent: str,
+    generation_context: str,
+) -> str:
+    """Bind each supplied evidence item to a bounded contribution role.
+
+    v213 does not assign authority weights or infer latent meaning. It uses the
+    established question axes and selected evidence order to distinguish a
+    primary explanation from complementary contributions.
+    """
+    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
+        return ""
+
+    documents = context_blocks_to_documents(str(generation_context or ""))
+    if len(documents) < 2:
+        return ""
+
+    axes = _v208_question_retrieval_axes(user_query)
+    if len(axes) <= 1:
+        return ""
+    distinct_axes = _v209_distinct_axis_term_sets(user_query)
+
+    def _stem(value: str) -> str:
+        value = value.casefold().replace("-", "")
+        for suffix in ("ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"):
+            if len(value) > 5 and value.endswith(suffix):
+                return value[:-len(suffix)]
+        return value
+
+    def _axis_label(name: str) -> str:
+        return {
+            "left": "L", "right": "R", "condition": "C", "outcome": "O",
+            "phenomenon": "P", "consequence": "K", "first": "F",
+            "alternative": "A",
+        }.get(name, name[:1].upper())
+
+    labels = []
+    for index, document in enumerate(documents):
+        ordinal = index + 1
+        if ordinal == 1:
+            labels.append(f"E{ordinal}=primary")
+            continue
+
+        content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+        content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+        content_stems = {_stem(token) for token in content_tokens}
+        covered_names = []
+        for axis_name, terms in distinct_axes:
+            if any(
+                term in content_tokens
+                or term.replace("-", "") in content_tokens
+                or _stem(term) in content_stems
+                for term in terms
+            ):
+                covered_names.append(axis_name)
+
+        if len(covered_names) >= 2:
+            role = "bridge"
+        elif len(covered_names) == 1:
+            role = _axis_label(covered_names[0])
+        else:
+            role = "complement"
+        labels.append(f"E{ordinal}={role}")
+
+    return (
+        "[ROLES] "
+        + "; ".join(labels)
+        + "; roles=contribution,not-authority; synthesize-relation-first; doorway=navigation."
+    )
+
+
+# Backward-compatible local alias for the immediately preceding v212 audit/tests.
 def _v212_question_evidence_role_binding_instruction(
     user_query: str,
     intent: str,
     generation_context: str,
 ) -> str:
-    """Give the provider a compact relational-synthesis posture.
-
-    The visitor question itself remains the authoritative statement of the
-    relationship. v212 deliberately avoids repeating that relationship in the
-    fixed prompt so scarce provider characters remain available for evidence.
-    """
-    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
-        return ""
-
-    structure = recognize_question_structure(user_query)
-    axes = _v208_question_retrieval_axes(user_query)
-    documents = context_blocks_to_documents(str(generation_context or ""))
-    resource_count = len(documents)
-    evidence_ordinals = [
-        int(match.group(1))
-        for match in re.finditer(r"\[Evidence (\d+)\]", str(generation_context or ""))
-    ]
-    if evidence_ordinals:
-        resource_count = max(resource_count, max(evidence_ordinals))
-
-    if resource_count < 2:
-        return ""
-    if structure.get("structure") != "explicit_contrast" and len(axes) <= 1:
-        return ""
-
-    return (
-        "[RELATIONAL]: Explain the question's relationship first; "
-        f"Evidence 1 primary, Evidence 2–{resource_count} complementary; "
-        "doorway is navigation."
-    )
+    return _v213_evidence_role_binding_instruction(user_query, intent, generation_context)
 
 
 def _estimate_message_chars(messages: List[Dict[str, str]]) -> int:
@@ -10513,7 +10557,7 @@ def _fit_generation_context_to_provider_budget(
                 schema_free=True,
             )
         else:
-            role_instruction = _v212_question_evidence_role_binding_instruction(
+            role_instruction = _v213_evidence_role_binding_instruction(
                 user_query, intent, role_binding_context
             )
             evidence_capacity = max(
@@ -10555,12 +10599,12 @@ def _fit_generation_context_to_provider_budget(
                 f"target_context_chars={target_context_chars}."
             )
 
-        # v212: the relational task is carried inside the bounded provider
+        # v213: evidence roles are carried inside the bounded provider
         # evidence view rather than the fixed prompt, preserving scarce input
         # capacity for substantive evidence.
         candidate = bounded_selected.strip()
         if not compact:
-            role_instruction = _v212_question_evidence_role_binding_instruction(
+            role_instruction = _v213_evidence_role_binding_instruction(
                 user_query, intent, role_binding_context
             )
             if role_instruction:
@@ -10653,7 +10697,7 @@ def _v212_build_provider_evidence_context(
 ) -> str:
     """Build an equal-share, schema-light evidence view for provider synthesis.
 
-    v212 Pareto intervention: canonical Title/URL/Content blocks remain authoritative
+    v213 Pareto intervention: canonical Title/URL/Content blocks remain authoritative
     upstream, but the provider receives compact ``[Evidence n] Title — Content`` blocks.
     The available provider evidence budget is allocated across all representable
     selected resources rather than allowing the first block to consume the budget.
@@ -11212,7 +11256,7 @@ def _build_generation_messages(
             "by its exact canonical title."
         )
 
-    role_binding_instruction = _v212_question_evidence_role_binding_instruction(
+    role_binding_instruction = _v213_evidence_role_binding_instruction(
         user_query, intent, role_binding_context if role_binding_context is not None else safe_context
     )
 
@@ -13778,6 +13822,67 @@ def _v209_relational_evidence_adjudication_self_audit() -> None:
     )
 
 
+def _v213_evidence_role_binding_self_audit() -> None:
+    """Verify selected evidence receives bounded, Content-derived contribution roles."""
+    question = (
+        "How can an organization become better at enforcing shared standards while "
+        "becoming less capable of recognizing when those standards no longer fit the conditions it faces?"
+    )
+    context = (
+        "Title: Primary Lens\nURL: https://example.invalid/primary\n"
+        "Content: Standards can create consistency and predictable institutional practice. "
+        "Stable methods can also become detached from changing conditions when experience does not revise understanding.\n\n---\n\n"
+        "Title: Conditions Lens\nURL: https://example.invalid/conditions\n"
+        "Content: Environmental conditions can change while established procedures remain stable. "
+        "An institution may need to recognize changed circumstances rather than simply enforce existing standards.\n\n---\n\n"
+        "Title: Learning Lens\nURL: https://example.invalid/learning\n"
+        "Content: Repeated success can reinforce assumptions and make contrary signals harder to notice. "
+        "Learning depends on changing understanding when consequences reveal that a method no longer fits.\n"
+    )
+    instruction = _v213_evidence_role_binding_instruction(question, "TOPICAL_INQUIRY", context)
+    for marker in (
+        "[ROLES]",
+        "E1=primary",
+        "E2=",
+        "E3=",
+        "roles=contribution,not-authority",
+        "doorway=navigation.",
+    ):
+        if marker not in instruction:
+            raise RuntimeError("v213 evidence-role binding audit failed: missing marker: " + marker)
+
+    messages = _build_generation_messages(question, "TOPICAL_INQUIRY", context, None, compact=False)
+    # Role binding belongs in the provider evidence boundary, not the visitor-facing question.
+    if "[EVIDENCE ROLES]" in messages[-1]["content"]:
+        raise RuntimeError("v213 evidence-role binding leaked into the visitor question prompt.")
+
+    fitted_context, fitted_messages = _fit_generation_context_to_provider_budget(
+        question, "TOPICAL_INQUIRY", context, max_tokens=352
+    )
+    if "[ROLES]" not in fitted_context:
+        raise RuntimeError("v213 evidence-role binding was lost during provider preflight.")
+    if fitted_context.count("[Evidence ") < 3:
+        raise RuntimeError("v213 evidence-role binding collapsed multi-resource evidence.")
+    total = _estimate_message_chars(fitted_messages) + math.ceil(352 * 4 * 1.25)
+    if total > MAX_PROVIDER_TOTAL_CHARS:
+        raise RuntimeError(f"v213 evidence-role binding exceeded provider envelope: {total}")
+
+    neutral = _v213_evidence_role_binding_instruction(
+        "Why is uncertainty difficult?", "TOPICAL_INQUIRY", context
+    )
+    if neutral:
+        raise RuntimeError("v213 evidence-role binding incorrectly activated for a non-relational question.")
+
+    # Role labels must remain Content-derived: no authority percentage or latent
+    # relationship is introduced by the binding layer.
+    assert "not-authority" in instruction
+    print(
+        "USE v213 EVIDENCE ROLE BINDING AUDIT: PASS; "
+        f"instruction_chars={len(instruction)}, fitted_context={len(fitted_context)}, "
+        f"provider_total={total}"
+    )
+
+
 def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
     """Verify explicit relational structure reaches generation as an evidence-role instruction."""
     relational_question = (
@@ -13799,14 +13904,15 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
         "Repeated success can reinforce assumptions and make contrary signals harder to notice. "
         "This lens distinguishes retained lessons from assumptions that constrain future learning.\n"
     )
-    instruction = _v212_question_evidence_role_binding_instruction(
+    instruction = _v213_evidence_role_binding_instruction(
         relational_question, "TOPICAL_INQUIRY", context
     )
     required = (
-        "[RELATIONAL]",
-        "Evidence 1 primary",
-        "Evidence 2–3 complementary",
-        "doorway is navigation",
+        "[ROLES]",
+        "E1=primary",
+        "E2=",
+        "E3=",
+        "doorway=navigation.",
     )
     for marker in required:
         if marker not in instruction:
@@ -13828,7 +13934,7 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
         relational_question, "TOPICAL_INQUIRY", context, max_tokens=352
     )
     fitted_user_content = fitted_messages[-1]["content"]
-    for marker in ("[RELATIONAL]", "Evidence 1 primary", "Evidence 2–3 complementary"):
+    for marker in ("[ROLES]", "E1=primary", "E2=", "E3="):
         if marker not in fitted_context:
             raise RuntimeError(
                 "v212 evidence-representation regression: provider preflight lost role-binding marker: " + marker
@@ -13866,7 +13972,7 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
             f"v212 evidence-representation regression: fitted provider payload exceeds hard envelope ({fitted_total})."
         )
 
-    neutral = _v212_question_evidence_role_binding_instruction(
+    neutral = _v213_evidence_role_binding_instruction(
         "Why is uncertainty difficult?", "TOPICAL_INQUIRY", context
     )
     if neutral:
@@ -13884,7 +13990,7 @@ def _v212_evidence_representation_relational_synthesis_self_audit() -> None:
             f"v212 evidence-representation regression: fixed generation envelope became too large ({fixed_chars})."
         )
     print(
-        "USE v212 EVIDENCE REPRESENTATION RELATIONAL SYNTHESIS AUDIT: PASS; "
+        "USE v213 EVIDENCE REPRESENTATION RELATIONAL SYNTHESIS REGRESSION: PASS; "
         f"fixed_input={fixed_chars}, relational_instruction_chars={len(instruction)}"
     )
 
