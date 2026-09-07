@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v226 — Question-Aligned Canonical Movement Authority + The Guide
+# USE PRODUCTION VERSION: v227 — QSRA Authority Precedence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v226"
+APP_VERSION = "v227"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -653,12 +653,12 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v226-question-aligned-canonical-movement-authority"
+DEPLOYMENT_FINGERPRINT = "USE-v227-qsra-authority-precedence"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 # The payload hash deliberately excludes only this marked block, so the expected digest is non-self-referential. Any source change outside this block makes the canonical payload hash fail at startup.
-CANONICAL_BUILD_ID = "USE-BUILD-v226-question-aligned-canonical-movement-authority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d533d92b8ba0cb3fe33ca8a5d76bc5742d3f04726cfa40409997d54bf62922da"
+CANONICAL_BUILD_ID = "USE-BUILD-v227-qsra-authority-precedence"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "c0dd918be1100419dd18273ca74852bd4b4ae7dbba85671b868be584b2ec440a"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -4704,6 +4704,58 @@ def _v226_question_aligned_doorway_authority_self_audit() -> None:
     )
 
 
+def _v227_question_authority_precedence_self_audit() -> None:
+    """Verify established QSRA authority outranks a stronger generic doorway score."""
+    question = (
+        "How can decentralizing decisions allow organizations to respond more effectively "
+        "to differences between local environments while making it harder to ensure that "
+        "those decisions remain consistent with organization-wide principles?"
+    )
+    authority = {
+        "title": "Beyond Bureaucracy",
+        "url": "https://example.invalid/beyond-bureaucracy",
+        "content": (
+            "Decentralized decisions can respond to local environments while making "
+            "consistent organization-wide principles harder to maintain across units."
+        ),
+    }
+    generic = {
+        "title": "Decision Guide Overview",
+        "url": "https://example.invalid/decision-guide",
+        "content": (
+            "A guide overview and framework provides a pathway for understanding "
+            "organizational decisions, governance, principles, coordination, and adaptation."
+        ),
+    }
+    authority_bonus, authority_detail = _v226_question_aligned_doorway_authority_bonus(
+        question, authority, [authority]
+    )
+    assert authority_bonus > 0 and authority_detail[0] >= 2 and authority_detail[1] >= 1
+
+    baseline = select_canonical_doorways(
+        [generic, authority],
+        {"primary": "systems", "scores": {"systems": 1}},
+        question=question,
+    )
+    ranked = select_canonical_doorways(
+        [generic, authority],
+        {"primary": "systems", "scores": {"systems": 1}},
+        question=question,
+        question_authority_documents=[authority],
+    )
+    assert baseline[0]["title"] == generic["title"], (
+        "v227 audit fixture must demonstrate a real precedence boundary before authority is supplied."
+    )
+    assert ranked[0]["title"] == authority["title"], (
+        "v227 authority precedence failed to promote established QSRA authority."
+    )
+    assert {_resource_key(x) for x in baseline} == {_resource_key(x) for x in ranked}
+    print(
+        "USE v227 QSRA authority precedence audit: PASS; "
+        f"authority_bonus={authority_bonus}, detail={authority_detail}, candidates={len(ranked)}"
+    )
+
+
 def select_canonical_doorways(
     documents: List[Dict[str, Any]],
     frame: Dict[str, Any],
@@ -4713,7 +4765,8 @@ def select_canonical_doorways(
     question_authority_documents: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Prioritize the strongest already-retrieved canonical doorway.
+    Prioritize the strongest already-retrieved canonical doorway, with v227
+    precedence for already-established question-specific authority.
 
     This function only reorders the supplied evidence. It never adds,
     removes, searches for, or links a resource. Explicit structural
@@ -4737,16 +4790,34 @@ def select_canonical_doorways(
             question, document, question_authority_documents
         )
         score = base_score + function_bonus + authority_bonus
+        # v227: once v221 has already established substantive question-specific
+        # authority, that authority has precedence over an otherwise stronger
+        # generic doorway score. This is a ranking boundary only: it does not
+        # create authority, expand retrieval, or remove any supplied resource.
+        authority_precedence = int(
+            authority_bonus > 0
+            and authority_detail[0] >= 2
+            and authority_detail[1] >= 1
+        )
         ranked.append(
-            (score, detail, function_bonus, authority_bonus, authority_detail, -index, document)
+            (
+                authority_precedence,
+                score,
+                detail,
+                function_bonus,
+                authority_bonus,
+                authority_detail,
+                -index,
+                document,
+            )
         )
 
     ranked.sort(
-        key=lambda item: (item[0], item[1], item[2], item[3]),
+        key=lambda item: (item[0], item[1], item[2], item[3], item[4]),
         reverse=True,
     )
 
-    selected = [document for _score, _detail, _function_bonus, _authority_bonus, _authority_detail, _order, document in ranked]
+    selected = [document for _authority_precedence, _score, _detail, _function_bonus, _authority_bonus, _authority_detail, _order, document in ranked]
 
     if selected:
         primary = selected[0]
