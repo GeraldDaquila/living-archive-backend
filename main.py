@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v248 — Task-Level Response Planning + v247 Recommendation Response Contract + The Guide
+# USE PRODUCTION VERSION: v251 — Recommendation Task Authority Enforcement + v250 Task Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v248"
+APP_VERSION = "v251"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v248-task-level-response-planning"
+DEPLOYMENT_FINGERPRINT = "USE-v251-recommendation-task-authority-enforcement"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v248-task-level-response-planning"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f18e27254016f46ee1c97fee368c57279c7222e0b2a1f361b65477fc90af6d70"
+CANONICAL_BUILD_ID = "USE-BUILD-v251-recommendation-task-authority-enforcement"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bad1c8ff8527eed2f42f08178392e929c5927bce15e35ede88a0c42a7d619f1d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10292,10 +10292,35 @@ def _v201_v200_regression_self_audit() -> None:
     assert len(selected) <= MAX_COMPLEMENTARY_EVIDENCE_RESOURCES
     print("USE v201 V200-REGRESSION AUDIT: PASS")
 
+def _apply_recommendation_task_authority_to_doorway(
+    documents: List[Dict[str, Any]],
+    recommendation: Optional[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Make the adjudicated recommendation the primary supplied doorway."""
+    if not documents or recommendation is None:
+        return documents
+    key = _resource_key(recommendation)
+    matches = [document for document in documents if _resource_key(document) == key]
+    if not matches:
+        return documents
+    primary = matches[0]
+    return [primary] + [
+        document for document in documents
+        if _resource_key(document) != key
+    ]
+
+
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
     intent = classify_intent(user_query)
+    # v249: resolve the visitor's response task before retrieval and make it
+    # available as an authority signal to downstream selection. Legacy intent
+    # remains unchanged for existing D01-D30 behavior; the task contract is the
+    # task-level objective that prevents a recommendation request from being
+    # governed solely as a generic topical inquiry.
+    response_task = _build_response_task_contract(user_query, intent)
+    recommendation_task_active = str(response_task.get("mode")) == "recommendation"
     collection_name = detect_collection_request(user_query)
     adaptive_orientation = detect_adaptive_stewardship_orientation(user_query)
     orientational_frame = infer_orientational_frame(user_query)
@@ -10687,6 +10712,29 @@ def fetch_canonical_context(
         user_query,
     )
 
+    # v249: the response task becomes authoritative before canonical doorway
+    # selection. For recommendation requests, adjudicate the already-retrieved
+    # candidate pool once at this boundary and protect the winner before any
+    # generic topical doorway ranking can reinterpret the task. This does not
+    # retrieve, create, or delete a resource; it simply carries the task's
+    # already-determined primary objective through the existing selection layer.
+    task_authority_recommendation = None
+    if recommendation_task_active:
+        task_authority_recommendation = _adjudicate_recommendation_resource(
+            retrieved_docs,
+            user_query,
+        )
+        if task_authority_recommendation is not None:
+            task_key = _resource_key(task_authority_recommendation)
+            question_authority_protected_docs = [task_authority_recommendation] + [
+                document for document in question_authority_protected_docs
+                if _resource_key(document) != task_key
+            ]
+            print(
+                "USE v249 early task authority: "
+                f"mode=recommendation, primary='{_canonical_display_title(str(task_authority_recommendation.get('title', 'Untitled Resource')))}'"
+            )
+
     # v65: explicit doorway selection is a final routing refinement over
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority. v226 additionally respects
@@ -10698,6 +10746,22 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
         question_authority_documents=question_authority_protected_docs,
     )
+
+    # v250/v251: recommendation task authority is stronger than generic doorway
+    # ranking. Once the early task boundary has selected a canonical primary,
+    # the existing doorway/navigation path must carry that primary first.
+    # This is a reorder only: no retrieval, resource creation, deletion, or new
+    # movement edge is introduced.
+    before_task_authority = list(retrieved_docs)
+    retrieved_docs = _apply_recommendation_task_authority_to_doorway(
+        retrieved_docs,
+        task_authority_recommendation,
+    )
+    if retrieved_docs != before_task_authority and task_authority_recommendation is not None:
+        print(
+            "USE v251 recommendation task authority: "
+            f"doorway_primary='{_canonical_display_title(str(retrieved_docs[0].get('title', 'Untitled Resource')))}'"
+        )
 
     # Preserve at least one D20-recognized candidate for each explicitly
     # requested publication family. This is a selection safeguard, not a route
@@ -10866,12 +10930,23 @@ def fetch_canonical_context(
     if not generation_evidence_candidates:
         generation_evidence_candidates = list(retrieved_docs[:1])
 
-    # v241: explicit recommendation requests are adjudicated over the already
-    # retrieved canonical candidate set before evidence narrowing.
-    adjudicated_recommendation = _adjudicate_recommendation_resource(
-        generation_evidence_candidates,
-        user_query,
-    )
+    # v241/v249: recommendation requests already have an authoritative primary
+    # from the early task boundary. Reuse it when it survived downstream gates;
+    # otherwise adjudicate the remaining supplied candidates as the bounded
+    # recovery path.
+    adjudicated_recommendation = task_authority_recommendation
+    if adjudicated_recommendation is not None:
+        task_key = _resource_key(adjudicated_recommendation)
+        if not any(_resource_key(document) == task_key for document in generation_evidence_candidates):
+            adjudicated_recommendation = _adjudicate_recommendation_resource(
+                generation_evidence_candidates,
+                user_query,
+            )
+    else:
+        adjudicated_recommendation = _adjudicate_recommendation_resource(
+            generation_evidence_candidates,
+            user_query,
+        )
 
     # v206 separates the broad complementary candidate pool from the smaller
     # evidence-rich provider synthesis set. Navigation retains the broader
@@ -18204,6 +18279,69 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         "USE v247 RECOMMENDATION RESPONSE CONTRACT AUDIT: PASS; "
         f"primary_chars={len(first_content)}, provider_resources={len(title_matches)}, "
         f"ordinary_resources={len(ordinary_titles)}"
+    )
+
+
+def _v250_recommendation_task_authority_self_audit() -> None:
+    """Verify the adjudicated recommendation governs the doorway order."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    journey = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": "This work explores death, afterlife, reincarnation, karma and soul growth." * 5,
+    }
+    target = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "This work explores grief and loss as a transformative process, with spiritual and scientific perspectives and meaning-making." * 5,
+    }
+    winner = _adjudicate_recommendation_resource([journey, target], question)
+    assert winner is target
+    reordered = select_canonical_doorways(
+        [journey, target],
+        {"primary": "general", "scores": {}},
+        question=question,
+        question_authority_documents=[winner],
+    )
+    assert reordered[0] is not winner
+    working = _apply_recommendation_task_authority_to_doorway(reordered, winner)
+    assert working[0] is winner
+    assert {_resource_key(x) for x in working} == {_resource_key(x) for x in reordered}
+    source = inspect.getsource(fetch_canonical_context)
+    authority_pos = source.find("task_authority_recommendation = _adjudicate_recommendation_resource(")
+    doorway_pos = source.find("retrieved_docs = select_canonical_doorways(")
+    helper_call_pos = source.find("retrieved_docs = _apply_recommendation_task_authority_to_doorway(")
+    assert authority_pos >= 0 and doorway_pos >= 0 and helper_call_pos >= 0
+    assert authority_pos < doorway_pos < helper_call_pos
+    helper_source = inspect.getsource(_apply_recommendation_task_authority_to_doorway)
+    assert "return [primary]" in helper_source
+    print(
+        "USE v251 RECOMMENDATION TASK AUTHORITY AUDIT: PASS; "
+        f"primary={winner['title']}"
+    )
+
+
+def _v249_early_task_authority_self_audit() -> None:
+    """Verify recommendation task authority is established before doorway selection."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    task = _build_response_task_contract(question, "TOPICAL_INQUIRY")
+    assert task["mode"] == "recommendation"
+    assert task["resource_form"] == "essay/advice"
+    source = inspect.getsource(fetch_canonical_context)
+    task_pos = source.find("response_task = _build_response_task_contract(user_query, intent)")
+    doorway_pos = source.find("retrieved_docs = select_canonical_doorways(")
+    authority_pos = source.find("task_authority_recommendation = _adjudicate_recommendation_resource(")
+    assert task_pos >= 0 and authority_pos >= 0 and doorway_pos >= 0
+    assert task_pos < authority_pos < doorway_pos
+    print(
+        "USE v249 EARLY TASK AUTHORITY AUDIT: PASS; "
+        "recommendation task resolved before doorway selection"
     )
 
 
