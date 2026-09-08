@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v273 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
+# USE PRODUCTION VERSION: v274 — Unified Explicit-Type Canonical Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v273"
+APP_VERSION = "v274"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v273-ordinary-canonical-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v274-unified-explicit-type-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v273-ordinary-canonical-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "fcbe1b7e9d05d57b21c2ba35273233011114367936474dcdfecdc9d4d3337739"
+CANONICAL_BUILD_ID = "USE-BUILD-v274-unified-explicit-type-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b36742a4886d7edb4115b146eaf682d65c332639a1b87903fb8daceb121a719d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6217,6 +6217,40 @@ def _prioritize_document_choice_architecture_generation_documents(
     return anchors + remainder
 
 
+def _v274_normalize_explicit_type_identity(
+    documents: List[Dict[str, Any]],
+    vector: Any,
+    requested_types: List[str],
+) -> List[Dict[str, Any]]:
+    """Normalize explicit publication identity across every retrieved source.
+
+    This is a single post-retrieval identity boundary: ordinary, function-targeted,
+    recovery, and multi-axis candidates all receive the same exact-URL sibling
+    resolution before any downstream adjudicator consumes the set.
+    """
+    if not documents or not requested_types or vector is None:
+        return documents
+    normalized = []
+    for document in documents:
+        if not isinstance(document, dict):
+            normalized.append(document)
+            continue
+        current = document
+        recognized = _recognize_resource_type(current).get("resource_type")
+        if not recognized:
+            for required_type in requested_types:
+                sibling_identity = _v269_resolve_canonical_type_across_chunks(
+                    current, vector, required_type
+                )
+                if sibling_identity:
+                    current = dict(current)
+                    current["_use_resource_type_recognition"] = sibling_identity
+                    current["_use_canonical_chunk_identity"] = sibling_identity
+                    break
+        normalized.append(current)
+    return normalized
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -11098,6 +11132,18 @@ def fetch_canonical_context(
         for doc in retrieved_docs
         if isinstance(doc, dict) and doc
     ][:RETRIEVAL_TOP_K + 8]
+
+    # v274: one canonical identity boundary for all retrieval sources.
+    # Explicit publication identity must be normalized before relational
+    # adjudication, doorway selection, or recommendation consumes the set.
+    # This prevents retrieval-path asymmetry without changing recommendation
+    # weights or inferring type from topic/title.
+    explicit_type_targets = _explicit_resource_type_targets(user_query)
+    retrieved_docs = _v274_normalize_explicit_type_identity(
+        retrieved_docs,
+        query_vector,
+        explicit_type_targets,
+    )
 
     # v210: establish the structural preservation boundary before any
     # downstream adjudication can consume it. Python treats a name assigned
