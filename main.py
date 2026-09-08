@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v274 — Unified Explicit-Type Canonical Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v275 — Pre-Gate Explicit-Type Identity + Unified Canonical Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v274"
+APP_VERSION = "v275"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v274-unified-explicit-type-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v275-pre-gate-explicit-type-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v274-unified-explicit-type-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b36742a4886d7edb4115b146eaf682d65c332639a1b87903fb8daceb121a719d"
+CANONICAL_BUILD_ID = "USE-BUILD-v275-pre-gate-explicit-type-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "6d2a0ff5f6a9bbdf80f0b0092f01220a7d56352f06228a8d8c5cb9b0f6024526"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6251,6 +6251,107 @@ def _v274_normalize_explicit_type_identity(
     return normalized
 
 
+def _v275_enrich_explicit_type_candidates(
+    matches: List[Tuple[Any, Any, Dict[str, Any]]],
+    vector: Any,
+    required_type: Optional[str],
+) -> List[Tuple[Any, Any, Dict[str, Any]]]:
+    """Resolve explicit publication identity before a type-constrained gate.
+
+    v274 establishes the unified post-retrieval identity boundary, but that
+    boundary is necessarily too late to admit a candidate that an earlier
+    function-targeted D20 gate has already rejected as type-unknown. v275 adds
+    the missing pre-gate identity enrichment: only exact canonical-URL sibling
+    evidence may convert an unknown candidate into the explicitly requested
+    publication type. No title, topic, or semantic inference is introduced.
+    """
+    if not matches or not required_type or vector is None:
+        return matches
+
+    enriched: List[Tuple[Any, Any, Dict[str, Any]]] = []
+    for score, match_id, metadata in matches:
+        if not isinstance(metadata, dict):
+            enriched.append((score, match_id, metadata))
+            continue
+        current = metadata
+        recognized = _recognize_resource_type(current).get("resource_type")
+        if not recognized:
+            sibling_identity = _v269_resolve_canonical_type_across_chunks(
+                current, vector, required_type
+            )
+            if sibling_identity:
+                current = dict(current)
+                current["_use_resource_type_recognition"] = sibling_identity
+                current["_use_canonical_chunk_identity"] = sibling_identity
+        enriched.append((score, match_id, current))
+    return enriched
+
+
+def _v275_pre_gate_explicit_type_identity_self_audit() -> None:
+    """Verify unknown function candidates can inherit type only from exact-URL siblings."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    required_markers = (
+        "def _v275_enrich_explicit_type_candidates(",
+        "v275 hypothesis: identity resolution must occur before the",
+        "_v275_enrich_explicit_type_candidates(",
+        "_v269_resolve_canonical_type_across_chunks(",
+    )
+    missing = [marker for marker in required_markers if marker not in source]
+    if missing:
+        raise RuntimeError(
+            "v275 pre-gate identity audit failed; missing markers: "
+            + ", ".join(missing)
+        )
+
+    saved_resolver = globals().get("_v269_resolve_canonical_type_across_chunks")
+    try:
+        def fake_resolver(metadata, vector, required_type):
+            if (
+                isinstance(metadata, dict)
+                and metadata.get("url") == "https://example.invalid/loss"
+                and required_type == "Essay"
+            ):
+                return {
+                    "resource_type": "Essay",
+                    "confidence": "explicit",
+                    "basis": "canonical_url_sibling_chunk_identity",
+                    "source": "v271_exact_canonical_url_sibling_chunk",
+                    "url": "https://example.invalid/loss",
+                    "evidence_chunk_index": 7,
+                }
+            return None
+
+        globals()["_v269_resolve_canonical_type_across_chunks"] = fake_resolver
+        unknown = {
+            "title": "The Transformative Power of Loss",
+            "url": "https://example.invalid/loss",
+            "text": "Grief, loss, meaning, and continuity.",
+        }
+        wrong_url = {
+            "title": "Wrong URL",
+            "url": "https://example.invalid/wrong",
+            "text": "Grief, loss, meaning, and continuity.",
+        }
+        enriched = _v275_enrich_explicit_type_candidates(
+            [(1.0, "loss", unknown), (0.9, "wrong", wrong_url)],
+            [0.1, 0.2],
+            "Essay",
+        )
+        loss = enriched[0][2]
+        wrong = enriched[1][2]
+        assert _recognize_resource_type(loss).get("resource_type") == "Essay"
+        assert _recognize_resource_type(wrong).get("resource_type") is None
+        assert wrong is wrong_url
+
+        no_vector = _v275_enrich_explicit_type_candidates(
+            [(1.0, "loss", unknown)], None, "Essay"
+        )
+        assert no_vector[0][2] is unknown
+    finally:
+        globals()["_v269_resolve_canonical_type_across_chunks"] = saved_resolver
+    print("USE v275 PRE-GATE EXPLICIT TYPE IDENTITY AUDIT: PASS")
+
+
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
     if not question or not index:
@@ -6342,6 +6443,14 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     48,
                 ) if required_type else min(8, RETRIEVAL_TOP_K)
                 matches = _query_index(vector, function_top_k)
+                # v275 hypothesis: identity resolution must occur before the
+                # explicit D20 type gate, otherwise an unknown primary chunk
+                # can be rejected even though an exact-URL sibling chunk
+                # carries the authoritative publication-family identity.
+                if required_type:
+                    matches = _v275_enrich_explicit_type_candidates(
+                        matches, vector, required_type
+                    )
             except Exception as exc:
                 print(f"USE function-targeted retrieval error: {exc}")
                 continue
