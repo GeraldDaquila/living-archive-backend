@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v252 — Canonical Task Authority Propagation + v251 Recommendation Task Authority + The Guide
+# USE PRODUCTION VERSION: v253 — Response Task Provider Authority + v252 Canonical Task Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v252"
+APP_VERSION = "v253"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v252-canonical-task-authority-propagation"
+DEPLOYMENT_FINGERPRINT = "USE-v253-response-task-provider-authority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v252-canonical-task-authority-propagation"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "ecfe24d8fb27efeb23e475858490d5ee6ac1b57ed33593259f4013c19b065286"
+CANONICAL_BUILD_ID = "USE-BUILD-v253-response-task-provider-authority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "3ea0a9066f3ef067cfef27bee5510550132038020260cd01b339b3be999aa48d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12924,12 +12924,10 @@ def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
         return ""
     form = str(contract.get("resource_form") or "canonical resource")
     return (
-        "[RESPONSE TASK — RECOMMENDATION]: Provide one primary canonical "
-        f"{form} recommendation. Explain why that primary fits the visitor's "
-        "stated need and what perspective/value it offers, using supplied Content. "
-        "A second resource is optional and must be clearly subordinate as a "
-        "distinct route, not presented as an equal recommendation. Preserve the "
-        "primary canonical title and URL. Do not substitute another resource."
+        "Give one primary canonical recommendation; first supplied canonical evidence is the adjudicated primary. "
+        "Explain fit/value from Content in 2–4 concise sentences. "
+        "Add another only for a distinct supported route; not presented as an equal recommendation. "
+        "distinct route."
     )
 
 
@@ -14507,14 +14505,14 @@ def _build_generation_messages(
             user_query
             + "\n\nAnswer from evidence; preserve uncertainty. Exact titles only; no links or markup."
             + attribution_instruction
-            + recommendation_contract
+            + response_task_instruction
         )
     else:
         user_content = (
             user_query
             + "\n\nAnswer only from supplied evidence; preserve uncertainty. Exact titles; no links or markup."
             + attribution_instruction
-            + recommendation_contract
+            + response_task_instruction
         )
 
     return [
