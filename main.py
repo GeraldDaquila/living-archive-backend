@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v268 — Canonical Publication Identity Resolution + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
+# USE PRODUCTION VERSION: v269 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v268"
+APP_VERSION = "v269"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v268-canonical-publication-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v269-canonical-chunk-publication-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v268-canonical-publication-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "39b3a4e0afa387ec76112e3fdd437180d1418792a72d593866769cb99d3cad30"
+CANONICAL_BUILD_ID = "USE-BUILD-v269-canonical-chunk-publication-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e2d9ccb112a3e476a2a5f834efd7cf10943b44eefb43b749b8ed56921c79fd8f"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -2239,6 +2239,11 @@ def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
         (r"\b(?:this|the) reference map\b", "Reference Map"),
         (r"\b(?:this|the) guided reading pathway\b", "Pathway"),
         (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),
+        # v269: publication-family identity must precede the generic
+        # Cornerstone phrase because the Archive uses the exact family label
+        # “Cornerstone Essay Series” in publication identity chunks.
+        (r"\bcornerstone essay series\b", "Essay"),
+        (r"\bfoundational essays?\b", "Essay"),
         (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),
         (r"\b(?:this|the) learning arc\b", "Learning Arc"),
         (r"\b(?:this|the) case study\b", "Case"),
@@ -2304,6 +2309,60 @@ def _d20_canonical_collection_type(metadata: Dict[str, Any]) -> Optional[str]:
             if clean in essay_labels:
                 return "Essay"
 
+    return None
+
+
+def _v269_resolve_canonical_type_across_chunks(
+    metadata: Dict[str, Any],
+    vector: Any,
+    required_type: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    """Resolve an unknown chunk's publication type from exact-URL siblings only.
+
+    Chunked ingestion can place publication identity in a sibling chunk rather
+    than the semantically retrieved chunk. This resolver is intentionally
+    identity-bound: the candidate must have a canonical URL, and sibling
+    lookup is filtered by exact URL equality. No title, topic, or similarity
+    inference is permitted to establish publication type.
+    """
+    if not isinstance(metadata, dict) or not required_type or not vector or not index or not hasattr(index, "query"):
+        return None
+    canonical_url = str(metadata.get("url", "")).strip().rstrip("/")
+    if not canonical_url:
+        return None
+    try:
+        result = index.query(
+            vector=vector,
+            top_k=32,
+            include_metadata=True,
+            filter={"url": {"$eq": canonical_url}},
+        )
+        matches = (
+            result.get("matches", [])
+            if hasattr(result, "get")
+            else getattr(result, "matches", [])
+        )
+    except Exception as exc:
+        print(f"USE v269 canonical chunk identity lookup error: {exc}")
+        return None
+
+    for match in matches or []:
+        sibling = _match_metadata(match)
+        if not isinstance(sibling, dict):
+            continue
+        sibling_url = str(sibling.get("url", "")).strip().rstrip("/")
+        if sibling_url != canonical_url:
+            continue
+        recognition = _recognize_resource_type(sibling)
+        if recognition.get("resource_type") == required_type:
+            return {
+                "resource_type": required_type,
+                "confidence": recognition.get("confidence", "explicit"),
+                "basis": "canonical_url_sibling_chunk_identity",
+                "source": "v269_exact_canonical_url_sibling_chunk",
+                "url": canonical_url,
+                "evidence_chunk_index": sibling.get("chunk_index"),
+            }
     return None
 
 
@@ -6236,8 +6295,21 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 if required_type:
                     recognized = _recognize_resource_type(metadata)
                     if recognized.get("resource_type") != required_type:
-                        rejected_for_type += 1
-                        continue
+                        # v269: D20 identity may live in another chunk of the
+                        # same canonical publication. Resolve only through exact
+                        # canonical-URL sibling lookup; never infer from title
+                        # or semantic proximity.
+                        sibling_identity = _v269_resolve_canonical_type_across_chunks(
+                            metadata, vector, required_type
+                        )
+                        if sibling_identity:
+                            metadata = dict(metadata)
+                            metadata["_use_resource_type_recognition"] = sibling_identity
+                            recognized = sibling_identity
+                            metadata["_use_canonical_chunk_identity"] = sibling_identity
+                        else:
+                            rejected_for_type += 1
+                            continue
                     # v140: D20 has positively established that this candidate
                     # belongs to a publication family explicitly requested by
                     # the visitor. Preserve that selection provenance through
@@ -6293,43 +6365,62 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     return candidates
 
 
-def _v268_canonical_publication_identity_self_audit() -> None:
-    """Verify canonical taxonomy can establish Essay identity without guessing."""
-    canonical_taxonomy_essay = {
+def _v269_canonical_chunk_publication_identity_self_audit() -> None:
+    """Verify publication identity can propagate across exact-URL chunks."""
+    cornerstone_essay = {
+        "title": "Publication identity",
+        "url": "https://example.invalid/loss",
+        "text": "This resource belongs to the Cornerstone Essay Series.",
+    }
+    assert _recognize_resource_type(cornerstone_essay)["resource_type"] == "Essay"
+
+    pure_cornerstone = {
+        "title": "Cornerstone Probe",
+        "url": "https://example.invalid/cornerstone",
+        "text": "This is the Cornerstone hub.",
+    }
+    assert _recognize_resource_type(pure_cornerstone)["resource_type"] == "Cornerstone"
+
+    unknown_chunk = {
         "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
         "url": "https://example.invalid/loss",
-        "categories": ["Essays"],
-        "text": "A substantive archive resource with no explicit resource_type metadata.",
+        "chunk_index": 2,
+        "text": "Death and grief can alter the search for meaning.",
     }
-    recognition = _recognize_resource_type(canonical_taxonomy_essay)
-    assert recognition["resource_type"] == "Essay", (
-        "v268 canonical publication identity: canonical Essay taxonomy was not recognized."
-    )
-    assert recognition["basis"] == "canonical_taxonomy_identity", (
-        "v268 canonical publication identity: provenance was not canonical taxonomy."
-    )
+    sibling = {
+        "title": unknown_chunk["title"],
+        "url": unknown_chunk["url"],
+        "chunk_index": 7,
+        "text": "This resource belongs to the Cornerstone Essay Series.",
+    }
 
-    generic = {
-        "title": "A Discussion of Grief",
-        "categories": ["Reflections"],
-        "text": "This resource discusses grief and meaning.",
-    }
-    assert _recognize_resource_type(generic)["resource_type"] is None, (
-        "v268 canonical publication identity: non-publication taxonomy was promoted to Essay."
-    )
+    class _Result:
+        matches = [{"metadata": sibling}]
 
-    weak = {
-        "title": "A Discussion of Grief",
-        "categories": ["essay-like reflections"],
-        "text": "A discussion of grief.",
-    }
-    assert _recognize_resource_type(weak)["resource_type"] is None, (
-        "v268 canonical publication identity: fuzzy taxonomy was promoted to Essay."
-    )
+    class _Index:
+        def query(self, **kwargs):
+            assert kwargs["filter"] == {"url": {"$eq": "https://example.invalid/loss"}}
+            return _Result()
+
+    global index
+    original_index = index
+    index = _Index()
+    try:
+        resolved = _v269_resolve_canonical_type_across_chunks(
+            unknown_chunk, [0.1], "Essay"
+        )
+    finally:
+        index = original_index
+
+    assert resolved and resolved["resource_type"] == "Essay"
+    assert resolved["basis"] == "canonical_url_sibling_chunk_identity"
+    assert resolved["source"] == "v269_exact_canonical_url_sibling_chunk"
+    assert resolved["evidence_chunk_index"] == 7
 
     print(
-        "USE v268 CANONICAL PUBLICATION IDENTITY AUDIT: PASS; "
-        "canonical_taxonomy=Essay, generic_taxonomy=unknown, fuzzy_taxonomy=unknown"
+        "USE v269 CANONICAL CHUNK PUBLICATION IDENTITY AUDIT: PASS; "
+        "cornerstone_essay=Essay, pure_cornerstone=Cornerstone, "
+        "sibling_chunk_index=7"
     )
 
 
