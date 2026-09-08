@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v266 — Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
+# USE PRODUCTION VERSION: v267 — Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v266"
+APP_VERSION = "v267"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v266-query-conditioned-function-retrieval"
+DEPLOYMENT_FINGERPRINT = "USE-v267-d20-recognition-before-type-gate"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v266-query-conditioned-function-retrieval"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d9f64d3ffabc66738d189fffb37a5f9ceb1a95129a7ed34fdeb7f0bed23386c4"
+CANONICAL_BUILD_ID = "USE-BUILD-v267-d20-recognition-before-type-gate"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "052e4081a2a3699c7f2fd626c11e82ec6ba4edb8b4b9ab9c17570326b60a5dc7"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6146,7 +6146,17 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 vector = generate_embedding(retrieval_query)
                 if not vector:
                     continue
-                matches = _query_index(vector, min(8, RETRIEVAL_TOP_K))
+                # v267: explicit publication-family requests need a wider
+                # candidate window because D20 is an independent post-retrieval
+                # recognition gate. A narrow top-8 semantic window can fill with
+                # non-Essay resources before D20 has a chance to recognize the
+                # correct Essay. Widen only explicit type-constrained searches;
+                # ordinary/function-only retrieval keeps its bounded window.
+                function_top_k = min(
+                    RETRIEVAL_TOP_K * 4,
+                    48,
+                ) if required_type else min(8, RETRIEVAL_TOP_K)
+                matches = _query_index(vector, function_top_k)
             except Exception as exc:
                 print(f"USE function-targeted retrieval error: {exc}")
                 continue
@@ -6199,8 +6209,8 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
 
         if required_type:
             target_diagnostics.append(
-                f"{function_name}:type={required_type},accepted={accepted_for_target},"
-                f"rejected={rejected_for_type}"
+                f"{function_name}:type={required_type},top_k={function_top_k},"
+                f"accepted={accepted_for_target},rejected={rejected_for_type}"
             )
         else:
             target_diagnostics.append(
@@ -19479,7 +19489,7 @@ def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
     )
 
 
-def _v266_query_conditioned_function_retrieval_self_audit() -> None:
+def _v267_d20_pre_gate_retrieval_self_audit() -> None:
     """Prove function-targeted retrieval embeds the visitor question, not only the role profile."""
     question = (
         "What advise or essay from the Living Archive can you recommend for "
@@ -19501,7 +19511,18 @@ def _v266_query_conditioned_function_retrieval_self_audit() -> None:
         return [1.0]
 
     def fake_query(vector, top_k):
-        return [(0.99, "essay-1", dict(essay))]
+        captured.append(("top_k", top_k))
+        # Put the valid Essay beyond the old top-8 window. v267 must widen
+        # explicit publication-family retrieval before applying D20.
+        matches = []
+        for index_number in range(9):
+            matches.append((0.99 - index_number * 0.01, f"generic-{index_number}", {
+                "title": f"Generic Resource {index_number}",
+                "url": f"https://example.invalid/generic-{index_number}",
+                "text": "Generic topical evidence.",
+            }))
+        matches.append((0.80, "essay-1", dict(essay)))
+        return matches
 
     globals()["generate_embedding"] = fake_embed
     globals()["_query_index"] = fake_query
@@ -19522,9 +19543,12 @@ def _v266_query_conditioned_function_retrieval_self_audit() -> None:
     assert "Function retrieval profile:" in embedded
     assert len(results) == 1 and results[0].get("title") == essay["title"]
     assert results[0].get("_use_explicit_type_selection_identity", {}).get("requested_type") == "Essay"
+    assert captured[-1][0] == "top_k" and captured[-1][1] >= 48, (
+        "v267 retrieval audit: explicit Essay retrieval did not widen beyond the old top-8 window."
+    )
     print(
-        "USE v266 QUERY-CONDITIONED FUNCTION RETRIEVAL AUDIT: PASS; "
-        f"embedded_question=True, requested_type=Essay, candidates={len(results)}"
+        "USE v267 D20 PRE-GATE RETRIEVAL AUDIT: PASS; "
+        f"embedded_question=True, requested_type=Essay, top_k={captured[-1][1]}, candidates={len(results)}"
     )
 
 
