@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v275 — Pre-Gate Explicit-Type Identity + Unified Canonical Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v276 — Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v275"
+APP_VERSION = "v276"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v275-pre-gate-explicit-type-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v276-canonical-cross-resource-publication-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v275-pre-gate-explicit-type-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "6d2a0ff5f6a9bbdf80f0b0092f01220a7d56352f06228a8d8c5cb9b0f6024526"
+CANONICAL_BUILD_ID = "USE-BUILD-v276-canonical-cross-resource-publication-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "382e6c634ad451c3ed0ffd4d37fa3229a23222eee363cc483ba26def4c1ef3a2"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6217,6 +6217,121 @@ def _prioritize_document_choice_architecture_generation_documents(
     return anchors + remainder
 
 
+def _v276_resolve_canonical_type_from_reference_evidence(
+    metadata: Dict[str, Any],
+    required_type: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    """Resolve explicit publication identity from canonical cross-resource references.
+
+    A resource can be an Essay even when none of its own chunks carries an
+    explicit publication-family field.  Canonical navigation resources can
+    establish that identity elsewhere, for example with an explicit ``Anchor
+    Essay`` designation or by listing the resource inside an explicitly framed
+    essay section.  The lookup is title-conditioned only to find candidate
+    reference resources; identity is accepted only after the exact canonical
+    title and an explicit publication-form statement are both present.
+    """
+    if (
+        not isinstance(metadata, dict)
+        or required_type != "Essay"
+        or index is None
+        or not hasattr(index, "query")
+    ):
+        return None
+
+    title = _canonical_display_title(str(metadata.get("title", "") or "")).strip()
+    if not title:
+        return None
+
+    reference_vector = generate_embedding(title)
+    if not reference_vector:
+        return None
+
+    try:
+        result = index.query(
+            vector=reference_vector,
+            top_k=64,
+            include_metadata=True,
+        )
+        matches = (
+            result.get("matches", [])
+            if hasattr(result, "get")
+            else getattr(result, "matches", [])
+        )
+    except Exception as exc:
+        print(f"USE v276 canonical reference identity lookup error: {exc}")
+        return None
+
+    exact_title = re.escape(title)
+    evidence_patterns = (
+        re.compile(
+            rf"\banchor\s+essay\b.{{0,1800}}{exact_title}",
+            flags=re.IGNORECASE | re.DOTALL,
+        ),
+        re.compile(
+            rf"(?:\bthese\s+essays\b|\bthe\s+essays\s+below\b).{{0,2500}}{exact_title}",
+            flags=re.IGNORECASE | re.DOTALL,
+        ),
+        re.compile(
+            rf"\bgateway\s+essay\b.{{0,1800}}{exact_title}",
+            flags=re.IGNORECASE | re.DOTALL,
+        ),
+    )
+
+    evidence_urls: List[str] = []
+    seen_urls = set()
+    own_url = str(metadata.get("url", "") or "").strip().rstrip("/")
+    for match in matches or []:
+        source = _match_metadata(match)
+        if not isinstance(source, dict):
+            continue
+        source_url = str(source.get("url", "") or "").strip().rstrip("/")
+        if not source_url or source_url == own_url:
+            continue
+        content = html.unescape(_resource_content(source) or "")
+        if title.casefold() not in content.casefold():
+            continue
+        if not any(pattern.search(content) for pattern in evidence_patterns):
+            continue
+        if source_url in seen_urls:
+            continue
+        seen_urls.add(source_url)
+        evidence_urls.append(source_url)
+
+    if not evidence_urls:
+        return None
+
+    return {
+        "resource_type": required_type,
+        "confidence": "explicit",
+        "basis": "canonical_cross_resource_identity",
+        "source": "v276_canonical_reference_evidence",
+        "url": own_url,
+        "evidence_source_urls": evidence_urls[:4],
+    }
+
+
+def _v276_attach_reference_identity(
+    metadata: Dict[str, Any],
+    vector: Any,
+    required_type: Optional[str],
+) -> Dict[str, Any]:
+    """Apply v276 cross-resource identity without changing unrelated metadata."""
+    if not isinstance(metadata, dict) or not required_type:
+        return metadata
+    if _recognize_resource_type(metadata).get("resource_type"):
+        return metadata
+    identity = _v276_resolve_canonical_type_from_reference_evidence(
+        metadata, required_type
+    )
+    if not identity:
+        return metadata
+    enriched = dict(metadata)
+    enriched["_use_resource_type_recognition"] = identity
+    enriched["_use_canonical_reference_identity"] = identity
+    return enriched
+
+
 def _v274_normalize_explicit_type_identity(
     documents: List[Dict[str, Any]],
     vector: Any,
@@ -6246,6 +6361,14 @@ def _v274_normalize_explicit_type_identity(
                     current = dict(current)
                     current["_use_resource_type_recognition"] = sibling_identity
                     current["_use_canonical_chunk_identity"] = sibling_identity
+                    break
+                reference_identity = _v276_resolve_canonical_type_from_reference_evidence(
+                    current, required_type
+                )
+                if reference_identity:
+                    current = dict(current)
+                    current["_use_resource_type_recognition"] = reference_identity
+                    current["_use_canonical_reference_identity"] = reference_identity
                     break
         normalized.append(current)
     return normalized
@@ -6283,6 +6406,10 @@ def _v275_enrich_explicit_type_candidates(
                 current = dict(current)
                 current["_use_resource_type_recognition"] = sibling_identity
                 current["_use_canonical_chunk_identity"] = sibling_identity
+            else:
+                current = _v276_attach_reference_identity(
+                    current, vector, required_type
+                )
         enriched.append((score, match_id, current))
     return enriched
 
@@ -6533,6 +6660,64 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
         + (f", diagnostics={target_diagnostics}." if target_diagnostics else ".")
     )
     return candidates
+
+
+def _v276_canonical_cross_resource_publication_identity_self_audit() -> None:
+    """Verify exact cross-resource Essay references establish identity and generic references do not."""
+    target_title = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
+    target = {
+        "title": target_title,
+        "url": "https://example.invalid/loss",
+        "text": "Death and grief can alter the search for meaning.",
+    }
+    references = [
+        {
+            "title": "Evergreen Questions",
+            "url": "https://example.invalid/evergreen",
+            "text": f"How does a person find meaning during loss?\nAnchor Essay\n→ {target_title}",
+        },
+        {
+            "title": "Where to Begin",
+            "url": "https://example.invalid/where-to-begin",
+            "text": f"These essays explore identity, grief, and purpose.\n• {target_title}",
+        },
+    ]
+
+    class _Result:
+        def __init__(self, matches):
+            self.matches = matches
+
+    class _Index:
+        def query(self, **kwargs):
+            assert "filter" not in kwargs
+            return _Result([{"metadata": item} for item in references])
+
+    global index, generate_embedding
+    original_index = index
+    original_embed = generate_embedding
+    index = _Index()
+    generate_embedding = lambda text: [0.1, 0.2, 0.3]
+    try:
+        resolved = _v276_resolve_canonical_type_from_reference_evidence(target, "Essay")
+        assert resolved and resolved["resource_type"] == "Essay"
+        assert resolved["basis"] == "canonical_cross_resource_identity"
+        assert len(resolved["evidence_source_urls"]) == 2
+
+        attached = _v276_attach_reference_identity(target, [0.1, 0.2], "Essay")
+        assert _recognize_resource_type(attached).get("resource_type") == "Essay"
+
+        generic = {
+            "title": "Generic Reference",
+            "url": "https://example.invalid/generic",
+            "text": f"Representative writings\n• {target_title}",
+        }
+        references[:] = [generic]
+        assert _v276_resolve_canonical_type_from_reference_evidence(generic, "Essay") is None
+    finally:
+        index = original_index
+        generate_embedding = original_embed
+
+    print("USE v276 CANONICAL CROSS-RESOURCE PUBLICATION IDENTITY AUDIT: PASS; explicit_reference_identity=True, generic_reference_rejected=True")
 
 
 def _v271_canonical_chunk_identity_boundary_self_audit() -> None:
