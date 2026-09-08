@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v238 — Recommendation Quality + v234 Visitor Presentation Boundary + The Guide
+# USE PRODUCTION VERSION: v239 — Recommendation Evidence Preservation + v238 Recommendation Quality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v238"
+APP_VERSION = "v239"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v238-recommendation-quality"
+DEPLOYMENT_FINGERPRINT = "USE-v239-recommendation-evidence-preservation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v238-recommendation-quality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "29f2e96ea6acade1e4b7a6121ba371d330cc75e3c2785c95ddcf28dd180b3779"
+CANONICAL_BUILD_ID = "USE-BUILD-v239-recommendation-evidence-preservation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "9e87b9b75ed51a1ba53efe3a0cb19e989ee80ef5f20cb9979e44a146f0c48a69"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9006,7 +9006,7 @@ def _v214_relational_synthesis_coverage_lock_self_audit() -> None:
     )
 
 
-MAX_SYNTHESIS_EVIDENCE_RESOURCES = 3
+MAX_SYNTHESIS_EVIDENCE_RESOURCES = 4
 _SYNTHESIS_MIN_DIRECT_FIT = 1
 _SYNTHESIS_MIN_NOVEL_CONCEPTS = 3
 _SYNTHESIS_MAX_CONTENT_OVERLAP = 0.65
