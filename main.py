@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v239 — Recommendation Evidence Preservation + v238 Recommendation Quality + The Guide
+# USE PRODUCTION VERSION: v240 — Recommendation Evidence Preservation + v238 Recommendation Quality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v239"
+APP_VERSION = "v240"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v239-recommendation-evidence-preservation"
+DEPLOYMENT_FINGERPRINT = "USE-v240-recommendation-quality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v239-recommendation-evidence-preservation"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9e87b9b75ed51a1ba53efe3a0cb19e989ee80ef5f20cb9979e44a146f0c48a69"
+CANONICAL_BUILD_ID = "USE-BUILD-v240-recommendation-quality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "5fb7d7deb5987544856be7f5ec45cb56038b7fc146fe42d1f901fc4432d2077e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9006,7 +9006,7 @@ def _v214_relational_synthesis_coverage_lock_self_audit() -> None:
     )
 
 
-MAX_SYNTHESIS_EVIDENCE_RESOURCES = 4
+MAX_SYNTHESIS_EVIDENCE_RESOURCES = 3
 _SYNTHESIS_MIN_DIRECT_FIT = 1
 _SYNTHESIS_MIN_NOVEL_CONCEPTS = 3
 _SYNTHESIS_MAX_CONTENT_OVERLAP = 0.65
@@ -9256,6 +9256,128 @@ def _v231_question_axis_coverage_gate(
     return working
 
 
+def _is_recommendation_question(question: str) -> bool:
+    """Recognize explicit recommendation requests without changing retrieval intent."""
+    clean = re.sub(r"\s+", " ", str(question or "").strip()).casefold()
+    if not clean:
+        return False
+    return bool(re.search(
+        r"\b(?:recommend|recommendation|advise|advice|suggest|suggestion)\b|"
+        r"\bwhich\s+(?:essay|article|resource|piece|reading)\b",
+        clean,
+    ))
+
+
+def _preserve_recommendation_evidence(
+    selected: List[Dict[str, Any]],
+    candidates: List[Dict[str, Any]],
+    question: str,
+) -> List[Dict[str, Any]]:
+    """Keep the strongest Content-grounded recommendation within the existing cap.
+
+    This is a narrow v240 intervention at the v206 selection boundary: for an
+    explicit recommendation request, a stronger unselected candidate may replace
+    the weakest non-primary selected role. It never increases the provider's
+    evidence count and never overrides a stronger primary evidence anchor.
+    """
+    if not selected or not candidates or not _is_recommendation_question(question):
+        return selected
+
+    selected_keys = {_resource_key(document) for document in selected}
+    available = [
+        document for document in candidates
+        if _resource_key(document) not in selected_keys
+        and isinstance(document, dict)
+        and _resource_content(document).strip()
+    ]
+    if not available or len(selected) < 2:
+        return selected
+
+    def recommendation_rank(document: Dict[str, Any]) -> Tuple[int, int, int, int, int]:
+        score = _synthesis_evidence_quality_score(question, document)
+        relational = _v209_relational_evidence_profile(question, document)
+        return (
+            score[0],
+            score[1],
+            score[2],
+            relational[4],
+            score[3],
+        )
+
+    best = max(available, key=recommendation_rank)
+    best_rank = recommendation_rank(best)
+
+    weakest_position = None
+    weakest_rank = None
+    for position, current in enumerate(selected):
+        if position == 0:
+            continue
+        rank = recommendation_rank(current)
+        if weakest_rank is None or rank < weakest_rank:
+            weakest_position = position
+            weakest_rank = rank
+
+    if weakest_position is None:
+        return selected
+    # Recommendation preservation must be justified by stronger direct Content
+    # fit, not merely by a longer or denser document.
+    if best_rank[:3] <= weakest_rank[:3]:
+        return selected
+
+    old = selected[weakest_position]
+    selected[weakest_position] = best
+    print(
+        "USE v240 recommendation evidence preservation: "
+        f"replaced='{_canonical_display_title(str(old.get('title', 'Untitled Resource')))}' "
+        f"with='{_canonical_display_title(str(best.get('title', 'Untitled Resource')))}', "
+        f"rank={best_rank}, cap={MAX_SYNTHESIS_EVIDENCE_RESOURCES}"
+    )
+    return selected
+
+
+def _v240_recommendation_evidence_preservation_self_audit() -> None:
+    """Verify recommendation-specific preservation stays within the synthesis cap."""
+    question = "What essay can you recommend for someone who is grieving from the death of a loved one?"
+    primary = {
+        "title": "Journey Beyond",
+        "url": "https://example.invalid/journey",
+        "text": "This work explores death, afterlife, reincarnation, and soul growth through hypnosis and near-death experiences. " * 4,
+    }
+    companion = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": "This Cornerstone explores the shared human search around death, grief, continuity, meaning, reverence, reflection, and hope. " * 4,
+    }
+    adjacent = {
+        "title": "Healing the Soul’s Layers",
+        "url": "https://example.invalid/healing",
+        "text": "This work explores physical, mental, emotional, spiritual, relational, and existential layers of soul healing. " * 4,
+    }
+    target = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/",
+        "text": (
+            "Grief is a transformative process—a crucible that refines suffering into wisdom, connection, and purpose. "
+            "Death and loss are explored as a transformative journey using psychological, neuroscientific, "
+            "sociological, philosophical, cultural, and spiritual perspectives to explore meaning-making and loss. "
+        ) * 4,
+    }
+    selected = [primary, companion, adjacent]
+    before_titles = [document["title"] for document in selected]
+    selected = _preserve_recommendation_evidence(
+        selected, [primary, companion, adjacent, target], question
+    )
+    titles = [document["title"] for document in selected]
+    assert len(selected) == 3
+    assert titles[0] == before_titles[0]
+    assert "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom" in titles
+    assert "Healing the Soul’s Layers" not in titles
+    print(
+        "USE v240 RECOMMENDATION EVIDENCE PRESERVATION AUDIT: PASS; "
+        f"before={before_titles}, selected={titles}, cap={MAX_SYNTHESIS_EVIDENCE_RESOURCES}"
+    )
+
+
 def _select_evidence_rich_synthesis_roles(
     documents: List[Dict[str, Any]],
     question: str,
@@ -9391,6 +9513,8 @@ def _select_evidence_rich_synthesis_roles(
             item for item in remaining
             if _resource_key(item[1]) != _resource_key(document)
         ]
+
+    selected = _preserve_recommendation_evidence(selected, documents, question)
 
     print(
         "USE v206 evidence sufficiency allocation: "
