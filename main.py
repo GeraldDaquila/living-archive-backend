@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v244 — Recommendation Subject-Priority Adjudication + v243 Directness + The Guide
+# USE PRODUCTION VERSION: v245 — Recommendation Evidence Budget + v244 Recommendation Subject Priority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v244"
+APP_VERSION = "v245"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v244-recommendation-subject-priority"
+DEPLOYMENT_FINGERPRINT = "USE-v245-recommendation-evidence-budget"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v244-recommendation-subject-priority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "95fe9e21c0f420a01067421120d412582fdbafd6c9decb5dae50f7a5209d4f31"
+CANONICAL_BUILD_ID = "USE-BUILD-v245-recommendation-evidence-budget"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7457059662c93e01f951cfe86238fcfd1ce2e574ef97d647ca0fb02f8a15d31f"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10093,6 +10093,50 @@ def _v206_evidence_sufficiency_allocation_self_audit() -> None:
     )
 
 
+def _v245_recommendation_evidence_budget_self_audit() -> None:
+    """Verify recommendation tasks reclaim completion reserve for substantive evidence."""
+    recommendation = _generation_budget_profile({
+        "complexity": 3,
+        "synthesis_signals": 1,
+        "resource_count": 3,
+        "recommendation_task": True,
+    })
+    ordinary = _generation_budget_profile({
+        "complexity": 3,
+        "synthesis_signals": 1,
+        "resource_count": 3,
+        "recommendation_task": False,
+    })
+    assert recommendation["model"] == ordinary["model"] == "openai/gpt-oss-120b"
+    assert recommendation["reasoning_effort"] == ordinary["reasoning_effort"] == "low"
+    assert recommendation["max_completion_tokens"] == 256
+    assert ordinary["max_completion_tokens"] == 384
+
+    fixed_messages = _build_generation_messages(
+        "What advise or essay from the Living Archive that you can recommend for someone who is grieving from the the death of a love one?",
+        "TOPICAL_INQUIRY",
+        "",
+    )
+    fixed_chars = _estimate_message_chars(fixed_messages)
+    rec_reservation = math.ceil(recommendation["max_completion_tokens"] * 4 * 1.25)
+    ordinary_reservation = math.ceil(ordinary["max_completion_tokens"] * 4 * 1.25)
+    rec_capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - rec_reservation,
+    )
+    ordinary_capacity = min(
+        MAX_PROVIDER_INPUT_CHARS - fixed_chars,
+        MAX_PROVIDER_TOTAL_CHARS - fixed_chars - ordinary_reservation,
+    )
+    assert rec_capacity > ordinary_capacity
+    assert rec_capacity >= 900
+    print(
+        "USE v245 recommendation evidence budget: PASS "
+        f"fixed_input={fixed_chars}, recommendation_capacity={rec_capacity}, "
+        f"ordinary_capacity={ordinary_capacity}, recommendation_tokens=256"
+    )
+
+
 def _v204_adaptive_provider_budget_self_audit() -> None:
     """Verify adaptive completion reservation improves evidence capacity without reducing synthesis headroom."""
     volume_only = _classify_generation_complexity(
@@ -15161,6 +15205,12 @@ def _adaptive_provider_completion_tokens(routing: Dict[str, Any], *, compact: bo
     is more vulnerable to output-boundary truncation.
     """
     complexity = int(routing.get("complexity", 1))
+    # v245: explicit recommendation requests need a larger evidence window
+    # than ordinary class-3 synthesis. Reclaim completion reservation only
+    # for this task shape; the model, routing, and ordinary synthesis budgets
+    # remain unchanged.
+    if routing.get("recommendation_task"):
+        return 256
     if compact:
         return {1: 256, 2: 320, 3: 320, 4: 320}.get(complexity, 256)
 
@@ -15411,6 +15461,9 @@ def generate_llm_response(
         base_generation_context,
         orientational_frame,
     )
+    # v245: bind the task-shaped evidence budget to the same explicit
+    # recommendation predicate used by adjudication and presentation.
+    routing["recommendation_task"] = _is_recommendation_question(user_query)
     live_models = get_live_groq_models()
     preferred_model = routing["model"]
     generation_profile = _generation_budget_profile(routing)
