@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v256 — End-to-End Recommendation Cardinality at Fallback Boundaries + v255 Canonical Resource Identity Integrity + The Guide
+# USE PRODUCTION VERSION: v257 — Recommendation Breadth Authority + v256 End-to-End Recommendation Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v256"
+APP_VERSION = "v257"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v256-end-to-end-recommendation-cardinality"
+DEPLOYMENT_FINGERPRINT = "USE-v257-recommendation-breadth-authority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v256-end-to-end-recommendation-cardinality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d2513ba053d320df897bddd5aed0a2d6842c80b78bba382394c3ab81c1d27727"
+CANONICAL_BUILD_ID = "USE-BUILD-v257-recommendation-breadth-authority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "01d03ae7e3c30719daf54bf463c67a8764f15c24bddc1c778fd2b20ba2019f0d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -8080,6 +8080,79 @@ def _v221_question_specific_resource_authority(
     return selected
 
 
+def _select_recommendation_breadth_evidence(
+    selected: List[Dict[str, Any]],
+    candidates: List[Dict[str, Any]],
+    question: str,
+) -> List[Dict[str, Any]]:
+    """Preserve a distinct second canonical perspective for explicit plural recommendations.
+
+    This is the recommendation-task breadth boundary. It operates only on
+    already-retrieved canonical candidates and never creates, retrieves, or
+    authorizes a resource. Singular recommendation tasks remain unchanged.
+    When the visitor explicitly requests several perspectives, the adjudicated
+    primary is retained first and the strongest distinct, Content-supported
+    companion is admitted even when generic synthesis complementarity would
+    otherwise stop at one resource.
+    """
+    if not _is_recommendation_question(question) or not _recommendation_companion_allowed(question):
+        return selected
+    if not selected or not candidates:
+        return selected
+
+    primary = selected[0]
+    primary_key = _resource_key(primary)
+    existing = {_resource_key(doc) for doc in selected}
+    if len(selected) >= 2:
+        return [primary] + [doc for doc in selected[1:] if _resource_key(doc) != primary_key][:1]
+
+    primary_concepts = _content_concept_set(primary)
+    pool = []
+    for index, document in enumerate(candidates):
+        if not isinstance(document, dict) or _resource_key(document) in existing:
+            continue
+        if not _resource_content(document).strip():
+            continue
+        fit = _recommendation_subject_fit(question, document)
+        quality = _synthesis_evidence_quality_score(question, document)
+        concepts = _content_concept_set(document)
+        novelty = min(_COMPLEMENTARY_MAX_NOVEL_CONCEPTS, len(concepts - primary_concepts))
+        overlap = _max_content_concept_overlap(concepts, [primary_concepts])
+        directness = _recommendation_directness_score(question, document)
+        # Companion authority is bounded by actual Content fit. The candidate
+        # must bear directly enough on the requested subject and add a distinct
+        # substantive dimension; no title-only match is sufficient.
+        if fit[0] <= 0:
+            continue
+        if novelty < 2 or overlap > _SYNTHESIS_MAX_CONTENT_OVERLAP:
+            continue
+        rank = (
+            novelty,
+            -overlap,
+            directness[0],
+            directness[2],
+            fit[3],
+            quality[0],
+            quality[1],
+            quality[2],
+            quality[3],
+            -index,
+        )
+        pool.append((rank, document))
+
+    if not pool:
+        return selected
+
+    pool.sort(key=lambda item: item[0], reverse=True)
+    companion = pool[0][1]
+    print(
+        "USE v257 recommendation breadth authority: "
+        f"primary='{_canonical_display_title(str(primary.get('title', 'Untitled Resource')))}', "
+        f"companion='{_canonical_display_title(str(companion.get('title', 'Untitled Resource')))}'"
+    )
+    return [primary, companion]
+
+
 def _select_complementary_generation_evidence(
     documents: List[Dict[str, Any]],
     question: str,
@@ -10972,6 +11045,16 @@ def fetch_canonical_context(
         generation_evidence_candidates,
         user_query,
         recommendation_primary=adjudicated_recommendation,
+    )
+
+    # v257: explicit plural recommendation requests are a breadth task, not
+    # merely a cardinality allowance. Preserve one distinct supported companion
+    # from the already-retrieved candidate pool before downstream provider-bound
+    # narrowing can collapse the task back to a single resource.
+    generation_evidence_docs = _select_recommendation_breadth_evidence(
+        generation_evidence_docs,
+        generation_evidence_candidates,
+        user_query,
     )
 
     # v214: once relational adjudication has established the candidate pool,
@@ -18405,6 +18488,51 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v257_recommendation_breadth_authority_self_audit() -> None:
+    """Verify explicit plural recommendations preserve a distinct supported companion."""
+    plural_question = (
+        "What essays would you recommend for someone grieving? "
+        "Please give me several different perspectives."
+    )
+    primary = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": (
+            "Grief and loss can be explored through psychological, spiritual, and scientific "
+            "perspectives, with attention to meaning, transformation, and healing. " * 4
+        ),
+    }
+    companion = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": (
+            "Grief can also raise questions of continuity, remembrance, relationship, and "
+            "the search for meaning after death and loss. " * 4
+        ),
+    }
+    redundant = {
+        "title": "Generic Grief Support Lens",
+        "url": "https://example.invalid/redundant",
+        "text": primary["text"],
+    }
+    selected = _select_recommendation_breadth_evidence(
+        [primary], [primary, redundant, companion], plural_question
+    )
+    assert len(selected) == 2
+    assert selected[0] is primary
+    assert selected[1] is companion
+
+    singular = "What essay can you recommend for someone grieving?"
+    singular_selected = _select_recommendation_breadth_evidence(
+        [primary], [primary, companion], singular
+    )
+    assert singular_selected == [primary]
+    print(
+        "USE v257 RECOMMENDATION BREADTH AUTHORITY AUDIT: PASS; "
+        f"plural={[doc['title'] for doc in selected]}, singular={len(singular_selected)}"
+    )
 
 
 def _v256_recommendation_fallback_cardinality_self_audit() -> None:
