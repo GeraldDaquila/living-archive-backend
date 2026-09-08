@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v257 — Recommendation Breadth Authority + v256 End-to-End Recommendation Cardinality + The Guide
+# USE PRODUCTION VERSION: v258 — Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v257"
+APP_VERSION = "v258"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v257-recommendation-breadth-authority"
+DEPLOYMENT_FINGERPRINT = "USE-v258-recommendation-output-cardinality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v257-recommendation-breadth-authority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "01d03ae7e3c30719daf54bf463c67a8764f15c24bddc1c778fd2b20ba2019f0d"
+CANONICAL_BUILD_ID = "USE-BUILD-v258-recommendation-output-cardinality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "af688eff190fc89aace6b9f442f3629b0ee73d39d7e92b9a07d7ddb4dcf701a9"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -14785,6 +14785,77 @@ def _recommendation_unauthorized_resource_identities(
     return unauthorized
 
 
+def _enforce_recommendation_output_cardinality(
+    user_query: str,
+    answer: str,
+    generation_context: str,
+) -> str:
+    """Ensure explicit plural recommendations surface every selected resource.
+
+    v258 is a narrow output-boundary correction. v257 already establishes
+    plural recommendation cardinality upstream, and v255 rejects unauthorized
+    resource identities. The remaining failure is that a provider may mention
+    only one of the two selected canonical resources, leaving the other as an
+    implicit possibility rather than an actual visitor-facing recommendation.
+
+    This function does not retrieve, rank, or invent resources. It consumes the
+    already-selected canonical evidence and deterministically surfaces any
+    selected resource whose exact canonical identity did not survive provider
+    generation. Singular recommendation behavior is unchanged.
+    """
+    if not _is_recommendation_question(user_query) or not answer:
+        return answer
+    if not _recommendation_companion_allowed(user_query):
+        return answer
+
+    documents = context_blocks_to_documents(str(generation_context or ""))
+    if len(documents) < 2:
+        return answer
+
+    selected_titles: List[Tuple[str, str]] = []
+    seen = set()
+    for document in documents:
+        if not isinstance(document, dict):
+            continue
+        title = _canonical_display_title(str(document.get("title", "")).strip())
+        url = str(document.get("url", "")).strip()
+        if not title or not url:
+            continue
+        key = title.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        selected_titles.append((title, url))
+        if len(selected_titles) >= 2:
+            break
+
+    if len(selected_titles) < 2:
+        return answer
+
+    result = str(answer or "").strip()
+    missing = []
+    for title, url in selected_titles:
+        canonical_link_pattern = (
+            rf"\[{re.escape(title)}\]\({re.escape(url)}\)"
+        )
+        if not re.search(canonical_link_pattern, result, flags=re.IGNORECASE):
+            missing.append((title, url))
+
+    if not missing:
+        return result
+
+    additions = [
+        f"Another distinct perspective available in the Archive is [{title}]({url})."
+        for title, url in missing
+    ]
+    corrected = result + "\n\n" + "\n\n".join(additions)
+    print(
+        "USE v258 recommendation output cardinality authority: "
+        f"required=2, missing={len(missing)}, surfaced={len(selected_titles)}"
+    )
+    return corrected.strip()
+
+
 def _enforce_recommendation_resource_identity(
     user_query: str,
     answer: str,
@@ -15193,6 +15264,11 @@ def _run_generation_attempt(
         effective_validation_context,
     )
     cleaned_answer = _enforce_recommendation_resource_identity(
+        user_query,
+        cleaned_answer,
+        effective_validation_context,
+    )
+    cleaned_answer = _enforce_recommendation_output_cardinality(
         user_query,
         cleaned_answer,
         effective_validation_context,
@@ -18488,6 +18564,52 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v258_recommendation_output_cardinality_self_audit() -> None:
+    """Verify plural selected resources become actual visitor-facing recommendations."""
+    question = (
+        "Can you recommend several different essays or perspectives from the "
+        "Living Archive for someone grieving the death of a loved one?"
+    )
+    context = (
+        "Title: The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom\n"
+        "URL: https://example.invalid/loss\n"
+        "Content: Grief, meaning, transformation, spiritual and scientific perspectives.\n\n---\n\n"
+        "Title: Spirituality, Metaphysics, and Higher-Order Intelligence\n"
+        "URL: https://example.invalid/spirituality\n"
+        "Content: Spirituality, metaphysics, meaning, and higher-order questions."
+    )
+    provider_one_title = (
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual "
+        "and Scientific Wisdom is the strongest place to begin."
+    )
+    corrected = _enforce_recommendation_output_cardinality(
+        question, provider_one_title, context
+    )
+    assert "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom" in corrected
+    assert "Spirituality, Metaphysics, and Higher-Order Intelligence" in corrected
+    assert "[Spirituality, Metaphysics, and Higher-Order Intelligence](https://example.invalid/spirituality)" in corrected
+
+    already_named_but_unlinked = (
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom is a direct grief lens.\n\n"
+        "Spirituality, Metaphysics, and Higher-Order Intelligence offers a broader perspective."
+    )
+    repaired_named_but_unlinked = _enforce_recommendation_output_cardinality(
+        question, already_named_but_unlinked, context
+    )
+    assert repaired_named_but_unlinked != already_named_but_unlinked
+    assert "[Spirituality, Metaphysics, and Higher-Order Intelligence](https://example.invalid/spirituality)" in repaired_named_but_unlinked
+
+    already_linked = (
+        "[The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom](https://example.invalid/loss) is a direct grief lens.\n\n"
+        "[Spirituality, Metaphysics, and Higher-Order Intelligence](https://example.invalid/spirituality) offers a broader perspective."
+    )
+    assert _enforce_recommendation_output_cardinality(question, already_linked, context) == already_linked
+
+    singular = "What essay can you recommend for someone grieving?"
+    assert _enforce_recommendation_output_cardinality(singular, provider_one_title, context) == provider_one_title
+    print("USE v258 RECOMMENDATION OUTPUT CARDINALITY AUDIT: PASS; plural missing-resource surfaced, already-complete preserved, singular unchanged.")
 
 
 def _v257_recommendation_breadth_authority_self_audit() -> None:
