@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v258 — Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
+# USE PRODUCTION VERSION: v259 — Recommendation Primary Evidence Envelope + v258 Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v258"
+APP_VERSION = "v259"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v258-recommendation-output-cardinality"
+DEPLOYMENT_FINGERPRINT = "USE-v259-recommendation-primary-evidence-envelope"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v258-recommendation-output-cardinality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "af688eff190fc89aace6b9f442f3629b0ee73d39d7e92b9a07d7ddb4dcf701a9"
+CANONICAL_BUILD_ID = "USE-BUILD-v259-recommendation-primary-evidence-envelope"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "ab193366c4701c314b91295fdca2de0fa4af4729b273b3425758d971b704e345"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -882,6 +882,67 @@ MAX_GENERATION_RESOURCE_CHARS = 500
 MAX_COMPACT_GENERATION_CONTEXT_CHARS = 650
 MAX_COMPACT_GENERATION_RESOURCE_CHARS = 220
 MAX_LEGACY_GENERATION_TOKENS = 290
+
+# v259: singular recommendation tasks retain one canonical destination, but
+# the adjudicated primary receives a larger evidence envelope so the provider
+# can explain its direct fit from substantive Content rather than from a thin
+# excerpt. This is recommendation-quality protection, not a cardinality change.
+RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS = 760
+
+
+def _recommendation_primary_document(
+    user_query: str,
+    protected_documents: Optional[List[Dict[str, Any]]],
+) -> Optional[Dict[str, Any]]:
+    """Return the already-adjudicated primary for a singular recommendation task.
+
+    The recommendation authority is established upstream. This helper does not
+    retrieve, rank, or infer a new recommendation; it only carries the first
+    valid protected recommendation object into the generation boundary.
+    """
+    if not _is_recommendation_question(user_query):
+        return None
+    if _recommendation_companion_allowed(user_query):
+        return None
+    for document in protected_documents or []:
+        if not isinstance(document, dict):
+            continue
+        title = _canonical_display_title(str(document.get("title", "")).strip())
+        url = str(document.get("url", "")).strip()
+        content = _strip_internal_corpus_markup(_resource_content(document)).strip()
+        if title and url and content and re.match(r"^https?://", url, flags=re.IGNORECASE):
+            return {
+                **document,
+                "title": title,
+                "url": url,
+                "text": content,
+            }
+    return None
+
+
+def _generation_source_documents(
+    documents: List[Dict[str, Any]],
+    user_query: str,
+    protected_documents: Optional[List[Dict[str, Any]]],
+) -> List[Dict[str, Any]]:
+    """Select the authoritative generation source set before generic truncation.
+
+    Singular recommendation tasks intentionally narrow to the adjudicated primary
+    before the generic per-resource evidence ceiling is applied. This prevents
+    evidence for the authorized primary from being irreversibly shortened to the
+    ordinary 500-character resource cap and then attempting to recover the lost
+    evidence downstream. Plural recommendation tasks retain their existing breadth
+    path unchanged.
+    """
+    primary = _recommendation_primary_document(user_query, protected_documents)
+    if primary is not None:
+        print(
+            "USE v259 recommendation evidence authority: "
+            f"singular primary protected before generic generation truncation; "
+            f"title='{primary['title']}'"
+        )
+        return [primary]
+    return list(documents)
 
 # v143 static regression marker: valid generation evidence must remain non-empty
 # when the secondary provider representation cannot reconstruct it.
@@ -13036,7 +13097,7 @@ def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
     form = str(contract.get("resource_form") or "canonical resource")
     instruction = (
         "Give one primary canonical recommendation; first supplied canonical evidence is the adjudicated primary. "
-        "Explain fit/value from Content in 2–4 concise sentences."
+        "Explain its direct fit and value from substantive Content in 2–4 concise sentences, using specific supported details rather than title inference."
     )
     if contract.get("companion_allowed"):
         instruction += (
@@ -13254,9 +13315,16 @@ def _fit_generation_context_to_provider_budget(
             bounded_selected = _v217_build_provider_evidence_context(
                 candidate,
                 max_chars=evidence_capacity,
-                max_resource_chars=min(
-                    MAX_GENERATION_RESOURCE_CHARS,
-                    max(120, evidence_capacity),
+                max_resource_chars=(
+                    min(
+                        RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
+                        max(120, evidence_capacity),
+                    )
+                    if _recommendation_primary_document(user_query, protected_documents) is not None
+                    else min(
+                        MAX_GENERATION_RESOURCE_CHARS,
+                        max(120, evidence_capacity),
+                    )
                 ) if evidence_capacity > 0 else 0,
                 question=user_query,
                 schema_free=False,
@@ -13897,8 +13965,13 @@ def _v217_build_provider_evidence_context(
                     break
 
     blocks = []
-    for (title, content), pfx, allocation in zip(selected, prefixes, allocations):
-        content_limit = min(max_resource_chars, max(1, allocation))
+    for i, ((title, content), pfx, allocation) in enumerate(zip(selected, prefixes, allocations)):
+        recommendation_primary_cap = (
+            RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS
+            if _is_recommendation_question(question) and selected_n == 1 and i == 0
+            else max_resource_chars
+        )
+        content_limit = min(recommendation_primary_cap, max(1, allocation))
         if question:
             bounded = _v217_pole_preserving_evidence_excerpt(content, question, content_limit)
         else:
@@ -16011,10 +16084,19 @@ def generate_llm_response(
     documents = context_blocks_to_documents(
         str(retrieved_context_blocks or "")
     )
-    base_generation_context = build_generation_context(
+    generation_source_documents = _generation_source_documents(
         documents,
+        user_query,
+        protected_documents,
+    )
+    base_generation_context = build_generation_context(
+        generation_source_documents,
         max_chars=MAX_GENERATION_CONTEXT_CHARS,
-        max_resource_chars=MAX_GENERATION_RESOURCE_CHARS,
+        max_resource_chars=(
+            RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS
+            if _recommendation_primary_document(user_query, protected_documents) is not None
+            else MAX_GENERATION_RESOURCE_CHARS
+        ),
     )
 
     if not base_generation_context:
@@ -18564,6 +18646,84 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v259_recommendation_primary_evidence_envelope_self_audit() -> None:
+    """Verify the v259 evidence envelope survives the real generation-source boundary."""
+    question = (
+        "What advice or essay from the Living Archive can you recommend "
+        "for someone who is grieving from the death of a loved one?"
+    )
+    primary_content = (
+        "This essay explores grief and loss through spiritual and scientific perspectives, "
+        "with attention to meaning, transformation, suffering, connection, mortality, and "
+        "the ways a person may encounter uncertainty after the death of someone they love. "
+    ) * 8
+    primary = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": primary_content,
+    }
+    # Simulate the real route: retrieval has already produced a generic 500-character
+    # generation block, while upstream recommendation authority still carries the
+    # full canonical primary. v259 must recover the richer source BEFORE generic
+    # per-resource truncation, not merely enlarge a downstream formatter.
+    truncated_documents = [{
+        "title": primary["title"],
+        "url": primary["url"],
+        "text": primary_content[:500],
+    }]
+    source_documents = _generation_source_documents(
+        truncated_documents, question, [primary]
+    )
+    assert len(source_documents) == 1
+    assert source_documents[0]["title"] == primary["title"]
+    assert len(source_documents[0]["text"]) >= len(primary_content.strip())
+
+    bounded = build_generation_context(
+        source_documents,
+        max_chars=MAX_GENERATION_CONTEXT_CHARS,
+        max_resource_chars=RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
+    )
+    parsed = context_blocks_to_documents(bounded)
+    assert len(parsed) == 1
+    assert parsed[0]["title"] == primary["title"]
+    assert len(parsed[0]["text"]) >= 650, (
+        "v259 recommendation evidence envelope audit: production-boundary "
+        f"primary evidence remains too thin ({len(parsed[0]['text'])} chars)."
+    )
+
+    # Verify the next provider-boundary fitter preserves the richer ceiling too.
+    safe_context, _messages = _fit_generation_context_to_provider_budget(
+        question,
+        "TOPICAL_INQUIRY",
+        bounded,
+        max_tokens=256,
+        protected_documents=[primary],
+    )
+    provider_title_match = re.search(
+        r"^Title:\s*(.+?)\s*$", safe_context, flags=re.MULTILINE
+    )
+    provider_content_match = re.search(
+        r"^Content:\s*(.*)$", safe_context, flags=re.MULTILINE | re.DOTALL
+    )
+    assert provider_title_match and _canonical_display_title(provider_title_match.group(1).strip()) == primary["title"]
+    assert provider_content_match, "v259 recommendation evidence envelope audit: provider Content missing."
+    provider_excerpt = provider_content_match.group(1).strip()
+    assert len(provider_excerpt) >= 650, (
+        "v259 recommendation evidence envelope audit: provider-boundary "
+        f"primary evidence remains too thin ({len(provider_excerpt)} chars)."
+    )
+
+    singular_contract = _build_response_task_contract(question, "TOPICAL_INQUIRY")
+    assert singular_contract["companion_allowed"] is False
+    assert singular_contract["companion_max"] == 0
+    print(
+        "USE v259 RECOMMENDATION PRIMARY EVIDENCE ENVELOPE AUDIT: PASS; "
+        f"source_chars={len(source_documents[0]['text'])}, "
+        f"provider_evidence_chars={len(provider_excerpt)}, "
+        "singular_companion_allowed=False"
+    )
 
 
 def _v258_recommendation_output_cardinality_self_audit() -> None:
