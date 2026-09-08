@@ -36,10 +36,25 @@ jobs:
               'CANONICAL_BUILD_ID = "USE-BUILD-v268-canonical-publication-identity"',
               'CANONICAL_BUILD_ID = "USE-BUILD-v269-canonical-chunk-publication-identity"', 1)
 
-          old_patterns = '''    content_patterns = (\n        (r"\b(?:this|the) living archive navigator\b", "Navigator"),\n        (r"\b(?:this|the) reference map\b", "Reference Map"),\n        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),\n        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),\n        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),\n        (r"\b(?:this|the) learning arc\b", "Learning Arc"),\n        (r"\b(?:this|the) case study\b", "Case"),\n        (r"\b(?:this|the) essay\b", "Essay"),\n    )\n'''
-          new_patterns = '''    content_patterns = (\n        (r"\bcornerstone\s+essay(?:\s+series)?\b", "Essay"),\n        (r"\bfoundational\s+essay(?:s)?\b", "Essay"),\n        (r"\b(?:this|the) living archive navigator\b", "Navigator"),\n        (r"\b(?:this|the) reference map\b", "Reference Map"),\n        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),\n        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),\n        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),\n        (r"\b(?:this|the) learning arc\b", "Learning Arc"),\n        (r"\b(?:this|the) case study\b", "Case"),\n        (r"\b(?:this|the) essay\b", "Essay"),\n    )\n'''
-          assert old_patterns in source
-          source = source.replace(old_patterns, new_patterns, 1)
+          fn_start = source.index("def _d20_content_self_identification")
+          block_start = source.index("    content_patterns = (", fn_start)
+          block_end = source.index("    )\n    for pattern, resource_type", block_start) + len("    )\n")
+          bs = chr(92)
+          new_patterns = (
+              "    content_patterns = (\n"
+              f'        (r"{bs}bcornerstone{bs}s+essay(?:{bs}s+series)?{bs}b", "Essay"),\n'
+              f'        (r"{bs}bfoundational{bs}s+essay(?:s)?{bs}b", "Essay"),\n'
+              f'        (r"{bs}b(?:this|the) living archive navigator{bs}b", "Navigator"),\n'
+              f'        (r"{bs}b(?:this|the) reference map{bs}b", "Reference Map"),\n'
+              f'        (r"{bs}b(?:this|the) guided reading pathway{bs}b", "Pathway"),\n'
+              f'        (r"{bs}b(?:this|the) knowledge hub{bs}b", "Knowledge Hub"),\n'
+              f'        (r"{bs}b(?:this|the) cornerstone(?: hub)?{bs}b", "Cornerstone"),\n'
+              f'        (r"{bs}b(?:this|the) learning arc{bs}b", "Learning Arc"),\n'
+              f'        (r"{bs}b(?:this|the) case study{bs}b", "Case"),\n'
+              f'        (r"{bs}b(?:this|the) essay{bs}b", "Essay"),\n'
+              "    )\n"
+          )
+          source = source[:block_start] + new_patterns + source[block_end:]
 
           marker = 'def _v268_canonical_publication_identity_self_audit() -> None:\n'
           assert marker in source
