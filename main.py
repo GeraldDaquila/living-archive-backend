@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v265 — Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
+# USE PRODUCTION VERSION: v266 — Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v265"
+APP_VERSION = "v266"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v265-recommendation-doorway-coherence"
+DEPLOYMENT_FINGERPRINT = "USE-v266-query-conditioned-function-retrieval"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v265-recommendation-doorway-coherence"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f5f6832941b6d173ad185683a0694afa1ba8b1e4f7b2e234aa6e29948af37fdf"
+CANONICAL_BUILD_ID = "USE-BUILD-v266-query-conditioned-function-retrieval"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d9f64d3ffabc66738d189fffb37a5f9ceb1a95129a7ed34fdeb7f0bed23386c4"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6134,7 +6134,16 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
 
         for profile in profiles[:1]:
             try:
-                vector = generate_embedding(profile)
+                # v266: function-targeted retrieval must remain conditioned on
+                # the visitor's actual question. The function profile supplies
+                # the requested publication role; the question supplies the
+                # topical/semantic target. D20 remains the independent type gate.
+                retrieval_query = (
+                    f"Visitor question: {question.strip()}\n"
+                    f"Requested resource function: {function_name}.\n"
+                    f"Function retrieval profile: {profile}"
+                )
+                vector = generate_embedding(retrieval_query)
                 if not vector:
                     continue
                 matches = _query_index(vector, min(8, RETRIEVAL_TOP_K))
@@ -19467,6 +19476,55 @@ def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
         "USE v263 UPSTREAM RECOMMENDATION AUTHORITY CONTRACT AUDIT: PASS; "
         f"primary_chars={len(first_content)}, reasoning_resources={len(title_matches)}, "
         f"authority_resources={len(authority_documents)}, ordinary_resources={len(ordinary_titles)}"
+    )
+
+
+def _v266_query_conditioned_function_retrieval_self_audit() -> None:
+    """Prove function-targeted retrieval embeds the visitor question, not only the role profile."""
+    question = (
+        "What advise or essay from the Living Archive can you recommend for "
+        "someone grieving the death of a loved one?"
+    )
+    captured = []
+    original_embed = globals().get("generate_embedding")
+    original_query = globals().get("_query_index")
+    original_index = globals().get("index")
+    essay = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "resource_type": "Essay",
+        "url": "https://example.invalid/loss",
+        "text": "An essay offering substantive exploration and sensemaking about grief, loss, meaning, wisdom, and transformation.",
+    }
+
+    def fake_embed(text):
+        captured.append(text)
+        return [1.0]
+
+    def fake_query(vector, top_k):
+        return [(0.99, "essay-1", dict(essay))]
+
+    globals()["generate_embedding"] = fake_embed
+    globals()["_query_index"] = fake_query
+    globals()["index"] = object()
+    try:
+        results = _function_targeted_candidate_search(question)
+    finally:
+        globals()["generate_embedding"] = original_embed
+        globals()["_query_index"] = original_query
+        globals()["index"] = original_index
+
+    assert captured, "v266 retrieval audit: function-targeted retrieval did not embed a query."
+    embedded = captured[0]
+    assert question in embedded, (
+        "v266 retrieval audit: visitor question was not included in the function-targeted embedding query."
+    )
+    assert "Requested resource function: substantive exploration and sensemaking." in embedded
+    assert "Function retrieval profile:" in embedded
+    assert len(results) == 1 and results[0].get("title") == essay["title"]
+    assert results[0].get("_use_explicit_type_selection_identity", {}).get("requested_type") == "Essay"
+    print(
+        "USE v266 QUERY-CONDITIONED FUNCTION RETRIEVAL AUDIT: PASS; "
+        f"embedded_question=True, requested_type=Essay, candidates={len(results)}"
     )
 
 
