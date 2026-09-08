@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v272 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
+# USE PRODUCTION VERSION: v273 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v272"
+APP_VERSION = "v273"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v272-v231-coverage-cardinality"
+DEPLOYMENT_FINGERPRINT = "USE-v273-ordinary-canonical-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v272-v231-coverage-cardinality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "3f784fd2a1e98ebb258e85bebae5f3d7b6570e72ef8194668412b87f652cc7c6"
+CANONICAL_BUILD_ID = "USE-BUILD-v273-ordinary-canonical-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "fcbe1b7e9d05d57b21c2ba35273233011114367936474dcdfecdc9d4d3337739"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11001,7 +11001,25 @@ def fetch_canonical_context(
                 # RETRIEVAL_TOP_K window could never be promoted. This changes only
                 # candidate-window recall; retrieval remains the sole source of
                 # candidates and the final generation cap remains downstream.
+                # v273 simulation: when the visitor explicitly requests a
+                # publication family, resolve unknown ordinary-retrieval chunks
+                # against exact-URL sibling chunks before canonical deduplication.
+                # This reuses the proven D20 sibling-identity boundary rather than
+                # changing recommendation weights or inferring type from topic.
+                ordinary_requested_types = _explicit_resource_type_targets(user_query)
                 for _score, _match_id_value, metadata in candidates:
+                    if ordinary_requested_types and isinstance(metadata, dict):
+                        recognized = _recognize_resource_type(metadata).get("resource_type")
+                        if not recognized:
+                            for _required_type in ordinary_requested_types:
+                                _sibling_identity = _v269_resolve_canonical_type_across_chunks(
+                                    metadata, query_vector, _required_type
+                                )
+                                if _sibling_identity:
+                                    metadata = dict(metadata)
+                                    metadata["_use_resource_type_recognition"] = _sibling_identity
+                                    metadata["_use_canonical_chunk_identity"] = _sibling_identity
+                                    break
                     _append_unique_resource(
                         retrieved_docs,
                         seen_keys,
