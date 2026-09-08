@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v263 — Upstream Recommendation Authority + Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
+# USE PRODUCTION VERSION: v264 — Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v263"
+APP_VERSION = "v264"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v263-upstream-recommendation-authority"
+DEPLOYMENT_FINGERPRINT = "USE-v264-sentence-boundary-aware-recommendation-chunking"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v263-upstream-recommendation-authority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "732683c5d35db59fb7cdff535d17cd326491e09f966f8c5d3f1032e75679681c"
+CANONICAL_BUILD_ID = "USE-BUILD-v264-sentence-boundary-aware-recommendation-chunking"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e859ae1c3e5dcf175a987f0d0a34b7f29362d01c34b265b6a1150c7ebb3d742b"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12543,9 +12543,18 @@ def _v233_chunk_visitor_answer(text: str) -> str:
 
     # Keep sentence boundaries intact. The provider is already instructed to
     # create semantic paragraphs; this deterministic fallback only supplies
-    # breathing room when it does not.
-    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9“\"'])", value)
-    sentences = [s.strip() for s in sentences if s.strip()]
+    # breathing room when it does not. A sentence may end with punctuation
+    # followed by a closing quote/parenthesis/bracket, so the boundary detector
+    # must recognize that punctuation is still the sentence terminator.
+    # v264 fixes the exact failure exposed by the grief benchmark: the first
+    # sentence ended with a closing quote after the period, so the old regex
+    # treated the following sentence as part of the same sentence.
+    boundary_ready = re.sub(
+        r"([.!?](?:[”\"’')\]]*))(?=\s+[A-Z0-9“\"'])",
+        r"\1\n",
+        value,
+    )
+    sentences = [s.strip() for s in boundary_ready.splitlines() if s.strip()]
     if len(sentences) < 3:
         return value
 
@@ -19432,6 +19441,45 @@ def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
         "USE v263 UPSTREAM RECOMMENDATION AUTHORITY CONTRACT AUDIT: PASS; "
         f"primary_chars={len(first_content)}, reasoning_resources={len(title_matches)}, "
         f"authority_resources={len(authority_documents)}, ordinary_resources={len(ordinary_titles)}"
+    )
+
+
+def _v264_sentence_boundary_recommendation_chunking_self_audit() -> None:
+    """Prove the grief benchmark's quoted sentence boundary is recognized and chunked."""
+    answer = (
+        'The essay “[The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom]'
+        '(https://example.invalid/loss)” directly addresses grieving by describing grief as '
+        '“a transformative process—a crucible that refines suffering into wisdom, connection, and purpose.” '
+        'It invites the bereaved to view loss as an opportunity for meaning-making rather than merely an event to endure, '
+        'offering both spiritual and scientific perspectives that can help reshape the experience of sorrow. '
+        'This focus on transformation and purpose makes it especially relevant for someone seeking guidance after the death of a loved one.'
+    )
+    chunked = _v233_chunk_visitor_answer(answer)
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", chunked) if part.strip()]
+    assert len(paragraphs) >= 2, (
+        "v264 presentation regression: quoted sentence boundary was not recognized; "
+        f"paragraphs={len(paragraphs)}"
+    )
+    assert "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom" in chunked
+    assert "https://example.invalid/loss" in chunked
+    assert chunked.count("https://example.invalid/loss") == 1
+
+    # The old boundary detector would see only two sentences because the first
+    # sentence terminator was followed by a closing quote. The corrected
+    # detector must expose all three sentence units.
+    boundary_ready = re.sub(
+        r"([.!?](?:[”\"’')\]]*))(?=\s+[A-Z0-9“\"'])",
+        r"\1\n",
+        answer,
+    )
+    sentence_units = [s.strip() for s in boundary_ready.splitlines() if s.strip()]
+    assert len(sentence_units) == 3, (
+        "v264 sentence-boundary regression: expected three sentence units, "
+        f"got {len(sentence_units)}"
+    )
+    print(
+        "USE v264 SENTENCE-BOUNDARY RECOMMENDATION CHUNKING AUDIT: PASS; "
+        f"sentence_units={len(sentence_units)}, paragraphs={len(paragraphs)}"
     )
 
 
