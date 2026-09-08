@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v254 — Authoritative Recommendation Cardinality + v253 Response Task Provider Authority + The Guide
+# USE PRODUCTION VERSION: v255 — Canonical Resource Identity Integrity + v254 Authoritative Recommendation Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v254"
+APP_VERSION = "v255"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v254-authoritative-recommendation-cardinality"
+DEPLOYMENT_FINGERPRINT = "USE-v255-canonical-resource-identity-integrity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v254-authoritative-recommendation-cardinality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "0b6a2b6968986fac713a01e7b3dea3686b7da2587ef43423bca733688ab296aa"
+CANONICAL_BUILD_ID = "USE-BUILD-v255-canonical-resource-identity-integrity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "fc93e7cf5dd75d257dc768cc9b2cd9629b8a71282dd43c8ea9845791d5a2b137"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -14612,6 +14612,117 @@ def _enforce_recommendation_output_authority(
     return answer
 
 
+def _recommendation_unauthorized_resource_identities(
+    answer: str,
+    generation_context: str,
+) -> List[str]:
+    """Return resource-shaped identities in recommendation output that are not canonical.
+
+    This is deliberately narrower than named-entity detection. It only treats
+    text as a resource identity when the provider presents it in a resource-
+    shaped construction: Markdown link label, quoted title followed by a
+    resource separator, explicit recommendation/suggestion phrase, or a
+    resource-list item. Ordinary prose and ordinary quoted concepts remain
+    outside this authority boundary.
+    """
+    if not answer or not generation_context:
+        return []
+
+    canonical_titles = {
+        re.sub(r"\s+", " ", _canonical_display_title(title)).strip().casefold()
+        for title, _url in _canonical_pairs(generation_context)
+        if _canonical_display_title(title)
+    }
+    if not canonical_titles:
+        return []
+
+    candidates: List[str] = []
+
+    def add(value: str) -> None:
+        normalized = re.sub(r"\s+", " ", str(value or "")).strip()
+        normalized = normalized.strip("“”\"'` ,.;:")
+        if normalized:
+            candidates.append(normalized)
+
+    # A canonical Markdown link is already URL-authorized. Its visible label
+    # is still checked against canonical title identity for completeness.
+    for match in re.finditer(
+        r"\[([^\]\n]{2,500})\]\(https?://[^)\n]+\)",
+        answer,
+        flags=re.IGNORECASE,
+    ):
+        add(match.group(1))
+
+    # Exact observed failure shape: “Threshold Flame” – explanation.
+    for match in re.finditer(
+        r'[“"]([^”"\n]{2,200})[”"]\s*(?:[–—:])',
+        answer,
+    ):
+        add(match.group(1))
+
+    # Explicit recommendation language. Stop before common explanatory
+    # connectors so a canonical title followed by "because..." remains
+    # one identity rather than becoming the whole sentence.
+    recommendation_pattern = (
+        r'\b(?:recommend|recommends|recommended|suggest|suggests|consider)\s+'
+        r'(?:reading\s+)?[“"]?'
+        r'(.{2,220}?)'
+        r'(?=\s+(?:because|as|since|which|that|for|to)\b|[.!?]\s|$)'
+        r'[”"]?'
+    )
+    for match in re.finditer(
+        recommendation_pattern,
+        answer,
+        flags=re.IGNORECASE,
+    ):
+        add(match.group(1))
+
+    # Explicit resource-list construction. Do not classify arbitrary bullets
+    # as resources; require the title/explanation separator.
+    for line in answer.splitlines():
+        match = re.match(
+            r'^\s*(?:[-*+]|\d+[.)])\s+[“"]?(.{2,220}?)[”"]?\s+[–—:]\s+',
+            line,
+        )
+        if match:
+            add(match.group(1))
+
+    unauthorized: List[str] = []
+    seen = set()
+    for candidate in candidates:
+        key = candidate.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        if key not in canonical_titles:
+            unauthorized.append(candidate)
+
+    return unauthorized
+
+
+def _enforce_recommendation_resource_identity(
+    user_query: str,
+    answer: str,
+    generation_context: str,
+) -> str:
+    """Reject recommendation output that asserts a non-canonical resource identity."""
+    if not _is_recommendation_question(user_query) or not answer:
+        return answer
+
+    unauthorized = _recommendation_unauthorized_resource_identities(
+        answer,
+        generation_context,
+    )
+    if unauthorized:
+        print(
+            "USE v255 canonical resource identity boundary: "
+            f"rejected unauthorized recommendation resource identities={unauthorized}"
+        )
+        return ""
+
+    return answer
+
+
 def _contains_canonical_resource_reference(
     answer: str,
     generation_context: str,
@@ -14851,6 +14962,12 @@ def _run_provider_completion_recovery(
         str(validation_context or safe_context or ""),
     )
 
+    cleaned_answer = _enforce_recommendation_resource_identity(
+        user_query,
+        cleaned_answer,
+        reasoning_evidence_identity,
+    )
+
     if (
         cleaned_answer
         and _canonical_pairs(reasoning_evidence_identity)
@@ -14986,6 +15103,11 @@ def _run_generation_attempt(
     # v241: recommendation choice is an upstream USE authority. A provider
     # cannot substitute another selected canonical resource at presentation.
     cleaned_answer = _enforce_recommendation_output_authority(
+        user_query,
+        cleaned_answer,
+        effective_validation_context,
+    )
+    cleaned_answer = _enforce_recommendation_resource_identity(
         user_query,
         cleaned_answer,
         effective_validation_context,
@@ -18224,6 +18346,57 @@ def _v232_higher_self_visitor_voice_self_audit() -> None:
         )
     print("USE v232 HIGHER-SELF VISITOR VOICE AUDIT: PASS")
 
+
+
+def _v255_canonical_resource_identity_self_audit() -> None:
+    """Verify recommendation output cannot assert a resource outside selected evidence."""
+    question = (
+        "What essays from the Living Archive would you recommend for someone grieving? "
+        "Please give me several different perspectives."
+    )
+    context = (
+        "Title: The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom\n"
+        "URL: https://example.invalid/loss\n"
+        "Content: A grief-focused exploration of loss, meaning, spiritual and scientific perspectives.\n\n---\n\n"
+        "Title: Spirituality, Metaphysics, and Higher-Order Intelligence\n"
+        "URL: https://example.invalid/spirituality\n"
+        "Content: A broader exploration of spirituality, metaphysics, meaning, and higher-order questions."
+    )
+
+    singular = (
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual "
+        "and Scientific Wisdom is a strong place to begin."
+    )
+    plural = (
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual "
+        "and Scientific Wisdom — a direct grief lens.\n\n"
+        "Spirituality, Metaphysics, and Higher-Order Intelligence — a broader route."
+    )
+    observed_failure = (
+        "“Threshold Flame” – This essay-collection frames each week around a question "
+        "or tension.\n\n"
+        "A second perspective is Spirituality, Metaphysics, and Higher-Order Intelligence."
+    )
+    ordinary = (
+        "Grief can raise questions about meaning and continuity. The phrase "
+        "“threshold flame” can be used metaphorically without naming a resource."
+    )
+
+    assert _enforce_recommendation_resource_identity(question, singular, context) == singular
+    assert _enforce_recommendation_resource_identity(question, plural, context) == plural
+    assert _enforce_recommendation_resource_identity(question, observed_failure, context) == ""
+    assert _enforce_recommendation_resource_identity(question, ordinary, context) == ordinary
+
+    non_recommendation = _enforce_recommendation_resource_identity(
+        "What does the Living Archive say about grief?",
+        observed_failure,
+        context,
+    )
+    assert non_recommendation == observed_failure
+
+    print("USE v255 CANONICAL RESOURCE IDENTITY AUDIT: PASS; "
+          "singular/plural canonical accepted, observed unauthorized identity rejected, "
+          "ordinary prose and non-recommendation preserved.")
 
 
 def _v247_recommendation_response_contract_self_audit() -> None:
