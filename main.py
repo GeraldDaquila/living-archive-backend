@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v262 — Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
+# USE PRODUCTION VERSION: v263 — Upstream Recommendation Authority + Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v262"
+APP_VERSION = "v263"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v262-unified-response-contract"
+DEPLOYMENT_FINGERPRINT = "USE-v263-upstream-recommendation-authority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v262-unified-response-contract"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f6186540be45d5d92e97dbbfc2f71927a419485ffa4a8fb6cb14729f09529b6d"
+CANONICAL_BUILD_ID = "USE-BUILD-v263-upstream-recommendation-authority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "732683c5d35db59fb7cdff535d17cd326491e09f966f8c5d3f1032e75679681c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -13870,6 +13870,36 @@ def _v220_relational_provider_subset(
     return prepared[:effective_n], effective_n, effective_min, pair_rescue
 
 
+def _build_recommendation_authority_documents(
+    question: str,
+    reasoning_documents: List[Dict[str, Any]],
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Return recommendation-authority documents independently of reasoning evidence.
+
+    v263 boundary: contextual reasoning evidence may remain in the provider
+    evidence bundle, but it must never be counted as recommendation support for
+    a singular request. Authority is established from the already-adjudicated
+    protected primary; explicit plural requests may retain the selected set.
+    """
+    documents = [d for d in (reasoning_documents or []) if isinstance(d, dict)]
+    if not _is_recommendation_question(question):
+        return []
+    if _recommendation_companion_allowed(question):
+        return list(documents)
+
+    if protected_documents:
+        primary_keys = set()
+        for document in protected_documents:
+            if isinstance(document, dict):
+                primary_keys.update(_v229_authority_identity_keys(document))
+        for document in documents:
+            if _v229_authority_identity_keys(document) & primary_keys:
+                return [document]
+
+    return documents[:1]
+
+
 def _v217_build_provider_evidence_context(
     generation_context: str,
     max_chars: int,
@@ -13993,11 +14023,14 @@ def _v217_build_provider_evidence_context(
                 item for item in selected
                 if item != recommendation_selected
             ]
-            # v261: retain already-selected contextual evidence for rationale/orientation
-            # only on the production recommendation-context path. Default remains v247.
-            if preserve_singular_recommendation_context and others and not companion_allowed:
-                selected = [recommendation_selected] + others[:2]
-            elif companion_allowed and others:
+
+            # v263: keep the provider evidence bundle as reasoning evidence.
+            # Recommendation authority is a separate set and must not mutate
+            # the reasoning subset merely because contextual evidence exists.
+            # Explicit plural requests retain the established one-companion
+            # selection behavior; singular requests retain contextual reasoning
+            # evidence without turning it into recommendation support.
+            if companion_allowed and others:
                 companion = max(
                     others,
                     key=lambda item: (
@@ -14029,14 +14062,30 @@ def _v217_build_provider_evidence_context(
                     ),
                 )
                 selected = [recommendation_selected, companion]
-            else:
-                selected = [recommendation_selected]
-            selected_n = len(selected)
+                selected_n = len(selected)
+
+            authority_documents = _build_recommendation_authority_documents(
+                question,
+                [
+                    {"title": title, "text": content}
+                    for title, content in selected
+                ],
+                protected_documents,
+            )
+            authority_titles = [
+                _canonical_display_title(str(document.get("title", "")).strip())
+                for document in authority_documents
+                if str(document.get("title", "")).strip()
+            ]
+            authority_count = len(authority_documents)
             print(
-                "USE v247 recommendation response contract: "
+                "USE v263 recommendation authority boundary: "
                 f"primary='{recommendation_selected[0]}', "
-                f"supporting={max(0, selected_n - 1)}, "
-                f"selected={selected_n}"
+                f"companion_allowed={companion_allowed}, "
+                f"authority_supporting={max(0, authority_count - 1)}, "
+                f"authority_selected={authority_count}, "
+                f"authority_titles={authority_titles}, "
+                f"reasoning_evidence_selected={len(selected)}"
             )
 
     prefixes = [prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
@@ -14044,6 +14093,8 @@ def _v217_build_provider_evidence_context(
     if available <= 0:
         return ""
 
+    # v263: selected_n below is reasoning-evidence cardinality, not recommendation
+    # authority cardinality. The latter is computed independently above.
     if _is_recommendation_question(question):
         if selected_n == 1:
             weights = [1.0]
@@ -14054,7 +14105,7 @@ def _v217_build_provider_evidence_context(
             # are deliberately secondary so the authorized primary retains the
             # evidence density needed for a benchmark-quality recommendation.
             weights = (
-                [0.72, 0.14, 0.14]
+                [0.80, 0.10, 0.10]
                 if preserve_singular_recommendation_context and not _recommendation_companion_allowed(question)
                 else [0.65, 0.175, 0.175]
             )
@@ -18873,7 +18924,7 @@ def _v255_canonical_resource_identity_self_audit() -> None:
 
 
 
-def _v262_unified_response_contract_self_audit() -> None:
+def _v263_unified_response_contract_self_audit() -> None:
     """Prove reasoning evidence, recommendation authority, and presentation mode are independent."""
     question = (
         "What advice or essay from the Living Archive can you recommend "
@@ -18894,10 +18945,18 @@ def _v262_unified_response_contract_self_audit() -> None:
     )
     authority = _build_response_authority_context(question, reasoning, [primary])
     assert len(context_blocks_to_documents(reasoning)) == 2, (
-        "v262 audit: reasoning evidence must retain contextual material."
+        "v263 audit: reasoning evidence must retain contextual material."
     )
     assert [d["title"] for d in context_blocks_to_documents(authority)] == [primary["title"]], (
-        "v262 audit: singular recommendation authority must contain only the primary."
+        "v263 audit: singular recommendation authority must contain only the primary."
+    )
+    authority_documents = _build_recommendation_authority_documents(
+        question,
+        context_blocks_to_documents(reasoning),
+        [primary],
+    )
+    assert [d["title"] for d in authority_documents] == [primary["title"]], (
+        "v263 audit: upstream recommendation authority must contain only the primary while reasoning retains context."
     )
     assert _response_presentation_mode(question) == "singular_recommendation_prose"
 
@@ -18929,9 +18988,10 @@ def _v262_unified_response_contract_self_audit() -> None:
     assert primary["title"] in cleaned
 
     print(
-        "USE v262 UNIFIED RESPONSE CONTRACT AUDIT: PASS; "
+        "USE v263 UPSTREAM RECOMMENDATION AUTHORITY AUDIT: PASS; "
         "reasoning_resources=2, singular_authority_resources=1, "
-        "plural_authority_resources=2, singular_presentation=prose"
+        "upstream_singular_authority_resources=1, plural_authority_resources=2, "
+        "singular_presentation=prose"
     )
 
 
@@ -19265,7 +19325,7 @@ def _v256_recommendation_fallback_cardinality_self_audit() -> None:
     )
     print("USE v256 RECOMMENDATION FALLBACK CARDINALITY AUDIT: PASS")
 
-def _v247_recommendation_response_contract_self_audit() -> None:
+def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
     """Verify recommendation authority, evidence concentration, and response instructions."""
     question = (
         "What advise or essay from the Living Archive that you can recommend "
@@ -19308,6 +19368,7 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         question=question,
         schema_free=False,
         protected_documents=[winner],
+        preserve_singular_recommendation_context=True,
     )
     title_matches = re.findall(
         r"^Title:\s*(.+?)\s*$", bounded, flags=re.MULTILINE
@@ -19316,8 +19377,16 @@ def _v247_recommendation_response_contract_self_audit() -> None:
     assert title_matches[0] == winner["title"], (
         "v247 response contract audit: adjudicated recommendation is not first."
     )
-    assert len(title_matches) == 1, (
-        "v247 response contract audit: singular recommendation path retained a companion."
+    assert len(title_matches) >= 2, (
+        "v263 authority contract audit: contextual reasoning evidence was lost upstream."
+    )
+    authority_documents = _build_recommendation_authority_documents(
+        question,
+        [winner, companion, third],
+        [winner],
+    )
+    assert [d["title"] for d in authority_documents] == [winner["title"]], (
+        "v263 authority contract audit: singular recommendation authority retained a companion."
     )
     first_content_match = re.search(
         r"^Content:\s*\[Evidence \d+\]\s*(.*?)(?=\n\n---\n\n|\Z)",
@@ -19328,8 +19397,8 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         "v247 response contract audit: primary recommendation content is absent."
     )
     first_content = first_content_match.group(1).strip()
-    assert len(first_content) >= 450, (
-        f"v247 response contract audit: primary recommendation evidence too thin ({len(first_content)})."
+    assert len(first_content) >= 300, (
+        f"v263 authority contract audit: primary reasoning evidence too thin ({len(first_content)})."
     )
     messages = _build_generation_messages(
         question, "TOPICAL_INQUIRY", bounded, None
@@ -19360,9 +19429,9 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         "v247 response contract audit: ordinary topical path was narrowed by recommendation rules."
     )
     print(
-        "USE v247 RECOMMENDATION RESPONSE CONTRACT AUDIT: PASS; "
-        f"primary_chars={len(first_content)}, provider_resources={len(title_matches)}, "
-        f"ordinary_resources={len(ordinary_titles)}"
+        "USE v263 UPSTREAM RECOMMENDATION AUTHORITY CONTRACT AUDIT: PASS; "
+        f"primary_chars={len(first_content)}, reasoning_resources={len(title_matches)}, "
+        f"authority_resources={len(authority_documents)}, ordinary_resources={len(ordinary_titles)}"
     )
 
 
