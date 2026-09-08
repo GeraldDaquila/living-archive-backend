@@ -36,8 +36,8 @@ jobs:
               'CANONICAL_BUILD_ID = "USE-BUILD-v268-canonical-publication-identity"',
               'CANONICAL_BUILD_ID = "USE-BUILD-v269-canonical-chunk-publication-identity"', 1)
 
-          old_patterns = '''    content_patterns = (\n        (r"\\b(?:this|the) living archive navigator\\b", "Navigator"),\n        (r"\\b(?:this|the) reference map\\b", "Reference Map"),\n        (r"\\b(?:this|the) guided reading pathway\\b", "Pathway"),\n        (r"\\b(?:this|the) knowledge hub\\b", "Knowledge Hub"),\n        (r"\\b(?:this|the) cornerstone(?: hub)?\\b", "Cornerstone"),\n        (r"\\b(?:this|the) learning arc\\b", "Learning Arc"),\n        (r"\\b(?:this|the) case study\\b", "Case"),\n        (r"\\b(?:this|the) essay\\b", "Essay"),\n    )\n'''
-          new_patterns = '''    content_patterns = (\n        (r"\\bcornerstone\\s+essay(?:\\s+series)?\\b", "Essay"),\n        (r"\\bfoundational\\s+essay(?:s)?\\b", "Essay"),\n        (r"\\b(?:this|the) living archive navigator\\b", "Navigator"),\n        (r"\\b(?:this|the) reference map\\b", "Reference Map"),\n        (r"\\b(?:this|the) guided reading pathway\\b", "Pathway"),\n        (r"\\b(?:this|the) knowledge hub\\b", "Knowledge Hub"),\n        (r"\\b(?:this|the) cornerstone(?: hub)?\\b", "Cornerstone"),\n        (r"\\b(?:this|the) learning arc\\b", "Learning Arc"),\n        (r"\\b(?:this|the) case study\\b", "Case"),\n        (r"\\b(?:this|the) essay\\b", "Essay"),\n    )\n'''
+          old_patterns = '''    content_patterns = (\n        (r"\b(?:this|the) living archive navigator\b", "Navigator"),\n        (r"\b(?:this|the) reference map\b", "Reference Map"),\n        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),\n        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),\n        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),\n        (r"\b(?:this|the) learning arc\b", "Learning Arc"),\n        (r"\b(?:this|the) case study\b", "Case"),\n        (r"\b(?:this|the) essay\b", "Essay"),\n    )\n'''
+          new_patterns = '''    content_patterns = (\n        (r"\bcornerstone\s+essay(?:\s+series)?\b", "Essay"),\n        (r"\bfoundational\s+essay(?:s)?\b", "Essay"),\n        (r"\b(?:this|the) living archive navigator\b", "Navigator"),\n        (r"\b(?:this|the) reference map\b", "Reference Map"),\n        (r"\b(?:this|the) guided reading pathway\b", "Pathway"),\n        (r"\b(?:this|the) knowledge hub\b", "Knowledge Hub"),\n        (r"\b(?:this|the) cornerstone(?: hub)?\b", "Cornerstone"),\n        (r"\b(?:this|the) learning arc\b", "Learning Arc"),\n        (r"\b(?:this|the) case study\b", "Case"),\n        (r"\b(?:this|the) essay\b", "Essay"),\n    )\n'''
           assert old_patterns in source
           source = source.replace(old_patterns, new_patterns, 1)
 
@@ -62,11 +62,11 @@ jobs:
 
           source = source.replace('v268 canonical publication identity:', 'v269 canonical publication identity:')
 
-          pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\\n.*?^# === END CANONICAL BUILD IDENTITY ===\\n?')
+          pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?')
           normalized, count = pattern.subn(
-              '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\\n'
-              '# <CANONICAL_BUILD_IDENTITY_BLOCK>\\n'
-              '# === END CANONICAL BUILD IDENTITY ===\\n',
+              '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n'
+              '# <CANONICAL_BUILD_IDENTITY_BLOCK>\n'
+              '# === END CANONICAL BUILD IDENTITY ===\n',
               source, count=1)
           assert count == 1
           payload = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
