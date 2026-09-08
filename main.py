@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v241 — Deterministic Recommendation Adjudication + v240 Evidence Preservation + The Guide
+# USE PRODUCTION VERSION: v242 — D20 Type Vocabulary Alignment + v241 Recommendation Adjudication + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v241"
+APP_VERSION = "v242"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v241-recommendation-adjudication"
+DEPLOYMENT_FINGERPRINT = "USE-v242-d20-type-vocabulary-alignment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v241-recommendation-adjudication"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "589ee5ce7fb12553ed5dce956b0ea2e2fb117f0f3a3ec83f9b73fc60cad8dee2"
+CANONICAL_BUILD_ID = "USE-BUILD-v242-d20-type-vocabulary-alignment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "a0b739ade2d89b8cfc0b5896dc2e0ddfbd5bcd529eaa24dbc7816da318c26787"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -2091,9 +2091,15 @@ def _d20_explicit_type(metadata: Dict[str, Any]) -> Optional[str]:
         return None
 
     explicit_keys = (
+        # Keep D20 aligned with the explicit type vocabulary established by
+        # D19. "type"/"kind" are accepted only when their values normalize to
+        # a known canonical publication family; generic values such as
+        # WordPress "post" remain unknown.
         "resource_type",
         "resource_kind",
         "content_type",
+        "type",
+        "kind",
         "canonical_type",
         "canonical_resource_type",
     )
@@ -17758,6 +17764,25 @@ def _d20_resource_type_recognition_self_audit() -> None:
     explicit_result = _recognize_resource_type(explicit)
     if explicit_result["resource_type"] != "Reference Map" or explicit_result["confidence"] != "explicit":
         raise RuntimeError("D20 resource-type regression: explicit metadata was not recognized authoritatively.")
+
+    # D19 permits the canonical type vocabulary to arrive through generic
+    # "type"/"kind" metadata keys. D20 must consume those keys when the value
+    # itself is a recognized canonical publication family.
+    essay_type = {
+        "title": "The Transformative Power of Loss",
+        "type": "Essay",
+    }
+    essay_type_result = _recognize_resource_type(essay_type)
+    if essay_type_result["resource_type"] != "Essay" or essay_type_result["confidence"] != "explicit":
+        raise RuntimeError("D20 resource-type regression: explicit 'type=Essay' was not recognized.")
+
+    essay_kind = {
+        "title": "The Transformative Power of Loss",
+        "kind": "Essay",
+    }
+    essay_kind_result = _recognize_resource_type(essay_kind)
+    if essay_kind_result["resource_type"] != "Essay" or essay_kind_result["confidence"] != "explicit":
+        raise RuntimeError("D20 resource-type regression: explicit 'kind=Essay' was not recognized.")
 
     navigator = {"title": "The Living Archive Navigator — Governance & Sovereignty"}
     navigator_result = _recognize_resource_type(navigator)
