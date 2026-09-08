@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v251 — Recommendation Task Authority Enforcement + v250 Task Authority + The Guide
+# USE PRODUCTION VERSION: v252 — Canonical Task Authority Propagation + v251 Recommendation Task Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v251"
+APP_VERSION = "v252"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v251-recommendation-task-authority-enforcement"
+DEPLOYMENT_FINGERPRINT = "USE-v252-canonical-task-authority-propagation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v251-recommendation-task-authority-enforcement"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "bad1c8ff8527eed2f42f08178392e929c5927bce15e35ede88a0c42a7d619f1d"
+CANONICAL_BUILD_ID = "USE-BUILD-v252-canonical-task-authority-propagation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "ecfe24d8fb27efeb23e475858490d5ee6ac1b57ed33593259f4013c19b065286"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9809,6 +9809,7 @@ def _select_evidence_rich_synthesis_roles(
     question: str,
     *,
     max_resources: int = MAX_SYNTHESIS_EVIDENCE_RESOURCES,
+    recommendation_primary: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Narrow a broad complementary pool into 2–3 evidence-rich synthesis roles.
 
@@ -9848,19 +9849,31 @@ def _select_evidence_rich_synthesis_roles(
     # evidence directly covers the question's literal poles. If a true bridge
     # exists, prefer the bridge; otherwise prefer a pole-bearing source. For
     # non-relational questions the full indexed pool remains unchanged.
-    primary_pool = _v218_relational_primary_candidates(indexed, question)
-    primary = max(
-        primary_pool,
-        key=lambda item: (
-            _v209_relational_evidence_profile(question, item[1])[4],
-            item[2][0],
-            _v209_relational_evidence_profile(question, item[1])[1],
-            item[2][1],
-            item[2][2],
-            item[2][3],
-            -item[0],
-        ),
+    # v252: consume the already-resolved recommendation primary at this exact
+    # v206 synthesis boundary. The selector must not independently reinterpret
+    # a recommendation task and force a later v241/v251 rescue. This preserves
+    # one task authority across retrieval, synthesis, and provider evidence.
+    recommendation_key = _resource_key(recommendation_primary) if recommendation_primary else None
+    recommendation_match = next(
+        (item for item in indexed if recommendation_key and _resource_key(item[1]) == recommendation_key),
+        None,
     )
+    if recommendation_match is not None:
+        primary = recommendation_match
+    else:
+        primary_pool = _v218_relational_primary_candidates(indexed, question)
+        primary = max(
+            primary_pool,
+            key=lambda item: (
+                _v209_relational_evidence_profile(question, item[1])[4],
+                item[2][0],
+                _v209_relational_evidence_profile(question, item[1])[1],
+                item[2][1],
+                item[2][2],
+                item[2][3],
+                -item[0],
+            ),
+        )
 
     selected = [primary[1]]
     selected_keys = {_resource_key(primary[1])}
@@ -10956,6 +10969,7 @@ def fetch_canonical_context(
     generation_evidence_docs = _select_evidence_rich_synthesis_roles(
         generation_evidence_candidates,
         user_query,
+        recommendation_primary=adjudicated_recommendation,
     )
 
     # v214: once relational adjudication has established the candidate pool,
@@ -18279,6 +18293,45 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         "USE v247 RECOMMENDATION RESPONSE CONTRACT AUDIT: PASS; "
         f"primary_chars={len(first_content)}, provider_resources={len(title_matches)}, "
         f"ordinary_resources={len(ordinary_titles)}"
+    )
+
+
+def _v252_task_authority_propagation_self_audit() -> None:
+    """Verify the adjudicated recommendation is consumed directly by v206."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    primary = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "Grief, loss, meaning, spiritual and scientific perspectives. " * 8,
+    }
+    generic = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": "Death, afterlife, reincarnation, karma and soul growth. " * 8,
+    }
+    continuity = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": "Grief and continuity after death of a loved one. " * 8,
+    }
+    winner = _adjudicate_recommendation_resource([generic, continuity, primary], question)
+    assert winner is primary
+    selected = _select_evidence_rich_synthesis_roles(
+        [generic, continuity, primary],
+        question,
+        recommendation_primary=winner,
+    )
+    assert selected
+    assert _resource_key(selected[0]) == _resource_key(primary)
+    assert len(selected) <= MAX_SYNTHESIS_EVIDENCE_RESOURCES
+    source = inspect.getsource(fetch_canonical_context)
+    assert "recommendation_primary=adjudicated_recommendation" in source
+    print(
+        "USE v252 TASK AUTHORITY PROPAGATION AUDIT: PASS; "
+        "adjudicated primary consumed directly at v206"
     )
 
 
