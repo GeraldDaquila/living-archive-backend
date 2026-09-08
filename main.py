@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v243 — Recommendation Directness Adjudication + v242 D20 Type Vocabulary Alignment + The Guide
+# USE PRODUCTION VERSION: v244 — Recommendation Subject-Priority Adjudication + v243 Directness + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v243"
+APP_VERSION = "v244"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v243-recommendation-directness"
+DEPLOYMENT_FINGERPRINT = "USE-v244-recommendation-subject-priority"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v243-recommendation-directness"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "12c20e479fd428b5bae57f5f515a5931ecd6b31ee8449b47804eeb145e2cb495"
+CANONICAL_BUILD_ID = "USE-BUILD-v244-recommendation-subject-priority"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "95fe9e21c0f420a01067421120d412582fdbafd6c9decb5dae50f7a5209d4f31"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9436,15 +9436,18 @@ def _adjudicate_recommendation_resource(
             and essay_function.get("function")
         ) else 0
         directness = _recommendation_directness_score(question, document)
+        directness_title = min(12, directness[0] * 2 + directness[1])
         rank = (
             type_match,
             essay_match,
-            directness[1],
-            directness[0],
+            directness_title,
             directness[2],
             subject[3],
             subject[0],
             subject[1],
+            directness[0],
+            directness[1],
+            directness[3],
             synthesis[0],
             synthesis[1],
             resource_fit[0],
@@ -9632,6 +9635,93 @@ def _v243_recommendation_directness_adjudication_self_audit() -> None:
     print(
         "USE v243 RECOMMENDATION DIRECTNESS ADJUDICATION AUDIT: PASS; "
         f"selected={winner['title']}"
+    )
+
+
+def _v244_recommendation_subject_priority_self_audit() -> None:
+    """Verify recommendation adjudication prioritizes requested subject over generic bridge terms."""
+    cases = (
+        (
+            "Which essay would you recommend about the afterlife and reincarnation?",
+            [
+                {
+                    "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+                    "url": "https://example.invalid/journey",
+                    "text": "Explores afterlife, reincarnation, hypnosis, near-death experiences, karma, and soul growth." * 4,
+                },
+                {
+                    "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+                    "url": "https://example.invalid/loss",
+                    "text": "Explores grief, loss, meaning, mourning, transformation, and spiritual perspectives." * 4,
+                },
+            ],
+            "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        ),
+        (
+            "Can you recommend an essay about loneliness, despair and emptiness?",
+            [
+                {
+                    "title": "The Silent Epidemic: Exploring Loneliness, Despair, Emptiness, and the Redemptive Power of the Eternal Now",
+                    "url": "https://example.invalid/silent",
+                    "text": "Explores loneliness, despair, emptiness, isolation, and the redemptive power of the eternal now." * 4,
+                },
+                {
+                    "title": "Healing the Soul’s Layers: A Multidisciplinary Exploration of Body, Mind, and Spirit in Spiritual Awakening",
+                    "url": "https://example.invalid/healing",
+                    "text": "Explores body, mind, spirit, healing, and spiritual awakening." * 4,
+                },
+            ],
+            "The Silent Epidemic: Exploring Loneliness, Despair, Emptiness, and the Redemptive Power of the Eternal Now",
+        ),
+        (
+            "What essay do you suggest for healing body, mind and spirit?",
+            [
+                {
+                    "title": "Healing the Soul’s Layers: A Multidisciplinary Exploration of Body, Mind, and Spirit in Spiritual Awakening",
+                    "url": "https://example.invalid/healing",
+                    "text": "Explores body, mind, spirit, healing, and spiritual awakening." * 4,
+                },
+                {
+                    "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+                    "url": "https://example.invalid/loss",
+                    "text": "Explores grief, loss, meaning, mourning, transformation, and spiritual perspectives." * 4,
+                },
+            ],
+            "Healing the Soul’s Layers: A Multidisciplinary Exploration of Body, Mind, and Spirit in Spiritual Awakening",
+        ),
+        (
+            "What advise or essay from the Living Archive that you can recommend for someone who is grieving from the death of a love one?",
+            [
+                {
+                    "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+                    "url": "https://example.invalid/journey",
+                    "text": "Explores death, afterlife, reincarnation, hypnosis, near-death experiences, karma, and soul growth." * 4,
+                },
+                {
+                    "title": "Death, Grief, and the Human Search for Continuity",
+                    "url": "https://example.invalid/continuity",
+                    "text": "Explores death, grief, continuity, meaning, reflection, and loss." * 4,
+                },
+                {
+                    "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+                    "url": "https://example.invalid/loss",
+                    "text": "Explores grief and loss as a transformative process, integrating psychological, neuroscientific, sociological, philosophical, cultural, and spiritual perspectives to support meaning-making and understanding." * 4,
+                },
+            ],
+            "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        ),
+    )
+    for question, candidates, expected in cases:
+        winner = _adjudicate_recommendation_resource(candidates, question)
+        got = winner.get("title") if isinstance(winner, dict) else None
+        if got != expected:
+            raise RuntimeError(
+                "v244 recommendation subject-priority regression: "
+                f"expected={expected!r}, selected={got!r}"
+            )
+    print(
+        "USE v244 RECOMMENDATION SUBJECT-PRIORITY AUDIT: PASS; "
+        f"cases={len(cases)}"
     )
 
 
