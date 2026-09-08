@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v259 — Recommendation Primary Evidence Envelope + v258 Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
+# USE PRODUCTION VERSION: v260 — Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + v258 Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v259"
+APP_VERSION = "v260"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v259-recommendation-primary-evidence-envelope"
+DEPLOYMENT_FINGERPRINT = "USE-v260-recommendation-aware-generation-routing"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v259-recommendation-primary-evidence-envelope"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "ab193366c4701c314b91295fdca2de0fa4af4729b273b3425758d971b704e345"
+CANONICAL_BUILD_ID = "USE-BUILD-v260-recommendation-aware-generation-routing"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f6dc9be90668ecc9998165ddd59ce1c12051cbc5d4ce57dc5d08d9866104fc72"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -15791,6 +15791,13 @@ def _classify_generation_complexity(
     # Structural task requirements may raise the class, never lower it.
     synthesis_count = sum(1 for signal in synthesis_signals if signal)
     complex_count = sum(1 for signal in complex_signals if signal)
+    recommendation_task = _is_recommendation_question(query)
+    # v260: a singular recommendation is still a reasoning task. When the
+    # recommendation contract has intentionally narrowed the provider
+    # evidence to one adjudicated primary, resource_count=1 must not be
+    # misread as a simple low-complexity task. Keep recommendation synthesis
+    # on the class-3 reasoning model without changing recommendation
+    # cardinality, retrieval, or resource authority.
     # One explicit synthesis structure is sufficient to raise a moderate
     # evidence task when several resources are actually available. This keeps
     # model selection tied to the work the question asks the model to do, not
@@ -15798,6 +15805,8 @@ def _classify_generation_complexity(
     if synthesis_count >= 1 and resource_count >= 3:
         complexity = max(complexity, 3)
     elif synthesis_count >= 2:
+        complexity = max(complexity, 3)
+    if recommendation_task and resource_count >= 1:
         complexity = max(complexity, 3)
     if complex_count >= 2:
         complexity = 4
@@ -15825,6 +15834,8 @@ def _classify_generation_complexity(
         reason.append("very high evidence volume")
     if synthesis_count:
         reason.append(f"synthesis_signals={synthesis_count}")
+    if recommendation_task:
+        reason.append("recommendation reasoning floor")
     if complex_count:
         reason.append(f"complex_signals={complex_count}")
 
@@ -15835,6 +15846,7 @@ def _classify_generation_complexity(
         "synthesis_signals": synthesis_count,
         "complex_signals": complex_count,
         "model": selected_model,
+        "recommendation_task": recommendation_task,
         "reason": "; ".join(reason),
     }
 
@@ -18646,6 +18658,44 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v260_recommendation_aware_generation_routing_self_audit() -> None:
+    """Verify recommendation tasks do not downgrade to class-2 routing after evidence narrowing."""
+    question = (
+        "What advice or essay from the Living Archive can you recommend "
+        "for someone who is grieving from the death of a loved one?"
+    )
+    protected_context = (
+        "Title: The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom\n"
+        "URL: https://example.invalid/loss\n"
+        "Content: This essay explores grief, loss, meaning, transformation, suffering, "
+        "connection, mortality, and spiritual and scientific perspectives on grief. "
+    )
+    routing = _classify_generation_complexity(
+        question, "TOPICAL_INQUIRY", protected_context
+    )
+    assert _is_recommendation_question(question)
+    assert routing["resource_count"] == 1
+    assert routing["recommendation_task"] is True
+    assert routing["complexity"] == 3, (
+        "v260 recommendation routing audit: singular recommendation was "
+        f"downgraded: {routing}"
+    )
+    assert routing["model"] == "openai/gpt-oss-120b", routing
+
+    ordinary = _classify_generation_complexity(
+        "What does this resource explain?", "TOPICAL_INQUIRY", "A" * 900
+    )
+    assert ordinary["complexity"] == 2
+    assert ordinary["model"] == "groq/compound-mini"
+
+    print(
+        "USE v260 RECOMMENDATION-AWARE GENERATION ROUTING AUDIT: PASS; "
+        f"recommendation_complexity={routing['complexity']}, "
+        f"recommendation_model={routing['model']}, "
+        f"ordinary_complexity={ordinary['complexity']}"
+    )
 
 
 def _v259_recommendation_primary_evidence_envelope_self_audit() -> None:
