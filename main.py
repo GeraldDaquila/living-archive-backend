@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v247 — Recommendation Response Contract + v246 Recommendation Evidence Budget + The Guide
+# USE PRODUCTION VERSION: v248 — Task-Level Response Planning + v247 Recommendation Response Contract + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v247"
+APP_VERSION = "v248"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v247-recommendation-response-contract"
+DEPLOYMENT_FINGERPRINT = "USE-v248-task-level-response-planning"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v247-recommendation-response-contract"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "3155f3c35ff80a6429a511a842aa1519f825048838e44606f1c180216a2120e3"
+CANONICAL_BUILD_ID = "USE-BUILD-v248-task-level-response-planning"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f18e27254016f46ee1c97fee368c57279c7222e0b2a1f361b65477fc90af6d70"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12799,6 +12799,51 @@ def _question_is_underdetermined(question: str) -> bool:
     return first_person and experiential and broad_hits >= 1 and mechanism_hits == 0
 
 
+def _build_response_task_contract(user_query: str, intent: str) -> Dict[str, Any]:
+    """Resolve the visitor-facing response task once for downstream generation.
+
+    This is a deterministic task contract, not a generation prompt. It gives
+    downstream evidence selection and presentation one shared objective while
+    leaving ordinary topical questions on the existing path.
+    """
+    recommendation = _is_recommendation_question(user_query)
+    contract: Dict[str, Any] = {
+        "mode": "recommendation" if recommendation else "standard",
+        "intent": str(intent or ""),
+        "primary_required": bool(recommendation),
+        "rationale_required": bool(recommendation),
+        "companion_allowed": bool(recommendation),
+        "companion_max": 1 if recommendation else 0,
+        "canonical_link_required": bool(recommendation),
+    }
+    if recommendation:
+        contract["resource_form"] = (
+            "essay/advice" if re.search(r"\b(?:essay|article|piece|reading)\b",
+                                         str(user_query or "").casefold())
+            else "canonical resource"
+        )
+        contract["subject_terms"] = _recommendation_subject_terms(user_query)
+    else:
+        contract["resource_form"] = "none"
+        contract["subject_terms"] = ()
+    return contract
+
+
+def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
+    """Render the deterministic response task as a compact provider instruction."""
+    if str(contract.get("mode")) != "recommendation":
+        return ""
+    form = str(contract.get("resource_form") or "canonical resource")
+    return (
+        "[RESPONSE TASK — RECOMMENDATION]: Provide one primary canonical "
+        f"{form} recommendation. Explain why that primary fits the visitor's "
+        "stated need and what perspective/value it offers, using supplied Content. "
+        "A second resource is optional and must be clearly subordinate as a "
+        "distinct route, not presented as an equal recommendation. Preserve the "
+        "primary canonical title and URL. Do not substitute another resource."
+    )
+
+
 def _build_generation_system_content(
     intent: str,
     generation_context: str,
@@ -14340,15 +14385,18 @@ def _build_generation_messages(
             compact=True,
         )
 
+    response_task = _build_response_task_contract(user_query, intent)
+    response_task_instruction = _response_task_contract_instruction(response_task)
+
     attribution_instruction = ""
-    recommendation_contract = ""
-    if _is_recommendation_question(user_query):
-        recommendation_contract = (
-            " For this recommendation request, the first supplied canonical "
-            "evidence is the adjudicated primary. Name it, explain its fit "
-            "and value from Content in 2–4 concise sentences. Add another "
-            "only for a distinct supported route; do not substitute."
-        )
+    recommendation_contract = (
+        " For this recommendation request, the first supplied canonical evidence "
+        "is the adjudicated primary. Name it, explain its fit and value from "
+        "Content in 2–4 concise sentences. Add another only for a distinct "
+        "supported route; do not substitute."
+        if response_task_instruction
+        else ""
+    )
     routing_probe = _classify_generation_complexity(
         user_query, intent, safe_context, None
     )
@@ -18157,6 +18205,39 @@ def _v247_recommendation_response_contract_self_audit() -> None:
         f"primary_chars={len(first_content)}, provider_resources={len(title_matches)}, "
         f"ordinary_resources={len(ordinary_titles)}"
     )
+
+
+def _v248_task_level_response_planning_self_audit() -> None:
+    """Verify one deterministic task contract governs recommendation generation."""
+    recommendation_question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    contract = _build_response_task_contract(recommendation_question, "TOPICAL_INQUIRY")
+    assert contract["mode"] == "recommendation"
+    assert contract["primary_required"] is True
+    assert contract["rationale_required"] is True
+    assert contract["companion_allowed"] is True
+    assert contract["companion_max"] == 1
+    assert contract["canonical_link_required"] is True
+    instruction = _response_task_contract_instruction(contract)
+    assert "one primary canonical" in instruction
+    assert "distinct route" in instruction
+    assert "not presented as an equal recommendation" in instruction
+
+    ordinary = _build_response_task_contract("What is grief?", "TOPICAL_INQUIRY")
+    assert ordinary["mode"] == "standard"
+    assert ordinary["primary_required"] is False
+    assert _response_task_contract_instruction(ordinary) == ""
+
+    messages = _build_generation_messages(
+        recommendation_question, "TOPICAL_INQUIRY", "Title: Example\nContent: grief", None
+    )
+    assert "[CLASSIFICATION — DO NOT REVEAL]: TOPICAL_INQUIRY" in messages[0]["content"]
+    assert "first supplied canonical evidence is the adjudicated primary" in messages[-1]["content"]
+    assert "2–4 concise sentences" in messages[-1]["content"]
+    assert "Add another only for a distinct supported route" in messages[-1]["content"]
+    print("USE v248 TASK-LEVEL RESPONSE PLANNING AUDIT: PASS")
 
 
 def _generation_boundary_self_audit() -> None:
