@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v267 — Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
+# USE PRODUCTION VERSION: v268 — Canonical Publication Identity Resolution + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v267"
+APP_VERSION = "v268"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v267-d20-recognition-before-type-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v268-canonical-publication-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v267-d20-recognition-before-type-gate"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "052e4081a2a3699c7f2fd626c11e82ec6ba4edb8b4b9ab9c17570326b60a5dc7"
+CANONICAL_BUILD_ID = "USE-BUILD-v268-canonical-publication-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "39b3a4e0afa387ec76112e3fdd437180d1418792a72d593866769cb99d3cad30"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -2135,11 +2135,11 @@ def _attach_canonical_resource_model(metadata: Dict[str, Any]) -> Dict[str, Any]
 # D20 RESOURCE-TYPE RECOGNITION
 # =====================================================================
 # D20 recognizes the canonical publication/resource family from evidence
-# already carried by the resource itself. Explicit metadata has priority.
-# When explicit type metadata is absent, only strong self-identifying
-# structural signals are accepted. Generic subject wording, semantic
-# similarity, and incidental mentions of another resource type do not
-# establish a type. Unknown is a valid result.
+# already carried by the resource itself. Explicit type metadata and explicit
+# canonical taxonomy identity have priority. When those are absent, only
+# strong self-identifying structural signals are accepted. Generic subject
+# wording, semantic similarity, and incidental mentions do not establish a
+# type. Unknown is a valid result.
 # =====================================================================
 
 _D20_TYPE_ALIASES = {
@@ -2250,6 +2250,63 @@ def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _d20_canonical_collection_type(metadata: Dict[str, Any]) -> Optional[str]:
+    """Recognize publication family only from canonical taxonomy metadata.
+
+    This is deliberately narrower than semantic or title inference.  The
+    canonical Archive/index may carry publication-family identity in taxonomy
+    fields even when the primary resource record omits resource_type.  Only
+    exact normalized publication-family labels are accepted.
+    """
+    if not isinstance(metadata, dict):
+        return None
+
+    taxonomy_keys = (
+        "canonical_collection",
+        "canonical_collections",
+        "collection",
+        "collections",
+        "archive_collection",
+        "archive_collections",
+        "publication_family",
+        "publication_families",
+        "resource_family",
+        "resource_families",
+        "taxonomy",
+        "taxonomies",
+        "category",
+        "categories",
+    )
+
+    essay_labels = {"essay", "essays", "essay collection", "essay collections"}
+
+    def flatten(value: Any) -> List[str]:
+        if value is None:
+            return []
+        if isinstance(value, (list, tuple, set)):
+            result: List[str] = []
+            for item in value:
+                result.extend(flatten(item))
+            return result
+        if isinstance(value, dict):
+            result: List[str] = []
+            for key in ("name", "label", "slug", "title", "value"):
+                if key in value:
+                    result.extend(flatten(value.get(key)))
+            return result
+        return [str(value)]
+
+    for key in taxonomy_keys:
+        if key not in metadata:
+            continue
+        for raw in flatten(metadata.get(key)):
+            clean = re.sub(r"\s+", " ", raw).strip().casefold()
+            if clean in essay_labels:
+                return "Essay"
+
+    return None
+
+
 def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
     """Return D20 type recognition with bounded evidence provenance."""
     if not isinstance(metadata, dict) or not metadata:
@@ -2261,6 +2318,14 @@ def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
             "resource_type": explicit,
             "confidence": "explicit",
             "basis": "explicit_metadata",
+        }
+
+    canonical_collection_type = _d20_canonical_collection_type(metadata)
+    if canonical_collection_type:
+        return {
+            "resource_type": canonical_collection_type,
+            "confidence": "explicit",
+            "basis": "canonical_taxonomy_identity",
         }
 
     title_type = _d20_title_type(metadata)
@@ -6226,6 +6291,46 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
         + (f", diagnostics={target_diagnostics}." if target_diagnostics else ".")
     )
     return candidates
+
+
+def _v268_canonical_publication_identity_self_audit() -> None:
+    """Verify canonical taxonomy can establish Essay identity without guessing."""
+    canonical_taxonomy_essay = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "categories": ["Essays"],
+        "text": "A substantive archive resource with no explicit resource_type metadata.",
+    }
+    recognition = _recognize_resource_type(canonical_taxonomy_essay)
+    assert recognition["resource_type"] == "Essay", (
+        "v268 canonical publication identity: canonical Essay taxonomy was not recognized."
+    )
+    assert recognition["basis"] == "canonical_taxonomy_identity", (
+        "v268 canonical publication identity: provenance was not canonical taxonomy."
+    )
+
+    generic = {
+        "title": "A Discussion of Grief",
+        "categories": ["Reflections"],
+        "text": "This resource discusses grief and meaning.",
+    }
+    assert _recognize_resource_type(generic)["resource_type"] is None, (
+        "v268 canonical publication identity: non-publication taxonomy was promoted to Essay."
+    )
+
+    weak = {
+        "title": "A Discussion of Grief",
+        "categories": ["essay-like reflections"],
+        "text": "A discussion of grief.",
+    }
+    assert _recognize_resource_type(weak)["resource_type"] is None, (
+        "v268 canonical publication identity: fuzzy taxonomy was promoted to Essay."
+    )
+
+    print(
+        "USE v268 CANONICAL PUBLICATION IDENTITY AUDIT: PASS; "
+        "canonical_taxonomy=Essay, generic_taxonomy=unknown, fuzzy_taxonomy=unknown"
+    )
 
 
 def _v133_type_constrained_function_retrieval_self_audit() -> None:
