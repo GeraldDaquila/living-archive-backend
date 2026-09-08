@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v260 — Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + v258 Recommendation Output Cardinality + v257 Recommendation Breadth Authority + The Guide
+# USE PRODUCTION VERSION: v261 — Recommendation Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v260"
+APP_VERSION = "v261"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v260-recommendation-aware-generation-routing"
+DEPLOYMENT_FINGERPRINT = "USE-v261-recommendation-contextual-evidence"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v260-recommendation-aware-generation-routing"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f6dc9be90668ecc9998165ddd59ce1c12051cbc5d4ce57dc5d08d9866104fc72"
+CANONICAL_BUILD_ID = "USE-BUILD-v261-recommendation-contextual-evidence"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "e81affa0073ab7dc2700a396df6ee208bd8b2c25201f7d8060e1dec8adb51236"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -920,29 +920,61 @@ def _recommendation_primary_document(
     return None
 
 
+MAX_RECOMMENDATION_CONTEXT_RESOURCES = 3
+
+
 def _generation_source_documents(
     documents: List[Dict[str, Any]],
     user_query: str,
     protected_documents: Optional[List[Dict[str, Any]]],
 ) -> List[Dict[str, Any]]:
-    """Select the authoritative generation source set before generic truncation.
+    """Select the authoritative recommendation evidence set before truncation.
 
-    Singular recommendation tasks intentionally narrow to the adjudicated primary
-    before the generic per-resource evidence ceiling is applied. This prevents
-    evidence for the authorized primary from being irreversibly shortened to the
-    ordinary 500-character resource cap and then attempting to recover the lost
-    evidence downstream. Plural recommendation tasks retain their existing breadth
-    path unchanged.
+    Singular recommendation tasks retain the adjudicated primary as the first
+    generation resource, with up to two already-selected complementary evidence
+    resources retained as contextual support. This is deliberately NOT additional
+    recommendation authority: the response contract still authorizes one primary
+    destination unless the visitor explicitly requests breadth. The primary is
+    restored from its upstream protected canonical object before the generic
+    per-resource ceiling, while contextual resources remain on their existing
+    bounded generation path.
+
+    This closes the benchmark gap where v259 preserved richer primary evidence but
+    removed the contextual evidence needed to explain the primary's relationship
+    to the surrounding Archive. No retrieval, ranking, or new destination is
+    introduced here.
     """
     primary = _recommendation_primary_document(user_query, protected_documents)
-    if primary is not None:
-        print(
-            "USE v259 recommendation evidence authority: "
-            f"singular primary protected before generic generation truncation; "
-            f"title='{primary['title']}'"
-        )
-        return [primary]
-    return list(documents)
+    if primary is None:
+        return list(documents)
+
+    primary_key = _resource_key(primary)
+    contextual: List[Dict[str, Any]] = []
+    seen = {primary_key}
+
+    for document in documents:
+        if not isinstance(document, dict):
+            continue
+        key = _resource_key(document)
+        if not key or key in seen:
+            continue
+        title = _canonical_display_title(str(document.get("title", "")).strip())
+        url = str(document.get("url", "")).strip()
+        content = _strip_internal_corpus_markup(_resource_content(document)).strip()
+        if not title or not url or not content or not re.match(r"^https?://", url, flags=re.IGNORECASE):
+            continue
+        contextual.append({**document, "title": title, "url": url, "text": content})
+        seen.add(key)
+        if len(contextual) >= MAX_RECOMMENDATION_CONTEXT_RESOURCES - 1:
+            break
+
+    selected = [primary] + contextual
+    print(
+        "USE v261 recommendation contextual evidence authority: "
+        f"primary='{primary['title']}', contextual={len(contextual)}, "
+        f"generation_resources={len(selected)}, companion_allowed={_recommendation_companion_allowed(user_query)}"
+    )
+    return selected
 
 # v143 static regression marker: valid generation evidence must remain non-empty
 # when the secondary provider representation cannot reconstruct it.
@@ -13329,6 +13361,12 @@ def _fit_generation_context_to_provider_budget(
                 question=user_query,
                 schema_free=False,
                 protected_documents=protected_documents,
+                preserve_singular_recommendation_context=(
+                    bool(protected_documents)
+                    and _is_recommendation_question(user_query)
+                    and not _recommendation_companion_allowed(user_query)
+                    and len(context_blocks_to_documents(candidate)) >= 2
+                ),
             )
 
         # v148 root-cause boundary: a positive primary evidence capacity must
@@ -13769,6 +13807,7 @@ def _v217_build_provider_evidence_context(
     question: str = "",
     schema_free: bool = False,
     protected_documents: Optional[List[Dict[str, Any]]] = None,
+    preserve_singular_recommendation_context: bool = False,
 ) -> str:
     """Build provider evidence with explicit relational poles preserved in excerpts.
 
@@ -13883,9 +13922,11 @@ def _v217_build_provider_evidence_context(
                 item for item in selected
                 if item != recommendation_selected
             ]
-            # Choose one supporting route by existing evidence quality, while
-            # avoiding a second resource that merely repeats the winner.
-            if companion_allowed and others:
+            # v261: retain already-selected contextual evidence for rationale/orientation
+            # only on the production recommendation-context path. Default remains v247.
+            if preserve_singular_recommendation_context and others and not companion_allowed:
+                selected = [recommendation_selected] + others[:2]
+            elif companion_allowed and others:
                 companion = max(
                     others,
                     key=lambda item: (
@@ -13938,7 +13979,14 @@ def _v217_build_provider_evidence_context(
         elif selected_n == 2:
             weights = [0.72, 0.28]
         else:
-            weights = [0.65, 0.175, 0.175]
+            # v261: contextual resources support the primary rationale; they
+            # are deliberately secondary so the authorized primary retains the
+            # evidence density needed for a benchmark-quality recommendation.
+            weights = (
+                [0.72, 0.14, 0.14]
+                if preserve_singular_recommendation_context and not _recommendation_companion_allowed(question)
+                else [0.65, 0.175, 0.175]
+            )
     elif selected_n == 1:
         weights = [1.0]
     elif selected_n == 2:
@@ -16059,6 +16107,67 @@ def _v163_model_routing_self_audit() -> None:
     print("USE v163 MODEL ROUTING AUDIT: PASS")
 
 
+def _build_singular_recommendation_generation_context(
+    primary: Dict[str, Any],
+    contextual_documents: List[Dict[str, Any]],
+    *,
+    max_chars: int = MAX_GENERATION_CONTEXT_CHARS,
+    primary_max_chars: int = RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
+    contextual_max_chars: int = MAX_GENERATION_RESOURCE_CHARS,
+) -> str:
+    """Build the singular-recommendation evidence envelope with primary priority.
+
+    v261 keeps the adjudicated primary and a small amount of already-selected
+    contextual evidence in the same provider context. The primary receives its
+    protected v259 evidence ceiling first; contextual resources consume only the
+    remaining budget. This is evidence allocation, not recommendation expansion.
+    """
+    if not isinstance(primary, dict) or max_chars <= 0:
+        return ""
+
+    documents = [primary] + [
+        document for document in contextual_documents
+        if isinstance(document, dict) and _resource_key(document) != _resource_key(primary)
+    ][:2]
+
+    blocks: List[str] = []
+    remaining = int(max_chars)
+    separator = "\n\n---\n\n"
+
+    for index, document in enumerate(documents):
+        title = _canonical_display_title(str(document.get("title", "")).strip())
+        url = str(document.get("url", "")).strip()
+        content = _strip_internal_corpus_markup(_resource_content(document)).strip()
+        if not title or not url or not content or not re.match(r"^https?://", url, flags=re.IGNORECASE):
+            continue
+
+        prefix = f"Title: {title}\nURL: {url}\nContent: "
+        separator_cost = len(separator) if blocks else 0
+        available = remaining - separator_cost - len(prefix)
+        if available <= 0:
+            break
+
+        cap = primary_max_chars if index == 0 else contextual_max_chars
+        limit = min(cap, available)
+        if limit <= 0:
+            break
+
+        excerpt = _truncate_evidence_content(content, limit).rstrip()
+        if not excerpt:
+            continue
+        block = prefix + excerpt
+        blocks.append(block)
+        remaining -= separator_cost + len(block)
+
+    result = separator.join(blocks).strip()
+    print(
+        "USE v261 recommendation generation context: "
+        f"resources={len(blocks)}, chars={len(result)}, "
+        f"primary_cap={primary_max_chars}, contextual_cap={contextual_max_chars}"
+    )
+    return result
+
+
 def generate_llm_response(
     user_query: str,
     retrieved_context_blocks: str,
@@ -16101,15 +16210,27 @@ def generate_llm_response(
         user_query,
         protected_documents,
     )
-    base_generation_context = build_generation_context(
-        generation_source_documents,
-        max_chars=MAX_GENERATION_CONTEXT_CHARS,
-        max_resource_chars=(
-            RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS
-            if _recommendation_primary_document(user_query, protected_documents) is not None
-            else MAX_GENERATION_RESOURCE_CHARS
-        ),
+    recommendation_primary = _recommendation_primary_document(
+        user_query, protected_documents
     )
+    if recommendation_primary is not None and len(generation_source_documents) > 1:
+        base_generation_context = _build_singular_recommendation_generation_context(
+            recommendation_primary,
+            generation_source_documents[1:],
+            max_chars=MAX_GENERATION_CONTEXT_CHARS,
+            primary_max_chars=RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
+            contextual_max_chars=MAX_GENERATION_RESOURCE_CHARS,
+        )
+    else:
+        base_generation_context = build_generation_context(
+            generation_source_documents,
+            max_chars=MAX_GENERATION_CONTEXT_CHARS,
+            max_resource_chars=(
+                RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS
+                if recommendation_primary is not None
+                else MAX_GENERATION_RESOURCE_CHARS
+            ),
+        )
 
     if not base_generation_context:
         base_generation_context = _bound_existing_context_blocks(
@@ -18658,6 +18779,80 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v261_recommendation_contextual_evidence_self_audit() -> None:
+    """Verify singular recommendations retain contextual evidence without changing recommendation cardinality."""
+    question = (
+        "What advice or essay from the Living Archive can you recommend "
+        "for someone who is grieving from the death of a loved one?"
+    )
+    primary = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "Primary grief evidence about loss, meaning, transformation, spiritual and scientific perspectives. " * 12,
+    }
+    context_a = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": "Contextual evidence about afterlife, continuity, and questions that can accompany grief. " * 8,
+    }
+    context_b = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": "Contextual evidence about death, grief, continuity, and meaning-making. " * 8,
+    }
+    source = _generation_source_documents(
+        [
+            {**primary, "text": primary["text"][:500]},
+            context_a,
+            context_b,
+        ],
+        question,
+        [primary],
+    )
+    assert len(source) == 3
+    assert source[0]["title"] == primary["title"]
+    assert len(source[0]["text"]) == len(primary["text"].strip())
+    assert [doc["title"] for doc in source[1:]] == [context_a["title"], context_b["title"]]
+
+    bounded = _build_singular_recommendation_generation_context(
+        source[0],
+        source[1:],
+        max_chars=MAX_GENERATION_CONTEXT_CHARS,
+        primary_max_chars=RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
+        contextual_max_chars=MAX_GENERATION_RESOURCE_CHARS,
+    )
+    parsed = context_blocks_to_documents(bounded)
+    assert len(parsed) == 3
+    assert parsed[0]["title"] == primary["title"]
+    assert len(parsed[0]["text"]) >= 650
+    assert parsed[1]["title"] == context_a["title"]
+    assert parsed[2]["title"] == context_b["title"]
+
+    contract = _build_response_task_contract(question, "TOPICAL_INQUIRY")
+    assert contract["primary_required"] is True
+    assert contract["companion_allowed"] is False
+    instruction = _response_task_contract_instruction(contract)
+    assert "one primary canonical recommendation" in instruction
+    assert "2–4 concise sentences" in instruction
+
+    # The output authority must still treat the first resource as the sole
+    # recommendation while permitting contextual canonical evidence to exist.
+    answer = (
+        "A strong place to begin is "
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom. "
+        "The surrounding material also offers context about continuity and grief."
+    )
+    checked = _enforce_recommendation_output_authority(question, answer, bounded)
+    assert checked == answer
+    assert _enforce_recommendation_output_cardinality(question, checked, bounded) == checked
+
+    print(
+        "USE v261 RECOMMENDATION CONTEXTUAL EVIDENCE AUDIT: PASS; "
+        f"generation_resources={len(parsed)}, primary_chars={len(parsed[0]['text'])}, "
+        "singular_companion_allowed=False"
+    )
 
 
 def _v260_recommendation_aware_generation_routing_self_audit() -> None:
