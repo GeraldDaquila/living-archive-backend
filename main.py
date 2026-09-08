@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v264 — Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
+# USE PRODUCTION VERSION: v265 — Recommendation-to-Doorway Coherence + Essay-Function Retrieval Integrity + Sentence-Boundary-Aware Recommendation Chunking + Upstream Recommendation Authority + Unified Response Contract + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v264"
+APP_VERSION = "v265"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v264-sentence-boundary-aware-recommendation-chunking"
+DEPLOYMENT_FINGERPRINT = "USE-v265-recommendation-doorway-coherence"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v264-sentence-boundary-aware-recommendation-chunking"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e859ae1c3e5dcf175a987f0d0a34b7f29362d01c34b265b6a1150c7ebb3d742b"
+CANONICAL_BUILD_ID = "USE-BUILD-v265-recommendation-doorway-coherence"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f5f6832941b6d173ad185683a0694afa1ba8b1e4f7b2e234aa6e29948af37fdf"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -5106,6 +5106,7 @@ def select_canonical_doorways(
     question: str = "",
     preserve_prefix: int = 0,
     question_authority_documents: Optional[List[Dict[str, Any]]] = None,
+    authoritative_recommendation: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prioritize the strongest already-retrieved canonical doorway, with v227
@@ -5114,6 +5115,10 @@ def select_canonical_doorways(
     This function only reorders the supplied evidence. It never adds,
     removes, searches for, or links a resource. Explicit structural
     destinations supplied by an earlier retrieval stage remain protected.
+    When an authoritative recommendation is already established upstream,
+    that same object is the doorway authority; generic doorway scoring may
+    order the remaining resources but may not replace the authoritative
+    recommendation as primary.
     """
     if not documents:
         return documents
@@ -5161,6 +5166,28 @@ def select_canonical_doorways(
     )
 
     selected = [document for _authority_precedence, _score, _detail, _function_bonus, _authority_bonus, _authority_detail, _order, document in ranked]
+
+    # v265: recommendation adjudication is the single upstream source of truth
+    # for a recommendation task. Reuse that exact authority for doorway selection
+    # instead of allowing generic doorway scoring to independently choose another
+    # primary. This is a reorder only: no resource is added or removed.
+    if authoritative_recommendation is not None:
+        authority_key = _resource_key(authoritative_recommendation)
+        matches = [
+            document for document in selected
+            if _resource_key(document) == authority_key
+        ]
+        if matches:
+            authoritative = matches[0]
+            selected = [authoritative] + [
+                document for document in selected
+                if _resource_key(document) != authority_key
+            ]
+            print(
+                "USE v265 recommendation-to-doorway authority: "
+                f"primary='{_canonical_display_title(str(authoritative.get('title', 'Untitled Resource')))}', "
+                "doorway_source=adjudicated_recommendation"
+            )
 
     if selected:
         primary = selected[0]
@@ -5231,7 +5258,7 @@ _RESOURCE_FUNCTION_RETRIEVAL_PROFILES = {
         "cornerstone foundations cross domain framework larger patterns",
     ),
     _D21_ESSAY_FUNCTION_LABEL: (
-        "essay substantive exploration explanation sensemaking",
+        "essay publication form substantive exploration explanation sensemaking grief loss advice reflection",
     ),
 }
 
@@ -10926,22 +10953,21 @@ def fetch_canonical_context(
         question=user_query,
         preserve_prefix=protected_prefix,
         question_authority_documents=question_authority_protected_docs,
+        authoritative_recommendation=task_authority_recommendation,
     )
 
-    # v250/v251: recommendation task authority is stronger than generic doorway
-    # ranking. Once the early task boundary has selected a canonical primary,
-    # the existing doorway/navigation path must carry that primary first.
-    # This is a reorder only: no retrieval, resource creation, deletion, or new
-    # movement edge is introduced.
-    before_task_authority = list(retrieved_docs)
-    retrieved_docs = _apply_recommendation_task_authority_to_doorway(
-        retrieved_docs,
-        task_authority_recommendation,
-    )
-    if retrieved_docs != before_task_authority and task_authority_recommendation is not None:
+    # v265: the authoritative recommendation was consumed directly by doorway
+    # selection above. Keep the legacy helper available for regression coverage,
+    # but do not let it become a second independent authority path.
+    if task_authority_recommendation is not None and retrieved_docs:
+        if _resource_key(retrieved_docs[0]) != _resource_key(task_authority_recommendation):
+            raise RuntimeError(
+                "v265 recommendation-to-doorway coherence failure: "
+                "doorway primary diverged from adjudicated recommendation."
+            )
         print(
-            "USE v251 recommendation task authority: "
-            f"doorway_primary='{_canonical_display_title(str(retrieved_docs[0].get('title', 'Untitled Resource')))}'"
+            "USE v265 recommendation-to-doorway coherence: "
+            f"primary='{_canonical_display_title(str(retrieved_docs[0].get('title', 'Untitled Resource')))}'"
         )
 
     # Preserve at least one D20-recognized candidate for each explicitly
@@ -19444,6 +19470,53 @@ def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
     )
 
 
+def _v265_recommendation_doorway_coherence_self_audit() -> None:
+    """Prove recommendation adjudication is the single primary doorway authority."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    recommendation = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "This essay explores grief as a transformative process through spiritual and scientific perspectives. " * 8,
+    }
+    competing_doorway = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": "This work explores death, afterlife, reincarnation, hypnosis, and near-death experiences. " * 8,
+    }
+    documents = [competing_doorway, recommendation]
+    ranked = select_canonical_doorways(
+        documents,
+        {"primary": "general", "scores": {}},
+        question=question,
+        authoritative_recommendation=recommendation,
+    )
+    assert ranked[0] is recommendation, (
+        "v265 doorway coherence regression: generic doorway ranking displaced "
+        "the adjudicated recommendation."
+    )
+    assert {_resource_key(x) for x in ranked} == {_resource_key(x) for x in documents}
+
+    source = inspect.getsource(fetch_canonical_context)
+    call = "authoritative_recommendation=task_authority_recommendation"
+    assert call in source, (
+        "v265 doorway coherence regression: fetch_canonical_context did not pass "
+        "the adjudicated recommendation into doorway selection."
+    )
+    helper_source = inspect.getsource(select_canonical_doorways)
+    assert "doorway_source=adjudicated_recommendation" in helper_source
+    assert "authority_key = _resource_key(authoritative_recommendation)" in helper_source
+
+    essay_profile = _RESOURCE_FUNCTION_RETRIEVAL_PROFILES[_D21_ESSAY_FUNCTION_LABEL][0]
+    assert "essay publication form" in essay_profile
+    print(
+        "USE v265 RECOMMENDATION-DOORWAY COHERENCE AUDIT: PASS; "
+        f"doorway_primary={ranked[0]['title']!r}, essay_profile_type_signal=True"
+    )
+
+
 def _v264_sentence_boundary_recommendation_chunking_self_audit() -> None:
     """Prove the grief benchmark's quoted sentence boundary is recognized and chunked."""
     answer = (
@@ -19545,19 +19618,18 @@ def _v250_recommendation_task_authority_self_audit() -> None:
         {"primary": "general", "scores": {}},
         question=question,
         question_authority_documents=[winner],
+        authoritative_recommendation=winner,
     )
-    assert reordered[0] is not winner
-    working = _apply_recommendation_task_authority_to_doorway(reordered, winner)
-    assert working[0] is winner
-    assert {_resource_key(x) for x in working} == {_resource_key(x) for x in reordered}
+    assert reordered[0] is winner
+    assert {_resource_key(x) for x in reordered} == {_resource_key(x) for x in [journey, target]}
     source = inspect.getsource(fetch_canonical_context)
     authority_pos = source.find("task_authority_recommendation = _adjudicate_recommendation_resource(")
     doorway_pos = source.find("retrieved_docs = select_canonical_doorways(")
-    helper_call_pos = source.find("retrieved_docs = _apply_recommendation_task_authority_to_doorway(")
-    assert authority_pos >= 0 and doorway_pos >= 0 and helper_call_pos >= 0
-    assert authority_pos < doorway_pos < helper_call_pos
-    helper_source = inspect.getsource(_apply_recommendation_task_authority_to_doorway)
-    assert "return [primary]" in helper_source
+    assert authority_pos >= 0 and doorway_pos >= 0
+    assert authority_pos < doorway_pos
+    assert "authoritative_recommendation=task_authority_recommendation" in source
+    helper_source = inspect.getsource(select_canonical_doorways)
+    assert "doorway_source=adjudicated_recommendation" in helper_source
     print(
         "USE v251 RECOMMENDATION TASK AUTHORITY AUDIT: PASS; "
         f"primary={winner['title']}"
