@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v234 — Visitor Presentation Boundary + v233 Breathing-Room Voice + Higher-Self + The Guide
+# USE PRODUCTION VERSION: v238 — Recommendation Quality + v234 Visitor Presentation Boundary + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -634,6 +634,7 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 [FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
+[RECOMMENDATION QUALITY]: When the visitor asks for a recommendation, select the strongest supplied canonical starting point and briefly explain why it fits the stated question. Ground that fit in supplied Content. Prefer one recommendation; add another only for a distinct evidence-supported route.
 [VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
 [BREATHE BETWEEN IDEAS]: When the answer contains several distinct ideas, use 3–5 short paragraphs, usually 1–2 sentences each. Let each paragraph complete one idea before moving to the next. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
@@ -647,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v234"
+APP_VERSION = "v238"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -663,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v234-visitor-presentation-boundary"
+DEPLOYMENT_FINGERPRINT = "USE-v238-recommendation-quality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v234-visitor-presentation-boundary"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d6746fa4cfd54de6948de49f3fc331d5ec089da735d620243e3cd373ce765875"
+CANONICAL_BUILD_ID = "USE-BUILD-v238-recommendation-quality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "29f2e96ea6acade1e4b7a6121ba371d330cc75e3c2785c95ddcf28dd180b3779"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
