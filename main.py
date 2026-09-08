@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v240 — Recommendation Evidence Preservation + v238 Recommendation Quality + The Guide
+# USE PRODUCTION VERSION: v241 — Deterministic Recommendation Adjudication + v240 Evidence Preservation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -634,9 +634,9 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 [FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
-[RECOMMENDATION QUALITY]: When the visitor asks for a recommendation, select the strongest supplied canonical starting point and briefly explain why it fits the stated question. Ground that fit in supplied Content. Prefer one recommendation; add another only for a distinct evidence-supported route.
-[VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
-[BREATHE BETWEEN IDEAS]: When the answer contains several distinct ideas, use 3–5 short paragraphs, usually 1–2 sentences each. Let each paragraph complete one idea before moving to the next. No headings or bullets merely for formatting.
+[RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the recommendation; briefly explain its fit from supplied Content. Do not substitute another resource.
+[VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for grounded Higher-Self quality without claiming that role or speaking for the visitor.
+[BREATHE BETWEEN IDEAS]: When several ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
 
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v240"
+APP_VERSION = "v241"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v240-recommendation-quality"
+DEPLOYMENT_FINGERPRINT = "USE-v241-recommendation-adjudication"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v240-recommendation-quality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "5fb7d7deb5987544856be7f5ec45cb56038b7fc146fe42d1f901fc4432d2077e"
+CANONICAL_BUILD_ID = "USE-BUILD-v241-recommendation-adjudication"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "589ee5ce7fb12553ed5dce956b0ea2e2fb117f0f3a3ec83f9b73fc60cad8dee2"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9257,7 +9257,6 @@ def _v231_question_axis_coverage_gate(
 
 
 def _is_recommendation_question(question: str) -> bool:
-    """Recognize explicit recommendation requests without changing retrieval intent."""
     clean = re.sub(r"\s+", " ", str(question or "").strip()).casefold()
     if not clean:
         return False
@@ -9268,18 +9267,143 @@ def _is_recommendation_question(question: str) -> bool:
     ))
 
 
+_RECOMMENDATION_REQUEST_TERMS = frozenset({
+    "recommend", "recommendation", "advise", "advice", "suggest", "suggestion",
+    "essay", "article", "resource", "piece", "reading", "read", "someone",
+    "something", "please", "can", "could", "would", "you", "me", "i",
+    "from", "the", "a", "an", "for", "what", "which", "that", "is", "are",
+    "give", "offer", "tell", "find", "best", "good", "one", "living", "archive", "who",
+})
+
+
+def _recommendation_subject_terms(question: str) -> Tuple[str, ...]:
+    """Extract the visitor's substantive recommendation subject, not request scaffolding."""
+    tokens = re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", str(question or "").casefold())
+    return tuple(dict.fromkeys(
+        token for token in tokens
+        if len(token) >= 3 and token not in _RECOMMENDATION_REQUEST_TERMS
+    ))
+
+
+def _recommendation_term_variants(term: str) -> set:
+    """Return conservative lexical variants for recommendation subject matching."""
+    value = str(term or "").casefold().replace("-", "")
+    if not value:
+        return set()
+    variants = {value}
+    irregular = {
+        "grieving": {"grief", "grieve", "loss"},
+        "grieved": {"grief", "grieve"},
+        "grieves": {"grief", "grieve"},
+        "loved": {"love"},
+        "loving": {"love"},
+        "dying": {"die", "death"},
+        "died": {"die", "death"},
+        "deaths": {"death"},
+        "losses": {"loss"},
+    }
+    variants.update(irregular.get(value, set()))
+    for suffix in ("ingly", "edly", "ing", "ed", "ness", "able", "ible", "es", "s"):
+        if len(value) > 5 and value.endswith(suffix):
+            variants.add(value[:-len(suffix)])
+            break
+    return {variant for variant in variants if variant}
+
+
+def _recommendation_subject_fit(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int, int]:
+    """Score an already-retrieved resource against the visitor's stated subject."""
+    subject_terms = _recommendation_subject_terms(question)
+    if not subject_terms or not isinstance(document, dict):
+        return (0, 0, 0, 0)
+
+    title = _canonical_display_title(str(document.get("title", ""))).casefold()
+    content = _strip_internal_corpus_markup(_resource_content(document)).casefold()
+    searchable = f"{title} {content}"
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+    title_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", title))
+
+    term_hits = 0
+    title_hits = 0
+    for term in subject_terms:
+        variants = _recommendation_term_variants(term)
+        if variants & content_tokens:
+            term_hits += 1
+        if variants & title_tokens:
+            title_hits += 1
+
+    phrase_hits = sum(
+        1 for left, right in zip(subject_terms, subject_terms[1:])
+        if f"{left} {right}" in searchable
+    )
+    return (
+        term_hits,
+        title_hits,
+        phrase_hits,
+        min(12, term_hits * 3 + title_hits * 4 + phrase_hits * 2),
+    )
+
+
+def _adjudicate_recommendation_resource(
+    candidates: List[Dict[str, Any]],
+    question: str,
+) -> Optional[Dict[str, Any]]:
+    """Choose one canonical recommendation before provider generation."""
+    if not _is_recommendation_question(question) or not candidates:
+        return None
+
+    scored = []
+    for index, document in enumerate(candidates):
+        if not isinstance(document, dict) or not _resource_content(document).strip():
+            continue
+        subject = _recommendation_subject_fit(question, document)
+        synthesis = _synthesis_evidence_quality_score(question, document)
+        resource_fit = _question_resource_fit(question, document)
+        relational = _v209_relational_evidence_profile(question, document)
+        requested_types = _explicit_resource_type_targets(question)
+        recognized_type = _recognize_resource_type(document).get("resource_type")
+        type_match = 1 if requested_types and recognized_type in requested_types else 0
+        essay_function = document.get("_use_essay_function")
+        essay_match = 1 if (
+            "Essay" in requested_types
+            and isinstance(essay_function, dict)
+            and essay_function.get("function")
+        ) else 0
+        rank = (
+            type_match,
+            essay_match,
+            subject[3],
+            subject[0],
+            subject[1],
+            synthesis[0],
+            synthesis[1],
+            resource_fit[0],
+            relational[4],
+            -index,
+        )
+        scored.append((rank, document))
+
+    if not scored:
+        return None
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    winner = scored[0]
+    print(
+        "USE v241 recommendation adjudication: "
+        f"selected='{_canonical_display_title(str(winner[1].get('title', 'Untitled Resource')))}', "
+        f"rank={winner[0]}, candidates={len(scored)}"
+    )
+    return winner[1]
+
+
 def _preserve_recommendation_evidence(
     selected: List[Dict[str, Any]],
     candidates: List[Dict[str, Any]],
     question: str,
 ) -> List[Dict[str, Any]]:
-    """Keep the strongest Content-grounded recommendation within the existing cap.
-
-    This is a narrow v240 intervention at the v206 selection boundary: for an
-    explicit recommendation request, a stronger unselected candidate may replace
-    the weakest non-primary selected role. It never increases the provider's
-    evidence count and never overrides a stronger primary evidence anchor.
-    """
+    """Preserve the adjudicated recommendation within the existing synthesis cap."""
     if not selected or not candidates or not _is_recommendation_question(question):
         return selected
 
@@ -9296,15 +9420,11 @@ def _preserve_recommendation_evidence(
     def recommendation_rank(document: Dict[str, Any]) -> Tuple[int, int, int, int, int]:
         score = _synthesis_evidence_quality_score(question, document)
         relational = _v209_relational_evidence_profile(question, document)
-        return (
-            score[0],
-            score[1],
-            score[2],
-            relational[4],
-            score[3],
-        )
+        return (score[0], score[1], score[2], relational[4], score[3])
 
-    best = max(available, key=recommendation_rank)
+    best = _adjudicate_recommendation_resource(candidates, question)
+    if best is None or _resource_key(best) not in {_resource_key(d) for d in available}:
+        return selected
     best_rank = recommendation_rank(best)
 
     weakest_position = None
@@ -9317,22 +9437,80 @@ def _preserve_recommendation_evidence(
             weakest_position = position
             weakest_rank = rank
 
-    if weakest_position is None:
-        return selected
-    # Recommendation preservation must be justified by stronger direct Content
-    # fit, not merely by a longer or denser document.
-    if best_rank[:3] <= weakest_rank[:3]:
+    if weakest_position is None or best_rank[:3] <= weakest_rank[:3]:
         return selected
 
     old = selected[weakest_position]
     selected[weakest_position] = best
     print(
-        "USE v240 recommendation evidence preservation: "
+        "USE v241 recommendation evidence preservation: "
         f"replaced='{_canonical_display_title(str(old.get('title', 'Untitled Resource')))}' "
         f"with='{_canonical_display_title(str(best.get('title', 'Untitled Resource')))}', "
         f"rank={best_rank}, cap={MAX_SYNTHESIS_EVIDENCE_RESOURCES}"
     )
     return selected
+
+
+def _v241_recommendation_adjudication_self_audit() -> None:
+    """Verify explicit grief recommendation adjudicates the supplied best-fit essay."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    journey = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": (
+            "This work explores death, afterlife, reincarnation, hypnosis, "
+            "near-death experiences, karma, and soul growth. "
+        ) * 5,
+    }
+    continuity = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "_use_resource_type_recognition": {
+            "resource_type": "Cornerstone",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
+        "_use_resource_type_recognition": {
+            "resource_type": "Cornerstone",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
+        "text": (
+            "This work explores death, grief, continuity, meaning, reflection, "
+            "and the human search for continuity after loss. "
+        ) * 5,
+    }
+    target = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "_use_resource_type_recognition": {
+            "resource_type": "Essay",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
+        "_use_resource_type_recognition": {
+            "resource_type": "Essay",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
+        "text": (
+            "Grief is a transformative process. Death and loss are explored through "
+            "psychological, neuroscientific, sociological, philosophical, cultural, "
+            "and spiritual perspectives, with attention to meaning-making and loss. "
+        ) * 5,
+    }
+    winner = _adjudicate_recommendation_resource(
+        [journey, continuity, target],
+        question,
+    )
+    assert winner is target
+    print(
+        "USE v241 RECOMMENDATION ADJUDICATION AUDIT: PASS; "
+        f"selected={winner['title']}"
+    )
 
 
 def _v240_recommendation_evidence_preservation_self_audit() -> None:
@@ -9346,6 +9524,11 @@ def _v240_recommendation_evidence_preservation_self_audit() -> None:
     companion = {
         "title": "Death, Grief, and the Human Search for Continuity",
         "url": "https://example.invalid/continuity",
+        "_use_resource_type_recognition": {
+            "resource_type": "Cornerstone",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
         "text": "This Cornerstone explores the shared human search around death, grief, continuity, meaning, reverence, reflection, and hope. " * 4,
     }
     adjacent = {
@@ -9356,6 +9539,11 @@ def _v240_recommendation_evidence_preservation_self_audit() -> None:
     target = {
         "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
         "url": "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/",
+        "_use_resource_type_recognition": {
+            "resource_type": "Essay",
+            "confidence": "explicit",
+            "basis": "audit_fixture",
+        },
         "text": (
             "Grief is a transformative process—a crucible that refines suffering into wisdom, connection, and purpose. "
             "Death and loss are explored as a transformative journey using psychological, neuroscientific, "
@@ -9376,6 +9564,32 @@ def _v240_recommendation_evidence_preservation_self_audit() -> None:
         "USE v240 RECOMMENDATION EVIDENCE PRESERVATION AUDIT: PASS; "
         f"before={before_titles}, selected={titles}, cap={MAX_SYNTHESIS_EVIDENCE_RESOURCES}"
     )
+
+
+def _v241_recommendation_output_authority_self_audit() -> None:
+    """Verify a provider cannot substitute a different selected recommendation."""
+    question = "What essay can you recommend for someone who is grieving?"
+    context = (
+        "Title: The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom\n"
+        "URL: https://example.invalid/loss\n"
+        "Content: Grief and loss can be explored through psychological and spiritual perspectives.\n\n---\n\n"
+        "Title: Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences\n"
+        "URL: https://example.invalid/journey\n"
+        "Content: Death and afterlife are explored through hypnosis and near-death experiences."
+    )
+    wrong = _enforce_recommendation_output_authority(
+        question,
+        "I recommend Journey Beyond because it discusses death.",
+        context,
+    )
+    assert wrong == ""
+    correct = _enforce_recommendation_output_authority(
+        question,
+        "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom is a strong place to begin.",
+        context,
+    )
+    assert "The Transformative Power of Loss" in correct
+    print("USE v241 RECOMMENDATION OUTPUT AUTHORITY AUDIT: PASS")
 
 
 def _select_evidence_rich_synthesis_roles(
@@ -10396,6 +10610,13 @@ def fetch_canonical_context(
     if not generation_evidence_candidates:
         generation_evidence_candidates = list(retrieved_docs[:1])
 
+    # v241: explicit recommendation requests are adjudicated over the already
+    # retrieved canonical candidate set before evidence narrowing.
+    adjudicated_recommendation = _adjudicate_recommendation_resource(
+        generation_evidence_candidates,
+        user_query,
+    )
+
     # v206 separates the broad complementary candidate pool from the smaller
     # evidence-rich provider synthesis set. Navigation retains the broader
     # canonical context; generation receives only the strongest distinct roles
@@ -10418,6 +10639,34 @@ def fetch_canonical_context(
         generation_evidence_candidates,
         user_query,
     )
+
+    # v241: protect the adjudicated recommendation within the existing cap
+    # and place it first in provider evidence. No resource is added.
+    if adjudicated_recommendation is not None:
+        recommendation_key = _resource_key(adjudicated_recommendation)
+        evidence_keys = {_resource_key(doc) for doc in generation_evidence_docs}
+        if recommendation_key not in evidence_keys and generation_evidence_docs:
+            weakest_position = None
+            weakest_rank = None
+            for position, current in enumerate(generation_evidence_docs):
+                if position == 0:
+                    continue
+                rank = _synthesis_evidence_quality_score(user_query, current)
+                if weakest_rank is None or rank < weakest_rank:
+                    weakest_rank = rank
+                    weakest_position = position
+            if weakest_position is not None:
+                generation_evidence_docs[weakest_position] = adjudicated_recommendation
+        if recommendation_key in {_resource_key(doc) for doc in generation_evidence_docs}:
+            generation_evidence_docs = [adjudicated_recommendation] + [
+                doc for doc in generation_evidence_docs
+                if _resource_key(doc) != recommendation_key
+            ]
+            print(
+                "USE v241 recommendation evidence authority: "
+                f"selected='{_canonical_display_title(str(adjudicated_recommendation.get('title', 'Untitled Resource')))}', "
+                f"synthesis_set={len(generation_evidence_docs)}"
+            )
 
     generation_context = format_context_blocks(
         generation_evidence_docs,
@@ -13720,6 +13969,14 @@ def _build_generation_messages(
         )
 
     attribution_instruction = ""
+    recommendation_contract = ""
+    if _is_recommendation_question(user_query):
+        recommendation_contract = (
+            " For this explicit recommendation request, USE has already "
+            "adjudicated the canonical starting point. Present the first "
+            "supplied canonical evidence title as the recommendation; do "
+            "not substitute another supplied resource."
+        )
     routing_probe = _classify_generation_complexity(
         user_query, intent, safe_context, None
     )
@@ -13741,18 +13998,78 @@ def _build_generation_messages(
             user_query
             + "\n\nAnswer from evidence; preserve uncertainty. Exact titles only; no links or markup."
             + attribution_instruction
+            + recommendation_contract
         )
     else:
         user_content = (
             user_query
             + "\n\nAnswer only from supplied evidence; preserve uncertainty. Exact titles; no links or markup."
             + attribution_instruction
+            + recommendation_contract
         )
 
     return [
         {"role": "system", "content": system_content},
         {"role": "user", "content": user_content},
     ]
+
+
+def _enforce_recommendation_output_authority(
+    user_query: str,
+    answer: str,
+    generation_context: str,
+) -> str:
+    """Keep provider prose subordinate to USE's adjudicated recommendation."""
+    if not _is_recommendation_question(user_query) or not answer:
+        return answer
+
+    documents = context_blocks_to_documents(str(generation_context or ""))
+    if not documents:
+        return answer
+
+    titles = [
+        _canonical_display_title(str(doc.get("title", "")).strip())
+        for doc in documents
+    ]
+    titles = [title for title in titles if title]
+    if not titles:
+        return answer
+
+    selected_title = titles[0]
+    selected_match = re.search(
+        rf"(?<![\w]){re.escape(selected_title)}(?![\w])",
+        answer,
+        flags=re.IGNORECASE,
+    )
+    other_titles = []
+    for title in titles[1:]:
+        exact = re.search(
+            rf"(?<![\w]){re.escape(title)}(?![\w])",
+            answer,
+            flags=re.IGNORECASE,
+        )
+        title_words = re.findall(r"[A-Za-z0-9]+", title)
+        if title_words and title_words[0].casefold() in {"the", "a", "an"}:
+            title_words = title_words[1:]
+        prefix = " ".join(title_words[:2]) if len(title_words) >= 2 else title
+        short = re.search(
+            rf"(?<![\w]){re.escape(prefix)}(?![\w])",
+            answer,
+            flags=re.IGNORECASE,
+        )
+        if exact or short:
+            other_titles.append(title)
+    if other_titles and not selected_match:
+        print(
+            "USE v241 recommendation output authority: "
+            f"rejected contradictory provider recommendation; expected='{selected_title}'"
+        )
+        return ""
+
+    if not selected_match:
+        return f"A strong place to begin is {selected_title}. {answer.strip()}"
+
+    return answer
 
 
 def _contains_canonical_resource_reference(
@@ -14124,6 +14441,14 @@ def _run_generation_attempt(
         cleaned_answer,
         user_query,
         movement_authority_context,
+    )
+
+    # v241: recommendation choice is an upstream USE authority. A provider
+    # cannot substitute another selected canonical resource at presentation.
+    cleaned_answer = _enforce_recommendation_output_authority(
+        user_query,
+        cleaned_answer,
+        effective_validation_context,
     )
 
     # v151 MVP boundary: a provider may mention canonical resources while
