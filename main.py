@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v270 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
+# USE PRODUCTION VERSION: v271 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v270"
+APP_VERSION = "v271"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v270-canonical-chunk-publication-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v271-canonical-chunk-publication-identity"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v270-canonical-chunk-publication-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f99b6edb6d77f2635cc34d8e0a1e22219ed09c5273431d4929d648f373721fe3"
+CANONICAL_BUILD_ID = "USE-BUILD-v271-canonical-chunk-publication-identity"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "80d5edcc26d1383b699484842bdc47c1dc2fadbc0482cf2ca149045e2502d1a5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -2319,10 +2319,10 @@ def _v269_resolve_canonical_type_across_chunks(
 ) -> Optional[Dict[str, Any]]:
     """Resolve an unknown chunk's publication type from exact-URL siblings only.
 
-    v270 hardens the v269 identity boundary against vector truth-value errors
+    v271 preserves the canonical-chunk identity boundary against vector truth-value errors
     and trailing-slash URL variation without broadening identity matching.
     """
-    # v270: vector-like objects (including array types) must not be coerced to
+    # v271: vector-like objects (including array types) must not be coerced to
     # bool because their truth-value may be ambiguous or raise an exception.
     if (
         not isinstance(metadata, dict)
@@ -2338,7 +2338,7 @@ def _v269_resolve_canonical_type_across_chunks(
     if not canonical_url:
         return None
 
-    # v270: query the URL exactly as stored first. If ingestion differs only
+    # v271: query the URL exactly as stored first. If ingestion differs only
     # by a trailing slash, perform one bounded normalized-URL fallback. The
     # final comparison remains canonical-URL identity bound.
     query_urls = [raw_url]
@@ -2360,7 +2360,7 @@ def _v269_resolve_canonical_type_across_chunks(
                 else getattr(result, "matches", [])
             )
         except Exception as exc:
-            print(f"USE v270 canonical chunk identity lookup error: {exc}")
+            print(f"USE v271 canonical chunk identity lookup error: {exc}")
             continue
 
         for match in matches or []:
@@ -2387,7 +2387,7 @@ def _v269_resolve_canonical_type_across_chunks(
                     "resource_type": required_type,
                     "confidence": recognition.get("confidence", "explicit"),
                     "basis": "canonical_url_sibling_chunk_identity",
-                    "source": "v270_exact_canonical_url_sibling_chunk",
+                    "source": "v271_exact_canonical_url_sibling_chunk",
                     "url": canonical_url,
                     "evidence_chunk_index": sibling.get("chunk_index"),
                 }
@@ -6392,8 +6392,8 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     return candidates
 
 
-def _v270_canonical_chunk_identity_boundary_self_audit() -> None:
-    """Verify v270 handles vector and URL edge cases without identity broadening."""
+def _v271_canonical_chunk_identity_boundary_self_audit() -> None:
+    """Verify v271 handles vector and URL edge cases without identity broadening."""
     class _VectorLike:
         def __bool__(self):
             raise AssertionError("vector truth-value must not be evaluated")
@@ -6436,7 +6436,7 @@ def _v270_canonical_chunk_identity_boundary_self_audit() -> None:
             unknown_chunk, _VectorLike(), "Essay"
         )
         assert resolved and resolved["resource_type"] == "Essay"
-        assert resolved["source"] == "v270_exact_canonical_url_sibling_chunk"
+        assert resolved["source"] == "v271_exact_canonical_url_sibling_chunk"
         assert resolved["evidence_chunk_index"] == 7
         assert index.calls[0]["filter"] == {"url": {"$eq": "https://example.invalid/loss/"}}
     finally:
@@ -6451,7 +6451,7 @@ def _v270_canonical_chunk_identity_boundary_self_audit() -> None:
     finally:
         index = original_index
 
-    print("USE v270 CANONICAL CHUNK IDENTITY BOUNDARY AUDIT: PASS; vector_truth_safe=True, trailing_slash_safe=True, cross_url_blocked=True")
+    print("USE v271 CANONICAL CHUNK IDENTITY BOUNDARY AUDIT: PASS; vector_truth_safe=True, trailing_slash_safe=True, cross_url_blocked=True")
 
 
 def _v269_canonical_chunk_publication_identity_self_audit() -> None:
@@ -6503,12 +6503,12 @@ def _v269_canonical_chunk_publication_identity_self_audit() -> None:
 
     assert resolved and resolved["resource_type"] == "Essay"
     assert resolved["basis"] == "canonical_url_sibling_chunk_identity"
-    # Historical v269 regression audit remains valid under the v270 resolver.
+    # Historical v269 regression audit remains valid under the v271 resolver.
     # The implementation provenance is intentionally versioned, so accept the
-    # current v270 source label while preserving the same identity contract.
+    # current v271 source label while preserving the same identity contract.
     assert resolved["source"] in {
         "v269_exact_canonical_url_sibling_chunk",
-        "v270_exact_canonical_url_sibling_chunk",
+        "v271_exact_canonical_url_sibling_chunk",
     }
     assert resolved["evidence_chunk_index"] == 7
 
