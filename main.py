@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v245 — Recommendation Evidence Budget + v244 Recommendation Subject Priority + The Guide
+# USE PRODUCTION VERSION: v246 — Recommendation Evidence Budget + v244 Recommendation Subject Priority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v245"
+APP_VERSION = "v246"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v245-recommendation-evidence-budget"
+DEPLOYMENT_FINGERPRINT = "USE-v246-recommendation-evidence-budget"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v245-recommendation-evidence-budget"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "7457059662c93e01f951cfe86238fcfd1ce2e574ef97d647ca0fb02f8a15d31f"
+CANONICAL_BUILD_ID = "USE-BUILD-v246-recommendation-evidence-budget"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "717b67d4976b6ad39c0926f1ab933d3bf774f4aa9a88fbcd52f623266335e8bc"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
