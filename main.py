@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v255 — Canonical Resource Identity Integrity + v254 Authoritative Recommendation Cardinality + The Guide
+# USE PRODUCTION VERSION: v256 — End-to-End Recommendation Cardinality at Fallback Boundaries + v255 Canonical Resource Identity Integrity + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v255"
+APP_VERSION = "v256"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v255-canonical-resource-identity-integrity"
+DEPLOYMENT_FINGERPRINT = "USE-v256-end-to-end-recommendation-cardinality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v255-canonical-resource-identity-integrity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "fc93e7cf5dd75d257dc768cc9b2cd9629b8a71282dd43c8ea9845791d5a2b137"
+CANONICAL_BUILD_ID = "USE-BUILD-v256-end-to-end-recommendation-cardinality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "d2513ba053d320df897bddd5aed0a2d6842c80b78bba382394c3ab81c1d27727"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -7800,11 +7800,13 @@ def _evidence_sufficiency_unavailable_response(
 ) -> str:
     """Preserve the question while keeping genuine canonical movement open."""
     pairs = []
+    recommendation_limit = 2 if _recommendation_companion_allowed(question) else 1
+    response_limit = recommendation_limit if _is_recommendation_question(question) else 2
     for title, url in _canonical_pairs(canonical_link_context):
         clean_title = _canonical_display_title(title)
         if clean_title and url:
             pairs.append((clean_title, url))
-        if len(pairs) >= 2:
+        if len(pairs) >= response_limit:
             break
 
     response = (
@@ -15468,6 +15470,11 @@ def _deterministic_provider_fallback(
 
     pairs = []
     seen = set()
+    # v256: the deterministic fallback is itself a presentation boundary.
+    # It must consume the same recommendation cardinality contract as the
+    # provider path; otherwise a rejected provider answer can silently re-open
+    # the exact cardinality defect that v254 closed.
+    recommendation_limit = 2 if _recommendation_companion_allowed(user_query) else 1
     for title, url in _canonical_pairs(generation_context):
         clean_title = _canonical_display_title(title)
         clean_url = str(url or "").strip()
@@ -15478,7 +15485,7 @@ def _deterministic_provider_fallback(
             continue
         seen.add(key)
         pairs.append((clean_title, clean_url))
-        if len(pairs) >= 3:
+        if len(pairs) >= (recommendation_limit if _is_recommendation_question(user_query) else 3):
             break
 
     if open_exploration and pairs:
@@ -18398,6 +18405,56 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v256_recommendation_fallback_cardinality_self_audit() -> None:
+    """Verify fallback and unavailable-response paths consume recommendation cardinality."""
+    question = "What essay can you recommend for someone who is grieving?"
+    plural_question = (
+        "What essays would you recommend for someone grieving? "
+        "Please give me several different perspectives."
+    )
+    context = (
+        "Title: The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom\n"
+        "URL: https://example.invalid/loss\n"
+        "Content: Grief and loss can be explored through psychological and spiritual perspectives.\n\n---\n\n"
+        "Title: Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences\n"
+        "URL: https://example.invalid/journey\n"
+        "Content: Death and afterlife are explored through hypnosis and near-death experiences.\n\n---\n\n"
+        "Title: Death, Grief, and the Human Search for Continuity\n"
+        "URL: https://example.invalid/continuity\n"
+        "Content: Continuity and grief are explored through reflection and meaning."
+    )
+    singular = _deterministic_provider_fallback(question, context)
+    plural = _deterministic_provider_fallback(plural_question, context)
+    singular_pairs = re.findall(r"\[([^\]\n]+)\]\(https?://[^)]+\)", singular)
+    plural_pairs = re.findall(r"\[([^\]\n]+)\]\(https?://[^)]+\)", plural)
+    assert len(singular_pairs) <= 1, (
+        "v256 fallback cardinality regression: singular recommendation emitted multiple resources"
+    )
+    assert len(plural_pairs) <= 2, (
+        "v256 fallback cardinality regression: plural recommendation exceeded one companion"
+    )
+
+    unavailable_singular = _evidence_sufficiency_unavailable_response(
+        question, context
+    )
+    unavailable_plural = _evidence_sufficiency_unavailable_response(
+        plural_question, context
+    )
+    unavailable_singular_pairs = re.findall(
+        r"\[([^\]\n]+)\]\(https?://[^)]+\)", unavailable_singular
+    )
+    unavailable_plural_pairs = re.findall(
+        r"\[([^\]\n]+)\]\(https?://[^)]+\)", unavailable_plural
+    )
+    assert len(unavailable_singular_pairs) <= 1, (
+        "v256 unavailable-response regression: singular recommendation emitted multiple resources"
+    )
+    assert len(unavailable_plural_pairs) <= 2, (
+        "v256 unavailable-response regression: plural recommendation exceeded one companion"
+    )
+    print("USE v256 RECOMMENDATION FALLBACK CARDINALITY AUDIT: PASS")
 
 def _v247_recommendation_response_contract_self_audit() -> None:
     """Verify recommendation authority, evidence concentration, and response instructions."""
