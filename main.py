@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v242 — D20 Type Vocabulary Alignment + v241 Recommendation Adjudication + The Guide
+# USE PRODUCTION VERSION: v243 — Recommendation Directness Adjudication + v242 D20 Type Vocabulary Alignment + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v242"
+APP_VERSION = "v243"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v242-d20-type-vocabulary-alignment"
+DEPLOYMENT_FINGERPRINT = "USE-v243-recommendation-directness"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v242-d20-type-vocabulary-alignment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "a0b739ade2d89b8cfc0b5896dc2e0ddfbd5bcd529eaa24dbc7816da318c26787"
+CANONICAL_BUILD_ID = "USE-BUILD-v243-recommendation-directness"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "12c20e479fd428b5bae57f5f515a5931ecd6b31ee8449b47804eeb145e2cb495"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9352,6 +9352,64 @@ def _recommendation_subject_fit(
     )
 
 
+_RECOMMENDATION_DIRECTNESS_BRIDGE_TERMS = frozenset({
+    "meaning", "meaning-making", "meaningmaking", "understanding",
+    "mourning", "bereavement", "grief", "loss", "healing", "resilience",
+    "coping", "hope", "purpose", "transformation", "transformative",
+    "wisdom", "perspective", "reflection", "support", "processing",
+})
+
+
+def _recommendation_directness_score(
+    question: str,
+    document: Dict[str, Any],
+) -> Tuple[int, int, int, int]:
+    """Measure whether a retrieved title directly frames the requested need.
+
+    Recommendation requests need a stronger distinction than raw lexical
+    overlap: a generic doorway can mention the same subject while a specific
+    resource can frame the subject in a way that is immediately useful to the
+    visitor. This remains deterministic and Content/title-bound; it never
+    creates a candidate or consults an external recommendation source.
+    """
+    if not isinstance(document, dict):
+        return (0, 0, 0, 0)
+
+    subject_terms = _recommendation_subject_terms(question)
+    title = _canonical_display_title(str(document.get("title", ""))).casefold()
+    content = _strip_internal_corpus_markup(
+        _resource_content(document)
+    ).casefold()
+    title_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", title))
+    content_tokens = set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?", content))
+
+    subject_title_hits = 0
+    for term in subject_terms:
+        if _recommendation_term_variants(term) & title_tokens:
+            subject_title_hits += 1
+
+    bridge_title_hits = sum(
+        1 for term in _RECOMMENDATION_DIRECTNESS_BRIDGE_TERMS
+        if term in title_tokens or term in title
+    )
+    subject_content_hits = 0
+    for term in subject_terms:
+        if _recommendation_term_variants(term) & content_tokens:
+            subject_content_hits += 1
+
+    bridge_content_hits = sum(
+        1 for term in _RECOMMENDATION_DIRECTNESS_BRIDGE_TERMS
+        if term in content_tokens
+    )
+
+    return (
+        min(4, subject_title_hits),
+        min(4, bridge_title_hits),
+        min(8, subject_content_hits),
+        min(8, bridge_content_hits),
+    )
+
+
 def _adjudicate_recommendation_resource(
     candidates: List[Dict[str, Any]],
     question: str,
@@ -9377,9 +9435,13 @@ def _adjudicate_recommendation_resource(
             and isinstance(essay_function, dict)
             and essay_function.get("function")
         ) else 0
+        directness = _recommendation_directness_score(question, document)
         rank = (
             type_match,
             essay_match,
+            directness[1],
+            directness[0],
+            directness[2],
             subject[3],
             subject[0],
             subject[1],
@@ -9515,6 +9577,60 @@ def _v241_recommendation_adjudication_self_audit() -> None:
     assert winner is target
     print(
         "USE v241 RECOMMENDATION ADJUDICATION AUDIT: PASS; "
+        f"selected={winner['title']}"
+    )
+
+
+def _v243_recommendation_directness_adjudication_self_audit() -> None:
+    """Verify recommendation choice prefers a specific, directly framed resource."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    journey = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": (
+            "This work explores death, afterlife, reincarnation, hypnosis, "
+            "near-death experiences, karma, and soul growth."
+        ) * 5,
+    }
+    continuity = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": (
+            "This work explores death, grief, continuity, meaning, reflection, "
+            "and the human search for continuity after loss."
+        ) * 5,
+    }
+    target = {
+        "title": (
+            "The Transformative Power of Loss: Finding Meaning in Grief "
+            "Through Spiritual and Scientific Wisdom"
+        ),
+        "url": "https://example.invalid/loss",
+        "text": (
+            "This work explores grief and loss as a transformative process, "
+            "integrating psychological, neuroscientific, sociological, "
+            "philosophical, cultural, and spiritual perspectives to support "
+            "meaning-making and understanding."
+        ) * 5,
+    }
+
+    # Deliberately omit D20 type annotations. This reproduces the live failure
+    # seam: recommendation adjudication must distinguish the supplied specific
+    # essay without depending on a missing/unknown publication-type field.
+    winner = _adjudicate_recommendation_resource(
+        [journey, continuity, target],
+        question,
+    )
+    if winner is not target:
+        raise RuntimeError(
+            "v243 recommendation directness regression: "
+            f"selected={winner.get('title') if isinstance(winner, dict) else None!r}"
+        )
+    print(
+        "USE v243 RECOMMENDATION DIRECTNESS ADJUDICATION AUDIT: PASS; "
         f"selected={winner['title']}"
     )
 
