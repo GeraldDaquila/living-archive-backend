@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v246 — Recommendation Evidence Budget + v244 Recommendation Subject Priority + The Guide
+# USE PRODUCTION VERSION: v247 — Recommendation Response Contract + v246 Recommendation Evidence Budget + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v246"
+APP_VERSION = "v247"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v246-recommendation-evidence-budget"
+DEPLOYMENT_FINGERPRINT = "USE-v247-recommendation-response-contract"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v246-recommendation-evidence-budget"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "717b67d4976b6ad39c0926f1ab933d3bf774f4aa9a88fbcd52f623266335e8bc"
+CANONICAL_BUILD_ID = "USE-BUILD-v247-recommendation-response-contract"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "3155f3c35ff80a6429a511a842aa1519f825048838e44606f1c180216a2120e3"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10924,6 +10924,20 @@ def fetch_canonical_context(
                 f"synthesis_set={len(generation_evidence_docs)}"
             )
 
+    # v247: carry the adjudicated recommendation itself through the final
+    # provider boundary as explicit authority. Existing question-specific
+    # authority remains protected alongside it; no new retrieval occurs.
+    generation_authority_protected_docs = list(question_authority_protected_docs)
+    if adjudicated_recommendation is not None:
+        recommendation_key = _resource_key(adjudicated_recommendation)
+        if not any(
+            _resource_key(document) == recommendation_key
+            for document in generation_authority_protected_docs
+        ):
+            generation_authority_protected_docs.insert(
+                0, adjudicated_recommendation
+            )
+
     generation_context = format_context_blocks(
         generation_evidence_docs,
         structural_destination_count=min(
@@ -10967,6 +10981,7 @@ def fetch_canonical_context(
         "context_blocks": generation_context,
         "canonical_link_context": canonical_link_context,
         "question_authority_protected_docs": question_authority_protected_docs,
+        "generation_authority_protected_docs": generation_authority_protected_docs,
     }
 
 
@@ -13500,12 +13515,113 @@ def _v217_build_provider_evidence_context(
             question,
         ),
     )
+
+    # v247: recommendation requests use a dedicated response contract.
+    # The adjudicated recommendation is an authority-bearing primary object,
+    # not one peer among several synthesis resources. Keep that winner first,
+    # and permit at most one distinct supporting route so the provider has
+    # enough substantive evidence to explain the recommendation.
+    if _is_recommendation_question(question) and selected:
+        protected_keys = set()
+        if protected_documents:
+            for document in protected_documents:
+                if isinstance(document, dict):
+                    protected_keys.update(_v229_authority_identity_keys(document))
+        recommendation_selected = None
+        if protected_keys:
+            for candidate in selected:
+                if _v229_authority_identity_keys(
+                    {"title": candidate[0], "text": candidate[1]}
+                ) & protected_keys:
+                    recommendation_selected = candidate
+                    break
+        if recommendation_selected is None and protected_documents:
+            for document in protected_documents:
+                if not isinstance(document, dict):
+                    continue
+                candidate_title = _canonical_display_title(
+                    str(document.get("title", "")).strip()
+                )
+                candidate_content = _strip_internal_corpus_markup(
+                    _resource_content(document)
+                ).strip()
+                if not candidate_title or not candidate_content:
+                    continue
+                for prepared_candidate in prepared:
+                    if (
+                        _resource_key({
+                            "title": prepared_candidate[0],
+                            "text": prepared_candidate[1],
+                        })
+                        == _resource_key(document)
+                    ):
+                        recommendation_selected = prepared_candidate
+                        break
+                if recommendation_selected is not None:
+                    break
+
+        if recommendation_selected is not None:
+            others = [
+                item for item in selected
+                if item != recommendation_selected
+            ]
+            # Choose one supporting route by existing evidence quality, while
+            # avoiding a second resource that merely repeats the winner.
+            if others:
+                companion = max(
+                    others,
+                    key=lambda item: (
+                        _recommendation_subject_fit(
+                            question,
+                            {"title": item[0], "text": item[1]},
+                        )[0],
+                        _synthesis_evidence_quality_score(
+                            question,
+                            {"title": item[0], "text": item[1]},
+                        )[0],
+                        _synthesis_evidence_quality_score(
+                            question,
+                            {"title": item[0], "text": item[1]},
+                        )[3],
+                        -_max_content_concept_overlap(
+                            _content_concept_set(
+                                {"title": item[0], "text": item[1]}
+                            ),
+                            [
+                                _content_concept_set(
+                                    {
+                                        "title": recommendation_selected[0],
+                                        "text": recommendation_selected[1],
+                                    }
+                                )
+                            ],
+                        ),
+                    ),
+                )
+                selected = [recommendation_selected, companion]
+            else:
+                selected = [recommendation_selected]
+            selected_n = len(selected)
+            print(
+                "USE v247 recommendation response contract: "
+                f"primary='{recommendation_selected[0]}', "
+                f"supporting={max(0, selected_n - 1)}, "
+                f"selected={selected_n}"
+            )
+
     prefixes = [prefix(i + 1, title) for i, (title, _content) in enumerate(selected)]
     available = max_chars - separator_len * (selected_n - 1) - sum(len(p) for p in prefixes)
     if available <= 0:
         return ""
 
-    if selected_n == 1:
+    if _is_recommendation_question(question):
+        if selected_n == 1:
+            weights = [1.0]
+        elif selected_n == 2:
+            weights = [0.72, 0.28]
+        else:
+            weights = [0.65, 0.175, 0.175]
+    elif selected_n == 1:
         weights = [1.0]
     elif selected_n == 2:
         weights = [0.55, 0.45]
@@ -14228,10 +14344,10 @@ def _build_generation_messages(
     recommendation_contract = ""
     if _is_recommendation_question(user_query):
         recommendation_contract = (
-            " For this explicit recommendation request, USE has already "
-            "adjudicated the canonical starting point. Present the first "
-            "supplied canonical evidence title as the recommendation; do "
-            "not substitute another supplied resource."
+            " For this recommendation request, the first supplied canonical "
+            "evidence is the adjudicated primary. Name it, explain its fit "
+            "and value from Content in 2–4 concise sentences. Add another "
+            "only for a distinct supported route; do not substitute."
         )
     routing_probe = _classify_generation_complexity(
         user_query, intent, safe_context, None
@@ -15812,7 +15928,8 @@ async def handle_query(
                     context_data["context_blocks"],
                 ),
                 protected_documents=context_data.get(
-                    "question_authority_protected_docs",
+                    "generation_authority_protected_docs",
+                    context_data.get("question_authority_protected_docs"),
                 ),
             )
 
@@ -17938,6 +18055,108 @@ def _v232_higher_self_visitor_voice_self_audit() -> None:
             "v232 visitor voice audit failed; runtime and constitutional generation prompts are not both protected."
         )
     print("USE v232 HIGHER-SELF VISITOR VOICE AUDIT: PASS")
+
+
+
+def _v247_recommendation_response_contract_self_audit() -> None:
+    """Verify recommendation authority, evidence concentration, and response instructions."""
+    question = (
+        "What advise or essay from the Living Archive that you can recommend "
+        "for someone who is grieving from the death of a love one?"
+    )
+    winner = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": (
+            "This essay treats grief as a transformative process and explores "
+            "loss through spiritual and scientific perspectives, with attention "
+            "to meaning, wisdom, connection, and purpose."
+        ) * 8,
+    }
+    companion = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "text": (
+            "This essay reflects on loss, continuity after death, and the "
+            "human search for meaning."
+        ) * 8,
+    }
+    third = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": (
+            "This work explores afterlife, reincarnation, hypnosis, near-death "
+            "experiences, karma, and soul growth."
+        ) * 8,
+    }
+    context = format_context_blocks(
+        [winner, companion, third],
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
+    )
+    bounded = _v217_build_provider_evidence_context(
+        context,
+        max_chars=964,
+        max_resource_chars=500,
+        question=question,
+        schema_free=False,
+        protected_documents=[winner],
+    )
+    title_matches = re.findall(
+        r"^Title:\s*(.+?)\s*$", bounded, flags=re.MULTILINE
+    )
+    assert title_matches, "v247 response contract audit: no provider evidence survived."
+    assert title_matches[0] == winner["title"], (
+        "v247 response contract audit: adjudicated recommendation is not first."
+    )
+    assert len(title_matches) <= 2, (
+        "v247 response contract audit: recommendation path retained too many peer resources."
+    )
+    first_content_match = re.search(
+        r"^Content:\s*\[Evidence \d+\]\s*(.*?)(?=\n\n---\n\n|\Z)",
+        bounded,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    assert first_content_match, (
+        "v247 response contract audit: primary recommendation content is absent."
+    )
+    first_content = first_content_match.group(1).strip()
+    assert len(first_content) >= 450, (
+        f"v247 response contract audit: primary recommendation evidence too thin ({len(first_content)})."
+    )
+    messages = _build_generation_messages(
+        question, "TOPICAL_INQUIRY", bounded, None
+    )
+    user_content = messages[-1]["content"]
+    assert "first supplied canonical evidence is the adjudicated primary" in user_content
+    assert "2–4 concise sentences" in user_content
+    assert "Add another only for a distinct supported route" in user_content
+
+    ordinary_question = "What is grief?"
+    ordinary_context = format_context_blocks(
+        [winner, companion],
+        structural_destination_count=0,
+        adaptive_bridge_count=0,
+    )
+    ordinary_bounded = _v217_build_provider_evidence_context(
+        ordinary_context,
+        max_chars=700,
+        max_resource_chars=500,
+        question=ordinary_question,
+        schema_free=False,
+        protected_documents=None,
+    )
+    ordinary_titles = re.findall(
+        r"^Title:\s*(.+?)\s*$", ordinary_bounded, flags=re.MULTILINE
+    )
+    assert len(ordinary_titles) >= 2, (
+        "v247 response contract audit: ordinary topical path was narrowed by recommendation rules."
+    )
+    print(
+        "USE v247 RECOMMENDATION RESPONSE CONTRACT AUDIT: PASS; "
+        f"primary_chars={len(first_content)}, provider_resources={len(title_matches)}, "
+        f"ordinary_resources={len(ordinary_titles)}"
+    )
 
 
 def _generation_boundary_self_audit() -> None:
