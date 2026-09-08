@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v271 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
+# USE PRODUCTION VERSION: v272 — Canonical Chunk Publication Identity + D20 Type-Gate Integrity + Query-Conditioned Function Retrieval + Recommendation-to-Doorway Coherence + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v271"
+APP_VERSION = "v272"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v271-canonical-chunk-publication-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v272-v231-coverage-cardinality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v271-canonical-chunk-publication-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "80d5edcc26d1383b699484842bdc47c1dc2fadbc0482cf2ca149045e2502d1a5"
+CANONICAL_BUILD_ID = "USE-BUILD-v272-v231-coverage-cardinality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "3f784fd2a1e98ebb258e85bebae5f3d7b6570e72ef8194668412b87f652cc7c6"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -9671,7 +9671,7 @@ def _v231_question_axis_coverage_gate(
                 1 if len(item[2]) >= 2 else 0,
                 item[3][0],
                 item[4][1],
-                sum(item[2].values()),
+                len(item[2]),
                 item[3][1],
                 item[3][2],
                 item[3][3],
@@ -9711,7 +9711,7 @@ def _v231_question_axis_coverage_gate(
             1 if len(item[2]) >= 2 else 0,
             item[3][0],
             item[4][1],
-            sum(item[2].values()),
+            len(item[2]),
             item[3][1],
             item[3][2],
             item[3][3],
