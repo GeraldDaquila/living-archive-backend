@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v261 — Recommendation Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
+# USE PRODUCTION VERSION: v262 — Unified Response Contract: Evidence vs Recommendation vs Presentation + v261 Contextual Evidence + v260 Recommendation-Aware Generation Routing + v259 Primary Evidence Envelope + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v261"
+APP_VERSION = "v262"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v261-recommendation-contextual-evidence"
+DEPLOYMENT_FINGERPRINT = "USE-v262-unified-response-contract"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v261-recommendation-contextual-evidence"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e81affa0073ab7dc2700a396df6ee208bd8b2c25201f7d8060e1dec8adb51236"
+CANONICAL_BUILD_ID = "USE-BUILD-v262-unified-response-contract"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f6186540be45d5d92e97dbbfc2f71927a419485ffa4a8fb6cb14729f09529b6d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12639,6 +12639,8 @@ def _clean_generation_output(
     generated_text: str,
     generation_context: str,
     canonical_link_context: str = "",
+    *,
+    presentation_mode: str = "standard",
 ) -> str:
     answer = _extract_visitor_answer(generated_text)
     if not answer:
@@ -12681,10 +12683,11 @@ def _clean_generation_output(
         sanitize_canonical_links(cleaned_answer, link_context),
         link_context,
     )
-    normalized_answer = _format_standalone_canonical_resource_links(
-        normalized_answer,
-        generation_context,
-    )
+    if presentation_mode != "singular_recommendation_prose":
+        normalized_answer = _format_standalone_canonical_resource_links(
+            normalized_answer,
+            generation_context,
+        )
     normalized_answer = _dedupe_canonical_resource_items_across_answer(
         normalized_answer,
         generation_context,
@@ -12699,6 +12702,10 @@ def _clean_generation_output(
     normalized_answer = _calibrate_visitor_style(normalized_answer)
     normalized_answer = _v233_chunk_visitor_answer(normalized_answer)
     normalized_answer = _v234_visitor_presentation_boundary(normalized_answer)
+    if presentation_mode == "singular_recommendation_prose":
+        normalized_answer = _normalize_singular_recommendation_presentation(
+            normalized_answer
+        )
     return normalized_answer
 
 
@@ -13136,6 +13143,70 @@ def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
             " Add another only for a distinct supported route; not presented as an equal recommendation."
         )
     return instruction
+
+
+def _response_presentation_mode(user_query: str) -> str:
+    """Resolve visitor presentation independently from reasoning evidence volume."""
+    if not _is_recommendation_question(user_query):
+        return "standard"
+    return (
+        "recommendation_list"
+        if _recommendation_companion_allowed(user_query)
+        else "singular_recommendation_prose"
+    )
+
+
+def _build_response_authority_context(
+    user_query: str,
+    generation_context: str,
+    protected_documents: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """Separate visitor recommendation authority from provider reasoning evidence.
+
+    Generation evidence may legitimately contain contextual resources. For a
+    singular recommendation, however, only the adjudicated primary is allowed
+    to authorize a recommendation/link/presentation resource. Explicit plural
+    requests retain the selected recommendation set. This is the v262 response
+    contract boundary: evidence volume must never determine recommendation
+    cardinality or presentation shape.
+    """
+    if not generation_context:
+        return ""
+    if not _is_recommendation_question(user_query):
+        return generation_context
+    if _recommendation_companion_allowed(user_query):
+        return generation_context
+
+    primary = _recommendation_primary_document(user_query, protected_documents)
+    if primary is not None:
+        return format_context_blocks(
+            [primary],
+            structural_destination_count=0,
+            adaptive_bridge_count=0,
+        )
+
+    documents = context_blocks_to_documents(generation_context)
+    if documents:
+        return format_context_blocks(
+            [documents[0]],
+            structural_destination_count=0,
+            adaptive_bridge_count=0,
+        )
+    return generation_context
+
+
+def _normalize_singular_recommendation_presentation(answer: str) -> str:
+    """Keep a singular recommendation as prose, never as a resource list."""
+    if not answer:
+        return answer
+    lines = []
+    for line in str(answer).splitlines():
+        # The singular recommendation contract is prose-first. Remove only
+        # list syntax; preserve the actual sentence/title/link content.
+        line = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", line)
+        lines.append(line.rstrip())
+    value = "\n".join(lines).strip()
+    return re.sub(r"\n{3,}", "\n\n", value)
 
 
 def _build_generation_system_content(
@@ -15212,14 +15283,19 @@ def _run_provider_completion_recovery(
         )
         return ""
 
+    response_authority_context = _build_response_authority_context(
+        user_query, safe_context, protected_documents
+    )
+    presentation_mode = _response_presentation_mode(user_query)
     reasoning_evidence_identity = _provider_evidence_identity_context(
         safe_context,
-        str(validation_context or safe_context or ""),
+        response_authority_context,
     )
     cleaned_answer = _clean_generation_output(
         generated_text,
         reasoning_evidence_identity,
         canonical_link_context,
+        presentation_mode=presentation_mode,
     )
     diagnostic = _generation_output_boundary_diagnostic(
         generated_text,
@@ -15343,9 +15419,13 @@ def _run_generation_attempt(
     # v166: visitor-facing resource authority is limited to canonical evidence
     # actually represented in the provider-safe evidence for this attempt.
     # The broader selected context remains an upstream reasoning/selection field.
+    response_authority_context = _build_response_authority_context(
+        user_query, safe_context, protected_documents
+    )
+    presentation_mode = _response_presentation_mode(user_query)
     reasoning_evidence_identity = _provider_evidence_identity_context(
         safe_context,
-        str(validation_context or generation_context or ""),
+        response_authority_context,
     )
     effective_validation_context = reasoning_evidence_identity
 
@@ -15353,6 +15433,7 @@ def _run_generation_attempt(
         generated_text,
         effective_validation_context,
         canonical_link_context,
+        presentation_mode=presentation_mode,
     )
 
     output_diagnostic = _generation_output_boundary_diagnostic(
@@ -15735,10 +15816,14 @@ def _deterministic_provider_fallback(
         # canonical presentation boundary as provider-generated output.
         # The fallback may identify relevant material, but it must not strand
         # the visitor at an unlinked title when a canonical doorway exists.
+        presentation_context = _build_response_authority_context(
+            user_query, generation_context, None
+        )
         normalized_fallback = _clean_generation_output(
             extractive,
-            generation_context,
-            generation_context,
+            presentation_context,
+            presentation_context,
+            presentation_mode=_response_presentation_mode(user_query),
         )
         return normalized_fallback or extractive
 
@@ -15856,7 +15941,14 @@ def _classify_generation_complexity(
         complexity = max(complexity, 3)
     if recommendation_task and resource_count >= 1:
         complexity = max(complexity, 3)
-    if complex_count >= 2:
+        # v262: contextual reasoning evidence must not silently promote a
+        # singular recommendation into the broad synthesis model class. The
+        # response contract says one adjudicated destination plus contextual
+        # explanation; that is focused recommendation reasoning, not an
+        # authorization to infer multiple recommendations.
+        if not _recommendation_companion_allowed(query):
+            complexity = 3
+    if complex_count >= 2 and (not recommendation_task or _recommendation_companion_allowed(query)):
         complexity = 4
 
     # Explicit movement remains governed by D29; complexity only chooses the
@@ -18779,6 +18871,68 @@ def _v255_canonical_resource_identity_self_audit() -> None:
           "singular/plural canonical accepted, observed unauthorized identity rejected, "
           "ordinary prose and non-recommendation preserved.")
 
+
+
+def _v262_unified_response_contract_self_audit() -> None:
+    """Prove reasoning evidence, recommendation authority, and presentation mode are independent."""
+    question = (
+        "What advice or essay from the Living Archive can you recommend "
+        "for someone who is grieving from the death of a loved one?"
+    )
+    primary = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "Primary evidence about grief, meaning, transformation, spiritual and scientific perspectives. " * 10,
+    }
+    contextual = {
+        "title": "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences",
+        "url": "https://example.invalid/journey",
+        "text": "Contextual evidence about continuity, afterlife questions, and grief. " * 8,
+    }
+    reasoning = format_context_blocks(
+        [primary, contextual], structural_destination_count=0, adaptive_bridge_count=0
+    )
+    authority = _build_response_authority_context(question, reasoning, [primary])
+    assert len(context_blocks_to_documents(reasoning)) == 2, (
+        "v262 audit: reasoning evidence must retain contextual material."
+    )
+    assert [d["title"] for d in context_blocks_to_documents(authority)] == [primary["title"]], (
+        "v262 audit: singular recommendation authority must contain only the primary."
+    )
+    assert _response_presentation_mode(question) == "singular_recommendation_prose"
+
+    plural = "What essays can you recommend for someone who is grieving?"
+    plural_authority = _build_response_authority_context(plural, reasoning, [primary])
+    assert len(context_blocks_to_documents(plural_authority)) == 2, (
+        "v262 audit: explicit plural recommendation must retain its selected recommendation set."
+    )
+    assert _response_presentation_mode(plural) == "recommendation_list"
+
+    routing = _classify_generation_complexity(question, "TOPICAL_INQUIRY", reasoning)
+    assert routing["complexity"] == 3
+    assert routing["model"] == "openai/gpt-oss-120b"
+
+    bullet = (
+        "- [The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom]"
+        "(https://example.invalid/loss) This essay directly addresses grief and meaning. "
+        "It offers spiritual and scientific perspectives on loss and personal meaning."
+    )
+    cleaned = _clean_generation_output(
+        bullet,
+        authority,
+        authority,
+        presentation_mode="singular_recommendation_prose",
+    )
+    assert not re.search(r"^\s*[-*+]\s+", cleaned, flags=re.MULTILINE), (
+        "v262 audit: singular recommendation remained a bullet list."
+    )
+    assert primary["title"] in cleaned
+
+    print(
+        "USE v262 UNIFIED RESPONSE CONTRACT AUDIT: PASS; "
+        "reasoning_resources=2, singular_authority_resources=1, "
+        "plural_authority_resources=2, singular_presentation=prose"
+    )
 
 
 def _v261_recommendation_contextual_evidence_self_audit() -> None:
