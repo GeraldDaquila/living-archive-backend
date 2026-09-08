@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v253 — Response Task Provider Authority + v252 Canonical Task Authority + The Guide
+# USE PRODUCTION VERSION: v254 — Authoritative Recommendation Cardinality + v253 Response Task Provider Authority + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v253"
+APP_VERSION = "v254"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v253-response-task-provider-authority"
+DEPLOYMENT_FINGERPRINT = "USE-v254-authoritative-recommendation-cardinality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v253-response-task-provider-authority"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "3ea0a9066f3ef067cfef27bee5510550132038020260cd01b339b3be999aa48d"
+CANONICAL_BUILD_ID = "USE-BUILD-v254-authoritative-recommendation-cardinality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "0b6a2b6968986fac713a01e7b3dea3686b7da2587ef43423bca733688ab296aa"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -12888,6 +12888,27 @@ def _question_is_underdetermined(question: str) -> bool:
     return first_person and experiential and broad_hits >= 1 and mechanism_hits == 0
 
 
+def _recommendation_companion_allowed(user_query: str) -> bool:
+    """Resolve recommendation breadth from explicit visitor language.
+
+    Singular recommendation requests remain single-resource tasks. Multiple
+    resources are allowed only when the visitor explicitly requests alternatives,
+    several/multiple recommendations, or plural resources.
+    """
+    clean = re.sub(r"\s+", " ", str(user_query or "").strip()).casefold()
+    if not clean:
+        return False
+
+    explicit_breadth = (
+        r"\b(?:alternatives?|different perspectives?|multiple|several|various|"
+        r"a few|more than one|two|three|multiple recommendations?)\b"
+        r"|\bwhat (?:essays|articles|pieces|readings|resources)\b"
+        r"|\b(?:essays|articles|pieces|readings|resources)\b.*\b(?:recommend|suggest|advise)\b"
+        r"|\b(?:recommend|suggest|advise)\b.*\b(?:essays|articles|pieces|readings|resources)\b"
+    )
+    return bool(re.search(explicit_breadth, clean))
+
+
 def _build_response_task_contract(user_query: str, intent: str) -> Dict[str, Any]:
     """Resolve the visitor-facing response task once for downstream generation.
 
@@ -12901,8 +12922,13 @@ def _build_response_task_contract(user_query: str, intent: str) -> Dict[str, Any
         "intent": str(intent or ""),
         "primary_required": bool(recommendation),
         "rationale_required": bool(recommendation),
-        "companion_allowed": bool(recommendation),
-        "companion_max": 1 if recommendation else 0,
+        "companion_allowed": (
+            _recommendation_companion_allowed(user_query)
+            if recommendation else False
+        ),
+        "companion_max": (
+            1 if _recommendation_companion_allowed(user_query) else 0
+        ),
         "canonical_link_required": bool(recommendation),
     }
     if recommendation:
@@ -12923,12 +12949,15 @@ def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
     if str(contract.get("mode")) != "recommendation":
         return ""
     form = str(contract.get("resource_form") or "canonical resource")
-    return (
+    instruction = (
         "Give one primary canonical recommendation; first supplied canonical evidence is the adjudicated primary. "
-        "Explain fit/value from Content in 2–4 concise sentences. "
-        "Add another only for a distinct supported route; not presented as an equal recommendation. "
-        "distinct route."
+        "Explain fit/value from Content in 2–4 concise sentences."
     )
+    if contract.get("companion_allowed"):
+        instruction += (
+            " Add another only for a distinct supported route; not presented as an equal recommendation."
+        )
+    return instruction
 
 
 def _build_generation_system_content(
@@ -13693,13 +13722,17 @@ def _v217_build_provider_evidence_context(
                     break
 
         if recommendation_selected is not None:
+            task_contract = _build_response_task_contract(
+                question, "TOPICAL_INQUIRY"
+            )
+            companion_allowed = bool(task_contract.get("companion_allowed"))
             others = [
                 item for item in selected
                 if item != recommendation_selected
             ]
             # Choose one supporting route by existing evidence quality, while
             # avoiding a second resource that merely repeats the winner.
-            if others:
+            if companion_allowed and others:
                 companion = max(
                     others,
                     key=lambda item: (
@@ -18244,8 +18277,8 @@ def _v247_recommendation_response_contract_self_audit() -> None:
     assert title_matches[0] == winner["title"], (
         "v247 response contract audit: adjudicated recommendation is not first."
     )
-    assert len(title_matches) <= 2, (
-        "v247 response contract audit: recommendation path retained too many peer resources."
+    assert len(title_matches) == 1, (
+        "v247 response contract audit: singular recommendation path retained a companion."
     )
     first_content_match = re.search(
         r"^Content:\s*\[Evidence \d+\]\s*(.*?)(?=\n\n---\n\n|\Z)",
@@ -18265,7 +18298,7 @@ def _v247_recommendation_response_contract_self_audit() -> None:
     user_content = messages[-1]["content"]
     assert "first supplied canonical evidence is the adjudicated primary" in user_content
     assert "2–4 concise sentences" in user_content
-    assert "Add another only for a distinct supported route" in user_content
+    assert "Add another only for a distinct supported route" not in user_content
 
     ordinary_question = "What is grief?"
     ordinary_context = format_context_blocks(
@@ -18406,13 +18439,21 @@ def _v248_task_level_response_planning_self_audit() -> None:
     assert contract["mode"] == "recommendation"
     assert contract["primary_required"] is True
     assert contract["rationale_required"] is True
-    assert contract["companion_allowed"] is True
-    assert contract["companion_max"] == 1
+    assert contract["companion_allowed"] is False
+    assert contract["companion_max"] == 0
+
+    plural = _build_response_task_contract(
+        "What essays can you recommend for someone who is grieving?",
+        "TOPICAL_INQUIRY",
+    )
+    assert plural["companion_allowed"] is True
+    assert plural["companion_max"] == 1
+    plural_instruction = _response_task_contract_instruction(plural)
+    assert "Add another only for a distinct supported route" in plural_instruction
     assert contract["canonical_link_required"] is True
     instruction = _response_task_contract_instruction(contract)
     assert "one primary canonical" in instruction
-    assert "distinct route" in instruction
-    assert "not presented as an equal recommendation" in instruction
+    assert "Add another only for a distinct supported route" not in instruction
 
     ordinary = _build_response_task_contract("What is grief?", "TOPICAL_INQUIRY")
     assert ordinary["mode"] == "standard"
@@ -18425,7 +18466,7 @@ def _v248_task_level_response_planning_self_audit() -> None:
     assert "[CLASSIFICATION — DO NOT REVEAL]: TOPICAL_INQUIRY" in messages[0]["content"]
     assert "first supplied canonical evidence is the adjudicated primary" in messages[-1]["content"]
     assert "2–4 concise sentences" in messages[-1]["content"]
-    assert "Add another only for a distinct supported route" in messages[-1]["content"]
+    assert "Add another only for a distinct supported route" not in messages[-1]["content"]
     print("USE v248 TASK-LEVEL RESPONSE PLANNING AUDIT: PASS")
 
 
