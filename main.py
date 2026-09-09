@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v283 — Function-Targeted Embedding Cache: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v284 — Fetch-Stage Diagnostic: Preserve v283 Function-Targeted Embedding Cache + Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v283"
+APP_VERSION = "v284"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v283-function-embedding-cache"
+DEPLOYMENT_FINGERPRINT = "USE-v284-fetch-stage-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v283-function-embedding-cache"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "1342b082af72ca1da6eabb868e033b62b779e6551573e1dc4de245d5f684e1a6"
+CANONICAL_BUILD_ID = "USE-BUILD-v284-fetch-stage-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "083d22b62aa5aadc90783b5ec03f882202ed08f66d9e749193b2da06efc3932e"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11561,6 +11561,11 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:RETRIEVAL_TOP_K + 8]
 
+    # v284 diagnostic-only: decompose the previously aggregated
+    # remaining_fetch_prep/fetch_total interval into causal post-retrieval
+    # stages. No retrieval, ranking, authority, or generation behavior changes.
+    _v284_postretrieval_started = time.perf_counter()
+
     # v274: one canonical identity boundary for all retrieval sources.
     # Explicit publication identity must be normalized before relational
     # adjudication, doorway selection, or recommendation consumes the set.
@@ -11687,6 +11692,12 @@ def fetch_canonical_context(
         adaptive_bridge_count=0,
     )
 
+    print(
+        "USE v284 fetch diagnostic: "
+        f"canonical_evidence_stage={time.perf_counter() - _v284_postretrieval_started:.3f}s"
+    )
+    _v284_stage_started = time.perf_counter()
+
     # v137: an explicit publication-family request must survive the final
     # doorway-selection cap once D20 has positively established the requested
     # resource type. Retrieval precision is not sufficient if the requested
@@ -11774,6 +11785,12 @@ def fetch_canonical_context(
             f"primary='{_canonical_display_title(str(retrieved_docs[0].get('title', 'Untitled Resource')))}'"
         )
 
+    print(
+        "USE v284 fetch diagnostic: "
+        f"authority_and_doorway_stage={time.perf_counter() - _v284_stage_started:.3f}s"
+    )
+    _v284_stage_started = time.perf_counter()
+
     # Preserve at least one D20-recognized candidate for each explicitly
     # requested publication family. This is a selection safeguard, not a route
     # or relationship declaration: the resource remains merely available
@@ -11848,6 +11865,12 @@ def fetch_canonical_context(
             "evidence_sufficiency_unavailable": True,
             "question_evidence_fit_unavailable": True,
         }
+
+    print(
+        "USE v284 fetch diagnostic: "
+        f"post_selection_gates_stage={time.perf_counter() - _v284_stage_started:.3f}s"
+    )
+    _v284_stage_started = time.perf_counter()
 
     structural_destination_count = (
         min(len(structural_docs), len(retrieved_docs))
@@ -11928,6 +11951,12 @@ def fetch_canonical_context(
             f"chars={len(document_form_orientation_packet)}, "
             "source=D21-D26 canonical resource-function layer."
         )
+
+    print(
+        "USE v284 fetch diagnostic: "
+        f"evidence_preservation_stage={time.perf_counter() - _v284_stage_started:.3f}s"
+    )
+    _v284_stage_started = time.perf_counter()
 
     generation_evidence_candidates = _select_complementary_generation_evidence(
         retrieved_docs,
@@ -12035,6 +12064,12 @@ def fetch_canonical_context(
                 0, adjudicated_recommendation
             )
 
+    print(
+        "USE v284 fetch diagnostic: "
+        f"generation_evidence_selection_stage={time.perf_counter() - _v284_stage_started:.3f}s"
+    )
+    _v284_stage_started = time.perf_counter()
+
     generation_context = format_context_blocks(
         generation_evidence_docs,
         structural_destination_count=min(
@@ -12071,6 +12106,11 @@ def fetch_canonical_context(
         f"candidate_set={len(generation_evidence_candidates)}, "
         f"synthesis_set={len(generation_evidence_docs)}, "
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
+    )
+    print(
+        "USE v284 fetch diagnostic: "
+        f"context_formatting_stage={time.perf_counter() - _v284_stage_started:.3f}s, "
+        f"postretrieval_total={time.perf_counter() - _v284_postretrieval_started:.3f}s"
     )
     print(
         "USE v282 latency: "
