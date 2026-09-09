@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v313 — Recommendation Evidence Budget + The Guide
+# USE PRODUCTION VERSION: v314 — Recommendation Evidence Allocation + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -619,7 +619,7 @@ Use at least one exact supplied canonical title when making a resource-grounded 
 
 [VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
 
-[COMPASSIONATE CARE]: For grief, bereavement, death, loss, or clear vulnerability, respond gently and plainly without performing empathy. Describe what the resource explores; do not tell the visitor what the experience means or what they should believe, feel, or do. Do not frame suffering as inherently transformative, purposeful, healing, necessary, or a required lesson. Preserve agency.
+[COMPASSIONATE CARE]: If the visitor explicitly mentions grief, bereavement, death or loss of a loved one, or another clearly vulnerable lived experience, respond gently and plainly without performing empathy. Describe what the canonical resource explores; do not tell the visitor what their loss or grief means, should become, or what they should believe or feel. Do not present suffering as inherently transformative, purposeful, healing, necessary, or a required lesson, and do not imply they should find meaning, closure, wisdom, or a positive outcome. If the resource uses such framing, attribute it to the resource rather than echoing it as your conclusion. Prefer “This piece explores…”, “It approaches…”, or “It may be a place to begin…”. Preserve the visitor’s agency.
 
 [BREATHE BETWEEN IDEAS]: Give the answer room to breathe. Organize the reasoning into 3–5 short paragraphs when the answer contains several distinct ideas. Each paragraph should advance one idea or one side of the relationship, then leave a natural pause before the next. Prefer 1–2 sentences per paragraph and ordinary sentence length. Do not compress the whole answer into one dense block, and do not use headings, bullets, or numbered sections merely to create structure. Keep the answer concise enough that the visitor can absorb one idea before meeting the next.
 
@@ -633,14 +633,14 @@ Output only the finished answer inside <visitor_answer> tags. Use exact canonica
 
 COMPACT_GENERATION_SYSTEM_PROMPT = """
 You are The Guide for the Living Archive. Answer only from supplied canonical evidence.
-Answer directly; do not merely list resources. For synthesis/comparison, use established evidence and explain each source; use an exact supplied canonical title.
-[FRAME SOVEREIGNTY]: Keep the visitor's terms. Specialized frameworks govern only when named; never impose a worldview.
-[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. Never turn thematic fit into causation. Do not invent factual stepping stones or mechanisms. Bound unsupported connections as inference, possibility, or interpretation. If Content cannot support the question, say so.
-For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields.
-[RECOMMENDATION QUALITY]: For an explicit recommendation, use the adjudicated first canonical evidence as the recommendation and explain its fit from Content. Do not substitute another resource.
-[VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic; no jargon, flattery, superiority, dependency, or assumed inner state.
-[COMPASSIONATE CARE]: For grief, bereavement, death, loss, or clear vulnerability, respond gently. Describe what the resource explores; do not tell the visitor what it means or what they should believe, feel, or do. Do not frame suffering as inherently transformative or required. Preserve agency.
-[BREATHE BETWEEN IDEAS]: When ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
+Answer directly, not as a resource list. For synthesis/comparison, use only established evidence and explain each relevant source's contribution. Use an exact supplied canonical title for resource-grounded claims.
+[FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
+[PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
+For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
+[RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the recommendation; briefly explain its fit from supplied Content. Do not substitute another resource.
+[VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for grounded Higher-Self quality without claiming that role or speaking for the visitor.
+[COMPASSIONATE CARE]: If the visitor explicitly mentions grief, bereavement, death or loss of a loved one, or another clearly vulnerable lived experience, respond gently and plainly without performing empathy. Describe what the canonical resource explores; do not tell the visitor what their loss or grief means, should become, or what they should believe or feel. Do not present suffering as inherently transformative, purposeful, healing, necessary, or a required lesson, and do not imply they should find meaning, closure, wisdom, or a positive outcome. If the resource uses such framing, attribute it to the resource rather than echoing it as your conclusion. Prefer “This piece explores…”, “It approaches…”, or “It may be a place to begin…”. Preserve the visitor’s agency.
+[BREATHE BETWEEN IDEAS]: When several ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
 
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v313"
+APP_VERSION = "v314"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v313-recommendation-evidence-budget"
+DEPLOYMENT_FINGERPRINT = "USE-v314-recommendation-evidence-allocation"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v313-recommendation-evidence-budget"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "11f55e09a48275527f20c63c8c338748baad0039b88b6ad80bed6730cc6a2d28"
+CANONICAL_BUILD_ID = "USE-BUILD-v314-recommendation-evidence-allocation"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "36bfbffbb9bc012bf5c98cfb3369d6d77168a77c6811c39baa606c92a82e5370"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -944,7 +944,7 @@ MAX_LEGACY_GENERATION_TOKENS = 290
 # the adjudicated primary receives a larger evidence envelope so the provider
 # can explain its direct fit from substantive Content rather than from a thin
 # excerpt. This is recommendation-quality protection, not a cardinality change.
-RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS = 760
+RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS = 1000
 
 
 def _recommendation_primary_document(
@@ -14272,11 +14272,11 @@ def _response_task_contract_instruction(contract: Dict[str, Any]) -> str:
     form = str(contract.get("resource_form") or "canonical resource")
     instruction = (
         "Give one primary canonical recommendation; first supplied canonical evidence is the adjudicated primary. "
-        "Explain its direct fit and value from Content in 2–4 concise sentences."
+        "Explain its direct fit and value from substantive Content in 2–4 concise sentences, using specific supported details rather than title inference."
     )
     if contract.get("companion_allowed"):
         instruction += (
-            " Add another only for a distinct supported route."
+            " Add another only for a distinct supported route; not presented as an equal recommendation."
         )
     return instruction
 
@@ -14357,7 +14357,7 @@ def _build_generation_system_content(
     """
     return (
         f"{COMPACT_GENERATION_SYSTEM_PROMPT if compact else GENERATION_SYSTEM_PROMPT}\n\n"
-        f"[CLASSIFICATION]: {intent}\n\n"
+        f"[CLASSIFICATION — DO NOT REVEAL]: {intent}\n\n"
         f"[CANONICAL EVIDENCE]:\n"
         f"{generation_context}"
     )
@@ -14607,18 +14607,15 @@ def _fit_generation_context_to_provider_budget(
         # capacity for substantive evidence.
         candidate = bounded_selected.strip()
         if not compact:
+            # Recompute role binding from the bounded provider evidence itself.
+            # If v215 reduced a three-role bundle to two to prevent starvation,
+            # the provider must not receive a stale E3 role with no E3 evidence.
             retained_evidence_count = bounded_selected.count("[Evidence ")
             role_instruction = _v215_trim_role_binding_instruction(
                 role_instruction, retained_evidence_count
             )
             if role_instruction:
-                role_prefix = role_instruction + "\n\n"
-                # Preserve evidence first, then account for the role prefix in
-                # the final payload loop. The loop below will trim only when the
-                # assembled provider request actually exceeds its hard envelope.
-                candidate = role_prefix + bounded_selected.strip()
-            else:
-                candidate = bounded_selected.strip()
+                candidate = role_instruction + "\n\n" + candidate
 
         # v148 root-cause boundary: never silently collapse existing canonical
         # evidence to zero when the primary envelope has positive capacity but
@@ -17278,8 +17275,6 @@ def _adaptive_provider_completion_tokens(routing: Dict[str, Any], *, compact: bo
     # for this task shape; the model, routing, and ordinary synthesis budgets
     # remain unchanged.
     if routing.get("recommendation_task"):
-        # v313: preserve the established recommendation completion reserve while
-        # reclaiming evidence capacity through the lean fixed provider envelope.
         return 256
     if compact:
         return {1: 256, 2: 320, 3: 320, 4: 320}.get(complexity, 256)
@@ -17512,8 +17507,16 @@ def _build_singular_recommendation_generation_context(
         if available <= 0:
             break
 
-        cap = primary_max_chars if index == 0 else contextual_max_chars
-        limit = min(cap, available)
+        # v314: the adjudicated primary gets first claim on the fixed
+        # generation envelope. Contextual resources use only the remainder.
+        # This changes evidence allocation, not recommendation authority,
+        # retrieval, ordering, completion budget, or provider selection.
+        if index == 0:
+            limit = min(primary_max_chars, available)
+        else:
+            contextual_remaining = max(0, available)
+            limit = min(contextual_max_chars, contextual_remaining)
+
         if limit <= 0:
             break
 
@@ -17580,18 +17583,9 @@ def generate_llm_response(
         user_query, protected_documents
     )
     if recommendation_primary is not None and len(generation_source_documents) > 1:
-        # v312: a singular recommendation contract cannot expose contextual
-        # resources to the provider merely because they were retrieved. When
-        # companions are not allowed, preserve only the adjudicated primary
-        # evidence. This is evidence budgeting, not recommendation authority.
-        recommendation_contextual_documents = (
-            generation_source_documents[1:]
-            if _recommendation_companion_allowed(user_query)
-            else []
-        )
         base_generation_context = _build_singular_recommendation_generation_context(
             recommendation_primary,
-            recommendation_contextual_documents,
+            generation_source_documents[1:],
             max_chars=MAX_GENERATION_CONTEXT_CHARS,
             primary_max_chars=RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
             contextual_max_chars=MAX_GENERATION_RESOURCE_CHARS,
@@ -20952,7 +20946,7 @@ def _v248_task_level_response_planning_self_audit() -> None:
     messages = _build_generation_messages(
         recommendation_question, "TOPICAL_INQUIRY", "Title: Example\nContent: grief", None
     )
-    assert "[CLASSIFICATION]: TOPICAL_INQUIRY" in messages[0]["content"]
+    assert "[CLASSIFICATION — DO NOT REVEAL]: TOPICAL_INQUIRY" in messages[0]["content"]
     assert "first supplied canonical evidence is the adjudicated primary" in messages[-1]["content"]
     assert "2–4 concise sentences" in messages[-1]["content"]
     assert "Add another only for a distinct supported route" not in messages[-1]["content"]
