@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v309 — Compassionate Visitor Voice Runtime Safeguard + The Guide
+# USE PRODUCTION VERSION: v310 — Identity Consistency Correction + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v308"
+APP_VERSION = "v310"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v309-compassionate-visitor-voice-envelope-safe"
+DEPLOYMENT_FINGERPRINT = "USE-v310-identity-consistency-correction"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v309-compassionate-visitor-voice-envelope-safe"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b2f59b831e3c30b3fd28f0cc9d589adbdd03cef8dce361429b6bdfba01d1145c"
+CANONICAL_BUILD_ID = "USE-BUILD-v310-identity-consistency-correction"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "fabed1d0027e1941d0a310b7ff2137f013656c27a33c8d63304fc78bd3f4a067"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
