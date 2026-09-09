@@ -668,7 +668,8 @@ app.add_middleware(
 DEPLOYMENT_FINGERPRINT = "USE-v302-explicit-type-preparation-breakdown"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-# <CANONICAL_BUILD_IDENTITY_BLOCK>
+CANONICAL_BUILD_ID = "USE-BUILD-v302-explicit-type-preparation-breakdown"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "bfdb9bfe6b44c475288060bfec3e769389686b4e4f6ae41fa8ea9486f935b7c5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
