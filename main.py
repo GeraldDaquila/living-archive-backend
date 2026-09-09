@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v303 — Explicit Type Identity Gate Optimization + The Guide
+# USE PRODUCTION VERSION: v304 — Resource Type Recognition Breakdown Diagnostic + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v303"
+APP_VERSION = "v304"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v303-explicit-type-identity-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v304-resource-type-recognition-breakdown-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v303-explicit-type-identity-gate"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "148091e74600b198f95b846064614dc517f074ec004c5b40abe0446a768f89e5"
+CANONICAL_BUILD_ID = "USE-BUILD-v304-resource-type-recognition-breakdown-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "109104e5fc88063d02783032a99ede50f0ee19334dd9d147ad1672d013084c1c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -2383,6 +2383,9 @@ def _d20_title_type(metadata: Dict[str, Any]) -> Optional[str]:
 def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
     """Use content only for explicit self-identifying structural statements."""
     content = html.unescape(_resource_content(metadata)).casefold()
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["content_calls"] += 1
+        _v304_recognition_diagnostic["content_chars"] += len(content)
     if not content:
         return None
 
@@ -2545,37 +2548,94 @@ def _v269_resolve_canonical_type_across_chunks(
                 }
     return None
 
+# v304 diagnostic-only D20 recognition instrumentation. Disabled by default so
+# ordinary recognition semantics remain unchanged outside the bounded diagnostic
+# window. These counters measure only calls made while the flag is enabled.
+_v304_recognition_diagnostic_enabled = False
+_v304_recognition_diagnostic = {
+    "explicit_metadata": 0.0,
+    "canonical_taxonomy": 0.0,
+    "title": 0.0,
+    "content_self_identification": 0.0,
+    "attached_enrichment": 0.0,
+    "total": 0.0,
+    "calls": 0,
+    "content_calls": 0,
+    "content_chars": 0,
+}
+
+def _v304_reset_recognition_diagnostic() -> None:
+    _v304_recognition_diagnostic.update({
+        "explicit_metadata": 0.0,
+        "canonical_taxonomy": 0.0,
+        "title": 0.0,
+        "content_self_identification": 0.0,
+        "attached_enrichment": 0.0,
+        "total": 0.0,
+        "calls": 0,
+        "content_calls": 0,
+        "content_chars": 0,
+    })
+
+def _v304_recognition_diagnostic_snapshot() -> Dict[str, Any]:
+    return dict(_v304_recognition_diagnostic)
+
+
 def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
     """Return D20 type recognition with bounded evidence provenance."""
     if not isinstance(metadata, dict) or not metadata:
         return {"resource_type": None, "confidence": "unknown", "basis": "none"}
 
+    _v304_total_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["calls"] += 1
+
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     explicit = _d20_explicit_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["explicit_metadata"] += time.perf_counter() - _v304_stage_started
     if explicit:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": explicit,
             "confidence": "explicit",
             "basis": "explicit_metadata",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     canonical_collection_type = _d20_canonical_collection_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["canonical_taxonomy"] += time.perf_counter() - _v304_stage_started
     if canonical_collection_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": canonical_collection_type,
             "confidence": "explicit",
             "basis": "canonical_taxonomy_identity",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     title_type = _d20_title_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["title"] += time.perf_counter() - _v304_stage_started
     if title_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": title_type,
             "confidence": "strong",
             "basis": "title_self_identification",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     content_type = _d20_content_self_identification(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["content_self_identification"] += time.perf_counter() - _v304_stage_started
     if content_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": content_type,
             "confidence": "bounded",
@@ -2588,15 +2648,23 @@ def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
     # metadata/title/content evidence above has had priority. This prevents
     # evidence enrichment from becoming evidence loss at the next recognition
     # boundary while still refusing to invent a type when no recognition exists.
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     attached = metadata.get("_use_resource_type_recognition")
     if isinstance(attached, dict):
         attached_type = _d20_normalize_type_label(attached.get("resource_type"))
         if attached_type:
+            if _v304_recognition_diagnostic_enabled:
+                _v304_recognition_diagnostic["attached_enrichment"] += time.perf_counter() - _v304_stage_started
+                _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
             return {
                 "resource_type": attached_type,
                 "confidence": attached.get("confidence", "bounded"),
                 "basis": attached.get("basis", "enriched_canonical_recognition"),
             }
+
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["attached_enrichment"] += time.perf_counter() - _v304_stage_started
+        _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
 
     return {
         "resource_type": None,
@@ -11838,6 +11906,9 @@ def fetch_canonical_context(
     _v302_identity_elapsed = 0.0
     _v302_key_elapsed = 0.0
     _v302_candidate_count = 0
+    global _v304_recognition_diagnostic_enabled
+    _v304_reset_recognition_diagnostic()
+    _v304_recognition_diagnostic_enabled = True
     for document in list(function_targeted_docs) + list(retrieved_docs):
         _v302_candidate_count += 1
         _v302_one = time.perf_counter()
@@ -11857,6 +11928,22 @@ def fetch_canonical_context(
             continue
         explicit_type_protected_seen.add(key)
         explicit_type_protected_docs.append(document)
+
+    _v304_recognition_diagnostic_enabled = False
+    _v304_snapshot = _v304_recognition_diagnostic_snapshot()
+    print(
+        "USE v304 D20 recognition breakdown: "
+        f"total={_v304_snapshot['total']:.3f}s, "
+        f"explicit_metadata={_v304_snapshot['explicit_metadata']:.3f}s, "
+        f"canonical_taxonomy={_v304_snapshot['canonical_taxonomy']:.3f}s, "
+        f"title={_v304_snapshot['title']:.3f}s, "
+        f"content_self_identification={_v304_snapshot['content_self_identification']:.3f}s, "
+        f"attached_enrichment={_v304_snapshot['attached_enrichment']:.3f}s, "
+        f"candidate_count={_v302_candidate_count}, "
+        f"calls={_v304_snapshot['calls']}, "
+        f"content_calls={_v304_snapshot['content_calls']}, "
+        f"content_chars={_v304_snapshot['content_chars']}"
+    )
 
     _v302_total_elapsed = time.perf_counter() - _v302_explicit_type_preparation_started
     _v302_unattributed_elapsed = max(0.0, _v302_total_elapsed - _v302_target_elapsed - _v302_recognition_elapsed - _v302_identity_elapsed - _v302_key_elapsed)
