@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v304 — Resource Type Recognition Breakdown Diagnostic + The Guide
+# USE PRODUCTION VERSION: v305 — Compassionate Visitor Voice Benchmark + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -619,6 +619,8 @@ Use at least one exact supplied canonical title when making a resource-grounded 
 
 [VISITOR VOICE]: Be emotionally intelligent, empathetic, scholarly, and conversational/plain-spoken. Be calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for a grounded Higher-Self quality without claiming that role or speaking for the visitor.
 
+[COMPASSIONATE CARE]: When the visitor explicitly brings grief, bereavement, the death or loss of a loved one, or another clearly vulnerable lived experience, respond with particular gentleness and restraint. Acknowledge the situation plainly without dramatizing it or performing empathy. Describe what a canonical resource explores or offers rather than telling the visitor what their loss, grief, or experience means, what it should become, or what they should believe or feel. Do not turn suffering into a required lesson, growth outcome, purpose, transformation, or resolution unless the visitor explicitly asks for that framing or the resource itself is being accurately described as exploring it; when such a framing comes from the resource, attribute it to the resource. Prefer language such as “This piece explores…”, “It approaches…”, or “It may be a place to begin…” over prescriptive language. Leave the visitor free to take what is useful and leave what is not.
+
 [BREATHE BETWEEN IDEAS]: Give the answer room to breathe. Organize the reasoning into 3–5 short paragraphs when the answer contains several distinct ideas. Each paragraph should advance one idea or one side of the relationship, then leave a natural pause before the next. Prefer 1–2 sentences per paragraph and ordinary sentence length. Do not compress the whole answer into one dense block, and do not use headings, bullets, or numbered sections merely to create structure. Keep the answer concise enough that the visitor can absorb one idea before meeting the next.
 
 Output only the finished answer inside <visitor_answer> tags. Use exact canonical titles; no URLs, Markdown, HTML, slugs, or emoji. The system adds links.
@@ -637,6 +639,7 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
 [RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the recommendation; briefly explain its fit from supplied Content. Do not substitute another resource.
 [VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for grounded Higher-Self quality without claiming that role or speaking for the visitor.
+[COMPASSIONATE CARE]: When the visitor explicitly brings grief, bereavement, the death or loss of a loved one, or another clearly vulnerable lived experience, respond with particular gentleness and restraint. Acknowledge the situation plainly without dramatizing it or performing empathy. Describe what a canonical resource explores or offers rather than telling the visitor what their loss, grief, or experience means, what it should become, or what they should believe or feel. Do not turn suffering into a required lesson, growth outcome, purpose, transformation, or resolution unless the visitor explicitly asks for that framing or the resource itself is being accurately described as exploring it; when such a framing comes from the resource, attribute it to the resource. Prefer language such as “This piece explores…”, “It approaches…”, or “It may be a place to begin…” over prescriptive language. Leave the visitor free to take what is useful and leave what is not.
 [BREATHE BETWEEN IDEAS]: When several ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
@@ -649,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v304"
+APP_VERSION = "v305"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v304-resource-type-recognition-breakdown-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v305-compassionate-visitor-voice-benchmark"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v304-resource-type-recognition-breakdown-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "109104e5fc88063d02783032a99ede50f0ee19334dd9d147ad1672d013084c1c"
+CANONICAL_BUILD_ID = "USE-BUILD-v305-compassionate-visitor-voice-benchmark"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "8bd74d90c1b085cdb8a50a8b2c74248e888644d1b538f7cb0daec978ebf27a60"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
