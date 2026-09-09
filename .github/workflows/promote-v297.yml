@@ -1,0 +1,60 @@
+name: USE v297 promotion bootstrap
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  promote-v297:
+    if: contains(github.event.head_commit.message, 'USE v297 promotion bootstrap')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Replace main.py with exact v297 source
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib
+
+          p = Path('main.py')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('\r\n', '\n').replace('\r', '\n')
+
+          replacements = [
+              ('USE PRODUCTION VERSION: v296 — Embedding Runtime Default Threads + The Guide',
+               'USE PRODUCTION VERSION: v297 — Embedding Runtime Threads 2 + The Guide'),
+              ('APP_VERSION = "v296"', 'APP_VERSION = "v297"'),
+              ('DEPLOYMENT_FINGERPRINT = "USE-v296-embedding-runtime-default-threads"',
+               'DEPLOYMENT_FINGERPRINT = "USE-v297-embedding-runtime-threads-2"'),
+              ('CANONICAL_BUILD_ID = "USE-BUILD-v296-embedding-runtime-default-threads"',
+               'CANONICAL_BUILD_ID = "USE-BUILD-v297-embedding-runtime-threads-2"'),
+              ('CANONICAL_BUILD_PAYLOAD_SHA256 = "e5fe14ba645e13dfa2731a20a908917ce3935ba3d690a229efcbcccd41cae91e"',
+               'CANONICAL_BUILD_PAYLOAD_SHA256 = "d3b68a91b905c403c35741037c3e5726de21acbc26de7bd81a4a4acc6892982e"'),
+              ('TextEmbedding(model_name="BAAI/bge-small-en-v1.5")',
+               'TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=2)'),
+          ]
+          for old, new in replacements:
+              if text.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one occurrence of: {old}')
+              text = text.replace(old, new, 1)
+
+          raw = text.encode('utf-8').replace(b'\n', b'\r\n')
+          expected = '6bfff411a5c67eb186d8c57de0f27a1df10bb3602d74efd502843105c282213b'
+          actual = hashlib.sha256(raw).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'v297 source SHA mismatch: {actual} != {expected}')
+          p.write_bytes(raw)
+
+      - name: Commit exact v297 source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py
+          git diff --cached --check
+          git diff --cached --numstat
+          git commit -m "USE v297 source promotion"
+          git push
