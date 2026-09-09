@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v286 — Audit-Clean Initial-Embedding Timing Diagnostic: Preserve v283 Function-Targeted Embedding Cache + Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v287 — Embedding-Provider Decomposition Diagnostic: Preserve v286 Behavior + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v286"
+APP_VERSION = "v287"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v286-audit-clean-initial-embedding-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v287-embedding-provider-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v286-audit-clean-initial-embedding-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "2608e9ca07498849606576da89c2ddae436398a41cac9b4fa6c48aa9fece20d2"
+CANONICAL_BUILD_ID = "USE-BUILD-v287-embedding-provider-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "38da03e7626ae13c019c8c206028ce95ea6ec1d6038c02b3c78a1de1a1379648"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -1122,12 +1122,25 @@ def get_live_groq_models() -> List[str]:
 # =====================================================================
 
 def generate_embedding(text: str, diagnostic_label: Optional[str] = None) -> List[float]:
-    # v286 diagnostic is opt-in so non-diagnostic callers retain the same
+    # v287 diagnostic is opt-in so non-diagnostic callers retain the same
     # embedding execution path and return contract.
     diagnostic_started = time.perf_counter() if diagnostic_label else None
     try:
         provider_started = time.perf_counter() if diagnostic_label else None
-        embeddings = list(embedding_model.embed([text]))
+        generator_started = time.perf_counter() if diagnostic_label else None
+        embedding_generator = embedding_model.embed([text])
+        generator_creation_elapsed = (
+            time.perf_counter() - generator_started
+            if generator_started is not None
+            else 0.0
+        )
+        iteration_started = time.perf_counter() if diagnostic_label else None
+        embeddings = list(embedding_generator)
+        iteration_elapsed = (
+            time.perf_counter() - iteration_started
+            if iteration_started is not None
+            else 0.0
+        )
         provider_elapsed = (
             time.perf_counter() - provider_started
             if provider_started is not None
@@ -1143,9 +1156,11 @@ def generate_embedding(text: str, diagnostic_label: Optional[str] = None) -> Lis
             )
             if diagnostic_label:
                 print(
-                    "USE v286 initial-embedding diagnostic: "
+                    "USE v287 embedding-provider diagnostic: "
                     f"label={diagnostic_label!r}, "
                     f"prepare={(provider_started - diagnostic_started):.3f}s, "
+                    f"generator_creation={generator_creation_elapsed:.3f}s, "
+                    f"iteration={iteration_elapsed:.3f}s, "
                     f"provider_call={provider_elapsed:.3f}s, "
                     f"normalization={normalization_elapsed:.3f}s, "
                     "result=empty"
@@ -1160,9 +1175,11 @@ def generate_embedding(text: str, diagnostic_label: Optional[str] = None) -> Lis
         )
         if diagnostic_label:
             print(
-                "USE v286 initial-embedding diagnostic: "
+                "USE v287 embedding-provider diagnostic: "
                 f"label={diagnostic_label!r}, "
                 f"prepare={(provider_started - diagnostic_started):.3f}s, "
+                f"generator_creation={generator_creation_elapsed:.3f}s, "
+                f"iteration={iteration_elapsed:.3f}s, "
                 f"provider_call={provider_elapsed:.3f}s, "
                 f"normalization={normalization_elapsed:.3f}s, "
                 f"total={(time.perf_counter() - diagnostic_started):.3f}s, "
@@ -1172,7 +1189,7 @@ def generate_embedding(text: str, diagnostic_label: Optional[str] = None) -> Lis
     except Exception as exc:
         if diagnostic_label and diagnostic_started is not None:
             print(
-                "USE v286 initial-embedding diagnostic: "
+                "USE v287 embedding-provider diagnostic: "
                 f"label={diagnostic_label!r}, "
                 f"total={(time.perf_counter() - diagnostic_started):.3f}s, "
                 f"status=error, error={exc}"
@@ -6772,7 +6789,7 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 break
 
         print(
-            "USE v286 function-targeted timing: "
+            "USE v287 function-targeted timing: "
             f"target={function_name!r}, embedding={target_embedding_elapsed:.3f}s, "
             f"query_index={target_query_index_elapsed:.3f}s, "
             f"type_enrichment={target_type_enrichment_elapsed:.3f}s, "
@@ -11386,7 +11403,7 @@ def fetch_canonical_context(
     try:
         query_vector = generate_embedding(user_query, diagnostic_label="ordinary_query")
         print(
-            "USE v286 latency: "
+            "USE v287 latency: "
             f"embedding={time.perf_counter() - _v280_stage_started:.3f}s"
         )
         _v280_stage_started = time.perf_counter()
@@ -11418,7 +11435,7 @@ def fetch_canonical_context(
                 )
             if collection_name:
                 print(
-                    "USE v286 latency: "
+                    "USE v287 latency: "
                     f"structural={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11471,7 +11488,7 @@ def fetch_canonical_context(
                     f"selected={len(adaptive_docs)}."
                 )
                 print(
-                    "USE v286 latency: "
+                    "USE v287 latency: "
                     f"adaptive_bridge={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11517,7 +11534,7 @@ def fetch_canonical_context(
                 candidates = []
 
             print(
-                "USE v286 latency: "
+                "USE v287 latency: "
                 f"ordinary_retrieval={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11542,7 +11559,7 @@ def fetch_canonical_context(
                 f"{len(retrieved_docs)} unique resources."
             )
             print(
-                "USE v286 latency: "
+                "USE v287 latency: "
                 f"function_targeted_and_architecture={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11566,7 +11583,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v286 latency: "
+                "USE v287 latency: "
                 f"multi_axis={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11593,7 +11610,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v286 latency: "
+                "USE v287 latency: "
                 f"coverage_recovery={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11607,10 +11624,10 @@ def fetch_canonical_context(
         if isinstance(doc, dict) and doc
     ][:RETRIEVAL_TOP_K + 8]
 
-    # v286 inherited fetch-stage diagnostic: preserve the previously decomposed
+    # v287 inherited fetch-stage diagnostic: preserve the previously decomposed
     # remaining_fetch_prep/fetch_total interval into causal post-retrieval
     # stages. No retrieval, ranking, authority, or generation behavior changes.
-    _v286_postretrieval_started = time.perf_counter()
+    _v287_postretrieval_started = time.perf_counter()
 
     # v274: one canonical identity boundary for all retrieval sources.
     # Explicit publication identity must be normalized before relational
@@ -11621,7 +11638,7 @@ def fetch_canonical_context(
     # from the hot path. Unknown type is neutral under v277/v279, so this
     # additional identity query cannot improve eligibility and only adds latency.
     print(
-        "USE v286 latency: "
+        "USE v287 latency: "
         f"post_retrieval_identity_retired={time.perf_counter() - _v280_stage_started:.3f}s"
     )
     _v280_stage_started = time.perf_counter()
@@ -11739,10 +11756,10 @@ def fetch_canonical_context(
     )
 
     print(
-        "USE v286 fetch diagnostic: "
-        f"canonical_evidence_stage={time.perf_counter() - _v286_postretrieval_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"canonical_evidence_stage={time.perf_counter() - _v287_postretrieval_started:.3f}s"
     )
-    _v286_stage_started = time.perf_counter()
+    _v287_stage_started = time.perf_counter()
 
     # v137: an explicit publication-family request must survive the final
     # doorway-selection cap once D20 has positively established the requested
@@ -11832,10 +11849,10 @@ def fetch_canonical_context(
         )
 
     print(
-        "USE v286 fetch diagnostic: "
-        f"authority_and_doorway_stage={time.perf_counter() - _v286_stage_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"authority_and_doorway_stage={time.perf_counter() - _v287_stage_started:.3f}s"
     )
-    _v286_stage_started = time.perf_counter()
+    _v287_stage_started = time.perf_counter()
 
     # Preserve at least one D20-recognized candidate for each explicitly
     # requested publication family. This is a selection safeguard, not a route
@@ -11913,10 +11930,10 @@ def fetch_canonical_context(
         }
 
     print(
-        "USE v286 fetch diagnostic: "
-        f"post_selection_gates_stage={time.perf_counter() - _v286_stage_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"post_selection_gates_stage={time.perf_counter() - _v287_stage_started:.3f}s"
     )
-    _v286_stage_started = time.perf_counter()
+    _v287_stage_started = time.perf_counter()
 
     structural_destination_count = (
         min(len(structural_docs), len(retrieved_docs))
@@ -11999,10 +12016,10 @@ def fetch_canonical_context(
         )
 
     print(
-        "USE v286 fetch diagnostic: "
-        f"evidence_preservation_stage={time.perf_counter() - _v286_stage_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"evidence_preservation_stage={time.perf_counter() - _v287_stage_started:.3f}s"
     )
-    _v286_stage_started = time.perf_counter()
+    _v287_stage_started = time.perf_counter()
 
     generation_evidence_candidates = _select_complementary_generation_evidence(
         retrieved_docs,
@@ -12111,10 +12128,10 @@ def fetch_canonical_context(
             )
 
     print(
-        "USE v286 fetch diagnostic: "
-        f"generation_evidence_selection_stage={time.perf_counter() - _v286_stage_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"generation_evidence_selection_stage={time.perf_counter() - _v287_stage_started:.3f}s"
     )
-    _v286_stage_started = time.perf_counter()
+    _v287_stage_started = time.perf_counter()
 
     generation_context = format_context_blocks(
         generation_evidence_docs,
@@ -12154,12 +12171,12 @@ def fetch_canonical_context(
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
     )
     print(
-        "USE v286 fetch diagnostic: "
-        f"context_formatting_stage={time.perf_counter() - _v286_stage_started:.3f}s, "
-        f"postretrieval_total={time.perf_counter() - _v286_postretrieval_started:.3f}s"
+        "USE v287 fetch diagnostic: "
+        f"context_formatting_stage={time.perf_counter() - _v287_stage_started:.3f}s, "
+        f"postretrieval_total={time.perf_counter() - _v287_postretrieval_started:.3f}s"
     )
     print(
-        "USE v286 latency: "
+        "USE v287 latency: "
         f"remaining_fetch_prep={time.perf_counter() - _v280_stage_started:.3f}s, "
         f"fetch_total={time.perf_counter() - _v280_fetch_started:.3f}s"
     )
@@ -16245,7 +16262,7 @@ def _run_provider_completion_recovery(
         _v280_provider_started = time.perf_counter()
         response = groq_client.chat.completions.create(**provider_kwargs)
         print(
-            "USE v286 latency: "
+            "USE v287 latency: "
             f"provider_call={time.perf_counter() - _v280_provider_started:.3f}s"
         )
     except Exception as exc:
@@ -17312,7 +17329,7 @@ def generate_llm_response(
         )
 
     print(
-        "USE v286 latency: "
+        "USE v287 latency: "
         f"generation_context_build={time.perf_counter() - _v280_generation_started:.3f}s"
     )
     if not base_generation_context:
@@ -17718,7 +17735,7 @@ async def handle_query(
             response_content["canonical_context"] = context_data["context_blocks"]
 
         print(
-            "USE v286 latency: "
+            "USE v287 latency: "
             f"request_total={time.perf_counter() - _v280_request_started:.3f}s"
         )
         return JSONResponse(
