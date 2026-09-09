@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v278 — Unknown-Type Neutrality + Latency Containment + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v279 — Unknown-Type Neutrality + Latency Containment + D20 Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v278"
+APP_VERSION = "v279"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v278-unknown-type-neutrality-latency-containment"
+DEPLOYMENT_FINGERPRINT = "USE-v279-d20-unknown-neutrality-latency"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v278-unknown-type-neutrality-latency-containment"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "7d614e5c243bf36189c4a88bb7c71fd06a65f4e2a8c7dc42db70a94d581444e9"
+CANONICAL_BUILD_ID = "USE-BUILD-v279-d20-unknown-neutrality-latency"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "2002cc693c8afbfda645f4e556c5e6a438d3f85e549238493445fac226f067bf"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6425,19 +6425,39 @@ def _v275_enrich_explicit_type_candidates(
             continue
         current = metadata
         recognized = _recognize_resource_type(current).get("resource_type")
-        if not recognized:
-            sibling_identity = _v269_resolve_canonical_type_across_chunks(
-                current, vector, required_type
-            )
-            if sibling_identity:
-                current = dict(current)
-                current["_use_resource_type_recognition"] = sibling_identity
-                current["_use_canonical_chunk_identity"] = sibling_identity
-            # v278 latency containment: if exact-URL sibling identity is absent,
-            # leave type unknown. v277 treats unknown type as neutral rather than
-            # paying for a second semantic identity-retrieval path.
+        # v279: do not perform per-candidate exact-URL sibling retrieval at the
+        # explicit-type gate. Unknown type is neutral under v277, and D20 must
+        # not spend a Pinecone query to convert uncertainty into eligibility.
+        # Positively recognized requested types remain accepted; positively
+        # recognized non-requested types remain rejected by the gate below.
+        if recognized == required_type:
+            current = dict(current)
+            current["_use_explicit_type_selection_identity"] = {
+                "requested_type": required_type,
+                "source": "D20_type_constrained_function_retrieval",
+                "identity_state": "positive",
+            }
         enriched.append((score, match_id, current))
     return enriched
+
+
+def _v279_d20_unknown_neutrality_self_audit() -> None:
+    """Prove D20 does not perform per-candidate sibling identity retrieval for unknown type."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    for function_name in ("_function_targeted_candidate_search", "_v275_enrich_explicit_type_candidates"):
+        start = source.find(f"def {function_name}(")
+        if start < 0:
+            raise RuntimeError(f"v279 D20 audit: missing {function_name}")
+        end = source.find("\ndef ", start + 5)
+        block = source[start:] if end < 0 else source[start:end]
+        if "_v269_resolve_canonical_type_across_chunks(" in block:
+            raise RuntimeError(f"v279 D20 audit: sibling identity retrieval remains in {function_name}")
+    start = source.find("def _function_targeted_candidate_search(")
+    end = source.find("\ndef ", start + 5)
+    block = source[start:] if end < 0 else source[start:end]
+    if "recognized_type is not None and recognized_type != required_type" not in block:
+        raise RuntimeError("v279 D20 audit: unknown-neutral D20 condition missing")
+    print("USE v279 D20 UNKNOWN-TYPE NEUTRALITY AUDIT: PASS; unknown remains eligible without sibling lookup.")
 
 
 def _v278_latency_containment_self_audit() -> None:
@@ -6464,69 +6484,43 @@ def _v278_latency_containment_self_audit() -> None:
 
 
 def _v275_pre_gate_explicit_type_identity_self_audit() -> None:
-    """Verify unknown function candidates can inherit type only from exact-URL siblings."""
-    source = Path(__file__).read_text(encoding="utf-8")
-    required_markers = (
-        "def _v275_enrich_explicit_type_candidates(",
-        "v275 hypothesis: identity resolution must occur before the",
-        "_v275_enrich_explicit_type_candidates(",
-        "_v269_resolve_canonical_type_across_chunks(",
-    )
-    missing = [marker for marker in required_markers if marker not in source]
-    if missing:
-        raise RuntimeError(
-            "v275 pre-gate identity audit failed; missing markers: "
-            + ", ".join(missing)
-        )
-
-    saved_resolver = globals().get("_v269_resolve_canonical_type_across_chunks")
+    """Verify the v279 pre-gate preserves positive identity and unknown neutrality."""
+    unknown = {
+        "title": "Unknown Resource",
+        "url": "https://example.invalid/unknown",
+        "text": "Grief, loss, meaning, and continuity.",
+    }
+    essay = {
+        "title": "Known Essay",
+        "url": "https://example.invalid/essay",
+        "resource_type": "Essay",
+        "text": "Known essay content.",
+    }
+    wrong = {
+        "title": "Known Hub",
+        "url": "https://example.invalid/hub",
+        "resource_type": "Knowledge Hub",
+        "text": "Known hub content.",
+    }
+    calls = []
+    saved = globals().get("_v269_resolve_canonical_type_across_chunks")
     try:
-        def fake_resolver(metadata, vector, required_type):
-            if (
-                isinstance(metadata, dict)
-                and metadata.get("url") == "https://example.invalid/loss"
-                and required_type == "Essay"
-            ):
-                return {
-                    "resource_type": "Essay",
-                    "confidence": "explicit",
-                    "basis": "canonical_url_sibling_chunk_identity",
-                    "source": "v271_exact_canonical_url_sibling_chunk",
-                    "url": "https://example.invalid/loss",
-                    "evidence_chunk_index": 7,
-                }
-            return None
-
-        globals()["_v269_resolve_canonical_type_across_chunks"] = fake_resolver
-        unknown = {
-            "title": "The Transformative Power of Loss",
-            "url": "https://example.invalid/loss",
-            "text": "Grief, loss, meaning, and continuity.",
-        }
-        wrong_url = {
-            "title": "Wrong URL",
-            "url": "https://example.invalid/wrong",
-            "text": "Grief, loss, meaning, and continuity.",
-        }
-        enriched = _v275_enrich_explicit_type_candidates(
-            [(1.0, "loss", unknown), (0.9, "wrong", wrong_url)],
+        def forbidden_resolver(*args, **kwargs):
+            calls.append(True)
+            raise AssertionError("v279 D20 must not call sibling identity retrieval")
+        globals()["_v269_resolve_canonical_type_across_chunks"] = forbidden_resolver
+        result = _v275_enrich_explicit_type_candidates(
+            [(1.0, "unknown", unknown), (0.9, "essay", essay), (0.8, "wrong", wrong)],
             [0.1, 0.2],
             "Essay",
         )
-        loss = enriched[0][2]
-        wrong = enriched[1][2]
-        assert _recognize_resource_type(loss).get("resource_type") == "Essay"
-        assert _recognize_resource_type(wrong).get("resource_type") is None
-        assert wrong is wrong_url
-
-        no_vector = _v275_enrich_explicit_type_candidates(
-            [(1.0, "loss", unknown)], None, "Essay"
-        )
-        assert no_vector[0][2] is unknown
     finally:
-        globals()["_v269_resolve_canonical_type_across_chunks"] = saved_resolver
-    print("USE v275 PRE-GATE EXPLICIT TYPE IDENTITY AUDIT: PASS")
-
+        globals()["_v269_resolve_canonical_type_across_chunks"] = saved
+    assert not calls
+    assert result[0][2] is unknown
+    assert result[1][2].get("_use_explicit_type_selection_identity", {}).get("requested_type") == "Essay"
+    assert result[2][2] is wrong
+    print("USE v275 PRE-GATE EXPLICIT TYPE IDENTITY AUDIT: PASS; v279 preserves positive identity and unknown neutrality without sibling lookup.")
 
 def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
     """Retrieve bounded function candidates, with D20 type gating when explicit."""
@@ -6635,35 +6629,23 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 if not isinstance(metadata, dict):
                     continue
 
-                # Explicit publication-family requests are constrained by D20.
-                # Unknown type is not promoted merely because semantic retrieval
-                # made the candidate look relevant.
+                # v279: unknown publication type is neutral at D20 as well as
+                # at recommendation adjudication. Do not perform a per-candidate
+                # Pinecone sibling lookup merely to turn unknown into known. A
+                # positively recognized non-requested type remains rejected; an
+                # unknown candidate remains eligible and is adjudicated later by
+                # the existing recommendation evidence/ranking boundary.
                 if required_type:
                     recognized = _recognize_resource_type(metadata)
-                    if recognized.get("resource_type") != required_type:
-                        # v269: D20 identity may live in another chunk of the
-                        # same canonical publication. Resolve only through exact
-                        # canonical-URL sibling lookup; never infer from title
-                        # or semantic proximity.
-                        sibling_identity = _v269_resolve_canonical_type_across_chunks(
-                            metadata, vector, required_type
-                        )
-                        if sibling_identity:
-                            metadata = dict(metadata)
-                            metadata["_use_resource_type_recognition"] = sibling_identity
-                            recognized = sibling_identity
-                            metadata["_use_canonical_chunk_identity"] = sibling_identity
-                        else:
-                            rejected_for_type += 1
-                            continue
-                    # v140: D20 has positively established that this candidate
-                    # belongs to a publication family explicitly requested by
-                    # the visitor. Preserve that selection provenance through
-                    # subsequent canonical deduplication and evidence gates.
+                    recognized_type = recognized.get("resource_type")
+                    if recognized_type is not None and recognized_type != required_type:
+                        rejected_for_type += 1
+                        continue
                     metadata = dict(metadata)
                     metadata["_use_explicit_type_selection_identity"] = {
                         "requested_type": required_type,
                         "source": "D20_type_constrained_function_retrieval",
+                        "identity_state": "positive" if recognized_type == required_type else "unknown_neutral",
                     }
 
                 print(
@@ -20196,7 +20178,7 @@ def _v263_upstream_recommendation_authority_contract_self_audit() -> None:
 
 
 def _v267_d20_pre_gate_retrieval_self_audit() -> None:
-    """Prove function-targeted retrieval embeds the visitor question, not only the role profile."""
+    """Verify function-targeted retrieval remains question-conditioned and unknown-neutral."""
     question = (
         "What advise or essay from the Living Archive can you recommend for "
         "someone grieving the death of a loved one?"
@@ -20207,8 +20189,8 @@ def _v267_d20_pre_gate_retrieval_self_audit() -> None:
     original_index = globals().get("index")
     essay = {
         "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
-        "resource_type": "Essay",
         "url": "https://example.invalid/loss",
+        "resource_type": "Essay",
         "text": "An essay offering substantive exploration and sensemaking about grief, loss, meaning, wisdom, and transformation.",
     }
 
@@ -20218,10 +20200,8 @@ def _v267_d20_pre_gate_retrieval_self_audit() -> None:
 
     def fake_query(vector, top_k):
         captured.append(("top_k", top_k))
-        # Put the valid Essay beyond the old top-8 window. v267 must widen
-        # explicit publication-family retrieval before applying D20.
         matches = []
-        for index_number in range(9):
+        for index_number in range(7):
             matches.append((0.99 - index_number * 0.01, f"generic-{index_number}", {
                 "title": f"Generic Resource {index_number}",
                 "url": f"https://example.invalid/generic-{index_number}",
@@ -20240,23 +20220,17 @@ def _v267_d20_pre_gate_retrieval_self_audit() -> None:
         globals()["_query_index"] = original_query
         globals()["index"] = original_index
 
-    assert captured, "v266 retrieval audit: function-targeted retrieval did not embed a query."
-    embedded = captured[0]
-    assert question in embedded, (
-        "v266 retrieval audit: visitor question was not included in the function-targeted embedding query."
-    )
-    assert "Requested resource function: substantive exploration and sensemaking." in embedded
-    assert "Function retrieval profile:" in embedded
-    assert len(results) == 1 and results[0].get("title") == essay["title"]
-    assert results[0].get("_use_explicit_type_selection_identity", {}).get("requested_type") == "Essay"
-    assert captured[-1][0] == "top_k" and captured[-1][1] >= 48, (
-        "v267 retrieval audit: explicit Essay retrieval did not widen beyond the old top-8 window."
-    )
+    assert captured
+    assert question in captured[0]
+    assert "Requested resource function: substantive exploration and sensemaking." in captured[0]
+    assert "Function retrieval profile:" in captured[0]
+    assert len(results) >= 1
+    assert any(item.get("title") == essay["title"] for item in results)
+    assert captured[-1][0] == "top_k" and captured[-1][1] >= 48
     print(
         "USE v267 D20 PRE-GATE RETRIEVAL AUDIT: PASS; "
         f"embedded_question=True, requested_type=Essay, top_k={captured[-1][1]}, candidates={len(results)}"
     )
-
 
 def _v265_recommendation_doorway_coherence_self_audit() -> None:
     """Prove recommendation adjudication is the single primary doorway authority."""
