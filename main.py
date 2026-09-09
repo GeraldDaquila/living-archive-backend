@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v299 — Authority Doorway Diagnostic + The Guide
+# USE PRODUCTION VERSION: v300 — Recommendation Type Cache + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v299"
+APP_VERSION = "v300"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v299-authority-doorway-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v300-recommendation-type-cache"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v299-authority-doorway-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "6f798df1e96a5c31c711fd40ca5a08b5e37ba31b735236089425d79960dd263a"
+CANONICAL_BUILD_ID = "USE-BUILD-v300-recommendation-type-cache"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "daca0d9c1141d932cf22bf19a93b95309d3cb2ed18cf944dd12437d65a62e358"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -10461,6 +10461,7 @@ def _adjudicate_recommendation_resource(
     if not _is_recommendation_question(question) or not candidates:
         return None
 
+    requested_types = _explicit_resource_type_targets(question)
     scored = []
     for index, document in enumerate(candidates):
         if not isinstance(document, dict) or not _resource_content(document).strip():
@@ -10469,7 +10470,6 @@ def _adjudicate_recommendation_resource(
         synthesis = _synthesis_evidence_quality_score(question, document)
         resource_fit = _question_resource_fit(question, document)
         relational = _v209_relational_evidence_profile(question, document)
-        requested_types = _explicit_resource_type_targets(question)
         recognized_type = _recognize_resource_type(document).get("resource_type")
         # v277: an unknown publication type is not a type mismatch.  Missing
         # identity evidence must remain neutral rather than defeating a directly
