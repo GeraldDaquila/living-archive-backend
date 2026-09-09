@@ -14,14 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 1
 
       - name: Restore v300 source and apply exact v301 diagnostic patch
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin 2b8c404e4e8401462a6e74f4f6d50ae9575340cd --no-tags
-          git checkout 2b8c404e4e8401462a6e74f4f6d50ae9575340cd -- main.py
+          curl -fsSL https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/2b8c404e4e8401462a6e74f4f6d50ae9575340cd/main.py -o main.py
           python - <<'PY'
           from pathlib import Path
           import hashlib, re
