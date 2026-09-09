@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v294 — Embedding Runtime Thread Experiment: 6 Threads + Canonical Identity Correction + The Guide
+# USE PRODUCTION VERSION: v304 — Resource Type Recognition Breakdown Diagnostic + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v294"
+APP_VERSION = "v304"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v294-embedding-runtime-threads-6"
+DEPLOYMENT_FINGERPRINT = "USE-v304-resource-type-recognition-breakdown-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v294-embedding-runtime-threads-6"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "0910a80bdc236825de29bbb1be3bc22f0c06c42c9f9196405f50ae9544bee84e"
+CANONICAL_BUILD_ID = "USE-BUILD-v304-resource-type-recognition-breakdown-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "109104e5fc88063d02783032a99ede50f0ee19334dd9d147ad1672d013084c1c"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -873,7 +873,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=6)
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
 
 # v292 retains provider/runtime observability from v288. This reads the
 # already-initialized FastEmbed/ONNX Runtime objects without changing model
@@ -2383,6 +2383,9 @@ def _d20_title_type(metadata: Dict[str, Any]) -> Optional[str]:
 def _d20_content_self_identification(metadata: Dict[str, Any]) -> Optional[str]:
     """Use content only for explicit self-identifying structural statements."""
     content = html.unescape(_resource_content(metadata)).casefold()
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["content_calls"] += 1
+        _v304_recognition_diagnostic["content_chars"] += len(content)
     if not content:
         return None
 
@@ -2545,37 +2548,94 @@ def _v269_resolve_canonical_type_across_chunks(
                 }
     return None
 
+# v304 diagnostic-only D20 recognition instrumentation. Disabled by default so
+# ordinary recognition semantics remain unchanged outside the bounded diagnostic
+# window. These counters measure only calls made while the flag is enabled.
+_v304_recognition_diagnostic_enabled = False
+_v304_recognition_diagnostic = {
+    "explicit_metadata": 0.0,
+    "canonical_taxonomy": 0.0,
+    "title": 0.0,
+    "content_self_identification": 0.0,
+    "attached_enrichment": 0.0,
+    "total": 0.0,
+    "calls": 0,
+    "content_calls": 0,
+    "content_chars": 0,
+}
+
+def _v304_reset_recognition_diagnostic() -> None:
+    _v304_recognition_diagnostic.update({
+        "explicit_metadata": 0.0,
+        "canonical_taxonomy": 0.0,
+        "title": 0.0,
+        "content_self_identification": 0.0,
+        "attached_enrichment": 0.0,
+        "total": 0.0,
+        "calls": 0,
+        "content_calls": 0,
+        "content_chars": 0,
+    })
+
+def _v304_recognition_diagnostic_snapshot() -> Dict[str, Any]:
+    return dict(_v304_recognition_diagnostic)
+
+
 def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
     """Return D20 type recognition with bounded evidence provenance."""
     if not isinstance(metadata, dict) or not metadata:
         return {"resource_type": None, "confidence": "unknown", "basis": "none"}
 
+    _v304_total_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["calls"] += 1
+
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     explicit = _d20_explicit_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["explicit_metadata"] += time.perf_counter() - _v304_stage_started
     if explicit:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": explicit,
             "confidence": "explicit",
             "basis": "explicit_metadata",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     canonical_collection_type = _d20_canonical_collection_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["canonical_taxonomy"] += time.perf_counter() - _v304_stage_started
     if canonical_collection_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": canonical_collection_type,
             "confidence": "explicit",
             "basis": "canonical_taxonomy_identity",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     title_type = _d20_title_type(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["title"] += time.perf_counter() - _v304_stage_started
     if title_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": title_type,
             "confidence": "strong",
             "basis": "title_self_identification",
         }
 
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     content_type = _d20_content_self_identification(metadata)
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["content_self_identification"] += time.perf_counter() - _v304_stage_started
     if content_type:
+        if _v304_recognition_diagnostic_enabled:
+            _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
         return {
             "resource_type": content_type,
             "confidence": "bounded",
@@ -2588,15 +2648,23 @@ def _recognize_resource_type(metadata: Dict[str, Any]) -> Dict[str, Any]:
     # metadata/title/content evidence above has had priority. This prevents
     # evidence enrichment from becoming evidence loss at the next recognition
     # boundary while still refusing to invent a type when no recognition exists.
+    _v304_stage_started = time.perf_counter() if _v304_recognition_diagnostic_enabled else 0.0
     attached = metadata.get("_use_resource_type_recognition")
     if isinstance(attached, dict):
         attached_type = _d20_normalize_type_label(attached.get("resource_type"))
         if attached_type:
+            if _v304_recognition_diagnostic_enabled:
+                _v304_recognition_diagnostic["attached_enrichment"] += time.perf_counter() - _v304_stage_started
+                _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
             return {
                 "resource_type": attached_type,
                 "confidence": attached.get("confidence", "bounded"),
                 "basis": attached.get("basis", "enriched_canonical_recognition"),
             }
+
+    if _v304_recognition_diagnostic_enabled:
+        _v304_recognition_diagnostic["attached_enrichment"] += time.perf_counter() - _v304_stage_started
+        _v304_recognition_diagnostic["total"] += time.perf_counter() - _v304_total_started
 
     return {
         "resource_type": None,
@@ -10461,6 +10529,7 @@ def _adjudicate_recommendation_resource(
     if not _is_recommendation_question(question) or not candidates:
         return None
 
+    requested_types = _explicit_resource_type_targets(question)
     scored = []
     for index, document in enumerate(candidates):
         if not isinstance(document, dict) or not _resource_content(document).strip():
@@ -10469,7 +10538,6 @@ def _adjudicate_recommendation_resource(
         synthesis = _synthesis_evidence_quality_score(question, document)
         resource_fit = _question_resource_fit(question, document)
         relational = _v209_relational_evidence_profile(question, document)
-        requested_types = _explicit_resource_type_targets(question)
         recognized_type = _recognize_resource_type(document).get("resource_type")
         # v277: an unknown publication type is not a type mismatch.  Missing
         # identity evidence must remain neutral rather than defeating a directly
@@ -11821,7 +11889,10 @@ def fetch_canonical_context(
     # type is subsequently displaced by higher-scoring generic resources.
     # Capture only explicitly requested types here; generic functional
     # questions remain governed by the ordinary doorway ranking.
+    _v302_explicit_type_preparation_started = time.perf_counter()
+    _v302_target_started = time.perf_counter()
     explicit_type_targets = _explicit_resource_type_targets(user_query)
+    _v302_target_elapsed = time.perf_counter() - _v302_target_started
     # v137: preserve the actual accepted function-targeted candidate objects
     # independently of ordinary retrieval deduplication. v134/v135/v136 could
     # establish D20 identity but still lose the candidate before this boundary
@@ -11831,25 +11902,74 @@ def fetch_canonical_context(
     # visitor's explicit resource-family request.
     explicit_type_protected_docs: List[Dict[str, Any]] = []
     explicit_type_protected_seen = set()
+    _v302_recognition_elapsed = 0.0
+    _v302_identity_elapsed = 0.0
+    _v302_key_elapsed = 0.0
+    _v302_candidate_count = 0
+    global _v304_recognition_diagnostic_enabled
+    _v304_reset_recognition_diagnostic()
+    _v304_recognition_diagnostic_enabled = True
     for document in list(function_targeted_docs) + list(retrieved_docs):
+        _v302_candidate_count += 1
+        _v302_one = time.perf_counter()
         recognized_type = _recognize_resource_type(document).get("resource_type")
-        selection_identity = _explicit_type_selection_identity(document)
+        _v302_recognition_elapsed += time.perf_counter() - _v302_one
         if recognized_type not in explicit_type_targets:
             continue
+        _v302_one = time.perf_counter()
+        selection_identity = _explicit_type_selection_identity(document)
+        _v302_identity_elapsed += time.perf_counter() - _v302_one
         if selection_identity and selection_identity["requested_type"] in explicit_type_targets:
             recognized_type = selection_identity["requested_type"]
+        _v302_one = time.perf_counter()
         key = _resource_key(document)
+        _v302_key_elapsed += time.perf_counter() - _v302_one
         if key in explicit_type_protected_seen:
             continue
         explicit_type_protected_seen.add(key)
         explicit_type_protected_docs.append(document)
 
+    _v304_recognition_diagnostic_enabled = False
+    _v304_snapshot = _v304_recognition_diagnostic_snapshot()
+    print(
+        "USE v304 D20 recognition breakdown: "
+        f"total={_v304_snapshot['total']:.3f}s, "
+        f"explicit_metadata={_v304_snapshot['explicit_metadata']:.3f}s, "
+        f"canonical_taxonomy={_v304_snapshot['canonical_taxonomy']:.3f}s, "
+        f"title={_v304_snapshot['title']:.3f}s, "
+        f"content_self_identification={_v304_snapshot['content_self_identification']:.3f}s, "
+        f"attached_enrichment={_v304_snapshot['attached_enrichment']:.3f}s, "
+        f"candidate_count={_v302_candidate_count}, "
+        f"calls={_v304_snapshot['calls']}, "
+        f"content_calls={_v304_snapshot['content_calls']}, "
+        f"content_chars={_v304_snapshot['content_chars']}"
+    )
+
+    _v302_total_elapsed = time.perf_counter() - _v302_explicit_type_preparation_started
+    _v302_unattributed_elapsed = max(0.0, _v302_total_elapsed - _v302_target_elapsed - _v302_recognition_elapsed - _v302_identity_elapsed - _v302_key_elapsed)
+    print(
+        "USE v302 explicit-type breakdown: "
+        f"total={_v302_total_elapsed:.3f}s, "
+        f"target_calc={_v302_target_elapsed:.3f}s, "
+        f"recognition={_v302_recognition_elapsed:.3f}s, "
+        f"identity={_v302_identity_elapsed:.3f}s, "
+        f"resource_key={_v302_key_elapsed:.3f}s, "
+        f"unattributed={_v302_unattributed_elapsed:.3f}s, "
+        f"candidates={_v302_candidate_count}, targets={len(explicit_type_targets)}, protected={len(explicit_type_protected_docs)}"
+    )
+
     # v221/v226: carry the already-established question-specific authority into
     # canonical movement. This is only a ranking refinement over the same
     # retrieved set; it does not create or remove resources.
+    _v299_authority_started = time.perf_counter()
     question_authority_protected_docs = _v221_question_specific_resource_authority(
         retrieved_docs,
         user_query,
+    )
+    print(
+        "USE v299 authority diagnostic: "
+        f"question_specific_authority={time.perf_counter() - _v299_authority_started:.3f}s, "
+        f"retrieved={len(retrieved_docs)}, protected={len(question_authority_protected_docs)}"
     )
 
     # v249: the response task becomes authoritative before canonical doorway
@@ -11860,9 +11980,15 @@ def fetch_canonical_context(
     # already-determined primary objective through the existing selection layer.
     task_authority_recommendation = None
     if recommendation_task_active:
+        _v299_recommendation_started = time.perf_counter()
         task_authority_recommendation = _adjudicate_recommendation_resource(
             retrieved_docs,
             user_query,
+        )
+        print(
+            "USE v299 authority diagnostic: "
+            f"recommendation_adjudication={time.perf_counter() - _v299_recommendation_started:.3f}s, "
+            f"active=True, selected={task_authority_recommendation is not None}"
         )
         if task_authority_recommendation is not None:
             task_key = _resource_key(task_authority_recommendation)
@@ -11879,6 +12005,7 @@ def fetch_canonical_context(
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority. v226 additionally respects
     # question-specific authority already established by v221.
+    _v299_doorway_started = time.perf_counter()
     retrieved_docs = select_canonical_doorways(
         retrieved_docs,
         orientational_frame,
@@ -11886,6 +12013,11 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
         question_authority_documents=question_authority_protected_docs,
         authoritative_recommendation=task_authority_recommendation,
+    )
+    print(
+        "USE v299 authority diagnostic: "
+        f"canonical_doorway_selection={time.perf_counter() - _v299_doorway_started:.3f}s, "
+        f"selected={len(retrieved_docs)}"
     )
 
     # v265: the authoritative recommendation was consumed directly by doorway
