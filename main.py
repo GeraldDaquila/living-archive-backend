@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v279 — Unknown-Type Neutrality + Latency Containment + D20 Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v280 — Latency Diagnostic Instrumentation + Unknown-Type Neutrality + Latency Containment + D20 Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v279"
+APP_VERSION = "v280"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v279-d20-unknown-neutrality-latency"
+DEPLOYMENT_FINGERPRINT = "USE-v280-latency-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v279-d20-unknown-neutrality-latency"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "2002cc693c8afbfda645f4e556c5e6a438d3f85e549238493445fac226f067bf"
+CANONICAL_BUILD_ID = "USE-BUILD-v280-latency-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "0e370ad348a245654f3932489104d2bd8a7799e8e78b73202f6cdfcb05fea3c2"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11198,6 +11198,8 @@ def _apply_recommendation_task_authority_to_doorway(
 def fetch_canonical_context(
     user_query: str,
 ) -> Dict[str, Any]:
+    _v280_fetch_started = time.perf_counter()
+    _v280_stage_started = _v280_fetch_started
     intent = classify_intent(user_query)
     # v249: resolve the visitor's response task before retrieval and make it
     # available as an authority signal to downstream selection. Legacy intent
@@ -11275,6 +11277,11 @@ def fetch_canonical_context(
 
     try:
         query_vector = generate_embedding(user_query)
+        print(
+            "USE v280 latency: "
+            f"embedding={time.perf_counter() - _v280_stage_started:.3f}s"
+        )
+        _v280_stage_started = time.perf_counter()
 
         if query_vector:
             # -----------------------------------------------------------
@@ -11301,6 +11308,12 @@ def fetch_canonical_context(
                     f"usable_candidates={len(structural_docs)}, "
                     f"selected={len(retrieved_docs)}."
                 )
+            if collection_name:
+                print(
+                    "USE v280 latency: "
+                    f"structural={time.perf_counter() - _v280_stage_started:.3f}s"
+                )
+                _v280_stage_started = time.perf_counter()
 
             # -----------------------------------------------------------
             # ADAPTIVE STEWARDSHIP BRIDGE RETRIEVAL
@@ -11349,6 +11362,11 @@ def fetch_canonical_context(
                     f"bridge_query=1, "
                     f"selected={len(adaptive_docs)}."
                 )
+                print(
+                    "USE v280 latency: "
+                    f"adaptive_bridge={time.perf_counter() - _v280_stage_started:.3f}s"
+                )
+                _v280_stage_started = time.perf_counter()
 
             # -----------------------------------------------------------
             # ORDINARY SEMANTIC RETRIEVAL
@@ -11398,6 +11416,12 @@ def fetch_canonical_context(
             else:
                 candidates = []
 
+            print(
+                "USE v280 latency: "
+                f"ordinary_retrieval={time.perf_counter() - _v280_stage_started:.3f}s"
+            )
+            _v280_stage_started = time.perf_counter()
+
             # D28/D29 continuity bridge: if the visitor explicitly asks for a
             # resource function, retrieve a small function-targeted candidate set
             # before the final context cap. This closes the v113 gap where the
@@ -11417,6 +11441,11 @@ def fetch_canonical_context(
                 f"{len(function_targeted_docs)} function-targeted -> "
                 f"{len(retrieved_docs)} unique resources."
             )
+            print(
+                "USE v280 latency: "
+                f"function_targeted_and_architecture={time.perf_counter() - _v280_stage_started:.3f}s"
+            )
+            _v280_stage_started = time.perf_counter()
 
             # v208: for explicit relational/conditional questions, retrieve a
             # bounded union across literal axes already present in the visitor's
@@ -11435,6 +11464,12 @@ def fetch_canonical_context(
                 )
                 if len(retrieved_docs) >= RETRIEVAL_TOP_K + 8:
                     break
+
+            print(
+                "USE v280 latency: "
+                f"multi_axis={time.perf_counter() - _v280_stage_started:.3f}s"
+            )
+            _v280_stage_started = time.perf_counter()
 
             # v199: if the current candidate window cannot establish even
             # modest substantive fit for a topical/comparative question,
@@ -11457,6 +11492,12 @@ def fetch_canonical_context(
                 if len(retrieved_docs) >= RETRIEVAL_TOP_K + MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K:
                     break
 
+            print(
+                "USE v280 latency: "
+                f"coverage_recovery={time.perf_counter() - _v280_stage_started:.3f}s"
+            )
+            _v280_stage_started = time.perf_counter()
+
     except Exception as exc:
         print(f"Index query error: {exc}")
 
@@ -11477,6 +11518,11 @@ def fetch_canonical_context(
         query_vector,
         explicit_type_targets,
     )
+    print(
+        "USE v280 latency: "
+        f"post_retrieval_identity={time.perf_counter() - _v280_stage_started:.3f}s"
+    )
+    _v280_stage_started = time.perf_counter()
 
     # v210: establish the structural preservation boundary before any
     # downstream adjudication can consume it. Python treats a name assigned
@@ -11974,6 +12020,11 @@ def fetch_canonical_context(
         f"candidate_set={len(generation_evidence_candidates)}, "
         f"synthesis_set={len(generation_evidence_docs)}, "
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
+    )
+    print(
+        "USE v280 latency: "
+        f"remaining_fetch_prep={time.perf_counter() - _v280_stage_started:.3f}s, "
+        f"fetch_total={time.perf_counter() - _v280_fetch_started:.3f}s"
     )
     return {
         "intent": intent,
@@ -16054,7 +16105,12 @@ def _run_provider_completion_recovery(
         }
         if reasoning_effort and model_id.startswith("openai/gpt-oss-"):
             provider_kwargs["reasoning_effort"] = reasoning_effort
+        _v280_provider_started = time.perf_counter()
         response = groq_client.chat.completions.create(**provider_kwargs)
+        print(
+            "USE v280 latency: "
+            f"provider_call={time.perf_counter() - _v280_provider_started:.3f}s"
+        )
     except Exception as exc:
         _log_provider_exception_diagnostic(
             "recovery",
@@ -17087,6 +17143,7 @@ def generate_llm_response(
     # This is the only transition from retrieval evidence into generation.
     # From this point onward, the provider layer knows nothing about the
     # retrieval-layer variable name or structure.
+    _v280_generation_started = time.perf_counter()
     documents = context_blocks_to_documents(
         str(retrieved_context_blocks or "")
     )
@@ -17117,6 +17174,10 @@ def generate_llm_response(
             ),
         )
 
+    print(
+        "USE v280 latency: "
+        f"generation_context_build={time.perf_counter() - _v280_generation_started:.3f}s"
+    )
     if not base_generation_context:
         base_generation_context = _bound_existing_context_blocks(
             str(retrieved_context_blocks or ""),
@@ -17456,6 +17517,7 @@ async def handle_query(
         )
 
     try:
+        _v280_request_started = time.perf_counter()
         context_data = fetch_canonical_context(query_str)
 
         if context_data.get("frame_neutral_evidence_unavailable"):
@@ -17518,6 +17580,10 @@ async def handle_query(
         if os.getenv("USE_DEBUG_CONTEXT", "0").strip() == "1":
             response_content["canonical_context"] = context_data["context_blocks"]
 
+        print(
+            "USE v280 latency: "
+            f"request_total={time.perf_counter() - _v280_request_started:.3f}s"
+        )
         return JSONResponse(
             status_code=200,
             content=response_content,
