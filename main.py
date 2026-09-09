@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v311 — Recommendation Experience Contextual Pathway + The Guide
+# USE PRODUCTION VERSION: v312 — Recommendation Evidence Budget + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,7 +637,7 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 [FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
-[RECOMMENDATION QUALITY]: For explicit recommendations, use the adjudicated first canonical evidence as primary; explain why it fits from Content. If evidence supports it, briefly situate its collection/section and offer 1–2 optional companion resources, each with a distinct reason; do not catalog or substitute.
+[RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the recommendation; briefly explain its fit from supplied Content. Do not substitute another resource.
 [VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for grounded Higher-Self quality without claiming that role or speaking for the visitor.
 [COMPASSIONATE CARE]: If the visitor explicitly mentions grief, bereavement, death or loss of a loved one, or another clearly vulnerable lived experience, respond gently and plainly without performing empathy. Describe what the canonical resource explores; do not tell the visitor what their loss or grief means, should become, or what they should believe or feel. Do not present suffering as inherently transformative, purposeful, healing, necessary, or a required lesson, and do not imply they should find meaning, closure, wisdom, or a positive outcome. If the resource uses such framing, attribute it to the resource rather than echoing it as your conclusion. Prefer “This piece explores…”, “It approaches…”, or “It may be a place to begin…”. Preserve the visitor’s agency.
 [BREATHE BETWEEN IDEAS]: When several ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v311"
+APP_VERSION = "v312"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v311-recommendation-experience-contextual-pathway"
+DEPLOYMENT_FINGERPRINT = "USE-v312-recommendation-evidence-budget"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v311-recommendation-experience-contextual-pathway"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "361f60156f2afe128a69489105f73ab738cbe43a51c38473896107caaf3c1641"
+CANONICAL_BUILD_ID = "USE-BUILD-v312-recommendation-evidence-budget"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "f1a880d83d326e87bde9c22eabac992f451862579c7a3f212e515546842a7877"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -17275,7 +17275,9 @@ def _adaptive_provider_completion_tokens(routing: Dict[str, Any], *, compact: bo
     # for this task shape; the model, routing, and ordinary synthesis budgets
     # remain unchanged.
     if routing.get("recommendation_task"):
-        return 256
+        # v312: reserve enough output headroom for a humane recommendation
+        # while leaving room for a minimally viable primary evidence block.
+        return 208
     if compact:
         return {1: 256, 2: 320, 3: 320, 4: 320}.get(complexity, 256)
 
@@ -17575,9 +17577,18 @@ def generate_llm_response(
         user_query, protected_documents
     )
     if recommendation_primary is not None and len(generation_source_documents) > 1:
+        # v312: a singular recommendation contract cannot expose contextual
+        # resources to the provider merely because they were retrieved. When
+        # companions are not allowed, preserve only the adjudicated primary
+        # evidence. This is evidence budgeting, not recommendation authority.
+        recommendation_contextual_documents = (
+            generation_source_documents[1:]
+            if _recommendation_companion_allowed(user_query)
+            else []
+        )
         base_generation_context = _build_singular_recommendation_generation_context(
             recommendation_primary,
-            generation_source_documents[1:],
+            recommendation_contextual_documents,
             max_chars=MAX_GENERATION_CONTEXT_CHARS,
             primary_max_chars=RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS,
             contextual_max_chars=MAX_GENERATION_RESOURCE_CHARS,
