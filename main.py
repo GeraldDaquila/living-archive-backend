@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v276 — Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v277 — Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v276"
+APP_VERSION = "v277"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v276-canonical-cross-resource-publication-identity"
+DEPLOYMENT_FINGERPRINT = "USE-v277-unknown-type-neutrality"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v276-canonical-cross-resource-publication-identity"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "382e6c634ad451c3ed0ffd4d37fa3229a23222eee363cc483ba26def4c1ef3a2"
+CANONICAL_BUILD_ID = "USE-BUILD-v277-unknown-type-neutrality"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "9d06200034d7a5e276b7ffcf7b3c8c12fc52b56ed86c5cc7ef9e7b73e590ba02"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -5597,6 +5597,37 @@ def _explicit_resource_type_targets(question: str) -> set:
     }
 
 
+
+def _v277_unknown_type_neutrality_self_audit() -> None:
+    """Verify missing type identity is neutral, while known mismatches remain disfavored."""
+    question = (
+        "What advise or essay from the Living Archive can you recommend "
+        "for someone grieving the death of a loved one?"
+    )
+    target = {
+        "title": "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom",
+        "url": "https://example.invalid/loss",
+        "text": "This work explores grief, loss, meaning, transformation, and spiritual wisdom." * 5,
+    }
+    competing_essay = {
+        "title": "Death, Grief, and the Human Search for Continuity",
+        "url": "https://example.invalid/continuity",
+        "_use_resource_type_recognition": {"resource_type": "Essay", "confidence": "explicit", "basis": "audit_fixture"},
+        "text": "This work explores death, grief, continuity, meaning, reflection, and loss." * 5,
+    }
+    known_nonessay = {
+        "title": "A Grief Knowledge Hub",
+        "url": "https://example.invalid/hub",
+        "_use_resource_type_recognition": {"resource_type": "Knowledge Hub", "confidence": "explicit", "basis": "audit_fixture"},
+        "text": "A knowledge hub about grief, loss, and meaning." * 5,
+    }
+    winner = _adjudicate_recommendation_resource([competing_essay, target], question)
+    assert winner is target, "unknown type must not lose to a less-direct known Essay"
+    winner_known_mismatch = _adjudicate_recommendation_resource([known_nonessay, target], question)
+    assert winner_known_mismatch is target, "known non-requested type must not outrank an unknown direct candidate"
+    print("USE v277 UNKNOWN-TYPE NEUTRALITY AUDIT: PASS; unknown_neutral=True, known_mismatch_disfavored=True")
+
+
 def _preserve_explicit_type_candidates(
     selected_documents: List[Dict[str, Any]],
     candidate_documents: List[Dict[str, Any]],
@@ -10261,7 +10292,15 @@ def _adjudicate_recommendation_resource(
         relational = _v209_relational_evidence_profile(question, document)
         requested_types = _explicit_resource_type_targets(question)
         recognized_type = _recognize_resource_type(document).get("resource_type")
-        type_match = 1 if requested_types and recognized_type in requested_types else 0
+        # v277: an unknown publication type is not a type mismatch.  Missing
+        # identity evidence must remain neutral rather than defeating a directly
+        # relevant candidate.  A positively recognized non-requested type still
+        # receives no type-match credit.
+        type_match = (
+            1
+            if requested_types and recognized_type in requested_types
+            else (1 if requested_types and recognized_type is None else 0)
+        )
         essay_function = document.get("_use_essay_function")
         essay_match = 1 if (
             "Essay" in requested_types
