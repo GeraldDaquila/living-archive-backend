@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v298 — Embedding Runtime Threads 1 + The Guide
+# USE PRODUCTION VERSION: v299 — Authority Doorway Diagnostic + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v298"
+APP_VERSION = "v299"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v298-embedding-runtime-threads-1"
+DEPLOYMENT_FINGERPRINT = "USE-v299-authority-doorway-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v298-embedding-runtime-threads-1"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "3d8c041c981dfc3dd07ff9fe859a7df89cab11a84894f6e4438c5fa2f3a2c110"
+CANONICAL_BUILD_ID = "USE-BUILD-v299-authority-doorway-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "6f798df1e96a5c31c711fd40ca5a08b5e37ba31b735236089425d79960dd263a"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11847,9 +11847,15 @@ def fetch_canonical_context(
     # v221/v226: carry the already-established question-specific authority into
     # canonical movement. This is only a ranking refinement over the same
     # retrieved set; it does not create or remove resources.
+    _v299_authority_started = time.perf_counter()
     question_authority_protected_docs = _v221_question_specific_resource_authority(
         retrieved_docs,
         user_query,
+    )
+    print(
+        "USE v299 authority diagnostic: "
+        f"question_specific_authority={time.perf_counter() - _v299_authority_started:.3f}s, "
+        f"retrieved={len(retrieved_docs)}, protected={len(question_authority_protected_docs)}"
     )
 
     # v249: the response task becomes authoritative before canonical doorway
@@ -11860,9 +11866,15 @@ def fetch_canonical_context(
     # already-determined primary objective through the existing selection layer.
     task_authority_recommendation = None
     if recommendation_task_active:
+        _v299_recommendation_started = time.perf_counter()
         task_authority_recommendation = _adjudicate_recommendation_resource(
             retrieved_docs,
             user_query,
+        )
+        print(
+            "USE v299 authority diagnostic: "
+            f"recommendation_adjudication={time.perf_counter() - _v299_recommendation_started:.3f}s, "
+            f"active=True, selected={task_authority_recommendation is not None}"
         )
         if task_authority_recommendation is not None:
             task_key = _resource_key(task_authority_recommendation)
@@ -11879,6 +11891,7 @@ def fetch_canonical_context(
     # already-retrieved, lifecycle-eligible evidence. It does not expand
     # retrieval or alter canonical link authority. v226 additionally respects
     # question-specific authority already established by v221.
+    _v299_doorway_started = time.perf_counter()
     retrieved_docs = select_canonical_doorways(
         retrieved_docs,
         orientational_frame,
@@ -11886,6 +11899,11 @@ def fetch_canonical_context(
         preserve_prefix=protected_prefix,
         question_authority_documents=question_authority_protected_docs,
         authoritative_recommendation=task_authority_recommendation,
+    )
+    print(
+        "USE v299 authority diagnostic: "
+        f"canonical_doorway_selection={time.perf_counter() - _v299_doorway_started:.3f}s, "
+        f"selected={len(retrieved_docs)}"
     )
 
     # v265: the authoritative recommendation was consumed directly by doorway
