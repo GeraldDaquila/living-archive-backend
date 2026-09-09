@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v281 — Latency Removal: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v282 — Function-Targeted Retrieval Timing Diagnostic: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v281"
+APP_VERSION = "v282"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v281-latency-removal"
+DEPLOYMENT_FINGERPRINT = "USE-v282-function-targeted-timing-diagnostic"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v281-latency-removal"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "697e2191f9ebb1f0d6ccabdba38528165b3af7bb8f4d169637b947092134b099"
+CANONICAL_BUILD_ID = "USE-BUILD-v282-function-targeted-timing-diagnostic"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "af9665b40a2f7f0c9651cb696165a152f7b03701d0234533b7515a53472b7c32"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6587,6 +6587,12 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
         required_type = _function_target_resource_type(function_name)
         accepted_for_target = 0
         rejected_for_type = 0
+        target_total_started = time.perf_counter()
+        target_embedding_elapsed = 0.0
+        target_query_index_elapsed = 0.0
+        target_type_enrichment_elapsed = 0.0
+        target_status = "ok"
+        function_top_k = None
 
         for profile in profiles[:1]:
             try:
@@ -6599,8 +6605,11 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     f"Requested resource function: {function_name}.\n"
                     f"Function retrieval profile: {profile}"
                 )
+                embedding_started = time.perf_counter()
                 vector = generate_embedding(retrieval_query)
+                target_embedding_elapsed += time.perf_counter() - embedding_started
                 if not vector:
+                    target_status = "vector_empty"
                     continue
                 # v267: explicit publication-family requests need a wider
                 # candidate window because D20 is an independent post-retrieval
@@ -6612,16 +6621,21 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     RETRIEVAL_TOP_K * 4,
                     48,
                 ) if required_type else min(8, RETRIEVAL_TOP_K)
+                query_index_started = time.perf_counter()
                 matches = _query_index(vector, function_top_k)
+                target_query_index_elapsed += time.perf_counter() - query_index_started
                 # v275 hypothesis: identity resolution must occur before the
                 # explicit D20 type gate, otherwise an unknown primary chunk
                 # can be rejected even though an exact-URL sibling chunk
                 # carries the authoritative publication-family identity.
                 if required_type:
+                    type_enrichment_started = time.perf_counter()
                     matches = _v275_enrich_explicit_type_candidates(
                         matches, vector, required_type
                     )
+                    target_type_enrichment_elapsed += time.perf_counter() - type_enrichment_started
             except Exception as exc:
+                target_status = "error"
                 print(f"USE function-targeted retrieval error: {exc}")
                 continue
 
@@ -6671,6 +6685,15 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
 
             if accepted_for_target >= per_target_limit or len(candidates) >= 8:
                 break
+
+        print(
+            "USE v282 function-targeted timing: "
+            f"target={function_name!r}, embedding={target_embedding_elapsed:.3f}s, "
+            f"query_index={target_query_index_elapsed:.3f}s, "
+            f"type_enrichment={target_type_enrichment_elapsed:.3f}s, "
+            f"total={time.perf_counter() - target_total_started:.3f}s, "
+            f"accepted={accepted_for_target}, rejected={rejected_for_type}, status={target_status}"
+        )
 
         if required_type:
             target_diagnostics.append(
@@ -11278,7 +11301,7 @@ def fetch_canonical_context(
     try:
         query_vector = generate_embedding(user_query)
         print(
-            "USE v281 latency: "
+            "USE v282 latency: "
             f"embedding={time.perf_counter() - _v280_stage_started:.3f}s"
         )
         _v280_stage_started = time.perf_counter()
@@ -11310,7 +11333,7 @@ def fetch_canonical_context(
                 )
             if collection_name:
                 print(
-                    "USE v281 latency: "
+                    "USE v282 latency: "
                     f"structural={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11363,7 +11386,7 @@ def fetch_canonical_context(
                     f"selected={len(adaptive_docs)}."
                 )
                 print(
-                    "USE v281 latency: "
+                    "USE v282 latency: "
                     f"adaptive_bridge={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11409,7 +11432,7 @@ def fetch_canonical_context(
                 candidates = []
 
             print(
-                "USE v281 latency: "
+                "USE v282 latency: "
                 f"ordinary_retrieval={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11434,7 +11457,7 @@ def fetch_canonical_context(
                 f"{len(retrieved_docs)} unique resources."
             )
             print(
-                "USE v281 latency: "
+                "USE v282 latency: "
                 f"function_targeted_and_architecture={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11458,7 +11481,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v281 latency: "
+                "USE v282 latency: "
                 f"multi_axis={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11485,7 +11508,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v281 latency: "
+                "USE v282 latency: "
                 f"coverage_recovery={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11508,7 +11531,7 @@ def fetch_canonical_context(
     # from the hot path. Unknown type is neutral under v277/v279, so this
     # additional identity query cannot improve eligibility and only adds latency.
     print(
-        "USE v281 latency: "
+        "USE v282 latency: "
         f"post_retrieval_identity_retired={time.perf_counter() - _v280_stage_started:.3f}s"
     )
     _v280_stage_started = time.perf_counter()
@@ -12011,7 +12034,7 @@ def fetch_canonical_context(
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
     )
     print(
-        "USE v281 latency: "
+        "USE v282 latency: "
         f"remaining_fetch_prep={time.perf_counter() - _v280_stage_started:.3f}s, "
         f"fetch_total={time.perf_counter() - _v280_fetch_started:.3f}s"
     )
@@ -16097,7 +16120,7 @@ def _run_provider_completion_recovery(
         _v280_provider_started = time.perf_counter()
         response = groq_client.chat.completions.create(**provider_kwargs)
         print(
-            "USE v281 latency: "
+            "USE v282 latency: "
             f"provider_call={time.perf_counter() - _v280_provider_started:.3f}s"
         )
     except Exception as exc:
@@ -17164,7 +17187,7 @@ def generate_llm_response(
         )
 
     print(
-        "USE v281 latency: "
+        "USE v282 latency: "
         f"generation_context_build={time.perf_counter() - _v280_generation_started:.3f}s"
     )
     if not base_generation_context:
@@ -17570,7 +17593,7 @@ async def handle_query(
             response_content["canonical_context"] = context_data["context_blocks"]
 
         print(
-            "USE v281 latency: "
+            "USE v282 latency: "
             f"request_total={time.perf_counter() - _v280_request_started:.3f}s"
         )
         return JSONResponse(
