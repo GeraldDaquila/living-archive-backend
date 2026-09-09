@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v282 — Function-Targeted Retrieval Timing Diagnostic: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v283 — Function-Targeted Embedding Cache: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v282"
+APP_VERSION = "v283"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v282-function-targeted-timing-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v283-function-embedding-cache"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v282-function-targeted-timing-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "af9665b40a2f7f0c9651cb696165a152f7b03701d0234533b7515a53472b7c32"
+CANONICAL_BUILD_ID = "USE-BUILD-v283-function-embedding-cache"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1342b082af72ca1da6eabb868e033b62b779e6551573e1dc4de245d5f684e1a6"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -1133,6 +1133,41 @@ def generate_embedding(text: str) -> List[float]:
     except Exception as exc:
         print(f"Embedding generation error: {exc}")
         return []
+
+
+# v283: bounded process-local cache for the exact function-targeted retrieval
+# query. This preserves the embedding bytes and retrieval semantics exactly;
+# it only avoids recomputing an identical embedding on repeated questions while
+# the same Render process remains alive. Cache scope is intentionally narrow:
+# ordinary-query embeddings and all retrieval behavior remain unchanged.
+_FUNCTION_TARGETED_EMBEDDING_CACHE: Dict[str, List[float]] = {}
+_FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER: List[str] = []
+_FUNCTION_TARGETED_EMBEDDING_CACHE_MAX = 128
+_FUNCTION_TARGETED_EMBEDDING_CACHE_LOCK = threading.Lock()
+
+
+def _function_targeted_embedding(text: str) -> Tuple[List[float], bool]:
+    with _FUNCTION_TARGETED_EMBEDDING_CACHE_LOCK:
+        cached = _FUNCTION_TARGETED_EMBEDDING_CACHE.get(text)
+        if cached is not None:
+            if text in _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER:
+                _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER.remove(text)
+            _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER.append(text)
+            return list(cached), True
+
+    vector = generate_embedding(text)
+    if not vector:
+        return [], False
+
+    with _FUNCTION_TARGETED_EMBEDDING_CACHE_LOCK:
+        _FUNCTION_TARGETED_EMBEDDING_CACHE[text] = list(vector)
+        if text in _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER:
+            _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER.remove(text)
+        _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER.append(text)
+        while len(_FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER) > _FUNCTION_TARGETED_EMBEDDING_CACHE_MAX:
+            oldest = _FUNCTION_TARGETED_EMBEDDING_CACHE_ORDER.pop(0)
+            _FUNCTION_TARGETED_EMBEDDING_CACHE.pop(oldest, None)
+    return list(vector), False
 
 
 # =====================================================================
@@ -6606,8 +6641,12 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                     f"Function retrieval profile: {profile}"
                 )
                 embedding_started = time.perf_counter()
-                vector = generate_embedding(retrieval_query)
+                vector, embedding_cache_hit = _function_targeted_embedding(retrieval_query)
                 target_embedding_elapsed += time.perf_counter() - embedding_started
+                print(
+                    "USE v283 function-targeted embedding cache: "
+                    f"hit={embedding_cache_hit}, query_chars={len(retrieval_query)}."
+                )
                 if not vector:
                     target_status = "vector_empty"
                     continue
