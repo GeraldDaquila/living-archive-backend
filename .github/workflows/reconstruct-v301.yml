@@ -20,8 +20,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin c018c9cb9cf166591c1690213e41efde1be0c358 --no-tags
-          git checkout c018c9cb9cf166591c1690213e41efde1be0c358 -- main.py
+          git fetch origin 9aa6b3dd18a71f1f8ae0aeb384e371b3b83685d8 --no-tags
+          git checkout 9aa6b3dd18a71f1f8ae0aeb384e371b3b83685d8 -- main.py
           python - <<'PY'
           from pathlib import Path
           import hashlib, re
