@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v301 — Explicit Type Preparation Diagnostic + The Guide
+# USE PRODUCTION VERSION: v302 — Explicit Type Preparation Breakdown Diagnostic + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v301"
+APP_VERSION = "v302"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,10 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v301-explicit-type-preparation-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v302-explicit-type-preparation-breakdown"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v301-explicit-type-preparation-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "f5737b55647036fbd609b62e09774fe990d3b4f46a790f531c340b15d90df7d4"
+# <CANONICAL_BUILD_IDENTITY_BLOCK>
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11821,8 +11820,10 @@ def fetch_canonical_context(
     # type is subsequently displaced by higher-scoring generic resources.
     # Capture only explicitly requested types here; generic functional
     # questions remain governed by the ordinary doorway ranking.
-    _v301_explicit_type_preparation_started = time.perf_counter()
+    _v302_explicit_type_preparation_started = time.perf_counter()
+    _v302_target_started = time.perf_counter()
     explicit_type_targets = _explicit_resource_type_targets(user_query)
+    _v302_target_elapsed = time.perf_counter() - _v302_target_started
     # v137: preserve the actual accepted function-targeted candidate objects
     # independently of ordinary retrieval deduplication. v134/v135/v136 could
     # establish D20 identity but still lose the candidate before this boundary
@@ -11832,23 +11833,41 @@ def fetch_canonical_context(
     # visitor's explicit resource-family request.
     explicit_type_protected_docs: List[Dict[str, Any]] = []
     explicit_type_protected_seen = set()
+    _v302_recognition_elapsed = 0.0
+    _v302_identity_elapsed = 0.0
+    _v302_key_elapsed = 0.0
+    _v302_candidate_count = 0
     for document in list(function_targeted_docs) + list(retrieved_docs):
+        _v302_candidate_count += 1
+        _v302_one = time.perf_counter()
         recognized_type = _recognize_resource_type(document).get("resource_type")
+        _v302_recognition_elapsed += time.perf_counter() - _v302_one
+        _v302_one = time.perf_counter()
         selection_identity = _explicit_type_selection_identity(document)
+        _v302_identity_elapsed += time.perf_counter() - _v302_one
         if recognized_type not in explicit_type_targets:
             continue
         if selection_identity and selection_identity["requested_type"] in explicit_type_targets:
             recognized_type = selection_identity["requested_type"]
+        _v302_one = time.perf_counter()
         key = _resource_key(document)
+        _v302_key_elapsed += time.perf_counter() - _v302_one
         if key in explicit_type_protected_seen:
             continue
         explicit_type_protected_seen.add(key)
         explicit_type_protected_docs.append(document)
 
+    _v302_total_elapsed = time.perf_counter() - _v302_explicit_type_preparation_started
+    _v302_unattributed_elapsed = max(0.0, _v302_total_elapsed - _v302_target_elapsed - _v302_recognition_elapsed - _v302_identity_elapsed - _v302_key_elapsed)
     print(
-        "USE v301 explicit-type diagnostic: "
-        f"explicit_resource_type_preparation={time.perf_counter() - _v301_explicit_type_preparation_started:.3f}s, "
-        f"targets={len(explicit_type_targets)}, protected={len(explicit_type_protected_docs)}"
+        "USE v302 explicit-type breakdown: "
+        f"total={_v302_total_elapsed:.3f}s, "
+        f"target_calc={_v302_target_elapsed:.3f}s, "
+        f"recognition={_v302_recognition_elapsed:.3f}s, "
+        f"identity={_v302_identity_elapsed:.3f}s, "
+        f"resource_key={_v302_key_elapsed:.3f}s, "
+        f"unattributed={_v302_unattributed_elapsed:.3f}s, "
+        f"candidates={_v302_candidate_count}, targets={len(explicit_type_targets)}, protected={len(explicit_type_protected_docs)}"
     )
 
     # v221/v226: carry the already-established question-specific authority into
