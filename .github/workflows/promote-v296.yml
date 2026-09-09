@@ -1,4 +1,5 @@
 name: Promote USE v296
+# Byte-preservation audit retry: baseline source is normalized before CRLF reconstruction.
 
 on:
   push:
