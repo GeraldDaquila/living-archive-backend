@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v280 — Latency Diagnostic Instrumentation + Unknown-Type Neutrality + Latency Containment + D20 Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v281 — Latency Removal: Retire Redundant Cross-Resource Identity Enrichment + D20 Unknown-Type Neutrality + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v280"
+APP_VERSION = "v281"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v280-latency-diagnostic"
+DEPLOYMENT_FINGERPRINT = "USE-v281-latency-removal"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v280-latency-diagnostic"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "0e370ad348a245654f3932489104d2bd8a7799e8e78b73202f6cdfcb05fea3c2"
+CANONICAL_BUILD_ID = "USE-BUILD-v281-latency-removal"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "697e2191f9ebb1f0d6ccabdba38528165b3af7bb8f4d169637b947092134b099"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11278,7 +11278,7 @@ def fetch_canonical_context(
     try:
         query_vector = generate_embedding(user_query)
         print(
-            "USE v280 latency: "
+            "USE v281 latency: "
             f"embedding={time.perf_counter() - _v280_stage_started:.3f}s"
         )
         _v280_stage_started = time.perf_counter()
@@ -11310,7 +11310,7 @@ def fetch_canonical_context(
                 )
             if collection_name:
                 print(
-                    "USE v280 latency: "
+                    "USE v281 latency: "
                     f"structural={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11363,7 +11363,7 @@ def fetch_canonical_context(
                     f"selected={len(adaptive_docs)}."
                 )
                 print(
-                    "USE v280 latency: "
+                    "USE v281 latency: "
                     f"adaptive_bridge={time.perf_counter() - _v280_stage_started:.3f}s"
                 )
                 _v280_stage_started = time.perf_counter()
@@ -11391,20 +11391,12 @@ def fetch_canonical_context(
                 # against exact-URL sibling chunks before canonical deduplication.
                 # This reuses the proven D20 sibling-identity boundary rather than
                 # changing recommendation weights or inferring type from topic.
-                ordinary_requested_types = _explicit_resource_type_targets(user_query)
+                # v281: do not perform per-candidate cross-resource publication
+                # identity enrichment here. v277 makes unknown type neutral, so
+                # identity recovery is no longer required for eligibility. Known
+                # explicit identity remains available through ordinary metadata
+                # recognition and downstream adjudication.
                 for _score, _match_id_value, metadata in candidates:
-                    if ordinary_requested_types and isinstance(metadata, dict):
-                        recognized = _recognize_resource_type(metadata).get("resource_type")
-                        if not recognized:
-                            for _required_type in ordinary_requested_types:
-                                _sibling_identity = _v269_resolve_canonical_type_across_chunks(
-                                    metadata, query_vector, _required_type
-                                )
-                                if _sibling_identity:
-                                    metadata = dict(metadata)
-                                    metadata["_use_resource_type_recognition"] = _sibling_identity
-                                    metadata["_use_canonical_chunk_identity"] = _sibling_identity
-                                    break
                     _append_unique_resource(
                         retrieved_docs,
                         seen_keys,
@@ -11417,7 +11409,7 @@ def fetch_canonical_context(
                 candidates = []
 
             print(
-                "USE v280 latency: "
+                "USE v281 latency: "
                 f"ordinary_retrieval={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11442,7 +11434,7 @@ def fetch_canonical_context(
                 f"{len(retrieved_docs)} unique resources."
             )
             print(
-                "USE v280 latency: "
+                "USE v281 latency: "
                 f"function_targeted_and_architecture={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11466,7 +11458,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v280 latency: "
+                "USE v281 latency: "
                 f"multi_axis={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11493,7 +11485,7 @@ def fetch_canonical_context(
                     break
 
             print(
-                "USE v280 latency: "
+                "USE v281 latency: "
                 f"coverage_recovery={time.perf_counter() - _v280_stage_started:.3f}s"
             )
             _v280_stage_started = time.perf_counter()
@@ -11512,15 +11504,12 @@ def fetch_canonical_context(
     # adjudication, doorway selection, or recommendation consumes the set.
     # This prevents retrieval-path asymmetry without changing recommendation
     # weights or inferring type from topic/title.
-    explicit_type_targets = _explicit_resource_type_targets(user_query)
-    retrieved_docs = _v274_normalize_explicit_type_identity(
-        retrieved_docs,
-        query_vector,
-        explicit_type_targets,
-    )
+    # v281: the post-retrieval cross-resource identity enrichment is retired
+    # from the hot path. Unknown type is neutral under v277/v279, so this
+    # additional identity query cannot improve eligibility and only adds latency.
     print(
-        "USE v280 latency: "
-        f"post_retrieval_identity={time.perf_counter() - _v280_stage_started:.3f}s"
+        "USE v281 latency: "
+        f"post_retrieval_identity_retired={time.perf_counter() - _v280_stage_started:.3f}s"
     )
     _v280_stage_started = time.perf_counter()
 
@@ -12022,7 +12011,7 @@ def fetch_canonical_context(
         f"titles={[ _canonical_display_title(str(doc.get('title', 'Untitled Resource'))) for doc in generation_evidence_docs ]}"
     )
     print(
-        "USE v280 latency: "
+        "USE v281 latency: "
         f"remaining_fetch_prep={time.perf_counter() - _v280_stage_started:.3f}s, "
         f"fetch_total={time.perf_counter() - _v280_fetch_started:.3f}s"
     )
@@ -16108,7 +16097,7 @@ def _run_provider_completion_recovery(
         _v280_provider_started = time.perf_counter()
         response = groq_client.chat.completions.create(**provider_kwargs)
         print(
-            "USE v280 latency: "
+            "USE v281 latency: "
             f"provider_call={time.perf_counter() - _v280_provider_started:.3f}s"
         )
     except Exception as exc:
@@ -17175,7 +17164,7 @@ def generate_llm_response(
         )
 
     print(
-        "USE v280 latency: "
+        "USE v281 latency: "
         f"generation_context_build={time.perf_counter() - _v280_generation_started:.3f}s"
     )
     if not base_generation_context:
@@ -17581,7 +17570,7 @@ async def handle_query(
             response_content["canonical_context"] = context_data["context_blocks"]
 
         print(
-            "USE v280 latency: "
+            "USE v281 latency: "
             f"request_total={time.perf_counter() - _v280_request_started:.3f}s"
         )
         return JSONResponse(
