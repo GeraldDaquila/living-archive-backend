@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v277 — Unknown-Type Neutrality + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
+# USE PRODUCTION VERSION: v278 — Unknown-Type Neutrality + Latency Containment + Canonical Cross-Resource Publication Identity + Pre-Gate Identity + v231 Coverage Cardinality + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -648,7 +648,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v277"
+APP_VERSION = "v278"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -664,11 +664,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v277-unknown-type-neutrality"
+DEPLOYMENT_FINGERPRINT = "USE-v278-unknown-type-neutrality-latency-containment"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v277-unknown-type-neutrality"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "9d06200034d7a5e276b7ffcf7b3c8c12fc52b56ed86c5cc7ef9e7b73e590ba02"
+CANONICAL_BUILD_ID = "USE-BUILD-v278-unknown-type-neutrality-latency-containment"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7d614e5c243bf36189c4a88bb7c71fd06a65f4e2a8c7dc42db70a94d581444e9"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -6393,14 +6393,10 @@ def _v274_normalize_explicit_type_identity(
                     current["_use_resource_type_recognition"] = sibling_identity
                     current["_use_canonical_chunk_identity"] = sibling_identity
                     break
-                reference_identity = _v276_resolve_canonical_type_from_reference_evidence(
-                    current, required_type
-                )
-                if reference_identity:
-                    current = dict(current)
-                    current["_use_resource_type_recognition"] = reference_identity
-                    current["_use_canonical_reference_identity"] = reference_identity
-                    break
+                # v278 latency containment: do not perform semantic cross-resource
+                # identity retrieval in the post-retrieval hot path. Unknown type is
+                # neutral under v277, so this expensive recovery is no longer required
+                # for recommendation eligibility. Preserve exact-URL sibling identity.
         normalized.append(current)
     return normalized
 
@@ -6437,12 +6433,34 @@ def _v275_enrich_explicit_type_candidates(
                 current = dict(current)
                 current["_use_resource_type_recognition"] = sibling_identity
                 current["_use_canonical_chunk_identity"] = sibling_identity
-            else:
-                current = _v276_attach_reference_identity(
-                    current, vector, required_type
-                )
+            # v278 latency containment: if exact-URL sibling identity is absent,
+            # leave type unknown. v277 treats unknown type as neutral rather than
+            # paying for a second semantic identity-retrieval path.
         enriched.append((score, match_id, current))
     return enriched
+
+
+def _v278_latency_containment_self_audit() -> None:
+    """Prove v276 semantic identity retrieval is absent from the live hot paths."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    for function_name in (
+        "_v274_normalize_explicit_type_identity",
+        "_v275_enrich_explicit_type_candidates",
+    ):
+        start = source.find(f"def {function_name}(")
+        if start < 0:
+            raise RuntimeError(f"v278 latency audit: missing {function_name}")
+        next_def = source.find("\ndef ", start + 5)
+        block = source[start:] if next_def < 0 else source[start:next_def]
+        if "_v276_resolve_canonical_type_from_reference_evidence(" in block:
+            raise RuntimeError(
+                f"v278 latency audit: v276 semantic identity retrieval remains in {function_name}"
+            )
+        if "_v276_attach_reference_identity(" in block:
+            raise RuntimeError(
+                f"v278 latency audit: v276 attachment remains in {function_name}"
+            )
+    print("USE v278 LATENCY CONTAINMENT AUDIT: PASS; v276 semantic identity retrieval removed from hot paths.")
 
 
 def _v275_pre_gate_explicit_type_identity_self_audit() -> None:
