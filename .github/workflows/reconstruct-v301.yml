@@ -1,0 +1,73 @@
+name: Reconstruct USE v301
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Restore v300 and apply exact v301 diagnostic patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD^ -- main.py
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+          p = Path('main.py')
+          raw = p.read_bytes()
+          text = raw.decode('utf-8')
+          assert 'APP_VERSION = "v300"' in text
+          assert 'USE-v300-recommendation-type-cache' in text
+          text = text.replace('# USE PRODUCTION VERSION: v300 — Recommendation Type Cache + The Guide', '# USE PRODUCTION VERSION: v301 — Explicit Type Preparation Diagnostic + The Guide', 1)
+          text = text.replace('APP_VERSION = "v300"', 'APP_VERSION = "v301"', 1)
+          text = text.replace('DEPLOYMENT_FINGERPRINT = "USE-v300-recommendation-type-cache"', 'DEPLOYMENT_FINGERPRINT = "USE-v301-explicit-type-preparation-diagnostic"', 1)
+          text = text.replace('CANONICAL_BUILD_ID = "USE-BUILD-v300-recommendation-type-cache"', 'CANONICAL_BUILD_ID = "USE-BUILD-v301-explicit-type-preparation-diagnostic"', 1)
+          text = text.replace('CANONICAL_BUILD_PAYLOAD_SHA256 = "daca0d9c1141d932cf22bf19a93b95309d3cb2ed18cf944dd12437d65a62e358"', 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"', 1)
+          needle = '    explicit_type_targets = _explicit_resource_type_targets(user_query)'
+          assert text.count(needle) == 1
+          text = text.replace(needle, '    _v301_explicit_type_preparation_started = time.perf_counter()\n' + needle, 1)
+          needle2 = '    explicit_type_protected_docs.append(document)\n\n    # v221/v226: carry the already-established question-specific authority into'
+          assert text.count(needle2) == 1
+          insert = '''    explicit_type_protected_docs.append(document)\n\n    print(\n        "USE v301 explicit-type diagnostic: "\n        f"explicit_resource_type_preparation={time.perf_counter() - _v301_explicit_type_preparation_started:.3f}s, "\n        f"targets={len(explicit_type_targets)}, protected={len(explicit_type_protected_docs)}"\n    )\n\n    # v221/v226: carry the already-established question-specific authority into'''
+          text = text.replace(needle2, insert, 1)
+          canon = text.replace('\r\n','\n').replace('\r','\n')
+          pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?')
+          replacement = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n'
+          canon, count = pattern.subn(replacement, canon, count=1)
+          assert count == 1
+          payload = hashlib.sha256(canon.encode('utf-8')).hexdigest()
+          text = text.replace('CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"', f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"', 1)
+          p.write_bytes(text.replace('\n','\r\n').encode('utf-8'))
+          raw = p.read_bytes()
+          assert raw.count(b'\r\n') == raw.count(b'\n') == raw.count(b'\r')
+          assert raw.endswith(b'\r\n')
+          compile(p.read_text(encoding='utf-8'), str(p), 'exec')
+          print('v301 raw_sha256=' + hashlib.sha256(raw).hexdigest())
+          print('v301 payload_sha256=' + payload)
+          PY
+
+      - name: Verify and commit v301
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'APP_VERSION = "v301"' main.py
+          grep -q 'USE v301 explicit-type diagnostic' main.py
+          test "$(grep -c 'TextEmbedding(' main.py)" = "1"
+          test "$(grep -c 'threads=1' main.py)" = "1"
+          test "$(grep -c 'threads=2' main.py)" = "0"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py
+          git commit -m 'Promote USE v301 explicit type preparation diagnostic [skip ci]'
+          git push
