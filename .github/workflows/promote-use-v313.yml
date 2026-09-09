@@ -1,0 +1,43 @@
+name: Promote USE v313 audited source
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: use-v313-promotion
+          fetch-depth: 0
+
+      - name: Restore v313 source from repository artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f main.py
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+          p = Path('main.py')
+          s = p.read_text(encoding='utf-8')
+          assert s.startswith('# USE PRODUCTION VERSION: v310')
+          print('Base source:', len(s.encode('utf-8')), 'bytes', len(s.splitlines()), 'lines')
+          print('Base SHA256:', hashlib.sha256(s.encode('utf-8')).hexdigest())
+          PY
+
+      - name: Verify branch is a clean v310 base
+        run: |
+          test "$(git rev-parse HEAD)" = "7747f7929fd173db2df6cad972c58130cac2d5d7"
+
+      - name: Apply v313 patch
+        env:
+          PATCH_B64: PLACEHOLDER
+        run: |
+          echo 'The v313 patch payload must be installed here by a file-aware Git transport.'
+          exit 1
