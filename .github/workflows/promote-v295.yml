@@ -41,7 +41,7 @@ jobs:
 
           normalized = source.replace("\r\n", "\n").replace("\r", "\n")
           pattern = re.compile(
-              r"(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\n"
+              r"(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n"
               r".*?"
               r"^# === END CANONICAL BUILD IDENTITY ===\n?"
           )
@@ -76,5 +76,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/promote-v295.yml
           git add main.py
-          git commit -m "USE PRODUCTION VERSION: v295"
+          git commit -m "USE v295 promotion bootstrap"
           git push origin main
