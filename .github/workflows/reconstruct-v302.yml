@@ -47,12 +47,16 @@ jobs:
           text = text[:start] + '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===' + text[end:]
           canon = text.replace('\r\n','\n').replace('\r','\n')
           payload = hashlib.sha256(canon.encode('utf-8')).hexdigest()
-          text = text.replace('CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"', f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"', 1)
+          actual_identity = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\nCANONICAL_BUILD_ID = "USE-BUILD-v302-explicit-type-preparation-breakdown"\nCANONICAL_BUILD_PAYLOAD_SHA256 = "' + payload + '"\n# === END CANONICAL BUILD IDENTITY ==='
+          text = text[:start] + actual_identity + text[end:]
           p.write_bytes(text.replace('\n','\r\n').encode('utf-8'))
           raw = p.read_bytes()
           assert raw.count(b'\r\n') == raw.count(b'\n') == raw.count(b'\r')
           assert raw.endswith(b'\r\n')
           compile(p.read_text(encoding='utf-8'), str(p), 'exec')
+          normalized = p.read_text(encoding='utf-8').replace('\r\n','\n').replace('\r','\n')
+          verify = re.sub(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?', '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n', normalized, count=1)
+          assert hashlib.sha256(verify.encode('utf-8')).hexdigest() == payload
           print('v302 raw_sha256=' + hashlib.sha256(raw).hexdigest())
           print('v302 payload_sha256=' + payload)
           PY
@@ -63,6 +67,7 @@ jobs:
           set -euo pipefail
           grep -q 'APP_VERSION = "v302"' main.py
           grep -q 'USE v302 explicit-type breakdown' main.py
+          grep -q 'CANONICAL_BUILD_ID = "USE-BUILD-v302-explicit-type-preparation-breakdown"' main.py
           test "$(grep -c 'TextEmbedding(' main.py)" = "1"
           test "$(grep -c 'threads=1' main.py)" = "1"
           test "$(grep -c 'threads=2' main.py)" = "0"
