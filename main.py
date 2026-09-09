@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v292 — Controlled Embedding Runtime Thread Experiment: 6 Threads + Retrieval Behavior + The Guide
+# USE PRODUCTION VERSION: v293 — Embedding Runtime Thread Experiment: 6 Threads + Canonical Identity Correction + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v292"
+APP_VERSION = "v293"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,7 +665,7 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v292-embedding-runtime-threads-6"
+DEPLOYMENT_FINGERPRINT = "USE-v293-embedding-runtime-threads-6"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 CANONICAL_BUILD_ID = "USE-BUILD-v292-embedding-runtime-threads-6"
