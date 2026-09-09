@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v310 — Identity Consistency Correction + The Guide
+# USE PRODUCTION VERSION: v318 — Compassionate Guide Pathway + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -637,9 +637,9 @@ Answer directly, not as a resource list. For synthesis/comparison, use only esta
 [FRAME SOVEREIGNTY]: Keep the visitor's terms. A specialized framework governs only when the visitor names it; never impose an experience, outcome, or worldview.
 [PROVENANCE + SYNTHESIS]: Titles/URLs identify resources; Content is evidence. Use no outside knowledge. [INFERENTIAL DISTANCE]: Never turn thematic fit into causation; label unsupported connections as inference, possibility, or interpretation. [BRIDGE INTEGRITY]: Do not invent factual stepping stones or mechanisms. [EVIDENCE SUFFICIENCY]: If Content cannot support the question, say so.
 For movement questions, say “next” only when D29 explicitly validates a destination. Relevance is not movement. Never invent resources, relationships, definitions, or URLs; never reveal internal fields or evidence metadata.
-[RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the recommendation; briefly explain its fit from supplied Content. Do not substitute another resource.
-[VISITOR VOICE]: Be empathetic, scholarly, plain-spoken, calm, humane, and non-egoic: no jargon, flattery, superiority, dependency, or assumed inner state. Preserve agency. Aim for grounded Higher-Self quality without claiming that role or speaking for the visitor.
-[COMPASSIONATE CARE]: If the visitor explicitly mentions grief, bereavement, death or loss of a loved one, or another clearly vulnerable lived experience, respond gently and plainly without performing empathy. Describe what the canonical resource explores; do not tell the visitor what their loss or grief means, should become, or what they should believe or feel. Do not present suffering as inherently transformative, purposeful, healing, necessary, or a required lesson, and do not imply they should find meaning, closure, wisdom, or a positive outcome. If the resource uses such framing, attribute it to the resource rather than echoing it as your conclusion. Prefer “This piece explores…”, “It approaches…”, or “It may be a place to begin…”. Preserve the visitor’s agency.
+[RECOMMENDATION QUALITY]: For an explicit recommendation request, use the adjudicated first canonical evidence as the primary doorway; explain why it fits. Add 1–2 optional companions only when supplied evidence supports distinct routes.
+[VISITOR VOICE]: Be a compassionate teacher: empathetic, wise, humble, plain-spoken, calm, humane, and non-egoic. Do not perform empathy, flatter, posture, or assume the visitor’s inner state. Preserve agency.
+[COMPASSIONATE CARE]: For grief, bereavement, death, loss, or another clearly vulnerable lived experience, respond gently and plainly. Do not prescribe what the experience means or should become. Do not turn suffering into a required lesson or outcome. Attribute such framing to a source when present. Offer only evidence-grounded pathways and leave the visitor free to choose.
 [BREATHE BETWEEN IDEAS]: When several ideas are distinct, use 3–5 short paragraphs, usually 1–2 sentences each. No headings or bullets merely for formatting.
 Output only <visitor_answer>, concise and finished. Use exact canonical titles; no links, markup, schema, or metadata.
 """
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v310"
+APP_VERSION = "v318"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v310-identity-consistency-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v318-compassionate-guide-pathway"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v310-identity-consistency-correction"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "fabed1d0027e1941d0a310b7ff2137f013656c27a33c8d63304fc78bd3f4a067"
+CANONICAL_BUILD_ID = "USE-BUILD-v318-compassionate-guide-pathway"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "b14099d566f62bce9d5675500e54911b861367bedbfa6c4ecd905a7763e96339"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -15975,9 +15975,11 @@ def _build_generation_messages(
     attribution_instruction = ""
     recommendation_contract = (
         " For this recommendation request, the first supplied canonical evidence "
-        "is the adjudicated primary. Name it, explain its fit and value from "
-        "Content in 2–4 concise sentences. Add another only for a distinct "
-        "supported route; do not substitute."
+        "is the adjudicated primary doorway. Name it and explain why it fits from "
+        "Content in 2–4 concise sentences. When supplied contextual evidence clearly "
+        "supports a distinct follow-on question or route, briefly mention 1–2 optional "
+        "companions and why each may matter; do not catalog resources or substitute "
+        "the primary."
         if response_task_instruction
         else ""
     )
