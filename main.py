@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v297 — Embedding Runtime Threads 2 + The Guide
+# USE PRODUCTION VERSION: v298 — Embedding Runtime Threads 1 + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v297"
+APP_VERSION = "v298"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v297-embedding-runtime-threads-2"
+DEPLOYMENT_FINGERPRINT = "USE-v298-embedding-runtime-threads-1"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v297-embedding-runtime-threads-2"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "d3b68a91b905c403c35741037c3e5726de21acbc26de7bd81a4a4acc6892982e"
+CANONICAL_BUILD_ID = "USE-BUILD-v298-embedding-runtime-threads-1"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "3d8c041c981dfc3dd07ff9fe859a7df89cab11a84894f6e4438c5fa2f3a2c110"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -873,7 +873,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=2)
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
 
 # v292 retains provider/runtime observability from v288. This reads the
 # already-initialized FastEmbed/ONNX Runtime objects without changing model
