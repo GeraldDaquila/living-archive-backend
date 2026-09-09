@@ -1,0 +1,103 @@
+name: Promote USE v299 authority doorway diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - '.github/workflows/promote-v299.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    if: github.event.head_commit.message != 'Promote USE v299 authority doorway diagnostic [skip v299]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Reconstruct v299 byte-exact source
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast, hashlib, re, py_compile
+
+          p = Path('main.py')
+          b = p.read_bytes()
+
+          replacements = [
+              (b'# USE PRODUCTION VERSION: v298 \xe2\x80\x94 Embedding Runtime Threads 1 + The Guide', b'# USE PRODUCTION VERSION: v299 \xe2\x80\x94 Authority Doorway Diagnostic + The Guide'),
+              (b'APP_VERSION = "v298"', b'APP_VERSION = "v299"'),
+              (b'DEPLOYMENT_FINGERPRINT = "USE-v298-embedding-runtime-threads-1"', b'DEPLOYMENT_FINGERPRINT = "USE-v299-authority-doorway-diagnostic"'),
+              (b'CANONICAL_BUILD_ID = "USE-BUILD-v298-embedding-runtime-threads-1"', b'CANONICAL_BUILD_ID = "USE-BUILD-v299-authority-doorway-diagnostic"'),
+              (b'CANONICAL_BUILD_PAYLOAD_SHA256 = "3d8c041c981dfc3dd07ff9fe859a7df89cab11a84894f6e4438c5fa2f3a2c110"', b'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"'),
+          ]
+          for old, new in replacements:
+              if b.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one occurrence: {old!r}; got {b.count(old)}')
+              b = b.replace(old, new, 1)
+
+          old = b'''    question_authority_protected_docs = _v221_question_specific_resource_authority(\r\n        retrieved_docs,\r\n        user_query,\r\n    )\r\n'''
+          new = b'''    _v299_authority_started = time.perf_counter()\r\n    question_authority_protected_docs = _v221_question_specific_resource_authority(\r\n        retrieved_docs,\r\n        user_query,\r\n    )\r\n    print(\r\n        "USE v299 authority diagnostic: "\r\n        f"question_specific_authority={time.perf_counter() - _v299_authority_started:.3f}s, "\r\n        f"retrieved={len(retrieved_docs)}, protected={len(question_authority_protected_docs)}"\r\n    )\r\n'''
+          if b.count(old) != 1:
+              raise SystemExit('Question-authority block mismatch')
+          b = b.replace(old, new, 1)
+
+          old = b'''    task_authority_recommendation = None\r\n    if recommendation_task_active:\r\n        task_authority_recommendation = _adjudicate_recommendation_resource(\r\n            retrieved_docs,\r\n            user_query,\r\n        )\r\n'''
+          new = b'''    task_authority_recommendation = None\r\n    if recommendation_task_active:\r\n        _v299_recommendation_started = time.perf_counter()\r\n        task_authority_recommendation = _adjudicate_recommendation_resource(\r\n            retrieved_docs,\r\n            user_query,\r\n        )\r\n        print(\r\n            "USE v299 authority diagnostic: "\r\n            f"recommendation_adjudication={time.perf_counter() - _v299_recommendation_started:.3f}s, "\r\n            f"active=True, selected={task_authority_recommendation is not None}"\r\n        )\r\n'''
+          if b.count(old) != 1:
+              raise SystemExit('Recommendation block mismatch')
+          b = b.replace(old, new, 1)
+
+          old = b'''    retrieved_docs = select_canonical_doorways(\r\n        retrieved_docs,\r\n        orientational_frame,\r\n        question=user_query,\r\n        preserve_prefix=protected_prefix,\r\n        question_authority_documents=question_authority_protected_docs,\r\n        authoritative_recommendation=task_authority_recommendation,\r\n    )\r\n'''
+          new = b'''    _v299_doorway_started = time.perf_counter()\r\n    retrieved_docs = select_canonical_doorways(\r\n        retrieved_docs,\r\n        orientational_frame,\r\n        question=user_query,\r\n        preserve_prefix=protected_prefix,\r\n        question_authority_documents=question_authority_protected_docs,\r\n        authoritative_recommendation=task_authority_recommendation,\r\n    )\r\n    print(\r\n        "USE v299 authority diagnostic: "\r\n        f"canonical_doorway_selection={time.perf_counter() - _v299_doorway_started:.3f}s, "\r\n        f"selected={len(retrieved_docs)}"\r\n    )\r\n'''
+          if b.count(old) != 1:
+              raise SystemExit('Doorway block mismatch')
+          b = b.replace(old, new, 1)
+
+          text = b.decode('utf-8')
+          normalized = text.replace('\r\n', '\n').replace('\r', '\n')
+          pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?')
+          masked, count = pattern.subn(
+              '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n'
+              '# <CANONICAL_BUILD_IDENTITY_BLOCK>\n'
+              '# === END CANONICAL BUILD IDENTITY ===\n',
+              normalized,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Canonical identity block mismatch')
+          payload = hashlib.sha256(masked.encode('utf-8')).hexdigest()
+          b = b.replace(b'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"', f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"'.encode(), 1)
+
+          p.write_bytes(b)
+          py_compile.compile(str(p), doraise=True)
+          ast.parse(b.decode('utf-8'))
+          if not b.endswith(b'\r\n') or b.count(b'\r\n') != b.count(b'\n'):
+              raise SystemExit('CRLF invariant failed')
+          if b.count(b'USE v299 authority diagnostic') != 3:
+              raise SystemExit('Diagnostic insertion count failed')
+          if b.count(b'v298'):
+              raise SystemExit('Residual v298 identity found')
+          if b.count(b'TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)') != 1:
+              raise SystemExit('Embedding constructor invariant failed')
+          print('v299 payload_sha256=', payload)
+          print('v299 raw_sha256=', hashlib.sha256(b).hexdigest())
+          print('v299 size=', len(b), 'CRLF=', b.count(b'\r\n'))
+          PY
+
+      - name: Commit exact v299 source
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'Promote USE v299 authority doorway diagnostic [skip v299]'
+          git push origin main
