@@ -37,7 +37,7 @@ jobs:
           assert text.count(old) == 1
           text = text.replace(old, new, 1)
           placeholder = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ==='
-          identity_pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===')
+          identity_pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===')
           text, count = identity_pattern.subn(placeholder, text, count=1)
           assert count == 1
           payload = hashlib.sha256(text.encode('utf-8')).hexdigest()
