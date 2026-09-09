@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v315 — Compassionate Guide Pathway + The Guide
+# USE PRODUCTION VERSION: v316 — Compassionate Guide Pathway + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v315"
+APP_VERSION = "v316"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v315-compassionate-guide-pathway"
+DEPLOYMENT_FINGERPRINT = "USE-v316-compassionate-guide-pathway"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v315-compassionate-guide-pathway"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "e8a150086c621b9e37ccecd1dfd1af4beb27b5a0877b565980152131135959bc"
+CANONICAL_BUILD_ID = "USE-BUILD-v316-compassionate-guide-pathway"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "31c730795add6d2153cdee9052e501f527baf91dbcf86f27ddc3bba9eed26a37"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
