@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v302 — Explicit Type Preparation Breakdown Diagnostic + The Guide
+# USE PRODUCTION VERSION: v303 — Explicit Type Identity Gate Optimization + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -649,7 +649,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v302"
+APP_VERSION = "v303"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -665,11 +665,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v302-explicit-type-preparation-breakdown"
+DEPLOYMENT_FINGERPRINT = "USE-v303-explicit-type-identity-gate"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v302-explicit-type-preparation-breakdown"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "bfdb9bfe6b44c475288060bfec3e769389686b4e4f6ae41fa8ea9486f935b7c5"
+CANONICAL_BUILD_ID = "USE-BUILD-v303-explicit-type-identity-gate"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "148091e74600b198f95b846064614dc517f074ec004c5b40abe0446a768f89e5"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -11843,11 +11843,11 @@ def fetch_canonical_context(
         _v302_one = time.perf_counter()
         recognized_type = _recognize_resource_type(document).get("resource_type")
         _v302_recognition_elapsed += time.perf_counter() - _v302_one
+        if recognized_type not in explicit_type_targets:
+            continue
         _v302_one = time.perf_counter()
         selection_identity = _explicit_type_selection_identity(document)
         _v302_identity_elapsed += time.perf_counter() - _v302_one
-        if recognized_type not in explicit_type_targets:
-            continue
         if selection_identity and selection_identity["requested_type"] in explicit_type_targets:
             recognized_type = selection_identity["requested_type"]
         _v302_one = time.perf_counter()
