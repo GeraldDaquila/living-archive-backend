@@ -1,0 +1,80 @@
+name: Promote USE v295
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  promote-v295:
+    if: github.event.head_commit.message == 'USE v295 promotion bootstrap'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Promote main.py to v295
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+
+          p = Path("main.py")
+          source = p.read_text(encoding="utf-8")
+          required = [
+              '# USE PRODUCTION VERSION: v294',
+              'APP_VERSION = "v294"',
+              'DEPLOYMENT_FINGERPRINT = "USE-v294-embedding-runtime-threads-6"',
+              'CANONICAL_BUILD_ID = "USE-BUILD-v294-embedding-runtime-threads-6"',
+          ]
+          missing = [x for x in required if x not in source]
+          if missing:
+              raise SystemExit("Expected v294 identity markers missing: " + repr(missing))
+
+          source = source.replace('# USE PRODUCTION VERSION: v294', '# USE PRODUCTION VERSION: v295', 1)
+          source = source.replace('APP_VERSION = "v294"', 'APP_VERSION = "v295"', 1)
+          source = source.replace('DEPLOYMENT_FINGERPRINT = "USE-v294-embedding-runtime-threads-6"', 'DEPLOYMENT_FINGERPRINT = "USE-v295-embedding-runtime-threads-6"', 1)
+          source = source.replace('CANONICAL_BUILD_ID = "USE-BUILD-v294-embedding-runtime-threads-6"', 'CANONICAL_BUILD_ID = "USE-BUILD-v295-embedding-runtime-threads-6"', 1)
+
+          normalized = source.replace("\r\n", "\n").replace("\r", "\n")
+          pattern = re.compile(
+              r"(?ms)^# === CANONICAL BUILD IDENTITY \\(excluded from payload hash\\) ===\n"
+              r".*?"
+              r"^# === END CANONICAL BUILD IDENTITY ===\n?"
+          )
+          payload, count = pattern.subn(
+              "# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n"
+              "# <CANONICAL_BUILD_IDENTITY_BLOCK>\n"
+              "# === END CANONICAL BUILD IDENTITY ===\n",
+              normalized,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f"Canonical identity block count={count}, expected 1")
+          payload_sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+          source = re.sub(
+              r'CANONICAL_BUILD_PAYLOAD_SHA256 = "[0-9a-f]+"',
+              f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload_sha}"',
+              source,
+              count=1,
+          )
+          p.write_bytes(source.replace("\n", "\r\n").encode("utf-8"))
+
+          actual = hashlib.sha256(p.read_bytes()).hexdigest()
+          if actual != "2ec0baad0e61caf87ee02cf1fc66c7623285a7a7650b5b60790e385f38972d8e":
+              raise SystemExit(f"v295 raw SHA mismatch: {actual}")
+          print("v295 raw SHA:", actual)
+          print("v295 canonical payload SHA:", payload_sha)
+          PY
+
+      - name: Commit v295 and remove bootstrap workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/promote-v295.yml
+          git add main.py
+          git commit -m "USE PRODUCTION VERSION: v295"
+          git push origin main
