@@ -14,13 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 3
 
       - name: Restore v300 and apply exact v301 diagnostic patch
         shell: bash
         run: |
           set -euo pipefail
-          git checkout HEAD^ -- main.py
+          git checkout HEAD^^ -- main.py
           python - <<'PY'
           from pathlib import Path
           import hashlib, re
