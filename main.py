@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v307 — Compassionate Visitor Voice Attribution Gate + The Guide
+# USE PRODUCTION VERSION: v308 — Compassionate Visitor Voice Runtime Safeguard + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v307"
+APP_VERSION = "v308"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v307-compassionate-visitor-voice-attribution-gate"
+DEPLOYMENT_FINGERPRINT = "USE-v308-compassionate-visitor-voice-runtime-safeguard"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v307-compassionate-visitor-voice-attribution-gate"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "cb7624f3091ed414f4b78e20e81dc3b8d60003d6aadc51d56a18d17b6377d295"
+CANONICAL_BUILD_ID = "USE-BUILD-v308-compassionate-visitor-voice-runtime-safeguard"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7d028abb600d3799a0baf06dd825356de51c8e2d95f2ade147d173db97a4556b"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -16546,6 +16546,66 @@ def _run_provider_completion_recovery(
     return cleaned_answer
 
 
+def _v308_compassionate_voice_violation(user_query: str, answer: str) -> str:
+    """Return a narrow violation reason for vulnerable-experience output.
+
+    This is a presentation safety boundary, not a semantic rewrite. It only
+    activates when the visitor explicitly mentions grief/bereavement/loss of a
+    loved one (or a clearly vulnerable lived experience), and it rejects a
+    generated answer when it converts that experience into a prescription or
+    an asserted personal outcome.
+    """
+    query = str(user_query or "").casefold()
+    if not any(term in query for term in (
+        "grief", "grieving", "bereavement", "bereaved", "death of", "died",
+        "loss of a loved one", "lost my", "lost her", "lost his", "lost their",
+        "mourning", "mourning the", "funeral",
+    )):
+        return ""
+
+    text = re.sub(r"\s+", " ", str(answer or "")).strip().casefold()
+    if not text:
+        return ""
+
+    prescriptive_patterns = (
+        (r"\byou\s+(?:should|need to|must|have to)\b", "prescriptive second-person language"),
+        (r"\byou\s+(?:need|have)\s+to\s+(?:find|discover|create)\s+(?:meaning|purpose|closure|wisdom)\b", "prescribed meaning/closure"),
+        (r"\byou\s+(?:will|can)\s+(?:grow|heal|transform|become stronger)\b", "asserted personal outcome"),
+        (r"\byour\s+(?:grief|loss|suffering|pain)\s+(?:is|will be)\s+(?:a\s+)?(?:transformative|healing|purposeful|necessary|gift|lesson)\b", "asserted transformative meaning"),
+        (r"\byour\s+(?:grief|loss|suffering|pain)\s+(?:will|can)\s+(?:transform|heal|make you stronger|give you meaning)\b", "asserted transformative outcome"),
+        (r"\b(?:find|discover|create)\s+(?:meaning|purpose|closure|wisdom)\s+(?:in|from)\s+your\s+(?:grief|loss|pain)\b", "prescribed meaning-making"),
+    )
+    for pattern, reason in prescriptive_patterns:
+        if re.search(pattern, text):
+            return reason
+    return ""
+
+
+def _v308_compassionate_voice_self_audit() -> None:
+    """Exercise the narrow vulnerable-output boundary with positive/negative cases."""
+    assert _v308_compassionate_voice_violation(
+        "What essay would you recommend while I am grieving the death of my partner?",
+        "You should find meaning in your grief and use this loss to become stronger.",
+    )
+    assert _v308_compassionate_voice_violation(
+        "I am grieving the death of a loved one. Where should I begin?",
+        "Your grief is a transformative lesson that will heal you.",
+    )
+    assert not _v308_compassionate_voice_violation(
+        "What essay would you recommend while I am grieving the death of my partner?",
+        "This piece explores grief through spiritual and psychological perspectives. It may be a gentle place to begin.",
+    )
+    assert not _v308_compassionate_voice_violation(
+        "Tell me about grief in the Living Archive.",
+        "This essay approaches grief as a question of meaning and continuity, while leaving the reader to decide what is useful.",
+    )
+    assert not _v308_compassionate_voice_violation(
+        "Where is the essay about conflict?",
+        "You should compare the two essays before deciding.",
+    )
+    print("USE v308 compassionate visitor voice runtime safeguard audit: PASS")
+
+
 def _run_generation_attempt(
     model_id: str,
     user_query: str,
@@ -16667,6 +16727,22 @@ def _run_generation_attempt(
         cleaned_answer,
         effective_validation_context,
     )
+
+    # v308: vulnerable-experience presentation boundary. Reject only when the
+    # provider turns an explicitly stated grief/loss experience into a
+    # prescription or asserted personal transformation. Returning an empty
+    # result preserves the existing outer fallback/retry machinery rather than
+    # rewriting the provider's answer or changing canonical evidence.
+    compassionate_violation = _v308_compassionate_voice_violation(
+        user_query,
+        cleaned_answer,
+    )
+    if compassionate_violation:
+        print(
+            "USE v308 compassionate visitor voice boundary: rejecting provider "
+            f"output; reason={compassionate_violation}; model='{model_id}'"
+        )
+        return ""
 
     # v151 MVP boundary: a provider may mention canonical resources while
     # simultaneously making an unsupported claim that the evidence contains
