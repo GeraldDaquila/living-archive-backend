@@ -41,21 +41,21 @@ jobs:
           replacement = '''    explicit_type_protected_docs: List[Dict[str, Any]] = []\n    explicit_type_protected_seen = set()\n    _v302_recognition_elapsed = 0.0\n    _v302_identity_elapsed = 0.0\n    _v302_key_elapsed = 0.0\n    _v302_candidate_count = 0\n    for document in list(function_targeted_docs) + list(retrieved_docs):\n        _v302_candidate_count += 1\n        _v302_one = time.perf_counter()\n        recognized_type = _recognize_resource_type(document).get("resource_type")\n        _v302_recognition_elapsed += time.perf_counter() - _v302_one\n        _v302_one = time.perf_counter()\n        selection_identity = _explicit_type_selection_identity(document)\n        _v302_identity_elapsed += time.perf_counter() - _v302_one\n        if recognized_type not in explicit_type_targets:\n            continue\n        if selection_identity and selection_identity["requested_type"] in explicit_type_targets:\n            recognized_type = selection_identity["requested_type"]\n        _v302_one = time.perf_counter()\n        key = _resource_key(document)\n        _v302_key_elapsed += time.perf_counter() - _v302_one\n        if key in explicit_type_protected_seen:\n            continue\n        explicit_type_protected_seen.add(key)\n        explicit_type_protected_docs.append(document)\n\n    _v302_total_elapsed = time.perf_counter() - _v302_explicit_type_preparation_started\n    _v302_unattributed_elapsed = max(0.0, _v302_total_elapsed - _v302_target_elapsed - _v302_recognition_elapsed - _v302_identity_elapsed - _v302_key_elapsed)\n    print(\n        "USE v302 explicit-type breakdown: "\n        f"total={_v302_total_elapsed:.3f}s, "\n        f"target_calc={_v302_target_elapsed:.3f}s, "\n        f"recognition={_v302_recognition_elapsed:.3f}s, "\n        f"identity={_v302_identity_elapsed:.3f}s, "\n        f"resource_key={_v302_key_elapsed:.3f}s, "\n        f"unattributed={_v302_unattributed_elapsed:.3f}s, "\n        f"candidates={_v302_candidate_count}, targets={len(explicit_type_targets)}, protected={len(explicit_type_protected_docs)}"\n    )\n\n    # v221/v226: carry the already-established question-specific authority into'''
           text, count = pattern.subn(replacement, text, count=1)
           assert count == 1
-          start = text.index('# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===')
-          end_marker = '# === END CANONICAL BUILD IDENTITY ==='
-          end = text.index(end_marker, start) + len(end_marker)
-          text = text[:start] + '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===' + text[end:]
-          canon = text.replace('\r\n','\n').replace('\r','\n')
-          payload = hashlib.sha256(canon.encode('utf-8')).hexdigest()
+          placeholder = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ==='
+          identity_pattern = re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===')
+          text, count = identity_pattern.subn(placeholder, text, count=1)
+          assert count == 1
+          payload = hashlib.sha256(text.encode('utf-8')).hexdigest()
           actual_identity = '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\nCANONICAL_BUILD_ID = "USE-BUILD-v302-explicit-type-preparation-breakdown"\nCANONICAL_BUILD_PAYLOAD_SHA256 = "' + payload + '"\n# === END CANONICAL BUILD IDENTITY ==='
-          text = text[:start] + actual_identity + text[end:]
+          assert text.count(placeholder) == 1
+          text = text.replace(placeholder, actual_identity, 1)
           p.write_bytes(text.replace('\n','\r\n').encode('utf-8'))
           raw = p.read_bytes()
           assert raw.count(b'\r\n') == raw.count(b'\n') == raw.count(b'\r')
           assert raw.endswith(b'\r\n')
           compile(p.read_text(encoding='utf-8'), str(p), 'exec')
           normalized = p.read_text(encoding='utf-8').replace('\r\n','\n').replace('\r','\n')
-          verify = re.sub(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?', '# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n', normalized, count=1)
+          verify = identity_pattern.sub(placeholder, normalized, count=1)
           assert hashlib.sha256(verify.encode('utf-8')).hexdigest() == payload
           print('v302 raw_sha256=' + hashlib.sha256(raw).hexdigest())
           print('v302 payload_sha256=' + payload)
