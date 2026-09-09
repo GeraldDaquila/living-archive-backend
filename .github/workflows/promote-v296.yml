@@ -33,6 +33,7 @@ jobs:
               raise SystemExit(f"v295 baseline raw SHA mismatch: {baseline_sha}")
 
           source = baseline.decode("utf-8")
+          source = source.replace("\r\n", "\n").replace("\r", "\n")
           required = [
               '# USE PRODUCTION VERSION: v295 — Embedding Runtime Thread Experiment: 6 Threads + Canonical Identity Correction + The Guide',
               'APP_VERSION = "v295"',
