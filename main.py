@@ -11,9 +11,9 @@ import re
 import uuid
 from pathlib import Path
 
-APP_VERSION = "v338"
-DEPLOYMENT_FINGERPRINT = "USE-v338-recommendation-fit-synthesis"
-CANONICAL_BUILD_ID = "USE-BUILD-v338-recommendation-fit-synthesis"
+APP_VERSION = "v339"
+DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
@@ -36,7 +36,7 @@ def _canonical_source_payload(source: str) -> str:
         count=1,
     )
     if count != 1:
-        raise RuntimeError("USE v338 build identity failure: identity block missing.")
+        raise RuntimeError("USE v339 build identity failure: identity block missing.")
     return normalized
 
 
@@ -49,12 +49,12 @@ _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v338 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v339 package integrity failure: use_core.py is missing.")
 
 _core_runtime_sha = _sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
     raise RuntimeError(
-        "USE v338 package integrity failure: "
+        "USE v339 package integrity failure: "
         f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
     )
 
@@ -132,7 +132,7 @@ def _v335_provider_system_prompt() -> str:
     prompt, recommendation_removed = re.subn(r"\n\[RECOMMENDATION QUALITY\]:.*?(?=\n\[VISITOR VOICE\])", "", prompt, flags=re.DOTALL)
     prompt, breathe_removed = re.subn(r"\n\[BREATHE BETWEEN IDEAS\]:.*?(?=\nOutput only)", "", prompt, flags=re.DOTALL)
     if provenance_removed != 1 or recommendation_removed != 1 or breathe_removed != 1:
-        raise RuntimeError("USE v338 provider prompt compaction boundary failure")
+        raise RuntimeError("USE v339 provider prompt compaction boundary failure")
     return prompt
 
 
@@ -242,9 +242,40 @@ def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context:
     value = _v338_build_recommendation_answer(user_query, value, retrieved_context)
     violation = _original_violation(user_query, value)
     if violation:
-        print(f"USE v338 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+        print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
         return ""
     return value.strip()
+
+
+def _v339_canonical_recommendation_doorway(user_query: str, value: str, context_blocks: str) -> str:
+    if not use_core._is_recommendation_question(user_query):
+        return str(value or "").strip()
+    docs = _parse_context_documents(context_blocks)
+    if not docs:
+        return str(value or "").strip()
+    primary = use_core._adjudicate_recommendation_resource(docs, user_query)
+    if not primary:
+        return str(value or "").strip()
+    title = str(primary.get("title", "")).strip()
+    url = str(primary.get("url", "")).strip().rstrip(".,;")
+    if not title or not url:
+        return str(value or "").strip()
+    canonical_link = f"[{title}]({url})"
+    text = re.sub(r"\[([^\]]+)\]\((?:https?://)[^)]*\)", r"\1", str(value or "").strip())
+    text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
+    text = re.sub(rf"(?im)\b{re.escape(title)}\b", "", text)
+    text = re.sub(r"\s{2,}", " ", text).strip(" .\n\t")
+    fit = _v338_recommendation_fit_sentence(user_query, primary)
+    if fit and fit.casefold() not in text.casefold():
+        if text:
+            text = f"{text}." if not text.endswith((".", "!", "?")) else text
+            text = f"{text} {fit}"
+        else:
+            text = fit
+    prefix = "A useful place to begin is "
+    if text:
+        return f"{prefix}{canonical_link}. {text.strip()}"
+    return f"{prefix}{canonical_link}."
 
 
 def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks: str, canonical_link_context: str = "") -> str:
@@ -254,8 +285,6 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
     try:
         value = _v338_final_answer_boundary(user_query, value, context_blocks)
     except NameError:
-        # Isolated presentation probes may load this constructor without the
-        # broader wrapper seam; keep those tests independent of runtime state.
         value = value
     if not value:
         return ""
@@ -270,7 +299,8 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
     try:
         value = use_core.normalize_link_presentation(value, link_context)
     except Exception as exc:
-        print(f"USE v338 visitor presentation link normalization error: {exc}")
+        print(f"USE v339 visitor presentation link normalization error: {exc}")
+    value = _v339_canonical_recommendation_doorway(user_query, value, context_blocks)
     return value.strip()
 
 
@@ -319,7 +349,7 @@ use_core.RUNTIME_PROCESS_ID = os.getpid()
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v338 RECOMMENDATION FIT SYNTHESIS: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
+print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
 
 
 def generate_llm_response(*args, **kwargs):
