@@ -4,6 +4,7 @@
 # v334 changes the vulnerable-experience generation/output boundary and binds release identity here.
 
 import hashlib
+import html
 import importlib
 import os
 import re
@@ -176,15 +177,19 @@ def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -
     if not pairs:
         return ""
     title, url, content = pairs[0]
-    title = title.strip()
-    url = url.strip()
+    title = html.unescape(re.sub(r"<[^>]+>", "", title).strip())
+    url = html.unescape(re.sub(r"<[^>]+>", "", url).strip())
+    content = html.unescape(str(content or ""))
+    content = re.sub(r"<!--.*?-->", " ", content, flags=re.DOTALL)
+    content = re.sub(r"<[^>]+>", " ", content)
     content = re.sub(r"\s+", " ", content).strip()
     if not title or not url or not content:
         return ""
-    # Keep only source-attributed description. Strip the known visitor-benefit
-    # construction if present, then retain a concise source-grounded passage.
+
+    # Remove deterministic visitor-benefit constructions and internal wording
+    # that must not cross into the final visitor-facing fallback.
     content = re.sub(
-        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives)\s+(?:comfort|healing|peace|closure|meaning|purpose|hope)\s+to\s+those\s+grieving\b",
+        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives)\s+(?:comfort|healing|peace|closure|meaning|purpose|hope)\s+(?:to|for)\s+(?:those|people|someone|a person|the reader|you)\s+(?:who are|who is|with)?\s*(?:grieving|grief|bereaved|bereavement|loss)\b",
         "",
         content,
         flags=re.IGNORECASE,
@@ -192,12 +197,23 @@ def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -
     content = re.sub(r"\s{2,}", " ", content).strip(" ,;:")
     if not content:
         content = "The material explores the subject through the framing represented in its supplied content."
-    first_sentence = re.split(r"(?<=[.!?])\s+", content)[0].strip()
-    if len(first_sentence) < 40:
-        first_sentence = content[:280].rstrip(" ,;:") + ("." if not content.endswith((".", "!", "?")) else "")
+
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", content) if s.strip()]
+    first_sentence = sentences[0] if sentences else content[:360].rstrip(" ,;:")
+    if not first_sentence.endswith((".", "!", "?")):
+        first_sentence += "."
+    # Avoid doubling "explores" when the source sentence already starts with it.
+    if re.match(r"(?i)^this (?:essay|piece|book|work|material) (?:explores|presents|describes)\b", first_sentence):
+        source_sentence = first_sentence
+    else:
+        source_sentence = "The material explores " + first_sentence[0].lower() + first_sentence[1:]
+    source_sentence = source_sentence[:460].rstrip()
+    if not source_sentence.endswith((".", "!", "?")):
+        source_sentence += "."
+
     return (
         f"A useful place to begin with this question is [{title}]({url}). "
-        f"The material explores {first_sentence[:420]}"
+        f"{source_sentence}"
     ).strip()
 
 
