@@ -1,0 +1,26 @@
+name: USE v337 recommendation authority boundary
+
+on:
+  push:
+    branches:
+      - exp/v337-recommendation-authority-fix
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile
+        run: python -m py_compile main.py use_core.py tests/test_v337_recommendation_authority_boundary.py
+      - name: Static boundary regression
+        run: python run_v336_static_validation.py
+      - name: Run authority boundary tests
+        run: pytest -q tests/test_v337_recommendation_authority_boundary.py
