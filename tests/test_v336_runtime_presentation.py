@@ -12,6 +12,8 @@ def _load_constructor():
     source = MAIN.read_text(encoding="utf-8")
     tree = ast.parse(source)
     wanted = {
+        "_parse_context_documents",
+        "_v338_recommendation_fit_sentence",
         "_v336_construct_visitor_answer",
         "_v339_canonical_recommendation_doorway",
         "_v338_final_answer_boundary",
@@ -41,7 +43,6 @@ def _load_constructor():
         "_original_violation": lambda *_a: None,
         "_original_recommendation_output_authority": lambda _q, answer, _c: answer,
         "_original_recommendation_resource_identity": lambda _q, answer, _c: answer,
-        "_v338_recommendation_fit_sentence": lambda _q, _p: "",
     }
     exec(compile(code, str(MAIN), "exec"), namespace)
     return namespace["_v336_construct_visitor_answer"]
