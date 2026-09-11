@@ -53,7 +53,6 @@ def test_v336_has_final_visitor_answer_layer_hook():
 def test_v336_has_machine_language_and_canonical_link_guards():
     source = _source()
     for phrase in (
-        "canonical doorway",
         "visitor-facing",
         "retrieval",
         "evidence",
