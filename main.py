@@ -14,8 +14,6 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-# Protected production core is v333. The runtime check must compare the exact
-# Git blob identity, not a SHA-256 of the checked-out file bytes.
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
@@ -30,8 +28,7 @@ def _sha256(data: bytes) -> str:
 
 
 def _git_blob_sha256(data: bytes) -> str:
-    header = f"blob {len(data)}\0".encode("utf-8")
-    return hashlib.sha1(header + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
 
 
 _MAIN_PATH = Path(__file__).resolve()
@@ -134,8 +131,7 @@ def _run_provider_completion_recovery(*args, **kwargs):
 
 def _v336_clean_generation_output(value: str) -> str:
     text = _clean_generation_output(value)
-    text = re.sub(r"(?im)^\s*(?:answer|response)\s*:\s*", "", text).strip()
-    return text
+    return re.sub(r"(?im)^\s*(?:answer|response)\s*:\s*", "", text).strip()
 
 
 def _v336_run_generation_attempt(*args, **kwargs):
@@ -154,14 +150,19 @@ def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "_parse_context_documents", None)
     if callable(parser):
         return parser(context_blocks)
-    return []
+    docs = []
+    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, flags=re.MULTILINE | re.IGNORECASE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if title_match and url_match and content_match:
+            docs.append({"title": title_match.group(1).strip(), "url": url_match.group(1).strip().rstrip(".,;"), "text": content_match.group(1).strip()})
+    return docs
 
 
 def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
-    title = str(primary.get("title") or "the recommended work").strip()
-    question = re.sub(r"\s+", " ", str(user_query or "").strip())
-    lower = question.casefold()
-    if re.search(r"\b(?:grief|grieving|bereavement|loss|loved one|death)\b", lower):
+    question = re.sub(r"\s+", " ", str(user_query or "").strip()).casefold()
+    if re.search(r"\b(?:grief|grieving|bereavement|loss|loved one|death)\b", question):
         return "It speaks directly to grief, loss, and the meaning of death without reducing the experience to a single answer."
     return "It is closely aligned with the question and gives the visitor a grounded place to begin."
 
@@ -194,27 +195,22 @@ def _v338_final_answer_boundary(value: str, user_query: str, retrieved_context_b
 def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
     if not use_core._is_recommendation_question(user_query):
         return value
-
     docs = _parse_context_documents(context_blocks)
     primary = use_core._adjudicate_recommendation_resource(docs, user_query)
     if not primary:
         return value
-
     title = str(primary.get("title") or "Untitled Resource").strip()
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
     if not title or not url:
         return value
-
     canonical_link = f"[{title}]({url})"
     text = re.sub(r"\[([^\]]+)\]\((?:https?://)[^)]*\)", r"\1", str(value or "").strip())
     text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
     text = re.sub(rf"(?im)\b{re.escape(title)}\b", "", text)
     text = re.sub(r"\s{2,}", " ", text).strip(" .")
-
     fit = _v338_recommendation_fit_sentence(user_query, primary)
     if fit and fit.casefold() not in text.casefold():
         text = f"{text}. {fit}".strip(" .") if text else fit
-
     prefix = "A useful place to begin is "
     return f"{prefix}{canonical_link}. {text.strip()}".strip() if text.strip() else f"{prefix}{canonical_link}."
 
@@ -228,6 +224,9 @@ def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canoni
             answer = normalize(answer, canonical_link_context)
         except TypeError:
             answer = normalize(answer)
+    # v339 must own the final doorway even when the protected-core normalizer
+    # returns a fully rendered Markdown link that would otherwise hide the exact
+    # primary doorway shape expected by the preserved v336 contract.
     return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
 
 
@@ -239,20 +238,11 @@ def _v339_finalize_generation_response(*args, **kwargs):
     user_query = str(user_query or "")
     if not value or not use_core._is_recommendation_question(user_query):
         return value
-
     retrieved_context = kwargs.get("retrieved_context_blocks", "")
     if retrieved_context is None and len(args) >= 2:
         retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "")
-    if not canonical_link_context:
-        canonical_link_context = retrieved_context
-
-    return _v336_construct_visitor_answer(
-        str(value or ""),
-        user_query,
-        str(retrieved_context or ""),
-        str(canonical_link_context or ""),
-    )
+    canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
+    return _v336_construct_visitor_answer(str(value or ""), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
 
 
 use_core._build_generation_messages = _build_generation_messages
@@ -260,9 +250,6 @@ use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
 use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-# FastAPI's /query handler lives inside use_core.py and resolves its global
-# generate_llm_response there, so install the authoritative finalizer on that
-# actual seam before exposing the FastAPI application.
 use_core.generate_llm_response = _v339_finalize_generation_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
@@ -291,5 +278,4 @@ def search_visitor(*args, **kwargs):
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
