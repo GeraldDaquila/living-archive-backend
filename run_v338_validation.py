@@ -12,8 +12,15 @@ for required in (
     "_original_recommendation_output_authority",
     "_original_recommendation_resource_identity",
 ):
-    # v338 preserves the v337 wrapper seam; no production version bump occurs
-    # inside this experiment branch until promotion.
+    assert required in main_source, required
+
+# v338 experiment intentionally retains the v337 production wrapper identity
+# until promotion. The behavioral seam is validated independently below.
+for required in (
+    "def _v337_apply_recommendation_authority",
+    "def _v337_final_answer_boundary",
+    "def _v336_construct_visitor_answer",
+):
     assert required in main_source, required
 
 primary = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
