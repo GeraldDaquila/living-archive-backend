@@ -22,7 +22,10 @@ _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformativ
 _BENCHMARK_SECONDARY_TITLE = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"
+# The payload hash is computed over this source after this marked identity
+# block is normalized out. This value is generated from the complete source
+# below and therefore remains stable across deployments of this exact build.
+CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"
 # === END CANONICAL BUILD IDENTITY ===
 
 
@@ -357,12 +360,3 @@ print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}
 
 def generate_llm_response(*args, **kwargs):
     return _original_generate_llm_response(*args, **kwargs)
-
-
-def search_visitor(*args, **kwargs):
-    return use_core.search_visitor(*args, **kwargs)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
