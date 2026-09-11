@@ -10,6 +10,7 @@ core = CORE.read_bytes()
 
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 EXPECTED_CORE_RAW_SHA256 = "7576b432174633f7182c934891b388a36e9c0b743d0adee41f19e11917d91e81"
+EXPECTED_CORE_INTERNAL_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 for marker in (
     'APP_VERSION = "v339"',
@@ -42,6 +43,10 @@ actual_raw = hashlib.sha256(core).hexdigest()
 actual_blob = hashlib.sha1(f"blob {len(core)}\0".encode("utf-8") + core).hexdigest()
 assert actual_raw == EXPECTED_CORE_RAW_SHA256, (EXPECTED_CORE_RAW_SHA256, actual_raw)
 assert actual_blob == EXPECTED_CORE_BLOB_SHA, (EXPECTED_CORE_BLOB_SHA, actual_blob)
+
+# The protected v333 runtime also maintains its historical internal source
+# provenance marker; that value is distinct from the raw Git file digest.
+assert EXPECTED_CORE_INTERNAL_SHA256 in core.decode("utf-8"), EXPECTED_CORE_INTERNAL_SHA256
 
 print("USE v339 runtime doorway validation: PASS")
 print(f"protected_core_raw_sha256={actual_raw}")
