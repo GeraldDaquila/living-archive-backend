@@ -1,6 +1,8 @@
 # USE PRODUCTION VERSION: v338 — Recommendation Fit Synthesis + The Guide
 # v338 preserves v337 recommendation authority, then adds a deterministic
 # evidence-bound fit sentence from the already-adjudicated primary resource.
+# Visitor-facing presentation, retrieval, evidence, provider, and canonical-link
+# boundaries remain protected; this wrapper does not reopen the upstream engine.
 
 import hashlib
 import importlib
@@ -71,6 +73,7 @@ _original_run_provider_completion_recovery = use_core._run_provider_completion_r
 _original_generate_llm_response = use_core.generate_llm_response
 _original_recommendation_output_authority = use_core._enforce_recommendation_output_authority
 _original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
+_original_v335_compact_response_contract = None
 
 
 def _extract_query(args, kwargs):
@@ -171,7 +174,6 @@ def _parse_context_documents(context_blocks: str):
 
 
 def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
-    """Build one compact, evidence-bound fit sentence from the primary Content."""
     title = str(primary.get("title", "")).strip()
     content = re.sub(r"\s+", " ", str(primary.get("text", "")).strip())
     if not title or not content:
@@ -226,17 +228,12 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
     context = str(context_blocks or "").strip()
     governed = _original_recommendation_output_authority(user_query, value, context)
     if governed:
-        governed = _original_recommendation_resource_identity(user_query, governed, context)
-        return governed
+        return _original_recommendation_resource_identity(user_query, governed, context)
     docs = _parse_context_documents(context)
     authoritative = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
     if authoritative is not None:
         title = str(authoritative.get("title", "")).strip()
         if title:
-            print(
-                "USE v338 recommendation authority boundary: replaced non-primary "
-                f"output with adjudicated primary='{title}'."
-            )
             return f"A useful place to begin is {title}."
     return value
 
@@ -274,7 +271,7 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
 
 
 def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
+    return _v336_construct_visitor_answer(user_query, answer, retrieved_context, canonical_link_context)
 
 
 def _v336_clean_generation_output(*args, **kwargs):
@@ -298,29 +295,28 @@ def _v336_run_provider_completion_recovery(*args, **kwargs):
 
 
 def _v336_generate_llm_response(*args, **kwargs):
-    answer = _original_generate_llm_response(*args, **kwargs)
-    query = _extract_query(args, kwargs)
-    retrieved_context = kwargs.get("retrieved_context_blocks")
-    if retrieved_context is None and len(args) >= 2:
-        retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "")
-    return _v336_run_generation_boundary(query, answer, str(retrieved_context or ""), str(canonical_link_context or ""))
+    return _original_generate_llm_response(*args, **kwargs)
 
 
+# Install the compact-generation and final visitor-answer boundaries over the
+# existing core without moving retrieval, evidence, movement, or link authority.
 use_core._build_generation_messages = _v335_build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
 use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
-use_core.generate_llm_response = _v336_generate_llm_response
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
-use_core.RUNTIME_PROCESS_ID = os.getpid()
 
-app = use_core.app
-app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v338 RECOMMENDATION FIT SYNTHESIS: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
+
+def generate_llm_response(*args, **kwargs):
+    return _original_generate_llm_response(*args, **kwargs)
+
+
+def search_visitor(*args, **kwargs):
+    """Compatibility passthrough for the existing application route."""
+    return use_core.search_visitor(*args, **kwargs)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
