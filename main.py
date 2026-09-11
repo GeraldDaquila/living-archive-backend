@@ -121,8 +121,6 @@ def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
     return ""
 
 
-# Wrap the core generation entrypoints. This keeps the v334 protection at the
-# actual generation/output seam instead of relying on an unused audit helper.
 _original_run_generation_attempt = use_core._run_generation_attempt
 _original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
 
