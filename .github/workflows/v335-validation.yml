@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - exp/v335-compact-response-contract
+      - fix/v335-production-identity
 
 jobs:
   v335-validation:
@@ -26,7 +27,7 @@ jobs:
         run: python run_v335_validation.py
 
       - name: Compile production modules
-        run: python -m compileall -q main.py use_core.py tests
+        run: python -m compileall -q main.py use_core.py tests release_control
 
       - name: Install pytest
         run: python -m pip install --disable-pip-version-check pytest
