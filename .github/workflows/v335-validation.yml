@@ -1,4 +1,4 @@
-name: v335 validation
+name: v336 validation
 
 on:
   pull_request:
@@ -6,30 +6,25 @@ on:
       - main
   push:
     branches:
-      - exp/v335-compact-response-contract
+      - exp/v336-visitor-answer-construction
 
 jobs:
-  v335-validation:
+  v336-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout full history
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Validate v335 provider envelope
-        run: python run_v335_validation.py
-
       - name: Compile production modules
         run: python -m compileall -q main.py use_core.py tests
-
       - name: Install pytest
         run: python -m pip install --disable-pip-version-check pytest
-
-      - name: Run v335 regression probes
-        run: python -m pytest -q tests/test_v335_response_contract.py tests/test_v335_budget_contract.py
+      - name: Run v336 regression probes
+        run: python -m pytest -q tests/test_v336_visitor_answer_contract.py tests/test_v336_runtime_presentation.py
+      - name: Preserve v335 provider envelope regression
+        run: python run_v335_validation.py
