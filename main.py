@@ -75,6 +75,7 @@ finally:
 
 _original_violation = use_core._v308_compassionate_voice_violation
 _original_build_generation_messages = use_core._build_generation_messages
+_original_clean_generation_output = use_core._clean_generation_output
 
 
 def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
@@ -146,6 +147,24 @@ def _v334_build_generation_messages(*args, **kwargs):
     return messages
 
 
+def _v334_clean_generation_output(*args, **kwargs):
+    """Apply the v334 compassionate boundary at the final cleaned-answer seam."""
+    cleaned = _original_clean_generation_output(*args, **kwargs)
+    user_query = kwargs.get("user_query")
+    if user_query is None and len(args) >= 4:
+        user_query = args[3]
+    if user_query is None:
+        user_query = ""
+    violation = _v334_compassionate_voice_violation(str(user_query), cleaned)
+    if not violation:
+        return cleaned
+    print(
+        "USE v334 final answer boundary: rejecting cleaned vulnerable-experience answer; "
+        f"reason={violation}"
+    )
+    return ""
+
+
 def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
     """Reject vulnerable-experience generation before it can reach the visitor."""
     violation = _v334_compassionate_voice_violation(user_query, answer)
@@ -184,6 +203,7 @@ def _v334_run_provider_completion_recovery(*args, **kwargs):
 
 
 use_core._build_generation_messages = _v334_build_generation_messages
+use_core._clean_generation_output = _v334_clean_generation_output
 use_core._v308_compassionate_voice_violation = _v334_compassionate_voice_violation
 use_core._run_generation_attempt = _v334_run_generation_attempt
 use_core._run_provider_completion_recovery = _v334_run_provider_completion_recovery
