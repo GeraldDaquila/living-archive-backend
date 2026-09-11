@@ -35,11 +35,16 @@ def test_v336_generation_path_enforces_recommendation_authority():
     assert "_enforce_recommendation_resource_identity" in recovery
 
 
-def test_v337_final_v336_wrapper_rechecks_recommendation_authority():
+def test_v337_final_wrapper_routes_through_authority_boundary():
     source = _source(MAIN)
-    boundary = _function(source, "_v336_run_generation_boundary")
-    assert "_enforce_recommendation_output_authority" in boundary
-    assert "_enforce_recommendation_resource_identity" in boundary
+    authority = _function(source, "_v337_apply_recommendation_authority")
+    final_boundary = _function(source, "_v337_final_answer_boundary")
+    wrapper = _function(source, "_v336_run_generation_boundary")
+    assert "_original_recommendation_output_authority" in authority
+    assert "_original_recommendation_resource_identity" in authority
+    assert "_deterministic_provider_fallback" in authority
+    assert "_v337_apply_recommendation_authority" in final_boundary
+    assert "_v336_construct_visitor_answer" in wrapper
 
 
 def test_v337_recommendation_benchmark_identity_is_present():
