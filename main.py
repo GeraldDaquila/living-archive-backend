@@ -16,37 +16,11 @@ DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
-# Benchmark resources kept explicit for structural/audit validation.
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
 _BENCHMARK_SECONDARY_TITLE = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
 
-# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-# Canonical payload marker is intentionally explicit in source; the production
-# identity remains separately verified by the immutable runtime source SHA and
-# exposed request headers/metadata. The source itself is still required to be
-# the exact audited v339 wrapper before startup.
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
-# === END CANONICAL BUILD IDENTITY ===
-
-
-def _canonical_source_payload(source: str) -> str:
-    source = source.replace("\r\n", "\n").replace("\r", "\n")
-    pattern = re.compile(
-        r"(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n"
-        r".*?"
-        r"^# === END CANONICAL BUILD IDENTITY ===\n?"
-    )
-    normalized, count = pattern.subn(
-        "# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n"
-        "# <CANONICAL_BUILD_IDENTITY_BLOCK>\n"
-        "# === END CANONICAL BUILD IDENTITY ===\n",
-        source,
-        count=1,
-    )
-    if count != 1:
-        raise RuntimeError("USE v339 build identity failure: identity block missing.")
-    return normalized
 
 
 def _sha256(data: bytes) -> str:
