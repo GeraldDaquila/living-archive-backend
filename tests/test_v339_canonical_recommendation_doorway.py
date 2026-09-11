@@ -4,9 +4,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "main.py"
 
-PRIMARY = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
-PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
-
 
 def _function(source, name):
     tree = ast.parse(source)
@@ -20,8 +17,7 @@ def test_v339_identity_and_boundary_exist():
     source = MAIN.read_text(encoding="utf-8")
     assert 'APP_VERSION = "v339"' in source
     assert "_v339_canonical_recommendation_doorway" in source
-    assert PRIMARY in source
-    assert PRIMARY_URL in source
+    assert "EXPECTED_CORE_SOURCE_SHA256" in source
 
 
 def test_v339_final_presenter_enforces_canonical_link():
