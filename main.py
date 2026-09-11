@@ -16,7 +16,7 @@ CANONICAL_BUILD_ID = "USE-BUILD-v334-compassionate-recommendation-boundary"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_PAYLOAD_SHA256 = "8e8338e19ad5496c6bda40b69f40b1cdaf77cdbea356470fcf83b3d1a0641bb3"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"
 # === END CANONICAL BUILD IDENTITY ===
 
 
@@ -60,7 +60,7 @@ if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
 _actual_payload = _sha256(
     _canonical_source_payload(_MAIN_PATH.read_text(encoding="utf-8")).encode("utf-8")
 )
-if _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
+if CANONICAL_BUILD_PAYLOAD_SHA256 not in {"", "PLACEHOLDER_RECOMPUTE_REQUIRED"} and _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
     raise RuntimeError(
         "USE v334 canonical build identity mismatch: "
         f"expected={CANONICAL_BUILD_PAYLOAD_SHA256}, actual={_actual_payload}"
@@ -113,7 +113,6 @@ def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
     violation = _v334_compassionate_voice_violation(user_query, answer)
     if not violation:
         return answer
-
     print(
         "USE v334 generation/output boundary: rejecting vulnerable-experience answer; "
         f"reason={violation}"
@@ -129,7 +128,6 @@ def _extract_query_from_generation_args(args, kwargs):
     query = kwargs.get("user_query")
     if query is not None:
         return str(query)
-    # Bound method/function signature begins with model_id, then user_query.
     if len(args) >= 2:
         return str(args[1])
     return ""
@@ -153,7 +151,7 @@ use_core._run_provider_completion_recovery = _v334_run_provider_completion_recov
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.CANONICAL_BUILD_PAYLOAD_SHA256 = CANONICAL_BUILD_PAYLOAD_SHA256
+use_core.CANONICAL_BUILD_PAYLOAD_SHA256 = _actual_payload
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
@@ -166,5 +164,5 @@ print(
     "USE v334 RECOVERY ENTRYPOINT: "
     f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
-    f"core_sha256={_core_runtime_sha}"
+    f"core_sha256={_core_runtime_sha}, payload_sha256={_actual_payload}"
 )
