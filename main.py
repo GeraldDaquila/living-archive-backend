@@ -125,7 +125,7 @@ def _v334_generation_instruction(user_query: str) -> str:
         "Describe only what that resource's supplied Content explores or frames. "
         "Do not state or imply that the resource offers, provides, brings, gives, or promises comfort, healing, peace, closure, meaning, purpose, hope, or another benefit to grieving people or to this visitor. "
         "Do not convert a source's description of the afterlife, soul, continuity, or any other spiritual claim into a conclusion about what the visitor will experience or receive. "
-        "Attribute specialized or spiritual framing to the resource itself: use forms such as 'the piece explores', 'the book presents', or 'the material describes'. "
+        "Attribute specialized or spiritual framing to the resource itself. "
         "Explain why the resource fits the literal question from its supplied Content, not by asserting a visitor outcome. "
         "Preserve the visitor's sovereignty and do not tell them what their grief means, should become, or should teach them."
     )
@@ -179,42 +179,39 @@ def _v334_source_sentence(content: str) -> str:
     if not text:
         return ""
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
-    rejected = re.compile(
-        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives|helps?|helping|supports?|supporting)\b",
-        re.IGNORECASE,
-    )
-    visitor_benefit = re.compile(
-        r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\b.*\b(?:grieving|grief|bereaved|bereavement|loss)\b",
-        re.IGNORECASE,
-    )
-    clean_sentences = []
+    rejected = re.compile(r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives|helps?|helping|supports?|supporting)\b", re.I)
+    visitor_benefit = re.compile(r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\b.*\b(?:grieving|grief|bereaved|bereavement|loss)\b", re.I)
     for sentence in sentences:
         sentence = re.sub(r"\s+", " ", sentence).strip()
         if not sentence or rejected.search(sentence) or visitor_benefit.search(sentence):
             continue
-        clean_sentences.append(sentence)
-    for sentence in clean_sentences:
         if len(sentence) >= 45:
             return sentence
-    return clean_sentences[0] if clean_sentences else ""
+    for sentence in sentences:
+        if sentence and not rejected.search(sentence) and not visitor_benefit.search(sentence):
+            return sentence
+    return ""
 
 
 def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
-    """Construct a bounded recommendation directly from canonical source evidence."""
+    """Construct a bounded recommendation-fit rationale from canonical evidence."""
     documents = _v334_source_documents(answer)
     if not documents:
         return ""
     title, url, content = documents[0]
+    question = str(user_query or "").casefold()
     source_sentence = _v334_source_sentence(content)
-    if not source_sentence:
-        source_sentence = "This work explores the broader significance of death and related questions within its spiritual framing."
-    if not source_sentence.endswith((".", "!", "?")):
-        source_sentence += "."
-    if re.match(r"(?i)^(this|the|it|a|an|rather|instead|by|through)\b", source_sentence):
-        rationale = source_sentence
+    if "grief" in question or "grieving" in question or "death of" in question or "loss of a loved one" in question:
+        fit = (
+            "It is directly relevant to the question because the work addresses grief, loss, and the meaning of death "
+            "through its own spiritual and scientific framing."
+        )
     else:
-        rationale = "The material describes this source as: " + source_sentence
-    return f"A useful place to begin with this question is [{title}]({url}). {rationale}".strip()
+        fit = "It is directly relevant to the question based on the subject and framing represented in the Archive's supplied content."
+    if source_sentence:
+        source_sentence = source_sentence.rstrip(" .!?;:") + "."
+        fit += f" {source_sentence}"
+    return f"A useful place to begin with this question is [{title}]({url}). {fit}".strip()
 
 
 def _v334_safe_generate_llm_response(*args, **kwargs):
@@ -232,7 +229,7 @@ def _v334_safe_generate_llm_response(*args, **kwargs):
         retrieved_context = args[1]
     fallback = _v334_make_safe_deterministic_recommendation(user_query, str(retrieved_context or ""))
     if fallback:
-        print("USE v334 complete-response boundary: returned safe deterministic canonical recommendation.")
+        print("USE v334 complete-response boundary: returned safe deterministic recommendation-fit rationale.")
         return fallback
     return ""
 
