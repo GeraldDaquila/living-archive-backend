@@ -1,7 +1,7 @@
 # USE PRODUCTION VERSION: v338 — Recommendation Fit Synthesis + The Guide
 # v338 preserves v337 recommendation authority, then adds a deterministic
 # evidence-bound fit sentence from the already-adjudicated primary resource.
-# Visitor-facing presentation, retrieval, evidence, provider, and canonical-link
+# visitor-facing presentation, retrieval, evidence, provider, and canonical-link
 # boundaries remain protected; this wrapper does not reopen the upstream engine.
 
 import hashlib
@@ -73,7 +73,6 @@ _original_run_provider_completion_recovery = use_core._run_provider_completion_r
 _original_generate_llm_response = use_core.generate_llm_response
 _original_recommendation_output_authority = use_core._enforce_recommendation_output_authority
 _original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
-_original_v335_compact_response_contract = None
 
 
 def _extract_query(args, kwargs):
@@ -271,7 +270,7 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
 
 
 def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    return _v336_construct_visitor_answer(user_query, answer, retrieved_context, canonical_link_context)
+    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
 
 
 def _v336_clean_generation_output(*args, **kwargs):
@@ -312,11 +311,9 @@ def generate_llm_response(*args, **kwargs):
 
 
 def search_visitor(*args, **kwargs):
-    """Compatibility passthrough for the existing application route."""
     return use_core.search_visitor(*args, **kwargs)
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
