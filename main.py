@@ -221,9 +221,9 @@ def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canoni
     normalize = getattr(use_core, "normalize_link_presentation", None)
     if callable(normalize):
         try:
-            answer = normalize(answer, canonical_link_context)
+            answer = use_core.normalize_link_presentation(answer, canonical_link_context)
         except TypeError:
-            answer = normalize(answer)
+            answer = use_core.normalize_link_presentation(answer)
     return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
 
 
