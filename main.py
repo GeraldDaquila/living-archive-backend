@@ -167,53 +167,71 @@ def _v334_clean_generation_output(*args, **kwargs):
     return ""
 
 
-def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
-    """Salvage the canonical recommendation without asserting visitor benefit."""
+def _v334_source_documents(answer: str):
     pairs = re.findall(
-        r"(?m)^Title:\s*(.+?)\s*$\nURL:\s*(https?://\S+)\s*$\nContent:\s*(.*?)(?=\n\n---\n\n|\Z)",
+        r"(?ms)^Title:\s*(.+?)\s*$\nURL:\s*(https?://\S+)\s*$\nContent:\s*(.*?)(?=\n\n---\n\n|\Z)",
         str(answer or ""),
-        flags=re.DOTALL,
     )
-    if not pairs:
-        return ""
-    title, url, content = pairs[0]
-    title = html.unescape(re.sub(r"<[^>]+>", "", title).strip())
-    url = html.unescape(re.sub(r"<[^>]+>", "", url).strip())
-    content = html.unescape(str(content or ""))
-    content = re.sub(r"<!--.*?-->", " ", content, flags=re.DOTALL)
-    content = re.sub(r"<[^>]+>", " ", content)
-    content = re.sub(r"\s+", " ", content).strip()
-    if not title or not url or not content:
-        return ""
+    documents = []
+    for title, url, content in pairs:
+        title = html.unescape(re.sub(r"<[^>]+>", "", title).strip())
+        url = html.unescape(re.sub(r"<[^>]+>", "", url).strip())
+        content = html.unescape(str(content or ""))
+        content = re.sub(r"<!--.*?-->", " ", content, flags=re.DOTALL)
+        content = re.sub(r"<[^>]+>", " ", content)
+        content = re.sub(r"\s+", " ", content).strip()
+        if title and url and content:
+            documents.append((title, url, content))
+    return documents
 
-    # Remove deterministic visitor-benefit constructions and internal wording
-    # that must not cross into the final visitor-facing fallback.
-    content = re.sub(
-        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives)\s+(?:comfort|healing|peace|closure|meaning|purpose|hope)\s+(?:to|for)\s+(?:those|people|someone|a person|the reader|you)\s+(?:who are|who is|with)?\s*(?:grieving|grief|bereaved|bereavement|loss)\b",
-        "",
-        content,
-        flags=re.IGNORECASE,
-    )
-    content = re.sub(r"\s{2,}", " ", content).strip(" ,;:")
-    if not content:
-        content = "The material explores the subject through the framing represented in its supplied content."
 
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", content) if s.strip()]
-    first_sentence = sentences[0] if sentences else content[:360].rstrip(" ,;:")
-    if not first_sentence.endswith((".", "!", "?")):
-        first_sentence += "."
-    # Avoid doubling "explores" when the source sentence already starts with it.
-    if re.match(r"(?i)^this (?:essay|piece|book|work|material) (?:explores|presents|describes)\b", first_sentence):
-        source_sentence = first_sentence
-    else:
-        source_sentence = "The material explores " + first_sentence[0].lower() + first_sentence[1:]
-    source_sentence = source_sentence[:460].rstrip()
+def _v334_source_sentence(content: str) -> str:
+    text = str(content or "").strip()
+    if not text:
+        return ""
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    for sentence in sentences:
+        sentence = re.sub(r"\s+", " ", sentence).strip()
+        if not sentence:
+            continue
+        if re.search(
+            r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives|helps?|helping|supports?|supporting)\b",
+            sentence,
+            flags=re.IGNORECASE,
+        ):
+            continue
+        if re.search(
+            r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\b.*\b(?:grieving|grief|bereaved|bereavement|loss)\b",
+            sentence,
+            flags=re.IGNORECASE,
+        ):
+            continue
+        if len(sentence) >= 45:
+            return sentence
+    return sentences[0] if sentences else text[:320].rstrip(" ,;:")
+
+
+def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
+    """Construct a bounded recommendation directly from canonical source evidence."""
+    documents = _v334_source_documents(answer)
+    if not documents:
+        return ""
+    title, url, content = documents[0]
+    source_sentence = _v334_source_sentence(content)
+    if not source_sentence:
+        source_sentence = "The material explores the subject through the framing represented in its supplied content."
     if not source_sentence.endswith((".", "!", "?")):
         source_sentence += "."
-
+    if re.match(r"(?i)^this (?:essay|piece|book|work|material) (?:explores|presents|describes)\b", source_sentence):
+        rationale = source_sentence
+    else:
+        rationale = "The material describes " + source_sentence[0].lower() + source_sentence[1:]
+    rationale = rationale[:460].rstrip()
+    if not rationale.endswith((".", "!", "?")):
+        rationale += "."
     return (
         f"A useful place to begin with this question is [{title}]({url}). "
-        f"{source_sentence}"
+        f"{rationale}"
     ).strip()
 
 
