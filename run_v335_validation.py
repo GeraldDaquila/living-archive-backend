@@ -71,7 +71,7 @@ def _load_provider_prompt():
         CORE.read_text(encoding="utf-8"), "COMPACT_GENERATION_SYSTEM_PROMPT"
     )
     exec(compile(fn, "<v335_provider_prompt>", "exec"), ns)
-    return ns["_v335_provider_system_prompt"]
+    return ns["_v335_provider_system_prompt"]()
 
 
 def _baseline_main_source():
@@ -98,6 +98,13 @@ def main():
     provider_prompt = _load_provider_prompt()
     baseline_source = _baseline_main_source()
     lean_prompt = _literal_assignment(baseline_source, "_LEAN_PROVIDER_SYSTEM_PROMPT")
+
+    assert "[RECOMMENDATION QUALITY]" in compact_prompt
+    assert "[BREATHE BETWEEN IDEAS]" in compact_prompt
+    assert "[RECOMMENDATION QUALITY]" not in provider_prompt
+    assert "[BREATHE BETWEEN IDEAS]" not in provider_prompt
+    assert "[VISITOR VOICE]" in provider_prompt
+    assert "[COMPASSIONATE CARE]" in provider_prompt
 
     build_contract = _load_contract_builder()
     cases = [
