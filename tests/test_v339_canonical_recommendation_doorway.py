@@ -64,3 +64,9 @@ def test_v339_runtime_identity_is_request_visible():
     assert "X-USE-Source-SHA256" in source
     assert "X-USE-Boot-ID" in source
     assert "X-USE-Request-ID" in source
+
+
+def test_v339_runtime_provenance_uses_immutable_source_and_core_checks():
+    source = MAIN.read_text(encoding="utf-8")
+    assert "RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())" in source
+    assert "_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256" in source
