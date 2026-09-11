@@ -12,26 +12,32 @@ def _load_constructor():
     source = MAIN.read_text(encoding="utf-8")
     tree = ast.parse(source)
     wanted = {
-        name for name in (
-            "_v336_construct_visitor_answer",
-            "_v339_canonical_recommendation_doorway",
-            "_v338_final_answer_boundary",
-            "_v338_build_recommendation_answer",
-            "_v337_apply_recommendation_authority",
-        )
+        "_v336_construct_visitor_answer",
+        "_v339_canonical_recommendation_doorway",
+        "_v338_final_answer_boundary",
+        "_v338_build_recommendation_answer",
+        "_v337_apply_recommendation_authority",
     }
     nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in wanted]
     code = "\n\n".join(ast.get_source_segment(source, node) for node in nodes)
+
+    class Core:
+        def _is_recommendation_question(self, _q):
+            return True
+        def normalize_link_presentation(self, title, _ctx):
+            return f"[{title}]({PRIMARY_URL})" if PRIMARY in title else title
+        def _adjudicate_recommendation_resource(self, docs, _q):
+            return docs[0] if docs else None
+        def _movement_question_requires_canonical_next(self, _q):
+            return False
+        def recognize_question_structure(self, _q):
+            return {"structure": ""}
+        def _question_is_underdetermined(self, _q):
+            return False
+
     namespace = {
         "re": __import__("re"),
-        "use_core": type("Core", (), {
-            "_is_recommendation_question": lambda _q: True,
-            "normalize_link_presentation": lambda title, ctx: f"[{title}]({PRIMARY_URL})" if PRIMARY in title else title,
-            "_adjudicate_recommendation_resource": lambda docs, _q: docs[0] if docs else None,
-            "_movement_question_requires_canonical_next": lambda _q: False,
-            "recognize_question_structure": lambda _q: {"structure": ""},
-            "_question_is_underdetermined": lambda _q: False,
-        })(),
+        "use_core": Core(),
         "_original_violation": lambda *_a: None,
         "_original_recommendation_output_authority": lambda _q, answer, _c: answer,
         "_original_recommendation_resource_identity": lambda _q, answer, _c: answer,
