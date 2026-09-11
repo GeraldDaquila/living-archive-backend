@@ -1,0 +1,79 @@
+name: build-v334-clean
+
+on:
+  push:
+    branches:
+      - v334-clean-engine-final
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: patch canonical v333 engine to v334
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import py_compile
+          import re
+          p = Path('main.py')
+          s = p.read_text(encoding='utf-8')
+          assert s.startswith('# USE PRODUCTION VERSION: v333')
+          s = s.replace('# USE PRODUCTION VERSION: v333 — Visitor-Centered Sensemaking Construction + The Guide', '# USE PRODUCTION VERSION: v334 — Compassionate Recommendation Boundary + The Guide', 1)
+          for old,new in [
+              ('APP_VERSION = "v333"','APP_VERSION = "v334"'),
+              ('DEPLOYMENT_FINGERPRINT = "USE-v333-visitor-centered-sensemaking-construction"','DEPLOYMENT_FINGERPRINT = "USE-v334-compassionate-recommendation-boundary"'),
+              ('CANONICAL_BUILD_ID = "USE-BUILD-v333-visitor-centered-sensemaking-construction"','CANONICAL_BUILD_ID = "USE-BUILD-v334-compassionate-recommendation-boundary"'),
+          ]:
+              assert s.count(old)==1, old
+              s=s.replace(old,new,1)
+          anchor = r'''        (r"\b(?:find|discover|create)\s+(?:meaning|purpose|closure|wisdom)\s+(?:in|from)\s+your\s+(?:grief|loss|pain)\b", "prescribed meaning-making"),'''
+          additions = anchor + r'''
+        (r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives)\s+(?:comfort|healing|peace|closure|meaning|purpose|hope)\b", "asserted visitor benefit"),
+        (r"\b(?:helps?|helping|supports?|supporting)\s+(?:those|people|someone|a person|the reader|you)\s+(?:who are|who is|with)?\s*(?:grieving|grief|bereaved|bereavement|loss)\b", "asserted visitor benefit"),
+        (r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\s+(?:for|to)\s+(?:those|people|someone|the reader|you)\s+(?:who are|who is|with)?\s*(?:grieving|grief|bereaved|bereavement|loss)\b", "asserted visitor benefit"),'''
+          assert s.count(anchor)==1
+          s=s.replace(anchor,additions,1)
+          audit='''    assert not _v308_compassionate_voice_violation(\n'''
+          start=s.index('def _v308_compassionate_voice_self_audit()')
+          tail=s[start:]
+          block='''    assert _v308_compassionate_voice_violation(\n        "What essay would you recommend for someone grieving the death of a loved one?",\n        "The material offers comfort by suggesting continuity and connection beyond death.",\n    )\n    assert _v308_compassionate_voice_violation(\n        "What essay would you recommend for someone grieving the death of a loved one?",\n        "This piece is helpful for people grieving because it provides hope and peace.",\n    )\n'''
+          assert audit in tail
+          tail=tail.replace(audit,block+audit,1)
+          s=s[:start]+tail
+          s=re.sub(r'CANONICAL_BUILD_PAYLOAD_SHA256 = "[0-9a-f]+"','CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"',s,count=1)
+          assert '__PAYLOAD_SHA256__' in s
+          def canonical(t):
+              t=t.replace('\r\n','\n').replace('\r','\n')
+              pat=re.compile(r'(?ms)^# === CANONICAL BUILD IDENTITY \(excluded from payload hash\) ===\n.*?^# === END CANONICAL BUILD IDENTITY ===\n?')
+              n,c=pat.subn('# === CANONICAL BUILD IDENTITY (excluded from payload hash) ===\n# <CANONICAL_BUILD_IDENTITY_BLOCK>\n# === END CANONICAL BUILD IDENTITY ===\n',t,count=1)
+              assert c==1
+              return n
+          payload=hashlib.sha256(canonical(s).encode()).hexdigest()
+          s=s.replace('CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"',f'CANONICAL_BUILD_PAYLOAD_SHA256 = "{payload}"',1)
+          p.write_text(s,encoding='utf-8',newline='')
+          py_compile.compile(str(p),doraise=True)
+          final=p.read_text(encoding='utf-8')
+          assert 'APP_VERSION = "v334"' in final
+          assert 'USE-v334-compassionate-recommendation-boundary' in final
+          assert 'USE-BUILD-v334-compassionate-recommendation-boundary' in final
+          assert 'asserted visitor benefit' in final
+          assert 'use_core.py' not in final
+          assert '_v334_compassionate_voice_violation' not in final
+          print('V334_RAW_SOURCE_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          print('V334_CANONICAL_PAYLOAD_SHA256='+payload)
+          print('V334_CLEAN_FULL_ENGINE_BUILD: PASS')
+          PY
+      - name: commit clean v334
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/build-v334-clean.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py
+          git commit -m 'USE v334 clean full engine'
+          git push origin "$GITHUB_REF_NAME"
