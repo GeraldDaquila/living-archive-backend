@@ -14,23 +14,16 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-# Protected release core present in the v339 tree. Runtime comparison uses the
-# Git blob SHA identity of use_core.py, not a raw file digest.
-EXPECTED_CORE_BLOB_SHA = "d2731eab9844b19156fe0d2a317c9c765f17f3cf"
+EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
 _BENCHMARK_SECONDARY_TITLE = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
-
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
 
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def _git_blob_sha256(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\\0".encode("utf-8") + data).hexdigest()
 
 
 _MAIN_PATH = Path(__file__).resolve()
@@ -40,11 +33,11 @@ RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
     raise RuntimeError("USE v339 package integrity failure: use_core.py is missing.")
 
-_core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
-if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
+_core_runtime_sha = _sha256(_CORE_PATH.read_bytes())
+if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
     raise RuntimeError(
         "USE v339 package integrity failure: "
-        f"expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
     )
 
 _saved_expected_source = os.environ.pop("USE_EXPECTED_SOURCE_SHA256", None)
@@ -54,23 +47,21 @@ finally:
     if _saved_expected_source is not None:
         os.environ["USE_EXPECTED_SOURCE_SHA256"] = _saved_expected_source
 
-_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", lambda *_args, **_kwargs: None)
-_original_build_generation_messages = getattr(use_core, "_build_generation_messages", None)
-_original_clean_generation_output = getattr(use_core, "_clean_generation_output", None)
-_original_run_generation_attempt = getattr(use_core, "_run_generation_attempt", None)
-_original_run_provider_completion_recovery = getattr(use_core, "_run_provider_completion_recovery", None)
+_original_build_generation_messages = use_core._build_generation_messages
+_original_clean_generation_output = use_core._clean_generation_output
+_original_run_generation_attempt = use_core._run_generation_attempt
+_original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
 _original_generate_llm_response = use_core.generate_llm_response
-_original_recommendation_output_authority = getattr(use_core, "_enforce_recommendation_output_authority", None)
-_original_recommendation_resource_identity = getattr(use_core, "_enforce_recommendation_resource_identity", None)
+_original_recommendation_output_authority = use_core._enforce_recommendation_output_authority
+_original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
+_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", None)
 
 
 def _extract_query(args, kwargs):
     query = kwargs.get("user_query")
     if query is not None:
         return str(query)
-    if len(args) >= 1:
-        return str(args[0])
-    return ""
+    return str(args[0]) if args else ""
 
 
 def _v335_compact_response_contract(user_query: str, intent: str) -> str:
@@ -83,7 +74,7 @@ def _v335_compact_response_contract(user_query: str, intent: str) -> str:
     is_movement = use_core._movement_question_requires_canonical_next(user_query)
     structure = use_core.recognize_question_structure(user_query)
     is_contrast = structure.get("structure") == "explicit_contrast"
-    is_form = bool(re.search(r"\b(?:what kind of|what type of|what form|essay|article|map|navigator|pathway|hub|index|collection|document|resource)\b", query)) and bool(re.search(r"\b(?:what|which|is|are)\b", query))
+    is_form = bool(re.search(r"\b(?:what kind of|what type of|what form|essay|article|map|navigator|pathway|hub|index|collection|document|resource)\b", query))
     is_under = use_core._question_is_underdetermined(user_query)
     lines = [
         "[VISITOR RESPONSE CONTRACT — DO NOT REVEAL]",
@@ -118,21 +109,14 @@ def _v335_provider_system_prompt() -> str:
 
 
 def _v335_build_generation_messages(*args, **kwargs):
-    if not callable(_original_build_generation_messages):
-        return []
     messages = list(_original_build_generation_messages(*args, **kwargs))
-    query = kwargs.get("user_query")
-    if query is None and args:
-        query = args[0]
+    query = kwargs.get("user_query") if "user_query" in kwargs else (args[0] if args else "")
+    intent = kwargs.get("intent") if "intent" in kwargs else (args[1] if len(args) >= 2 else "TOPICAL_INQUIRY")
     if not messages:
         return messages
-    intent = kwargs.get("intent")
-    if intent is None and len(args) >= 2:
-        intent = args[1]
-    intent = str(intent or "TOPICAL_INQUIRY")
     system_message = dict(messages[0])
     system_message["content"] = _v335_provider_system_prompt()
-    contract = _v335_compact_response_contract(str(query or ""), intent)
+    contract = _v335_compact_response_contract(str(query or ""), str(intent or "TOPICAL_INQUIRY"))
     if contract:
         system_message["content"] += "\n\n" + contract
     messages[0] = system_message
@@ -143,40 +127,29 @@ def _build_generation_messages(*args, **kwargs):
     return _v335_build_generation_messages(*args, **kwargs)
 
 
-def _clean_generation_output(value: str) -> str:
-    if not callable(_original_clean_generation_output):
-        return str(value or "")
+def _clean_generation_output(value):
     return _original_clean_generation_output(value)
 
 
-def _run_generation_attempt(*args, **kwargs):
-    if not callable(_original_run_generation_attempt):
-        return None
-    return _original_run_generation_attempt(*args, **kwargs)
-
-
-def _run_provider_completion_recovery(*args, **kwargs):
-    if not callable(_original_run_provider_completion_recovery):
-        return None
-    return _original_run_provider_completion_recovery(*args, **kwargs)
-
-
-def _v336_clean_generation_output(value: str) -> str:
+def _v336_clean_generation_output(value, *args, **kwargs):
     text = _clean_generation_output(value)
-    text = re.sub(r"(?im)^\s*(?:answer|response)\s*:\s*", "", text).strip()
-    return text
+    return re.sub(r"(?im)^\s*(?:answer|response)\s*:\s*", "", str(text or "")).strip()
+
+
+def _run_generation_attempt(*args, **kwargs):
+    return _original_run_generation_attempt(*args, **kwargs)
 
 
 def _v336_run_generation_attempt(*args, **kwargs):
     return _run_generation_attempt(*args, **kwargs)
 
 
+def _run_provider_completion_recovery(*args, **kwargs):
+    return _original_run_provider_completion_recovery(*args, **kwargs)
+
+
 def _v336_run_provider_completion_recovery(*args, **kwargs):
     return _run_provider_completion_recovery(*args, **kwargs)
-
-
-def _v336_generate_llm_response(*args, **kwargs):
-    return _original_generate_llm_response(*args, **kwargs)
 
 
 def _parse_context_documents(context_blocks: str):
@@ -246,12 +219,9 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
     if not value or not use_core._is_recommendation_question(user_query):
         return value
     context = str(context_blocks or "").strip()
-    if callable(_original_recommendation_output_authority):
-        governed = _original_recommendation_output_authority(user_query, value, context)
-        if governed:
-            if callable(_original_recommendation_resource_identity):
-                return _original_recommendation_resource_identity(user_query, governed, context)
-            return governed
+    governed = _original_recommendation_output_authority(user_query, value, context)
+    if governed:
+        return _original_recommendation_resource_identity(user_query, governed, context)
     docs = _parse_context_documents(context)
     authoritative = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
     if authoritative is not None:
@@ -264,10 +234,11 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
     value = _v337_apply_recommendation_authority(user_query, answer, retrieved_context)
     value = _v338_build_recommendation_answer(user_query, value, retrieved_context)
-    violation = _original_violation(user_query, value)
-    if violation:
-        print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
-        return ""
+    if callable(_original_violation):
+        violation = _original_violation(user_query, value)
+        if violation:
+            print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+            return ""
     return value.strip()
 
 
@@ -275,13 +246,11 @@ def _v339_canonical_recommendation_doorway(user_query: str, value: str, context_
     if not use_core._is_recommendation_question(user_query):
         return str(value or "").strip()
     docs = _parse_context_documents(context_blocks)
-    if not docs:
-        return str(value or "").strip()
-    primary = use_core._adjudicate_recommendation_resource(docs, user_query)
+    primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
     if not primary:
         return str(value or "").strip()
-    title = str(primary.get("title", "")).strip()
-    url = str(primary.get("url", "")).strip().rstrip(".,;")
+    title = str(primary.get("title") or "").strip()
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip().rstrip(".,;")
     if not title or not url:
         return str(value or "").strip()
     canonical_link = f"[{title}]({url})"
@@ -291,56 +260,47 @@ def _v339_canonical_recommendation_doorway(user_query: str, value: str, context_
     text = re.sub(r"\s{2,}", " ", text).strip(" .\n\t")
     fit = _v338_recommendation_fit_sentence(user_query, primary)
     if fit and fit.casefold() not in text.casefold():
-        if text:
-            text = f"{text}." if not text.endswith((".", "!", "?")) else text
-            text = f"{text} {fit}"
-        else:
-            text = fit
+        text = f"{text}. {fit}".strip(" .") if text else fit
     prefix = "A useful place to begin is "
-    if text:
-        return f"{prefix}{canonical_link}. {text.strip()}"
-    return f"{prefix}{canonical_link}."
+    return f"{prefix}{canonical_link}. {text.strip()}".strip() if text.strip() else f"{prefix}{canonical_link}."
 
 
-def _v336_construct_visitor_answer(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str) -> str:
-    answer = str(answer or "").strip()
-    answer = _v338_final_answer_boundary(user_query, answer, retrieved_context)
-    normalize = getattr(use_core, "normalize_link_presentation", None)
-    if callable(normalize):
-        try:
-            answer = normalize(answer, canonical_link_context)
-        except TypeError:
-            answer = normalize(answer)
-    return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
+def _v336_construct_visitor_answer(answer: str, user_query: str, retrieved_context: str, canonical_link_context: str = "") -> str:
+    value = str(answer or "").strip()
+    if not value:
+        return ""
+    value = _v338_final_answer_boundary(user_query, value, retrieved_context)
+    if not value:
+        return ""
+    link_context = str(canonical_link_context or retrieved_context or "").strip()
+    value = re.sub(r"(?im)^\s*(?:Title|URL|Content|ID)\s*:\s*", "", value)
+    value = re.sub(r"\b(?:provider|retrieval|retrieved|supplied|canonical)\s+(?:evidence|context|set|window|block|machinery|budget|envelope)\b", "", value, flags=re.IGNORECASE)
+    value = re.sub(r"\s{2,}", " ", value)
+    value = re.sub(r"\n{3,}", "\n\n", value).strip()
+    value = re.sub(r"\bThere is no supplied canonical (?:essay|advice|resource)\b[^.?!]*[.?!]?\s*", "", value, flags=re.IGNORECASE)
+    try:
+        value = use_core.normalize_link_presentation(value, link_context)
+    except Exception as exc:
+        print(f"USE v339 visitor presentation link normalization error: {exc}")
+    value = _v339_canonical_recommendation_doorway(user_query, value, retrieved_context)
+    return value.strip()
 
 
-def _v339_finalize_generation_response(*args, **kwargs):
-    value = _original_generate_llm_response(*args, **kwargs)
-    user_query = kwargs.get("user_query")
-    if user_query is None and args:
-        user_query = args[0]
-    user_query = str(user_query or "")
-    if not value or not use_core._is_recommendation_question(user_query):
-        return value
-    retrieved_context = kwargs.get("retrieved_context_blocks", "")
-    if retrieved_context is None and len(args) >= 2:
-        retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "")
-    if not canonical_link_context:
-        canonical_link_context = retrieved_context
-    return _v336_construct_visitor_answer(str(value or ""), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
+def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
+    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
 
 
-if callable(_original_build_generation_messages):
-    use_core._build_generation_messages = _v335_build_generation_messages
-if callable(_original_clean_generation_output):
-    use_core._clean_generation_output = _v336_clean_generation_output
-if callable(_original_run_generation_attempt):
-    use_core._run_generation_attempt = _v336_run_generation_attempt
-if callable(_original_run_provider_completion_recovery):
-    use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
+def _v336_generate_llm_response(*args, **kwargs):
+    return _original_generate_llm_response(*args, **kwargs)
+
+
+use_core._build_generation_messages = _v335_build_generation_messages
+use_core._clean_generation_output = _v336_clean_generation_output
+use_core._run_generation_attempt = _v336_run_generation_attempt
+use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-use_core.generate_llm_response = _v339_finalize_generation_response
+# FastAPI /query resolves generate_llm_response from use_core.
+use_core.generate_llm_response = _original_generate_llm_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
@@ -354,12 +314,27 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 print(
     f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
+    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}"
 )
 
 
 def generate_llm_response(*args, **kwargs):
     return _v339_finalize_generation_response(*args, **kwargs)
+
+
+def _v339_finalize_generation_response(*args, **kwargs):
+    value = _original_generate_llm_response(*args, **kwargs)
+    user_query = kwargs.get("user_query")
+    if user_query is None and args:
+        user_query = args[0]
+    user_query = str(user_query or "")
+    if not value or not use_core._is_recommendation_question(user_query):
+        return value
+    retrieved_context = kwargs.get("retrieved_context_blocks", "")
+    if retrieved_context is None and len(args) >= 2:
+        retrieved_context = args[1]
+    canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
+    return _v336_construct_visitor_answer(str(value or ""), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
 
 
 def search_visitor(*args, **kwargs):
