@@ -1,0 +1,27 @@
+name: USE v339 full validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Compile production modules
+        run: python -m py_compile main.py use_core.py run_v338_validation.py
+      - name: v339 validation
+        run: python run_v338_validation.py
+      - name: v339 canonical doorway tests
+        run: python -m pytest -q tests/test_v339_canonical_recommendation_doorway.py tests/test_v339_canonical_recommendation_doorway_runtime.py tests/test_v338_recommendation_fit_synthesis.py tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
