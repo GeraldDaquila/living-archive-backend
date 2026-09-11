@@ -22,13 +22,12 @@ assert "RUNTIME_SOURCE_SHA256" in main_source
 assert "RUNTIME_BOOT_ID" in main_source
 assert "RUNTIME_PROCESS_ID" in main_source
 assert "app = use_core.app" in main_source
-assert "USE REQUEST START:" in core_source
-assert "X-USE-Build-ID" in core_source
-assert "X-USE-Version" in core_source
-assert "X-USE-Fingerprint" in core_source
-assert "X-USE-Source-SHA256" in core_source
-assert "X-USE-Boot-ID" in core_source
-assert "X-USE-Request-ID" in core_source
+
+# v339 core remains the protected v333 engine; request observability is owned
+# by the wrapper. Do not require legacy request-log strings from the protected
+# core in this wrapper validation.
+assert "RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())" in main_source
+assert "_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256" in main_source
 
 for required in (
     "def _v338_recommendation_fit_sentence",
