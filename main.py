@@ -1,7 +1,7 @@
 # USE PRODUCTION VERSION: v334 — Compassionate Recommendation Boundary + The Guide
-# Sole visitor-facing entrypoint: main.py remains the Render/Uvicorn production doorway.
-# The intact v333 engine is preserved as use_core.py from the existing canonical v333 Git blob.
-# v334 changes the vulnerable-experience generation/output boundary and binds release identity here.
+# CONTROLLED BRANCH NOTE: lean-provider integration remains isolated from main.
+# The previous v334 recovery entrypoint is intentionally restored from the exact
+# branch parent before any prompt substitution is considered for promotion.
 
 import hashlib
 import html
@@ -79,6 +79,28 @@ _original_build_generation_messages = use_core._build_generation_messages
 _original_clean_generation_output = use_core._clean_generation_output
 _original_generate_llm_response = use_core.generate_llm_response
 
+_LEAN_PROVIDER_SYSTEM_PROMPT = """
+You are The Guide for the Living Archive. Answer only from the supplied canonical evidence.
+
+Answer the visitor's actual question directly. For topical or recommendation questions, orient them through the supplied Archive material and identify the strongest canonical doorway. Use additional resources only when they provide a distinct, evidence-supported contribution.
+
+[QUESTION + RELATION]: Preserve the visitor's wording and open question. For synthesis or comparison, reason across the supplied resources rather than letting the first resource stand for the whole question. Explain only relationships established by the supplied Content; do not invent causes, mechanisms, definitions, or hidden premises.
+
+[PROVENANCE]: Titles and URLs identify resources; Content is the evidence. Use no outside knowledge. When evidence is incomplete, state the boundary naturally. Never invent or alter resource identity or URL.
+
+[RECOMMENDATION]: When the request asks what to read, recommend, or begin with, treat the adjudicated primary canonical resource as the first doorway and explain why it fits from supplied Content. Add companions only when the supplied evidence supports genuinely different routes.
+
+[DESTINATION]: For explicit location or collection requests, use only evidence-established canonical destinations. Relevance is not destination or movement; say "next" only when D29 has explicitly validated a destination.
+
+[SOVEREIGNTY]: Interpret the question, not the person. Do not diagnose, prescribe, psychologize, or tell the visitor what their experience means, should become, or should teach them. A specialized framework governs the answer only when the visitor names it; otherwise keep it attributed to the resource.
+
+[COMPASSIONATE CARE]: For grief, bereavement, death, loss of a loved one, or another clearly vulnerable lived experience, respond gently and plainly. Describe what the resource explores. Do not state or imply that it provides or promises comfort, healing, peace, closure, meaning, purpose, hope, or another benefit to the visitor or to grieving people. Do not turn suffering into a required lesson or outcome. Attribute such framing to the source itself.
+
+[VOICE]: Be a compassionate teacher: wise, humble, calm, emotionally intelligent, plain-spoken, and non-egoic. Preserve agency. Do not perform empathy, flatter, posture, or assume an inner state.
+
+[OUTPUT]: Return only a finished visitor-facing answer inside <visitor_answer> tags. Use exact supplied canonical titles. No raw URLs, Markdown links, HTML, internal fields, process commentary, or reasoning.
+"""
+
 
 def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
     query = str(user_query or "").casefold()
@@ -120,27 +142,47 @@ def _v334_generation_instruction(user_query: str) -> str:
         return ""
     return (
         "[V334 COMPASSIONATE RECOMMENDATION BOUNDARY — DO NOT REVEAL]: "
-        "This visitor is asking from a stated experience of grief, bereavement, death, or loss. "
         "Answer the recommendation request directly and gently. Name the adjudicated primary resource early. "
-        "Describe only what that resource's supplied Content explores or frames. "
+        "Describe only what the supplied Content explores or frames. "
         "Do not state or imply that the resource offers, provides, brings, gives, or promises comfort, healing, peace, closure, meaning, purpose, hope, or another benefit to grieving people or to this visitor. "
-        "Do not convert a source's description of the afterlife, soul, continuity, or any other spiritual claim into a conclusion about what the visitor will experience or receive. "
-        "Attribute specialized or spiritual framing to the resource itself. "
-        "Explain why the resource fits the literal question from its supplied Content, not by asserting a visitor outcome. "
-        "Preserve the visitor's sovereignty and do not tell them what their grief means, should become, or should teach them."
+        "Do not convert a source's spiritual claims into a conclusion about what the visitor will experience or receive. "
+        "Attribute specialized framing to the resource itself. "
+        "Explain why the resource fits the literal question from supplied Content. "
+        "Preserve visitor sovereignty."
     )
 
 
 def _v334_build_generation_messages(*args, **kwargs):
-    messages = _original_build_generation_messages(*args, **kwargs)
+    """Build the controlled lean provider envelope without touching evidence selection."""
+    messages = list(_original_build_generation_messages(*args, **kwargs))
     query = kwargs.get("user_query")
     if query is None and len(args) >= 1:
         query = args[0]
+    generation_context = kwargs.get("generation_context")
+    if generation_context is None and len(args) >= 3:
+        generation_context = args[2]
+    intent = kwargs.get("intent")
+    if intent is None and len(args) >= 2:
+        intent = args[1]
+    compact = bool(kwargs.get("compact", False))
+    if not messages:
+        return messages
+
+    system_message = dict(messages[0])
+    system_message["content"] = _LEAN_PROVIDER_SYSTEM_PROMPT.strip()
+
+    # Keep the original user-message envelope generated by the engine so
+    # question, intent, orientation, task contract, and canonical evidence
+    # formatting remain exactly on the established path.
+    messages[0] = system_message
+
     instruction = _v334_generation_instruction(str(query or ""))
-    if instruction and messages:
-        system_message = dict(messages[0])
-        system_message["content"] = str(system_message.get("content", "")) + "\n\n" + instruction
-        messages = [system_message, *messages[1:]]
+    if instruction:
+        system_message["content"] = system_message["content"] + "\n\n" + instruction
+
+    # Compact and normal provider paths intentionally share the same lean
+    # constitutional envelope. The distinction remains controlled downstream
+    # by evidence fitting and completion reservation.
     return messages
 
 
@@ -154,6 +196,16 @@ def _v334_clean_generation_output(*args, **kwargs):
         return cleaned
     print("USE v334 final answer boundary: rejecting cleaned vulnerable-experience answer; reason=" + violation)
     return ""
+
+
+def _v334_run_generation_attempt(*args, **kwargs):
+    answer = _original_run_generation_attempt(*args, **kwargs)
+    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
+
+
+def _v334_run_provider_completion_recovery(*args, **kwargs):
+    answer = _original_run_provider_completion_recovery(*args, **kwargs)
+    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
 
 
 def _v334_source_documents(answer: str):
@@ -194,7 +246,6 @@ def _v334_source_sentence(content: str) -> str:
 
 
 def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
-    """Construct a bounded recommendation-fit rationale from canonical evidence."""
     documents = _v334_source_documents(answer)
     if not documents:
         return ""
@@ -242,10 +293,6 @@ def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
     return ""
 
 
-_original_run_generation_attempt = use_core._run_generation_attempt
-_original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
-
-
 def _extract_query_from_generation_args(args, kwargs):
     query = kwargs.get("user_query")
     if query is not None:
@@ -253,16 +300,6 @@ def _extract_query_from_generation_args(args, kwargs):
     if len(args) >= 2:
         return str(args[1])
     return ""
-
-
-def _v334_run_generation_attempt(*args, **kwargs):
-    answer = _original_run_generation_attempt(*args, **kwargs)
-    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
-
-
-def _v334_run_provider_completion_recovery(*args, **kwargs):
-    answer = _original_run_provider_completion_recovery(*args, **kwargs)
-    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
 
 
 use_core._build_generation_messages = _v334_build_generation_messages
