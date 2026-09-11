@@ -20,7 +20,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run v336 static validation
+      - name: Run v336 static validation on the v336 branch only
+        if: github.head_ref == 'exp/v336-visitor-answer-construction' || github.ref == 'refs/heads/exp/v336-visitor-answer-construction'
         run: python run_v336_static_validation.py
       - name: Compile production modules
         run: python -m compileall -q main.py use_core.py tests

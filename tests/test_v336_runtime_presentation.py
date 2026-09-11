@@ -17,6 +17,9 @@ def _extract_function(source, name):
 def _load_constructor():
     source = MAIN.read_text(encoding="utf-8")
     fn = _extract_function(source, "_v336_construct_visitor_answer")
+    # The v337 final authority seam is intentionally represented in the
+    # constructor source, but this unit probe stubs it so presentation tests
+    # remain independent of provider/corpus initialization.
     class StubCore:
         @staticmethod
         def normalize_link_presentation(answer, context):
@@ -32,7 +35,11 @@ def _load_constructor():
                     flags=re.IGNORECASE,
                 )
             return answer
-    ns = {"re": re, "use_core": StubCore()}
+    ns = {
+        "re": re,
+        "use_core": StubCore(),
+        "_v337_final_answer_boundary": lambda _query, answer, _context: answer,
+    }
     exec(fn, ns)
     return ns["_v336_construct_visitor_answer"]
 
