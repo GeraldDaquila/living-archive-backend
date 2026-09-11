@@ -103,22 +103,15 @@ def main():
         ),
     ]
 
-    contracts = []
-    for query, intent in cases:
-        contract = build_contract(query, intent)
-        contracts.append(contract)
+    contracts = [build_contract(query, intent) for query, intent in cases]
+    for (query, intent), contract in zip(cases, contracts):
         assert contract.startswith("[VISITOR RESPONSE CONTRACT")
         assert f"intent={intent};" in contract
         assert len(contract) <= 1100, len(contract)
 
     max_system_chars = max(len(compact_prompt) + len(c) for c in contracts)
-    assert len(compact_prompt) < 2600, len(compact_prompt)
-
     projected_fixed_input = PREVIOUS_FIXED_INPUT_CHARS - len(lean_prompt) + max_system_chars
     projected_total = projected_fixed_input + PREVIOUS_ESTIMATED_OUTPUT_CHARS
-
-    assert projected_fixed_input < MAX_PROVIDER_INPUT_CHARS, projected_fixed_input
-    assert projected_total < MAX_PROVIDER_TOTAL_CHARS, projected_total
 
     print(f"baseline_lean_prompt_chars={len(lean_prompt)}")
     print(f"compact_prompt_chars={len(compact_prompt)}")
@@ -127,6 +120,10 @@ def main():
     print(f"v334_observed_fixed_input_chars={PREVIOUS_FIXED_INPUT_CHARS}")
     print(f"v335_projected_fixed_input_chars={projected_fixed_input}")
     print(f"v335_projected_total_chars={projected_total}")
+
+    assert len(compact_prompt) < 2600, len(compact_prompt)
+    assert projected_fixed_input < MAX_PROVIDER_INPUT_CHARS, projected_fixed_input
+    assert projected_total < MAX_PROVIDER_TOTAL_CHARS, projected_total
     print("V335 PROVIDER ENVELOPE PROJECTION: PASS")
 
 
