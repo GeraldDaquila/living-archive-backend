@@ -125,26 +125,26 @@ _original_run_generation_attempt = use_core._run_generation_attempt
 _original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
 
 
+def _extract_query_from_generation_args(args, kwargs):
+    query = kwargs.get("user_query")
+    if query is not None:
+        return str(query)
+    # Bound method/function signature begins with model_id, then user_query.
+    if len(args) >= 2:
+        return str(args[1])
+    return ""
+
+
 def _v334_run_generation_attempt(*args, **kwargs):
     answer = _original_run_generation_attempt(*args, **kwargs)
-    try:
-        user_query = kwargs.get("user_query")
-        if user_query is None and len(args) >= 2:
-            user_query = args[1]
-    except Exception:
-        user_query = ""
-    return _apply_v334_generation_boundary(str(user_query or ""), answer)
+    user_query = _extract_query_from_generation_args(args, kwargs)
+    return _apply_v334_generation_boundary(user_query, answer)
 
 
 def _v334_run_provider_completion_recovery(*args, **kwargs):
     answer = _original_run_provider_completion_recovery(*args, **kwargs)
-    try:
-        user_query = kwargs.get("user_query")
-        if user_query is None and len(args) >= 2:
-            user_query = args[1]
-    except Exception:
-        user_query = ""
-    return _apply_v334_generation_boundary(str(user_query or ""), answer)
+    user_query = _extract_query_from_generation_args(args, kwargs)
+    return _apply_v334_generation_boundary(user_query, answer)
 
 
 use_core._v308_compassionate_voice_violation = _v334_compassionate_voice_violation
