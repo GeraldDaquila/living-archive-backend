@@ -19,8 +19,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile
-        run: python -m py_compile main.py use_core.py tests/test_v337_recommendation_authority_boundary.py
-      - name: Static boundary regression
-        run: python run_v336_static_validation.py
-      - name: Run authority boundary tests
-        run: pytest -q tests/test_v337_recommendation_authority_boundary.py
+        run: python -m py_compile main.py use_core.py run_v337_authority_validation.py tests/test_v337_authority_runtime.py tests/test_v337_recommendation_authority_boundary.py
+      - name: Authority boundary validation
+        run: python run_v337_authority_validation.py
+      - name: Authority boundary tests
+        run: pytest -q tests/test_v337_authority_runtime.py tests/test_v337_recommendation_authority_boundary.py
