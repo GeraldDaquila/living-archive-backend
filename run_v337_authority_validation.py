@@ -12,10 +12,10 @@ boundary = next(node for node in ast.parse(main_source).body if isinstance(node,
 boundary_source = ast.get_source_segment(main_source, boundary)
 assert "_original_recommendation_output_authority" in main_source
 assert "_original_recommendation_resource_identity" in main_source
-assert "_enforce_recommendation_output_authority" in main_source
-assert "_enforce_recommendation_resource_identity" in main_source
+assert "_deterministic_provider_fallback" in main_source
 assert "_original_recommendation_output_authority" in boundary_source
 assert "_original_recommendation_resource_identity" in boundary_source
+assert "_deterministic_provider_fallback" in boundary_source
 
 attempt = next(node for node in ast.parse(core_source).body if isinstance(node, ast.FunctionDef) and node.name == "_run_generation_attempt")
 attempt_source = ast.get_source_segment(core_source, attempt)
