@@ -101,8 +101,11 @@ def main():
 
     assert "[RECOMMENDATION QUALITY]" in compact_prompt
     assert "[BREATHE BETWEEN IDEAS]" in compact_prompt
+    assert "[PROVENANCE + SYNTHESIS]" in compact_prompt
     assert "[RECOMMENDATION QUALITY]" not in provider_prompt
     assert "[BREATHE BETWEEN IDEAS]" not in provider_prompt
+    assert "[PROVENANCE + SYNTHESIS]" not in provider_prompt
+    assert "[EVIDENCE]" in provider_prompt
     assert "[VISITOR VOICE]" in provider_prompt
     assert "[COMPASSIONATE CARE]" in provider_prompt
 
@@ -126,7 +129,7 @@ def main():
     for (query, intent), contract in zip(cases, contracts):
         assert contract.startswith("[VISITOR RESPONSE CONTRACT")
         assert f"intent={intent};" in contract
-        assert len(contract) <= 1100, len(contract)
+        assert len(contract) <= 600, len(contract)
 
     max_system_chars = max(len(provider_prompt) + len(c) for c in contracts)
     projected_fixed_input = PREVIOUS_FIXED_INPUT_CHARS - len(lean_prompt) + max_system_chars
@@ -141,7 +144,7 @@ def main():
     print(f"v335_projected_fixed_input_chars={projected_fixed_input}")
     print(f"v335_projected_total_chars={projected_total}")
 
-    assert len(provider_prompt) < 2000, len(provider_prompt)
+    assert len(provider_prompt) < 1600, len(provider_prompt)
     assert projected_fixed_input < MAX_PROVIDER_INPUT_CHARS, projected_fixed_input
     assert projected_total < MAX_PROVIDER_TOTAL_CHARS, projected_total
     print("V335 PROVIDER ENVELOPE PROJECTION: PASS")
