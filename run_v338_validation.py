@@ -9,7 +9,7 @@ for required in (
     'APP_VERSION = "v339"',
     'DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"',
     "_adjudicate_recommendation_resource",
-    "A useful place to begin is {title}.",
+    'canonical_link = f"[{title}]({url})"',
     "_original_recommendation_output_authority",
     "_original_recommendation_resource_identity",
     "_v339_canonical_recommendation_doorway",
@@ -23,7 +23,8 @@ assert "RUNTIME_BOOT_ID" in main_source
 assert "RUNTIME_PROCESS_ID" in main_source
 assert "app = use_core.app" in main_source
 assert "RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())" in main_source
-assert "_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256" in main_source
+assert "EXPECTED_CORE_BLOB_SHA" in main_source
+assert "_git_blob_sha256(_CORE_PATH.read_bytes())" in main_source
 
 for required in (
     "def _v338_recommendation_fit_sentence",
