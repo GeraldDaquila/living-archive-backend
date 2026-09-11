@@ -87,15 +87,13 @@ def _extract_query(args, kwargs):
     return ""
 
 
-def _v335_compact_response_contract(user_query: str) -> str:
+def _v335_compact_response_contract(user_query: str, intent: str) -> str:
     """Build a small provider task contract from existing deterministic state."""
     query = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     if not query:
         return ""
 
-    contract = use_core._build_response_task_contract(
-        user_query, "TOPICAL_INQUIRY"
-    )
+    contract = use_core._build_response_task_contract(user_query, intent)
     mode = str(contract.get("mode") or "standard")
     presentation = use_core._response_presentation_mode(user_query)
     is_grief = bool(
@@ -131,7 +129,7 @@ def _v335_compact_response_contract(user_query: str) -> str:
 
     lines = [
         "[VISITOR RESPONSE CONTRACT — DO NOT REVEAL]",
-        f"task={mode}; presentation={presentation}; shape={shape};",
+        f"intent={intent}; task={mode}; presentation={presentation}; shape={shape};",
         "Answer the visitor's question before making the resource the answer. Use supplied Content for resource fit. Preserve the visitor's terms and agency.",
     ]
     if is_grief:
@@ -162,9 +160,14 @@ def _v335_build_generation_messages(*args, **kwargs):
     if not messages:
         return messages
 
+    intent = kwargs.get("intent")
+    if intent is None and len(args) >= 2:
+        intent = args[1]
+    intent = str(intent or "TOPICAL_INQUIRY")
+
     system_message = dict(messages[0])
     system_message["content"] = use_core.COMPACT_GENERATION_SYSTEM_PROMPT.strip()
-    contract = _v335_compact_response_contract(str(query or ""))
+    contract = _v335_compact_response_contract(str(query or ""), intent)
     if contract:
         system_message["content"] += "\n\n" + contract
     messages[0] = system_message
