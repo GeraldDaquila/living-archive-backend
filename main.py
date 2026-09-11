@@ -16,7 +16,7 @@ CANONICAL_BUILD_ID = "USE-BUILD-v334-compassionate-recommendation-boundary"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "8e8338e19ad5496c6bda40b69f40b1cdaf77cdbea356470fcf83b3d1a0641bb3"
 # === END CANONICAL BUILD IDENTITY ===
 
 
@@ -60,7 +60,7 @@ if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
 _actual_payload = _sha256(
     _canonical_source_payload(_MAIN_PATH.read_text(encoding="utf-8")).encode("utf-8")
 )
-if CANONICAL_BUILD_PAYLOAD_SHA256 != "PLACEHOLDER_RECOMPUTE_REQUIRED" and _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
+if _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
     raise RuntimeError(
         "USE v334 canonical build identity mismatch: "
         f"expected={CANONICAL_BUILD_PAYLOAD_SHA256}, actual={_actual_payload}"
@@ -79,12 +79,13 @@ _original_violation = use_core._v308_compassionate_voice_violation
 def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
     """Reject vulnerable-experience output that converts source framing into visitor benefit."""
     query = str(user_query or "").casefold()
-    if not any(term in query for term in (
+    vulnerable = (
         "grief", "grieving", "bereavement", "bereaved", "death of", "died",
         "loss of a loved one", "lost my", "lost her", "lost his", "lost their",
         "mourning", "mourning the", "funeral",
-    )):
-        return ""
+    )
+    if not any(term in query for term in vulnerable):
+        return _original_violation(user_query, answer)
 
     text = re.sub(r"\s+", " ", str(answer or "")).strip().casefold()
     if not text:
@@ -104,11 +105,53 @@ def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
     for pattern, reason in patterns:
         if re.search(pattern, text):
             return reason
-    return _original_violation(user_query, answer)
+    return ""
 
 
-_v334_compassionate_voice_self_audit = None
+def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
+    """Reject vulnerable-experience generation before it can reach the visitor."""
+    violation = _v334_compassionate_voice_violation(user_query, answer)
+    if not violation:
+        return answer
+
+    print(
+        "USE v334 generation/output boundary: rejecting vulnerable-experience answer; "
+        f"reason={violation}"
+    )
+    return ""
+
+
+# Wrap the core generation entrypoints. This keeps the v334 protection at the
+# actual generation/output seam instead of relying on an unused audit helper.
+_original_run_generation_attempt = use_core._run_generation_attempt
+_original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
+
+
+def _v334_run_generation_attempt(*args, **kwargs):
+    answer = _original_run_generation_attempt(*args, **kwargs)
+    try:
+        user_query = kwargs.get("user_query")
+        if user_query is None and len(args) >= 2:
+            user_query = args[1]
+    except Exception:
+        user_query = ""
+    return _apply_v334_generation_boundary(str(user_query or ""), answer)
+
+
+def _v334_run_provider_completion_recovery(*args, **kwargs):
+    answer = _original_run_provider_completion_recovery(*args, **kwargs)
+    try:
+        user_query = kwargs.get("user_query")
+        if user_query is None and len(args) >= 2:
+            user_query = args[1]
+    except Exception:
+        user_query = ""
+    return _apply_v334_generation_boundary(str(user_query or ""), answer)
+
+
 use_core._v308_compassionate_voice_violation = _v334_compassionate_voice_violation
+use_core._run_generation_attempt = _v334_run_generation_attempt
+use_core._run_provider_completion_recovery = _v334_run_provider_completion_recovery
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
