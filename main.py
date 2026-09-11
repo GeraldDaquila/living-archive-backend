@@ -3,6 +3,8 @@
 # re-applies USE recommendation authority at the final wrapper seam. Retrieval,
 # canonical evidence, recommendation adjudication, movement, and link authority
 # remain in use_core.py.
+# v336 visitor-facing presentation and recommendation/provider/retrieval evidence
+# boundaries remain protected in this wrapper.
 
 import hashlib
 import importlib
@@ -162,34 +164,14 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
     if not value or not use_core._is_recommendation_question(user_query):
         return value
     context = str(context_blocks or "").strip()
-    governed = _original_recommendation_output_authority(
-        user_query,
-        value,
-        context,
-    )
+    governed = _original_recommendation_output_authority(user_query, value, context)
     if governed:
-        return _original_recommendation_resource_identity(
-            user_query,
-            governed,
-            context,
-        )
+        return _original_recommendation_resource_identity(user_query, governed, context)
 
-    # The core generation path already exhausted provider recovery before the
-    # v337 outer boundary sees this answer. Do not surface a blank answer after
-    # rejecting a non-authoritative recommendation: reuse the already-selected
-    # canonical evidence and deterministically construct the primary doorway.
     fallback = use_core._deterministic_provider_fallback(user_query, context)
     if fallback:
-        fallback = _original_recommendation_output_authority(
-            user_query,
-            fallback,
-            context,
-        ) or fallback
-        fallback = _original_recommendation_resource_identity(
-            user_query,
-            fallback,
-            context,
-        )
+        fallback = _original_recommendation_output_authority(user_query, fallback, context) or fallback
+        fallback = _original_recommendation_resource_identity(user_query, fallback, context)
     if fallback:
         print("USE v337 recommendation authority boundary: replaced non-primary recommendation with deterministic canonical fallback")
         return fallback
