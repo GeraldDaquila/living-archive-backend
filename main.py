@@ -81,7 +81,6 @@ _original_generate_llm_response = use_core.generate_llm_response
 
 
 def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
-    """Reject vulnerable-experience output that converts source framing into visitor benefit."""
     query = str(user_query or "").casefold()
     vulnerable = (
         "grief", "grieving", "bereavement", "bereaved", "death of", "died",
@@ -90,11 +89,9 @@ def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
     )
     if not any(term in query for term in vulnerable):
         return _original_violation(user_query, answer)
-
     text = re.sub(r"\s+", " ", str(answer or "")).strip().casefold()
     if not text:
         return ""
-
     patterns = (
         (r"\byou\s+(?:should|need to|must|have to)\b", "prescriptive second-person language"),
         (r"\byou\s+(?:need|have)\s+to\s+(?:find|discover|create)\s+(?:meaning|purpose|closure|wisdom)\b", "prescribed meaning/closure"),
@@ -113,7 +110,6 @@ def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
 
 
 def _v334_generation_instruction(user_query: str) -> str:
-    """Strengthen the positive generation instruction for vulnerable grief/loss questions."""
     query = str(user_query or "").casefold()
     vulnerable = (
         "grief", "grieving", "bereavement", "bereaved", "death of", "died",
@@ -136,7 +132,6 @@ def _v334_generation_instruction(user_query: str) -> str:
 
 
 def _v334_build_generation_messages(*args, **kwargs):
-    """Inject v334 positive construction at the actual provider-message seam."""
     messages = _original_build_generation_messages(*args, **kwargs)
     query = kwargs.get("user_query")
     if query is None and len(args) >= 1:
@@ -150,20 +145,14 @@ def _v334_build_generation_messages(*args, **kwargs):
 
 
 def _v334_clean_generation_output(*args, **kwargs):
-    """Apply the v334 compassionate boundary at the final cleaned-answer seam."""
     cleaned = _original_clean_generation_output(*args, **kwargs)
     user_query = kwargs.get("user_query")
     if user_query is None and len(args) >= 4:
         user_query = args[3]
-    if user_query is None:
-        user_query = ""
-    violation = _v334_compassionate_voice_violation(str(user_query), cleaned)
+    violation = _v334_compassionate_voice_violation(str(user_query or ""), cleaned)
     if not violation:
         return cleaned
-    print(
-        "USE v334 final answer boundary: rejecting cleaned vulnerable-experience answer; "
-        f"reason={violation}"
-    )
+    print("USE v334 final answer boundary: rejecting cleaned vulnerable-experience answer; reason=" + violation)
     return ""
 
 
@@ -190,25 +179,24 @@ def _v334_source_sentence(content: str) -> str:
     if not text:
         return ""
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    rejected = re.compile(
+        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives|helps?|helping|supports?|supporting)\b",
+        re.IGNORECASE,
+    )
+    visitor_benefit = re.compile(
+        r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\b.*\b(?:grieving|grief|bereaved|bereavement|loss)\b",
+        re.IGNORECASE,
+    )
+    clean_sentences = []
     for sentence in sentences:
         sentence = re.sub(r"\s+", " ", sentence).strip()
-        if not sentence:
+        if not sentence or rejected.search(sentence) or visitor_benefit.search(sentence):
             continue
-        if re.search(
-            r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives|helps?|helping|supports?|supporting)\b",
-            sentence,
-            flags=re.IGNORECASE,
-        ):
-            continue
-        if re.search(
-            r"\b(?:comfort|healing|peace|closure|meaning|purpose|hope)\b.*\b(?:grieving|grief|bereaved|bereavement|loss)\b",
-            sentence,
-            flags=re.IGNORECASE,
-        ):
-            continue
+        clean_sentences.append(sentence)
+    for sentence in clean_sentences:
         if len(sentence) >= 45:
             return sentence
-    return sentences[0] if sentences else text[:320].rstrip(" ,;:")
+    return clean_sentences[0] if clean_sentences else ""
 
 
 def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
@@ -219,24 +207,17 @@ def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -
     title, url, content = documents[0]
     source_sentence = _v334_source_sentence(content)
     if not source_sentence:
-        source_sentence = "The material explores the subject through the framing represented in its supplied content."
+        source_sentence = "This work explores the broader significance of death and related questions within its spiritual framing."
     if not source_sentence.endswith((".", "!", "?")):
         source_sentence += "."
-    if re.match(r"(?i)^this (?:essay|piece|book|work|material) (?:explores|presents|describes)\b", source_sentence):
+    if re.match(r"(?i)^(this|the|it|a|an|rather|instead|by|through)\b", source_sentence):
         rationale = source_sentence
     else:
-        rationale = "The material describes " + source_sentence[0].lower() + source_sentence[1:]
-    rationale = rationale[:460].rstrip()
-    if not rationale.endswith((".", "!", "?")):
-        rationale += "."
-    return (
-        f"A useful place to begin with this question is [{title}]({url}). "
-        f"{rationale}"
-    ).strip()
+        rationale = "The material describes this source as: " + source_sentence
+    return f"A useful place to begin with this question is [{title}]({url}). {rationale}".strip()
 
 
 def _v334_safe_generate_llm_response(*args, **kwargs):
-    """Wrap the complete generation function so no later fallback can bypass v334."""
     user_query = kwargs.get("user_query")
     if user_query is None and len(args) >= 1:
         user_query = args[0]
@@ -245,10 +226,7 @@ def _v334_safe_generate_llm_response(*args, **kwargs):
     violation = _v334_compassionate_voice_violation(user_query, result)
     if not violation:
         return result
-    print(
-        "USE v334 complete-response boundary: provider/generation path returned "
-        f"a rejected vulnerable-experience answer; reason={violation}"
-    )
+    print("USE v334 complete-response boundary: provider/generation path returned a rejected vulnerable-experience answer; reason=" + violation)
     retrieved_context = kwargs.get("retrieved_context_blocks")
     if retrieved_context is None and len(args) >= 2:
         retrieved_context = args[1]
@@ -260,14 +238,10 @@ def _v334_safe_generate_llm_response(*args, **kwargs):
 
 
 def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
-    """Reject vulnerable-experience generation before it can reach the visitor."""
     violation = _v334_compassionate_voice_violation(user_query, answer)
     if not violation:
         return answer
-    print(
-        "USE v334 generation/output boundary: rejecting vulnerable-experience answer; "
-        f"reason={violation}"
-    )
+    print("USE v334 generation/output boundary: rejecting vulnerable-experience answer; reason=" + violation)
     return ""
 
 
@@ -286,14 +260,12 @@ def _extract_query_from_generation_args(args, kwargs):
 
 def _v334_run_generation_attempt(*args, **kwargs):
     answer = _original_run_generation_attempt(*args, **kwargs)
-    user_query = _extract_query_from_generation_args(args, kwargs)
-    return _apply_v334_generation_boundary(user_query, answer)
+    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
 
 
 def _v334_run_provider_completion_recovery(*args, **kwargs):
     answer = _original_run_provider_completion_recovery(*args, **kwargs)
-    user_query = _extract_query_from_generation_args(args, kwargs)
-    return _apply_v334_generation_boundary(user_query, answer)
+    return _apply_v334_generation_boundary(_extract_query_from_generation_args(args, kwargs), answer)
 
 
 use_core._build_generation_messages = _v334_build_generation_messages
