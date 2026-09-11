@@ -168,16 +168,35 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
     if governed:
         return _original_recommendation_resource_identity(user_query, governed, context)
 
-    fallback = use_core._deterministic_provider_fallback(user_query, context)
-    if fallback:
-        fallback = _original_recommendation_output_authority(user_query, fallback, context) or fallback
-        fallback = _original_recommendation_resource_identity(user_query, fallback, context)
-    if fallback:
-        print("USE v337 recommendation authority boundary: replaced non-primary recommendation with deterministic canonical fallback")
-        return fallback
+    # The final wrapper has only the selected recommendation evidence. Re-run
+    # the same canonical adjudicator over those supplied documents rather than
+    # invoking a separate fallback constructor that may not exist on every
+    # historical core revision.
+    docs = []
+    for block in context.split("\n\n---\n\n"):
+        title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
+        url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, flags=re.MULTILINE | re.IGNORECASE)
+        content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
+        if not title_match or not url_match or not content_match:
+            continue
+        docs.append({
+            "title": title_match.group(1).strip(),
+            "url": url_match.group(1).strip().rstrip(".,;"),
+            "text": content_match.group(1).strip(),
+        })
 
-    print("USE v337 recommendation authority boundary: rejected non-primary recommendation output")
-    return ""
+    authoritative = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
+    if authoritative is not None:
+        title = str(authoritative.get("title", "")).strip()
+        if title:
+            replacement = f"A strong place to begin is {title}."
+            print(
+                "USE v338 recommendation authority boundary: replaced non-primary "
+                f"output with adjudicated primary='{title}'."
+            )
+            return replacement
+
+    return value
 
 
 def _v337_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
