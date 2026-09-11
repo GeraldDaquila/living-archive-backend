@@ -30,8 +30,8 @@ def _sha256(data: bytes) -> str:
 
 
 def _git_blob_sha256(data: bytes) -> str:
-    header = f"blob {len(data)}\\0".encode("utf-8")
-    return _sha256(header + data)
+    header = f"blob {len(data)}\0".encode("utf-8")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 _MAIN_PATH = Path(__file__).resolve()
@@ -89,18 +89,21 @@ def _v335_compact_response_contract(user_query: str, intent: str) -> str:
     lines = [
         "[VISITOR RESPONSE CONTRACT — APPLY LAST]",
         f"mode={mode}; intent={intent};",
-        "answer the visitor’s orientation need rather than merely echoing retrieval.",
+        "Answer first. Answer the visitor’s orientation need rather than merely echoing retrieval.",
+        "Preserve the visitor's terms and agency.",
     ]
     if is_grief:
         lines.append("grief-care: acknowledge loss gently; avoid abstraction, preaching, or emotional overclaiming.")
     if is_movement:
-        lines.append("movement: provide one clear next place only when a canonical destination is supported.")
+        lines.append("movement: provide one clear next place only when a canonical destination is supported. Movement: say 'next' only when D29 validates the destination.")
     if is_contrast:
         lines.append("contrast: preserve the distinction the visitor actually asked about before moving onward.")
     if is_form:
         lines.append("form: name the requested resource type plainly and do not pretend a different form is equivalent.")
     if is_under:
         lines.append("ambiguity: preserve meaningful uncertainty; do not fabricate a single definitive interpretation.")
+    if mode == "recommendation":
+        lines.append("Recommendation: use the adjudicated primary as the canonical doorway and explain its fit from supplied evidence. Do not replace a chosen primary with a secondary resource.")
     lines.append("provenance: use only retrieved/canonical evidence; never invent titles, claims, or links.")
     return " ".join(lines)[:600]
 
@@ -109,8 +112,12 @@ def _v335_provider_system_prompt() -> str:
     return use_core.COMPACT_GENERATION_SYSTEM_PROMPT
 
 
-def _build_generation_messages(user_query: str, intent: str, retrieved_context_blocks: str, response_contract: str):
+def _v335_build_generation_messages(user_query: str, intent: str, retrieved_context_blocks: str, response_contract: str):
     return _original_build_generation_messages(user_query, intent, retrieved_context_blocks, response_contract)
+
+
+def _build_generation_messages(user_query: str, intent: str, retrieved_context_blocks: str, response_contract: str):
+    return _v335_build_generation_messages(user_query, intent, retrieved_context_blocks, response_contract)
 
 
 def _clean_generation_output(value: str) -> str:
