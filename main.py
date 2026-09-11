@@ -46,6 +46,9 @@ def _sha256(data: bytes) -> str:
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
+
+# Render's deployment filesystem can normalize file bytes, so this gate verifies
+# the optional expected hash only when it is explicitly declared and not disabled.
 _expected_runtime_sha = os.getenv("USE_EXPECTED_SOURCE_SHA256", "").strip().lower()
 if _expected_runtime_sha and _expected_runtime_sha != "disabled":
     if RUNTIME_SOURCE_SHA256 != _expected_runtime_sha:
@@ -64,7 +67,9 @@ if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
         f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
     )
 
-_actual_payload = _sha256(_canonical_source_payload(_MAIN_PATH.read_text(encoding="utf-8")).encode("utf-8"))
+_actual_payload = _sha256(
+    _canonical_source_payload(_MAIN_PATH.read_text(encoding="utf-8")).encode("utf-8")
+)
 if _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
     raise RuntimeError(
         "USE v334 canonical build identity mismatch: "
