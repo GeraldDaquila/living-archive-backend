@@ -36,6 +36,7 @@ source = pathlib.Path('main.py').read_text(encoding='utf-8')
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"' in source
 assert 'RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())' in source
-assert '_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256' in source
+assert 'EXPECTED_CORE_BLOB_SHA' in source
+assert '_git_blob_sha256(_CORE_PATH.read_bytes())' in source
 print('USE v339 executable identity guard: PASS')
 PY
