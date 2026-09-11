@@ -16,6 +16,7 @@ for required in (
 ):
     assert required in main_source, required
 
+assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"' not in main_source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in main_source
 assert "RUNTIME_SOURCE_SHA256" in main_source
 assert "RUNTIME_BOOT_ID" in main_source
