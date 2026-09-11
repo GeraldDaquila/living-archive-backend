@@ -16,6 +16,12 @@ for required in (
 ):
     assert required in main_source, required
 
+assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in main_source
+assert "RUNTIME_SOURCE_SHA256" in main_source
+assert "RUNTIME_BOOT_ID" in main_source
+assert "RUNTIME_PROCESS_ID" in main_source
+assert "X-USE-Build-ID" in core_source
+
 for required in (
     "def _v338_recommendation_fit_sentence",
     "def _v338_build_recommendation_answer",
