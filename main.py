@@ -315,6 +315,33 @@ def _v336_generate_llm_response(*args, **kwargs):
     return _original_generate_llm_response(*args, **kwargs)
 
 
+# v339 final wrapper contract: every successful recommendation response,
+# including deterministic/core fallback output, must pass through the same
+# canonical doorway exactly once before it can leave main.py.
+def _v339_finalize_generation_response(*args, **kwargs):
+    value = _original_generate_llm_response(*args, **kwargs)
+    user_query = kwargs.get("user_query")
+    if user_query is None and args:
+        user_query = args[0]
+    user_query = str(user_query or "")
+    if not value or not use_core._is_recommendation_question(user_query):
+        return value
+
+    retrieved_context = kwargs.get("retrieved_context_blocks", "")
+    if retrieved_context is None and len(args) >= 2:
+        retrieved_context = args[1]
+    canonical_link_context = kwargs.get("canonical_link_context", "")
+    if not canonical_link_context:
+        canonical_link_context = retrieved_context
+
+    return _v336_construct_visitor_answer(
+        str(value or ""),
+        user_query,
+        str(retrieved_context or ""),
+        str(canonical_link_context or ""),
+    )
+
+
 use_core._build_generation_messages = _v335_build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
@@ -334,4 +361,4 @@ print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}
 
 
 def generate_llm_response(*args, **kwargs):
-    return _original_generate_llm_response(*args, **kwargs)
+    return _v339_finalize_generation_response(*args, **kwargs)
