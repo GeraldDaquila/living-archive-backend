@@ -157,24 +157,45 @@ def _v335_build_generation_messages(*args, **kwargs):
 
 
 def _v337_apply_recommendation_authority(user_query: str, answer: str, context_blocks: str) -> str:
-    """Re-apply the canonical recommendation authority after v336 wrapping."""
+    """Re-apply canonical recommendation authority and recover deterministically."""
     value = str(answer or "").strip()
     if not value or not use_core._is_recommendation_question(user_query):
         return value
+    context = str(context_blocks or "").strip()
     governed = _original_recommendation_output_authority(
         user_query,
         value,
-        str(context_blocks or ""),
+        context,
     )
-    if not governed:
-        print("USE v337 recommendation authority boundary: rejected non-primary recommendation output")
-        return ""
-    governed = _original_recommendation_resource_identity(
-        user_query,
-        governed,
-        str(context_blocks or ""),
-    )
-    return governed
+    if governed:
+        return _original_recommendation_resource_identity(
+            user_query,
+            governed,
+            context,
+        )
+
+    # The core generation path already exhausted provider recovery before the
+    # v337 outer boundary sees this answer. Do not surface a blank answer after
+    # rejecting a non-authoritative recommendation: reuse the already-selected
+    # canonical evidence and deterministically construct the primary doorway.
+    fallback = use_core._deterministic_provider_fallback(user_query, context)
+    if fallback:
+        fallback = _original_recommendation_output_authority(
+            user_query,
+            fallback,
+            context,
+        ) or fallback
+        fallback = _original_recommendation_resource_identity(
+            user_query,
+            fallback,
+            context,
+        )
+    if fallback:
+        print("USE v337 recommendation authority boundary: replaced non-primary recommendation with deterministic canonical fallback")
+        return fallback
+
+    print("USE v337 recommendation authority boundary: rejected non-primary recommendation output")
+    return ""
 
 
 def _v337_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
