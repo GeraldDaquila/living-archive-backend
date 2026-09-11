@@ -5,13 +5,14 @@ ROOT = Path(__file__).resolve().parent
 main_source = (ROOT / "main.py").read_text(encoding="utf-8")
 core_source = (ROOT / "use_core.py").read_text(encoding="utf-8")
 
+# v339 supersedes the v338 wrapper identity. Keep this compatibility probe
+# focused on the recommendation-authority seams that remain invariant.
 for required in (
-    'APP_VERSION = "v338"',
-    'DEPLOYMENT_FINGERPRINT = "USE-v338-recommendation-fit-synthesis"',
     "_adjudicate_recommendation_resource",
     "A useful place to begin is {title}.",
     "_original_recommendation_output_authority",
     "_original_recommendation_resource_identity",
+    "_v339_canonical_recommendation_doorway",
 ):
     assert required in main_source, required
 
@@ -31,4 +32,4 @@ assert secondary in core_source
 compile(ast.parse(main_source), filename="main.py", mode="exec")
 compile(ast.parse(core_source), filename="use_core.py", mode="exec")
 
-print("USE v338 recommendation boundary validation: PASS")
+print("USE recommendation boundary compatibility validation: PASS")
