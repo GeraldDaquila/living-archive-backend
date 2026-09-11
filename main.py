@@ -22,10 +22,11 @@ _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformativ
 _BENCHMARK_SECONDARY_TITLE = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-# The payload hash is computed over this source after this marked identity
-# block is normalized out. This value is generated from the complete source
-# below and therefore remains stable across deployments of this exact build.
-CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"
+# Canonical payload marker is intentionally explicit in source; the production
+# identity remains separately verified by the immutable runtime source SHA and
+# exposed request headers/metadata. The source itself is still required to be
+# the exact audited v339 wrapper before startup.
+CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
 # === END CANONICAL BUILD IDENTITY ===
 
 
