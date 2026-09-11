@@ -115,8 +115,8 @@ def _v335_build_generation_messages(*args, **kwargs):
     return _original_build_generation_messages(*args, **kwargs)
 
 
-def _build_generation_messages(user_query: str, intent: str, retrieved_context_blocks: str, response_contract: str, *args, **kwargs):
-    return _v335_build_generation_messages(user_query, intent, retrieved_context_blocks, response_contract, *args, **kwargs)
+def _build_generation_messages(*args, **kwargs):
+    return _v335_build_generation_messages(*args, **kwargs)
 
 
 def _clean_generation_output(value: str, *args, **kwargs) -> str:
