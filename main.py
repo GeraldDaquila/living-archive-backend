@@ -76,6 +76,7 @@ finally:
 _original_violation = use_core._v308_compassionate_voice_violation
 _original_build_generation_messages = use_core._build_generation_messages
 _original_clean_generation_output = use_core._clean_generation_output
+_original_generate_llm_response = use_core.generate_llm_response
 
 
 def _v334_compassionate_voice_violation(user_query: str, answer: str) -> str:
@@ -165,6 +166,65 @@ def _v334_clean_generation_output(*args, **kwargs):
     return ""
 
 
+def _v334_make_safe_deterministic_recommendation(user_query: str, answer: str) -> str:
+    """Salvage the canonical recommendation without asserting visitor benefit."""
+    pairs = re.findall(
+        r"(?m)^Title:\s*(.+?)\s*$\nURL:\s*(https?://\S+)\s*$\nContent:\s*(.*?)(?=\n\n---\n\n|\Z)",
+        str(answer or ""),
+        flags=re.DOTALL,
+    )
+    if not pairs:
+        return ""
+    title, url, content = pairs[0]
+    title = title.strip()
+    url = url.strip()
+    content = re.sub(r"\s+", " ", content).strip()
+    if not title or not url or not content:
+        return ""
+    # Keep only source-attributed description. Strip the known visitor-benefit
+    # construction if present, then retain a concise source-grounded passage.
+    content = re.sub(
+        r"\b(?:offering|offers|providing|provides|bringing|brings|giving|gives)\s+(?:comfort|healing|peace|closure|meaning|purpose|hope)\s+to\s+those\s+grieving\b",
+        "",
+        content,
+        flags=re.IGNORECASE,
+    )
+    content = re.sub(r"\s{2,}", " ", content).strip(" ,;:")
+    if not content:
+        content = "The material explores the subject through the framing represented in its supplied content."
+    first_sentence = re.split(r"(?<=[.!?])\s+", content)[0].strip()
+    if len(first_sentence) < 40:
+        first_sentence = content[:280].rstrip(" ,;:") + ("." if not content.endswith((".", "!", "?")) else "")
+    return (
+        f"A useful place to begin with this question is [{title}]({url}). "
+        f"The material explores {first_sentence[:420]}"
+    ).strip()
+
+
+def _v334_safe_generate_llm_response(*args, **kwargs):
+    """Wrap the complete generation function so no later fallback can bypass v334."""
+    user_query = kwargs.get("user_query")
+    if user_query is None and len(args) >= 1:
+        user_query = args[0]
+    user_query = str(user_query or "")
+    result = _original_generate_llm_response(*args, **kwargs)
+    violation = _v334_compassionate_voice_violation(user_query, result)
+    if not violation:
+        return result
+    print(
+        "USE v334 complete-response boundary: provider/generation path returned "
+        f"a rejected vulnerable-experience answer; reason={violation}"
+    )
+    retrieved_context = kwargs.get("retrieved_context_blocks")
+    if retrieved_context is None and len(args) >= 2:
+        retrieved_context = args[1]
+    fallback = _v334_make_safe_deterministic_recommendation(user_query, str(retrieved_context or ""))
+    if fallback:
+        print("USE v334 complete-response boundary: returned safe deterministic canonical recommendation.")
+        return fallback
+    return ""
+
+
 def _apply_v334_generation_boundary(user_query: str, answer: str) -> str:
     """Reject vulnerable-experience generation before it can reach the visitor."""
     violation = _v334_compassionate_voice_violation(user_query, answer)
@@ -207,6 +267,7 @@ use_core._clean_generation_output = _v334_clean_generation_output
 use_core._v308_compassionate_voice_violation = _v334_compassionate_voice_violation
 use_core._run_generation_attempt = _v334_run_generation_attempt
 use_core._run_provider_completion_recovery = _v334_run_provider_completion_recovery
+use_core.generate_llm_response = _v334_safe_generate_llm_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
