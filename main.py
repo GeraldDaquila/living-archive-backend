@@ -347,6 +347,10 @@ use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
 use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
+# Critical v339 seam: FastAPI's /query handler lives inside use_core.py and
+# resolves its global generate_llm_response there. The public main.py wrapper
+# therefore must be installed back onto use_core, not merely defined locally.
+use_core.generate_llm_response = _v339_finalize_generation_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
