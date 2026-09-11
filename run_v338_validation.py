@@ -1,24 +1,34 @@
 from pathlib import Path
 import ast
-import re
 
 ROOT = Path(__file__).resolve().parent
 main_source = (ROOT / "main.py").read_text(encoding="utf-8")
 core_source = (ROOT / "use_core.py").read_text(encoding="utf-8")
 
-assert 'APP_VERSION = "v337"' in main_source
-assert "_adjudicate_recommendation_resource" in main_source
-assert "A strong place to begin is {title}." in main_source
-assert "_original_recommendation_output_authority" in main_source
-assert "_original_recommendation_resource_identity" in main_source
+for required in (
+    'APP_VERSION = "v338"',
+    'DEPLOYMENT_FINGERPRINT = "USE-v338-recommendation-fit-synthesis"',
+    "_adjudicate_recommendation_resource",
+    "A useful place to begin is {title}.",
+    "_original_recommendation_output_authority",
+    "_original_recommendation_resource_identity",
+):
+    assert required in main_source, required
 
-# The canonical v241 benchmark must remain encoded in the protected core.
+for required in (
+    "def _v338_recommendation_fit_sentence",
+    "def _v338_build_recommendation_answer",
+    "def _v338_final_answer_boundary",
+    "def _v336_construct_visitor_answer",
+):
+    assert required in main_source, required
+
 primary = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 secondary = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
 assert primary in core_source
 assert secondary in core_source
 
-# Compile both production modules.
 compile(ast.parse(main_source), filename="main.py", mode="exec")
 compile(ast.parse(core_source), filename="use_core.py", mode="exec")
+
 print("USE v338 recommendation boundary validation: PASS")

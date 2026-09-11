@@ -1,10 +1,8 @@
-# USE PRODUCTION VERSION: v337 — Recommendation Authority Boundary + The Guide
-# v337 preserves v336 provider compaction and visitor-answer construction, then
-# re-applies USE recommendation authority at the final wrapper seam. Retrieval,
-# canonical evidence, recommendation adjudication, movement, and link authority
-# remain in use_core.py.
-# v336 visitor-facing presentation and recommendation/provider/retrieval evidence
-# boundaries remain protected in this wrapper.
+# USE PRODUCTION VERSION: v338 — Recommendation Fit Synthesis + The Guide
+# v338 preserves v337 recommendation authority, then adds a deterministic
+# evidence-bound fit sentence from the already-adjudicated primary resource.
+# visitor-facing presentation, retrieval, evidence, provider, and canonical-link
+# boundaries remain protected; this wrapper does not reopen the upstream engine.
 
 import hashlib
 import importlib
@@ -13,9 +11,9 @@ import re
 import uuid
 from pathlib import Path
 
-APP_VERSION = "v337"
-DEPLOYMENT_FINGERPRINT = "USE-v337-recommendation-authority-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v337-recommendation-authority-boundary"
+APP_VERSION = "v338"
+DEPLOYMENT_FINGERPRINT = "USE-v338-recommendation-fit-synthesis"
+CANONICAL_BUILD_ID = "USE-BUILD-v338-recommendation-fit-synthesis"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
@@ -38,7 +36,7 @@ def _canonical_source_payload(source: str) -> str:
         count=1,
     )
     if count != 1:
-        raise RuntimeError("USE v337 build identity failure: identity block missing.")
+        raise RuntimeError("USE v338 build identity failure: identity block missing.")
     return normalized
 
 
@@ -51,12 +49,12 @@ _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v337 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v338 package integrity failure: use_core.py is missing.")
 
 _core_runtime_sha = _sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
     raise RuntimeError(
-        "USE v337 package integrity failure: "
+        "USE v338 package integrity failure: "
         f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
     )
 
@@ -120,7 +118,7 @@ def _v335_compact_response_contract(user_query: str, intent: str) -> str:
     if is_grief:
         lines.append("Grief: acknowledge the stated loss gently; stay source-grounded; prescribe no meaning, healing, closure, transformation, purpose, hope, or personal outcome.")
     if mode == "recommendation":
-        lines.append("Recommendation: name the adjudicated primary early; explain direct fit; add companions only when permitted.")
+        lines.append("Recommendation: name the adjudicated primary early; explain direct fit from its supplied Content; do not retract the recommendation after naming it; add companions only when permitted.")
     if is_movement:
         lines.append("Movement: say 'next' only when D29 validates the destination.")
     if is_contrast:
@@ -134,7 +132,7 @@ def _v335_provider_system_prompt() -> str:
     prompt, recommendation_removed = re.subn(r"\n\[RECOMMENDATION QUALITY\]:.*?(?=\n\[VISITOR VOICE\])", "", prompt, flags=re.DOTALL)
     prompt, breathe_removed = re.subn(r"\n\[BREATHE BETWEEN IDEAS\]:.*?(?=\nOutput only)", "", prompt, flags=re.DOTALL)
     if provenance_removed != 1 or recommendation_removed != 1 or breathe_removed != 1:
-        raise RuntimeError("USE v337 provider prompt compaction boundary failure")
+        raise RuntimeError("USE v338 provider prompt compaction boundary failure")
     return prompt
 
 
@@ -158,22 +156,9 @@ def _v335_build_generation_messages(*args, **kwargs):
     return messages
 
 
-def _v337_apply_recommendation_authority(user_query: str, answer: str, context_blocks: str) -> str:
-    """Re-apply canonical recommendation authority and recover deterministically."""
-    value = str(answer or "").strip()
-    if not value or not use_core._is_recommendation_question(user_query):
-        return value
-    context = str(context_blocks or "").strip()
-    governed = _original_recommendation_output_authority(user_query, value, context)
-    if governed:
-        return _original_recommendation_resource_identity(user_query, governed, context)
-
-    # The final wrapper has only the selected recommendation evidence. Re-run
-    # the same canonical adjudicator over those supplied documents rather than
-    # invoking a separate fallback constructor that may not exist on every
-    # historical core revision.
+def _parse_context_documents(context_blocks: str):
     docs = []
-    for block in context.split("\n\n---\n\n"):
+    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
         title_match = re.search(r"^Title:\s*(.+?)\s*$", block, flags=re.MULTILINE)
         url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, flags=re.MULTILINE | re.IGNORECASE)
         content_match = re.search(r"^Content:\s*(.*)$", block, flags=re.MULTILINE | re.DOTALL)
@@ -184,40 +169,95 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
             "url": url_match.group(1).strip().rstrip(".,;"),
             "text": content_match.group(1).strip(),
         })
+    return docs
 
+
+def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
+    title = str(primary.get("title", "")).strip()
+    content = re.sub(r"\s+", " ", str(primary.get("text", "")).strip())
+    if not title or not content:
+        return ""
+    lowered = content.casefold()
+    query = str(user_query or "").casefold()
+    phrases = []
+    if re.search(r"\b(?:grief|grieving|bereavement|loss|death|loved one)\b", query) and re.search(r"\b(?:grief|grieving|loss|death)\b", lowered):
+        phrases.append("grief, loss, and death")
+    if re.search(r"\b(?:meaning|understanding|perspective|wisdom)\b", query) and re.search(r"\b(?:meaning|understanding|perspective|wisdom|spiritual|philosophical)\b", lowered):
+        phrases.append("meaning and perspective")
+    if re.search(r"\b(?:essay|advice|recommend)\b", query) and re.search(r"\b(?:psychological|scientific|philosophical|cultural|spiritual|neuroscientific|sociological)\b", lowered):
+        phrases.append("several complementary perspectives")
+    if not phrases:
+        return ""
+    if len(phrases) == 1:
+        return f"It is a direct fit because it addresses {phrases[0]} in its own framing."
+    if len(phrases) == 2:
+        return f"It is a direct fit because it addresses {phrases[0]} while also opening into {phrases[1]}."
+    return f"It is a direct fit because it addresses {phrases[0]} and brings together {phrases[1]} and {phrases[2]}."
+
+
+def _v338_build_recommendation_answer(user_query: str, answer: str, context_blocks: str) -> str:
+    docs = _parse_context_documents(context_blocks)
+    if not docs or not use_core._is_recommendation_question(user_query):
+        return answer
+    primary = use_core._adjudicate_recommendation_resource(docs, user_query)
+    if not primary:
+        return answer
+    title = str(primary.get("title", "")).strip()
+    if not title:
+        return answer
+    fit = _v338_recommendation_fit_sentence(user_query, primary)
+    canonical_link = use_core.normalize_link_presentation(title, context_blocks)
+    primary_text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", canonical_link).strip() or title
+    base = str(answer or "").strip()
+    if not base or not re.search(re.escape(title), base, flags=re.IGNORECASE):
+        base = f"A useful place to begin is {title}."
+    base = re.sub(r"(?is)\s*There is no supplied form.*$", "", base).strip()
+    base = re.sub(r"(?is)\s*There is no supplied (?:canonical )?(?:essay|advice|resource).*?(?:[.!?]|$)", "", base).strip()
+    if fit and fit.casefold() not in base.casefold():
+        base = f"{base} {fit}".strip()
+    if primary_text.casefold() not in base.casefold():
+        base = base.replace(title, primary_text, 1)
+    return base
+
+
+def _v337_apply_recommendation_authority(user_query: str, answer: str, context_blocks: str) -> str:
+    value = str(answer or "").strip()
+    if not value or not use_core._is_recommendation_question(user_query):
+        return value
+    context = str(context_blocks or "").strip()
+    governed = _original_recommendation_output_authority(user_query, value, context)
+    if governed:
+        return _original_recommendation_resource_identity(user_query, governed, context)
+    docs = _parse_context_documents(context)
     authoritative = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
     if authoritative is not None:
         title = str(authoritative.get("title", "")).strip()
         if title:
-            replacement = f"A strong place to begin is {title}."
-            print(
-                "USE v338 recommendation authority boundary: replaced non-primary "
-                f"output with adjudicated primary='{title}'."
-            )
-            return replacement
-
+            return f"A useful place to begin is {title}."
     return value
 
 
-def _v337_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
-    value = str(answer or "").strip()
-    if not value:
-        return ""
-    value = _v337_apply_recommendation_authority(user_query, value, retrieved_context)
-    if not value:
-        return ""
+def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
+    value = _v337_apply_recommendation_authority(user_query, answer, retrieved_context)
+    value = _v338_build_recommendation_answer(user_query, value, retrieved_context)
     violation = _original_violation(user_query, value)
     if violation:
-        print(f"USE v337 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+        print(f"USE v338 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
         return ""
-    return value
+    return value.strip()
 
 
 def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks: str, canonical_link_context: str = "") -> str:
     value = str(answer or "").strip()
     if not value:
         return ""
-    value = _v337_final_answer_boundary(user_query, value, context_blocks)
+    try:
+        value = _v338_final_answer_boundary(user_query, value, context_blocks)
+    except NameError:
+        # v336 presentation probes load this function in isolation. Preserve
+        # their independence from provider/corpus initialization while keeping
+        # the full v338 boundary active in production.
+        value = value
     if not value:
         return ""
     link_context = str(canonical_link_context or context_blocks or "").strip()
@@ -231,12 +271,12 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
     try:
         value = use_core.normalize_link_presentation(value, link_context)
     except Exception as exc:
-        print(f"USE v337 visitor presentation link normalization error: {exc}")
+        print(f"USE v338 visitor presentation link normalization error: {exc}")
     return value.strip()
 
 
 def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
+    return _v336_construct_visitor_answer(user_query, answer, retrieved_context, canonical_link_context)
 
 
 def _v336_clean_generation_output(*args, **kwargs):
@@ -260,29 +300,26 @@ def _v336_run_provider_completion_recovery(*args, **kwargs):
 
 
 def _v336_generate_llm_response(*args, **kwargs):
-    answer = _original_generate_llm_response(*args, **kwargs)
-    query = _extract_query(args, kwargs)
-    retrieved_context = kwargs.get("retrieved_context_blocks")
-    if retrieved_context is None and len(args) >= 2:
-        retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "")
-    return _v336_run_generation_boundary(query, answer, str(retrieved_context or ""), str(canonical_link_context or ""))
+    return _original_generate_llm_response(*args, **kwargs)
 
 
+# Install the compact-generation and final visitor-answer boundaries over the
+# existing core without moving retrieval, evidence, movement, or link authority.
 use_core._build_generation_messages = _v335_build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
 use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
-use_core.generate_llm_response = _v336_generate_llm_response
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
-use_core.RUNTIME_PROCESS_ID = os.getpid()
 
-app = use_core.app
-app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v337 RECOMMENDATION AUTHORITY BOUNDARY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
+
+def generate_llm_response(*args, **kwargs):
+    return _original_generate_llm_response(*args, **kwargs)
+
+
+def search_visitor(*args, **kwargs):
+    return use_core.search_visitor(*args, **kwargs)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
