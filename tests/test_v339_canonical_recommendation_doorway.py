@@ -45,3 +45,21 @@ def test_v339_runtime_seams_remain_exported():
     source = MAIN.read_text(encoding="utf-8")
     assert "app = use_core.app" in source
     assert 'if __name__ == "__main__":' in source
+
+
+def test_v339_build_identity_placeholder_is_rejected():
+    source = MAIN.read_text(encoding="utf-8")
+    assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in source
+
+
+def test_v339_runtime_identity_is_request_visible():
+    source = MAIN.read_text(encoding="utf-8")
+    assert "RUNTIME_SOURCE_SHA256" in source
+    assert "RUNTIME_BOOT_ID" in source
+    assert "RUNTIME_PROCESS_ID" in source
+    assert "X-USE-Build-ID" in source
+    assert "X-USE-Version" in source
+    assert "X-USE-Fingerprint" in source
+    assert "X-USE-Source-SHA256" in source
+    assert "X-USE-Boot-ID" in source
+    assert "X-USE-Request-ID" in source
