@@ -17,9 +17,7 @@ def _extract_function(source, name):
 def _load_constructor():
     source = MAIN.read_text(encoding="utf-8")
     fn = _extract_function(source, "_v336_construct_visitor_answer")
-    # The v337 final authority seam is intentionally represented in the
-    # constructor source, but this unit probe stubs it so presentation tests
-    # remain independent of provider/corpus initialization.
+
     class StubCore:
         @staticmethod
         def normalize_link_presentation(answer, context):
@@ -35,10 +33,23 @@ def _load_constructor():
                     flags=re.IGNORECASE,
                 )
             return answer
+
+        @staticmethod
+        def _is_recommendation_question(query):
+            return bool(re.search(r"\brecommend\b|\badvice\b|\bessay\b", query, re.IGNORECASE))
+
+        @staticmethod
+        def _adjudicate_recommendation_resource(docs, _query):
+            return docs[0] if docs else None
+
+    def fit_sentence(_query, _primary):
+        return "It is a direct fit because it addresses grief, loss, and death in its own framing."
+
     ns = {
         "re": re,
         "use_core": StubCore(),
-        "_v337_final_answer_boundary": lambda _query, answer, _context: answer,
+        "_v338_final_answer_boundary": lambda _query, answer, _context: answer,
+        "_v338_recommendation_fit_sentence": fit_sentence,
     }
     exec(fn, ns)
     return ns["_v336_construct_visitor_answer"]
