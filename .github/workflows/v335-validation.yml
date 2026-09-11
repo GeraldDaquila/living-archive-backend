@@ -33,3 +33,31 @@ jobs:
 
       - name: Run v335 regression probes
         run: python -m pytest -q tests/test_v335_response_contract.py tests/test_v335_budget_contract.py
+
+      - name: Smoke test deployed production endpoint
+        env:
+          PROD_URL: https://living-archive-backend.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          url = os.environ["PROD_URL"] + "/api/query"
+          query = "What advise or essay from the Living Archive that you can recommend for someone who is grieving from the death of a loved one?"
+          raw = subprocess.check_output([
+              "curl", "-sS", "--fail-with-body", "--max-time", "60",
+              "-H", "Content-Type: application/json",
+              "-d", json.dumps({"query": query}),
+              url,
+          ], text=True)
+          data = json.loads(raw)
+          print(json.dumps(data, ensure_ascii=False, indent=2))
+          assert data.get("ok") is True, data
+          assert data.get("version") == "v335", data
+          answer = str(data.get("response") or "")
+          assert answer.strip(), data
+          assert "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom" in answer, data
+          lower = answer.casefold()
+          assert "please try again" not in lower, data
+          assert "provider" not in lower, data
+          assert "retriev" not in lower, data
+          print("V335 PRODUCTION SMOKE TEST: PASS")
+          PY
