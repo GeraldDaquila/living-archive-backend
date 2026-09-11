@@ -14,7 +14,8 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-# Protected production core is v333. Its immutable repository blob SHA is authoritative.
+# Protected production core is v333. The runtime check must compare the exact
+# Git blob identity, not a SHA-256 of the checked-out file bytes.
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
@@ -28,6 +29,11 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _git_blob_sha256(data: bytes) -> str:
+    header = f"blob {len(data)}\\0".encode("utf-8")
+    return _sha256(header + data)
+
+
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
@@ -35,11 +41,11 @@ RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
     raise RuntimeError("USE v339 package integrity failure: use_core.py is missing.")
 
-_core_runtime_sha = _sha256(_CORE_PATH.read_bytes())
+_core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
         "USE v339 package integrity failure: "
-        f"expected protected core sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 _saved_expected_source = os.environ.pop("USE_EXPECTED_SOURCE_SHA256", None)
@@ -149,8 +155,8 @@ def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
     question = re.sub(r"\s+", " ", str(user_query or "").strip())
     lower = question.casefold()
     if re.search(r"\b(?:grief|grieving|bereavement|loss|loved one|death)\b", lower):
-        return f"It speaks directly to grief, loss, and the meaning of death without reducing the experience to a single answer."
-    return f"It is closely aligned with the question and gives the visitor a grounded place to begin."
+        return "It speaks directly to grief, loss, and the meaning of death without reducing the experience to a single answer."
+    return "It is closely aligned with the question and gives the visitor a grounded place to begin."
 
 
 def _v338_build_recommendation_answer(user_query: str, primary: dict) -> str:
@@ -264,7 +270,7 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 print(
     f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}"
+    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
 
 
