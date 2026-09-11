@@ -1,4 +1,4 @@
-name: USE v338 recommendation authority validation
+name: USE v339 legacy compatibility validation
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
         run: python -m pip install -r requirements.txt pytest
       - name: Compile production modules
         run: python -m py_compile main.py use_core.py run_v338_validation.py
-      - name: v338 authority validation
+      - name: v339 authority validation
         run: python run_v338_validation.py
       - name: v336 preserved regression probes
         run: python -m pytest -q tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
