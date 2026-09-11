@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v318 — Compassionate Guide Pathway + The Guide
+# USE PRODUCTION VERSION: v333 — Visitor-Centered Sensemaking Construction + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v318"
+APP_VERSION = "v333"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v318-compassionate-guide-pathway"
+DEPLOYMENT_FINGERPRINT = "USE-v333-visitor-centered-sensemaking-construction"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v318-compassionate-guide-pathway"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "b14099d566f62bce9d5675500e54911b861367bedbfa6c4ecd905a7763e96339"
+CANONICAL_BUILD_ID = "USE-BUILD-v333-visitor-centered-sensemaking-construction"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "c80675c5bc420bddb5ff4e9d6884c678265f12e753fb892e2086804354f96a6d"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -14345,6 +14345,56 @@ def _normalize_singular_recommendation_presentation(answer: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", value)
 
 
+def _v333_response_construction_instruction(user_query: str) -> str:
+    """Add positive visitor-centered answer construction without changing authority."""
+    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
+    if not q:
+        return ""
+    parts: List[str] = [
+        "[V333 RESPONSE CONSTRUCTION — DO NOT REVEAL]: Meet the visitor's question first, then use the strongest supplied canonical evidence as the doorway or lens.",
+        "Clarify what the question is asking in the visitor's own terms, explain why the selected evidence fits from supplied Content, and stop at the smallest useful orientation rather than forcing closure.",
+    ]
+    is_recommendation = _is_recommendation_question(user_query)
+    is_grief = bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", q))
+    is_movement = _movement_question_requires_canonical_next(user_query)
+    structure = recognize_question_structure(user_query)
+    is_contrast = structure.get("structure") == "explicit_contrast"
+    form_question = bool(re.search(r"\b(?:what kind of|what type of|what form|essay|article|map|navigator|pathway|hub|index|collection|document|resource)\b", q)) and bool(re.search(r"\b(?:what|which|is|are)\b", q))
+    underdetermined = _question_is_underdetermined(user_query)
+    if is_movement:
+        parts.append("For movement questions, give the requested location or continuation plainly and early. Use 'next' only when D29 explicitly validates a next canonical destination; otherwise state that no canonical next destination is established rather than inferring a route.")
+    elif is_recommendation and is_grief:
+        parts.append("For a grief or loss recommendation, acknowledge the stated loss plainly and gently before describing the resource. Name the adjudicated primary early and explain its direct fit from Content; do not turn grief into a lesson, required transformation, meaning, closure, or prescribed outcome.")
+    elif is_recommendation:
+        parts.append("For a recommendation request, name the adjudicated primary canonical resource early and explain its direct fit before any optional companion route permitted by the task contract.")
+    elif is_grief:
+        parts.append("For grief, bereavement, death, or loss, begin gently with the visitor's stated experience, then describe what the supplied canonical material explores. Preserve agency and do not prescribe what the experience means or should become.")
+    elif is_contrast:
+        parts.append("For an explicit contrast or tension, state the visitor's two sides or tension first. Then explain which supplied resources illuminate those sides and synthesize only the relationship the evidence supports; mark any remaining bridge as interpretation rather than fact.")
+    elif form_question:
+        parts.append("For a document, resource-form, or structural question, answer the requested form or structural distinction first, then provide the most useful canonical doorway. Do not substitute a semantically related resource for the requested structure.")
+    elif underdetermined:
+        parts.append("For an open experiential question, keep the question open rather than resolving it. Offer a bounded orientation and one strongest doorway, leaving room for the visitor to continue the inquiry themselves.")
+    else:
+        parts.append("For ordinary topical questions, answer the central question first in ordinary language, then bring in the canonical resource as the evidence-grounded lens or doorway that helps the visitor continue.")
+    parts.append("Do not make the resource substitute for the answer, do not introduce a framework the visitor did not name, and do not add outside knowledge. Resource identity, links, and movement remain governed by the existing canonical gates.")
+    return "\n".join(parts)
+
+
+def _v333_response_construction_self_audit() -> None:
+    """Static self-audit for the v333 visitor-centered construction layer."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    if 'APP_VERSION = ' not in source or 'v333' not in source:
+        raise RuntimeError("v333 self-audit failure: version identity missing.")
+    if '_v333_response_construction_instruction' not in source:
+        raise RuntimeError("v333 self-audit failure: construction instruction missing.")
+    if '_v333_response_construction_instruction(user_query)' not in source:
+        raise RuntimeError("v333 self-audit failure: construction instruction not wired.")
+    if 'compact=True' not in source:
+        raise RuntimeError("v333 self-audit failure: compact generation path missing.")
+
+
+
 def _build_generation_system_content(
     intent: str,
     generation_context: str,
@@ -14361,7 +14411,6 @@ def _build_generation_system_content(
         f"[CANONICAL EVIDENCE]:\n"
         f"{generation_context}"
     )
-
 
 
 def _v213_evidence_role_binding_instruction(
@@ -15942,6 +15991,8 @@ def _build_generation_messages(
     evidence remains supplied through the same explicit context boundary.
     """
     safe_context = str(generation_context or "").strip()
+    construction_instruction = _v333_response_construction_instruction(user_query)
+
     frame = orientational_frame or {"primary": "general", "scores": {}}
     frame_hint = str(frame.get("primary", "general"))
     underdetermined = _question_is_underdetermined(user_query)
@@ -16013,6 +16064,9 @@ def _build_generation_messages(
             + attribution_instruction
             + response_task_instruction
         )
+
+    if construction_instruction:
+        system_content = system_content + "\n\n" + construction_instruction
 
     return [
         {"role": "system", "content": system_content},
