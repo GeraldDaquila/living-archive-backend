@@ -14,7 +14,8 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
+# Protected production core is the exact v339 release-tree core.
+EXPECTED_CORE_BLOB_SHA = "d2731eab9844b19156fe0d2a317c9c765f17f3cf"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -224,9 +225,6 @@ def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canoni
             answer = normalize(answer, canonical_link_context)
         except TypeError:
             answer = normalize(answer)
-    # v339 must own the final doorway even when the protected-core normalizer
-    # returns a fully rendered Markdown link that would otherwise hide the exact
-    # primary doorway shape expected by the preserved v336 contract.
     return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
 
 
