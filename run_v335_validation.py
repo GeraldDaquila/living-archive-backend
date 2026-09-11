@@ -92,7 +92,8 @@ def main():
     assert "fetch_canonical_context" not in main_source
     assert "select_canonical_doorways" not in main_source
     assert "sanitize_canonical_links" not in main_source
-    assert "normalize_link_presentation" not in main_source
+    # v336 deliberately invokes the protected canonical presentation boundary.
+    assert "use_core.normalize_link_presentation" in main_source
 
     compact_prompt = _literal_assignment(core_source, "COMPACT_GENERATION_SYSTEM_PROMPT")
     provider_prompt = _load_provider_prompt()
