@@ -1,9 +1,6 @@
 # USE PRODUCTION VERSION: v339 — Canonical Recommendation Doorway + The Guide
-# v339 preserves v337 recommendation authority and v338 evidence-bound fit synthesis,
-# then adds a deterministic canonical recommendation doorway at the final visitor boundary.
-# visitor-facing presentation, retrieval, evidence, provider, and canonical-link
-# boundaries remain protected; this wrapper does not reopen the upstream engine.
-
+# Protected core is v333; main.py owns only the visitor-facing compatibility and
+# canonical recommendation boundary.
 import hashlib
 import importlib
 import os
@@ -14,7 +11,8 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
+# Current protected production core: exact raw SHA-256 recorded from the known-good v333 tree.
+EXPECTED_CORE_SOURCE_SHA256 = "7576b432174633f7182c934891b388a36e9c0b743d0adee41f19e11917d91e81"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -47,6 +45,7 @@ finally:
     if _saved_expected_source is not None:
         os.environ["USE_EXPECTED_SOURCE_SHA256"] = _saved_expected_source
 
+_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", lambda *_args, **_kwargs: None)
 _original_build_generation_messages = use_core._build_generation_messages
 _original_clean_generation_output = use_core._clean_generation_output
 _original_run_generation_attempt = use_core._run_generation_attempt
@@ -54,7 +53,6 @@ _original_run_provider_completion_recovery = use_core._run_provider_completion_r
 _original_generate_llm_response = use_core.generate_llm_response
 _original_recommendation_output_authority = use_core._enforce_recommendation_output_authority
 _original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
-_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", None)
 
 
 def _extract_query(args, kwargs):
@@ -112,44 +110,19 @@ def _v335_build_generation_messages(*args, **kwargs):
     messages = list(_original_build_generation_messages(*args, **kwargs))
     query = kwargs.get("user_query") if "user_query" in kwargs else (args[0] if args else "")
     intent = kwargs.get("intent") if "intent" in kwargs else (args[1] if len(args) >= 2 else "TOPICAL_INQUIRY")
-    if not messages:
-        return messages
-    system_message = dict(messages[0])
-    system_message["content"] = _v335_provider_system_prompt()
-    contract = _v335_compact_response_contract(str(query or ""), str(intent or "TOPICAL_INQUIRY"))
-    if contract:
-        system_message["content"] += "\n\n" + contract
-    messages[0] = system_message
+    if messages:
+        system_message = dict(messages[0])
+        system_message["content"] = _v335_provider_system_prompt()
+        contract = _v335_compact_response_contract(str(query or ""), str(intent or "TOPICAL_INQUIRY"))
+        if contract:
+            system_message["content"] += "\n\n" + contract
+        messages[0] = system_message
     return messages
 
 
-def _build_generation_messages(*args, **kwargs):
-    return _v335_build_generation_messages(*args, **kwargs)
-
-
-def _clean_generation_output(value):
-    return _original_clean_generation_output(value)
-
-
-def _v336_clean_generation_output(value, *args, **kwargs):
-    text = _clean_generation_output(value)
+def _v336_clean_generation_output(value):
+    text = _original_clean_generation_output(value)
     return re.sub(r"(?im)^\s*(?:answer|response)\s*:\s*", "", str(text or "")).strip()
-
-
-def _run_generation_attempt(*args, **kwargs):
-    return _original_run_generation_attempt(*args, **kwargs)
-
-
-def _v336_run_generation_attempt(*args, **kwargs):
-    return _run_generation_attempt(*args, **kwargs)
-
-
-def _run_provider_completion_recovery(*args, **kwargs):
-    return _original_run_provider_completion_recovery(*args, **kwargs)
-
-
-def _v336_run_provider_completion_recovery(*args, **kwargs):
-    return _run_provider_completion_recovery(*args, **kwargs)
 
 
 def _parse_context_documents(context_blocks: str):
@@ -167,9 +140,8 @@ def _parse_context_documents(context_blocks: str):
 
 
 def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
-    title = str(primary.get("title") or "").strip()
     content = re.sub(r"\s+", " ", str(primary.get("text") or primary.get("content") or "").strip())
-    if not title or not content:
+    if not content:
         return ""
     lowered = content.casefold()
     query = str(user_query or "").casefold()
@@ -224,7 +196,7 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
         return _original_recommendation_resource_identity(user_query, governed, context)
     docs = _parse_context_documents(context)
     authoritative = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
-    if authoritative is not None:
+    if authoritative:
         title = str(authoritative.get("title", "")).strip()
         if title:
             return f"A useful place to begin is {title}."
@@ -234,11 +206,10 @@ def _v337_apply_recommendation_authority(user_query: str, answer: str, context_b
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
     value = _v337_apply_recommendation_authority(user_query, answer, retrieved_context)
     value = _v338_build_recommendation_answer(user_query, value, retrieved_context)
-    if callable(_original_violation):
-        violation = _original_violation(user_query, value)
-        if violation:
-            print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
-            return ""
+    violation = _original_violation(user_query, value)
+    if violation:
+        print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+        return ""
     return value.strip()
 
 
@@ -282,25 +253,29 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, retrieved_conte
         value = use_core.normalize_link_presentation(value, link_context)
     except Exception as exc:
         print(f"USE v339 visitor presentation link normalization error: {exc}")
-    value = _v339_canonical_recommendation_doorway(user_query, value, retrieved_context)
-    return value.strip()
+    return _v339_canonical_recommendation_doorway(user_query, value, retrieved_context)
 
 
-def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
+def _v339_finalize_generation_response(*args, **kwargs):
+    value = _original_generate_llm_response(*args, **kwargs)
+    user_query = kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else "")
+    user_query = str(user_query or "")
+    if not value or not use_core._is_recommendation_question(user_query):
+        return value
+    retrieved_context = kwargs.get("retrieved_context_blocks", "")
+    if retrieved_context is None and len(args) >= 2:
+        retrieved_context = args[1]
+    canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
+    return _v336_construct_visitor_answer(str(value), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
 
 
-def _v336_generate_llm_response(*args, **kwargs):
-    return _original_generate_llm_response(*args, **kwargs)
-
-
+# Preserve the core's existing callable seams when they exist; main.py owns only presentation.
 use_core._build_generation_messages = _v335_build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
-use_core._run_generation_attempt = _v336_run_generation_attempt
-use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
+use_core._run_generation_attempt = _original_run_generation_attempt
+use_core._run_provider_completion_recovery = _original_run_provider_completion_recovery
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-# FastAPI /query resolves generate_llm_response from use_core.
-use_core.generate_llm_response = _original_generate_llm_response
+use_core.generate_llm_response = _v339_finalize_generation_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
@@ -320,21 +295,6 @@ print(
 
 def generate_llm_response(*args, **kwargs):
     return _v339_finalize_generation_response(*args, **kwargs)
-
-
-def _v339_finalize_generation_response(*args, **kwargs):
-    value = _original_generate_llm_response(*args, **kwargs)
-    user_query = kwargs.get("user_query")
-    if user_query is None and args:
-        user_query = args[0]
-    user_query = str(user_query or "")
-    if not value or not use_core._is_recommendation_question(user_query):
-        return value
-    retrieved_context = kwargs.get("retrieved_context_blocks", "")
-    if retrieved_context is None and len(args) >= 2:
-        retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
-    return _v336_construct_visitor_answer(str(value or ""), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
 
 
 def search_visitor(*args, **kwargs):
