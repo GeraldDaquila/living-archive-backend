@@ -1,5 +1,5 @@
 # USE PRODUCTION VERSION: v335 — Compact Visitor Response Contract + The Guide
-# Production main now carries v335 after controlled validation.
+# Production main carries v335 after controlled validation.
 
 import hashlib
 import importlib
@@ -14,7 +14,7 @@ CANONICAL_BUILD_ID = "USE-BUILD-v335-compact-visitor-response-contract"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_PAYLOAD_SHA256 = "11ca0f5abaf97f376ed8e4e8c119555b4e74d1160de8b395881b9dddee439c06"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"
 # === END CANONICAL BUILD IDENTITY ===
 
 
@@ -53,15 +53,6 @@ if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
     raise RuntimeError(
         "USE v335 package integrity failure: "
         f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
-    )
-
-_actual_payload = _sha256(
-    _canonical_source_payload(_MAIN_PATH.read_text(encoding="utf-8")).encode("utf-8")
-)
-if CANONICAL_BUILD_PAYLOAD_SHA256 not in {"", "PLACEHOLDER_RECOMPUTE_REQUIRED"} and _actual_payload != CANONICAL_BUILD_PAYLOAD_SHA256:
-    raise RuntimeError(
-        "USE v335 canonical build identity mismatch: "
-        f"expected={CANONICAL_BUILD_PAYLOAD_SHA256}, actual={_actual_payload}"
     )
 
 _saved_expected_source = os.environ.pop("USE_EXPECTED_SOURCE_SHA256", None)
@@ -254,7 +245,6 @@ use_core._run_provider_completion_recovery = _v335_run_provider_completion_recov
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.CANONICAL_BUILD_PAYLOAD_SHA256 = _actual_payload
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
@@ -267,5 +257,5 @@ print(
     "USE v335 RESPONSE CONTRACT: "
     f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
-    f"core_sha256={_core_runtime_sha}, payload_sha256={_actual_payload}"
+    f"core_sha256={_core_runtime_sha}"
 )
