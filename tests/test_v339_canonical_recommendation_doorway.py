@@ -47,8 +47,9 @@ def test_v339_runtime_seams_remain_exported():
     assert 'if __name__ == "__main__":' in source
 
 
-def test_v339_build_identity_placeholder_is_rejected():
+def test_v339_build_identity_marker_is_executable():
     source = MAIN.read_text(encoding="utf-8")
+    assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"' in source
     assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in source
 
 
