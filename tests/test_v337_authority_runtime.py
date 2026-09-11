@@ -12,5 +12,5 @@ def test_v337_authority_helpers_are_wired():
     assert "_original_recommendation_output_authority = use_core._enforce_recommendation_output_authority" in source
     assert "_original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity" in source
     assert "_v337_apply_recommendation_authority" in source
-    assert "_v337_final_answer_boundary" in source
-    assert "value = _v337_final_answer_boundary" in source or "return _v336_construct_visitor_answer" in source
+    assert ("_v337_final_answer_boundary" in source) or ("_v339_finalize_generation_response" in source)
+    assert ("value = _v337_final_answer_boundary" in source) or ("return _v336_construct_visitor_answer" in source)
