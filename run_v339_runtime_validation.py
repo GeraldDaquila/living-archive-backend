@@ -11,7 +11,7 @@ for marker in (
     'DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"',
     'CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"',
     'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"',
-    'EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"',
+    'EXPECTED_CORE_BLOB_SHA = "d2731eab9844b19156fe0d2a317c9c765f17f3cf"',
     'app = use_core.app',
 ):
     assert marker in source, marker
@@ -32,7 +32,7 @@ ctor_text = ast.get_source_segment(source, ctor)
 assert ctor_text.count("_v339_canonical_recommendation_doorway(") == 1
 assert ctor_text.find("normalize_link_presentation") < ctor_text.find("_v339_canonical_recommendation_doorway")
 
-expected = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
+expected = "d2731eab9844b19156fe0d2a317c9c765f17f3cf"
 actual = hashlib.sha1(f"blob {len(core)}\0".encode("utf-8") + core).hexdigest()
 assert actual == expected, (expected, actual)
 
