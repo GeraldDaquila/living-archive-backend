@@ -1,8 +1,8 @@
-# USE PRODUCTION VERSION: v336 — Visitor Answer Construction Layer + The Guide
-# v336 preserves v335 provider compaction and adds a single visitor-facing
-# construction contract at the final generation seam. Retrieval, canonical
-# evidence, recommendation authority, movement, and link authority remain in
-# use_core.py.
+# USE PRODUCTION VERSION: v337 — Recommendation Authority Boundary + The Guide
+# v337 preserves v336 provider compaction and visitor-answer construction, then
+# re-applies USE recommendation authority at the final wrapper seam. Retrieval,
+# canonical evidence, recommendation adjudication, movement, and link authority
+# remain in use_core.py.
 
 import hashlib
 import importlib
@@ -11,9 +11,9 @@ import re
 import uuid
 from pathlib import Path
 
-APP_VERSION = "v336"
-DEPLOYMENT_FINGERPRINT = "USE-v336-visitor-answer-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v336-visitor-answer-construction"
+APP_VERSION = "v337"
+DEPLOYMENT_FINGERPRINT = "USE-v337-recommendation-authority-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v337-recommendation-authority-boundary"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
@@ -36,7 +36,7 @@ def _canonical_source_payload(source: str) -> str:
         count=1,
     )
     if count != 1:
-        raise RuntimeError("USE v336 build identity failure: identity block missing.")
+        raise RuntimeError("USE v337 build identity failure: identity block missing.")
     return normalized
 
 
@@ -49,12 +49,12 @@ _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v336 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v337 package integrity failure: use_core.py is missing.")
 
 _core_runtime_sha = _sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256:
     raise RuntimeError(
-        "USE v336 package integrity failure: "
+        "USE v337 package integrity failure: "
         f"expected core sha={EXPECTED_CORE_SOURCE_SHA256}, actual={_core_runtime_sha}"
     )
 
@@ -71,6 +71,8 @@ _original_clean_generation_output = use_core._clean_generation_output
 _original_run_generation_attempt = use_core._run_generation_attempt
 _original_run_provider_completion_recovery = use_core._run_provider_completion_recovery
 _original_generate_llm_response = use_core.generate_llm_response
+_original_recommendation_output_authority = use_core._enforce_recommendation_output_authority
+_original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
 
 
 def _extract_query(args, kwargs):
@@ -130,7 +132,7 @@ def _v335_provider_system_prompt() -> str:
     prompt, recommendation_removed = re.subn(r"\n\[RECOMMENDATION QUALITY\]:.*?(?=\n\[VISITOR VOICE\])", "", prompt, flags=re.DOTALL)
     prompt, breathe_removed = re.subn(r"\n\[BREATHE BETWEEN IDEAS\]:.*?(?=\nOutput only)", "", prompt, flags=re.DOTALL)
     if provenance_removed != 1 or recommendation_removed != 1 or breathe_removed != 1:
-        raise RuntimeError("USE v336 provider prompt compaction boundary failure")
+        raise RuntimeError("USE v337 provider prompt compaction boundary failure")
     return prompt
 
 
@@ -154,8 +156,46 @@ def _v335_build_generation_messages(*args, **kwargs):
     return messages
 
 
+def _v337_apply_recommendation_authority(user_query: str, answer: str, context_blocks: str) -> str:
+    """Re-apply the canonical recommendation authority after v336 wrapping."""
+    value = str(answer or "").strip()
+    if not value or not use_core._is_recommendation_question(user_query):
+        return value
+    governed = _original_recommendation_output_authority(
+        user_query,
+        value,
+        str(context_blocks or ""),
+    )
+    if not governed:
+        print("USE v337 recommendation authority boundary: rejected non-primary recommendation output")
+        return ""
+    governed = _original_recommendation_resource_identity(
+        user_query,
+        governed,
+        str(context_blocks or ""),
+    )
+    return governed
+
+
+def _v337_final_answer_boundary(user_query: str, answer: str, retrieved_context: str) -> str:
+    value = str(answer or "").strip()
+    if not value:
+        return ""
+    value = _v337_apply_recommendation_authority(user_query, value, retrieved_context)
+    if not value:
+        return ""
+    violation = _original_violation(user_query, value)
+    if violation:
+        print(f"USE v337 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+        return ""
+    return value
+
+
 def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks: str, canonical_link_context: str = "") -> str:
     value = str(answer or "").strip()
+    if not value:
+        return ""
+    value = _v337_final_answer_boundary(user_query, value, context_blocks)
     if not value:
         return ""
     link_context = str(canonical_link_context or context_blocks or "").strip()
@@ -169,16 +209,12 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
     try:
         value = use_core.normalize_link_presentation(value, link_context)
     except Exception as exc:
-        print(f"USE v336 visitor presentation link normalization error: {exc}")
+        print(f"USE v337 visitor presentation link normalization error: {exc}")
     return value.strip()
 
 
 def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    value = str(answer or "").strip()
-    violation = _original_violation(user_query, value)
-    if violation:
-        return ""
-    return _v336_construct_visitor_answer(value, user_query, retrieved_context, canonical_link_context)
+    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
 
 
 def _v336_clean_generation_output(*args, **kwargs):
@@ -186,10 +222,6 @@ def _v336_clean_generation_output(*args, **kwargs):
     user_query = kwargs.get("user_query")
     if user_query is None and len(args) >= 4:
         user_query = args[3]
-    violation = _original_violation(str(user_query or ""), cleaned)
-    if violation:
-        print(f"USE v336 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
-        return ""
     return _v336_construct_visitor_answer(cleaned, str(user_query or ""), kwargs.get("retrieved_context_blocks", ""), kwargs.get("canonical_link_context", ""))
 
 
@@ -231,4 +263,4 @@ use_core.RUNTIME_PROCESS_ID = os.getpid()
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v336 VISITOR ANSWER CONSTRUCTION: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
+print(f"USE v337 RECOMMENDATION AUTHORITY BOUNDARY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
