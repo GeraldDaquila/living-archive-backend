@@ -63,6 +63,17 @@ def _load_contract_builder():
     return ns["_v335_compact_response_contract"]
 
 
+def _load_provider_prompt():
+    source = MAIN.read_text(encoding="utf-8")
+    fn = _extract_function(source, "_v335_provider_system_prompt")
+    ns = {"re": re, "use_core": type("StubCore", (), {})()}
+    ns["use_core"].COMPACT_GENERATION_SYSTEM_PROMPT = _literal_assignment(
+        CORE.read_text(encoding="utf-8"), "COMPACT_GENERATION_SYSTEM_PROMPT"
+    )
+    exec(compile(fn, "<v335_provider_prompt>", "exec"), ns)
+    return ns["_v335_provider_system_prompt"]
+
+
 def _baseline_main_source():
     return subprocess.check_output(
         ["git", "show", f"{BASE_COMMIT}:main.py"],
@@ -84,6 +95,7 @@ def main():
     assert "normalize_link_presentation" not in main_source
 
     compact_prompt = _literal_assignment(core_source, "COMPACT_GENERATION_SYSTEM_PROMPT")
+    provider_prompt = _load_provider_prompt()
     baseline_source = _baseline_main_source()
     lean_prompt = _literal_assignment(baseline_source, "_LEAN_PROVIDER_SYSTEM_PROMPT")
 
@@ -109,19 +121,20 @@ def main():
         assert f"intent={intent};" in contract
         assert len(contract) <= 1100, len(contract)
 
-    max_system_chars = max(len(compact_prompt) + len(c) for c in contracts)
+    max_system_chars = max(len(provider_prompt) + len(c) for c in contracts)
     projected_fixed_input = PREVIOUS_FIXED_INPUT_CHARS - len(lean_prompt) + max_system_chars
     projected_total = projected_fixed_input + PREVIOUS_ESTIMATED_OUTPUT_CHARS
 
     print(f"baseline_lean_prompt_chars={len(lean_prompt)}")
-    print(f"compact_prompt_chars={len(compact_prompt)}")
+    print(f"protected_compact_prompt_chars={len(compact_prompt)}")
+    print(f"derived_provider_prompt_chars={len(provider_prompt)}")
     print(f"max_contract_chars={max(map(len, contracts))}")
     print(f"max_system_chars={max_system_chars}")
     print(f"v334_observed_fixed_input_chars={PREVIOUS_FIXED_INPUT_CHARS}")
     print(f"v335_projected_fixed_input_chars={projected_fixed_input}")
     print(f"v335_projected_total_chars={projected_total}")
 
-    assert len(compact_prompt) < 2600, len(compact_prompt)
+    assert len(provider_prompt) < 2000, len(provider_prompt)
     assert projected_fixed_input < MAX_PROVIDER_INPUT_CHARS, projected_fixed_input
     assert projected_total < MAX_PROVIDER_TOTAL_CHARS, projected_total
     print("V335 PROVIDER ENVELOPE PROJECTION: PASS")
