@@ -33,3 +33,11 @@ def test_core_generate_fallback_is_not_the_public_recommendation_exit():
     finalizer = _function(source, "_v339_finalize_generation_response")
     assert "return _v336_construct_visitor_answer(" in finalizer
 
+
+def test_fastapi_query_seam_installs_v339_finalizer_on_use_core():
+    source = MAIN.read_text(encoding="utf-8")
+    assert "use_core.generate_llm_response = _v339_finalize_generation_response" in source
+    seam_pos = source.find("use_core.generate_llm_response = _v339_finalize_generation_response")
+    app_pos = source.find("app = use_core.app")
+    assert seam_pos >= 0
+    assert app_pos > seam_pos
