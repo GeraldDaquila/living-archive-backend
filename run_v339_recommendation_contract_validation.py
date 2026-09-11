@@ -21,8 +21,7 @@ fn_nodes = {node.name: node for node in module.body if isinstance(node, ast.Func
 assert "_v339_canonical_recommendation_doorway" in fn_nodes
 assert "_v336_construct_visitor_answer" in fn_nodes
 
-# The v339 final doorway must rebuild the canonical primary link, never merely
-# preserve whatever the provider happened to return.
+# The v339 final doorway must rebuild the canonical primary link.
 doorway = ast.get_source_segment(source, fn_nodes["_v339_canonical_recommendation_doorway"])
 assert 'canonical_link = f"[{title}]({url})"' in doorway
 assert 'prefix = "A useful place to begin is "' in doorway
@@ -33,19 +32,19 @@ ctor = ast.get_source_segment(source, fn_nodes["_v336_construct_visitor_answer"]
 assert ctor.count("_v339_canonical_recommendation_doorway(") == 1
 assert ctor.find("normalize_link_presentation") < ctor.find("_v339_canonical_recommendation_doorway")
 
-# The source must not retain the old response-path identity ambiguity: the
-# provider-facing core seam must remain exported back to the wrapper.
-assert "use_core._clean_generation_output = _v336_clean_generation_output" in source
-assert "use_core._run_generation_attempt = _v336_run_generation_attempt" in source
-assert "use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery" in source
+# The public wrapper owns the final recommendation presentation boundary.
+finalizer = ast.get_source_segment(source, fn_nodes["_v339_finalize_generation_response"])
+public_wrapper = ast.get_source_segment(source, fn_nodes["generate_llm_response"])
+assert "_original_generate_llm_response" in finalizer
+assert "_v336_construct_visitor_answer" in finalizer
+assert "_v339_finalize_generation_response" in public_wrapper
 
-# Recommendation task logic must be present in the protected core.
+# Recommendation task logic remains present in the protected core.
 assert "_is_recommendation_question" in core
 assert "_adjudicate_recommendation_resource" in core
 assert "RECOMMENDATION_PRIMARY_EVIDENCE_MAX_CHARS" in core
+assert "USE-v339-grief-recommendation-authority" in core
 
-# The observed benchmark secondary must remain known only as a secondary audit
-# resource; it must not replace the canonical primary contract.
+# The benchmark secondary remains known as a secondary audit resource.
 assert SECONDARY in source
-
 print("USE v339 recommendation contract validation: PASS")
