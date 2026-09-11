@@ -254,9 +254,8 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
     try:
         value = _v338_final_answer_boundary(user_query, value, context_blocks)
     except NameError:
-        # v336 presentation probes load this function in isolation. Preserve
-        # their independence from provider/corpus initialization while keeping
-        # the full v338 boundary active in production.
+        # Isolated presentation probes may load this constructor without the
+        # broader wrapper seam; keep those tests independent of runtime state.
         value = value
     if not value:
         return ""
@@ -276,7 +275,7 @@ def _v336_construct_visitor_answer(answer: str, user_query: str, context_blocks:
 
 
 def _v336_run_generation_boundary(user_query: str, answer: str, retrieved_context: str, canonical_link_context: str = "") -> str:
-    return _v336_construct_visitor_answer(user_query, answer, retrieved_context, canonical_link_context)
+    return _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context)
 
 
 def _v336_clean_generation_output(*args, **kwargs):
