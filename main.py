@@ -309,6 +309,17 @@ use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
 use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
 use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
+use_core.APP_VERSION = APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
+use_core.RUNTIME_PROCESS_ID = os.getpid()
+
+app = use_core.app
+app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
+print(f"USE v338 RECOMMENDATION FIT SYNTHESIS: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_sha256={_core_runtime_sha}")
 
 
 def generate_llm_response(*args, **kwargs):
