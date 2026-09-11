@@ -1,10 +1,16 @@
 import ast
 from pathlib import Path
 import re
+import subprocess
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "main.py"
 CORE = ROOT / "use_core.py"
+BASE_COMMIT = "b663397c04d1506392a3d227a0dc291ce02f109f"
+PREVIOUS_FIXED_INPUT_CHARS = 3756
+PREVIOUS_ESTIMATED_OUTPUT_CHARS = 1280
+MAX_PROVIDER_INPUT_CHARS = 3800
+MAX_PROVIDER_TOTAL_CHARS = 4600
 
 
 def _extract_function(source, name):
@@ -23,6 +29,11 @@ def _extract_assignment(source, name):
                 if isinstance(target, ast.Name) and target.id == name:
                     return ast.get_source_segment(source, node)
     raise AssertionError(f"assignment not found: {name}")
+
+
+def _literal_assignment(source, name):
+    assignment = _extract_assignment(source, name)
+    return ast.literal_eval(assignment.split("=", 1)[1].strip())
 
 
 def _load_contract_builder():
@@ -52,6 +63,14 @@ def _load_contract_builder():
     return ns["_v335_compact_response_contract"]
 
 
+def _baseline_main_source():
+    return subprocess.check_output(
+        ["git", "show", f"{BASE_COMMIT}:main.py"],
+        cwd=ROOT,
+        text=True,
+    )
+
+
 def main():
     main_source = MAIN.read_text(encoding="utf-8")
     core_source = CORE.read_text(encoding="utf-8")
@@ -64,8 +83,9 @@ def main():
     assert "sanitize_canonical_links" not in main_source
     assert "normalize_link_presentation" not in main_source
 
-    compact_assignment = _extract_assignment(core_source, "COMPACT_GENERATION_SYSTEM_PROMPT")
-    compact_prompt = ast.literal_eval(compact_assignment.split("=", 1)[1].strip())
+    compact_prompt = _literal_assignment(core_source, "COMPACT_GENERATION_SYSTEM_PROMPT")
+    baseline_source = _baseline_main_source()
+    lean_prompt = _literal_assignment(baseline_source, "_LEAN_PROVIDER_SYSTEM_PROMPT")
 
     build_contract = _load_contract_builder()
     cases = [
@@ -91,14 +111,23 @@ def main():
         assert f"intent={intent};" in contract
         assert len(contract) <= 1100, len(contract)
 
-    fixed_estimate = max(len(compact_prompt) + len(c) for c in contracts)
+    max_system_chars = max(len(compact_prompt) + len(c) for c in contracts)
     assert len(compact_prompt) < 2600, len(compact_prompt)
-    assert fixed_estimate < 3600, fixed_estimate
 
+    projected_fixed_input = PREVIOUS_FIXED_INPUT_CHARS - len(lean_prompt) + max_system_chars
+    projected_total = projected_fixed_input + PREVIOUS_ESTIMATED_OUTPUT_CHARS
+
+    assert projected_fixed_input < MAX_PROVIDER_INPUT_CHARS, projected_fixed_input
+    assert projected_total < MAX_PROVIDER_TOTAL_CHARS, projected_total
+
+    print(f"baseline_lean_prompt_chars={len(lean_prompt)}")
     print(f"compact_prompt_chars={len(compact_prompt)}")
     print(f"max_contract_chars={max(map(len, contracts))}")
-    print(f"estimated_max_system_chars={fixed_estimate}")
-    print("V335 STATIC CONTRACT VALIDATION: PASS")
+    print(f"max_system_chars={max_system_chars}")
+    print(f"v334_observed_fixed_input_chars={PREVIOUS_FIXED_INPUT_CHARS}")
+    print(f"v335_projected_fixed_input_chars={projected_fixed_input}")
+    print(f"v335_projected_total_chars={projected_total}")
+    print("V335 PROVIDER ENVELOPE PROJECTION: PASS")
 
 
 if __name__ == "__main__":
