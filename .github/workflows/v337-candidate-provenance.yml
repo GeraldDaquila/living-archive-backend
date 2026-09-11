@@ -1,0 +1,24 @@
+name: USE v337 candidate provenance
+
+on:
+  push:
+    branches:
+      - exp/v337-candidate-provenance
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile
+        run: python -m py_compile main.py use_core.py tests/test_v337_candidate_provenance.py
+      - name: Run candidate provenance fixture
+        run: pytest -q tests/test_v337_candidate_provenance.py
