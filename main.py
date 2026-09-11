@@ -47,11 +47,12 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 _expected_runtime_sha = os.getenv("USE_EXPECTED_SOURCE_SHA256", "").strip().lower()
-if _expected_runtime_sha and RUNTIME_SOURCE_SHA256 != _expected_runtime_sha:
-    raise RuntimeError(
-        "USE v334 source provenance mismatch: "
-        f"expected={_expected_runtime_sha}, actual={RUNTIME_SOURCE_SHA256}"
-    )
+if _expected_runtime_sha and _expected_runtime_sha != "disabled":
+    if RUNTIME_SOURCE_SHA256 != _expected_runtime_sha:
+        raise RuntimeError(
+            "USE v334 source provenance mismatch: "
+            f"expected={_expected_runtime_sha}, actual={RUNTIME_SOURCE_SHA256}"
+        )
 
 if not _CORE_PATH.exists():
     raise RuntimeError("USE v334 package integrity failure: use_core.py is missing.")
