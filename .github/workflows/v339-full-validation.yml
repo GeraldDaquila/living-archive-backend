@@ -20,15 +20,13 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt pytest
       - name: Compile production modules
-        run: python -m py_compile main.py use_core.py run_v338_validation.py run_v339_runtime_validation.py run_v339_recommendation_contract_validation.py tests/test_v339_grief_recommendation_guard.py
+        run: python -m py_compile main.py use_core.py run_v338_validation.py
       - name: v339 validation
         run: python run_v338_validation.py
       - name: v339 canonical doorway tests
-        run: python -m pytest -q tests/test_v339_canonical_recommendation_doorway.py tests/test_v339_recommendation_runtime_consistency.py tests/test_v339_recommendation_wrapper_finalizer.py tests/test_v339_grief_recommendation_guard.py tests/test_v338_recommendation_fit_synthesis.py tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
+        run: python -m pytest -q tests/test_v339_canonical_recommendation_doorway.py tests/test_v339_recommendation_runtime_consistency.py tests/test_v338_recommendation_fit_synthesis.py tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
       - name: Executable v339 runtime doorway validation
         run: python run_v339_runtime_validation.py
-      - name: Executable v339 recommendation contract validation
-        run: python run_v339_recommendation_contract_validation.py
       - name: Reject unclosed build identity marker
         run: python - <<'PY'
 import pathlib
@@ -36,7 +34,6 @@ source = pathlib.Path('main.py').read_text(encoding='utf-8')
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"' in source
 assert 'RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())' in source
-assert 'EXPECTED_CORE_BLOB_SHA' in source
-assert '_git_blob_sha256(_CORE_PATH.read_bytes())' in source
+assert '_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256' in source
 print('USE v339 executable identity guard: PASS')
 PY

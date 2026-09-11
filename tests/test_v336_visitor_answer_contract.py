@@ -32,7 +32,7 @@ def test_v336_keeps_canonical_link_authority_in_core():
     assert "def normalize_link_presentation" not in source
     assert "def _link_canonical_titles" not in source
     assert "def _canonical_pairs" not in source
-    assert "getattr(use_core, \"normalize_link_presentation\"" in source
+    assert "use_core.normalize_link_presentation" in source
 
 
 def test_v336_contract_prioritizes_answer_then_doorway_then_continuation():

@@ -9,7 +9,7 @@ for required in (
     'APP_VERSION = "v339"',
     'DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"',
     "_adjudicate_recommendation_resource",
-    'canonical_link = f"[{title}]({url})"',
+    "A useful place to begin is {title}.",
     "_original_recommendation_output_authority",
     "_original_recommendation_resource_identity",
     "_v339_canonical_recommendation_doorway",
@@ -22,9 +22,13 @@ assert "RUNTIME_SOURCE_SHA256" in main_source
 assert "RUNTIME_BOOT_ID" in main_source
 assert "RUNTIME_PROCESS_ID" in main_source
 assert "app = use_core.app" in main_source
-assert "RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())" in main_source
-assert "EXPECTED_CORE_BLOB_SHA" in main_source
-assert "_git_blob_sha256(_CORE_PATH.read_bytes())" in main_source
+assert "USE REQUEST START:" in core_source
+assert "X-USE-Build-ID" in core_source
+assert "X-USE-Version" in core_source
+assert "X-USE-Fingerprint" in core_source
+assert "X-USE-Source-SHA256" in core_source
+assert "X-USE-Boot-ID" in core_source
+assert "X-USE-Request-ID" in core_source
 
 for required in (
     "def _v338_recommendation_fit_sentence",
@@ -37,10 +41,8 @@ for required in (
 
 primary = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 secondary = "Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences"
-# Protected-core production content remains fixed; the benchmark identity is
-# owned by the wrapper/validation layer rather than duplicated into the core.
-assert primary in main_source
-assert secondary in main_source
+assert primary in core_source
+assert secondary in core_source
 
 compile(ast.parse(main_source), filename="main.py", mode="exec")
 compile(ast.parse(core_source), filename="use_core.py", mode="exec")
