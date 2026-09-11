@@ -14,7 +14,8 @@ from pathlib import Path
 APP_VERSION = "v339"
 DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
 CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
-# Protected production core is the exact v339 release-tree core.
+# Protected release core present in the v339 tree. Runtime comparison uses the
+# Git blob SHA identity of use_core.py, not a raw file digest.
 EXPECTED_CORE_BLOB_SHA = "d2731eab9844b19156fe0d2a317c9c765f17f3cf"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
@@ -53,7 +54,7 @@ finally:
     if _saved_expected_source is not None:
         os.environ["USE_EXPECTED_SOURCE_SHA256"] = _saved_expected_source
 
-_original_violation = use_core._v308_compassionate_voice_violation
+_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", lambda *_args, **_kwargs: None)
 _original_build_generation_messages = use_core._build_generation_messages
 _original_clean_generation_output = use_core._clean_generation_output
 _original_run_generation_attempt = use_core._run_generation_attempt
