@@ -1,5 +1,5 @@
-# USE EXPERIMENTAL VERSION: v335 — Compact Visitor Response Contract + The Guide
-# Experimental branch only. Production main remains protected at v334.
+# USE PRODUCTION VERSION: v335 — Compact Visitor Response Contract + The Guide
+# Production main now carries v335 after controlled validation.
 
 import hashlib
 import importlib
@@ -14,7 +14,7 @@ CANONICAL_BUILD_ID = "USE-BUILD-v335-compact-visitor-response-contract"
 EXPECTED_CORE_SOURCE_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "11ca0f5abaf97f376ed8e4e8c119555b4e74d1160de8b395881b9dddee439c06"
 # === END CANONICAL BUILD IDENTITY ===
 
 
@@ -246,7 +246,7 @@ def _v335_run_provider_completion_recovery(*args, **kwargs):
 
 
 # The generation wrapper remains inherited. Only the provider-system-message
-# seam and the existing final compassionate boundary are experimental here.
+# seam and the existing final compassionate boundary are intentionally confined to v335.
 use_core._build_generation_messages = _v335_build_generation_messages
 use_core._clean_generation_output = _v335_clean_generation_output
 use_core._run_generation_attempt = _v335_run_generation_attempt
@@ -264,7 +264,7 @@ app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 
 print(
-    "USE v335 EXPERIMENTAL RESPONSE CONTRACT: "
+    "USE v335 RESPONSE CONTRACT: "
     f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
     f"core_sha256={_core_runtime_sha}, payload_sha256={_actual_payload}"
