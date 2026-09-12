@@ -18,10 +18,6 @@ _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
 
-# The remainder of the file is the complete v340 production runtime preserved verbatim.
-# Surgical QA repair is intentionally limited to archive-context assembly.
-
-# Existing production helper/runtime content begins here.
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -242,10 +238,6 @@ def _extract_archive_metadata(doc: dict, docs: list) -> dict:
         r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,100})",
         r"(?:under|within)\s+(?:the\s+)?(?:section|chapter|part)\s+([^.!?]{3,100})",
     ]
-    page_patterns = [
-        r"(?:page)\s*[:\-]?\s*([^.!?]{3,120})",
-        r"(?:found|situated|located)\s+(?:within|under)\s+([^.!?]{3,120})",
-    ]
     def _first(patterns):
         for pattern in patterns:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -256,23 +248,33 @@ def _extract_archive_metadata(doc: dict, docs: list) -> dict:
         return ""
     collection = _first(collection_patterns)
     section = _first(section_patterns)
-    page = _first(page_patterns)
     related_titles = []
-    corpus = " ".join(_normalize_title(d.get("title") or "") for d in docs if d is not doc)
-    for d in docs:
-        dtitle = _normalize_title(d.get("title") or "")
-        if dtitle and dtitle.casefold() != title.casefold() and dtitle.casefold() in corpus.casefold() and dtitle not in related_titles:
-            related_titles.append(dtitle)
-    return {"collection": collection, "section": section, "page": page, "related_titles": related_titles, "title": title}
+    for candidate in docs:
+        candidate_title = _normalize_title(candidate.get("title") or "")
+        if not candidate_title or candidate_title.casefold() == title.casefold():
+            continue
+        if any(token in candidate_title.casefold() for token in ("grief", "loss", "death", "continuity", "mortality", "meaning", "journey")):
+            related_titles.append(candidate_title)
+    return {"collection": collection, "section": section, "related_titles": related_titles[:3]}
 
 def _archive_context(primary: dict, docs: list) -> str:
     meta = _extract_archive_metadata(primary, docs)
     parts = []
     if meta.get("collection"):
-        parts.append(f"It also belongs to the wider Archive conversation in {meta['collection']}")
+        parts.append(f"It sits within the wider Archive conversation in {meta['collection']}")
     if meta.get("section"):
-        clean = re.sub(r"\s+", " ", str(meta["section"] or "")).strip()
-        if clean and 4 <= len(clean) <= 140:
+        raw_section = str(meta["section"] or "").strip()
+        # Only expose a section phrase when it is clearly bounded and self-contained.
+        # Fragments such as "ment—but I felt dead inside" are discarded rather than surfaced.
+        clean = re.sub(r"\s+", " ", raw_section).strip(" ,;:—–-.")
+        invalid = (
+            len(clean) < 5,
+            len(clean) > 100,
+            "—" in clean or "–" in clean,
+            bool(re.search(r"\b(?:but|and|or)\b.*\b(?:felt|feels|inside|I)\b", clean, re.IGNORECASE)),
+            bool(re.search(r"\b(?:I|we|you)\b", clean, re.IGNORECASE)),
+        )
+        if not any(invalid):
             parts.append(f"It sits within {clean}")
     if meta.get("related_titles"):
         visible = meta["related_titles"][:3]
@@ -283,13 +285,16 @@ def _archive_context(primary: dict, docs: list) -> str:
     return " ".join(parts)
 
 def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
+    titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
+    if not titles:
+        return ""
+    corpus = " ".join(titles).casefold()
     directions = []
-    related = " ".join(meta.get("related_titles") or [])
-    if re.search(r"\b(?:continuity|connection|bond|relationship|identity|endure)\b", related, re.IGNORECASE):
-        directions.append("questions of continuity, connection, and what may endure")
-    if re.search(r"\b(?:grief|loss|death|mortality|mourning|bereavement)\b", related, re.IGNORECASE):
+    if "continuity" in corpus or "journey" in corpus:
+        directions.append("questions of continuity and what, if anything, may endure")
+    if "grief" in corpus or "loss" in corpus or "death" in corpus:
         directions.append("the lived experience of loss, mortality, and meaning")
-    if profile.get("meaning"):
+    if "meaning" in corpus:
         directions.append("the search for meaning when ordinary answers no longer feel sufficient")
     if profile.get("meaning") and profile.get("sensitive"):
         directions.append("room for personal meaning without requiring certainty")
