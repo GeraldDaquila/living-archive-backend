@@ -172,6 +172,26 @@ def _secondary_role(doc: dict, profile: dict) -> str:
         return "support, safety, and practical care"
     return "another perspective on the question"
 
+def _secondary_path_context(doc: dict, profile: dict) -> str:
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+    title = _normalize_title(doc.get("title") or "")
+    corpus = f"{title} {text}"
+    if re.search(r"\b(?:afterlife|reincarnation)\b", corpus, re.IGNORECASE):
+        return "for a broader exploration of what different traditions and experiences have made of life after death"
+    if re.search(r"\b(?:continuity|connection|bond|relationship|identity)\b", corpus, re.IGNORECASE):
+        return "for the question of whether love, identity, or connection can carry forward in some form"
+    if re.search(r"\b(?:grief|loss|mourning|bereavement|mortality|death)\b", corpus, re.IGNORECASE):
+        return "for staying with the lived experience of loss and mortality"
+    if re.search(r"\b(?:meaning|purpose|perspective|wisdom)\b", corpus, re.IGNORECASE):
+        return "for making room for meaning, perspective, and the questions that follow difficult experience"
+    if re.search(r"\b(?:scientific|psychological|research|clinical|neuroscientific)\b", corpus, re.IGNORECASE):
+        return "for a more grounded or research-oriented way of looking at the question"
+    if re.search(r"\b(?:spiritual|religious|mystical|sacred|transcenden)\b", corpus, re.IGNORECASE):
+        return "for exploring spiritual or contemplative possibilities without treating them as settled fact"
+    if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE):
+        return "for practical support, safety, and care alongside reflection"
+    return "for another perspective that may open the question further"
+
 def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
     candidates = []
     seen = {_normalize_title(primary_title).casefold()}
@@ -227,8 +247,8 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
         for doc in architecture["secondaries"]:
             link = _resource_link(doc)
             if not link: continue
-            role = _secondary_role(doc, profile)
-            pathway_links.append(f"{link} — a way to explore {role}.")
+            context = _secondary_path_context(doc, profile)
+            pathway_links.append(f"{link} — {context}.")
         if pathway_links:
             sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(pathway_links))
     if profile["risk"]:
@@ -332,12 +352,6 @@ def _v339_finalize_generation_response(*args, **kwargs):
     canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
     return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
 
-use_core._build_generation_messages = _build_generation_messages
-use_core._clean_generation_output = _v336_clean_generation_output
-use_core._run_generation_attempt = _v336_run_generation_attempt
-use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
-use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-use_core.generate_llm_response = _v339_finalize_generation_response
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
@@ -345,7 +359,12 @@ use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
 use_core.RUNTIME_PROCESS_ID = os.getpid()
-
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core._build_generation_messages = _build_generation_messages
+use_core._clean_generation_output = _v336_clean_generation_output
+use_core._run_generation_attempt = _v336_run_generation_attempt
+use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
+use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
+use_core.generate_llm_response = _v339_finalize_generation_response
