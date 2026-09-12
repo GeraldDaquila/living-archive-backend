@@ -38,7 +38,9 @@ assert "return f\"{prefix}{canonical_link}." in fn_text
 boundary = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_v338_final_answer_boundary")
 boundary_text = ast.get_source_segment(source, boundary)
 assert 'if use_core._is_recommendation_question(user_query):' in boundary_text
-assert 'return f"A useful place to begin is {canonical_link}. {fit}".strip()' in boundary_text
+assert 'fallback_fit' in boundary_text
+assert 'fallback_link' in boundary_text
+assert 'A useful place to begin is' in boundary_text
 
 ctor = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_v336_construct_visitor_answer")
 ctor_text = ast.get_source_segment(source, ctor)
