@@ -10,9 +10,9 @@ import re
 import uuid
 from pathlib import Path
 
-APP_VERSION = "v339"
-DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"
-CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"
+APP_VERSION = "v340"
+DEPLOYMENT_FINGERPRINT = "USE-v340-universal-guide-orientation"
+CANONICAL_BUILD_ID = "USE-BUILD-v340-universal-guide-orientation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -28,10 +28,10 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v339 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v340 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v339 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v340 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 _saved_expected_source = os.environ.pop("USE_EXPECTED_SOURCE_SHA256", None)
 try:
     use_core = importlib.import_module("use_core")
@@ -434,6 +434,69 @@ def _v336_construct_visitor_answer(answer, user_query, retrieved_context_blocks,
             answer = use_core.normalize_link_presentation(answer)
     return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context_blocks)
 
+def _v340_build_universal_orientation_answer(user_query: str, primary: dict, contextual_docs: list) -> str:
+    """Reuse the proven v339 Guide architecture for grounded topical fallback orientation."""
+    architecture = _guide_answer_architecture(user_query, primary, contextual_docs)
+    profile = architecture["profile"]
+    title = architecture["title"]
+    url = architecture["url"]
+    sections = [architecture["opening"], f"{architecture['foothold']} [{title}]({url}).", architecture["boundary"]]
+    if architecture["archive_context"]:
+        sections.append(architecture["archive_context"] + ".")
+    if architecture["archive_interpretation"] and architecture["archive_interpretation"] != architecture["archive_bridge"]:
+        sections.append(architecture["archive_interpretation"] + ".")
+    elif architecture["archive_bridge"]:
+        sections.append(architecture["archive_bridge"])
+    if architecture["secondaries"]:
+        pathway_links = []
+        for doc in architecture["secondaries"]:
+            link = _resource_link(doc)
+            if not link:
+                continue
+            context = _secondary_path_context(doc, profile)
+            pathway_links.append(f"{link} — {context}.")
+        if pathway_links:
+            sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(pathway_links))
+    if profile["risk"]:
+        care = "The Archive can offer reflection and orientation, but where there is immediate danger or coercion, the next step should be real-world safety and trusted human support rather than reflection alone."
+    elif profile["grief"]:
+        care = "You do not need to agree with every idea in these pieces. In grief, it can be enough to find a thought that gives you some companionship, some language for what you are carrying, or simply a place to pause. Take what feels useful, leave what does not, and let the questions remain open where they need to."
+    else:
+        care = "Take what feels useful, leave what does not, and let the question remain open where it needs to."
+    sections.append(care)
+    return "\n\n".join(s.strip() for s in sections if s.strip())
+
+def _v340_orientation_boundary(user_query: str, answer: str, retrieved_context_blocks: str) -> str:
+    """Only replace known topical fallback/resource-list answers with grounded Guide orientation."""
+    query = str(user_query or "").strip()
+    value = str(answer or "").strip()
+    if use_core._is_recommendation_question(query) or not query or not retrieved_context_blocks:
+        return value
+    docs = _parse_context_documents(retrieved_context_blocks)
+    if not docs:
+        return value
+    candidates = []
+    for doc in docs:
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        text = str(doc.get("text") or "").strip()
+        if title and url and text and re.match(r"^https?://", url, flags=re.IGNORECASE):
+            candidates.append({**doc, "title": title, "url": url, "text": text})
+    if not candidates:
+        return value
+    low = value.casefold()
+    fallback_signals = (
+        "does not establish a reliable explanation",
+        "does not establish a next destination",
+        "question remains open",
+        "closest places surfaced",
+        "relevant material available for your question",
+        "could not complete its interpretive response",
+    )
+    if value and not any(signal in low for signal in fallback_signals):
+        return value
+    return _v340_build_universal_orientation_answer(query, candidates[0], candidates[:3]) or value
+
 def _v339_finalize_generation_response(*args, **kwargs):
     user_query = kwargs.get("user_query")
     if user_query is None and args:
@@ -444,12 +507,17 @@ def _v339_finalize_generation_response(*args, **kwargs):
         canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
         recommendation_answer = _v338_final_answer_boundary(user_query, "", retrieved_context, canonical_link_context)
         if recommendation_answer and not recommendation_answer.startswith("The Archive does not yet"):
-            print("USE v339 recommendation doorway: deterministic compassionate answer used; provider generation skipped.")
+            print("USE v340 recommendation doorway: deterministic compassionate answer used; provider generation skipped.")
             return recommendation_answer
     value = _original_generate_llm_response(*args, **kwargs)
     if not value:
         return value
     if not use_core._is_recommendation_question(user_query):
+        retrieved_context = _context_blocks_from_kwargs(args, kwargs)
+        oriented = _v340_orientation_boundary(user_query, str(value or ""), retrieved_context)
+        if oriented != str(value or "").strip():
+            print("USE v340 universal orientation boundary: grounded Guide doorway used for topical fallback.")
+            return oriented
         return value
     retrieved_context = _context_blocks_from_kwargs(args, kwargs)
     canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
@@ -457,7 +525,7 @@ def _v339_finalize_generation_response(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v340 UNIVERSAL GUIDE ORIENTATION: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.generate_llm_response = _v339_finalize_generation_response
