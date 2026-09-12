@@ -192,10 +192,44 @@ def _secondary_path_context(doc: dict, profile: dict) -> str:
         return "for practical support, safety, and care alongside reflection"
     return "for another perspective that may open the question further"
 
+def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
+    candidates = []
+    seen = {_normalize_title(primary_title).casefold()}
+    used_roles = set()
+    for doc in docs:
+        title = _normalize_title(doc.get("title") or "")
+        if not title or title.casefold() in seen:
+            continue
+        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+        corpus = f"{title} {text}"
+        score = 0
+        if profile.get("grief") and re.search(r"\b(?:grief|loss|death|mortality|meaning|continuity|crisis)\b", corpus, re.IGNORECASE):
+            score += 3
+        if profile.get("meaning") and re.search(r"\b(?:meaning|identity|purpose|perspective|wisdom|continuity)\b", corpus, re.IGNORECASE):
+            score += 2
+        if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE):
+            score += 2
+        role = _secondary_role(doc, profile)
+        if role in used_roles:
+            score -= 4
+        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|suicidal ideation|self-harm|overdose|abuse|coercion)\b", corpus, re.IGNORECASE):
+            score -= 8
+        if score > 0:
+            candidates.append((score, role, title, doc))
+    candidates.sort(key=lambda item: (-item[0], item[1].casefold(), item[2].casefold()))
+    chosen = []
+    for _, role, _, doc in candidates:
+        if role in used_roles:
+            continue
+        chosen.append((role, doc))
+        used_roles.add(role)
+        if len(chosen) >= limit:
+            break
+    return [doc for _, doc in chosen]
+
 def _archive_context(doc: dict, docs: list) -> str:
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
     title = _normalize_title(doc.get("title") or "")
-    corpus = f"{title} {text}"
     parts = []
     collection = re.search(r"(?:collection|series|within the)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
     section = re.search(r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
@@ -327,6 +361,15 @@ def _v339_finalize_generation_response(*args, **kwargs):
     return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
 
 app = use_core.app
+app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
+print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION = APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
+use_core.RUNTIME_PROCESS_ID = os.getpid()
 use_core._build_generation_messages = _build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
