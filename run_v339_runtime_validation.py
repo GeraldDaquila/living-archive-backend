@@ -13,9 +13,9 @@ EXPECTED_CORE_RAW_SHA256 = "7576b432174633f7182c934891b388a36e9c0b743d0adee41f19
 EXPECTED_CORE_INTERNAL_SHA256 = "ecbd5181958f95baedf397f715fa30ae0192005b9a39f005fe3c0ad8a8fb7ef2"
 
 for marker in (
-    'APP_VERSION = "v339"',
-    'DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"',
-    'CANONICAL_BUILD_ID = "USE-BUILD-v339-canonical-recommendation-doorway"',
+    'APP_VERSION = "v340"',
+    'DEPLOYMENT_FINGERPRINT = "USE-v340-universal-guide-orientation"',
+    'CANONICAL_BUILD_ID = "USE-BUILD-v340-universal-guide-orientation"',
     'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"',
     'EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"',
     'app = use_core.app',
@@ -34,6 +34,8 @@ for required in (
     "_v339_finalize_generation_response",
     "_v338_final_answer_boundary",
     "_v339_build_compassionate_recommendation_answer",
+    "_v340_build_universal_orientation_answer",
+    "_v340_orientation_boundary",
     "_query_profile",
     "_guide_answer_architecture",
     "_select_secondary_pathways",
@@ -54,6 +56,6 @@ assert actual_raw == EXPECTED_CORE_RAW_SHA256, (EXPECTED_CORE_RAW_SHA256, actual
 assert actual_blob == EXPECTED_CORE_BLOB_SHA, (EXPECTED_CORE_BLOB_SHA, actual_blob)
 assert EXPECTED_CORE_INTERNAL_SHA256 in core.decode("utf-8"), EXPECTED_CORE_INTERNAL_SHA256
 
-print("USE v339 generalized Guide answer architecture validation: PASS")
+print("USE v340/v339 generalized Guide answer architecture validation: PASS")
 print(f"protected_core_raw_sha256={actual_raw}")
 print(f"protected_core_git_blob_sha={actual_blob}")
