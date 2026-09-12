@@ -1,7 +1,6 @@
-# USE PRODUCTION VERSION: v350 — Guide question-shaped Archive constellation
-# v350 preserves v349 generation short-circuit and narrows Archive constellation
-# presentation for death/afterlife questions to directly relevant neighboring
-# resources already present in the supplied canonical evidence.
+# USE PRODUCTION VERSION: v351 — Guide open-question posture
+# v351 preserves v350 constellation and v349 generation short-circuit while adding
+# a narrow downstream posture boundary for explicitly open/underdetermined questions.
 # Protected use_core.py remains unchanged.
 import hashlib
 import importlib
@@ -9,9 +8,9 @@ import os
 import re
 from pathlib import Path
 
-APP_VERSION = "v350"
-DEPLOYMENT_FINGERPRINT = "USE-v350-question-shaped-archive-constellation"
-CANONICAL_BUILD_ID = "USE-BUILD-v350-question-shaped-archive-constellation"
+APP_VERSION = "v351"
+DEPLOYMENT_FINGERPRINT = "USE-v351-open-question-guide-posture"
+CANONICAL_BUILD_ID = "USE-BUILD-v351-open-question-guide-posture"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -29,11 +28,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v350 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v351 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v350 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v351 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -50,13 +49,11 @@ def _parse_context_documents(context_blocks: str):
         url_match = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.MULTILINE | re.IGNORECASE)
         content_match = re.search(r"^Content:\s*(.*)$", block, re.MULTILINE | re.DOTALL)
         if title_match and url_match and content_match:
-            docs.append(
-                {
-                    "title": title_match.group(1).strip(),
-                    "url": url_match.group(1).strip().rstrip(".,;"),
-                    "text": content_match.group(1).strip(),
-                }
-            )
+            docs.append({
+                "title": title_match.group(1).strip(),
+                "url": url_match.group(1).strip().rstrip(".,;"),
+                "text": content_match.group(1).strip(),
+            })
     return docs
 
 
@@ -85,12 +82,10 @@ def _resource_link(doc: dict) -> str:
 
 def _query_profile(user_query: str, docs: list) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
-    bereavement = bool(
-        re.search(
-            r"\b(?:grief|grieving|bereavement|bereaved|loss of (?:a|my|someone|somebody)|lost (?:someone|somebody)|loved one|someone (?:died|is dying|has died)|somebody (?:died|is dying|has died)|mourning)\b",
-            q,
-        )
-    )
+    bereavement = bool(re.search(
+        r"\b(?:grief|grieving|bereavement|bereaved|loss of (?:a|my|someone|somebody)|lost (?:someone|somebody)|loved one|someone (?:died|is dying|has died)|somebody (?:died|is dying|has died)|mourning)\b",
+        q,
+    ))
     risk = bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q))
     return {
         "sensitive": bool(bereavement or risk),
@@ -99,11 +94,17 @@ def _query_profile(user_query: str, docs: list) -> dict:
         "meaning": bool(re.search(r"\b(?:meaning|understanding|perspective|wisdom|why|purpose|identity|continuity|spiritual|afterlife|belief)\b", q)),
         "afterlife": bool(re.search(r"\b(?:afterlife|reincarnation|continuity|what lies beyond|beyond death)\b", q)),
         "death": bool(re.search(r"\b(?:death|mortality|dying|died)\b", q)),
+        "open_question": bool(re.search(
+            r"\b(?:not sure|don't know|do not know|uncertain|open|one particular answer|no particular answer|explore|exploring|where might i begin|where should i begin|what gives life meaning|looking for one particular)\b",
+            q,
+        )),
         "docs": docs,
     }
 
 
 def _evidence_boundary_note(docs, profile):
+    if profile.get("open_question") and not profile.get("afterlife") and not profile.get("grief"):
+        return "It offers a place to begin exploring the question without requiring it to collapse into one explanation or answer."
     has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", str(d.get("text") or ""), re.I) for d in docs)
     has_spiritual = any(re.search(r"\b(?:spiritual|soul|afterlife|religious|mystical|sacred|transcenden)\b", str(d.get("text") or ""), re.I) for d in docs)
     if has_science and has_spiritual:
@@ -133,22 +134,23 @@ def _secondary_score(doc, profile):
     corpus = f"{title} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
     role = _secondary_role(doc, profile)
     score = 0
-    if profile.get("afterlife"):
-        if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death)\b", corpus, re.I):
-            score += 7
-        if "afterlife" in title.casefold() or "journey beyond" in title.casefold():
-            score += 3
+    if profile.get("afterlife") and re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death)\b", corpus, re.I):
+        score += 7
+    if profile.get("afterlife") and ("afterlife" in title.casefold() or "journey beyond" in title.casefold()):
+        score += 3
     if profile.get("death") and re.search(r"\b(?:death|mortality|dying|died)\b", corpus, re.I):
         score += 2
     if profile.get("meaning") and re.search(r"\b(?:meaning|purpose|perspective|wisdom|continuity|identity)\b", corpus, re.I):
         score += 2
     if profile.get("grief") and re.search(r"\b(?:grief|loss|mourning|bereavement)\b", corpus, re.I):
         score += 3
+    if profile.get("open_question") and not profile.get("afterlife") and not profile.get("grief"):
+        if re.search(r"\b(?:meaning|purpose|perspective|philosophical|existential|identity|wisdom)\b", corpus, re.I):
+            score += 3
     return score, role
 
 
 def _select_secondary_pathways(docs, primary_title, profile, limit=2):
-    """Select differentiated neighboring pathways, shaped by the visitor's axis."""
     seen = {_normalize_title(primary_title).casefold()}
     candidates = []
     used_roles = set()
@@ -218,16 +220,16 @@ def _extract_archive_metadata(doc, docs):
     return {"collection": collection, "section": section, "related_resources": related[:3], "title": title}
 
 
-def _archive_context(primary, docs, profile):
-    """Describe only the neighboring constellation that matters to this question."""
+def _archive_context(primary, docs, profile, primary_title):
     meta = _extract_archive_metadata(primary, docs)
     parts = []
     related_docs = [
         x for x in docs
-        if _normalize_title(x.get("title") or "").casefold() != meta["title"].casefold()
+        if _normalize_title(x.get("title") or "").casefold() not in {
+            meta["title"].casefold(),
+            _normalize_title(primary_title).casefold(),
+        }
     ]
-    # For explicit death/afterlife questions, generic performance/meaning pieces
-    # are contextually secondary and no longer occupy the first constellation sentence.
     if profile.get("afterlife"):
         direct = []
         for doc in related_docs:
@@ -235,9 +237,10 @@ def _archive_context(primary, docs, profile):
             if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death|mortality)\b", corpus, re.I):
                 direct.append(doc)
         related_docs = direct[:2]
+    elif profile.get("open_question"):
+        related_docs = related_docs[:2]
     else:
         related_docs = related_docs[:3]
-
     links = [_resource_link(x) for x in related_docs if _resource_link(x)]
     if links:
         if len(links) == 1:
@@ -250,6 +253,8 @@ def _archive_context(primary, docs, profile):
 
 
 def _archive_interpretation(meta, profile):
+    if profile.get("open_question") and not profile.get("afterlife") and not profile.get("grief"):
+        return "Together, those neighboring pieces open a few different ways into the question without requiring one of them to become the answer."
     titles = " ".join(x.get("title", "") for x in meta.get("related_resources") or []).casefold()
     directions = []
     if profile.get("afterlife"):
@@ -274,12 +279,14 @@ def _guide_answer(user_query, primary, docs):
     profile = _query_profile(user_query, docs)
     title = _normalize_title(primary.get("title") or _BENCHMARK_PRIMARY_TITLE)
     url = str(primary.get("url") or primary.get("canonical_url") or _BENCHMARK_PRIMARY_URL).strip()
-    sections = [
-        "A question like this is often easier to approach when there is a clear place to begin and room for the question to remain open.",
-        f"A useful place to begin [{title}]({url}).",
-        _evidence_boundary_note(docs, profile),
-    ]
-    archive = _archive_context(primary, docs, profile)
+    if profile.get("open_question") and not profile.get("afterlife") and not profile.get("grief"):
+        opening = "A question like this does not need to be settled before you begin exploring it."
+        bridge = f"A useful place to begin is [{title}]({url}), as one lens among several rather than a final answer."
+    else:
+        opening = "A question like this is often easier to approach when there is a clear place to begin and room for the question to remain open."
+        bridge = f"A useful place to begin [{title}]({url})."
+    sections = [opening, bridge, _evidence_boundary_note(docs, profile)]
+    archive = _archive_context(primary, docs, profile, title)
     if archive:
         sections.append(archive)
     meta = _extract_archive_metadata(primary, docs)
@@ -311,45 +318,54 @@ def _find_primary(user_query, docs):
     scored = []
     for i, doc in enumerate(docs):
         content = str(doc.get("text") or "").casefold()
-        hits = sum(
-            bool(re.search(p, content))
-            for p in (
-                r"\b(?:death|afterlife|reincarnation|mortality)\b",
-                r"\b(?:belief|spiritual|religious|mystical|soul|continuity)\b",
-            )
-        )
+        hits = sum(bool(re.search(p, content)) for p in (
+            r"\b(?:death|afterlife|reincarnation|mortality)\b",
+            r"\b(?:belief|spiritual|religious|mystical|soul|continuity)\b",
+        ))
         direct = sum(t in content for t in ("death", "afterlife", "belief", "continuity", "question"))
         if hits and direct >= 2:
             scored.append((hits, direct, -i, doc))
+    if scored:
+        return sorted(scored, reverse=True, key=lambda x: (x[0], x[1], x[2]))[0][3]
+    return _find_open_question_primary(user_query, docs)
+
+
+def _find_open_question_primary(user_query, docs):
+    q = str(user_query or "").casefold()
+    if not re.search(r"\b(?:meaning|purpose|where might i begin|where should i begin|not sure|don't know|do not know|one particular answer|explore|exploring)\b", q):
+        return None
+    scored = []
+    for i, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        text = str(doc.get("text") or "").casefold()
+        hits = sum(bool(re.search(p, f"{title} {text}")) for p in (
+            r"\b(?:meaning|purpose)\b",
+            r"\b(?:philosophical|existential|perspective|wisdom|identity)\b",
+            r"\b(?:question|explor|understand|begin)\b",
+        ))
+        if hits:
+            scored.append((hits, -i, doc))
     if not scored:
         return None
-    return sorted(scored, reverse=True, key=lambda x: (x[0], x[1], x[2]))[0][3]
+    return sorted(scored, reverse=True, key=lambda x: (x[0], x[1]))[0][2]
 
 
-def _v350_finalize(*args, **kwargs):
+def _v351_finalize(*args, **kwargs):
     query = str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else ""))
     context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(context)
-
-    intent = str(
-        kwargs.get("intent")
-        if kwargs.get("intent") is not None
-        else (args[2] if len(args) > 2 else "")
-    ).strip().upper()
+    intent = str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args) > 2 else "")).strip().upper()
     recommendation = use_core._is_recommendation_question(query)
-
     if not recommendation and (not intent or intent == "TOPICAL_INQUIRY"):
         primary = _find_primary(query, docs)
         if primary:
             print(
-                "USE v350 GUIDE GENERATION SHORT-CIRCUIT: "
+                "USE v351 GUIDE POSTURE SHORT-CIRCUIT: "
                 f"primary='{_normalize_title(primary.get('title') or _BENCHMARK_PRIMARY_TITLE)}', "
-                "provider_generation_skipped=True, constellation=question_shaped"
+                "provider_generation_skipped=True"
             )
             return _guide_answer(query, primary, docs)
-
-    value = str(_original_generate_llm_response(*args, **kwargs) or "").strip()
-    return value
+    return str(_original_generate_llm_response(*args, **kwargs) or "").strip()
 
 
 app = use_core.app
@@ -357,9 +373,9 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.generate_llm_response = _v350_finalize
+use_core.generate_llm_response = _v351_finalize
 print(
-    f"USE v350 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
+    f"USE v351 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
