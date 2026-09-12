@@ -1,0 +1,54 @@
+name: USE v340 full validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Compile production modules
+        run: python -m py_compile main.py use_core.py run_v338_validation.py run_v339_runtime_validation.py
+      - name: v340 identity and structural validation
+        run: python run_v338_validation.py
+      - name: v340 canonical and preserved regression tests
+        run: python -m pytest -q tests/test_v339_canonical_recommendation_doorway.py tests/test_v339_recommendation_runtime_consistency.py tests/test_v338_recommendation_fit_synthesis.py tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
+      - name: Executable v340 runtime validation
+        run: python run_v339_runtime_validation.py
+      - name: Protected core identity
+        run: python - <<'PY'
+from pathlib import Path
+import hashlib
+core = Path('use_core.py').read_bytes()
+expected = 'fb3208a8d287f16562ffd640d89f65d5e8d18607'
+actual = hashlib.sha1(f'blob {len(core)}\0'.encode() + core).hexdigest()
+assert actual == expected, (expected, actual)
+print('protected_core_git_blob_sha=PASS')
+PY
+      - name: v340 runtime markers
+        run: python - <<'PY'
+from pathlib import Path
+source = Path('main.py').read_text(encoding='utf-8')
+for marker in (
+    'APP_VERSION = "v340"',
+    'DEPLOYMENT_FINGERPRINT = "USE-v340-universal-guide-orientation"',
+    'CANONICAL_BUILD_ID = "USE-BUILD-v340-universal-guide-orientation"',
+    'def _v340_build_universal_orientation_answer',
+    'def _v340_orientation_boundary',
+    'use_core.generate_llm_response = _v339_finalize_generation_response',
+):
+    assert marker in source, marker
+print('v340 runtime markers: PASS')
+PY
