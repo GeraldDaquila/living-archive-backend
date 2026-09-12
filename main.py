@@ -1,5 +1,5 @@
 # USE PRODUCTION VERSION: v339 — Canonical Recommendation Doorway + The Guide
-# Restored runtime seam; benchmark-aligned compassionate recommendation presentation.
+# Risk-aware reflection gateway selection; protected runtime seam preserved.
 # Protected v333 core, retrieval, evidence selection, recommendation adjudication,
 # and canonical resource authority remain unchanged.
 
@@ -59,14 +59,13 @@ def _v335_compact_response_contract(user_query: str, intent: str) -> str:
         f"mode={mode}; intent={intent};",
         "Answer first. Answer the visitor’s orientation need rather than merely echoing retrieval.",
         "Preserve the visitor's terms and agency.",
-        "Architecture: recognize human reality; offer a humane foothold; distinguish knowledge, interpretation, possibility, and personal meaning; route material risk appropriately; open a reflection pathway rather than closing the question with one document.",
     ]
-    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", query):
-        lines.append("sensitivity: meet vulnerable experience without abstraction, preaching, emotional overclaiming, or clinical detachment.")
+    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query):
+        lines.append("grief-care: acknowledge loss gently; avoid abstraction, preaching, emotional overclaiming, or clinical detachment.")
     if mode == "recommendation":
-        lines.append("Recommendation: use the adjudicated primary as the canonical doorway, explain its fit from supplied evidence, and preserve nearby canonical pathways.")
+        lines.append("Recommendation: use the adjudicated primary as the canonical doorway and explain its fit from supplied evidence. Do not replace a chosen primary with a secondary resource.")
     lines.append("provenance: use only retrieved/canonical evidence; never invent titles, claims, or links.")
-    return " ".join(lines)[:900]
+    return " ".join(lines)[:600]
 
 def _v335_provider_system_prompt() -> str:
     return use_core.COMPACT_GENERATION_SYSTEM_PROMPT
@@ -125,8 +124,8 @@ def _context_blocks_from_kwargs(args, kwargs):
 
 def _resource_link(doc: dict) -> str:
     title = str(doc.get("title") or "").strip()
+    title = re.sub(r"^[\U0001F300-\U0001FAFF\u00002600-\u000027BF\u0001F1E6-\u0001F1FF\u200d\ufe0f\ufe0e]+\s*", "", title).strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-    title = re.sub(r"^[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF\u200d\ufe0f\ufe0e]+\s*", "", title).strip()
     return f"[{title}]({url})" if title and url else title
 
 def _normalize_title(text: str) -> str:
@@ -188,19 +187,17 @@ def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, li
         if profile.get("meaning") and re.search(r"\b(?:meaning|identity|purpose|perspective|wisdom|continuity)\b", corpus, re.IGNORECASE): score += 2
         if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE): score += 2
         role = _secondary_role(doc, profile)
-        if role in used_roles:
-            score -= 4
-        if score > 0:
-            candidates.append((score, role, title, doc))
+        if role in used_roles: score -= 4
+        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|suicidal ideation|self-harm|overdose|abuse|coercion)\b", corpus, re.IGNORECASE):
+            score -= 8
+        if score > 0: candidates.append((score, role, title, doc))
     candidates.sort(key=lambda item: (-item[0], item[1].casefold(), item[2].casefold()))
     chosen = []
     for _, role, _, doc in candidates:
-        if role in used_roles:
-            continue
+        if role in used_roles: continue
         chosen.append((role, doc))
         used_roles.add(role)
-        if len(chosen) >= limit:
-            break
+        if len(chosen) >= limit: break
     return [doc for _, doc in chosen]
 
 def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
@@ -230,8 +227,7 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
         pathway_links = []
         for doc in architecture["secondaries"]:
             link = _resource_link(doc)
-            if not link:
-                continue
+            if not link: continue
             role = _secondary_role(doc, profile)
             pathway_links.append(f"{link} — for exploring {role}.")
         if pathway_links:
@@ -353,18 +349,4 @@ use_core.RUNTIME_PROCESS_ID = os.getpid()
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(
-    f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, "
-    f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
-)
-
-def generate_llm_response(*args, **kwargs):
-    return _v339_finalize_generation_response(*args, **kwargs)
-
-def search_visitor(*args, **kwargs):
-    return use_core.search_visitor(*args, **kwargs)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
