@@ -124,7 +124,7 @@ def _context_blocks_from_kwargs(args, kwargs):
 
 def _resource_link(doc: dict) -> str:
     title = str(doc.get("title") or "").strip()
-    title = re.sub(r"^[\U0001F300-\U0001FAFF\u00002600-\u000027BF\u0001F1E6-\u0001F1FF\u200d\ufe0f\ufe0e]+\s*", "", title).strip()
+    title = re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", title).strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     return f"[{title}]({url})" if title and url else title
 
@@ -188,8 +188,7 @@ def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, li
         if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE): score += 2
         role = _secondary_role(doc, profile)
         if role in used_roles: score -= 4
-        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|suicidal ideation|self-harm|overdose|abuse|coercion)\b", corpus, re.IGNORECASE):
-            score -= 8
+        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|suicidal ideation|self-harm|overdose|abuse|coercion)\b", corpus, re.IGNORECASE): score -= 8
         if score > 0: candidates.append((score, role, title, doc))
     candidates.sort(key=lambda item: (-item[0], item[1].casefold(), item[2].casefold()))
     chosen = []
