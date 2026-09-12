@@ -21,7 +21,7 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 def _git_blob_sha256(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\\0".encode("utf-8") + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
@@ -251,7 +251,8 @@ def _v340_build_universal_orientation_answer(user_query: str,primary: dict,conte
     sections.append(care); return "\n\n".join(s.strip() for s in sections if s.strip())
 
 def _v341_question_terms(user_query: str) -> set:
-    text=re.sub(r"\s+"," ",str(user_query or "").strip().casefold()); tokens=re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",text)
+    text=re.sub(r"\s+"," ",str(user_query or "").strip().casefold())
+    tokens=re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",text)
     stop={"i","ive","been","thinking","about","what","if","anything","might","come","after","it","dont","know","whether","believe","in","an","but","id","like","to","explore","the","question","without","being","pushed","toward","a","particular","answer","where","may","could","would","should","begin","start","go","find","can","you","help","me","this","that","is","are","and","or"}
     return {token for token in tokens if len(token)>=4 and token not in stop}
 
@@ -264,11 +265,11 @@ def _v341_primary_question_fit(user_query: str, primary: dict, contextual_docs: 
     for term in terms:
         variants={term}
         for suffix in ("ingly","edly","ing","ed","ness","able","ible","es","s"):
-            if len(term)>5 and term.endswith(suffix):variants.add(term[:-len(suffix)]); break
+            if len(term)>5 and term.endswith(suffix):variants.add(term[:-len(suffix)])
         if variants & corpus_tokens:term_hits+=1
     axes=[]
     q=str(user_query or '').casefold()
-    for axis,label in ((r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b","mortality/afterlife"),(r"\b(?:grief|grieving|bereavement|mourning|loss)\b","grief/loss"),(r"\b(?:meaning|purpose|identity|continuity|belief|spiritual)\b","meaning/belief"),(r"\b(?:science|scientific|psychological|research|clinical|neuroscientific)\b","scientific") ):
+    for axis,label in ((r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b","mortality/afterlife"),(r"\b(?:grief|grieving|bereavement|mourning|loss)\b","grief/loss"),(r"\b(?:meaning|purpose|identity|continuity|belief|spiritual)\b","meaning/belief"),(r"\b(?:science|scientific|psychological|research|clinical|neuroscientific)\b","scientific")):
         if re.search(axis,q) and re.search(axis,corpus):axes.append(label)
     contextual_fit=0
     for doc in contextual_docs[:3]:
@@ -315,7 +316,7 @@ def _v339_finalize_generation_response(*args,**kwargs):
         retrieved_context=_context_blocks_from_kwargs(args,kwargs); canonical_link_context=str(kwargs.get("canonical_link_context") or retrieved_context or "")
         recommendation_answer=_v338_final_answer_boundary(user_query,"",retrieved_context,canonical_link_context)
         if recommendation_answer and not recommendation_answer.startswith("The Archive does not yet"):
-            print("USE v340 recommendation doorway: deterministic compassionate answer used; provider generation skipped."); return recommendation_answer
+            print("USE v340 recommendation doorway: deterministic compassionate answer used; provider generation skipped"); return recommendation_answer
     value=_original_generate_llm_response(*args,**kwargs)
     if not value:return value
     if not use_core._is_recommendation_question(user_query):
