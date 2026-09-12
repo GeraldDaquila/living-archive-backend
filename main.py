@@ -302,6 +302,35 @@ def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
         return f"Together, those neighboring pieces open a wider conversation around {unique[0]} and {unique[1]}"
     return f"Together, those neighboring pieces open a wider conversation around {', '.join(unique[:-1])}, and {unique[-1]}"
 
+def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:
+    """Turn a retrieved constellation into visitor orientation without naming a benchmark-specific topic."""
+    titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
+    secondary_corpora = " ".join(
+        f"{_normalize_title(doc.get('title') or '')} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
+        for doc in secondaries
+    ).casefold()
+    corpus = (" ".join(titles) + " " + secondary_corpora).casefold()
+    axes = []
+    if re.search(r"\b(?:continuity|connection|bond|relationship|identity|endure)\b", corpus):
+        axes.append("continuity, connection, and what may endure")
+    if re.search(r"\b(?:grief|loss|death|mortality|mourning|bereavement)\b", corpus):
+        axes.append("the lived experience of loss and mortality")
+    if re.search(r"\b(?:meaning|purpose|perspective|wisdom)\b", corpus) or profile.get("meaning"):
+        axes.append("the search for meaning when ordinary answers feel insufficient")
+    if profile.get("sensitive"):
+        axes.append("space for personal meaning without requiring certainty")
+    unique = []
+    for axis in axes:
+        if axis not in unique:
+            unique.append(axis)
+    if not unique:
+        return ""
+    if len(unique) == 1:
+        return f"Taken together, the nearby material gives this question a wider frame around {unique[0]}."
+    if len(unique) == 2:
+        return f"Taken together, the nearby material gives this question a wider frame around {unique[0]} and {unique[1]}."
+    return f"Taken together, the nearby material gives this question a wider frame around {', '.join(unique[:-1])}, and {unique[-1]}."
+
 def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
     profile = _query_profile(user_query, docs)
     title = _normalize_title(primary.get("title") or _BENCHMARK_PRIMARY_TITLE)
@@ -319,7 +348,8 @@ def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> di
     archive_context = _archive_context(primary, docs)
     archive_meta = _extract_archive_metadata(primary, docs)
     archive_interpretation = _archive_constellation_interpretation(archive_meta, profile)
-    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries, "archive_context": archive_context, "archive_interpretation": archive_interpretation}
+    archive_bridge = _archive_bridge(profile, archive_meta, secondaries)
+    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries, "archive_context": archive_context, "archive_interpretation": archive_interpretation, "archive_bridge": archive_bridge}
 
 def _v339_build_compassionate_recommendation_answer(user_query: str, primary: dict, contextual_docs: list) -> str:
     architecture = _guide_answer_architecture(user_query, primary, contextual_docs)
@@ -330,8 +360,10 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     sections = [architecture["opening"], f"{architecture['foothold']} [{title}]({url}).", bridge]
     if architecture["archive_context"]:
         sections.append(architecture["archive_context"] + ".")
-    if architecture["archive_interpretation"]:
+    if architecture["archive_interpretation"] and architecture["archive_interpretation"] != architecture["archive_bridge"]:
         sections.append(architecture["archive_interpretation"] + ".")
+    elif architecture["archive_bridge"]:
+        sections.append(architecture["archive_bridge"])
     if architecture["secondaries"]:
         pathway_links = []
         for doc in architecture["secondaries"]:
