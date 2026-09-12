@@ -6,8 +6,8 @@ main_source = (ROOT / "main.py").read_text(encoding="utf-8")
 core_source = (ROOT / "use_core.py").read_text(encoding="utf-8")
 
 for required in (
-    'APP_VERSION = "v339"',
-    'DEPLOYMENT_FINGERPRINT = "USE-v339-canonical-recommendation-doorway"',
+    'APP_VERSION = "v340"',
+    'DEPLOYMENT_FINGERPRINT = "USE-v340-universal-guide-orientation"',
     "_adjudicate_recommendation_resource",
     "A useful place to begin is {title}.",
     "_original_recommendation_output_authority",
@@ -36,6 +36,8 @@ for required in (
     "def _v338_final_answer_boundary",
     "def _v339_canonical_recommendation_doorway",
     "def _v336_construct_visitor_answer",
+    "def _v340_build_universal_orientation_answer",
+    "def _v340_orientation_boundary",
 ):
     assert required in main_source
 
@@ -47,4 +49,4 @@ assert secondary in core_source
 compile(ast.parse(main_source), filename="main.py", mode="exec")
 compile(ast.parse(core_source), filename="use_core.py", mode="exec")
 
-print("USE v339 recommendation boundary validation: PASS")
+print("USE v340/v339 recommendation boundary validation: PASS")
