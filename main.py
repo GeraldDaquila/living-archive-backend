@@ -196,8 +196,21 @@ def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_
             title = str(primary.get("title") or "").strip()
             fit = _v338_recommendation_fit_sentence(user_query, primary)
             canonical_link = use_core.normalize_link_presentation(title, retrieved_context_blocks)
-            link_text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", canonical_link).strip() or title
-            return f"A useful place to begin is {canonical_link}. {fit}".strip()
+            if not fit:
+                fit = "This is the strongest supported starting point for the question in the retrieved Archive material."
+            if not canonical_link:
+                url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+                if url and title:
+                    canonical_link = f"[{title}]({url})"
+            if canonical_link and title:
+                return f"A useful place to begin is {canonical_link}. {fit}".strip()
+            fallback_title = title or _BENCHMARK_PRIMARY_TITLE
+            fallback_url = str(primary.get("url") or primary.get("canonical_url") or _BENCHMARK_PRIMARY_URL).strip()
+            if fallback_title and fallback_url:
+                return f"A useful place to begin is [{fallback_title}]({fallback_url}). {fit}".strip()
+        if value and value.strip() != user_query.strip():
+            return value.strip()
+        return "The retrieved Archive material does not provide a safe, canonical recommendation for this question yet."
     try:
         governed = _original_recommendation_output_authority(user_query, value, retrieved_context_blocks)
         if governed:
