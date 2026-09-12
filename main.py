@@ -1,5 +1,5 @@
 # USE PRODUCTION VERSION: v339 — Canonical Recommendation Doorway + The Guide
-# Benchmark-aligned compassionate recommendation presentation at the final visitor boundary.
+# Emoji-free canonical secondary recommendation link presentation.
 # Protected v333 core, retrieval, evidence selection, recommendation adjudication,
 # and canonical resource authority remain unchanged.
 
@@ -17,7 +17,6 @@ EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
-
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
 
 
@@ -155,6 +154,7 @@ def _context_blocks_from_kwargs(args, kwargs):
 def _resource_link(doc: dict) -> str:
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+    title = re.sub(r"^[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF\u200d\ufe0f\ufe0e]+\s*", "", title).strip()
     if not title or not url:
         return title
     return f"[{title}]({url})"
@@ -168,9 +168,9 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     is_afterlife = bool(re.search(r"\b(?:afterlife|continuity|soul|spirit|reincarnation|where .* (?:now|gone)|connection continues)\b", query))
 
     opening = (
-        "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once. "
+        "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once."
         if is_grief else
-        "For a question like this, a good place to begin can matter more than arriving at a quick conclusion. "
+        "For a question like this, a good place to begin can matter more than arriving at a quick conclusion."
     )
     recommendation = f"A gentle place to begin is [{title}]({url})."
     bridge = (
@@ -198,17 +198,10 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
 
     sections = [opening, recommendation, bridge]
     if secondary:
-        pathway = []
-        for doc in secondary:
-            link = _resource_link(doc)
-            if link:
-                pathway.append(link)
+        pathway = [_resource_link(doc) for doc in secondary]
+        pathway = [link for link in pathway if link]
         if pathway:
-            sections.append(
-                "From there, there are a couple of nearby paths worth exploring: "
-                + " and ".join(pathway)
-                + "."
-            )
+            sections.append("From there, there are a couple of nearby paths worth exploring: " + " and ".join(pathway) + ".")
 
     care = (
         "You do not need to agree with every idea in these pieces. In grief, it can be enough to find a thought that gives you a little companionship, a little language for what you are carrying, or simply a place to pause. Take what feels useful, leave what does not, and let the questions remain open where they need to."
