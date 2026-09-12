@@ -9,9 +9,9 @@ import re
 import uuid
 from pathlib import Path
 
-APP_VERSION = "v340"
-DEPLOYMENT_FINGERPRINT = "USE-v340-universal-guide-orientation"
-CANONICAL_BUILD_ID = "USE-BUILD-v340-universal-guide-orientation"
+APP_VERSION = "v341"
+DEPLOYMENT_FINGERPRINT = "USE-v341-question-proportionate-guide-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v341-question-proportionate-guide-doorway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
@@ -21,16 +21,16 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 def _git_blob_sha256(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\\0".encode("utf-8") + data).hexdigest()
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v340 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v341 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v340 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v341 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 _saved_expected_source = os.environ.pop("USE_EXPECTED_SOURCE_SHA256", None)
 try:
     use_core = importlib.import_module("use_core")
@@ -250,6 +250,37 @@ def _v340_build_universal_orientation_answer(user_query: str,primary: dict,conte
     else:care="Take what feels useful, leave what does not, and let the question remain open where it needs to."
     sections.append(care); return "\n\n".join(s.strip() for s in sections if s.strip())
 
+def _v341_question_terms(user_query: str) -> set:
+    text=re.sub(r"\s+"," ",str(user_query or "").casefold()).strip()
+    tokens=re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",text)
+    stop={"i","ive","been","thinking","about","what","if","anything","might","come","after","it","dont","know","whether","believe","in","an","but","id","like","to","explore","the","question","without","being","pushed","toward","a","particular","answer","where","may","could","would","should","begin","start","go","find","can","you","help","me","this","that","is","are","and","or"}
+    return {token for token in tokens if len(token)>=4 and token not in stop}
+
+def _v341_content_fit(primary: dict, user_query: str) -> tuple:
+    content=str(primary.get("text") or primary.get("content") or "").casefold(); title=_normalize_title(primary.get("title") or "").casefold(); terms=_v341_question_terms(user_query)
+    if not content or not terms:return (0,0,0)
+    corpus=f"{title} {content}"; corpus_tokens=set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",corpus)); hits=0
+    for term in terms:
+        variants={term}
+        for suffix in ("ingly","edly","ing","ed","ness","able","ible","es","s"):
+            if len(term)>5 and term.endswith(suffix):variants.add(term[:-len(suffix)]); break
+        if variants & corpus_tokens:hits+=1
+    meaningful={"death","afterlife","mortality","spiritual","belief","continuity","reincarnation","meaning","purpose","identity","grief","loss","scientific","science"}
+    topic_hits=len((terms & meaningful) & corpus_tokens)
+    return (hits,topic_hits,len(terms))
+
+def _v341_primary_is_question_proportionate(user_query: str, primary: dict) -> bool:
+    hits,topic_hits,_=_v341_content_fit(primary,user_query); query=str(user_query or "").casefold(); specificity=bool(re.search(r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b",query))
+    if specificity:return topic_hits>=2 or hits>=2
+    return hits>=2 or topic_hits>=1
+
+def _v341_doorway_primary_oriented(user_query: str, primary: dict, contextual_docs: list) -> str:
+    if not isinstance(primary,dict):return ""
+    if _v341_primary_is_question_proportionate(user_query,primary):
+        return _v340_build_universal_orientation_answer(user_query,primary,contextual_docs)
+    print("USE v341 doorway sufficiency boundary: selected primary lacks substantive question fit; preserving ordinary provider answer.")
+    return ""
+
 def _v340_orientation_boundary(user_query:str,answer:str,retrieved_context_blocks:str,canonical_primary:dict=None)->str:
     query=str(user_query or "").strip(); value=str(answer or "").strip()
     if use_core._is_recommendation_question(query) or not query or not retrieved_context_blocks:return value
@@ -267,7 +298,8 @@ def _v340_orientation_boundary(user_query:str,answer:str,retrieved_context_block
     for doc in candidates:
         if str(doc.get("url") or "").strip()==primary_url:primary=doc; break
     else:return value
-    return _v340_build_universal_orientation_answer(query,primary,candidates[:3]) or value
+    oriented=_v341_doorway_primary_oriented(query,primary,candidates[:3])
+    return oriented or value
 
 def _v339_finalize_generation_response(*args,**kwargs):
     user_query=kwargs.get("user_query")
@@ -284,21 +316,18 @@ def _v339_finalize_generation_response(*args,**kwargs):
     if not use_core._is_recommendation_question(user_query):
         retrieved_context=_context_blocks_from_kwargs(args,kwargs); oriented=_v340_orientation_boundary(user_query,str(value or ""),retrieved_context,canonical_primary)
         if oriented!=str(value or "").strip():
-            print("USE v340 universal orientation boundary: upstream canonical Guide doorway used for topical inquiry."); return oriented
+            print("USE v341 question-proportionate Guide boundary: using upstream primary with substantive fit."); return oriented
         return value
     retrieved_context=_context_blocks_from_kwargs(args,kwargs); canonical_link_context=str(kwargs.get("canonical_link_context") or retrieved_context or "")
     return _v336_construct_visitor_answer(str(value or ""),user_query,retrieved_context,canonical_link_context)
 
 app=use_core.app
 app.title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v340 UNIVERSAL GUIDE ORIENTATION: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v341 QUESTION-PROPORTIONATE GUIDE DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION=APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
 use_core.generate_llm_response=_v339_finalize_generation_response
 
-# Explicit Guide handoff: context_blocks already represent the selected,
-# downstream-ready evidence in canonical order. Capture only its first identity
-# and pass that identity explicitly into the existing generation wrapper.
 def _selected_primary_from_context(context_blocks):
     docs=_parse_context_documents(str(context_blocks or ""))
     return docs[0] if docs and isinstance(docs[0],dict) else None
