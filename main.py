@@ -260,8 +260,6 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     sections.append(care)
     return "\n\n".join(s.strip() for s in sections if s.strip())
 
-# Remaining v339 runtime wrapper and seam preserved exactly from the current production baseline.
-
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
     value = str(answer or "").strip()
     if use_core._is_recommendation_question(user_query):
@@ -354,7 +352,17 @@ def _v339_finalize_generation_response(*args, **kwargs):
     canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
     return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
 
+use_core.APP_VERSION = APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
+use_core.RUNTIME_PROCESS_ID = os.getpid()
+
 app = use_core.app
+app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
+print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core._build_generation_messages = _build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
