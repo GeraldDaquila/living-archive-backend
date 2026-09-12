@@ -38,3 +38,28 @@ def test_recommendation_finalizer_extracts_context_before_provider():
     assert "_context_blocks_from_kwargs(args, kwargs)" in text
     assert "_v338_final_answer_boundary(" in text
     assert "provider generation skipped" in text
+
+
+def test_grief_recommendation_voice_is_warm_and_non_clinical():
+    source = _source()
+    text = _function_source(source, "_v339_build_compassionate_recommendation_answer")
+    for marker in (
+        "no simple place to begin",
+        "A gentle place to begin is",
+        "does not demand certainty",
+        "does not ask grief to become",
+    ):
+        assert marker in text
+    assert "It is a direct fit because" not in text
+
+
+def test_grief_recommendation_does_not_repeat_primary_as_context():
+    source = _source()
+    text = _function_source(source, "_v339_build_compassionate_recommendation_answer")
+    assert "doc_title == title" in text
+
+
+def test_recommendation_voice_preserves_canonical_primary_and_url():
+    source = _source()
+    text = _function_source(source, "_v339_build_compassionate_recommendation_answer")
+    assert 'A gentle place to begin is [{title}]({url}).' in text
