@@ -227,20 +227,54 @@ def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, li
             break
     return [doc for _, doc in chosen]
 
-def _archive_context(doc: dict, docs: list) -> str:
+def _extract_archive_metadata(doc: dict, docs: list) -> dict:
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
     title = _normalize_title(doc.get("title") or "")
+    corpus = f"{title} {text}"
+    collection_patterns = [
+        r"(?:collection|series)\s*[:\-]?\s*([^.!?]{3,100})",
+        r"(?:within|inside|part of)\s+(?:the\s+)?(?:collection|series)\s+([^.!?]{3,100})",
+    ]
+    section_patterns = [
+        r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,100})",
+        r"(?:under|within)\s+(?:the\s+)?(?:section|chapter|part)\s+([^.!?]{3,100})",
+    ]
+    page_patterns = [
+        r"(?:page)\s*[:\-]?\s*([^.!?]{3,120})",
+        r"(?:found|situated|located)\s+(?:within|under)\s+([^.!?]{3,120})",
+    ]
+    def _first(patterns):
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                phrase = re.sub(r"\s+", " ", match.group(1)).strip(" ,;:")
+                if phrase and phrase.casefold() not in title.casefold():
+                    return phrase
+        return ""
+    collection = _first(collection_patterns)
+    section = _first(section_patterns)
+    page = _first(page_patterns)
+    related_titles = []
+    for candidate in docs:
+        candidate_title = _normalize_title(candidate.get("title") or "")
+        if not candidate_title or candidate_title.casefold() == title.casefold():
+            continue
+        if any(token in candidate_title.casefold() for token in ("grief", "loss", "death", "continuity", "mortality", "meaning", "journey")):
+            related_titles.append(candidate_title)
+    return {"collection": collection, "section": section, "page": page, "related_titles": related_titles[:3]}
+
+def _archive_context(doc: dict, docs: list) -> str:
+    meta = _extract_archive_metadata(doc, docs)
     parts = []
-    collection = re.search(r"(?:collection|series|within the)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
-    section = re.search(r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
-    if collection:
-        phrase = collection.group(1).strip().rstrip(",")
-        if phrase and phrase.casefold() not in title.casefold():
-            parts.append(f"It sits within {phrase}")
-    if section:
-        phrase = section.group(1).strip().rstrip(",")
-        if phrase and phrase.casefold() not in title.casefold():
-            parts.append(f"where the surrounding material develops questions such as {phrase}")
+    if meta["collection"]:
+        parts.append(f"It sits within {meta['collection']}")
+    if meta["page"]:
+        parts.append(f"the surrounding page is {meta['page']}")
+    if meta["section"]:
+        parts.append(f"where the material turns toward {meta['section']}")
+    if not parts and meta["related_titles"]:
+        names = ", ".join(meta["related_titles"][:2])
+        parts.append(f"It also belongs to a wider conversation in the Archive, alongside {names}")
     return " and ".join(parts).strip()
 
 def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
