@@ -251,34 +251,39 @@ def _v340_build_universal_orientation_answer(user_query: str,primary: dict,conte
     sections.append(care); return "\n\n".join(s.strip() for s in sections if s.strip())
 
 def _v341_question_terms(user_query: str) -> set:
-    text=re.sub(r"\s+"," ",str(user_query or "").casefold()).strip()
-    tokens=re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",text)
+    text=re.sub(r"\s+"," ",str(user_query or "").strip().casefold()); tokens=re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",text)
     stop={"i","ive","been","thinking","about","what","if","anything","might","come","after","it","dont","know","whether","believe","in","an","but","id","like","to","explore","the","question","without","being","pushed","toward","a","particular","answer","where","may","could","would","should","begin","start","go","find","can","you","help","me","this","that","is","are","and","or"}
     return {token for token in tokens if len(token)>=4 and token not in stop}
 
-def _v341_content_fit(primary: dict, user_query: str) -> tuple:
-    content=str(primary.get("text") or primary.get("content") or "").casefold(); title=_normalize_title(primary.get("title") or "").casefold(); terms=_v341_question_terms(user_query)
-    if not content or not terms:return (0,0,0)
-    corpus=f"{title} {content}"; corpus_tokens=set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",corpus)); hits=0
+def _v341_primary_question_fit(user_query: str, primary: dict, contextual_docs: list) -> tuple:
+    if not isinstance(primary,dict):return (False,0,0,0)
+    terms=_v341_question_terms(user_query)
+    corpus=f"{_normalize_title(primary.get('title') or '')} {str(primary.get('text') or primary.get('content') or '')}".casefold()
+    corpus_tokens=set(re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)?",corpus))
+    term_hits=0
     for term in terms:
         variants={term}
         for suffix in ("ingly","edly","ing","ed","ness","able","ible","es","s"):
             if len(term)>5 and term.endswith(suffix):variants.add(term[:-len(suffix)]); break
-        if variants & corpus_tokens:hits+=1
-    meaningful={"death","afterlife","mortality","spiritual","belief","continuity","reincarnation","meaning","purpose","identity","grief","loss","scientific","science"}
-    topic_hits=len((terms & meaningful) & corpus_tokens)
-    return (hits,topic_hits,len(terms))
-
-def _v341_primary_is_question_proportionate(user_query: str, primary: dict) -> bool:
-    hits,topic_hits,_=_v341_content_fit(primary,user_query); query=str(user_query or "").casefold(); specificity=bool(re.search(r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b",query))
-    if specificity:return topic_hits>=2 or hits>=2
-    return hits>=2 or topic_hits>=1
+        if variants & corpus_tokens:term_hits+=1
+    axes=[]
+    q=str(user_query or '').casefold()
+    for axis,label in ((r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b","mortality/afterlife"),(r"\b(?:grief|grieving|bereavement|mourning|loss)\b","grief/loss"),(r"\b(?:meaning|purpose|identity|continuity|belief|spiritual)\b","meaning/belief"),(r"\b(?:science|scientific|psychological|research|clinical|neuroscientific)\b","scientific") ):
+        if re.search(axis,q) and re.search(axis,corpus):axes.append(label)
+    contextual_fit=0
+    for doc in contextual_docs[:3]:
+        if not isinstance(doc,dict):continue
+        text=str(doc.get('text') or '').casefold()
+        if any(re.search(pattern,text) for pattern in (r"\bdeath\b",r"\bafterlife\b",r"\bgrief\b",r"\bmeaning\b",r"\bpurpose\b",r"\bcontinuity\b",r"\bspiritual\b",r"\bscientific\b")):contextual_fit+=1
+    specific=bool(re.search(r"\b(?:death|afterlife|reincarnation|mortality|what comes after|what happens after)\b",q))
+    threshold=(len(axes)>=2 or term_hits>=3) if specific else (len(axes)>=1 or term_hits>=2)
+    return (threshold,term_hits,len(axes),contextual_fit)
 
 def _v341_doorway_primary_oriented(user_query: str, primary: dict, contextual_docs: list) -> str:
-    if not isinstance(primary,dict):return ""
-    if _v341_primary_is_question_proportionate(user_query,primary):
+    fit,term_hits,axis_hits,contextual_fit=_v341_primary_question_fit(user_query,primary,contextual_docs)
+    if fit:
         return _v340_build_universal_orientation_answer(user_query,primary,contextual_docs)
-    print("USE v341 doorway sufficiency boundary: selected primary lacks substantive question fit; preserving ordinary provider answer.")
+    print(f"USE v341 doorway sufficiency boundary: primary lacks substantive question fit; term_hits={term_hits}, axis_hits={axis_hits}, contextual_fit={contextual_fit}; preserving ordinary provider answer.")
     return ""
 
 def _v340_orientation_boundary(user_query:str,answer:str,retrieved_context_blocks:str,canonical_primary:dict=None)->str:
