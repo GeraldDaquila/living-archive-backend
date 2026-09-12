@@ -2,6 +2,7 @@
 # Risk-aware reflection gateway selection; protected v333 core, retrieval, evidence selection, recommendation adjudication,
 # and canonical resource authority remain unchanged.
 
+import contextvars
 import hashlib
 import importlib
 import os
@@ -16,6 +17,7 @@ EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
+_UPSTREAM_CANONICAL_PRIMARY = contextvars.ContextVar("use_v340_upstream_canonical_primary", default=None)
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -254,8 +256,6 @@ def _v340_orientation_boundary(user_query: str, answer: str, retrieved_context_b
         title=_normalize_title(doc.get("title") or ""); url=str(doc.get("url") or doc.get("canonical_url") or "").strip(); text=str(doc.get("text") or "").strip()
         if title and url and text and re.match(r"^https?://",url,flags=re.IGNORECASE):candidates.append({**doc,"title":title,"url":url,"text":text})
     if not candidates:return value
-    # v340 root-cause boundary: use explicit upstream primary identity when the
-    # production request wrapper propagated it. Never select a new primary here.
     upstream_primary = _UPSTREAM_CANONICAL_PRIMARY.get()
     if upstream_primary:
         key = str(upstream_primary.get("url") or upstream_primary.get("canonical_url") or "").strip()
