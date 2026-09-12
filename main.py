@@ -164,6 +164,17 @@ def _parse_context_documents(context_blocks: str):
     return docs
 
 
+def _context_blocks_from_kwargs(args, kwargs):
+    for key in ("retrieved_context_blocks", "canonical_link_context", "retrieved_context", "context_blocks"):
+        value = kwargs.get(key)
+        if value:
+            return str(value)
+    for index in (1, 2, 3):
+        if len(args) > index and args[index]:
+            return str(args[index])
+    return ""
+
+
 def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
     title = str(primary.get("title") or "").strip()
     content = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
@@ -270,17 +281,15 @@ def _v339_finalize_generation_response(*args, **kwargs):
         user_query = args[0]
     user_query = str(user_query or "")
     if use_core._is_recommendation_question(user_query):
-        retrieved_context = kwargs.get("retrieved_context_blocks", "")
-        if retrieved_context is None and len(args) >= 2:
-            retrieved_context = args[1]
-        canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
+        retrieved_context = _context_blocks_from_kwargs(args, kwargs)
+        canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
         recommendation_answer = _v338_final_answer_boundary(
             user_query,
             "",
-            str(retrieved_context or ""),
-            str(canonical_link_context or ""),
+            retrieved_context,
+            canonical_link_context,
         )
-        if recommendation_answer:
+        if recommendation_answer and not recommendation_answer.startswith("The retrieved Archive material does not provide"):
             print("USE v339 recommendation generation bypass: deterministic canonical doorway used; provider generation skipped.")
             return recommendation_answer
     value = _original_generate_llm_response(*args, **kwargs)
@@ -288,11 +297,9 @@ def _v339_finalize_generation_response(*args, **kwargs):
         return value
     if not use_core._is_recommendation_question(user_query):
         return value
-    retrieved_context = kwargs.get("retrieved_context_blocks", "")
-    if retrieved_context is None and len(args) >= 2:
-        retrieved_context = args[1]
-    canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
-    return _v336_construct_visitor_answer(str(value or ""), user_query, str(retrieved_context or ""), str(canonical_link_context or ""))
+    retrieved_context = _context_blocks_from_kwargs(args, kwargs)
+    canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
+    return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
 
 
 use_core._build_generation_messages = _build_generation_messages
@@ -316,16 +323,3 @@ print(
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
-
-
-def generate_llm_response(*args, **kwargs):
-    return _v339_finalize_generation_response(*args, **kwargs)
-
-
-def search_visitor(*args, **kwargs):
-    return use_core.search_visitor(*args, **kwargs)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
