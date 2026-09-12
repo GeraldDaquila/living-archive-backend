@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v354 — sensitive grief Guide dispatch
-# v354 preserves v353 sensitive-grief composition and fixes dispatch so grief
-# questions with a suitable canonical grief doorway do not invoke provider generation.
-# Protected use_core.py remains unchanged.
+# USE PRODUCTION VERSION: v355 — generalized sensitive open-question Guide posture
+# v355 preserves v354 dispatch and sensitive grief care, and generalizes the
+# visitor-centered boundary to sensitive open questions without prescribing
+# outcomes or exposing internal evidence markup. Protected use_core.py unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v354"
-DEPLOYMENT_FINGERPRINT = "USE-v354-sensitive-grief-dispatch"
-CANONICAL_BUILD_ID = "USE-BUILD-v354-sensitive-grief-dispatch"
+APP_VERSION = "v355"
+DEPLOYMENT_FINGERPRINT = "USE-v355-generalized-sensitive-guide"
+CANONICAL_BUILD_ID = "USE-BUILD-v355-generalized-sensitive-guide"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -18,21 +18,17 @@ _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformativ
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-
 def _git_blob_sha256(data: bytes) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
-
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v354 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v355 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(
-        f"USE v354 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
-    )
+    raise RuntimeError(f"USE v355 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -51,7 +47,6 @@ def _parse_context_documents(context_blocks: str):
             docs.append({"title": title_match.group(1).strip(), "url": url_match.group(1).strip().rstrip(".,;"), "text": content_match.group(1).strip()})
     return docs
 
-
 def _context_blocks_from_kwargs(args, kwargs):
     for key in ("retrieved_context_blocks", "canonical_link_context", "retrieved_context", "context_blocks"):
         if kwargs.get(key):
@@ -61,17 +56,14 @@ def _context_blocks_from_kwargs(args, kwargs):
             return args[index]
     return ""
 
-
 def _normalize_title(text: str) -> str:
     text = re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", str(text or "").strip()).strip()
     return re.sub(r"\s{2,}", " ", text)
 
-
 def _resource_link(doc: dict) -> str:
     title = _normalize_title(doc.get("title") or "")
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-    return f"[{title}]({url})" if title and re.match(r"^https?://", url, re.IGNORECASE) else ""
-
+    return f"[{title}]({url})" if title and re.match(r"^https?://", url, re.I) else ""
 
 def _query_profile(user_query: str, docs: list) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -88,12 +80,10 @@ def _query_profile(user_query: str, docs: list) -> dict:
         "docs": docs,
     }
 
-
 def _clean_evidence_text(text: str) -> str:
     clean = re.sub(r"<[^>]+>", " ", str(text or ""))
     clean = re.sub(r"\[[^\]]*evidence excerpt bounded by USE\]", " ", clean, flags=re.I)
     return re.sub(r"\s+", " ", clean).strip()
-
 
 def _safe_grief_boundary(docs) -> str:
     has_psych = any(re.search(r"\b(?:psychological|psychology|clinical|research|scientific|science|grief)\b", _clean_evidence_text(d.get("text") or ""), re.I) for d in docs)
@@ -102,10 +92,11 @@ def _safe_grief_boundary(docs) -> str:
         return "It brings psychological and spiritual ways of understanding grief into the same conversation without requiring either to become the whole explanation."
     return "It offers a place to explore grief while leaving room for different psychological, spiritual, and personal ways of making sense of loss."
 
-
 def _evidence_boundary_note(docs, profile):
     if profile.get("grief"):
         return _safe_grief_boundary(docs)
+    if profile.get("sensitive") and profile.get("open_question"):
+        return "It offers a place to explore the question while leaving room for different ways of understanding what you are experiencing."
     if profile.get("open_question") and not profile.get("afterlife"):
         return "It offers a place to begin exploring the question without requiring it to collapse into one explanation or answer."
     has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", _clean_evidence_text(d.get("text") or ""), re.I) for d in docs)
@@ -115,7 +106,6 @@ def _evidence_boundary_note(docs, profile):
     if profile.get("meaning"):
         return "It offers a way into the question while leaving room to distinguish what is known from what remains interpretation, possibility, or personal meaning."
     return "It offers a grounded place to begin without asking the material to provide more certainty than it can support."
-
 
 def _secondary_role(doc, profile):
     corpus = f"{_normalize_title(doc.get('title') or '')} {_clean_evidence_text(doc.get('text') or '')}"
@@ -131,7 +121,6 @@ def _secondary_role(doc, profile):
             return role
     return "another perspective on the question"
 
-
 def _secondary_score(doc, profile):
     title = _normalize_title(doc.get("title") or "")
     corpus = f"{title} {_clean_evidence_text(doc.get('text') or '')}"
@@ -143,8 +132,8 @@ def _secondary_score(doc, profile):
     if profile.get("meaning") and re.search(r"\b(?:meaning|purpose|perspective|wisdom|continuity|identity)\b", corpus, re.I): score += 2
     if profile.get("grief") and re.search(r"\b(?:grief|loss|mourning|bereavement)\b", corpus, re.I): score += 3
     if profile.get("open_question") and not profile.get("afterlife") and not profile.get("grief") and re.search(r"\b(?:meaning|purpose|perspective|philosophical|existential|identity|wisdom)\b", corpus, re.I): score += 3
+    if profile.get("sensitive") and profile.get("open_question") and re.search(r"\b(?:suicid|self-harm|abuse|coercion|immediate danger)\b", corpus, re.I): score -= 8
     return score, role
-
 
 def _select_secondary_pathways(docs, primary_title, profile, limit=2):
     seen = {_normalize_title(primary_title).casefold()}
@@ -155,9 +144,7 @@ def _select_secondary_pathways(docs, primary_title, profile, limit=2):
         url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
         if not title or title.casefold() in seen or not re.match(r"^https?://", url, re.I): continue
         score, role = _secondary_score(doc, profile)
-        corpus = f"{title} {doc.get('text') or ''}"
-        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion)\b", corpus, re.I): score -= 8
-        if profile.get("grief") and profile.get("open_question") and re.search(r"\b(?:afterlife|reincarnation|eternal now|soul(?:'s|s) journey)\b", corpus, re.I): score -= 3
+        if profile.get("grief") and profile.get("open_question") and re.search(r"\b(?:afterlife|reincarnation|eternal now|soul(?:'s|s) journey)\b", title + " " + str(doc.get('text') or ''), re.I): score -= 3
         if role in used_roles: score -= 5
         if score > 0: candidates.append((score, role, title.casefold(), doc))
     candidates.sort(key=lambda x: (-x[0], x[1].casefold(), x[2]))
@@ -168,7 +155,6 @@ def _select_secondary_pathways(docs, primary_title, profile, limit=2):
         if len(out) >= limit: break
     return out
 
-
 def _archive_fragment_is_safe(phrase: str) -> bool:
     clean = re.sub(r"\s+", " ", str(phrase or "")).strip(" ,;:")
     if not (5 <= len(clean) <= 100) or "—" in clean or "–" in clean: return False
@@ -176,11 +162,11 @@ def _archive_fragment_is_safe(phrase: str) -> bool:
     if re.match(r"^(?:examines?|explores?|discusses?|describes?|looks?|considers?|argues?|asks?|shows?|offers?|reveals?)\b", clean, re.I): return False
     return True
 
-
 def _extract_archive_metadata(doc, docs):
     text = re.sub(r"\s+", " ", _clean_evidence_text(doc.get("text") or ""))
     title = _normalize_title(doc.get("title") or "")
     collection = section = ""
+    related = []
     for pattern, target in [
         (r"(?:collection|series)\s*[:\-]?\s*([^.!?]{3,100})", "collection"),
         (r"(?:within|inside|part of)\s+(?:the\s+)?(?:collection|series)\s+([^.!?]{3,100})", "collection"),
@@ -194,26 +180,19 @@ def _extract_archive_metadata(doc, docs):
             if phrase and phrase.casefold() not in title.casefold() and _archive_fragment_is_safe(phrase):
                 if target == "collection": collection = phrase
                 else: section = phrase
-    related = []
     for candidate in docs:
         ct = _normalize_title(candidate.get("title") or "")
         cu = str(candidate.get("url") or candidate.get("canonical_url") or "").strip()
         if ct and ct.casefold() != title.casefold() and re.match(r"^https?://", cu, re.I): related.append({"title": ct, "url": cu})
     return {"collection": collection, "section": section, "related_resources": related[:3], "title": title}
 
-
 def _archive_context(primary, docs, profile, primary_title):
     meta = _extract_archive_metadata(primary, docs)
     related_docs = [x for x in docs if _normalize_title(x.get("title") or "").casefold() not in {meta["title"].casefold(), _normalize_title(primary_title).casefold()}]
     if profile.get("afterlife"):
-        direct = []
-        for doc in related_docs:
-            corpus = f"{_normalize_title(doc.get('title') or '')} {_clean_evidence_text(doc.get('text') or '')}"
-            if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death|mortality)\b", corpus, re.I): direct.append(doc)
-        related_docs = direct[:2]
+        related_docs = [doc for doc in related_docs if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death|mortality)\b", f"{_normalize_title(doc.get('title') or '')} {_clean_evidence_text(doc.get('text') or '')}", re.I)][:2]
     elif profile.get("grief") and profile.get("open_question"):
-        direct = [doc for doc in related_docs if re.search(r"\b(?:grief|loss|mourning|bereavement|psychological|spiritual|meaning|mortality)\b", f"{_normalize_title(doc.get('title') or '')} {_clean_evidence_text(doc.get('text') or '')}", re.I)]
-        related_docs = direct[:2]
+        related_docs = [doc for doc in related_docs if re.search(r"\b(?:grief|loss|mourning|bereavement|psychological|spiritual|meaning|mortality)\b", f"{_normalize_title(doc.get('title') or '')} {_clean_evidence_text(doc.get('text') or '')}", re.I)][:2]
     elif profile.get("open_question"):
         related_docs = related_docs[:2]
     else:
@@ -223,20 +202,14 @@ def _archive_context(primary, docs, profile, primary_title):
     if len(links) == 1: return "It also belongs to a wider conversation in the Archive, alongside " + links[0] + "."
     return "It also belongs to a wider conversation in the Archive, alongside " + links[0] + " and " + links[1] + "."
 
-
 def _archive_interpretation(meta, profile):
-    if profile.get("grief"): return "Together, those neighboring pieces open different ways of understanding loss without requiring grief to be reduced to a single story or outcome."
-    if profile.get("open_question") and not profile.get("afterlife"): return "Together, those neighboring pieces open a few different ways into the question without requiring one of them to become the answer."
-    titles = " ".join(x.get("title", "") for x in meta.get("related_resources") or []).casefold()
-    directions = []
-    if profile.get("afterlife"): directions.append("questions of continuity, identity, and what, if anything, may endure beyond death")
-    elif "continuity" in titles or "journey" in titles: directions.append("questions of continuity and what, if anything, may endure")
-    if profile.get("meaning") and not profile.get("afterlife"): directions.append("the search for meaning when ordinary answers no longer feel sufficient")
-    unique = list(dict.fromkeys(directions))
-    if not unique: return ""
-    if len(unique) == 1: return f"Together, those neighboring pieces point toward {unique[0]}"
-    return f"Together, those neighboring pieces open a wider conversation around {', '.join(unique[:-1])}, and {unique[-1]}"
-
+    if profile.get("grief"):
+        return "Together, those neighboring pieces open different ways of understanding loss without requiring grief to be reduced to a single story or outcome."
+    if profile.get("sensitive") and profile.get("open_question"):
+        return "Together, those neighboring pieces open different ways of understanding the experience without requiring one interpretation to become the answer."
+    if profile.get("open_question") and not profile.get("afterlife"):
+        return "Together, those neighboring pieces open a few different ways into the question without requiring one of them to become the answer."
+    return ""
 
 def _guide_answer(user_query, primary, docs):
     profile = _query_profile(user_query, docs)
@@ -245,6 +218,9 @@ def _guide_answer(user_query, primary, docs):
     if profile.get("grief"):
         opening = "Grief does not need to be reduced to one explanation before you begin exploring it."
         bridge = f"A useful place to begin is [{title}]({url}), as a meeting point for psychological, spiritual, and other ways of understanding loss."
+    elif profile.get("sensitive") and profile.get("open_question"):
+        opening = "You do not need to settle what this experience means before you begin exploring it."
+        bridge = f"A useful place to begin is [{title}]({url}), as one lens among several rather than a final answer."
     elif profile.get("open_question") and not profile.get("afterlife"):
         opening = "A question like this does not need to be settled before you begin exploring it."
         bridge = f"A useful place to begin is [{title}]({url}), as one lens among several rather than a final answer."
@@ -256,7 +232,7 @@ def _guide_answer(user_query, primary, docs):
     if archive: sections.append(archive)
     meta = _extract_archive_metadata(primary, docs)
     interpretation = _archive_interpretation(meta, profile)
-    if interpretation: sections.append(interpretation + ".")
+    if interpretation: sections.append(interpretation.rstrip(".") + ".")
     secondaries = _select_secondary_pathways(docs, title, profile)
     if secondaries:
         pathways = []
@@ -266,7 +242,6 @@ def _guide_answer(user_query, primary, docs):
         if pathways: sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(pathways))
     sections.append("Take what feels useful, leave what does not, and let the question remain open where it needs to.")
     return "\n\n".join(x.strip() for x in sections if x.strip())
-
 
 def _find_primary(user_query, docs):
     q = str(user_query or "").casefold()
@@ -283,7 +258,6 @@ def _find_primary(user_query, docs):
     if not scored: return None
     return sorted(scored, reverse=True, key=lambda x: (x[0], x[1], x[2]))[0][3]
 
-
 def _meaning_question_can_use_guide(user_query, docs):
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     open_meaning = bool(re.search(r"\b(?:what gives life meaning|life meaning|meaning in life|purpose|what matters|what makes life meaningful)\b", q)) and bool(re.search(r"\b(?:not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|one particular answer|no particular answer)\b", q))
@@ -297,7 +271,6 @@ def _meaning_question_can_use_guide(user_query, docs):
         if hits >= 2 and str(doc.get("url") or "").strip(): candidates.append((hits, -i, doc))
     if not candidates: return None
     return sorted(candidates, reverse=True, key=lambda x: (x[0], x[1]))[0][2]
-
 
 def _grief_question_can_use_guide(user_query, docs):
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -313,31 +286,41 @@ def _grief_question_can_use_guide(user_query, docs):
     if not candidates: return None
     return sorted(candidates, reverse=True, key=lambda x: (x[0], x[1]))[0][2]
 
+def _sensitive_open_question_can_use_guide(user_query, docs):
+    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
+    profile = _query_profile(q, docs)
+    if not profile.get("sensitive") or not profile.get("open_question") or profile.get("grief") or not docs:
+        return None
+    candidates = []
+    for i, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        text = _clean_evidence_text(doc.get("text") or "")
+        corpus = f"{title} {text}"
+        hits = len(re.findall(r"\b(?:psychological|spiritual|meaning|identity|loss|experience|care|understanding|perspective)\b", corpus, re.I))
+        if hits >= 2 and str(doc.get("url") or "").strip():
+            candidates.append((hits, -i, doc))
+    if not candidates: return None
+    return sorted(candidates, reverse=True, key=lambda x: (x[0], x[1]))[0][2]
 
-def _v354_finalize(*args, **kwargs):
+def _v355_finalize(*args, **kwargs):
     query = str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else ""))
     context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(context)
     intent = str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args) > 2 else "")).strip().upper()
     recommendation = use_core._is_recommendation_question(query)
     if not recommendation and (not intent or intent == "TOPICAL_INQUIRY"):
-        primary = _find_primary(query, docs) or _meaning_question_can_use_guide(query, docs) or _grief_question_can_use_guide(query, docs)
+        primary = _find_primary(query, docs) or _meaning_question_can_use_guide(query, docs) or _grief_question_can_use_guide(query, docs) or _sensitive_open_question_can_use_guide(query, docs)
         if primary:
-            print("USE v354 GUIDE GENERATION SHORT-CIRCUIT: "
+            print("USE v355 GUIDE GENERATION SHORT-CIRCUIT: "
                   f"primary='{_normalize_title(primary.get('title') or _BENCHMARK_PRIMARY_TITLE)}', "
-                  "provider_generation_skipped=True, posture=sensitive_grief_boundary")
+                  "provider_generation_skipped=True, posture=sensitive_open_question")
             return _guide_answer(query, primary, docs)
     return str(_original_generate_llm_response(*args, **kwargs) or "").strip()
-
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.generate_llm_response = _v354_finalize
-print(
-    f"USE v354 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
-    f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
-)
+use_core.generate_llm_response = _v355_finalize
+print(f"USE v355 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
