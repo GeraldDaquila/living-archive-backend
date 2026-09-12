@@ -31,6 +31,17 @@ assert "_v339_finalize_generation_response" in fn_names
 assert "_v338_final_answer_boundary" in fn_names
 assert "_v339_build_compassionate_recommendation_answer" in fn_names
 
+builder = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_v339_build_compassionate_recommendation_answer")
+builder_text = ast.get_source_segment(source, builder)
+assert '"\\n\\n".join' in builder_text
+assert 'A gentle place to begin is [{title}]({url}).' in builder_text
+assert '_resource_link(doc)' in builder_text
+assert 'if not doc_title or doc_title == title:' in builder_text
+assert 'When you are grieving' in builder_text
+assert 'does not ask you to hurry past the loss' in builder_text
+assert 'Take what feels useful' in builder_text
+assert 'It is a direct fit because' not in builder_text
+
 fn = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_v339_canonical_recommendation_doorway")
 fn_text = ast.get_source_segment(source, fn)
 assert 'canonical_link = f"[{title}]({url})"' in fn_text
@@ -41,8 +52,6 @@ boundary_text = ast.get_source_segment(source, boundary)
 assert 'if use_core._is_recommendation_question(user_query):' in boundary_text
 assert 'A useful place to begin is' in boundary_text
 assert '_v339_build_compassionate_recommendation_answer' in boundary_text
-assert 'without forcing certainty' in source
-assert 'rather than asking grief to become something you simply resolve' in source
 
 finalizer = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_v339_finalize_generation_response")
 finalizer_text = ast.get_source_segment(source, finalizer)
