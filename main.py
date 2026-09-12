@@ -1,12 +1,12 @@
-# USE PRODUCTION VERSION: v362 — transition whole-question fit
+# USE PRODUCTION VERSION: v365 — transition candidate-set composition
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v362"
-DEPLOYMENT_FINGERPRINT = "USE-v362-transition-whole-question-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v362-transition-whole-question-fit"
+APP_VERSION = "v365"
+DEPLOYMENT_FINGERPRINT = "USE-v365-transition-candidate-composition"
+CANONICAL_BUILD_ID = "USE-BUILD-v365-transition-candidate-composition"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -15,9 +15,9 @@ def _sha256(data: bytes) -> str: return hashlib.sha256(data).hexdigest()
 def _git_blob_sha256(data: bytes) -> str: return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 _MAIN_PATH = Path(__file__).resolve(); _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
-if not _CORE_PATH.exists(): raise RuntimeError("USE v362 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v365 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
-if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v362 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v365 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 
@@ -57,31 +57,33 @@ def _query_profile(user_query,docs):
 def _transition_evidence_fit(doc,profile):
     title=_normalize_title(doc.get("title") or ""); text=_clean_evidence_text(doc.get("text") or ""); corpus=f"{title} {text}"
     clusters={"transition":bool(re.search(r"\b(?:change|changed|transition|new chapter|starting over|begin again|moving forward|what comes next|uncertainty|uncertain|loss of role|life change|life transition)\b",corpus,re.I)),"meaning":bool(re.search(r"\b(?:meaning|purpose|identity|perspective|understanding|wisdom|belief)\b",corpus,re.I)),"experience":bool(re.search(r"\b(?:experience|lived|feelings?|emotion|emotional|inner life|journey|navigate|navigating)\b",corpus,re.I)),"open":bool(re.search(r"\b(?:question|explore|exploring|possibility|uncertainty|uncertain)\b",corpus,re.I)),"grounding":bool(re.search(r"\b(?:life|personal|human|lived experience|identity|role|circumstance|situation)\b",corpus,re.I)),"worldview":bool(re.search(r"\b(?:spiritual awakening|awakening|soul|afterlife|reincarnation|starseed|mystical|ascension)\b",corpus,re.I))}
-    strong_axis=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding")); score=sum(int(v) for v in clusters.values())
+    axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding")); score=sum(int(v) for v in clusters.values())
     if clusters["transition"]: score+=2
     if clusters["meaning"] and clusters["experience"]: score+=1
     if clusters["worldview"] and not clusters["transition"]: score-=5
-    elif clusters["worldview"] and strong_axis<4: score-=4
-    if strong_axis<3: score-=4
+    elif clusters["worldview"] and axes<4: score-=4
+    if axes<3: score-=4
     if re.search(r"\b(?:divorce|guilt|receiving|marriage|spouse|husband|wife)\b",corpus,re.I) and not re.search(r"\b(?:transition|change|identity|meaning|uncertainty|experience)\b",corpus,re.I): score-=3
     return score,clusters
+
+def _whole_question_fit(query,doc):
+    profile=_query_profile(query,[]) ; fit,clusters=_transition_evidence_fit(doc,profile)
+    axes= sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
+    return fit, axes, clusters
 
 def _transition_primary_candidate_from_context(query,docs):
     profile=_query_profile(query,docs)
     if not profile.get("transition") or not profile.get("open_question"): return None
-    ranked=[]
+    eligible=[]
     for i,doc in enumerate(docs):
-        fit,clusters=_transition_evidence_fit(doc,profile)
-        axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
-        # The primary must represent the whole transition question, not merely overlap one axis.
-        if clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=7:
-            explicit_worldview=profile.get("explicit_worldview",False)
-            worldview_penalty=0 if explicit_worldview else (8 if clusters["worldview"] else 0)
-            clean_bonus=5 if axes==4 and not clusters["worldview"] else 0
-            balance_bonus=2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0
-            ranked.append(((fit+clean_bonus+balance_bonus-worldview_penalty,axes,-int(clusters["worldview"]),-i),doc))
-    ranked.sort(key=lambda x:x[0],reverse=True)
-    return ranked[0][1] if ranked else None
+        fit,axes,clusters=_whole_question_fit(query,doc)
+        if not (clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=7): continue
+        explicit_worldview=profile.get("explicit_worldview",False)
+        if clusters["worldview"] and not explicit_worldview: continue
+        authority = fit + (6 if axes==4 and not clusters["worldview"] else 0) + (2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0)
+        eligible.append(((authority,axes,-int(clusters["worldview"]),-i),doc))
+    eligible.sort(key=lambda x:x[0],reverse=True)
+    return eligible[0][1] if eligible else None
 
 def _merge_recovered_documents(primary_docs,recovered_docs):
     merged=[]; seen=set()
@@ -96,30 +98,29 @@ def _transition_retrieval_strategy(user_query):
     query=str(user_query or "").strip(); retriever=getattr(use_core,"_function_targeted_candidate_search",None); recovered=[]
     if callable(retriever):
         try: recovered=retriever(query) or []
-        except Exception as exc: print(f"USE v362 transition strategy: function-targeted retrieval error: {type(exc).__name__}: {exc}")
-    semantic=[]; index=getattr(use_core,"index",None); embed=getattr(use_core,"generate_embedding",None); query_index=getattr(use_core,"_query_index",None)
-    if index is not None and callable(embed) and callable(query_index):
+        except Exception as exc: print(f"USE v365 transition strategy: function-targeted retrieval error: {type(exc).__name__}: {exc}")
+    semantic=[]; embed=getattr(use_core,"generate_embedding",None); query_index=getattr(use_core,"_query_index",None)
+    if callable(embed) and callable(query_index):
         variants=(f"Visitor question: {query}\nLife transition: major change, uncertainty, identity, meaning, lived experience, what comes next.\nRequested function: transition and orientation entry.",f"Life transition and reorientation after a major change; identity, meaning, uncertainty, lived experience, and what comes next. Visitor question: {query}")
         for variant in variants:
             try:
                 vector=embed(variant)
                 if not vector: continue
-                for score,match_id,metadata in query_index(vector,min(max(getattr(use_core,"RETRIEVAL_TOP_K",12)*2,24),48)):
-                    if isinstance(metadata,dict): semantic.append((float(score or 0.0),match_id,metadata))
-            except Exception as exc: print(f"USE v362 transition strategy: semantic recovery error: {type(exc).__name__}: {exc}")
-    profile=_query_profile(query,[]); ranked=[]
-    for doc in (recovered if isinstance(recovered,list) else []):
-        fit,clusters=_transition_evidence_fit(doc,profile); axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
-        if clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=7:
-            explicit_worldview=profile.get("explicit_worldview",False); worldview_penalty=0 if explicit_worldview else (8 if clusters["worldview"] else 0); clean_bonus=5 if axes==4 and not clusters["worldview"] else 0; balance_bonus=2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0
-            ranked.append(((fit+clean_bonus+balance_bonus-worldview_penalty,axes,-int(clusters["worldview"]),0),fit,1.0,doc))
-    for score,match_id,metadata in semantic:
-        fit,clusters=_transition_evidence_fit(metadata,profile); axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
-        if clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=7:
-            explicit_worldview=profile.get("explicit_worldview",False); worldview_penalty=0 if explicit_worldview else (8 if clusters["worldview"] else 0); clean_bonus=5 if axes==4 and not clusters["worldview"] else 0; balance_bonus=2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0
-            ranked.append(((fit+clean_bonus+balance_bonus-worldview_penalty,axes,-int(clusters["worldview"]),-len(ranked)),fit,score,metadata))
-    ranked.sort(key=lambda item:(item[0],item[1],item[2]),reverse=True)
-    return _merge_recovered_documents([], [item[3] for item in ranked[:12]])
+                for score,_,metadata in query_index(vector,min(max(getattr(use_core,"RETRIEVAL_TOP_K",12)*2,24),48)):
+                    if isinstance(metadata,dict): semantic.append((float(score or 0.0),metadata))
+            except Exception as exc: print(f"USE v365 transition strategy: semantic recovery error: {type(exc).__name__}: {exc}")
+    profile=_query_profile(query,[]); candidates=[]
+    for doc in (recovered if isinstance(recovered,list) else []): candidates.append((1.0,doc))
+    candidates += semantic
+    scored=[]
+    for retrieval_score,doc in candidates:
+        fit,axes,clusters=_whole_question_fit(query,doc)
+        if not (clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=7): continue
+        if clusters["worldview"] and not profile.get("explicit_worldview"): continue
+        authority=fit+(6 if axes==4 and not clusters["worldview"] else 0)+(2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0)
+        scored.append((authority,axes,retrieval_score,doc))
+    scored.sort(key=lambda x:(x[0],x[1],x[2]),reverse=True)
+    return _merge_recovered_documents([], [x[3] for x in scored[:12]])
 
 def _recover_transition_candidates(query): return _transition_retrieval_strategy(query)
 
@@ -132,27 +133,27 @@ def _guide_answer(user_query,primary,docs):
     if profile.get("transition"):
         fit_docs=[]; seen=set()
         for d in docs:
-            fit,clusters=_transition_evidence_fit(d,profile)
+            fit,axes,clusters=_whole_question_fit(user_query,d)
             if clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=6:
                 key=_normalize_title(d.get("title") or "").casefold()
                 if key==title.casefold() or key in seen: continue
-                fit_docs.append(d); seen.add(key)
-        fit_docs.sort(key=lambda d:_transition_primary_candidate_from_context(profile.get("docs") if False else user_query,[d]) is not None,reverse=True)
+                fit_docs.append((fit,d)); seen.add(key)
+        fit_docs.sort(key=lambda x:(x[0],_normalize_title(x[1].get("title") or "").casefold()),reverse=True)
         roles=[]
-        for d in fit_docs[:2]:
+        for _,d in fit_docs[:2]:
             link=_resource_link(d)
             if link: roles.append(f"{link} — for change, transition, identity, and what comes next.")
         if roles: sections.append("From there, you can follow a couple of nearby reflections:\n\n"+"\n\n".join(roles))
     return "\n\n".join(x.strip() for x in sections if x.strip())
 
-def _v362_finalize(*args,**kwargs):
+def _v365_finalize(*args,**kwargs):
     query=str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else "")); context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(context); intent=str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args)>2 else "")).strip().upper(); recommendation=use_core._is_recommendation_question(query)
     if not recommendation and (not intent or intent=="TOPICAL_INQUIRY"):
         profile=_query_profile(query,docs)
         if profile.get("transition") and profile.get("open_question"):
             recovered=_recover_transition_candidates(query); merged=_merge_recovered_documents(docs,recovered); selected=_transition_primary_candidate_from_context(query,merged)
-            if selected: print(f"USE v362 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', provider_generation_skipped=True"); return _guide_answer(query,selected,merged)
-            print("USE v362 TRANSITION EVIDENCE GATE: no sufficiently aligned canonical evidence; provider_generation_skipped=True"); return "The Living Archive does not currently have sufficiently grounded canonical material for this particular question, and I do not want to point you to a resource merely because its wording happens to overlap. It is better to leave the doorway open than pretend an unrelated resource is the right place to begin."
+            if selected: print(f"USE v365 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', provider_generation_skipped=True"); return _guide_answer(query,selected,merged)
+            print("USE v365 TRANSITION EVIDENCE GATE: no sufficiently aligned canonical evidence; provider_generation_skipped=True"); return "The Living Archive does not currently have sufficiently grounded canonical material for this particular question, and I do not want to point you to a resource merely because its wording happens to overlap. It is better to leave the doorway open than pretend an unrelated resource is the right place to begin."
         for name in ("_find_primary","_meaning_question_can_use_guide","_grief_question_can_use_guide"):
             fn=getattr(use_core,name,None)
             if callable(fn):
@@ -166,5 +167,5 @@ def _v362_finalize(*args,**kwargs):
 
 app=use_core.app
 app.title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v362_finalize
-print(f"USE v362 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v365_finalize
+print(f"USE v365 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
