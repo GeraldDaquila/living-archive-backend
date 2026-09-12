@@ -1,7 +1,8 @@
-# USE PRODUCTION VERSION: v339 — Canonical Recommendation Doorway + The Guide
+# USE PRODUCTION VERSION: v340 — Canonical Recommendation Doorway + The Guide
 # Risk-aware reflection gateway selection; protected v333 core, retrieval, evidence selection, recommendation adjudication,
 # and canonical resource authority remain unchanged.
 
+import contextvars
 import hashlib
 import importlib
 import os
@@ -16,6 +17,7 @@ EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
+_UPSTREAM_CANONICAL_PRIMARY = contextvars.ContextVar("use_v340_upstream_canonical_primary", default=None)
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -394,19 +396,10 @@ def _v340_orientation_boundary(user_query: str, answer: str, retrieved_context_b
     if not candidates:
         return value
 
-    # Consume the canonical doorway already established by the protected
-    # upstream pipeline when it is exposed on the core module. This seam must
-    # not perform an independent second doorway selection algorithm.
-    primary = None
-    for attr in ("_current_canonical_primary", "_canonical_primary_resource", "_selected_canonical_primary"):
-        candidate = getattr(use_core, attr, None)
-        if isinstance(candidate, dict):
-            key = str(candidate.get("url") or candidate.get("canonical_url") or "").strip()
-            if any(key and key == str(doc.get("url") or "").strip() for doc in candidates):
-                primary = candidate
-                break
-    if primary is None:
-        primary = getattr(use_core, "_adjudicate_recommendation_resource", lambda d, q: None)(candidates, query)
+    # The protected upstream pipeline establishes the canonical doorway.
+    # This downstream seam consumes only the request-local identity and never
+    # independently reranks, adjudicates, or reselects a doorway.
+    primary = _UPSTREAM_CANONICAL_PRIMARY.get()
     if not isinstance(primary, dict):
         return value
     primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
@@ -452,3 +445,16 @@ print(f"USE v340 UNIVERSAL GUIDE ORIENTATION: build_id={CANONICAL_BUILD_ID}, ver
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.generate_llm_response = _v339_finalize_generation_response
+
+# Structural handoff: the protected core owns doorway selection. Wrapping the
+# exact function boundary lets this downstream module carry only the selected
+# primary into the Guide seam without changing the protected selection logic.
+_original_select_canonical_doorways = use_core.select_canonical_doorways
+
+def _capture_selected_canonical_doorways(*args, **kwargs):
+    selected = _original_select_canonical_doorways(*args, **kwargs)
+    primary = selected[0] if isinstance(selected, list) and selected and isinstance(selected[0], dict) else None
+    _UPSTREAM_CANONICAL_PRIMARY.set(primary)
+    return selected
+
+use_core.select_canonical_doorways = _capture_selected_canonical_doorways
