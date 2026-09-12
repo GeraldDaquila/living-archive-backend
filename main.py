@@ -1,7 +1,7 @@
-# USE PRODUCTION VERSION: v349 — Guide generation short-circuit + Archive context grammar
-# v349 preserves the v348 visitor-facing Guide behavior and prevents Guide-eligible
-# topical questions from invoking the protected provider-generation path when the
-# downstream deterministic Guide doorway is already established.
+# USE PRODUCTION VERSION: v350 — Guide question-shaped Archive constellation
+# v350 preserves v349 generation short-circuit and narrows Archive constellation
+# presentation for death/afterlife questions to directly relevant neighboring
+# resources already present in the supplied canonical evidence.
 # Protected use_core.py remains unchanged.
 import hashlib
 import importlib
@@ -9,9 +9,9 @@ import os
 import re
 from pathlib import Path
 
-APP_VERSION = "v349"
-DEPLOYMENT_FINGERPRINT = "USE-v349-guide-generation-short-circuit"
-CANONICAL_BUILD_ID = "USE-BUILD-v349-guide-generation-short-circuit"
+APP_VERSION = "v350"
+DEPLOYMENT_FINGERPRINT = "USE-v350-question-shaped-archive-constellation"
+CANONICAL_BUILD_ID = "USE-BUILD-v350-question-shaped-archive-constellation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -29,11 +29,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v349 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v350 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v349 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v350 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -97,6 +97,8 @@ def _query_profile(user_query: str, docs: list) -> dict:
         "grief": bereavement,
         "risk": risk,
         "meaning": bool(re.search(r"\b(?:meaning|understanding|perspective|wisdom|why|purpose|identity|continuity|spiritual|afterlife|belief)\b", q)),
+        "afterlife": bool(re.search(r"\b(?:afterlife|reincarnation|continuity|what lies beyond|beyond death)\b", q)),
+        "death": bool(re.search(r"\b(?:death|mortality|dying|died)\b", q)),
         "docs": docs,
     }
 
@@ -126,35 +128,49 @@ def _secondary_role(doc, profile):
     return "another perspective on the question"
 
 
+def _secondary_score(doc, profile):
+    title = _normalize_title(doc.get("title") or "")
+    corpus = f"{title} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
+    role = _secondary_role(doc, profile)
+    score = 0
+    if profile.get("afterlife"):
+        if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death)\b", corpus, re.I):
+            score += 7
+        if "afterlife" in title.casefold() or "journey beyond" in title.casefold():
+            score += 3
+    if profile.get("death") and re.search(r"\b(?:death|mortality|dying|died)\b", corpus, re.I):
+        score += 2
+    if profile.get("meaning") and re.search(r"\b(?:meaning|purpose|perspective|wisdom|continuity|identity)\b", corpus, re.I):
+        score += 2
+    if profile.get("grief") and re.search(r"\b(?:grief|loss|mourning|bereavement)\b", corpus, re.I):
+        score += 3
+    return score, role
+
+
 def _select_secondary_pathways(docs, primary_title, profile, limit=2):
+    """Select differentiated neighboring pathways, shaped by the visitor's axis."""
     seen = {_normalize_title(primary_title).casefold()}
     candidates = []
-    used = set()
+    used_roles = set()
     for doc in docs:
         title = _normalize_title(doc.get("title") or "")
         url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
         if not title or title.casefold() in seen or not re.match(r"^https?://", url, re.I):
             continue
-        corpus = f"{title} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
-        score = 0
-        if profile.get("grief") and re.search(r"\b(?:grief|loss|death|mortality|meaning|continuity|crisis)\b", corpus, re.I):
-            score += 3
-        if profile.get("meaning") and re.search(r"\b(?:meaning|identity|purpose|perspective|wisdom|continuity|afterlife|reincarnation)\b", corpus, re.I):
-            score += 2
-        role = _secondary_role(doc, profile)
-        if role in used:
-            score -= 4
-        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion)\b", corpus, re.I):
+        score, role = _secondary_score(doc, profile)
+        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion)\b", f"{title} {doc.get('text') or ''}", re.I):
             score -= 8
+        if role in used_roles:
+            score -= 5
         if score > 0:
-            candidates.append((score, role, title, doc))
-    candidates.sort(key=lambda x: (-x[0], x[1].casefold(), x[2].casefold()))
+            candidates.append((score, role, title.casefold(), doc))
+    candidates.sort(key=lambda x: (-x[0], x[1].casefold(), x[2]))
     out = []
     for _, role, _, doc in candidates:
-        if role in used:
+        if role in used_roles:
             continue
         out.append(doc)
-        used.add(role)
+        used_roles.add(role)
         if len(out) >= limit:
             break
     return out
@@ -169,8 +185,6 @@ def _archive_fragment_is_safe(phrase: str) -> bool:
     if re.search(r"\b(?:I|we|you|he|she|they)\b", clean, re.I):
         return False
     if re.match(r"^(?:examines?|explores?|discusses?|describes?|looks?|considers?|argues?|asks?|shows?|offers?|reveals?)\b", clean, re.I):
-        return False
-    if re.search(r"\b(?:and|but|or)\b.*\b(?:felt|feels|inside|I|we|you)\b", clean, re.I):
         return False
     return True
 
@@ -204,16 +218,27 @@ def _extract_archive_metadata(doc, docs):
     return {"collection": collection, "section": section, "related_resources": related[:3], "title": title}
 
 
-def _archive_context(primary, docs):
+def _archive_context(primary, docs, profile):
+    """Describe only the neighboring constellation that matters to this question."""
     meta = _extract_archive_metadata(primary, docs)
     parts = []
-    if meta["collection"]:
-        parts.append(f"It sits within the wider Archive conversation in {meta['collection']}.")
-    if meta["section"]:
-        clean = re.sub(r"\s+", " ", meta["section"]).strip(" ,;:—–-.")
-        if _archive_fragment_is_safe(clean):
-            parts.append(f"It sits within {clean}.")
-    links = [_resource_link(x) for x in meta["related_resources"] if _resource_link(x)]
+    related_docs = [
+        x for x in docs
+        if _normalize_title(x.get("title") or "").casefold() != meta["title"].casefold()
+    ]
+    # For explicit death/afterlife questions, generic performance/meaning pieces
+    # are contextually secondary and no longer occupy the first constellation sentence.
+    if profile.get("afterlife"):
+        direct = []
+        for doc in related_docs:
+            corpus = f"{_normalize_title(doc.get('title') or '')} {doc.get('text') or ''}"
+            if re.search(r"\b(?:afterlife|reincarnation|near-death|continuity|what lies beyond|beyond death|mortality)\b", corpus, re.I):
+                direct.append(doc)
+        related_docs = direct[:2]
+    else:
+        related_docs = related_docs[:3]
+
+    links = [_resource_link(x) for x in related_docs if _resource_link(x)]
     if links:
         if len(links) == 1:
             parts.append("It also belongs to a wider conversation in the Archive, alongside " + links[0] + ".")
@@ -227,19 +252,21 @@ def _archive_context(primary, docs):
 def _archive_interpretation(meta, profile):
     titles = " ".join(x.get("title", "") for x in meta.get("related_resources") or []).casefold()
     directions = []
-    if "continuity" in titles or "journey" in titles:
+    if profile.get("afterlife"):
+        directions.append("questions of continuity, identity, and what, if anything, may endure beyond death")
+    elif "continuity" in titles or "journey" in titles:
         directions.append("questions of continuity and what, if anything, may endure")
-    if any(x in titles for x in ("grief", "loss", "death")):
+    if profile.get("grief"):
+        directions.append("the lived experience of loss and mortality")
+    elif any(x in titles for x in ("grief", "loss", "death")):
         directions.append("the lived experience of loss, mortality, and meaning")
-    if "meaning" in titles:
+    if profile.get("meaning") and not profile.get("afterlife"):
         directions.append("the search for meaning when ordinary answers no longer feel sufficient")
     unique = list(dict.fromkeys(directions))
     if not unique:
         return ""
     if len(unique) == 1:
         return f"Together, those neighboring pieces point toward {unique[0]}"
-    if len(unique) == 2:
-        return f"Together, those neighboring pieces open a wider conversation around {unique[0]} and {unique[1]}"
     return f"Together, those neighboring pieces open a wider conversation around {', '.join(unique[:-1])}, and {unique[-1]}"
 
 
@@ -252,7 +279,7 @@ def _guide_answer(user_query, primary, docs):
         f"A useful place to begin [{title}]({url}).",
         _evidence_boundary_note(docs, profile),
     ]
-    archive = _archive_context(primary, docs)
+    archive = _archive_context(primary, docs, profile)
     if archive:
         sections.append(archive)
     meta = _extract_archive_metadata(primary, docs)
@@ -299,7 +326,7 @@ def _find_primary(user_query, docs):
     return sorted(scored, reverse=True, key=lambda x: (x[0], x[1], x[2]))[0][3]
 
 
-def _v349_finalize(*args, **kwargs):
+def _v350_finalize(*args, **kwargs):
     query = str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else ""))
     context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(context)
@@ -311,19 +338,13 @@ def _v349_finalize(*args, **kwargs):
     ).strip().upper()
     recommendation = use_core._is_recommendation_question(query)
 
-    # v349 structural boundary: once a topical Guide doorway can already be
-    # established from the supplied canonical evidence, deterministic Guide
-    # construction owns the visitor response. This prevents the protected core
-    # provider-generation envelope from being invoked for a response that does
-    # not require model generation, while leaving recommendations and all other
-    # non-Guide cases on the protected generation path.
     if not recommendation and (not intent or intent == "TOPICAL_INQUIRY"):
         primary = _find_primary(query, docs)
         if primary:
             print(
-                "USE v349 GUIDE GENERATION SHORT-CIRCUIT: "
+                "USE v350 GUIDE GENERATION SHORT-CIRCUIT: "
                 f"primary='{_normalize_title(primary.get('title') or _BENCHMARK_PRIMARY_TITLE)}', "
-                "provider_generation_skipped=True"
+                "provider_generation_skipped=True, constellation=question_shaped"
             )
             return _guide_answer(query, primary, docs)
 
@@ -336,9 +357,9 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.generate_llm_response = _v349_finalize
+use_core.generate_llm_response = _v350_finalize
 print(
-    f"USE v349 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
+    f"USE v350 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
