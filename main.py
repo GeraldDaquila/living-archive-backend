@@ -52,7 +52,7 @@ finally:
     if _saved_expected_source is not None:
         os.environ["USE_EXPECTED_SOURCE_SHA256"] = _saved_expected_source
 
-_original_violation = use_core._v308_compassionate_voice_violation
+_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", None)
 _original_build_generation_messages = getattr(use_core, "_build_generation_messages", None)
 _original_clean_generation_output = getattr(use_core, "_clean_generation_output", None)
 _original_run_generation_attempt = use_core._run_generation_attempt
@@ -165,48 +165,66 @@ def _parse_context_documents(context_blocks: str):
 
 
 def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
-    question = re.sub(r"\s+", " ", str(user_query or "").strip()).casefold()
-    if re.search(r"\b(?:grief|grieving|bereavement|loss|loved one|death)\b", question):
-        return "It speaks directly to grief, loss, and the meaning of death without reducing the experience to a single answer."
-    return "It is closely aligned with the question and gives the visitor a grounded place to begin."
+    title = str(primary.get("title") or "").strip()
+    content = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
+    if not title or not content:
+        return ""
+    lowered = content.casefold()
+    query = str(user_query or "").casefold()
+    phrases = []
+    if re.search(r"\b(?:grief|grieving|bereavement|loss|death|loved one)\b", query) and re.search(r"\b(?:grief|grieving|loss|death)\b", lowered):
+        phrases.append("grief, loss, and death")
+    if re.search(r"\b(?:meaning|understanding|perspective|wisdom)\b", query) and re.search(r"\b(?:meaning|understanding|perspective|wisdom|spiritual|philosophical)\b", lowered):
+        phrases.append("meaning and perspective")
+    if re.search(r"\b(?:essay|advice|recommend)\b", query) and re.search(r"\b(?:psychological|scientific|philosophical|cultural|spiritual|neuroscientific|sociological)\b", lowered):
+        phrases.append("several complementary perspectives")
+    if not phrases:
+        return ""
+    if len(phrases) == 1:
+        return f"It is a direct fit because it addresses {phrases[0]} in its own framing."
+    if len(phrases) == 2:
+        return f"It is a direct fit because it addresses {phrases[0]} while also opening into {phrases[1]}."
+    return f"It is a direct fit because it addresses {phrases[0]} and brings together {phrases[1]} and {phrases[2]}."
 
 
-def _v338_build_recommendation_answer(user_query: str, primary: dict) -> str:
-    return _v338_recommendation_fit_sentence(user_query, primary)
-
-
-def _v337_apply_recommendation_authority(value: str, user_query: str, retrieved_context_blocks: str) -> str:
-    fn = getattr(use_core, "_enforce_recommendation_output_authority", None)
-    if callable(fn):
-        try:
-            return fn(value, user_query, retrieved_context_blocks)
-        except TypeError:
-            pass
-    return value
-
-
-def _v338_final_answer_boundary(value: str, user_query: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
-    value = _v337_apply_recommendation_authority(value, user_query, retrieved_context_blocks)
-    identity_fn = getattr(use_core, "_enforce_recommendation_resource_identity", None)
-    if callable(identity_fn):
-        try:
-            value = identity_fn(value, user_query, retrieved_context_blocks)
-        except TypeError:
-            pass
-    return value
+def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
+    value = str(answer or "").strip()
+    if use_core._is_recommendation_question(user_query):
+        docs = _parse_context_documents(retrieved_context_blocks)
+        primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
+        if primary:
+            title = str(primary.get("title") or "").strip()
+            fit = _v338_recommendation_fit_sentence(user_query, primary)
+            canonical_link = use_core.normalize_link_presentation(title, retrieved_context_blocks)
+            link_text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", canonical_link).strip() or title
+            return f"A useful place to begin is {canonical_link}. {fit}".strip()
+    try:
+        governed = _original_recommendation_output_authority(user_query, value, retrieved_context_blocks)
+        if governed:
+            value = _original_recommendation_resource_identity(user_query, governed, retrieved_context_blocks)
+    except Exception:
+        pass
+    if callable(_original_violation):
+        violation = _original_violation(user_query, value)
+        if violation:
+            print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
+            return ""
+    return value.strip()
 
 
 def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
     if not use_core._is_recommendation_question(user_query):
-        return value
+        return str(value or "").strip()
     docs = _parse_context_documents(context_blocks)
+    if not docs:
+        return str(value or "").strip()
     primary = use_core._adjudicate_recommendation_resource(docs, user_query)
     if not primary:
-        return value
+        return str(value or "").strip()
     title = str(primary.get("title") or "Untitled Resource").strip()
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
     if not title or not url:
-        return value
+        return str(value or "").strip()
     canonical_link = f"[{title}]({url})"
     text = re.sub(r"\[([^\]]+)\]\((?:https?://)[^)]*\)", r"\1", str(value or "").strip())
     text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
@@ -222,6 +240,8 @@ def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
 def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context):
     answer = str(answer or "").strip()
     answer = _v338_final_answer_boundary(answer, user_query, retrieved_context, canonical_link_context)
+    if use_core._is_recommendation_question(user_query):
+        return answer
     normalize = getattr(use_core, "normalize_link_presentation", None)
     if callable(normalize):
         try:
