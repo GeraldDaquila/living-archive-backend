@@ -230,7 +230,6 @@ def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, li
 def _extract_archive_metadata(doc: dict, docs: list) -> dict:
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
     title = _normalize_title(doc.get("title") or "")
-    corpus = f"{title} {text}"
     collection_patterns = [
         r"(?:collection|series)\s*[:\-]?\s*([^.!?]{3,100})",
         r"(?:within|inside|part of)\s+(?:the\s+)?(?:collection|series)\s+([^.!?]{3,100})",
@@ -277,6 +276,32 @@ def _archive_context(doc: dict, docs: list) -> str:
         parts.append(f"It also belongs to a wider conversation in the Archive, alongside {names}")
     return " and ".join(parts).strip()
 
+def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
+    titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
+    if not titles:
+        return ""
+    corpus = " ".join(titles).casefold()
+    directions = []
+    if "continuity" in corpus or "journey" in corpus:
+        directions.append("questions of continuity and what, if anything, may endure")
+    if "grief" in corpus or "loss" in corpus or "death" in corpus:
+        directions.append("the lived experience of loss, mortality, and meaning")
+    if "meaning" in corpus:
+        directions.append("the search for meaning when ordinary answers no longer feel sufficient")
+    if profile.get("meaning") and profile.get("sensitive"):
+        directions.append("room for personal meaning without requiring certainty")
+    if not directions:
+        return ""
+    unique = []
+    for direction in directions:
+        if direction not in unique:
+            unique.append(direction)
+    if len(unique) == 1:
+        return f"Together, those neighboring pieces point toward {unique[0]}"
+    if len(unique) == 2:
+        return f"Together, those neighboring pieces open a wider conversation around {unique[0]} and {unique[1]}"
+    return f"Together, those neighboring pieces open a wider conversation around {', '.join(unique[:-1])}, and {unique[-1]}"
+
 def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
     profile = _query_profile(user_query, docs)
     title = _normalize_title(primary.get("title") or _BENCHMARK_PRIMARY_TITLE)
@@ -292,7 +317,9 @@ def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> di
     boundary = _evidence_boundary_note(docs, profile)
     secondaries = _select_secondary_pathways(docs, title, profile)
     archive_context = _archive_context(primary, docs)
-    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries, "archive_context": archive_context}
+    archive_meta = _extract_archive_metadata(primary, docs)
+    archive_interpretation = _archive_constellation_interpretation(archive_meta, profile)
+    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries, "archive_context": archive_context, "archive_interpretation": archive_interpretation}
 
 def _v339_build_compassionate_recommendation_answer(user_query: str, primary: dict, contextual_docs: list) -> str:
     architecture = _guide_answer_architecture(user_query, primary, contextual_docs)
@@ -303,6 +330,8 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     sections = [architecture["opening"], f"{architecture['foothold']} [{title}]({url}).", bridge]
     if architecture["archive_context"]:
         sections.append(architecture["archive_context"] + ".")
+    if architecture["archive_interpretation"]:
+        sections.append(architecture["archive_interpretation"] + ".")
     if architecture["secondaries"]:
         pathway_links = []
         for doc in architecture["secondaries"]:
