@@ -238,55 +238,49 @@ def _extract_archive_metadata(doc: dict, docs: list) -> dict:
         r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,100})",
         r"(?:under|within)\s+(?:the\s+)?(?:section|chapter|part)\s+([^.!?]{3,100})",
     ]
-    page_patterns = [
-        r"(?:page)\s*[:\-]?\s*([^.!?]{3,120})",
-        r"(?:found|situated|located)\s+(?:within|under)\s+([^.!?]{3,120})",
-    ]
-    def _first(patterns):
-        for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                phrase = re.sub(r"\s+", " ", match.group(1)).strip(" ,;:")
-                if phrase and phrase.casefold() not in title.casefold():
-                    return phrase
-        return ""
-    collection = _first(collection_patterns)
-    section = _first(section_patterns)
-    page = _first(page_patterns)
+    collection = ""
+    section = ""
+    for pattern in collection_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            collection = match.group(1).strip()
+            break
+    for pattern in section_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            section = match.group(1).strip()
+            break
     related_titles = []
-    for candidate in docs:
-        candidate_title = _normalize_title(candidate.get("title") or "")
-        if not candidate_title or candidate_title.casefold() == title.casefold():
-            continue
-        if any(token in candidate_title.casefold() for token in ("grief", "loss", "death", "continuity", "mortality", "meaning", "journey")):
-            related_titles.append(candidate_title)
-    return {"collection": collection, "section": section, "page": page, "related_titles": related_titles[:3]}
+    corpus = " ".join(_normalize_title(d.get("title") or "") for d in docs if d is not doc)
+    for d in docs:
+        dtitle = _normalize_title(d.get("title") or "")
+        if dtitle and dtitle.casefold() != title.casefold() and dtitle.casefold() in corpus.casefold() and dtitle not in related_titles:
+            related_titles.append(dtitle)
+    return {"collection": collection, "section": section, "related_titles": related_titles, "title": title}
 
-def _archive_context(doc: dict, docs: list) -> str:
-    meta = _extract_archive_metadata(doc, docs)
-    parts = []
-    if meta["collection"]:
-        parts.append(f"It sits within {meta['collection']}")
-    if meta["page"]:
-        parts.append(f"the surrounding page is {meta['page']}")
-    if meta["section"]:
-        parts.append(f"where the material turns toward {meta['section']}")
-    if not parts and meta["related_titles"]:
-        names = ", ".join(meta["related_titles"][:2])
-        parts.append(f"It also belongs to a wider conversation in the Archive, alongside {names}")
-    return " and ".join(parts).strip()
+def _archive_context(primary: dict, docs: list) -> str:
+    meta = _extract_archive_metadata(primary, docs)
+    pieces = []
+    if meta.get("collection"):
+        pieces.append(f"It also belongs to the wider Archive conversation in {meta['collection']}")
+    if meta.get("section"):
+        pieces.append(f"It sits within {meta['section']}")
+    if meta.get("related_titles"):
+        visible = meta["related_titles"][:3]
+        if len(visible) == 1:
+            pieces.append(f"It also sits alongside {visible[0]}")
+        else:
+            pieces.append(f"It also belongs to a wider conversation in the Archive, alongside {', '.join(visible[:-1])}, and {visible[-1]}")
+    return " ".join(pieces)
 
 def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
-    titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
-    if not titles:
-        return ""
-    corpus = " ".join(titles).casefold()
     directions = []
-    if "continuity" in corpus or "journey" in corpus:
-        directions.append("questions of continuity and what, if anything, may endure")
-    if "grief" in corpus or "loss" in corpus or "death" in corpus:
+    related = " ".join(meta.get("related_titles") or [])
+    if re.search(r"\b(?:continuity|connection|bond|relationship|identity|endure)\b", related, re.IGNORECASE):
+        directions.append("questions of continuity, connection, and what may endure")
+    if re.search(r"\b(?:grief|loss|death|mortality|mourning|bereavement)\b", related, re.IGNORECASE):
         directions.append("the lived experience of loss, mortality, and meaning")
-    if "meaning" in corpus:
+    if profile.get("meaning"):
         directions.append("the search for meaning when ordinary answers no longer feel sufficient")
     if profile.get("meaning") and profile.get("sensitive"):
         directions.append("room for personal meaning without requiring certainty")
@@ -305,10 +299,12 @@ def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
 def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:
     """Turn retrieved constellation evidence into visitor orientation without benchmark-specific narrative."""
     titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
-    secondary_corpora = " ".join(
-        f"{_normalize_title(doc.get('title') or '')} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
-        for doc in secondaries
-    ).casefold()
+    normalized_secondary_corpora = []
+    for doc in secondaries:
+        doc_title = _normalize_title(doc.get("title") or "")
+        doc_text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+        normalized_secondary_corpora.append(f"{doc_title} {doc_text}")
+    secondary_corpora = " ".join(normalized_secondary_corpora).casefold()
     corpus = (" ".join(titles) + " " + secondary_corpora).casefold()
     axes = []
     if re.search(r"\b(?:continuity|connection|bond|relationship|identity|endure)\b", corpus):
