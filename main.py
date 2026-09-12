@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v346 — Guide chunk preservation + deterministic provenance identity
-# v346 preserves the exact v344 visitor-facing Guide behavior and aligns the
-# out-of-band provenance contract without changing use_core.py.
+# USE PRODUCTION VERSION: v347 — Guide chunk preservation + deterministic provenance identity
+# v347 preserves the v346 visitor-facing Guide behavior and aligns the
+# runtime build identity with the explicit v347 deployment contract.
 import hashlib
 import importlib
 import os
 import re
 from pathlib import Path
 
-APP_VERSION = "v346"
-DEPLOYMENT_FINGERPRINT = "USE-v346-guide-chunk-provenance"
-CANONICAL_BUILD_ID = "USE-BUILD-v346-guide-chunk-provenance"
+APP_VERSION = "v347"
+DEPLOYMENT_FINGERPRINT = "USE-v347-build-identity"
+CANONICAL_BUILD_ID = "USE-BUILD-v347-build-identity"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
@@ -27,11 +27,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v346 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v347 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v346 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v347 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -306,9 +306,10 @@ app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.generate_llm_response = _v344_finalize
 print(
-    f"USE v346 GUIDE CHUNK PROVENANCE: build_id={CANONICAL_BUILD_ID}, "
+    f"USE v347 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
