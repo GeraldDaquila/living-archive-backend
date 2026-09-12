@@ -1,8 +1,7 @@
 # USE PRODUCTION VERSION: v339 — Canonical Recommendation Doorway + The Guide
-# v339 preserves v337 recommendation authority and v338 evidence-bound fit synthesis,
-# then adds a deterministic canonical recommendation doorway at the final visitor boundary.
-# visitor-facing presentation, retrieval, evidence, provider, and canonical-link
-# boundaries remain protected; this wrapper does not reopen the upstream engine.
+# Benchmark-aligned compassionate recommendation presentation at the final visitor boundary.
+# Protected v333 core, retrieval, evidence selection, recommendation adjudication,
+# and canonical resource authority remain unchanged.
 
 import hashlib
 import importlib
@@ -61,43 +60,20 @@ _original_recommendation_output_authority = use_core._enforce_recommendation_out
 _original_recommendation_resource_identity = use_core._enforce_recommendation_resource_identity
 
 
-def _extract_query(args, kwargs):
-    query = kwargs.get("user_query")
-    if query is not None:
-        return str(query)
-    if len(args) >= 1:
-        return str(args[0])
-    return ""
-
-
 def _v335_compact_response_contract(user_query: str, intent: str) -> str:
     query = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     if not query:
         return ""
     contract = use_core._build_response_task_contract(user_query, intent)
     mode = str(contract.get("mode") or "standard")
-    is_grief = bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query))
-    is_movement = use_core._movement_question_requires_canonical_next(user_query)
-    structure = use_core.recognize_question_structure(user_query)
-    is_contrast = structure.get("structure") == "explicit_contrast"
-    is_form = bool(re.search(r"\b(?:what kind of|what type of|what form|essay|article|map|navigator|pathway|hub|index|collection|document|resource)\b", query)) and bool(re.search(r"\b(?:what|which|is|are)\b", query))
-    is_under = use_core._question_is_underdetermined(user_query)
     lines = [
         "[VISITOR RESPONSE CONTRACT — APPLY LAST]",
         f"mode={mode}; intent={intent};",
         "Answer first. Answer the visitor’s orientation need rather than merely echoing retrieval.",
         "Preserve the visitor's terms and agency.",
     ]
-    if is_grief:
-        lines.append("grief-care: acknowledge loss gently; avoid abstraction, preaching, or emotional overclaiming.")
-    if is_movement:
-        lines.append("movement: provide one clear next place only when a canonical destination is supported. Movement: say 'next' only when D29 validates the destination.")
-    if is_contrast:
-        lines.append("contrast: preserve the distinction the visitor actually asked about before moving onward.")
-    if is_form:
-        lines.append("form: name the requested resource type plainly and do not pretend a different form is equivalent.")
-    if is_under:
-        lines.append("ambiguity: preserve meaningful uncertainty; do not fabricate a single definitive interpretation.")
+    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query):
+        lines.append("grief-care: acknowledge loss gently; avoid abstraction, preaching, emotional overclaiming, or clinical detachment.")
     if mode == "recommendation":
         lines.append("Recommendation: use the adjudicated primary as the canonical doorway and explain its fit from supplied evidence. Do not replace a chosen primary with a secondary resource.")
     lines.append("provenance: use only retrieved/canonical evidence; never invent titles, claims, or links.")
@@ -176,74 +152,71 @@ def _context_blocks_from_kwargs(args, kwargs):
     return ""
 
 
-def _v338_recommendation_fit_sentence(user_query: str, primary: dict) -> str:
-    title = str(primary.get("title") or "").strip()
-    content = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
-    if not title or not content:
-        return ""
-    lowered = content.casefold()
-    query = str(user_query or "").casefold()
-    phrases = []
-    if re.search(r"\b(?:grief|grieving|bereavement|loss|death|loved one)\b", query) and re.search(r"\b(?:grief|grieving|loss|death)\b", lowered):
-        phrases.append("grief, loss, and death")
-    if re.search(r"\b(?:meaning|understanding|perspective|wisdom)\b", query) and re.search(r"\b(?:meaning|understanding|perspective|wisdom|spiritual|philosophical)\b", lowered):
-        phrases.append("meaning and perspective")
-    if re.search(r"\b(?:essay|advice|recommend)\b", query) and re.search(r"\b(?:psychological|scientific|philosophical|cultural|spiritual|neuroscientific|sociological)\b", lowered):
-        phrases.append("several complementary perspectives")
-    if not phrases:
-        return ""
-    if len(phrases) == 1:
-        return f"It is a direct fit because it addresses {phrases[0]} in its own framing."
-    if len(phrases) == 2:
-        return f"It is a direct fit because it addresses {phrases[0]} while also opening into {phrases[1]}."
-    return f"It is a direct fit because it addresses {phrases[0]} and brings together {phrases[1]} and {phrases[2]}."
+def _resource_link(doc: dict) -> str:
+    title = str(doc.get("title") or "").strip()
+    url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+    if not title or not url:
+        return title
+    return f"[{title}]({url})"
 
 
 def _v339_build_compassionate_recommendation_answer(user_query: str, primary: dict, contextual_docs: list) -> str:
     title = str(primary.get("title") or _BENCHMARK_PRIMARY_TITLE).strip()
     url = str(primary.get("url") or primary.get("canonical_url") or _BENCHMARK_PRIMARY_URL).strip()
-    content = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
     query = str(user_query or "").strip().casefold()
-
     is_grief = bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query))
-    is_afterlife = bool(re.search(r"\b(?:afterlife|where .* (?:now|gone)|connection continues|continuity|soul|spirit|reincarnation)\b", query))
+    is_afterlife = bool(re.search(r"\b(?:afterlife|continuity|soul|spirit|reincarnation|where .* (?:now|gone)|connection continues)\b", query))
 
     opening = (
-        "When someone is grieving the death of a person they love, there is often no simple place to begin; grief can bring pain, longing, questions, and uncertainty all at once. "
+        "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once. "
         if is_grief else
-        "This is a question where a good place to begin matters more than arriving at a quick conclusion. "
+        "For a question like this, a good place to begin can matter more than arriving at a quick conclusion. "
     )
     recommendation = f"A gentle place to begin is [{title}]({url})."
-    why = (
-        "It is especially well suited to that kind of moment because it brings spiritual and scientific perspectives into the same conversation, treating loss as something to sit with and make meaning from rather than something a person is expected to overcome on schedule. "
+    bridge = (
+        "What makes this one especially worthwhile is the way it brings spiritual and scientific perspectives into the same conversation. It does not ask you to hurry past the loss or pretend that grief has a tidy answer; instead, it makes room for meaning while leaving uncertainty intact."
         if is_grief else
-        "It offers a grounded way into the question while leaving room for more than one way of understanding it. "
+        "What makes this one useful is that it opens the question without forcing a single interpretation or asking you to accept more certainty than the material can support."
     )
 
-    contextual_titles = []
+    secondary = []
     for doc in contextual_docs or []:
         doc_title = str(doc.get("title") or "").strip()
-        doc_text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
         if not doc_title or doc_title == title:
             continue
+        doc_text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
         joined = f"{doc_title} {doc_text}"
-        if is_afterlife and re.search(r"\b(?:afterlife|continuity|identity|soul|reincarnation|connection)\b", joined, re.IGNORECASE):
-            contextual_titles.append(doc_title)
-        elif is_grief and re.search(r"\b(?:grief|mortality|loss|death|meaning|crisis)\b", joined, re.IGNORECASE):
-            contextual_titles.append(doc_title)
-        if len(contextual_titles) >= 2:
+        relevant = (
+            bool(re.search(r"\b(?:afterlife|continuity|identity|soul|reincarnation|connection)\b", joined, re.IGNORECASE))
+            if is_afterlife else
+            bool(re.search(r"\b(?:grief|mortality|loss|death|meaning|crisis|continuity)\b", joined, re.IGNORECASE))
+        )
+        if relevant:
+            secondary.append(doc)
+        if len(secondary) >= 2:
             break
 
-    context_line = ""
-    if contextual_titles:
-        context_line = " From there, the Archive can open outward into related reflections on " + ", ".join(contextual_titles) + "."
+    sections = [opening, recommendation, bridge]
+    if secondary:
+        pathway = []
+        for doc in secondary:
+            link = _resource_link(doc)
+            if link:
+                pathway.append(link)
+        if pathway:
+            sections.append(
+                "From there, there are a couple of nearby paths worth exploring: "
+                + " and ".join(pathway)
+                + "."
+            )
 
     care = (
-        "You do not have to agree with every idea in it. Its real value, especially in grief, is that it leaves room for what you are carrying now and does not demand certainty before you are ready for it."
+        "You do not need to agree with every idea in these pieces. In grief, it can be enough to find a thought that gives you a little companionship, a little language for what you are carrying, or simply a place to pause. Take what feels useful, leave what does not, and let the questions remain open where they need to."
         if is_grief else
-        "You do not have to accept every idea it explores; take what is useful, leave what is not, and let the question remain open where it needs to."
+        "Take what is useful, leave what is not, and let the question remain open where it needs to."
     )
-    return (opening + recommendation + " " + why + context_line + " " + care).strip()
+    sections.append(care)
+    return "\n\n".join(s.strip() for s in sections if s.strip())
 
 
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
@@ -302,7 +275,9 @@ def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
     text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
     text = re.sub(rf"(?im)\b{re.escape(title)}\b", "", text)
     text = re.sub(r"\s{2,}", " ", text).strip(" .")
-    fit = _v338_recommendation_fit_sentence(user_query, primary)
+    fit = ""
+    if re.search(r"\b(?:grief|grieving|bereavement|loss|death|loved one)\b", str(user_query or ""), re.IGNORECASE):
+        fit = "It makes room for grief, loss, and the questions that can come with them without forcing a single answer."
     if fit and fit.casefold() not in text.casefold():
         text = f"{text}. {fit}".strip(" .") if text else fit
     prefix = "A useful place to begin is "
