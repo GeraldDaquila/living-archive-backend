@@ -192,32 +192,22 @@ def _secondary_path_context(doc: dict, profile: dict) -> str:
         return "for practical support, safety, and care alongside reflection"
     return "for another perspective that may open the question further"
 
-def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
-    candidates = []
-    seen = {_normalize_title(primary_title).casefold()}
-    used_roles = set()
-    for doc in docs:
-        title = _normalize_title(doc.get("title") or "")
-        if not title or title.casefold() in seen:
-            continue
-        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-        corpus = f"{title} {text}"
-        score = 0
-        if profile.get("grief") and re.search(r"\b(?:grief|loss|death|mortality|meaning|continuity|crisis)\b", corpus, re.IGNORECASE): score += 3
-        if profile.get("meaning") and re.search(r"\b(?:meaning|identity|purpose|perspective|wisdom|continuity)\b", corpus, re.IGNORECASE): score += 2
-        if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE): score += 2
-        role = _secondary_role(doc, profile)
-        if role in used_roles: score -= 4
-        if profile.get("sensitive") and not profile.get("risk") and re.search(r"\b(?:suicid|suicidal ideation|self-harm|overdose|abuse|coercion)\b", corpus, re.IGNORECASE): score -= 8
-        if score > 0: candidates.append((score, role, title, doc))
-    candidates.sort(key=lambda item: (-item[0], item[1].casefold(), item[2].casefold()))
-    chosen = []
-    for _, role, _, doc in candidates:
-        if role in used_roles: continue
-        chosen.append((role, doc))
-        used_roles.add(role)
-        if len(chosen) >= limit: break
-    return [doc for _, doc in chosen]
+def _archive_context(doc: dict, docs: list) -> str:
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+    title = _normalize_title(doc.get("title") or "")
+    corpus = f"{title} {text}"
+    parts = []
+    collection = re.search(r"(?:collection|series|within the)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
+    section = re.search(r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,90})", text, re.IGNORECASE)
+    if collection:
+        phrase = collection.group(1).strip().rstrip(",")
+        if phrase and phrase.casefold() not in title.casefold():
+            parts.append(f"It sits within {phrase}")
+    if section:
+        phrase = section.group(1).strip().rstrip(",")
+        if phrase and phrase.casefold() not in title.casefold():
+            parts.append(f"where the surrounding material develops questions such as {phrase}")
+    return " and ".join(parts).strip()
 
 def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
     profile = _query_profile(user_query, docs)
@@ -233,7 +223,8 @@ def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> di
     )
     boundary = _evidence_boundary_note(docs, profile)
     secondaries = _select_secondary_pathways(docs, title, profile)
-    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries}
+    archive_context = _archive_context(primary, docs)
+    return {"profile": profile, "title": title, "url": url, "foothold": foothold, "opening": opening, "boundary": boundary, "secondaries": secondaries, "archive_context": archive_context}
 
 def _v339_build_compassionate_recommendation_answer(user_query: str, primary: dict, contextual_docs: list) -> str:
     architecture = _guide_answer_architecture(user_query, primary, contextual_docs)
@@ -242,11 +233,14 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     url = architecture["url"]
     bridge = architecture["boundary"] if not profile["grief"] else "This piece can be a gentle companion because it brings different perspectives into the same conversation without asking you to hurry past the loss or pretend that grief has a tidy answer."
     sections = [architecture["opening"], f"{architecture['foothold']} [{title}]({url}).", bridge]
+    if architecture["archive_context"]:
+        sections.append(architecture["archive_context"] + ".")
     if architecture["secondaries"]:
         pathway_links = []
         for doc in architecture["secondaries"]:
             link = _resource_link(doc)
-            if not link: continue
+            if not link:
+                continue
             context = _secondary_path_context(doc, profile)
             pathway_links.append(f"{link} — {context}.")
         if pathway_links:
@@ -300,36 +294,16 @@ def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_
 def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
     if not use_core._is_recommendation_question(user_query):
         return str(value or "").strip()
-    docs = _parse_context_documents(context_blocks)
-    if not docs:
-        return str(value or "").strip()
-    primary = use_core._adjudicate_recommendation_resource(docs, user_query)
-    if not primary:
-        return str(value or "").strip()
-    title = _normalize_title(primary.get("title") or "Untitled Resource")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not url:
-        return str(value or "").strip()
-    canonical_link = f"[{title}]({url})"
-    text = re.sub(r"\[([^\]]+)\]\((?:https?://)[^)]*\)", r"\1", str(value or "").strip())
-    text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
-    text = re.sub(rf"(?im)\b{re.escape(title)}\b", "", text)
-    text = re.sub(r"\s{2,}", " ", text).strip(" .")
-    prefix = "A useful place to begin is "
-    return f"{prefix}{canonical_link}. {text.strip()}".strip() if text.strip() else f"{prefix}{canonical_link}."
+    return str(value or "").strip()
 
-def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context):
+def _v336_construct_visitor_answer(answer, user_query, retrieved_context_blocks, canonical_link_context=None):
     answer = str(answer or "").strip()
-    answer = _v338_final_answer_boundary(answer, user_query, retrieved_context, canonical_link_context)
     if use_core._is_recommendation_question(user_query):
-        return answer
-    normalize = getattr(use_core, "normalize_link_presentation", None)
-    if callable(normalize):
         try:
             answer = use_core.normalize_link_presentation(answer, canonical_link_context)
         except TypeError:
             answer = use_core.normalize_link_presentation(answer)
-    return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
+    return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context_blocks)
 
 def _v339_finalize_generation_response(*args, **kwargs):
     user_query = kwargs.get("user_query")
@@ -352,16 +326,7 @@ def _v339_finalize_generation_response(*args, **kwargs):
     canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
     return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
 
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
-use_core.RUNTIME_PROCESS_ID = os.getpid()
 app = use_core.app
-app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core._build_generation_messages = _build_generation_messages
 use_core._clean_generation_output = _v336_clean_generation_output
 use_core._run_generation_attempt = _v336_run_generation_attempt
