@@ -17,7 +17,6 @@ EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
-
 CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"
 
 
@@ -28,14 +27,12 @@ def _sha256(data: bytes) -> str:
 def _git_blob_sha256(data: bytes) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
 
-
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 
 if not _CORE_PATH.exists():
     raise RuntimeError("USE v339 package integrity failure: use_core.py is missing.")
-
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
@@ -73,7 +70,7 @@ def _v335_compact_response_contract(user_query: str, intent: str) -> str:
         "Preserve the visitor's terms and agency.",
         "Architecture: recognize human reality; offer a humane foothold; distinguish knowledge, interpretation, possibility, and personal meaning; route material risk appropriately; open a reflection pathway rather than closing the question with one document.",
     ]
-    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query):
+    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", query):
         lines.append("sensitivity: meet vulnerable experience without abstraction, preaching, emotional overclaiming, or clinical detachment.")
     if mode == "recommendation":
         lines.append("Recommendation: use the adjudicated primary as the canonical doorway, explain its fit from supplied evidence, and preserve nearby canonical pathways.")
@@ -189,6 +186,26 @@ def _evidence_boundary_note(docs: list, profile: dict) -> str:
     return "It offers a grounded place to begin without asking the material to provide more certainty than it can support."
 
 
+def _secondary_role(doc: dict, profile: dict) -> str:
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+    title = _normalize_title(doc.get("title") or "")
+    corpus = f"{title} {text}"
+    roles = []
+    if re.search(r"\b(?:afterlife|soul|spirit|reincarnation|continuity|connection)\b", corpus, re.IGNORECASE):
+        roles.append("continuity and what may endure")
+    if re.search(r"\b(?:grief|loss|mourning|bereavement|mortality|death)\b", corpus, re.IGNORECASE):
+        roles.append("the lived experience of loss")
+    if re.search(r"\b(?:meaning|purpose|identity|perspective|wisdom)\b", corpus, re.IGNORECASE):
+        roles.append("meaning and perspective")
+    if re.search(r"\b(?:scientific|psychological|research|clinical|neuroscientific)\b", corpus, re.IGNORECASE):
+        roles.append("grounded understanding")
+    if re.search(r"\b(?:spiritual|religious|mystical|sacred|transcenden)\b", corpus, re.IGNORECASE):
+        roles.append("spiritual possibility")
+    if profile.get("risk") and re.search(r"\b(?:support|safety|crisis|help|care)\b", corpus, re.IGNORECASE):
+        roles.append("support and safety")
+    return roles[0] if roles else "another angle on the question"
+
+
 def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
     candidates = []
     seen = {_normalize_title(primary_title).casefold()}
@@ -232,7 +249,6 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     profile = architecture["profile"]
     title = architecture["title"]
     url = architecture["url"]
-
     bridge = (
         "What makes this one especially worthwhile is the way it brings different perspectives into the same conversation without asking you to hurry past the loss or pretend that grief has a tidy answer."
         if profile["grief"] else
@@ -243,13 +259,16 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
         f"{architecture['foothold']} [{title}]({url}).",
         bridge,
     ]
-
     if architecture["secondaries"]:
-        pathway_links = [_resource_link(doc) for doc in architecture["secondaries"]]
-        pathway_links = [link for link in pathway_links if link]
+        pathway_links = []
+        for doc in architecture["secondaries"]:
+            link = _resource_link(doc)
+            if not link:
+                continue
+            role = _secondary_role(doc, profile)
+            pathway_links.append(f"{link} — for exploring {role}.")
         if pathway_links:
             sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(pathway_links))
-
     if profile["risk"]:
         care = "The Archive can offer reflection and orientation, but where there is immediate danger or coercion, the next step should be real-world safety and trusted human support rather than reflection alone."
     elif profile["grief"]:
@@ -258,135 +277,3 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
         care = "Take what feels useful, leave what does not, and let the question remain open where it needs to."
     sections.append(care)
     return "\n\n".join(s.strip() for s in sections if s.strip())
-
-
-def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
-    value = str(answer or "").strip()
-    if use_core._is_recommendation_question(user_query):
-        docs = _parse_context_documents(retrieved_context_blocks)
-        primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
-        if primary:
-            title = str(primary.get("title") or "").strip()
-            canonical_link = use_core.normalize_link_presentation(title, retrieved_context_blocks) if title else ""
-            if canonical_link:
-                primary_for_answer = dict(primary)
-                canonical_link_match = re.search(r"\[([^\]]+)\]\((https?://[^)]+)\)", canonical_link)
-                if canonical_link_match:
-                    primary_for_answer["title"] = canonical_link_match.group(1).strip()
-                    primary_for_answer["url"] = canonical_link_match.group(2).strip()
-                return _v339_build_compassionate_recommendation_answer(user_query, primary_for_answer, docs)
-            url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-            if title and url:
-                return _v339_build_compassionate_recommendation_answer(user_query, {**primary, "title": title, "url": url}, docs)
-            fallback_url = _BENCHMARK_PRIMARY_URL if title == _BENCHMARK_PRIMARY_TITLE else ""
-            if title and fallback_url:
-                return _v339_build_compassionate_recommendation_answer(user_query, {**primary, "title": title, "url": fallback_url}, docs)
-        if value and value.strip() != user_query.strip():
-            return value.strip()
-        return "The Archive does not yet have enough grounded material here to recommend a specific starting place with confidence."
-    try:
-        governed = _original_recommendation_output_authority(user_query, value, retrieved_context_blocks)
-        if governed:
-            value = _original_recommendation_resource_identity(user_query, governed, retrieved_context_blocks)
-    except Exception:
-        pass
-    if callable(_original_violation):
-        violation = _original_violation(user_query, value)
-        if violation:
-            print(f"USE v339 final answer boundary: rejecting vulnerable-experience answer; reason={violation}")
-            return ""
-    return value.strip()
-
-
-def _v339_canonical_recommendation_doorway(user_query, value, context_blocks):
-    if not use_core._is_recommendation_question(user_query):
-        return str(value or "").strip()
-    docs = _parse_context_documents(context_blocks)
-    if not docs:
-        return str(value or "").strip()
-    primary = use_core._adjudicate_recommendation_resource(docs, user_query)
-    if not primary:
-        return str(value or "").strip()
-    title = _normalize_title(primary.get("title") or "Untitled Resource")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not url:
-        return str(value or "").strip()
-    canonical_link = f"[{title}]({url})"
-    text = re.sub(r"\[([^\]]+)\]\((?:https?://)[^)]*\)", r"\1", str(value or "").strip())
-    text = re.sub(rf"(?im)\b(?:A useful place to begin(?: with this question)? is|A strong place to begin is)\s+{re.escape(title)}\b", "", text)
-    text = re.sub(rf"(?im)\b{re.escape(title)}\b", "", text)
-    text = re.sub(r"\s{2,}", " ", text).strip(" .")
-    prefix = "A useful place to begin is "
-    return f"{prefix}{canonical_link}. {text.strip()}".strip() if text.strip() else f"{prefix}{canonical_link}."
-
-
-def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canonical_link_context):
-    answer = str(answer or "").strip()
-    answer = _v338_final_answer_boundary(answer, user_query, retrieved_context, canonical_link_context)
-    if use_core._is_recommendation_question(user_query):
-        return answer
-    normalize = getattr(use_core, "normalize_link_presentation", None)
-    if callable(normalize):
-        try:
-            answer = use_core.normalize_link_presentation(answer, canonical_link_context)
-        except TypeError:
-            answer = use_core.normalize_link_presentation(answer)
-    return _v339_canonical_recommendation_doorway(user_query, answer, canonical_link_context or retrieved_context)
-
-
-def _v339_finalize_generation_response(*args, **kwargs):
-    user_query = kwargs.get("user_query")
-    if user_query is None and args:
-        user_query = args[0]
-    user_query = str(user_query or "")
-    if use_core._is_recommendation_question(user_query):
-        retrieved_context = _context_blocks_from_kwargs(args, kwargs)
-        canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
-        recommendation_answer = _v338_final_answer_boundary(user_query, "", retrieved_context, canonical_link_context)
-        if recommendation_answer and not recommendation_answer.startswith("The Archive does not yet"):
-            print("USE v339 recommendation doorway: deterministic compassionate answer used; provider generation skipped.")
-            return recommendation_answer
-    value = _original_generate_llm_response(*args, **kwargs)
-    if not value:
-        return value
-    if not use_core._is_recommendation_question(user_query):
-        return value
-    retrieved_context = _context_blocks_from_kwargs(args, kwargs)
-    canonical_link_context = str(kwargs.get("canonical_link_context") or retrieved_context or "")
-    return _v336_construct_visitor_answer(str(value or ""), user_query, retrieved_context, canonical_link_context)
-
-
-use_core._build_generation_messages = _build_generation_messages
-use_core._clean_generation_output = _v336_clean_generation_output
-use_core._run_generation_attempt = _v336_run_generation_attempt
-use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
-use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
-use_core.generate_llm_response = _v339_finalize_generation_response
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
-use_core.RUNTIME_PROCESS_ID = os.getpid()
-
-app = use_core.app
-app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(
-    f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, "
-    f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
-    f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
-)
-
-
-def generate_llm_response(*args, **kwargs):
-    return _v339_finalize_generation_response(*args, **kwargs)
-
-
-def search_visitor(*args, **kwargs):
-    return use_core.search_visitor(*args, **kwargs)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
