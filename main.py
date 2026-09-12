@@ -189,7 +189,7 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     if profile["risk"]:care="The Archive can offer reflection and orientation, but where there is immediate danger or coercion, the next step should be real-world safety and trusted human support rather than reflection alone."
     elif profile["grief"]:care="You do not need to agree with every idea in these pieces. In grief, it can be enough to find a thought that gives you some companionship, some language for what you are carrying, or simply a place to pause. Take what feels useful, leave what does not, and let the questions remain open where they need to."
     else:care="Take what feels useful, leave what does not, and let the question remain open where it needs to."
-    sections.append(care); return "\n\n".join(s.strip() for s in sections if s.strip())
+    sections.append(care);return "\n\n".join(s.strip() for s in sections if s.strip())
 
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
     value=str(answer or "").strip()
@@ -254,7 +254,15 @@ def _v340_orientation_boundary(user_query: str, answer: str, retrieved_context_b
         title=_normalize_title(doc.get("title") or ""); url=str(doc.get("url") or doc.get("canonical_url") or "").strip(); text=str(doc.get("text") or "").strip()
         if title and url and text and re.match(r"^https?://",url,flags=re.IGNORECASE):candidates.append({**doc,"title":title,"url":url,"text":text})
     if not candidates:return value
-    return _v340_build_universal_orientation_answer(query,candidates[0],candidates[:3]) or value
+    # v340 root-cause boundary: use explicit upstream primary identity when the
+    # production request wrapper propagated it. Never select a new primary here.
+    upstream_primary = _UPSTREAM_CANONICAL_PRIMARY.get()
+    if upstream_primary:
+        key = str(upstream_primary.get("url") or upstream_primary.get("canonical_url") or "").strip()
+        for doc in candidates:
+            if key and key == str(doc.get("url") or "").strip():
+                return _v340_build_universal_orientation_answer(query, doc, candidates[:3]) or value
+    return value
 
 def _v339_finalize_generation_response(*args,**kwargs):
     user_query=kwargs.get("user_query")
@@ -267,7 +275,7 @@ def _v339_finalize_generation_response(*args,**kwargs):
     if not value:return value
     if not use_core._is_recommendation_question(user_query):
         retrieved_context=_context_blocks_from_kwargs(args,kwargs); oriented=_v340_orientation_boundary(user_query,str(value or ""),retrieved_context)
-        if oriented!=str(value or "").strip():print("USE v340 universal orientation boundary: grounded Guide doorway used for topical inquiry.");return oriented
+        if oriented!=str(value or "").strip():print("USE v340 universal orientation boundary: upstream canonical Guide doorway used for topical inquiry.");return oriented
         return value
     retrieved_context=_context_blocks_from_kwargs(args,kwargs); canonical_link_context=str(kwargs.get("canonical_link_context") or retrieved_context or "");return _v336_construct_visitor_answer(str(value or ""),user_query,retrieved_context,canonical_link_context)
 
