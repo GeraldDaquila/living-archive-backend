@@ -1,18 +1,18 @@
-# USE PRODUCTION VERSION: v347 — Guide chunk preservation + deterministic provenance identity
-# v347 preserves the v346 visitor-facing Guide behavior and aligns the
-# runtime build identity with the explicit v347 deployment contract.
+# USE PRODUCTION VERSION: v348 — Guide chunk preservation + deterministic provenance identity + Archive context grammar
+# v348 preserves the v347 visitor-facing Guide behavior and adds a narrow downstream
+# Archive-context grammar guard. Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import os
 import re
 from pathlib import Path
 
-APP_VERSION = "v347"
-DEPLOYMENT_FINGERPRINT = "USE-v347-build-identity"
-CANONICAL_BUILD_ID = "USE-BUILD-v347-build-identity"
+APP_VERSION = "v348"
+DEPLOYMENT_FINGERPRINT = "USE-v348-archive-context-grammar"
+CANONICAL_BUILD_ID = "USE-BUILD-v348-archive-context-grammar"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
-_BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-scientific-and-spiritual-wisdom/"
+_BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
 
 
 def _sha256(data: bytes) -> str:
@@ -27,11 +27,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v347 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v348 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v347 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v348 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -158,6 +158,21 @@ def _select_secondary_pathways(docs, primary_title, profile, limit=2):
     return out
 
 
+def _archive_fragment_is_safe(phrase: str) -> bool:
+    clean = re.sub(r"\s+", " ", str(phrase or "")).strip(" ,;:")
+    if not (5 <= len(clean) <= 100):
+        return False
+    if "—" in clean or "–" in clean:
+        return False
+    if re.search(r"\b(?:I|we|you|he|she|they)\b", clean, re.I):
+        return False
+    if re.match(r"^(?:examines?|explores?|discusses?|describes?|looks?|considers?|argues?|asks?|shows?|offers?|reveals?)\b", clean, re.I):
+        return False
+    if re.search(r"\b(?:and|but|or)\b.*\b(?:felt|feels|inside|I|we|you)\b", clean, re.I):
+        return False
+    return True
+
+
 def _extract_archive_metadata(doc, docs):
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
     title = _normalize_title(doc.get("title") or "")
@@ -173,7 +188,7 @@ def _extract_archive_metadata(doc, docs):
         current = collection if target == "collection" else section
         if m and not current:
             phrase = re.sub(r"\s+", " ", m.group(1)).strip(" ,;:")
-            if phrase and phrase.casefold() not in title.casefold():
+            if phrase and phrase.casefold() not in title.casefold() and _archive_fragment_is_safe(phrase):
                 if target == "collection":
                     collection = phrase
                 else:
@@ -194,14 +209,7 @@ def _archive_context(primary, docs):
         parts.append(f"It sits within the wider Archive conversation in {meta['collection']}.")
     if meta["section"]:
         clean = re.sub(r"\s+", " ", meta["section"]).strip(" ,;:—–-.")
-        invalid = (
-            len(clean) < 5,
-            len(clean) > 100,
-            "—" in clean or "–" in clean,
-            bool(re.search(r"\b(?:but|and|or)\b.*\b(?:felt|feels|inside|I)\b", clean, re.I)),
-            bool(re.search(r"\b(?:I|we|you)\b", clean, re.I)),
-        )
-        if not any(invalid):
+        if _archive_fragment_is_safe(clean):
             parts.append(f"It sits within {clean}.")
     links = [_resource_link(x) for x in meta["related_resources"] if _resource_link(x)]
     if links:
@@ -289,7 +297,7 @@ def _find_primary(user_query, docs):
     return sorted(scored, reverse=True, key=lambda x: (x[0], x[1], x[2]))[0][3]
 
 
-def _v344_finalize(*args, **kwargs):
+def _v348_finalize(*args, **kwargs):
     query = str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else ""))
     context = _context_blocks_from_kwargs(args, kwargs)
     value = str(_original_generate_llm_response(*args, **kwargs) or "").strip()
@@ -307,9 +315,9 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.generate_llm_response = _v344_finalize
+use_core.generate_llm_response = _v348_finalize
 print(
-    f"USE v347 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
+    f"USE v348 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, "
     f"version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, "
     f"source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
