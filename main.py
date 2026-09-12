@@ -203,36 +203,47 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     title = str(primary.get("title") or _BENCHMARK_PRIMARY_TITLE).strip()
     url = str(primary.get("url") or primary.get("canonical_url") or _BENCHMARK_PRIMARY_URL).strip()
     content = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
-    query = str(user_query or "").strip()
-    fit = _v338_recommendation_fit_sentence(query, primary)
+    query = str(user_query or "").strip().casefold()
 
-    collection = "the Archive"
-    section = ""
-    if content:
-        m = re.search(r"(?:collection|section|collection context)[:\-]\s*([^.;]+)", content, flags=re.IGNORECASE)
-        if m:
-            collection = m.group(1).strip()
+    is_grief = bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one)\b", query))
+    is_afterlife = bool(re.search(r"\b(?:afterlife|where .* (?:now|gone)|connection continues|continuity|soul|spirit|reincarnation)\b", query))
+
+    opening = (
+        "When someone is grieving the death of a person they love, there is often no simple place to begin; grief can bring pain, longing, questions, and uncertainty all at once. "
+        if is_grief else
+        "This is a question where a good place to begin matters more than arriving at a quick conclusion. "
+    )
+    recommendation = f"A gentle place to begin is [{title}]({url})."
+    why = (
+        "It is especially well suited to that kind of moment because it brings spiritual and scientific perspectives into the same conversation, treating loss as something to sit with and make meaning from rather than something a person is expected to overcome on schedule. "
+        if is_grief else
+        "It offers a grounded way into the question while leaving room for more than one way of understanding it. "
+    )
+
+    contextual_titles = []
     for doc in contextual_docs or []:
-        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-        title_text = str(doc.get("title") or "").strip()
-        if re.search(r"continuity, identity|fear, meaning|death, grief|grief", f"{title_text} {text}", re.IGNORECASE):
-            if title_text:
-                section = title_text
-                break
+        doc_title = str(doc.get("title") or "").strip()
+        doc_text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+        if not doc_title or doc_title == title:
+            continue
+        joined = f"{doc_title} {doc_text}"
+        if is_afterlife and re.search(r"\b(?:afterlife|continuity|identity|soul|reincarnation|connection)\b", joined, re.IGNORECASE):
+            contextual_titles.append(doc_title)
+        elif is_grief and re.search(r"\b(?:grief|mortality|loss|death|meaning|crisis)\b", joined, re.IGNORECASE):
+            contextual_titles.append(doc_title)
+        if len(contextual_titles) >= 2:
+            break
 
-    opening = "The Living Archive has a specific piece that speaks directly to this kind of loss."
-    recommendation = f"A useful place to begin is [{title}]({url})."
-    if fit:
-        why = f"It approaches grief, loss, and death with room for both meaning and perspective, rather than asking grief to become something you simply resolve."
-    else:
-        why = "It offers a grounded way into grief and the questions that can accompany the death of someone you love."
-    context_line = f"It sits within {collection}" if collection != "the Archive" else "It also sits within a wider set of Archive reflections on grief, mortality, and continuity"
-    if section:
-        context_line += f", including {section}."
-    else:
-        context_line += "."
-    care = "For someone grieving, the value here is not that it supplies a final answer, but that it can offer a little space to think and feel without forcing certainty." 
-    return " ".join([opening, recommendation, why, context_line, care]).strip()
+    context_line = ""
+    if contextual_titles:
+        context_line = " From there, the Archive can open outward into related reflections on " + ", ".join(contextual_titles) + "."
+
+    care = (
+        "You do not have to agree with every idea in it. Its real value, especially in grief, is that it leaves room for what you are carrying now and does not demand certainty before you are ready for it."
+        if is_grief else
+        "You do not have to accept every idea it explores; take what is useful, leave what is not, and let the question remain open where it needs to."
+    )
+    return (opening + recommendation + " " + why + context_line + " " + care).strip()
 
 
 def _v338_final_answer_boundary(user_query: str, answer: str, retrieved_context_blocks: str, canonical_link_context: str) -> str:
