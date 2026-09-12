@@ -220,7 +220,7 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
     profile = architecture["profile"]
     title = architecture["title"]
     url = architecture["url"]
-    bridge = architecture["boundary"] if not profile["grief"] else "What makes this one especially worthwhile is the way it brings different perspectives into the same conversation without asking you to hurry past the loss or pretend that grief has a tidy answer."
+    bridge = architecture["boundary"] if not profile["grief"] else "This piece can be a gentle companion because it brings different perspectives into the same conversation without asking you to hurry past the loss or pretend that grief has a tidy answer."
     sections = [architecture["opening"], f"{architecture['foothold']} [{title}]({url}).", bridge]
     if architecture["secondaries"]:
         pathway_links = []
@@ -228,7 +228,7 @@ def _v339_build_compassionate_recommendation_answer(user_query: str, primary: di
             link = _resource_link(doc)
             if not link: continue
             role = _secondary_role(doc, profile)
-            pathway_links.append(f"{link} — for exploring {role}.")
+            pathway_links.append(f"{link} — a way to explore {role}.")
         if pathway_links:
             sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(pathway_links))
     if profile["risk"]:
