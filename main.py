@@ -265,12 +265,28 @@ def _v336_construct_visitor_answer(answer, user_query, retrieved_context, canoni
 
 
 def _v339_finalize_generation_response(*args, **kwargs):
-    value = _original_generate_llm_response(*args, **kwargs)
     user_query = kwargs.get("user_query")
     if user_query is None and args:
         user_query = args[0]
     user_query = str(user_query or "")
-    if not value or not use_core._is_recommendation_question(user_query):
+    if use_core._is_recommendation_question(user_query):
+        retrieved_context = kwargs.get("retrieved_context_blocks", "")
+        if retrieved_context is None and len(args) >= 2:
+            retrieved_context = args[1]
+        canonical_link_context = kwargs.get("canonical_link_context", "") or retrieved_context
+        recommendation_answer = _v338_final_answer_boundary(
+            user_query,
+            "",
+            str(retrieved_context or ""),
+            str(canonical_link_context or ""),
+        )
+        if recommendation_answer:
+            print("USE v339 recommendation generation bypass: deterministic canonical doorway used; provider generation skipped.")
+            return recommendation_answer
+    value = _original_generate_llm_response(*args, **kwargs)
+    if not value:
+        return value
+    if not use_core._is_recommendation_question(user_query):
         return value
     retrieved_context = kwargs.get("retrieved_context_blocks", "")
     if retrieved_context is None and len(args) >= 2:
