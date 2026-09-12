@@ -4,13 +4,14 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "main.py").read_text(encoding="utf-8")
 
 
-def test_archive_interpretive_bridge_exists():
+def test_archive_interpretive_bridge_exists_and_is_the_structural_layer():
     assert "def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:" in MAIN
-    assert "archive_interpretation = _archive_constellation_interpretation(archive_meta, profile)" in MAIN
     assert "def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:" in MAIN
+    assert "archive_interpretation = _archive_constellation_interpretation(archive_meta, profile)" in MAIN
     assert "archive_bridge = _archive_bridge(profile, archive_meta, secondaries)" in MAIN
     assert "architecture[\"archive_bridge\"]" in MAIN
     assert "sections.append(architecture[\"archive_bridge\"])" in MAIN
+    assert "and architecture[\"archive_interpretation\"] != architecture[\"archive_bridge\"]" in MAIN
 
 
 def test_existing_archive_and_gateway_instruments_are_preserved():

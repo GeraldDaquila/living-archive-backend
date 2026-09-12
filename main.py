@@ -303,7 +303,7 @@ def _archive_constellation_interpretation(meta: dict, profile: dict) -> str:
     return f"Together, those neighboring pieces open a wider conversation around {', '.join(unique[:-1])}, and {unique[-1]}"
 
 def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:
-    """Turn a retrieved constellation into visitor orientation without naming a benchmark-specific topic."""
+    """Turn retrieved constellation evidence into visitor orientation without benchmark-specific narrative."""
     titles = [_normalize_title(value) for value in meta.get("related_titles") or [] if _normalize_title(value)]
     secondary_corpora = " ".join(
         f"{_normalize_title(doc.get('title') or '')} {re.sub(r'\s+', ' ', str(doc.get('text') or '').strip())}"
@@ -460,14 +460,4 @@ app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
 print(f"USE v339 CANONICAL RECOMMENDATION DOORWAY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.RUNTIME_BOOT_ID = uuid.uuid4().hex
-use_core.RUNTIME_PROCESS_ID = os.getpid()
-use_core._build_generation_messages = _build_generation_messages
-use_core._clean_generation_output = _v336_clean_generation_output
-use_core._run_generation_attempt = _v336_run_generation_attempt
-use_core._run_provider_completion_recovery = _v336_run_provider_completion_recovery
-use_core._v336_construct_visitor_answer = _v336_construct_visitor_answer
 use_core.generate_llm_response = _v339_finalize_generation_response
