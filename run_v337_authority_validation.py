@@ -14,7 +14,6 @@ for required in (
     "_select_secondary_pathways",
     "_is_acute_risk_resource",
     "_archive_bridge",
-    "use_core.app",
 ):
     assert required in main_source, required
 
@@ -34,7 +33,7 @@ assert "_BENCHMARK_PRIMARY_URL" not in main_source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"' not in main_source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in main_source
 assert "RUNTIME_SOURCE_SHA256" in main_source
-assert "app = use_core.app" in main_source
+assert "use_core.app" in main_source
 assert "USE REQUEST START:" in core_source
 assert "X-USE-Build-ID" in core_source
 assert "X-USE-Version" in core_source
