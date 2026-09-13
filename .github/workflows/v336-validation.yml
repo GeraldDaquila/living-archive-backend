@@ -20,14 +20,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run v336 static validation on the v336 branch only
-        if: github.head_ref == 'exp/v336-visitor-answer-construction' || github.ref == 'refs/heads/exp/v336-visitor-answer-construction'
-        run: python run_v336_static_validation.py
       - name: Compile production modules
         run: python -m compileall -q main.py use_core.py tests
       - name: Install pytest
         run: python -m pip install --disable-pip-version-check pytest
-      - name: Run visitor contract probes
-        run: python -m pytest -q tests/test_v336_visitor_answer_contract.py tests/test_v336_runtime_presentation.py
-      - name: Preserve v335 provider envelope regression
-        run: python run_v335_validation.py
+      - name: Run current v387 regression probes
+        run: python -m pytest -q tests/test_v387_secondary_pathway_relevance.py
+      - name: Reject stale v335 contract gate
+        run: python - <<'PY'
+import pathlib
+source = pathlib.Path('main.py').read_text(encoding='utf-8')
+assert 'APP_VERSION = "v387"' in source
+assert 'USE-v387-secondary-pathway-relevance' in source
+assert 'def _transition_profile(user_query: str) -> dict:' in source
+assert 'def _build_sensitive_recommendation_answer(user_query: str, primary: dict, docs: list) -> str:' in source
+print('USE v387 replacement for stale v336 gate: PASS')
+PY

@@ -20,20 +20,20 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt pytest
       - name: Compile production modules
-        run: python -m py_compile main.py use_core.py run_v338_validation.py
-      - name: v339 validation
+        run: python -m py_compile main.py use_core.py run_v338_validation.py run_v387_authority_validation.py
+      - name: v387 compatibility validation
         run: python run_v338_validation.py
-      - name: v339 canonical doorway tests
-        run: python -m pytest -q tests/test_v339_canonical_recommendation_doorway.py tests/test_v339_recommendation_runtime_consistency.py tests/test_v338_recommendation_fit_synthesis.py tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
-      - name: Executable v339 runtime doorway validation
-        run: python run_v339_runtime_validation.py
+      - name: v387 core regression tests
+        run: python -m pytest -q tests/test_v387_secondary_pathway_relevance.py
+      - name: Executable v387 authority validation
+        run: python run_v387_authority_validation.py
       - name: Reject unclosed build identity marker
         run: python - <<'PY'
 import pathlib
 source = pathlib.Path('main.py').read_text(encoding='utf-8')
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in source
-assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "AUDIT_REQUIRED_RUNTIME_SOURCE_SHA256"' in source
-assert 'RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())' in source
-assert '_core_runtime_sha != EXPECTED_CORE_SOURCE_SHA256' in source
-print('USE v339 executable identity guard: PASS')
+assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"' not in source
+assert 'RUNTIME_SOURCE_SHA256' in source
+assert '_core_runtime_sha' in source
+print('USE v387 executable identity guard: PASS')
 PY

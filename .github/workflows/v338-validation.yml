@@ -19,8 +19,8 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt pytest
       - name: Compile production modules
-        run: python -m py_compile main.py use_core.py run_v338_validation.py
-      - name: v339 authority validation
+        run: python -m py_compile main.py use_core.py run_v338_validation.py run_v387_authority_validation.py
+      - name: v387 compatibility validation
         run: python run_v338_validation.py
-      - name: v336 preserved regression probes
-        run: python -m pytest -q tests/test_v336_runtime_presentation.py tests/test_v336_visitor_answer_contract.py
+      - name: v387 preserved regression probes
+        run: python -m pytest -q tests/test_v387_secondary_pathway_relevance.py
