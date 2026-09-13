@@ -6,7 +6,6 @@ import hashlib
 import importlib
 import re
 from pathlib import Path
-from typing import Any
 
 APP_VERSION = "v374"
 DEPLOYMENT_FINGERPRINT = "USE-v374-visitor-experience-authority-calibration"
@@ -306,6 +305,8 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
         call_kwargs["retrieved_context_blocks"] = context
     if "canonical_link_context" in call_kwargs:
         call_kwargs["canonical_link_context"] = context
+    elif len(call_args) > 4 and isinstance(call_args[4], str):
+        call_args[4] = context
     if "orientational_frame" in call_kwargs and isinstance(call_kwargs["orientational_frame"], dict):
         frame = dict(call_kwargs["orientational_frame"])
         frame["visitor_experience_contract"] = contract
@@ -328,9 +329,6 @@ def _v374_finalize(*args, **kwargs):
 
     docs = _parse_context_documents(context)
     profile = _query_profile(query, docs)
-
-    # Preserve v373's successful bounded transition evidence recovery, but feed
-    # the recovered evidence into the canonical downstream Guide architecture.
     if profile.get("transition") and profile.get("open_question"):
         recovered = _transition_retrieval_strategy(query)
         docs = _merge_recovered_documents(docs, recovered)
