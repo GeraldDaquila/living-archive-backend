@@ -28,7 +28,14 @@ def test_v387_acute_risk_resource_filter_is_present():
     assert "_is_acute_risk_resource(doc)" in MAIN
 
 
-def test_v387_does_not_change_v386_core_or_transition_identity():
+def test_v387_excludes_acute_risk_by_identity_not_only_query_overlap():
+    assert "suicid(?:e|al|ality)" in MAIN
+    assert "self-harm" in MAIN
+    assert "crisis intervention" in MAIN
+    assert "immediate danger" in MAIN
+
+
+def test_v387_preserves_v386_core_or_transition_identity():
     assert 'EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"' in MAIN
     assert "def _transition_profile(user_query: str) -> dict:" in MAIN
     assert "def _direct_open_transition_response(query: str, docs: list) -> dict:" in MAIN
@@ -38,3 +45,9 @@ def test_v387_secondary_roles_remain_structural():
     assert "def _secondary_role(doc: dict, profile: dict) -> str:" in MAIN
     assert "def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:" in MAIN
     assert "def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:" in MAIN
+
+
+def test_v387_keeps_production_visitor_boundary():
+    assert "Where the material turns toward spiritual or afterlife possibilities" in MAIN
+    assert "real-world safety and trusted human support" in MAIN
+    assert "Take what feels useful, leave what does not" in MAIN
