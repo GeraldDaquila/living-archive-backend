@@ -21,6 +21,7 @@ def test_v374_does_not_use_transition_specific_answer_engine():
     assert "_guide_answer(" not in source
     assert "_call_original_with_calibrated_context" in source
     assert "_transition_retrieval_strategy" in source
+    assert "_frame_neutral_evidence_unavailable_response" in source
 
 
 def test_v374_protects_unrequested_composite_frameworks():
