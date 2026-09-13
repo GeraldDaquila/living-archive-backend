@@ -5,20 +5,43 @@ ROOT = Path(__file__).resolve().parent
 main_source = (ROOT / "main.py").read_text(encoding="utf-8")
 core_source = (ROOT / "use_core.py").read_text(encoding="utf-8")
 
-for name in ("_v337_apply_recommendation_authority", "_v338_final_answer_boundary", "_v336_construct_visitor_answer"):
-    assert any(isinstance(node, ast.FunctionDef) and node.name == name for node in ast.parse(main_source).body), name
+for required in (
+    'APP_VERSION = "v387"',
+    'DEPLOYMENT_FINGERPRINT = "USE-v387-secondary-pathway-relevance"',
+    'CANONICAL_BUILD_ID = "USE-BUILD-v387-secondary-pathway-relevance"',
+    "_original_recommendation_output_authority",
+    "_original_recommendation_resource_identity",
+    "_select_secondary_pathways",
+    "_is_acute_risk_resource",
+    "_archive_bridge",
+    "use_core.app",
+):
+    assert required in main_source, required
 
-boundary = next(node for node in ast.parse(main_source).body if isinstance(node, ast.FunctionDef) and node.name == "_v337_apply_recommendation_authority")
-boundary_source = ast.get_source_segment(main_source, boundary)
-assert "_original_recommendation_output_authority" in main_source
-assert "_original_recommendation_resource_identity" in main_source
-assert "_adjudicate_recommendation_resource" in boundary_source
-assert "_original_recommendation_output_authority" in boundary_source
-assert "_original_recommendation_resource_identity" in boundary_source
+for required in (
+    "def _transition_profile",
+    "def _transition_retrieval_strategy",
+    "def _direct_open_transition_response",
+    "def _v387_finalize",
+    "def _query_profile",
+    "def _guide_answer_architecture",
+    "def _build_sensitive_recommendation_answer",
+):
+    assert required in main_source, required
 
-attempt = next(node for node in ast.parse(core_source).body if isinstance(node, ast.FunctionDef) and node.name == "_run_generation_attempt")
-attempt_source = ast.get_source_segment(core_source, attempt)
-assert "_enforce_recommendation_output_authority" in attempt_source
-assert "_enforce_recommendation_resource_identity" in attempt_source
+assert "_BENCHMARK_PRIMARY_TITLE" not in main_source
+assert "_BENCHMARK_PRIMARY_URL" not in main_source
+assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"' not in main_source
+assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in main_source
+assert "RUNTIME_SOURCE_SHA256" in main_source
+assert "app = use_core.app" in main_source
+assert "USE REQUEST START:" in core_source
+assert "X-USE-Build-ID" in core_source
+assert "X-USE-Version" in core_source
+assert "X-USE-Fingerprint" in core_source
+assert "X-USE-Source-SHA256" in core_source
 
-print("USE v338 authority validation: PASS")
+compile(ast.parse(main_source), filename="main.py", mode="exec")
+compile(ast.parse(core_source), filename="use_core.py", mode="exec")
+
+print("USE v387 authority/compatibility validation: PASS")
