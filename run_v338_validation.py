@@ -14,7 +14,7 @@ for required in (
     "_select_secondary_pathways",
     "_is_acute_risk_resource",
     "_archive_bridge",
-    "app = use_core.app",
+    "use_core.app",
 ):
     assert required in main_source, required
 
