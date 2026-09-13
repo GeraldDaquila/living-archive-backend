@@ -168,6 +168,8 @@ def _frame_neutral_generation_documents(query: str, intent: str, docs: list) -> 
             f"excluded_framework_documents={len(candidate_docs) - len(neutral)}"
         )
         return neutral, True
+    if bounded and not neutral:
+        return [], True
     return candidate_docs, False
 
 
@@ -335,6 +337,9 @@ def _v374_finalize(*args, **kwargs):
 
     generation_docs, frame_neutral = _frame_neutral_generation_documents(query, intent, docs)
     if not generation_docs:
+        unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
+        if callable(unavailable):
+            return str(unavailable(query) or "").strip()
         return str(_original_generate_llm_response(*args, **kwargs) or "").strip()
 
     calibrated_context = _rebuild_context_blocks(generation_docs)
