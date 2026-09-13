@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v396 — compassionate transition recommendation
+# USE PRODUCTION VERSION: v397 — structural transition doorway selection
 # v391 remains the protected production baseline; this wrapper changes only visitor-facing
 # recommendation role selection/construction. Protected use_core.py is unchanged.
 import hashlib
@@ -6,20 +6,20 @@ import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v396"
-DEPLOYMENT_FINGERPRINT = "USE-v396-compassionate-transition-recommendation"
-CANONICAL_BUILD_ID = "USE-BUILD-v396-compassionate-transition-recommendation"
+APP_VERSION = "v397"
+DEPLOYMENT_FINGERPRINT = "USE-v397-structural-transition-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v397-structural-transition-doorway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v396 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v397 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v396 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v397 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -80,7 +80,7 @@ def _query_profile(user_query: str) -> dict:
         "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
         "meaning": bool(re.search(r"\b(?:meaning|understanding|perspective|wisdom|why|purpose|identity|continuity|spiritual|afterlife|belief|loneliness|lonely|despair|emptiness)\b", q)),
         "transition": bool(re.search(r"\b(?:crossroads|major change|change in my life|life transition|transition|new chapter|what comes next|what happens next|starting over|beginning again|moving forward|identity shift|uncertain what comes next)\b", q)),
-        "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot)\b", q)),
+        "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot|starseed)\b", q)),
     }
 
 
@@ -97,7 +97,7 @@ def _role_evidence(doc: dict) -> dict:
         "existential_loneliness": bool(re.search(r"\b(?:loneliness|lonely|despair|emptiness|isolation|existential|meaninglessness|alone|redemptive power|eternal now)\b", text)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", text)),
         "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", text)),
-        "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden)\b", text)),
+        "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed)\b", text)),
         "lived_experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling|living with)\b", text)),
         "practical_reflection": bool(re.search(r"\b(?:reflect|reflection|notice|naming|journal|practice|grounding|orientation|practical|everyday|attention)\b", text)),
         "transition": bool(re.search(r"\b(?:transition|crossroads|change|new chapter|starting over|moving forward|turning point|reorientation|uncertainty|in-between|before and after|rebuild|reorient|adapt)\b", text)),
@@ -110,30 +110,55 @@ def _candidate_role(doc: dict, profile: dict):
     role_key = "other"
     role_text = "another perspective on the question"
     if evidence["transition"] and profile.get("transition"):
-        role_key = "transition"; role_text = "the lived experience of transition, uncertainty, and finding a way forward"; score += 16
+        role_key = "transition"; role_text = "the lived experience of transition, uncertainty, and finding a way forward"; score += 20
     if evidence["existential_loneliness"] and role_key == "other":
         role_key = "existential_loneliness"; role_text = "loneliness, emptiness, and existential dimensions of the question"
-    if evidence["existential_loneliness"]: score += 14
+    if evidence["existential_loneliness"]: score += 10
     if evidence["continuity"] and role_key == "other":
         role_key = "continuity"; role_text = "continuity, connection, and what may endure"
-    if evidence["continuity"]: score += 12
+    if evidence["continuity"]: score += 8
     if evidence["lived_loss"] and role_key == "other":
         role_key = "lived_loss"; role_text = "the lived experience of grief, loss, and mortality"
-    if evidence["lived_loss"]: score += 10
+    if evidence["lived_loss"]: score += 7
     if evidence["meaning"] and role_key == "other":
         role_key = "meaning"; role_text = "meaning, perspective, and ways of understanding the experience"
-    if evidence["meaning"]: score += 7
+    if evidence["meaning"]: score += 6
     if evidence["grounded"] and role_key == "other":
         role_key = "grounded"; role_text = "a grounded or research-oriented way of looking at the question"
-    if evidence["grounded"]: score += 5
+    if evidence["grounded"]: score += 4
     if evidence["lived_experience"] and role_key == "other":
         role_key = "lived_experience"; role_text = "the lived, human experience of the question"
-    if evidence["lived_experience"]: score += 4
+    if evidence["lived_experience"]: score += 3
     if evidence["practical_reflection"] and role_key == "other":
         role_key = "practical_reflection"; role_text = "a reflective or practical way of staying with the question"
-    if evidence["practical_reflection"]: score += 3
-    if evidence["worldview"] and not profile.get("explicit_framework"): score -= 4
+    if evidence["practical_reflection"]: score += 2
+    if evidence["worldview"] and not profile.get("explicit_framework"): score -= 12
     return role_key, role_text, score
+
+
+def _transition_primary_score(doc: dict, profile: dict) -> int:
+    evidence = _role_evidence(doc)
+    score = 0
+    score += 30 if evidence["transition"] else 0
+    score += 10 if evidence["lived_experience"] else 0
+    score += 8 if evidence["practical_reflection"] else 0
+    score += 6 if evidence["meaning"] else 0
+    if evidence["worldview"] and not profile.get("explicit_framework"): score -= 25
+    if re.search(r"\b(?:afterlife|reincarnation|starseed|higher-order intelligence|metaphysics)\b", str(doc.get("title") or "") + " " + str(doc.get("text") or ""), re.I) and not profile.get("explicit_framework"):
+        score -= 35
+    return score
+
+
+def _select_transition_primary(docs, profile):
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https?://\S+$", url, re.I): continue
+        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk") and _is_acute_risk_resource(doc): continue
+        ranked.append((_transition_primary_score(doc, profile), index, doc))
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return ranked[0][2] if ranked and ranked[0][0] > 0 else None
 
 
 def _select_secondary_pathways(docs, primary_title, profile, limit=2):
@@ -141,40 +166,30 @@ def _select_secondary_pathways(docs, primary_title, profile, limit=2):
     ranked = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        if not title or title.casefold() in seen:
-            continue
-        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk") and _is_acute_risk_resource(doc):
-            continue
+        if not title or title.casefold() in seen: continue
+        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk") and _is_acute_risk_resource(doc): continue
         role_key, role_text, score = _candidate_role(doc, profile)
         if profile.get("grief") and role_key == "continuity": score += 4
         if profile.get("grief") and role_key == "existential_loneliness": score += 5
         if profile.get("meaning") and role_key == "meaning": score += 3
         if profile.get("transition") and role_key == "transition": score += 7
-        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk") and re.search(r"\b(?:afterlife|reincarnation)\b", str(doc.get("text") or ""), re.I): score -= 4
-        if score > 0:
-            ranked.append((score, index, role_key, role_text, doc))
+        if profile.get("transition") and role_key == "existential_loneliness": score -= 3
+        if score > 0: ranked.append((score, index, role_key, role_text, doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    selected = []
-    role_keys = set()
+    selected = []; role_keys = set()
     for score, index, role_key, role_text, doc in ranked:
-        if role_key in role_keys:
-            continue
-        role_keys.add(role_key)
-        selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
-        if len(selected) >= limit:
-            break
+        if role_key in role_keys: continue
+        role_keys.add(role_key); selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
+        if len(selected) >= limit: break
     return selected
 
 
 def _evidence_boundary_note(docs, profile):
     has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", str(doc.get("text") or ""), re.I) for doc in docs)
     has_spiritual = any(re.search(r"\b(?:spiritual|soul|afterlife|religious|mystical|sacred|transcenden)\b", str(doc.get("text") or ""), re.I) for doc in docs)
-    if has_science and has_spiritual:
-        return "The Archive brings different ways of understanding the question into the same conversation without requiring them to become a single certainty."
-    if has_spiritual:
-        return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
-    if profile.get("meaning") or profile.get("transition"):
-        return "The material can offer a lens for the question while leaving room to distinguish what is known from what remains interpretation, possibility, or personal meaning."
+    if has_science and has_spiritual: return "The Archive brings different ways of understanding the question into the same conversation without requiring them to become a single certainty."
+    if has_spiritual: return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
+    if profile.get("meaning") or profile.get("transition"): return "The material can offer a lens for the question while leaving room to distinguish what is known from what remains interpretation, possibility, or personal meaning."
     return "It offers a place to begin without asking the material to provide more certainty than it can support."
 
 
@@ -196,36 +211,25 @@ def _build_sensitive_recommendation_answer(user_query, primary, docs):
     profile = _query_profile(user_query)
     title = _normalize_title(primary.get("title") or "")
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
-        return ""
+    if not title or not re.match(r"^https?://\S+$", url, re.I): return ""
     secondaries = _select_secondary_pathways(docs, title, profile)
-    if profile.get("grief"):
-        opening = "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once."
-    elif profile.get("transition"):
-        opening = "A major crossroads can be disorienting. You may be trying to make sense of what has changed, what still feels uncertain, and what kind of life or direction might come next."
-    elif profile.get("sensitive"):
-        opening = "A question like this can be difficult to hold in one frame. It may help to have a clear place to begin while also leaving room for the question to remain open."
-    else:
-        opening = "A question like this can benefit from a clear place to begin and room for the question to remain open."
+    if profile.get("grief"): opening = "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once."
+    elif profile.get("transition"): opening = "A major crossroads can be disorienting. You may be trying to make sense of what has changed, what still feels uncertain, and what kind of life or direction might come next."
+    elif profile.get("sensitive"): opening = "A question like this can be difficult to hold in one frame. It may help to have a clear place to begin while also leaving room for the question to remain open."
+    else: opening = "A question like this can benefit from a clear place to begin and room for the question to remain open."
     sections = [opening, f"A useful place to begin is [{title}]({url}).", _evidence_boundary_note(docs, profile)]
     if secondaries:
         role_sentences = [f"[{_normalize_title(item['doc'].get('title') or '')}]({str(item['doc'].get('url') or item['doc'].get('canonical_url') or '').strip()}) — {_article_role_phrase(item['role_text'])}." for item in secondaries if item.get("doc")]
-        if role_sentences:
-            sections.append("You do not have to stay with one interpretation. From there, the Archive opens a few distinct paths:\n\n" + "\n\n".join(role_sentences))
-    if profile.get("risk"):
-        sections.append("The Archive can offer reflection and orientation, but where there is immediate danger or coercion, real-world safety and trusted human support matter more than reflection alone.")
-    elif profile.get("grief"):
-        sections.append("There is no need to settle the grief all at once. One piece that feels right for today can be enough of a place to begin. You can return to the question when you are ready.")
-    elif profile.get("transition"):
-        sections.append("You do not need to decide what this crossroads means before you have had time to live through it. A useful first step can simply be to notice which part of the question you most need help seeing clearly.")
-    elif profile.get("sensitive"):
-        sections.append("You do not need to turn the question into an answer all at once. A piece that opens a useful perspective can be enough of a place to begin.")
-    else:
-        sections.append("Take what is useful, leave what is not, and let the question remain open where it needs to.")
+        if role_sentences: sections.append("You do not have to stay with one interpretation. From there, the Archive opens a few distinct paths:\n\n" + "\n\n".join(role_sentences))
+    if profile.get("risk"): sections.append("The Archive can offer reflection and orientation, but where there is immediate danger or coercion, real-world safety and trusted human support matter more than reflection alone.")
+    elif profile.get("grief"): sections.append("There is no need to settle the grief all at once. One piece that feels right for today can be enough of a place to begin. You can return to the question when you are ready.")
+    elif profile.get("transition"): sections.append("You do not need to decide what this crossroads means before you have had time to live through it. A useful first step can simply be to notice which part of the question you most need help seeing clearly.")
+    elif profile.get("sensitive"): sections.append("You do not need to turn the question into an answer all at once. A piece that opens a useful perspective can be enough of a place to begin.")
+    else: sections.append("Take what is useful, leave what is not, and let the question remain open where it needs to.")
     return "\n\n".join(section for section in sections if section)
 
 
-def _v396_finalize(*args, **kwargs):
+def _v397_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     intent = _extract_intent(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -236,30 +240,25 @@ def _v396_finalize(*args, **kwargs):
         recommendation_question = bool(use_core._is_recommendation_question(user_query)) if user_query else False
     except Exception:
         recommendation_question = False
-    print(
-        "USE v396 runtime hook: "
-        f"query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, "
-        f"recommendation={recommendation_question}, profile={profile}, args={len(args)}, kwargs={sorted(kwargs.keys())}"
-    )
+    print("USE v397 runtime hook: " f"query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}")
     if user_query and recommendation_question and (profile.get("sensitive") or profile.get("meaning") or profile.get("transition")):
-        primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
+        primary = _select_transition_primary(docs, profile) if profile.get("transition") else None
+        if primary is None:
+            primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
         if primary:
             answer = _build_sensitive_recommendation_answer(user_query, primary, docs)
             if answer:
-                print(
-                    "USE v396 runtime hook: recommendation interception=ACTIVE "
-                    f"primary='{_normalize_title(primary.get('title') or '')}'"
-                )
+                print("USE v397 runtime hook: recommendation interception=ACTIVE " f"primary='{_normalize_title(primary.get('title') or '')}'")
                 return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v396 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v397 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v396_finalize
+use_core.generate_llm_response = _v397_finalize
