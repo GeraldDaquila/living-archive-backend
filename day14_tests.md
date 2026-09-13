@@ -9,3 +9,5 @@ Targets:
 - compassionate-teacher voice: empathetic, wise, humble, non-condescending, sovereignty-first
 - no upstream retrieval/reasoning reopening
 - no validator/application conflation
+
+Status: structural implementation not yet committed; this file is a validation contract only.
