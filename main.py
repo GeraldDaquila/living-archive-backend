@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v374 — visitor-experience authority calibration
+# USE PRODUCTION VERSION: v375 — visitor-experience authority calibration
 # Structural intervention: preserve protected core architecture while governing
 # visitor-state / resource-frame authority before generation. Transition recovery
 # remains bounded evidence recovery; it is no longer a separate answer engine.
@@ -7,9 +7,9 @@ import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v374"
-DEPLOYMENT_FINGERPRINT = "USE-v374-visitor-experience-authority-calibration"
-CANONICAL_BUILD_ID = "USE-BUILD-v374-visitor-experience-authority-calibration"
+APP_VERSION = "v375"
+DEPLOYMENT_FINGERPRINT = "USE-v375-visitor-experience-authority-calibration"
+CANONICAL_BUILD_ID = "USE-BUILD-v375-visitor-experience-authority-calibration"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -18,18 +18,18 @@ def _sha256(data: bytes) -> str:
 
 
 def _git_blob_sha256(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\0".encode()).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v374 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v375 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v374 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v375 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -98,7 +98,6 @@ _FRAME_SIGNAL_GROUPS = {
     "esoteric": (r"\b(?:astrology|tarot|starseed|ascension|kundalini|channeling|channeled|akashic|twin flame|nonduality|manifestation)\b",),
     "political": (r"\b(?:political|capitalism|socialism|marxist|conservative|liberal ideology|political ideology)\b",),
     "therapeutic": (r"\b(?:therapy|therapeutic|clinical|psychoanalytic|CBT|diagnos(?:is|tic)|trauma framework)\b",),
-    "academic": (r"\b(?:scientific|science|neuroscience|research-based|empirical|academic framework)\b",),
 }
 
 
@@ -150,7 +149,7 @@ def _frame_neutral_generation_documents(query: str, intent: str, docs: list) -> 
         try:
             candidate_docs, bounded = core_boundary(docs, query, intent)
         except Exception as exc:
-            print(f"USE v374 frame-neutral boundary integration error: {type(exc).__name__}: {exc}")
+            print(f"USE v375 frame-neutral boundary integration error: {type(exc).__name__}: {exc}")
             candidate_docs = docs
 
     requested_groups = _requested_frame_groups(query)
@@ -163,7 +162,7 @@ def _frame_neutral_generation_documents(query: str, intent: str, docs: list) -> 
         bounded = True
     if bounded and neutral:
         print(
-            "USE v374 VISITOR EXPERIENCE AUTHORITY: "
+            "USE v375 VISITOR EXPERIENCE AUTHORITY: "
             f"open_question=True, neutral_generation_documents={len(neutral)}, "
             f"excluded_framework_documents={len(candidate_docs) - len(neutral)}"
         )
@@ -225,7 +224,7 @@ def _transition_retrieval_strategy(user_query: str) -> list:
         try:
             recovered = retriever(query) or []
         except Exception as exc:
-            print(f"USE v374 transition function-targeted retrieval error: {type(exc).__name__}: {exc}")
+            print(f"USE v375 transition function-targeted retrieval error: {type(exc).__name__}: {exc}")
     semantic = []
     embed = getattr(use_core, "generate_embedding", None)
     query_index = getattr(use_core, "_query_index", None)
@@ -244,7 +243,7 @@ def _transition_retrieval_strategy(user_query: str) -> list:
                     if isinstance(metadata, dict):
                         semantic.append((float(score or 0.0), metadata))
             except Exception as exc:
-                print(f"USE v374 transition semantic recovery error: {type(exc).__name__}: {exc}")
+                print(f"USE v375 transition semantic recovery error: {type(exc).__name__}: {exc}")
     sources = []
     if isinstance(recovered, list):
         for rank, doc in enumerate(recovered[:30]):
@@ -320,48 +319,27 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _v374_finalize(*args, **kwargs):
-    query = str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else ""))
-    context = _context_blocks_from_kwargs(args, kwargs)
-    intent = str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args) > 2 else "")).strip().upper()
-    recommendation = use_core._is_recommendation_question(query)
+def _v375_finalize(*args, **kwargs):
+    user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
+    intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
+    raw_context = _context_blocks_from_kwargs(args, kwargs)
+    docs = _parse_context_documents(raw_context)
+    if not user_query:
+        return _original_generate_llm_response(*args, **kwargs)
+    if intent != "TOPICAL_INQUIRY":
+        return _original_generate_llm_response(*args, **kwargs)
 
-    if recommendation or intent != "TOPICAL_INQUIRY":
-        return str(_original_generate_llm_response(*args, **kwargs) or "").strip()
-
-    docs = _parse_context_documents(context)
-    profile = _query_profile(query, docs)
-    if profile.get("transition") and profile.get("open_question"):
-        recovered = _transition_retrieval_strategy(query)
-        docs = _merge_recovered_documents(docs, recovered)
-
-    generation_docs, frame_neutral = _frame_neutral_generation_documents(query, intent, docs)
-    if not generation_docs:
+    recovered_docs = _transition_retrieval_strategy(user_query) if _query_profile(user_query, docs).get("transition") else []
+    merged_docs = _merge_recovered_documents(docs, recovered_docs)
+    calibrated_docs, frame_neutral = _frame_neutral_generation_documents(user_query, intent, merged_docs)
+    if frame_neutral and not calibrated_docs:
         unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
         if callable(unavailable):
-            return str(unavailable(query) or "").strip()
-        return str(_original_generate_llm_response(*args, **kwargs) or "").strip()
-
-    calibrated_context = _rebuild_context_blocks(generation_docs)
-    contract = _visitor_experience_contract(query, generation_docs, frame_neutral)
-    print(
-        "USE v374 VISITOR EXPERIENCE GATE: "
-        f"intent={intent}, open_question={profile.get('open_question')}, "
-        f"transition_recovery={profile.get('transition')}, "
-        f"frame_neutral={frame_neutral}, docs={len(generation_docs)}"
-    )
-    return str(_call_original_with_calibrated_context(args, kwargs, calibrated_context, contract) or "").strip()
+            return unavailable(user_query)
+        return _original_generate_llm_response(*args, **kwargs)
+    calibrated_context = _rebuild_context_blocks(calibrated_docs) if frame_neutral else raw_context
+    contract = _visitor_experience_contract(user_query, calibrated_docs, frame_neutral)
+    return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
 
 
-app = use_core.app
-app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v374_finalize
-print(
-    f"USE v374 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
-    f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
-)
+use_core.generate_llm_response = _v375_finalize
