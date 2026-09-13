@@ -1,12 +1,12 @@
-# USE PRODUCTION VERSION: v389 — canonical transition doorway authority
+# USE PRODUCTION VERSION: v390 — bounded canonical recovery
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v389"
-DEPLOYMENT_FINGERPRINT = "USE-v389-canonical-transition-doorway-authority"
-CANONICAL_BUILD_ID = "USE-BUILD-v389-canonical-transition-doorway-authority"
+APP_VERSION = "v390"
+DEPLOYMENT_FINGERPRINT = "USE-v390-bounded-canonical-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v390-bounded-canonical-recovery"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 def _sha256(data: bytes) -> str:
@@ -19,20 +19,24 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v389 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v390 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v389 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v390 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 
+
 def _parse_context_documents(context_blocks: str):
-    parser = getattr(use_core, "_parse_context_documents", None)
+    parser = getattr(use_core, "context_blocks_to_documents", None)
     if callable(parser):
-        return parser(context_blocks)
+        try:
+            return parser(str(context_blocks or ""))
+        except Exception:
+            pass
     docs = []
     for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
         tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
@@ -42,24 +46,35 @@ def _parse_context_documents(context_blocks: str):
             docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
     return docs
 
+
 def _context_source(args, kwargs):
-    if kwargs.get("canonical_link_context"):
-        return "canonical_link_context", str(kwargs["canonical_link_context"])
-    for key in ("retrieved_context_blocks", "retrieved_context", "context_blocks"):
-        if kwargs.get(key):
-            return key, str(kwargs[key])
-    for index in (1, 2, 3, 4, 5):
+    # The protected runtime passes the selected generation context positionally
+    # and the canonical identity context separately as a keyword. Prefer the
+    # selected generation evidence first for visitor resource authority; use
+    # canonical_link_context only as an identity/recovery index.
+    generation_candidates = (
+        kwargs.get("retrieved_context_blocks"),
+        kwargs.get("retrieved_context"),
+        kwargs.get("context_blocks"),
+    )
+    for index, value in enumerate(generation_candidates):
+        if value:
+            return f"generation_kwarg[{index}]", str(value), str(kwargs.get("canonical_link_context") or "")
+    for index in (1, 4, 5):
         if len(args) > index and isinstance(args[index], str) and any(k in args[index] for k in ("Title:", "URL:", "Content:")):
-            return f"args[{index}]", args[index]
-    return "none", ""
+            return f"args[{index}]", args[index], str(kwargs.get("canonical_link_context") or "")
+    return "none", "", str(kwargs.get("canonical_link_context") or "")
+
 
 def _normalize_title(text: str) -> str:
     return re.sub(r"\s{2,}", " ", str(text or "").strip())
+
 
 def _clean_evidence_text(text: str) -> str:
     clean = re.sub(r"<[^>]+>", " ", str(text or ""))
     clean = re.sub(r"\[[^\]]*evidence excerpt bounded by USE\]", " ", clean, flags=re.I)
     return re.sub(r"\s+", " ", clean).strip()
+
 
 def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -70,8 +85,9 @@ def _query_profile(user_query: str) -> dict:
         "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|ai|artificial intelligence|astrology|tarot|political|capitalism|socialism)\b", q)),
     }
 
+
 def _resource_frame_groups(doc: dict) -> set:
-    hay = f"{_normalize_title(doc.get('title') or '').casefold()} {_clean_evidence_text(doc.get('text') or '').casefold()}"
+    hay = f"{_normalize_title(doc.get('title') or '').casefold()} {_clean_evidence_text(doc.get('text') or doc.get('content') or '').casefold()}"
     groups = set()
     if re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|astrology|tarot)\b", hay):
         groups.add("worldview")
@@ -79,11 +95,13 @@ def _resource_frame_groups(doc: dict) -> set:
         groups.add("political")
     return groups
 
+
 def _is_specialized_framework_resource(doc: dict) -> bool:
     return bool(_resource_frame_groups(doc))
 
+
 def _transition_evidence_fit(doc: dict, query: str):
-    hay = f"{_normalize_title(doc.get('title') or '').casefold()} {_clean_evidence_text(doc.get('text') or '').casefold()}"
+    hay = f"{_normalize_title(doc.get('title') or '').casefold()} {_clean_evidence_text(doc.get('text') or doc.get('content') or '').casefold()}"
     q = str(query or '').casefold()
     c = {
         "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning|life change|before and after|crossroads|in-between|rebuild|reorient|adjust|adapt)\b", hay)),
@@ -100,6 +118,7 @@ def _transition_evidence_fit(doc: dict, query: str):
         score += 2
     return score, c
 
+
 def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     qfit = _query_profile(query)
     if not qfit["transition"] or qfit["explicit_framework"]:
@@ -111,27 +130,66 @@ def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     contextual = int(clusters["open"]) + int(clusters["grounding"])
     return substantive >= 2 or (substantive >= 1 and contextual >= 1 and score >= 4)
 
+
 def _transition_doorway_score(doc: dict, query: str) -> int:
     score, clusters = _transition_evidence_fit(doc, query)
     qfit = _query_profile(query)
     score *= 5
-    if clusters["transition"] and qfit["transition"]:
-        score += 8
-    if clusters["meaning"] and qfit["meaning"]:
-        score += 5
-    if clusters["open"] and qfit["open_question"]:
-        score += 5
-    if clusters["experience"]:
-        score += 3
-    if clusters["grounding"]:
-        score += 3
-    if clusters["support"] and not clusters["transition"]:
-        score -= 8
-    if clusters["belief"] and qfit["open_question"] and not qfit["explicit_framework"]:
-        score -= 6
-    if clusters["worldview"]:
-        score -= 30
+    if clusters["transition"] and qfit["transition"]: score += 8
+    if clusters["meaning"] and qfit["meaning"]: score += 5
+    if clusters["open"] and qfit["open_question"]: score += 5
+    if clusters["experience"]: score += 3
+    if clusters["grounding"]: score += 3
+    if clusters["support"] and not clusters["transition"]: score -= 8
+    if clusters["belief"] and qfit["open_question"] and not qfit["explicit_framework"]: score -= 6
+    if clusters["worldview"]: score -= 30
     return score
+
+
+def _resource_identity_map(context_blocks: str) -> dict:
+    docs = _parse_context_documents(context_blocks)
+    return {
+        re.sub(r"\s+", " ", str(doc.get("title") or "").strip()).casefold(): doc
+        for doc in docs
+        if doc.get("title") and (doc.get("url") or doc.get("canonical_url"))
+    }
+
+
+def _recover_primary_from_canonical_context(generation_docs: list, canonical_context: str, query: str) -> list:
+    """Recover only resources represented in both supplied evidence layers.
+
+    The broader canonical context is an identity index, not permission to invent
+    a new resource. A recovered doorway must therefore have the same canonical
+    title in the selected generation evidence and the canonical context. When
+    the generation layer supplies an incomplete title-only block, canonical
+    identity/context can safely restore its URL and fuller content.
+    """
+    canonical_docs = _parse_context_documents(canonical_context)
+    canonical_by_key = {
+        _normalize_title(str(doc.get("title") or "")).casefold(): doc
+        for doc in canonical_docs
+        if doc.get("title")
+    }
+    candidates = []
+    seen = set()
+    for doc in generation_docs:
+        key = _normalize_title(str(doc.get("title") or "")).casefold()
+        if not key or key in seen:
+            continue
+        canonical = canonical_by_key.get(key)
+        if not canonical:
+            continue
+        merged = dict(canonical)
+        merged.update({k: v for k, v in doc.items() if v not in (None, "")})
+        url = str(merged.get("url") or merged.get("canonical_url") or "").strip()
+        if not re.match(r"^https?://\S+$", url, re.I):
+            continue
+        if not _is_specialized_framework_resource(merged) and _is_query_aligned_transition_doorway(merged, query):
+            merged["url"] = url
+            candidates.append(merged)
+            seen.add(key)
+    return sorted(candidates, key=lambda d: _transition_doorway_score(d, query), reverse=True)[:4]
+
 
 def _direct_open_transition_response(docs: list) -> str:
     if not docs:
@@ -158,25 +216,39 @@ def _direct_open_transition_response(docs: list) -> str:
         "</visitor_answer>"
     )
 
-def _v389_finalize(*args, **kwargs):
+
+def _v390_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
-    source_name, raw_context = _context_source(args, kwargs)
-    docs = _parse_context_documents(raw_context)
+    source_name, raw_generation, canonical_context = _context_source(args, kwargs)
+    generation_docs = _parse_context_documents(raw_generation)
     if not user_query or intent != "TOPICAL_INQUIRY":
         return _original_generate_llm_response(*args, **kwargs)
     profile = _query_profile(user_query)
     is_open_transition = bool(profile["transition"] and profile["open_question"] and not profile["explicit_framework"])
     if not is_open_transition:
         return _original_generate_llm_response(*args, **kwargs)
-    neutral = [doc for doc in docs if not _is_specialized_framework_resource(doc)]
-    aligned = [doc for doc in neutral if _is_query_aligned_transition_doorway(doc, user_query)]
-    if not aligned:
-        print(f"USE v389 transition doorway: source={source_name}, docs={len(docs)}, neutral={len(neutral)}, aligned=0, selected=NONE")
+    recovered = _recover_primary_from_canonical_context(generation_docs, canonical_context, user_query)
+    if not recovered:
+        # Also permit a direct canonical-context candidate only when it is already
+        # represented in the generation evidence by canonical URL identity.
+        generation_urls = {
+            str(doc.get("url") or doc.get("canonical_url") or "").strip().rstrip("/").casefold()
+            for doc in generation_docs
+        }
+        canonical_docs = _parse_context_documents(canonical_context)
+        recovered = [
+            doc for doc in canonical_docs
+            if str(doc.get("url") or doc.get("canonical_url") or "").strip().rstrip("/").casefold() in generation_urls
+            and not _is_specialized_framework_resource(doc)
+            and _is_query_aligned_transition_doorway(doc, user_query)
+        ]
+        recovered = sorted(recovered, key=lambda d: _transition_doorway_score(d, user_query), reverse=True)[:4]
+    if not recovered:
+        print(f"USE v390 transition doorway: source={source_name}, generation_docs={len(generation_docs)}, canonical_docs={len(_parse_context_documents(canonical_context))}, selected=NONE")
         return _direct_open_transition_response([])
-    ranked = sorted(aligned, key=lambda d: _transition_doorway_score(d, user_query), reverse=True)
-    selected = ranked[:1]
-    print(f"USE v389 transition doorway: source={source_name}, docs={len(docs)}, neutral={len(neutral)}, aligned={len(aligned)}, selected={_normalize_title(selected[0].get('title') or '')}")
+    selected = recovered[:1]
+    print(f"USE v390 transition doorway: source={source_name}, generation_docs={len(generation_docs)}, canonical_docs={len(_parse_context_documents(canonical_context))}, selected={_normalize_title(selected[0].get('title') or '')}")
     return _direct_open_transition_response(selected)
 
 app = use_core.app
@@ -186,5 +258,5 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v389_finalize
-print(f"USE v389 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.generate_llm_response = _v390_finalize
+print(f"USE v390 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
