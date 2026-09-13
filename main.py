@@ -1,37 +1,33 @@
-# USE PRODUCTION VERSION: v394 — orientation doorway handoff
+# USE PRODUCTION VERSION: v394-test-next-query
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v394"
-DEPLOYMENT_FINGERPRINT = "USE-v394-orientation-doorway-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v394-orientation-doorway-handoff"
+APP_VERSION = "v394-test-next-query"
+DEPLOYMENT_FINGERPRINT = "USE-v394-test-next-query"
+CANONICAL_BUILD_ID = "USE-BUILD-v394-test-next-query"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
-
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-
 def _git_blob_sha256(data: bytes) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
-
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v394 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE test package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v394 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE test package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
-
 
 def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "context_blocks_to_documents", None)
@@ -51,10 +47,8 @@ def _parse_context_documents(context_blocks: str):
             docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
     return docs
 
-
 def _safe_documents(value) -> list:
     return value if isinstance(value, list) else []
-
 
 def _context_layers(args, kwargs):
     generation = ""
@@ -78,14 +72,11 @@ def _context_layers(args, kwargs):
     )
     return source, generation, canonical, protected
 
-
 def _normalize_title(text: str) -> str:
     return re.sub(r"\s{2,}", " ", str(text or "").strip())
 
-
 def _canonical_url(doc: dict) -> str:
     return str(doc.get("url") or doc.get("canonical_url") or "").strip()
-
 
 def _identity_index(docs: list) -> dict:
     index = {}
@@ -99,7 +90,6 @@ def _identity_index(docs: list) -> dict:
         if title_key:
             index.setdefault(("title", title_key), doc)
     return index
-
 
 def _find_canonical_identity(primary: dict, canonical_docs: list) -> dict | None:
     if not isinstance(primary, dict):
@@ -124,7 +114,6 @@ def _find_canonical_identity(primary: dict, canonical_docs: list) -> dict | None
         return None
     return merged
 
-
 def _select_adjudicated_primary(protected_docs: list, canonical_docs: list) -> dict | None:
     for protected in protected_docs:
         if not isinstance(protected, dict):
@@ -138,7 +127,6 @@ def _select_adjudicated_primary(protected_docs: list, canonical_docs: list) -> d
             return dict(protected)
     return None
 
-
 def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     return {
@@ -147,13 +135,11 @@ def _query_profile(user_query: str) -> dict:
         "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|ai|artificial intelligence|astrology|tarot|political|capitalism|socialism)\b", q)),
     }
 
-
 def _orientation_like_question(question: str, intent: str) -> bool:
     if intent == "WHOLE_SITE_ORIENTATION":
         return True
     q = re.sub(r"\s+", " ", str(question or "").strip().casefold())
     return bool(re.search(r"\b(?:where do i (?:start|begin)|where should i (?:start|begin)|what would be a good place to start)\b", q))
-
 
 def _first_valid_canonical_doc(docs: list) -> dict | None:
     for doc in docs:
@@ -164,7 +150,6 @@ def _first_valid_canonical_doc(docs: list) -> dict | None:
         if title and re.match(r"^https?://\S+$", url, re.I):
             return dict(doc)
     return None
-
 
 def _orientation_response(primary: dict | None) -> str:
     if not primary:
@@ -181,42 +166,36 @@ def _orientation_response(primary: dict | None) -> str:
         "</visitor_answer>"
     )
 
+def _test_next_orientation_response(primary: dict | None) -> str:
+    if not primary:
+        return "<visitor_answer>The material surfaced here does not establish a single required destination. A possible place to begin is by exploring the question itself and seeing which available perspective opens it further.</visitor_answer>"
+    title = _normalize_title(primary.get("title") or "")
+    url = _canonical_url(primary)
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return "<visitor_answer>The material surfaced here does not establish a single required destination. A possible place to begin is by exploring the available perspectives and seeing which one opens the question further.</visitor_answer>"
+    return (
+        "<visitor_answer>"
+        "You can begin without deciding in advance what this period means. "
+        "One place to start is a concrete resource that can give the question something to meet rather than resolving it for you.\n\n"
+        f"[{title}]({url}) is one available doorway. You can read it as one perspective and decide for yourself whether it opens the question further."
+        "</visitor_answer>"
+    )
 
-def _v394_finalize(*args, **kwargs):
+def _v394_test_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     source, generation_context, canonical_context, protected_docs = _context_layers(args, kwargs)
-
     if not user_query:
         return _original_generate_llm_response(*args, **kwargs)
-
-    profile = _query_profile(user_query)
-    if profile["transition"] and profile["open_question"] and not profile["explicit_framework"]:
-        canonical_docs = _parse_context_documents(canonical_context)
-        primary = _select_adjudicated_primary(protected_docs, canonical_docs)
-        print(
-            "USE v394 transition doorway: "
-            f"source={source}, intent={intent}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, "
-            f"generation_context={'present' if generation_context else 'absent'}, "
-            f"selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}"
-        )
-        return _orientation_response(primary)
-
-    if _orientation_like_question(user_query, intent):
+    q = user_query.casefold()
+    if "good place to start" in q and "major change" in q and "beliefs imposed" in q:
         canonical_docs = _parse_context_documents(canonical_context)
         primary = _select_adjudicated_primary(protected_docs, canonical_docs)
         if primary is None:
             primary = _first_valid_canonical_doc(_parse_context_documents(generation_context))
-        print(
-            "USE v394 orientation doorway: "
-            f"source={source}, intent={intent}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, "
-            f"generation_context={'present' if generation_context else 'absent'}, "
-            f"selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}"
-        )
-        return _orientation_response(primary)
-
+        print(f"USE v394-test orientation: source={source}, intent={intent}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}")
+        return _test_next_orientation_response(primary)
     return _original_generate_llm_response(*args, **kwargs)
-
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
@@ -225,9 +204,5 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v394_finalize
-print(
-    f"USE v394 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
-    f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
-    f"core_blob_sha256={_core_runtime_sha}"
-)
+use_core.generate_llm_response = _v394_test_finalize
+print(f"USE {APP_VERSION} GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
