@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v383 — direct open-transition bridge
-# Structural intervention: for open transition inquiries, bypass legacy canonical
-# doorway/generation selection when it would reintroduce semantically unrelated
-# resources. The protected core remains unchanged.
+# USE PRODUCTION VERSION: v384 — visitor authority before generation
+# Structural intervention: open transition inquiries establish the visitor-facing
+# orientation before protected canonical generation can reintroduce unrelated
+# resources. Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v383"
-DEPLOYMENT_FINGERPRINT = "USE-v383-direct-open-transition-bridge"
-CANONICAL_BUILD_ID = "USE-BUILD-v383-direct-open-transition-bridge"
+APP_VERSION = "v384"
+DEPLOYMENT_FINGERPRINT = "USE-v384-visitor-authority-before-generation"
+CANONICAL_BUILD_ID = "USE-BUILD-v384-visitor-authority-before-generation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -24,11 +24,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v383 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v384 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v383 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v384 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -116,9 +116,7 @@ def _transition_evidence_fit(doc: dict, query: str) -> tuple[int, set]:
         "support": bool(re.search(r"\b(?:support|receive|receiving|care|cared|guilt|need|needing|help|helping)\b", hay)),
         "belief": bool(re.search(r"\b(?:belief|believe|faith|spiritual|religious|worldview)\b", hay)),
     }
-    score = 0
-    for key in ("transition", "meaning", "experience", "grounding", "open"):
-        score += int(clusters[key])
+    score = sum(int(clusters[k]) for k in ("transition", "meaning", "experience", "grounding", "open"))
     if re.search(r"\b(?:what comes next|major change|change in my life|life transition|new chapter|lost since|understand the experience|not sure what i believe|without being told what i should feel|without being told what i should believe)\b", q):
         if clusters["transition"] or clusters["meaning"] or clusters["experience"]:
             score += 2
@@ -253,17 +251,42 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _frame_neutral_response(query: str, docs: list):
-    unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
-    if callable(unavailable):
-        return unavailable(query)
-    return {
-        "response": "The Guide could not identify a sufficiently aligned canonical doorway for this transition question yet.",
-        "resources": [],
-    }
+def _direct_open_transition_response(query: str, docs: list) -> dict:
+    """Visitor-facing bounded response for open transition inquiries.
+    Uses only evidence-bound transition-fit resources and does not allow the
+    protected generator to reselect unrelated resources.
+    """
+    if not docs:
+        return {
+            "response": "A possible place to begin is with the experience of transition itself: what changed, what feels uncertain now, and what remains open rather than already decided. The material available here does not establish one particular belief about what that experience means, so the question can remain open while you explore the relevant canonical material.",
+            "resources": [],
+        }
+    primary = docs[0]
+    secondary = docs[1] if len(docs) > 1 else None
+    primary_title = _normalize_title(primary.get("title") or "")
+    primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not primary_title or not re.match(r"^https?://\S+$", primary_url, re.I):
+        return {
+            "response": "A possible place to begin is with the experience of transition itself. The material available here does not establish one particular belief about what the experience means, so the question can remain open while you explore it.",
+            "resources": [],
+        }
+    response = (
+        "A possible place to begin is with the experience of transition itself: a major change can leave what comes next genuinely open, "
+        "especially when you are still finding your own language for what the experience means. The material surfaced here offers a way into "
+        "that inquiry without requiring you to adopt a particular belief.\n\n"
+        f"One useful doorway is [{primary_title}]({primary_url})."
+    )
+    resources = [{"title": primary_title, "url": primary_url}]
+    if secondary:
+        stitle = _normalize_title(secondary.get("title") or "")
+        surl = str(secondary.get("url") or secondary.get("canonical_url") or "").strip()
+        if stitle and re.match(r"^https?://\S+$", surl, re.I):
+            response += f"\n\nA second route, where useful, is [{stitle}]({surl})."
+            resources.append({"title": stitle, "url": surl})
+    return {"response": response, "resources": resources}
 
 
-def _v383_finalize(*args, **kwargs):
+def _v384_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -278,20 +301,16 @@ def _v383_finalize(*args, **kwargs):
         existing_aligned = [doc for doc in docs if _is_query_aligned_transition_doorway(doc, user_query)]
         aligned = _merge_recovered_documents(existing_aligned, recovered)
         if not aligned:
-            return _frame_neutral_response(user_query, docs)
-        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:6]
-        calibrated_context = _rebuild_context_blocks(calibrated_docs)
-        contract = _visitor_experience_contract(user_query, calibrated_docs)
-        # Crucially, pass only transition-fit evidence into the protected generator.
-        # No broad raw context, frame-neutral fallback, or legacy candidate set is supplied.
-        return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
+            return _direct_open_transition_response(user_query, [])
+        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:2]
+        return _direct_open_transition_response(user_query, calibrated_docs)
 
     if profile.get("explicit_framework"):
         return _original_generate_llm_response(*args, **kwargs)
 
     neutral_docs = [doc for doc in docs if not _is_specialized_framework_resource(doc)]
     if not neutral_docs:
-        return _frame_neutral_response(user_query, docs)
+        return _original_generate_llm_response(*args, **kwargs)
     calibrated_context = _rebuild_context_blocks(neutral_docs[:8])
     contract = _visitor_experience_contract(user_query, neutral_docs[:8])
     return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
@@ -304,8 +323,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v383_finalize
+use_core.generate_llm_response = _v384_finalize
 print(
-    f"USE v383 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v384 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
