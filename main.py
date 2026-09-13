@@ -1,12 +1,12 @@
-# USE PRODUCTION VERSION: v372 — neutral transition evidence recovery
+# USE PRODUCTION VERSION: v373 — bounded neutral doorway recovery
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v372"
-DEPLOYMENT_FINGERPRINT = "USE-v372-neutral-transition-evidence-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v372-neutral-transition-evidence-recovery"
+APP_VERSION = "v373"
+DEPLOYMENT_FINGERPRINT = "USE-v373-bounded-neutral-doorway-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v373-bounded-neutral-doorway-recovery"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -15,9 +15,9 @@ def _sha256(data: bytes) -> str: return hashlib.sha256(data).hexdigest()
 def _git_blob_sha256(data: bytes) -> str: return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 _MAIN_PATH = Path(__file__).resolve(); _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
-if not _CORE_PATH.exists(): raise RuntimeError("USE v372 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v373 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
-if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v372 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v373 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 
@@ -37,7 +37,7 @@ def _context_blocks_from_kwargs(args,kwargs):
         if len(args)>i and args[i] and isinstance(args[i],str) and any(k in args[i] for k in ("Title:","URL:","Content:")): return args[i]
     return ""
 
-def _normalize_title(text): return re.sub(r"\s{2,}"," ",str(text or "").strip())
+def _normalize_title(text): return re.sub(r"\s{2,}", " ", str(text or "").strip())
 def _clean_evidence_text(text):
     clean=re.sub(r"<[^>]+>"," ",str(text or "")); clean=re.sub(r"\[[^\]]*evidence excerpt bounded by USE\]"," ",clean,flags=re.I); return re.sub(r"\s+"," ",clean).strip()
 def _resource_link(doc):
@@ -53,32 +53,31 @@ def _query_profile(user_query,docs):
 
 def _is_specialized_framework_resource(doc):
     fn=getattr(use_core,"_is_specialized_framework_resource",None)
-    core_result=False
     if callable(fn):
-        try: core_result=bool(fn(doc))
-        except Exception: core_result=False
+        try:
+            if bool(fn(doc)): return True
+        except Exception: pass
     title=_normalize_title(doc.get("title") or "").casefold(); text=_clean_evidence_text(doc.get("text") or "").casefold(); corpus=f"{title} {text}"
     signals=re.findall(r"\b(?:spiritual awakening|awakening|afterlife|reincarnation|starseed|mystical|ascension|soul(?:'s|s) journey|religious worldview|spiritual worldview|spiritual transformation|spiritual meaning)\b",corpus)
-    return core_result or len(signals)>=2 or bool(re.search(r"\b(?:spiritual awakening|soul(?:'s|s) journey|afterlife|reincarnation|starseed|ascension)\b",title))
+    return len(signals)>=2 or bool(re.search(r"\b(?:spiritual awakening|soul(?:'s|s) journey|afterlife|reincarnation|starseed|ascension)\b",title))
 
 def _frame_neutral_transition_documents(query,docs):
     boundary=getattr(use_core,"_frame_neutral_generation_documents",None)
     if callable(boundary):
         try:
             neutral,bounded=boundary(docs,query,"TOPICAL_INQUIRY")
-            if bounded:
-                return [d for d in neutral if not _is_specialized_framework_resource(d)]
-        except Exception as exc: print(f"USE v372 frame-neutral boundary integration error: {type(exc).__name__}: {exc}")
+            if bounded: docs=[d for d in neutral if not _is_specialized_framework_resource(d)]
+        except Exception as exc: print(f"USE v373 frame-neutral boundary integration error: {type(exc).__name__}: {exc}")
     return [d for d in docs if not _is_specialized_framework_resource(d)]
 
 def _transition_evidence_fit(doc,profile):
     title=_normalize_title(doc.get("title") or ""); text=_clean_evidence_text(doc.get("text") or ""); corpus=f"{title} {text}"
-    clusters={"transition":bool(re.search(r"\b(?:change|changed|transition|new chapter|starting over|begin again|moving forward|what comes next|uncertainty|uncertain|loss of role|life change|life transition|turning point|reorientation|reorient)\b",corpus,re.I)),"meaning":bool(re.search(r"\b(?:meaning|purpose|identity|perspective|understanding|wisdom|belief|significance|sense-making)\b",corpus,re.I)),"experience":bool(re.search(r"\b(?:experience|lived|feelings?|emotion|emotional|inner life|journey|navigate|navigating|felt|feel)\b",corpus,re.I)),"open":bool(re.search(r"\b(?:question|explore|exploring|possibility|uncertainty|uncertain|different ways|multiple ways|not one answer|no single answer)\b",corpus,re.I)),"grounding":bool(re.search(r"\b(?:life|personal|human|lived experience|identity|role|circumstance|situation|relationships?|work|family)\b",corpus,re.I)),"worldview":bool(_is_specialized_framework_resource(doc))}
+    clusters={"transition":bool(re.search(r"\b(?:change|changed|transition|new chapter|starting over|begin again|moving forward|what comes next|uncertainty|uncertain|loss of role|life change|life transition|turning point|reorientation|reorient)\b",corpus,re.I)),"meaning":bool(re.search(r"\b(?:meaning|purpose|identity|perspective|understanding|wisdom|belief|significance|sense-making)\b",corpus,re.I)),"experience":bool(re.search(r"\b(?:experience|lived|feelings?|emotion|emotional|inner life|journey|navigate|navigating|felt|feel)\b",corpus,re.I)),"open":bool(re.search(r"\b(?:question|explore|exploring|possibility|uncertainty|uncertain|different ways|multiple ways|not one answer|no single answer|perspective|perspectives)\b",corpus,re.I)),"grounding":bool(re.search(r"\b(?:life|personal|human|lived experience|identity|role|circumstance|situation|relationships?|work|family)\b",corpus,re.I)),"worldview":bool(_is_specialized_framework_resource(doc))}
     axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding")); score=sum(int(v) for v in clusters.values())
     if clusters["transition"]: score+=2
     if clusters["meaning"] and clusters["experience"]: score+=1
     if clusters["open"]: score+=1
-    if clusters["worldview"] and axes<4: score-=3
+    if clusters["worldview"]: score-=4
     if axes<3: score-=3
     return score,clusters
 
@@ -95,51 +94,52 @@ def _transition_retrieval_strategy(user_query):
     query=str(user_query or "").strip(); profile=_query_profile(query,[]); retriever=getattr(use_core,"_function_targeted_candidate_search",None); recovered=[]
     if callable(retriever):
         try: recovered=retriever(query) or []
-        except Exception as exc: print(f"USE v372 transition strategy: function-targeted retrieval error: {type(exc).__name__}: {exc}")
+        except Exception as exc: print(f"USE v373 transition function-targeted retrieval error: {type(exc).__name__}: {exc}")
     semantic=[]; embed=getattr(use_core,"generate_embedding",None); query_index=getattr(use_core,"_query_index",None)
     if callable(embed) and callable(query_index):
         variants=(
-            f"Visitor question: {query}\nRequested resource function: transition and orientation entry after a major life change.\nVisitor axes: uncertainty, identity, meaning, lived experience, reorientation, what comes next.\nOpen inquiry: preserve multiple possible interpretations without prescribing a worldview.",
-            f"Life transition, reorientation and meaning-making after major change; identity, uncertainty, lived experience, relationships, work, family, and what comes next. Seek broad human orientation resources, not spiritual-awakening or other specialized worldview resources. Original question: {query}",
+            f"Visitor question: {query}\nRequested resource function: orientation entry after a major life change. Visitor axes: uncertainty, identity, meaning, lived experience, reorientation, what comes next. Open inquiry: preserve multiple possible interpretations without prescribing a worldview.",
+            f"Life transition, reorientation and meaning-making after major change; identity, uncertainty, lived experience, relationships, work, family, perspective, and what comes next. Seek broad human orientation resources, not spiritual-awakening or another specialized worldview.",
+            f"How people navigate major life changes, changing identities, uncertainty, purpose, relationships, work, family, and making sense of a new chapter. Open, worldview-neutral perspectives are preferred.",
         )
         for variant in variants:
             try:
                 vector=embed(variant)
                 if not vector: continue
-                for score,_,metadata in query_index(vector,min(max(getattr(use_core,"RETRIEVAL_TOP_K",12)*3,36),72)):
+                for score,_,metadata in query_index(vector,min(max(getattr(use_core,"RETRIEVAL_TOP_K",12)*4,48),96)):
                     if isinstance(metadata,dict): semantic.append((float(score or 0.0),metadata))
-            except Exception as exc: print(f"USE v372 transition strategy: semantic recovery error: {type(exc).__name__}: {exc}")
+            except Exception as exc: print(f"USE v373 semantic recovery error: {type(exc).__name__}: {exc}")
     sources=[]
     if isinstance(recovered,list):
-        for rank,doc in enumerate(recovered[:20]): sources.append((1.0+max(0,20-rank)*0.01,doc,"function"))
-    for rank,(score,doc) in enumerate(semantic): sources.append((float(score or 0.0)+max(0,36-rank)*0.001,doc,"semantic"))
-    scored=[]; seen=set()
+        for rank,doc in enumerate(recovered[:30]): sources.append((1.0+max(0,30-rank)*0.005,doc,"function"))
+    for rank,(score,doc) in enumerate(semantic): sources.append((float(score or 0.0)+max(0,48-rank)*0.001,doc,"semantic"))
+    ranked=[]; seen=set()
     for retrieval_score,doc,source in sources:
         if not isinstance(doc,dict): continue
         if _is_specialized_framework_resource(doc) and not profile.get("explicit_worldview"): continue
         key=str(doc.get("url") or doc.get("canonical_url") or doc.get("title") or "").casefold().rstrip("/")
-        if key and key in seen: continue
+        if not key or key in seen: continue
         seen.add(key)
         fit,clusters=_transition_evidence_fit(doc,profile); axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
-        if not (clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=6 and not clusters["worldview"]): continue
-        source_bonus=2 if source=="function" else 0
-        authority=fit+(6 if axes==4 else 0)+(2 if clusters["open"] and clusters["meaning"] and clusters["experience"] else 0)+source_bonus
-        scored.append((authority,axes,retrieval_score,doc))
-    scored.sort(key=lambda x:(x[0],x[1],x[2]),reverse=True)
-    return _merge_recovered_documents([], [x[3] for x in scored[:20]])
+        if axes>=3 and clusters["transition"] and clusters["open"] and fit>=4 and not clusters["worldview"]:
+            authority=fit+(7 if axes==4 else 0)+(2 if clusters["meaning"] and clusters["experience"] else 0)+(2 if source=="function" else 0)
+            ranked.append((authority,axes,retrieval_score,doc))
+    ranked.sort(key=lambda x:(x[0],x[1],x[2]),reverse=True)
+    return _merge_recovered_documents([], [x[3] for x in ranked[:24]])
 
 def _recover_transition_candidates(query): return _transition_retrieval_strategy(query)
 
 def _transition_primary_candidate_from_context(query,docs):
     profile=_query_profile(query,docs)
     if not profile.get("transition") or not profile.get("open_question"): return None
-    bounded=_frame_neutral_transition_documents(query,docs); selector=getattr(use_core,"select_canonical_doorways",None)
+    bounded=_frame_neutral_transition_documents(query,docs)
+    selector=getattr(use_core,"select_canonical_doorways",None)
     if not callable(selector) or not bounded: return None
     try: selected=selector(bounded,{"primary":"transition","scores":{"transition":1}},question=query)
-    except Exception as exc: print(f"USE v372 canonical transition doorway selection error: {type(exc).__name__}: {exc}"); return None
+    except Exception as exc: print(f"USE v373 canonical transition doorway selection error: {type(exc).__name__}: {exc}"); return None
     for candidate in selected:
         fit,clusters=_transition_evidence_fit(candidate,profile); axes=sum(int(clusters[k]) for k in ("transition","meaning","experience","grounding"))
-        if not clusters["worldview"] and clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=6 and axes>=4: return candidate
+        if not clusters["worldview"] and clusters["transition"] and axes>=3 and clusters["open"] and fit>=4: return candidate
     return None
 
 def _guide_answer(user_query,primary,docs):
@@ -147,43 +147,22 @@ def _guide_answer(user_query,primary,docs):
     if profile.get("grief"): opening="Grief does not need to be reduced to one explanation before you begin exploring it."; bridge=f"A useful place to begin is [{title}]({url}), as a meeting point for psychological, spiritual, and other ways of understanding loss."
     else: opening="You do not need to settle what this experience means before you begin exploring it."; bridge=f"A useful place to begin is [{title}]({url}), as one lens among several rather than a final answer."
     sections=[opening,bridge,"It offers a place to explore the question while leaving room for different ways of understanding what you are experiencing."]
-    if profile.get("transition"):
-        fit_docs=[]; seen=set()
-        for d in _frame_neutral_transition_documents(user_query,docs):
-            fit,clusters=_transition_evidence_fit(d,profile)
-            if clusters["transition"] and clusters["meaning"] and clusters["experience"] and clusters["grounding"] and clusters["open"] and fit>=6 and not clusters["worldview"]:
-                key=_normalize_title(d.get("title") or "").casefold()
-                if key==title.casefold() or key in seen: continue
-                fit_docs.append((fit,d)); seen.add(key)
-        fit_docs.sort(key=lambda x:(x[0],_normalize_title(x[1].get("title") or "").casefold()),reverse=True)
-        roles=[]
-        for _,d in fit_docs[:2]:
-            link=_resource_link(d)
-            if link: roles.append(f"{link} — for change, transition, identity, and what comes next.")
-        if roles: sections.append("From there, you can follow a couple of nearby reflections:\n\n"+"\n\n".join(roles))
     return "\n\n".join(x.strip() for x in sections if x.strip())
 
-def _v372_finalize(*args,**kwargs):
+def _v373_finalize(*args,**kwargs):
     query=str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else "")); context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(context); intent=str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args)>2 else "")).strip().upper(); recommendation=use_core._is_recommendation_question(query)
     if not recommendation and (not intent or intent=="TOPICAL_INQUIRY"):
         profile=_query_profile(query,docs)
         if profile.get("transition") and profile.get("open_question"):
             recovered=_recover_transition_candidates(query); merged=_merge_recovered_documents(_frame_neutral_transition_documents(query,docs),recovered); selected=_transition_primary_candidate_from_context(query,merged)
             if selected:
-                print(f"USE v372 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', frame_neutral=True, canonical_selector=True, provider_generation_skipped=True")
+                print(f"USE v373 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', frame_neutral=True, canonical_selector=True, provider_generation_skipped=True")
                 return _guide_answer(query,selected,merged)
-            print("USE v372 TRANSITION EVIDENCE GATE: no sufficiently grounded frame-neutral canonical evidence; provider_generation_skipped=True")
+            print("USE v373 TRANSITION EVIDENCE GATE: no sufficiently grounded frame-neutral canonical evidence; provider_generation_skipped=True")
             return "The Living Archive does not currently have sufficiently grounded frame-neutral canonical material for this particular question, and I do not want to make a specialized worldview the doorway merely because its wording overlaps. It is better to leave the doorway open than presume what you believe."
-        for name in ("_find_primary","_meaning_question_can_use_guide","_grief_question_can_use_guide"):
-            fn=getattr(use_core,name,None)
-            if callable(fn):
-                try:
-                    result=fn(query,docs)
-                    if result is False: return _original_generate_llm_response(*args,**kwargs)
-                except Exception: pass
     return _original_generate_llm_response(*args,**kwargs)
 
 app=use_core.app
 app.title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v372_finalize
-print(f"USE v372 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v373_finalize
+print(f"USE v373 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
