@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v382 — transition selection continuation
-# Structural intervention: for open transition inquiries, continue transition-fit
-# selection through generation so frame-neutral but unrelated resources cannot
-# displace the transition evidence bridge. Protected use_core.py remains unchanged.
+# USE PRODUCTION VERSION: v383 — direct open-transition bridge
+# Structural intervention: for open transition inquiries, bypass legacy canonical
+# doorway/generation selection when it would reintroduce semantically unrelated
+# resources. The protected core remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v382"
-DEPLOYMENT_FINGERPRINT = "USE-v382-transition-selection-continuation"
-CANONICAL_BUILD_ID = "USE-BUILD-v382-transition-selection-continuation"
+APP_VERSION = "v383"
+DEPLOYMENT_FINGERPRINT = "USE-v383-direct-open-transition-bridge"
+CANONICAL_BUILD_ID = "USE-BUILD-v383-direct-open-transition-bridge"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -24,11 +24,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v382 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v383 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v382 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v383 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -76,13 +76,12 @@ def _query_profile(user_query: str, docs: list) -> dict:
         q,
     ))
     return {
-        "sensitive": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", q)),
-        "grief": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss of (?:a|my|someone|somebody)|lost (?:someone|somebody)|loved one|mourning)\b", q)),
-        "risk": bool(re.search(r"\b(?:suicide|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
-        "transition": bool(re.search(r"\b(?:major change|change in (?:my|our) life|life change|life transition|transition|new chapter|what comes next|what comes after|lost since|since .*change|after .*change|starting over|begin again|moving forward|identity|uncertain what comes next)\b", q)),
+        "transition": bool(re.search(r"\b(?:major change|change in (?:my|our) life|life change|life transition|transition|new chapter|what comes next|what comes after|lost since|since .*change|after .*change|starting over|beginning again|begin again|moving forward|identity|uncertain what comes next)\b", q)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|why am i here|what is the point|what does it all mean|make sense|understand the experience)\b", q)),
         "open_question": bool(re.search(r"\b(?:how do i make sense|what do people believe|what are the possibilities|is there more|what happens after|what if there is no|i don't know what to believe|not sure what to believe|does anyone know|can anyone know|different perspectives|many perspectives|open question|no single answer|not sure|uncertain)\b", q)),
         "explicit_framework": explicit_framework,
+        "sensitive": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicide|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
     }
 
 
@@ -102,81 +101,67 @@ def _is_specialized_framework_resource(doc: dict) -> bool:
     return bool(_resource_frame_groups(doc))
 
 
-def _requested_frame_groups(query: str) -> set:
-    profile = _query_profile(query, [])
-    groups = set()
-    if profile.get("explicit_framework"):
-        q = str(query or "").casefold()
-        if re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|astrology|tarot)\b", q):
-            groups.add("worldview")
-        if re.search(r"\b(?:political|capitalism|socialism)\b", q):
-            groups.add("political")
-    return groups
-
-
-def _transition_evidence_fit(doc: dict, profile: dict):
+def _transition_evidence_fit(doc: dict, query: str) -> tuple[int, set]:
     title = _normalize_title(doc.get("title") or "").casefold()
     text = _clean_evidence_text(doc.get("text") or "").casefold()
     hay = f"{title} {text}"
+    q = str(query or "").casefold()
     clusters = {
-        "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning)\b", hay)),
+        "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning|life change)\b", hay)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|identity|sensemaking|sense-making|making sense)\b", hay)),
         "experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating)\b", hay)),
         "grounding": bool(re.search(r"\b(?:ground|grounding|practical|reflect|reflection|notice|naming|journal|practice)\b", hay)),
         "open": bool(re.search(r"\b(?:perspective|perspectives|possibilit|different views|different approaches|uncertainty|no single answer|question)\b", hay)),
-        "worldview": bool(_resource_frame_groups(doc)),
+        "worldview": _is_specialized_framework_resource(doc),
         "support": bool(re.search(r"\b(?:support|receive|receiving|care|cared|guilt|need|needing|help|helping)\b", hay)),
         "belief": bool(re.search(r"\b(?:belief|believe|faith|spiritual|religious|worldview)\b", hay)),
     }
-    score = sum(int(v) for k, v in clusters.items() if k in ("transition", "meaning", "experience", "grounding", "open"))
+    score = 0
+    for key in ("transition", "meaning", "experience", "grounding", "open"):
+        score += int(clusters[key])
+    if re.search(r"\b(?:what comes next|major change|change in my life|life transition|new chapter|lost since|understand the experience|not sure what i believe|without being told what i should feel|without being told what i should believe)\b", q):
+        if clusters["transition"] or clusters["meaning"] or clusters["experience"]:
+            score += 2
     return score, clusters
 
 
-def _transition_query_fit(query: str) -> dict:
-    q = re.sub(r"\s+", " ", str(query or "").strip().casefold())
-    return {
-        "transition": bool(re.search(r"\b(?:major change|life change|life transition|transition|new chapter|starting over|begin again|moving forward|what comes next|uncertain what comes next|lost since|change in my life)\b", q)),
-        "meaning": bool(re.search(r"\b(?:meaning|purpose|identity|make sense|understand the experience)\b", q)),
-        "open": bool(re.search(r"\b(?:not sure what i believe|not sure|uncertain|open question|no single answer|without being told what i should feel|without being told what i should believe|different perspectives|possibilities)\b", q)),
-        "support": bool(re.search(r"\b(?:support|receiv|guilt|need|help)\b", q)),
-    }
-
-
-def _transition_doorway_score(doc: dict, query: str) -> int:
-    fit, clusters = _transition_evidence_fit(doc, _query_profile(query, []))
-    qfit = _transition_query_fit(query)
-    score = fit * 5
-    if clusters["transition"] and qfit["transition"]:
-        score += 8
-    if clusters["meaning"] and qfit["meaning"]:
-        score += 5
-    if clusters["open"] and qfit["open"]:
-        score += 5
-    if clusters["experience"]:
-        score += 3
-    if clusters["grounding"]:
-        score += 3
-    if clusters["support"] and not qfit["support"]:
-        score -= 9
-    if clusters["belief"] and qfit["open"] and not qfit["support"]:
-        score -= 5
-    if _is_specialized_framework_resource(doc):
-        score -= 20
-    return score
-
-
 def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
-    score, clusters = _transition_evidence_fit(doc, _query_profile(query, []))
-    qfit = _transition_query_fit(query)
-    if not qfit["transition"]:
+    qfit = _query_profile(query, [])
+    if not qfit["transition"] or qfit["explicit_framework"]:
         return False
+    score, clusters = _transition_evidence_fit(doc, query)
     if not clusters["transition"]:
         return False
     if not (clusters["experience"] or clusters["meaning"]):
         return False
     if not clusters["open"] and not qfit["meaning"]:
         return False
-    return score >= 15
+    if score < 10:
+        return False
+    return True
+
+
+def _transition_doorway_score(doc: dict, query: str) -> int:
+    score, clusters = _transition_evidence_fit(doc, query)
+    qfit = _query_profile(query, [])
+    score *= 5
+    if clusters["transition"] and qfit["transition"]:
+        score += 8
+    if clusters["meaning"] and qfit["meaning"]:
+        score += 5
+    if clusters["open"] and qfit["open_question"]:
+        score += 5
+    if clusters["experience"]:
+        score += 3
+    if clusters["grounding"]:
+        score += 3
+    if clusters["support"] and not qfit["transition"]:
+        score -= 9
+    if clusters["belief"] and qfit["open_question"] and not qfit["explicit_framework"]:
+        score -= 7
+    if clusters["worldview"] and not qfit["explicit_framework"]:
+        score -= 20
+    return score
 
 
 def _merge_recovered_documents(existing: list, recovered: list):
@@ -213,10 +198,9 @@ def _transition_retrieval_strategy(query: str):
         seen.add(key)
         if not _is_query_aligned_transition_doorway(doc, query):
             continue
-        fit, _clusters = _transition_evidence_fit(doc, _query_profile(query, []))
-        ranked.append((_transition_doorway_score(doc, query), fit, doc))
-    ranked.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    return _merge_recovered_documents([], [x[2] for x in ranked[:24]])
+        ranked.append((_transition_doorway_score(doc, query), doc))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    return [doc for _score, doc in ranked[:8]]
 
 
 def _rebuild_context_blocks(docs: list) -> str:
@@ -230,7 +214,7 @@ def _rebuild_context_blocks(docs: list) -> str:
     return "\n\n---\n\n".join(blocks)
 
 
-def _visitor_experience_contract(query: str, docs: list, frame_neutral: bool) -> dict:
+def _visitor_experience_contract(query: str, docs: list) -> dict:
     profile = _query_profile(query, docs)
     return {
         "visitor_experience": True,
@@ -239,7 +223,7 @@ def _visitor_experience_contract(query: str, docs: list, frame_neutral: bool) ->
         "avoid_unrequested_framework_as_primary": bool(profile.get("open_question") and not profile.get("explicit_framework")),
         "prefer_human_orientation_before_interpretation": True,
         "prefer_smallest_useful_doorway": True,
-        "frame_neutral_generation": bool(frame_neutral),
+        "frame_neutral_generation": True,
         "risk_present": bool(profile.get("risk")),
         "allow_interpretive_evidence_as_non_authoritative": bool(profile.get("open_question") and not profile.get("explicit_framework")),
     }
@@ -269,36 +253,47 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _v382_finalize(*args, **kwargs):
+def _frame_neutral_response(query: str, docs: list):
+    unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
+    if callable(unavailable):
+        return unavailable(query)
+    return {
+        "response": "The Guide could not identify a sufficiently aligned canonical doorway for this transition question yet.",
+        "resources": [],
+    }
+
+
+def _v383_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
     if not user_query or intent != "TOPICAL_INQUIRY":
         return _original_generate_llm_response(*args, **kwargs)
+
     profile = _query_profile(user_query, docs)
     is_open_transition = bool(profile.get("transition") and profile.get("open_question") and not profile.get("explicit_framework"))
-    recovered_docs = _transition_retrieval_strategy(user_query) if is_open_transition else []
-    merged_docs = _merge_recovered_documents(docs, recovered_docs)
     if is_open_transition:
-        aligned = [doc for doc in merged_docs if _is_query_aligned_transition_doorway(doc, user_query)]
+        recovered = _transition_retrieval_strategy(user_query)
+        existing_aligned = [doc for doc in docs if _is_query_aligned_transition_doorway(doc, user_query)]
+        aligned = _merge_recovered_documents(existing_aligned, recovered)
         if not aligned:
-            unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
-            if callable(unavailable):
-                return unavailable(user_query)
-            return {"response": "The Guide could not identify a sufficiently aligned canonical doorway for this transition question yet.", "resources": []}
-        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:8]
+            return _frame_neutral_response(user_query, docs)
+        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:6]
         calibrated_context = _rebuild_context_blocks(calibrated_docs)
-        contract = _visitor_experience_contract(user_query, calibrated_docs, False)
+        contract = _visitor_experience_contract(user_query, calibrated_docs)
+        # Crucially, pass only transition-fit evidence into the protected generator.
+        # No broad raw context, frame-neutral fallback, or legacy candidate set is supplied.
         return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
-    calibrated_docs, frame_neutral = _frame_neutral_generation_documents(user_query, intent, merged_docs)
-    if frame_neutral and not calibrated_docs:
-        unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
-        if callable(unavailable):
-            return unavailable(user_query)
+
+    if profile.get("explicit_framework"):
         return _original_generate_llm_response(*args, **kwargs)
-    calibrated_context = _rebuild_context_blocks(calibrated_docs) if frame_neutral else raw_context
-    contract = _visitor_experience_contract(user_query, calibrated_docs, frame_neutral)
+
+    neutral_docs = [doc for doc in docs if not _is_specialized_framework_resource(doc)]
+    if not neutral_docs:
+        return _frame_neutral_response(user_query, docs)
+    calibrated_context = _rebuild_context_blocks(neutral_docs[:8])
+    contract = _visitor_experience_contract(user_query, neutral_docs[:8])
     return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
 
 
@@ -309,8 +304,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v382_finalize
+use_core.generate_llm_response = _v383_finalize
 print(
-    f"USE v382 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v383 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
