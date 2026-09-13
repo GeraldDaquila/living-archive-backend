@@ -1,2 +1,0 @@
-# bridge debug marker
-v386-bridge-source-validated
