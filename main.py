@@ -1,14 +1,15 @@
-# USE PRODUCTION VERSION: v367 — transition retrieval source balance
-# Based on v366 with one structural repair: recovered candidates are preserved alongside
-# semantic candidates so upstream canonical retrieval cannot be dominated by one worldview-adjacent semantic cluster.
+# USE PRODUCTION VERSION: v368 — transition retrieval function alignment
+# Based on v367 with one structural repair: transition recovery prioritizes the existing
+# protected function-targeted retrieval contract before semantic expansion, and uses
+# semantic retrieval only to supplement that function-shaped evidence.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v367"
-DEPLOYMENT_FINGERPRINT = "USE-v367-transition-retrieval-source-balance"
-CANONICAL_BUILD_ID = "USE-BUILD-v367-transition-retrieval-source-balance"
+APP_VERSION = "v368"
+DEPLOYMENT_FINGERPRINT = "USE-v368-transition-retrieval-function-alignment"
+CANONICAL_BUILD_ID = "USE-BUILD-v368-transition-retrieval-function-alignment"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _BENCHMARK_PRIMARY_TITLE = "The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom"
 _BENCHMARK_PRIMARY_URL = "https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"
@@ -17,9 +18,9 @@ def _sha256(data: bytes) -> str: return hashlib.sha256(data).hexdigest()
 def _git_blob_sha256(data: bytes) -> str: return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 _MAIN_PATH = Path(__file__).resolve(); _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
-if not _CORE_PATH.exists(): raise RuntimeError("USE v367 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v368 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
-if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v367 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v368 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 
@@ -87,27 +88,26 @@ def _merge_recovered_documents(primary_docs,recovered_docs):
     return merged
 
 def _transition_retrieval_strategy(user_query):
-    query=str(user_query or "").strip(); retriever=getattr(use_core,"_function_targeted_candidate_search",None); recovered=[]
+    query=str(user_query or "").strip(); profile=_query_profile(query,[])
+    retriever=getattr(use_core,"_function_targeted_candidate_search",None); recovered=[]
     if callable(retriever):
         try: recovered=retriever(query) or []
-        except Exception as exc: print(f"USE v367 transition strategy: function-targeted retrieval error: {type(exc).__name__}: {exc}")
+        except Exception as exc: print(f"USE v368 transition strategy: function-targeted retrieval error: {type(exc).__name__}: {exc}")
     semantic=[]; embed=getattr(use_core,"generate_embedding",None); query_index=getattr(use_core,"_query_index",None)
     if callable(embed) and callable(query_index):
-        variants=(f"Visitor question: {query}\nLife transition: major change, uncertainty, identity, meaning, lived experience, what comes next.\nRequested function: transition and orientation entry.",f"Life transition and reorientation after a major change; identity, meaning, uncertainty, lived experience, and what comes next. Visitor question: {query}")
+        variants=(f"Visitor question: {query}\nRequested resource function: transition and orientation entry after a major life change.\nVisitor axes: uncertainty, identity, meaning, lived experience, what comes next.\nOpen inquiry: preserve multiple possible interpretations without prescribing a worldview.",f"Transition-orientation doorway for a visitor navigating a major life change; focus on reorientation, identity, meaning, lived experience, uncertainty, and what comes next. Do not assume spiritual awakening, afterlife, reincarnation, or another worldview unless explicitly asked. Original question: {query}")
         for variant in variants:
             try:
                 vector=embed(variant)
                 if not vector: continue
                 for score,_,metadata in query_index(vector,min(max(getattr(use_core,"RETRIEVAL_TOP_K",12)*2,24),48)):
                     if isinstance(metadata,dict): semantic.append((float(score or 0.0),metadata))
-            except Exception as exc: print(f"USE v367 transition strategy: semantic recovery error: {type(exc).__name__}: {exc}")
-    profile=_query_profile(query,[]); scored=[]
+            except Exception as exc: print(f"USE v368 transition strategy: semantic recovery error: {type(exc).__name__}: {exc}")
+    scored=[]
     sources=[]
     if isinstance(recovered,list):
-        for rank,doc in enumerate(recovered[:12]):
-            sources.append((1.0 + max(0,12-rank)*0.01,doc,"function"))
-    for rank,(score,doc) in enumerate(semantic):
-        sources.append((float(score or 0.0) + max(0,24-rank)*0.001,doc,"semantic"))
+        for rank,doc in enumerate(recovered[:12]): sources.append((1.0+max(0,12-rank)*0.01,doc,"function"))
+    for rank,(score,doc) in enumerate(semantic): sources.append((float(score or 0.0)+max(0,24-rank)*0.001,doc,"semantic"))
     seen=set()
     for retrieval_score,doc,source in sources:
         if not isinstance(doc,dict): continue
@@ -147,14 +147,14 @@ def _guide_answer(user_query,primary,docs):
         if roles: sections.append("From there, you can follow a couple of nearby reflections:\n\n"+"\n\n".join(roles))
     return "\n\n".join(x.strip() for x in sections if x.strip())
 
-def _v367_finalize(*args,**kwargs):
+def _v368_finalize(*args,**kwargs):
     query=str(kwargs.get("user_query") if kwargs.get("user_query") is not None else (args[0] if args else "")); context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(context); intent=str(kwargs.get("intent") if kwargs.get("intent") is not None else (args[2] if len(args)>2 else "")).strip().upper(); recommendation=use_core._is_recommendation_question(query)
     if not recommendation and (not intent or intent=="TOPICAL_INQUIRY"):
         profile=_query_profile(query,docs)
         if profile.get("transition") and profile.get("open_question"):
             recovered=_recover_transition_candidates(query); merged=_merge_recovered_documents(docs,recovered); selected=_transition_primary_candidate_from_context(query,merged)
-            if selected: print(f"USE v367 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', provider_generation_skipped=True"); return _guide_answer(query,selected,merged)
-            print("USE v367 TRANSITION EVIDENCE GATE: no sufficiently aligned canonical evidence; provider_generation_skipped=True"); return "The Living Archive does not currently have sufficiently grounded canonical material for this particular question, and I do not want to point you to a resource merely because its wording happens to overlap. It is better to leave the doorway open than pretend an unrelated resource is the right place to begin."
+            if selected: print(f"USE v368 TRANSITION EVIDENCE GATE: primary='{_normalize_title(selected.get('title') or '')}', provider_generation_skipped=True"); return _guide_answer(query,selected,merged)
+            print("USE v368 TRANSITION EVIDENCE GATE: no sufficiently aligned canonical evidence; provider_generation_skipped=True"); return "The Living Archive does not currently have sufficiently grounded canonical material for this particular question, and I do not want to point you to a resource merely because its wording happens to overlap. It is better to leave the doorway open than pretend an unrelated resource is the right place to begin."
         for name in ("_find_primary","_meaning_question_can_use_guide","_grief_question_can_use_guide"):
             fn=getattr(use_core,name,None)
             if callable(fn):
@@ -168,5 +168,5 @@ def _v367_finalize(*args,**kwargs):
 
 app=use_core.app
 app.title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v367_finalize
-print(f"USE v367 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.generate_llm_response=_v368_finalize
+print(f"USE v368 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
