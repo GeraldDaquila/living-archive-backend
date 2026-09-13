@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v385 — open-transition doorway fit
-# Structural intervention: open transition inquiries preserve visitor authority while
-# accepting substantive transition evidence without requiring a brittle lexical profile.
+# USE PRODUCTION VERSION: v386 — browser response visibility
+# Structural intervention: preserve v385 visitor authority while making backend/browser
+# transport failures observable without changing protected core behavior.
 # Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v385"
-DEPLOYMENT_FINGERPRINT = "USE-v385-open-transition-doorway-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v385-open-transition-doorway-fit"
+APP_VERSION = "v386"
+DEPLOYMENT_FINGERPRINT = "USE-v386-browser-response-visibility"
+CANONICAL_BUILD_ID = "USE-BUILD-v386-browser-response-visibility"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 def _sha256(data: bytes) -> str:
@@ -22,11 +22,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v385 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v386 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v385 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v386 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -209,7 +209,7 @@ def _direct_open_transition_response(query: str, docs: list) -> dict:
         "resources": [{"title": primary_title, "url": primary_url}],
     }
 
-def _v385_finalize(*args, **kwargs):
+def _v386_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -238,8 +238,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v385_finalize
+use_core.generate_llm_response = _v386_finalize
 print(
-    f"USE v385 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v386 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
