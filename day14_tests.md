@@ -10,4 +10,7 @@ Targets:
 - no upstream retrieval/reasoning reopening
 - no validator/application conflation
 
-Status: structural implementation not yet committed; this file is a validation contract only.
+Validation status:
+- v392 structural layer committed on working branch.
+- use_core.py remains protected and byte-identical by runtime SHA guard.
+- secondary selection now enforces distinct role keys; continuity and existential-loneliness routes can no longer collapse into one first-match role.
