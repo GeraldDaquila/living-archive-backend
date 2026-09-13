@@ -1,49 +1,49 @@
-# USE PRODUCTION VERSION: v391 — restore v389 engine and apply local grief refinement
-# v390 deployment exposed an accidental validator-as-runtime replacement of main.py.
-# Restore the complete v389 engine, then apply only the intended local grief edits.
-# Protected use_core.py remains unchanged.
+# USE PRODUCTION VERSION: v392 — structural complementary visitor navigation
+# v391 remains the protected production baseline; this wrapper changes only visitor-facing
+# sensitive recommendation role selection/construction. Protected use_core.py is unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v391"
-DEPLOYMENT_FINGERPRINT = "USE-v391-grief-local-refinement-restored"
-CANONICAL_BUILD_ID = "USE-BUILD-v391-grief-local-refinement-restored"
+APP_VERSION = "v392"
+DEPLOYMENT_FINGERPRINT = "USE-v392-structural-complementary-navigation"
+CANONICAL_BUILD_ID = "USE-BUILD-v392-structural-complementary-navigation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v391 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v392 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v391 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v392 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
-_original_recommendation_output_authority = getattr(use_core, "_enforce_recommendation_output_authority", None)
-_original_recommendation_resource_identity = getattr(use_core, "_enforce_recommendation_resource_identity", None)
-_original_violation = getattr(use_core, "_v308_compassionate_voice_violation", None)
 
 def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "_parse_context_documents", None)
-    if callable(parser): return parser(context_blocks)
+    if callable(parser):
+        return parser(context_blocks)
     docs = []
     for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
         tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
         um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
         cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
-        if tm and um and cm: docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
+        if tm and um and cm:
+            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
     return docs
 
 def _context_blocks_from_kwargs(args, kwargs):
     for key in ("retrieved_context_blocks", "canonical_link_context", "retrieved_context", "context_blocks"):
-        if kwargs.get(key): return str(kwargs[key])
+        if kwargs.get(key):
+            return str(kwargs[key])
     for index in (1, 2, 3, 4, 5):
-        if len(args) > index and isinstance(args[index], str) and any(k in args[index] for k in ("Title:", "URL:", "Content:")): return args[index]
+        if len(args) > index and isinstance(args[index], str) and any(k in args[index] for k in ("Title:", "URL:", "Content:")):
+            return args[index]
     return ""
 
 def _normalize_title(text: str) -> str:
@@ -54,118 +54,140 @@ def _resource_link(doc: dict) -> str:
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     return f"[{title}]({url})" if title and url else ""
 
-def _query_profile(user_query: str, docs: list) -> dict:
+def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
-    return {"sensitive": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", q)), "grief": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|death|died|dying|loved one)\b", q)), "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)), "meaning": bool(re.search(r"\b(?:meaning|understanding|perspective|wisdom|why|purpose|identity|continuity|spiritual|afterlife|belief)\b", q)), "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot)\b", q))}
+    return {
+        "sensitive": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", q)),
+        "grief": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|death|died|dying|loved one)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
+        "meaning": bool(re.search(r"\b(?:meaning|understanding|perspective|wisdom|why|purpose|identity|continuity|spiritual|afterlife|belief)\b", q)),
+        "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot)\b", q)),
+    }
+
+def _is_acute_risk_resource(doc: dict) -> bool:
+    corpus = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
+    return bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus, re.I))
+
+def _role_evidence(doc: dict) -> dict:
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
+    return {
+        "continuity": bool(re.search(r"\b(?:continuity|connection|bond|relationship|belonging|identity|endure|what may remain|what may endure|presence)\b", text)),
+        "lived_loss": bool(re.search(r"\b(?:grief|grieving|bereavement|mourning|loss|death|dying|mortality|sorrow|pain of loss|living with loss)\b", text)),
+        "existential_loneliness": bool(re.search(r"\b(?:loneliness|lonely|despair|emptiness|isolation|existential|meaninglessness|alone|redemptive power|eternal now)\b", text)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", text)),
+        "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", text)),
+        "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden)\b", text)),
+    }
+
+def _candidate_role(doc: dict, profile: dict) -> tuple[str, str, int]:
+    evidence = _role_evidence(doc)
+    score = 0
+    role_key = "other"
+    role_text = "another perspective on the question"
+    if evidence["existential_loneliness"]:
+        role_key = "existential_loneliness"
+        role_text = "loneliness, emptiness, and the existential dimensions of loss"
+        score += 14
+    if evidence["continuity"]:
+        if role_key == "other":
+            role_key = "continuity"
+            role_text = "continuity, connection, and what may endure"
+        score += 12
+    if evidence["lived_loss"] and role_key == "other":
+        role_key = "lived_loss"
+        role_text = "the lived experience of grief, loss, and mortality"
+        score += 10
+    if evidence["meaning"]:
+        score += 7
+        if role_key == "other":
+            role_key = "meaning"
+            role_text = "meaning, perspective, and ways of understanding the experience"
+    if evidence["grounded"]:
+        score += 5
+        if role_key == "other":
+            role_key = "grounded"
+            role_text = "a grounded or research-oriented way of looking at the question"
+    if evidence["worldview"]:
+        score -= 4 if not profile.get("explicit_framework") else 0
+    return role_key, role_text, score
+
+def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
+    seen = {_normalize_title(primary_title).casefold()}
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        if not title or title.casefold() in seen:
+            continue
+        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk") and _is_acute_risk_resource(doc):
+            continue
+        role_key, role_text, score = _candidate_role(doc, profile)
+        if profile.get("grief") and role_key == "lived_loss" and score < 10:
+            continue
+        if profile.get("grief") and role_key == "continuity":
+            score += 4
+        if profile.get("grief") and role_key == "existential_loneliness":
+            score += 5
+        if profile.get("meaning") and role_key == "meaning":
+            score += 3
+        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk"):
+            if re.search(r"\b(?:afterlife|reincarnation)\b", str(doc.get("text") or ""), re.I):
+                score -= 4
+        if score > 0:
+            ranked.append((score, index, role_key, role_text, doc))
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    selected = []
+    role_keys = set()
+    for item in ranked:
+        if item[2] in role_keys:
+            continue
+        role_keys.add(item[2])
+        selected.append({"doc": item[4], "role_key": item[2], "role_text": item[3], "score": item[0]})
+        if len(selected) >= limit:
+            break
+    return selected
 
 def _evidence_boundary_note(docs: list, profile: dict) -> str:
     has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", str(doc.get("text") or ""), re.I) for doc in docs)
     has_spiritual = any(re.search(r"\b(?:spiritual|soul|afterlife|religious|mystical|sacred|transcenden)\b", str(doc.get("text") or ""), re.I) for doc in docs)
-    if has_science and has_spiritual: return "It brings different ways of understanding the question into the same conversation without requiring them to become a single certainty."
-    if has_spiritual: return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
-    if profile.get("meaning"): return "It offers a way into the question while leaving room to distinguish what is known from what remains interpretation, possibility, or personal meaning."
-    return "It offers a grounded place to begin without asking the material to provide more certainty than it can support."
-
-def _secondary_role(doc: dict, profile: dict) -> str:
-    title = _normalize_title(doc.get("title") or "")
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-    corpus = f"{title} {text}"
-    if re.search(r"\b(?:continuity|connection|bond|relationship|identity|endure)\b", corpus, re.I): return "questions of continuity, connection, and what may endure"
-    if re.search(r"\b(?:grief|loss|mourning|bereavement|mortality|death)\b", corpus, re.I): return "the lived experience of loss and mortality"
-    if re.search(r"\b(?:meaning|purpose|perspective|wisdom)\b", corpus, re.I): return "meaning, perspective, and ways of understanding the experience"
-    if re.search(r"\b(?:scientific|psychological|research|clinical|neuroscientific)\b", corpus, re.I): return "a more grounded or research-oriented way of looking at the question"
-    return "another perspective on the question"
-
-def _is_acute_risk_resource(doc: dict) -> bool:
-    title = _normalize_title(doc.get("title") or "")
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-    return bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", f"{title} {text}", re.I))
-
-def _grief_pathway_fit(doc: dict) -> tuple[int, str]:
-    title = _normalize_title(doc.get("title") or "")
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-    corpus = f"{title} {text}"
-    score = 0
-    if re.search(r"\b(?:grief|grieving|bereavement|bereaved|mourning)\b", corpus, re.I): score += 10
-    if re.search(r"\b(?:death|dying|loved one|funeral)\b", corpus, re.I): score += 5
-    if re.search(r"\b(?:loss|lost)\b", corpus, re.I): score += 2
-    if re.search(r"\b(?:continuity|connection|bond|relationship|endure)\b", corpus, re.I): score += 3
-    if re.search(r"\b(?:meaning|purpose|wisdom|perspective)\b", corpus, re.I): score += 1
-    if re.search(r"\b(?:ego death|transformation|catalyst|surrender)\b", title + " " + text, re.I): score -= 6
-    return score, corpus
-
-def _select_secondary_pathways(docs: list, primary_title: str, profile: dict, limit: int = 2) -> list:
-    seen = {_normalize_title(primary_title).casefold()}; candidates = []
-    for doc in docs:
-        title = _normalize_title(doc.get("title") or "")
-        if not title or title.casefold() in seen: continue
-        score, corpus = _grief_pathway_fit(doc)
-        if profile.get("sensitive") and not profile.get("explicit_framework") and not profile.get("risk"):
-            if _is_acute_risk_resource(doc): continue
-            if profile.get("grief") and score < 5: continue
-        if profile.get("meaning") and re.search(r"\b(?:meaning|identity|purpose|perspective|wisdom|continuity)\b", corpus, re.I): score += 2
-        if profile.get("sensitive") and not profile.get("explicit_framework") and re.search(r"\b(?:afterlife|reincarnation)\b", corpus, re.I): score -= 4
-        if score > 0: candidates.append((score, title.casefold(), doc))
-    candidates.sort(key=lambda x: (-x[0], x[1]))
-    return [doc for _, _, doc in candidates[:limit]]
-
-def _extract_archive_metadata(doc: dict, docs: list) -> dict:
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-    title = _normalize_title(doc.get("title") or "")
-    def _first(patterns):
-        for pattern in patterns:
-            m = re.search(pattern, text, re.I)
-            if m:
-                phrase = re.sub(r"\s+", " ", m.group(1)).strip(" ,;:")
-                if phrase and phrase.casefold() not in title.casefold(): return phrase
-        return ""
-    collection = _first([r"(?:collection|series)\s*[:\-]?\s*([^.!?]{3,100})", r"(?:within|inside|part of)\s+(?:the\s+)?(?:collection|series)\s+([^.!?]{3,100})"])
-    section = _first([r"(?:section|chapter|part)\s*[:\-]?\s*([^.!?]{3,100})", r"(?:under|within)\s+(?:the\s+)?(?:section|chapter|part)\s+([^.!?]{3,100})"])
-    page = _first([r"(?:page)\s*[:\-]?\s*([^.!?]{3,120})", r"(?:found|situated|located)\s+(?:within|under)\s+([^.!?]{3,120})"])
-    related_titles = []
-    for candidate in docs:
-        candidate_title = _normalize_title(candidate.get("title") or "")
-        if candidate_title and candidate_title.casefold() != title.casefold() and any(t in candidate_title.casefold() for t in ("grief", "loss", "death", "continuity", "mortality", "meaning")): related_titles.append(candidate_title)
-    return {"collection": collection, "section": section, "page": page, "related_titles": related_titles[:2]}
-
-def _archive_context(meta: dict) -> str:
-    if meta.get("collection"): return f"It sits within {meta['collection']}."
-    if meta.get("page"): return f"The surrounding Archive context is {meta['page']}."
-    if meta.get("section"): return f"It sits within a wider section on {meta['section']}."
-    return ""
-
-def _archive_bridge(profile: dict, meta: dict, secondaries: list) -> str:
-    axes = []
-    if any(re.search(r"\b(?:continuity|connection|bond|relationship|endure)\b", f"{_normalize_title(d.get('title') or '')} {d.get('text') or ''}", re.I) for d in secondaries): axes.append("continuity, connection, and what may endure")
-    if any(re.search(r"\b(?:grief|loss|death|mortality|mourning|bereavement)\b", f"{_normalize_title(d.get('title') or '')} {d.get('text') or ''}", re.I) for d in secondaries): axes.append("the lived experience of loss and mortality")
-    if profile.get("meaning") and secondaries: axes.append("the search for meaning without requiring certainty")
-    axes = list(dict.fromkeys(axes))
-    if not axes: return ""
-    if len(axes) == 1: return f"Together, these nearby pieces offer a wider frame around {axes[0]}."
-    return f"Together, these nearby pieces offer a wider frame around {axes[0]}, as well as {axes[1]}."
-
-def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:
-    profile = _query_profile(user_query, docs); title = _normalize_title(primary.get("title") or ""); url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I): return {}
-    meta = _extract_archive_metadata(primary, docs); secondaries = _select_secondary_pathways(docs, title, profile)
-    return {"profile": profile, "title": title, "url": url, "opening": "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once." if profile.get("grief") else "A question like this is often easier to approach when there is a clear place to begin and room for the question to remain open.", "boundary": _evidence_boundary_note(docs, profile), "secondaries": secondaries, "archive_context": _archive_context(meta), "archive_bridge": _archive_bridge(profile, meta, secondaries)}
+    if has_science and has_spiritual:
+        return "It brings different ways of understanding the question into the same conversation without requiring them to become a single certainty."
+    if has_spiritual:
+        return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
+    if profile.get("meaning"):
+        return "It offers a way into the question while leaving room to distinguish what is known from what remains interpretation, possibility, or personal meaning."
+    return "It offers a place to begin without asking the material to provide more certainty than it can support."
 
 def _build_sensitive_recommendation_answer(user_query: str, primary: dict, docs: list) -> str:
-    architecture = _guide_answer_architecture(user_query, primary, docs)
-    if not architecture: return ""
-    profile = architecture["profile"]; sections = [architecture["opening"], f"A gentle place to begin is [{architecture['title']}]({architecture['url']}).", architecture["boundary"]]
-    if architecture["archive_context"]: sections.append(architecture["archive_context"])
-    if architecture["archive_bridge"]: sections.append(architecture["archive_bridge"])
-    if architecture["secondaries"]:
-        links = []
-        for doc in architecture["secondaries"]:
-            link = _resource_link(doc)
-            if link: links.append(f"{link} — a way to explore {_secondary_role(doc, profile)}.")
-        if links: sections.append("From there, you can follow a couple of nearby reflections:\n\n" + "\n\n".join(links))
-    if profile.get("grief"): sections.append("You do not need to solve the grief all at once; one piece that feels right for today can be enough of a place to begin.")
-    elif profile.get("risk"): sections.append("The Archive can offer reflection and orientation, but where there is immediate danger or coercion, real-world safety and trusted human support matter more than reflection alone.")
-    else: sections.append("You do not need to agree with every idea in these pieces. Take what feels useful, leave what does not, and let the questions remain open where they need to.")
-    return "\n\n".join(s for s in sections if s)
+    profile = _query_profile(user_query)
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _select_secondary_pathways(docs, title, profile)
+    opening = "When you are grieving the death of someone you love, there may be no easy place to begin. Grief can bring pain, longing, questions, and uncertainty all at once." if profile.get("grief") else "A question like this can benefit from a clear place to begin and room for the question to remain open."
+    sections = [opening, f"A useful doorway is [{title}]({url}).", _evidence_boundary_note(docs, profile)]
+    if secondaries:
+        role_sentences = [f"[{_normalize_title(item['doc'].get('title') or '')}]({str(item['doc'].get('url') or item['doc'].get('canonical_url') or '').strip()}) — {_article_role_phrase(item['role_text'])}." for item in secondaries if item.get("doc")]
+        if role_sentences:
+            sections.append("From there, the Archive opens a few distinct paths:" + "\n\n" + "\n\n".join(role_sentences))
+    if profile.get("risk"):
+        sections.append("The Archive can offer reflection and orientation, but where there is immediate danger or coercion, real-world safety and trusted human support matter more than reflection alone.")
+    elif profile.get("grief"):
+        sections.append("There is no need to settle the grief all at once. One piece that feels right for today can be enough of a place to begin.")
+    else:
+        sections.append("Take what is useful, leave what is not, and let the question remain open where it needs to.")
+    return "\n\n".join(section for section in sections if section)
+
+def _article_role_phrase(role_text: str) -> str:
+    mapping = {
+        "continuity, connection, and what may endure": "a route into continuity, connection, and what may endure",
+        "loneliness, emptiness, and the existential dimensions of loss": "a route into loneliness, emptiness, and the existential dimensions of loss",
+        "the lived experience of grief, loss, and mortality": "a route into the lived experience of grief, loss, and mortality",
+        "meaning, perspective, and ways of understanding the experience": "a route into meaning, perspective, and ways of understanding the experience",
+        "a grounded or research-oriented way of looking at the question": "a grounded or research-oriented route into the question",
+        "another perspective on the question": "another perspective on the question",
+    }
+    return mapping.get(role_text, role_text)
 
 def _transition_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -218,13 +240,13 @@ def _direct_open_transition_response(query: str, docs: list) -> dict:
     if not title or not re.match(r"^https?://\S+$", url, re.I): return {"response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open.", "resources": []}
     return {"response": "A possible place to begin is with the transition itself: a major change can leave what comes next genuinely open, especially while you are still finding your own language for what the experience means. The material surfaced here can offer a lens for that inquiry without requiring you to adopt a particular belief.\n\nOne useful doorway is [" + title + "](" + url + ").", "resources": [{"title": title, "url": url}]}
 
-def _v391_finalize(*args, **kwargs):
+def _v392_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
     if not user_query or intent != "TOPICAL_INQUIRY": return _original_generate_llm_response(*args, **kwargs)
-    profile = _query_profile(user_query, docs)
+    profile = _query_profile(user_query)
     tprofile = _transition_profile(user_query)
     if tprofile["transition"] and tprofile["open_question"] and not tprofile["explicit_framework"]:
         recovered = _transition_retrieval_strategy(user_query)
@@ -243,10 +265,10 @@ def _v391_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v391 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v392 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v391_finalize
+use_core.generate_llm_response = _v392_finalize
