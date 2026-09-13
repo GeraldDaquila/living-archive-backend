@@ -1,15 +1,15 @@
-# USE PRODUCTION VERSION: v386 — browser response visibility
-# Structural intervention: preserve v385 visitor authority while making backend/browser
-# transport failures observable without changing protected core behavior.
+# USE PRODUCTION VERSION: v387 — response string contract
+# Structural intervention: preserve v385 visitor authority while returning the
+# exact string contract expected by the protected USE runtime.
 # Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v386"
-DEPLOYMENT_FINGERPRINT = "USE-v386-browser-response-visibility"
-CANONICAL_BUILD_ID = "USE-BUILD-v386-browser-response-visibility"
+APP_VERSION = "v387"
+DEPLOYMENT_FINGERPRINT = "USE-v387-response-string-contract"
+CANONICAL_BUILD_ID = "USE-BUILD-v387-response-string-contract"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 def _sha256(data: bytes) -> str:
@@ -22,11 +22,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v386 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v387 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v386 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v387 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -186,30 +186,37 @@ def _transition_retrieval_strategy(query: str):
     ranked.sort(key=lambda x: x[0], reverse=True)
     return [doc for _score, doc in ranked[:4]]
 
-def _direct_open_transition_response(query: str, docs: list) -> dict:
+def _direct_open_transition_response(query: str, docs: list) -> str:
     if not docs:
-        return {
-            "response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open rather than already decided. The material available here does not establish one particular belief about what your experience means, so the question can remain open while you explore it.",
-            "resources": [],
-        }
+        return (
+            "<visitor_answer>"
+            "A possible place to begin is with the transition itself: what changed, "
+            "what feels uncertain now, and what remains open rather than already decided. "
+            "The material available here does not establish one particular belief about "
+            "what your experience means, so the question can remain open while you explore it."
+            "</visitor_answer>"
+        )
     primary = docs[0]
     primary_title = _normalize_title(primary.get("title") or "")
     primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
     if not primary_title or not re.match(r"^https?://\S+$", primary_url, re.I):
-        return {
-            "response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open.",
-            "resources": [],
-        }
-    return {
-        "response": (
-            "A possible place to begin is with the transition itself: a major change can leave what comes next genuinely open, especially while you are still finding your own language for what the experience means. "
-            "The material surfaced here can offer a lens for that inquiry without requiring you to adopt a particular belief.\n\n"
-            f"One useful doorway is [{primary_title}]({primary_url})."
-        ),
-        "resources": [{"title": primary_title, "url": primary_url}],
-    }
+        return (
+            "<visitor_answer>"
+            "A possible place to begin is with the transition itself: what changed, "
+            "what feels uncertain now, and what remains open."
+            "</visitor_answer>"
+        )
+    return (
+        "<visitor_answer>"
+        "A possible place to begin is with the transition itself: a major change can leave "
+        "what comes next genuinely open, especially while you are still finding your own "
+        "language for what the experience means. The material surfaced here can offer a "
+        "lens for that inquiry without requiring you to adopt a particular belief.\n\n"
+        f"One useful doorway is [{primary_title}]({primary_url})."
+        "</visitor_answer>"
+    )
 
-def _v386_finalize(*args, **kwargs):
+def _v387_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -238,8 +245,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v386_finalize
+use_core.generate_llm_response = _v387_finalize
 print(
-    f"USE v386 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v387 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
