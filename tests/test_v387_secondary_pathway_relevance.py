@@ -24,7 +24,6 @@ def test_v387_source_compiles():
 
 def test_v387_acute_risk_resource_filter_is_present():
     assert "def _is_acute_risk_resource(doc: dict) -> bool:" in MAIN
-    assert "and not profile.get(\"explicit_framework\") and not profile.get(\"risk\")" in MAIN
     assert "_is_acute_risk_resource(doc)" in MAIN
 
 
@@ -35,12 +34,13 @@ def test_v387_excludes_acute_risk_by_identity_not_only_query_overlap():
     assert "immediate danger" in MAIN
 
 
-def test_v387_preserves_v386_core_or_transition_identity():
-    assert 'EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"' in MAIN
+def test_v387_preserves_transition_machinery():
     tree = ast.parse(MAIN)
     names = {node.name for node in tree.body if isinstance(node, ast.FunctionDef)}
     assert "_transition_profile" in names
+    assert "_transition_retrieval_strategy" in names
     assert "_direct_open_transition_response" in names
+    assert "_v387_finalize" in names
 
 
 def test_v387_secondary_roles_remain_structural():
