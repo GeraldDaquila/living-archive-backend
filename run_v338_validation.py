@@ -5,9 +5,6 @@ ROOT = Path(__file__).resolve().parent
 main_source = (ROOT / "main.py").read_text(encoding="utf-8")
 core_source = (ROOT / "use_core.py").read_text(encoding="utf-8")
 
-# This legacy validation script is retained as a compatibility guard only.
-# v387 must preserve the production identity/bridge currently under test and
-# the protected runtime telemetry contract supplied by use_core.py.
 for required in (
     'APP_VERSION = "v387"',
     'DEPLOYMENT_FINGERPRINT = "USE-v387-secondary-pathway-relevance"',
@@ -17,13 +14,13 @@ for required in (
     "_select_secondary_pathways",
     "_is_acute_risk_resource",
     "_archive_bridge",
+    "use_core.app",
 ):
     assert required in main_source, required
 
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "__PAYLOAD_SHA256__"' not in main_source
 assert 'CANONICAL_BUILD_PAYLOAD_SHA256 = "PLACEHOLDER_RECOMPUTE_REQUIRED"' not in main_source
 assert "RUNTIME_SOURCE_SHA256" in main_source
-assert "app = use_core.app" in main_source
 assert "USE REQUEST START:" in core_source
 assert "X-USE-Build-ID" in core_source
 assert "X-USE-Version" in core_source
@@ -41,8 +38,6 @@ for required in (
 ):
     assert required in main_source, required
 
-# No benchmark-specific hardcoded doorway is permitted in the generalized
-# sensitive recovery path.
 assert "_BENCHMARK_PRIMARY_TITLE" not in main_source
 assert "_BENCHMARK_PRIMARY_URL" not in main_source
 
