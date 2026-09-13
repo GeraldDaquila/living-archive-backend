@@ -1,12 +1,12 @@
-# USE PRODUCTION VERSION: v393 — doorway handoff refinement
+# USE PRODUCTION VERSION: v394 — orientation doorway handoff
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v393"
-DEPLOYMENT_FINGERPRINT = "USE-v393-doorway-handoff-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v393-doorway-handoff-refinement"
+APP_VERSION = "v394"
+DEPLOYMENT_FINGERPRINT = "USE-v394-orientation-doorway-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v394-orientation-doorway-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -22,11 +22,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v393 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v394 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v393 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v394 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -148,40 +148,74 @@ def _query_profile(user_query: str) -> dict:
     }
 
 
-def _direct_open_transition_response(primary: dict | None) -> str:
+def _orientation_like_question(question: str, intent: str) -> bool:
+    if intent == "WHOLE_SITE_ORIENTATION":
+        return True
+    q = re.sub(r"\s+", " ", str(question or "").strip().casefold())
+    return bool(re.search(r"\b(?:where do i (?:start|begin)|where should i (?:start|begin)|what would be a good place to start)\b", q))
+
+
+def _first_valid_canonical_doc(docs: list) -> dict | None:
+    for doc in docs:
+        if not isinstance(doc, dict):
+            continue
+        title = _normalize_title(doc.get("title") or "")
+        url = _canonical_url(doc)
+        if title and re.match(r"^https?://\S+$", url, re.I):
+            return dict(doc)
+    return None
+
+
+def _orientation_response(primary: dict | None) -> str:
     if not primary:
-        return "<visitor_answer>A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open rather than already decided. The material available here does not establish one particular belief about what your experience means, so the question can remain open while you explore it.</visitor_answer>"
+        return "<visitor_answer>A possible place to begin is with the question you are already asking: what changed, what feels uncertain now, and what you want to understand before deciding where to go next. The material surfaced here does not establish a single required destination, so you can treat the available resources as places to explore rather than instructions about what to do.</visitor_answer>"
     title = _normalize_title(primary.get("title") or "")
     url = _canonical_url(primary)
     if not title or not re.match(r"^https?://\S+$", url, re.I):
-        return "<visitor_answer>A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open.</visitor_answer>"
+        return "<visitor_answer>A possible place to begin is with the question you are already asking: what changed, what feels uncertain now, and what you want to understand before deciding where to go next.</visitor_answer>"
     return (
         "<visitor_answer>"
-        "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what you do not need to decide yet. "
-        "You can use the material surfaced here as a perspective for inquiry rather than as an instruction about what your experience should mean.\n\n"
-        f"One possible doorway is [{title}]({url}). Its framing is one perspective within the material, so you can approach it without treating that framing as a conclusion about what you should feel or believe."
+        "You do not need to decide the meaning of this period before you begin exploring it. "
+        "A possible place to start is a canonical resource that gives you something concrete to read and see whether it opens the question further.\n\n"
+        f"[{title}]({url}) is one available doorway into the Archive. You can approach it as a perspective to explore, rather than as a conclusion about what this period should mean for you."
         "</visitor_answer>"
     )
 
 
-def _v393_finalize(*args, **kwargs):
+def _v394_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     source, generation_context, canonical_context, protected_docs = _context_layers(args, kwargs)
-    if not user_query or intent != "TOPICAL_INQUIRY":
+
+    if not user_query:
         return _original_generate_llm_response(*args, **kwargs)
+
     profile = _query_profile(user_query)
-    if not (profile["transition"] and profile["open_question"] and not profile["explicit_framework"]):
-        return _original_generate_llm_response(*args, **kwargs)
-    canonical_docs = _parse_context_documents(canonical_context)
-    primary = _select_adjudicated_primary(protected_docs, canonical_docs)
-    print(
-        "USE v393 transition doorway: "
-        f"source={source}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, "
-        f"generation_context={'present' if generation_context else 'absent'}, "
-        f"selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}"
-    )
-    return _direct_open_transition_response(primary)
+    if profile["transition"] and profile["open_question"] and not profile["explicit_framework"]:
+        canonical_docs = _parse_context_documents(canonical_context)
+        primary = _select_adjudicated_primary(protected_docs, canonical_docs)
+        print(
+            "USE v394 transition doorway: "
+            f"source={source}, intent={intent}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, "
+            f"generation_context={'present' if generation_context else 'absent'}, "
+            f"selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}"
+        )
+        return _orientation_response(primary)
+
+    if _orientation_like_question(user_query, intent):
+        canonical_docs = _parse_context_documents(canonical_context)
+        primary = _select_adjudicated_primary(protected_docs, canonical_docs)
+        if primary is None:
+            primary = _first_valid_canonical_doc(_parse_context_documents(generation_context))
+        print(
+            "USE v394 orientation doorway: "
+            f"source={source}, intent={intent}, protected_docs={len(protected_docs)}, canonical_docs={len(canonical_docs)}, "
+            f"generation_context={'present' if generation_context else 'absent'}, "
+            f"selected={_normalize_title(primary.get('title') or '') if primary else 'NONE'}"
+        )
+        return _orientation_response(primary)
+
+    return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
@@ -191,9 +225,9 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v393_finalize
+use_core.generate_llm_response = _v394_finalize
 print(
-    f"USE v393 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v394 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
     f"core_blob_sha256={_core_runtime_sha}"
 )
