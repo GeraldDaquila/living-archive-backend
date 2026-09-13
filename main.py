@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v399 — compassionate loneliness navigation
+# USE PRODUCTION VERSION: v400 — runtime hook binding repair
 # v391 remains the protected production baseline; this wrapper changes only visitor-facing
 # recommendation role selection/construction. Protected use_core.py is unchanged.
 import hashlib
@@ -6,20 +6,20 @@ import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v399"
-DEPLOYMENT_FINGERPRINT = "USE-v399-compassionate-loneliness-navigation"
-CANONICAL_BUILD_ID = "USE-BUILD-v399-compassionate-loneliness-navigation"
+APP_VERSION = "v400"
+DEPLOYMENT_FINGERPRINT = "USE-v400-runtime-hook-binding-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v400-runtime-hook-binding-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v399 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v400 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v399 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v400 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -44,9 +44,7 @@ def _extract_user_query(args, kwargs):
         value = kwargs.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    if len(args) >= 1 and isinstance(args[0], str) and args[0].strip():
-        return args[0].strip()
-    return ""
+    return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
 
 
 def _extract_intent(args, kwargs):
@@ -54,18 +52,14 @@ def _extract_intent(args, kwargs):
         value = kwargs.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    if len(args) >= 3 and isinstance(args[2], str) and args[2].strip():
-        return args[2].strip()
-    return ""
+    return args[2].strip() if len(args) >= 3 and isinstance(args[2], str) and args[2].strip() else ""
 
 
 def _context_blocks_from_kwargs(args, kwargs):
-    for key in ("retrieved_context_blocks", "canonical_link_context", "retrieved_context", "context_blocks"):
+    for key in ("retrieved_context_blocks", "retrieved_context", "context_blocks"):
         if kwargs.get(key):
             return str(kwargs[key])
-    if len(args) >= 2 and isinstance(args[1], str) and args[1].strip():
-        return args[1]
-    return ""
+    return args[1] if len(args) >= 2 and isinstance(args[1], str) else ""
 
 
 def _normalize_title(text: str) -> str:
@@ -86,8 +80,7 @@ def _query_profile(user_query: str) -> dict:
 
 
 def _is_acute_risk_resource(doc: dict) -> bool:
-    corpus = re.sub(r"\s+", " ", str(doc.get("text") or "").strip())
-    return bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus, re.I))
+    return bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", str(doc.get("text") or ""), re.I))
 
 
 def _role_evidence(doc: dict) -> dict:
@@ -113,22 +106,18 @@ def _select_loneliness_primary(docs, profile):
         if not title or not re.match(r"^https?://\S+$", url, re.I):
             continue
         evidence = _role_evidence(doc)
-        score = 0
-        score += 35 if evidence["existential_loneliness"] else 0
-        score += 10 if evidence["lived_experience"] else 0
-        score += 8 if evidence["meaning"] else 0
-        score += 4 if evidence["practical_reflection"] else 0
-        if evidence["worldview"] and not profile.get("explicit_framework"):
-            score -= 25
-        if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", title + " " + str(doc.get("text") or ""), re.I):
-            score -= 30
-        if score > 0:
-            ranked.append((score, index, doc))
+        score = 35 * int(evidence["existential_loneliness"])
+        score += 10 * int(evidence["lived_experience"])
+        score += 8 * int(evidence["meaning"])
+        score += 4 * int(evidence["practical_reflection"])
+        if evidence["worldview"] and not profile.get("explicit_framework"): score -= 25
+        if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", title + " " + str(doc.get("text") or ""), re.I): score -= 30
+        if score > 0: ranked.append((score, index, doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
     return ranked[0][2] if ranked else None
 
 
-def _candidate_loneliness_role(doc: dict, profile: dict):
+def _candidate_loneliness_role(doc: dict):
     evidence = _role_evidence(doc)
     if evidence["transition"] and not evidence["existential_loneliness"]:
         return "transition", "a route into change, uncertainty, and reorientation", 18
@@ -148,60 +137,47 @@ def _select_loneliness_secondaries(docs, primary_title, profile, limit=2):
     ranked = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        if not title or title.casefold() in seen:
-            continue
-        role_key, role_text, score = _candidate_loneliness_role(doc, profile)
-        if role_key == "other":
-            continue
-        if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", title + " " + str(doc.get("text") or ""), re.I):
-            continue
+        if not title or title.casefold() in seen: continue
+        role_key, role_text, score = _candidate_loneliness_role(doc)
+        if role_key == "other": continue
+        if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", title + " " + str(doc.get("text") or ""), re.I): continue
         ranked.append((score, index, role_key, role_text, doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    selected = []
-    role_keys = set()
+    selected, role_keys = [], set()
     for score, index, role_key, role_text, doc in ranked:
-        if role_key in role_keys:
-            continue
+        if role_key in role_keys: continue
         role_keys.add(role_key)
         selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
-        if len(selected) >= limit:
-            break
+        if len(selected) >= limit: break
     return selected
 
 
-def _evidence_boundary_note(docs, profile):
+def _evidence_boundary_note(docs):
     has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", str(doc.get("text") or ""), re.I) for doc in docs)
     has_spiritual = any(re.search(r"\b(?:spiritual|soul|afterlife|religious|mystical|sacred|transcenden)\b", str(doc.get("text") or ""), re.I) for doc in docs)
-    if has_science and has_spiritual:
-        return "The Archive holds different ways of understanding loneliness without requiring them to become one certainty."
-    if has_spiritual:
-        return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
+    if has_science and has_spiritual: return "The Archive holds different ways of understanding loneliness without requiring them to become one certainty."
+    if has_spiritual: return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
     return "The material can open a way into the question without deciding in advance what loneliness must mean."
 
 
 def _build_loneliness_answer(user_query, primary, docs):
-    profile = _query_profile(user_query)
     title = _normalize_title(primary.get("title") or "")
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
-        return ""
-    secondaries = _select_loneliness_secondaries(docs, title, profile)
+    if not title or not re.match(r"^https?://\S+$", url, re.I): return ""
+    secondaries = _select_loneliness_secondaries(docs, title, _query_profile(user_query))
     sections = [
         "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
         f"A gentle place to begin is [{title}]({url}).",
-        _evidence_boundary_note(docs, profile),
+        _evidence_boundary_note(docs),
     ]
     if secondaries:
-        role_sentences = [
-            f"[{_normalize_title(item['doc'].get('title') or '')}]({str(item['doc'].get('url') or item['doc'].get('canonical_url') or '').strip()}) — {item['role_text']}."
-            for item in secondaries
-        ]
+        role_sentences = [f"[{_normalize_title(item['doc'].get('title') or '')}]({str(item['doc'].get('url') or item['doc'].get('canonical_url') or '').strip()}) — {item['role_text']}." for item in secondaries]
         sections.append("From there, the Archive opens a few different ways into the question:\n\n" + "\n\n".join(role_sentences))
     sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
     return "\n\n".join(sections)
 
 
-def _v399_finalize(*args, **kwargs):
+def _v400_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     intent = _extract_intent(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -212,29 +188,23 @@ def _v399_finalize(*args, **kwargs):
         recommendation_question = bool(use_core._is_recommendation_question(user_query)) if user_query else False
     except Exception:
         recommendation_question = False
-    print(f"USE v399 runtime hook: query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}")
-    if user_query and recommendation_question:
-        if profile.get("grief"):
-            primary = use_core._adjudicate_recommendation_resource(docs, user_query) if docs else None
-            if primary:
-                return _original_generate_llm_response(*args, **kwargs)
-        if profile.get("loneliness"):
-            primary = _select_loneliness_primary(docs, profile)
-            if primary:
-                answer = _build_loneliness_answer(user_query, primary, docs)
-                if answer:
-                    print(f"USE v399 runtime hook: loneliness interception=ACTIVE primary='{_normalize_title(primary.get('title') or '')}'")
-                    return answer
-        return _original_generate_llm_response(*args, **kwargs)
+    print(f"USE v400 runtime hook: query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}, args={len(args)}, kwargs={sorted(kwargs.keys())}")
+    if user_query and recommendation_question and profile.get("loneliness"):
+        primary = _select_loneliness_primary(docs, profile)
+        if primary:
+            answer = _build_loneliness_answer(user_query, primary, docs)
+            if answer:
+                print(f"USE v400 runtime hook: loneliness interception=ACTIVE primary='{_normalize_title(primary.get('title') or '')}'")
+                return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v399 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v400 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v399_finalize
+use_core.generate_llm_response = _v400_finalize
