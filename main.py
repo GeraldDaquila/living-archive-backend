@@ -1,15 +1,16 @@
-# USE PRODUCTION VERSION: v378 — query-aligned transition doorway gate
+# USE PRODUCTION VERSION: v379 — transition orientation with bounded interpretive evidence
 # Structural intervention: preserve protected core architecture while governing
-# visitor-state / resource-frame authority before generation. Transition recovery
-# remains bounded evidence recovery; it is no longer a separate answer engine.
+# visitor-state / resource-frame authority before generation. Open transition
+# questions may use specialized evidence as evidence, but never as uninvited
+# interpretive authority over the visitor's experience.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v378"
-DEPLOYMENT_FINGERPRINT = "USE-v378-query-aligned-transition-gate"
-CANONICAL_BUILD_ID = "USE-BUILD-v378-query-aligned-transition-gate"
+APP_VERSION = "v379"
+DEPLOYMENT_FINGERPRINT = "USE-v379-bounded-transition-orientation"
+CANONICAL_BUILD_ID = "USE-BUILD-v379-bounded-transition-orientation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -25,11 +26,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v378 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v379 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v378 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v379 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -180,8 +181,6 @@ def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     qfit = _transition_query_fit(query)
     if not qfit["transition"]:
         return False
-    if clusters["worldview"] or _is_specialized_framework_resource(doc):
-        return False
     if not clusters["transition"]:
         return False
     if not (clusters["experience"] or clusters["meaning"]):
@@ -255,6 +254,7 @@ def _visitor_experience_contract(query: str, docs: list, frame_neutral: bool) ->
         "prefer_smallest_useful_doorway": True,
         "frame_neutral_generation": bool(frame_neutral),
         "risk_present": bool(profile.get("risk")),
+        "allow_interpretive_evidence_as_non_authoritative": bool(profile.get("open_question") and not profile.get("explicit_framework")),
     }
 
 
@@ -282,31 +282,26 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _v378_finalize(*args, **kwargs):
+def _v379_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
-    if not user_query:
-        return _original_generate_llm_response(*args, **kwargs)
-    if intent != "TOPICAL_INQUIRY":
+    if not user_query or intent != "TOPICAL_INQUIRY":
         return _original_generate_llm_response(*args, **kwargs)
 
     profile = _query_profile(user_query, docs)
     is_open_transition = bool(profile.get("transition") and profile.get("open_question") and not profile.get("explicit_framework"))
     recovered_docs = _transition_retrieval_strategy(user_query) if is_open_transition else []
     merged_docs = _merge_recovered_documents(docs, recovered_docs)
+
     if is_open_transition:
         aligned = [doc for doc in merged_docs if _is_query_aligned_transition_doorway(doc, user_query)]
         if not aligned:
-            unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
-            if callable(unavailable):
-                return unavailable(user_query)
             return _original_generate_llm_response(*args, **kwargs)
-        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)
-        calibrated_docs = calibrated_docs[:8]
+        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:8]
         calibrated_context = _rebuild_context_blocks(calibrated_docs)
-        contract = _visitor_experience_contract(user_query, calibrated_docs, True)
+        contract = _visitor_experience_contract(user_query, calibrated_docs, False)
         return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
 
     calibrated_docs, frame_neutral = _frame_neutral_generation_documents(user_query, intent, merged_docs)
@@ -327,8 +322,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v378_finalize
+use_core.generate_llm_response = _v379_finalize
 print(
-    f"USE v378 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v379 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
