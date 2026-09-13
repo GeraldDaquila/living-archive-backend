@@ -12,14 +12,11 @@ DEPLOYMENT_FINGERPRINT = "USE-v385-open-transition-doorway-fit"
 CANONICAL_BUILD_ID = "USE-BUILD-v385-open-transition-doorway-fit"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
-
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-
 def _git_blob_sha256(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\\0".encode() + data).hexdigest()
-
+    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
@@ -35,20 +32,18 @@ if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 
-
 def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "_parse_context_documents", None)
     if callable(parser):
         return parser(context_blocks)
     docs = []
-    for block in str(context_blocks or "").strip().split("\\n\\n---\\n\\n"):
-        tm = re.search(r"^Title:\\s*(.+?)\\s*$", block, re.M)
-        um = re.search(r"^URL:\\s*(https?://\\S+)\\s*$", block, re.M | re.I)
-        cm = re.search(r"^Content:\\s*(.*)$", block, re.M | re.S)
+    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
+        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
+        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
+        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
         if tm and um and cm:
             docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
     return docs
-
 
 def _context_blocks_from_kwargs(args, kwargs):
     for key in ("retrieved_context_blocks", "canonical_link_context", "retrieved_context", "context_blocks"):
@@ -59,48 +54,42 @@ def _context_blocks_from_kwargs(args, kwargs):
             return args[index]
     return ""
 
-
 def _normalize_title(text: str) -> str:
-    return re.sub(r"\\s{2,}", " ", str(text or "").strip())
-
+    return re.sub(r"\s{2,}", " ", str(text or "").strip())
 
 def _clean_evidence_text(text: str) -> str:
     clean = re.sub(r"<[^>]+>", " ", str(text or ""))
-    clean = re.sub(r"\\[[^\\]]*evidence excerpt bounded by USE\\]", " ", clean, flags=re.I)
-    return re.sub(r"\\s+", " ", clean).strip()
-
+    clean = re.sub(r"\[[^\]]*evidence excerpt bounded by USE\]", " ", clean, flags=re.I)
+    return re.sub(r"\s+", " ", clean).strip()
 
 def _query_profile(user_query: str, docs: list) -> dict:
-    q = re.sub(r"\\s+", " ", str(user_query or "").strip().casefold())
+    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     explicit_framework = bool(re.search(
-        r"\\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|ai|artificial intelligence|astrology|tarot|political|capitalism|socialism)\\b",
+        r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|ai|artificial intelligence|astrology|tarot|political|capitalism|socialism)\b",
         q,
     ))
     return {
-        "transition": bool(re.search(r"\\b(?:major change|change in (?:my|our) life|life change|life transition|transition|new chapter|what comes next|what comes after|lost since|since .*change|after .*change|starting over|beginning again|begin again|moving forward|identity|uncertain what comes next)\\b", q)),
-        "meaning": bool(re.search(r"\\b(?:meaning|purpose|why am i here|what is the point|what does it all mean|make sense|understand the experience)\\b", q)),
-        "open_question": bool(re.search(r"\\b(?:how do i make sense|what do people believe|what are the possibilities|is there more|what happens after|what if there is no|i don't know what to believe|not sure what to believe|does anyone know|can anyone know|different perspectives|many perspectives|open question|no single answer|not sure|uncertain)\\b", q)),
+        "transition": bool(re.search(r"\b(?:major change|change in (?:my|our) life|life change|life transition|transition|new chapter|what comes next|what comes after|lost since|since .*change|after .*change|starting over|beginning again|begin again|moving forward|identity|uncertain what comes next)\b", q)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|why am i here|what is the point|what does it all mean|make sense|understand the experience)\b", q)),
+        "open_question": bool(re.search(r"\b(?:how do i make sense|what do people believe|what are the possibilities|is there more|what happens after|what if there is no|i don't know what to believe|not sure what to believe|does anyone know|can anyone know|different perspectives|many perspectives|open question|no single answer|not sure|uncertain)\b", q)),
         "explicit_framework": explicit_framework,
-        "sensitive": bool(re.search(r"\\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\\b", q)),
-        "risk": bool(re.search(r"\\b(?:suicide|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\\b", q)),
+        "sensitive": bool(re.search(r"\b(?:grief|grieving|bereavement|bereaved|loss|lost|death|died|dying|loved one|trauma|abuse|coercion|suicid|self-harm|overdose)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicide|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
     }
-
 
 def _resource_frame_groups(doc: dict) -> set:
     title = _normalize_title(doc.get("title") or "").casefold()
     text = _clean_evidence_text(doc.get("text") or "").casefold()
     hay = f"{title} {text}"
     groups = set()
-    if re.search(r"\\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|astrology|tarot)\\b", hay):
+    if re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|starseed|ascension|awakening|kundalini|soul|indigenous|traditional wisdom|astrology|tarot)\b", hay):
         groups.add("worldview")
-    if re.search(r"\\b(?:political|capitalism|socialism)\\b", hay):
+    if re.search(r"\b(?:political|capitalism|socialism)\b", hay):
         groups.add("political")
     return groups
 
-
 def _is_specialized_framework_resource(doc: dict) -> bool:
     return bool(_resource_frame_groups(doc))
-
 
 def _transition_evidence_fit(doc: dict, query: str) -> tuple[int, set]:
     title = _normalize_title(doc.get("title") or "").casefold()
@@ -108,21 +97,20 @@ def _transition_evidence_fit(doc: dict, query: str) -> tuple[int, set]:
     hay = f"{title} {text}"
     q = str(query or "").casefold()
     clusters = {
-        "transition": bool(re.search(r"\\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning|life change|before and after|crossroads|in-between|rebuild|reorient|adjust|adapt)\\b", hay)),
-        "meaning": bool(re.search(r"\\b(?:meaning|purpose|identity|sensemaking|sense-making|making sense|what it means)\\b", hay)),
-        "experience": bool(re.search(r"\\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling)\\b", hay)),
-        "grounding": bool(re.search(r"\\b(?:ground|grounding|practical|reflect|reflection|notice|naming|journal|practice|orientation)\\b", hay)),
-        "open": bool(re.search(r"\\b(?:perspective|perspectives|possibilit|different views|different approaches|uncertainty|no single answer|question|open|ambiguous|ambiguity)\\b", hay)),
+        "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning|life change|before and after|crossroads|in-between|rebuild|reorient|adjust|adapt)\b", hay)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|identity|sensemaking|sense-making|making sense|what it means)\b", hay)),
+        "experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling)\b", hay)),
+        "grounding": bool(re.search(r"\b(?:ground|grounding|practical|reflect|reflection|notice|naming|journal|practice|orientation)\b", hay)),
+        "open": bool(re.search(r"\b(?:perspective|perspectives|possibilit|different views|different approaches|uncertainty|no single answer|question|open|ambiguous|ambiguity)\b", hay)),
         "worldview": _is_specialized_framework_resource(doc),
-        "support": bool(re.search(r"\\b(?:support|receive|receiving|care|cared|guilt|need|needing|help|helping)\\b", hay)),
-        "belief": bool(re.search(r"\\b(?:belief|believe|faith|spiritual|religious|worldview)\\b", hay)),
+        "support": bool(re.search(r"\b(?:support|receive|receiving|care|cared|guilt|need|needing|help|helping)\b", hay)),
+        "belief": bool(re.search(r"\b(?:belief|believe|faith|spiritual|religious|worldview)\b", hay)),
     }
     score = sum(int(clusters[k]) for k in ("transition", "meaning", "experience", "grounding", "open"))
-    if re.search(r"\\b(?:what comes next|major change|change in my life|life transition|new chapter|lost since|understand the experience|not sure what i believe|without being told what i should feel|without being told what i should believe)\\b", q):
+    if re.search(r"\b(?:what comes next|major change|change in my life|life transition|new chapter|lost since|understand the experience|not sure what i believe|without being told what i should feel|without being told what i should believe)\b", q):
         if clusters["transition"] or clusters["meaning"] or clusters["experience"]:
             score += 2
     return score, clusters
-
 
 def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     qfit = _query_profile(query, [])
@@ -131,7 +119,6 @@ def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     score, clusters = _transition_evidence_fit(doc, query)
     if clusters["worldview"]:
         return False
-    # We need genuine transition evidence, but not every lexical dimension.
     substantive = int(clusters["transition"]) + int(clusters["meaning"]) + int(clusters["experience"])
     contextual = int(clusters["open"]) + int(clusters["grounding"])
     if substantive >= 2:
@@ -139,7 +126,6 @@ def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     if substantive >= 1 and contextual >= 1 and score >= 4:
         return True
     return False
-
 
 def _transition_doorway_score(doc: dict, query: str) -> int:
     score, clusters = _transition_evidence_fit(doc, query)
@@ -163,7 +149,6 @@ def _transition_doorway_score(doc: dict, query: str) -> int:
         score -= 30
     return score
 
-
 def _merge_recovered_documents(existing: list, recovered: list):
     merged = []
     seen = set()
@@ -176,7 +161,6 @@ def _merge_recovered_documents(existing: list, recovered: list):
         seen.add(key)
         merged.append(doc)
     return merged
-
 
 def _transition_retrieval_strategy(query: str):
     source = getattr(use_core, "_transition_retrieval_strategy", None)
@@ -202,34 +186,28 @@ def _transition_retrieval_strategy(query: str):
     ranked.sort(key=lambda x: x[0], reverse=True)
     return [doc for _score, doc in ranked[:4]]
 
-
 def _direct_open_transition_response(query: str, docs: list) -> dict:
-    """Bounded visitor-facing response for open transition inquiries."""
     if not docs:
         return {
             "response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open rather than already decided. The material available here does not establish one particular belief about what your experience means, so the question can remain open while you explore it.",
             "resources": [],
         }
     primary = docs[0]
-    secondary = docs[1] if len(docs) > 1 else None
     primary_title = _normalize_title(primary.get("title") or "")
     primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not primary_title or not re.match(r"^https?://\\S+$", primary_url, re.I):
-        return {"response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open.", "resources": []}
-    response = (
-        "A possible place to begin is with the transition itself: a major change can leave what comes next genuinely open, especially while you are still finding your own language for what the experience means. "
-        "The material surfaced here can offer a lens for that inquiry without requiring you to adopt a particular belief.\n\n"
-        f"One useful doorway is [{primary_title}]({primary_url})."
-    )
-    resources = [{"title": primary_title, "url": primary_url}]
-    if secondary:
-        stitle = _normalize_title(secondary.get("title") or "")
-        surl = str(secondary.get("url") or secondary.get("canonical_url") or "").strip()
-        if stitle and re.match(r"^https?://\\S+$", surl, re.I):
-            response += f"\n\nA second route, where useful, is [{stitle}]({surl})."
-            resources.append({"title": stitle, "url": surl})
-    return {"response": response, "resources": resources}
-
+    if not primary_title or not re.match(r"^https?://\S+$", primary_url, re.I):
+        return {
+            "response": "A possible place to begin is with the transition itself: what changed, what feels uncertain now, and what remains open.",
+            "resources": [],
+        }
+    return {
+        "response": (
+            "A possible place to begin is with the transition itself: a major change can leave what comes next genuinely open, especially while you are still finding your own language for what the experience means. "
+            "The material surfaced here can offer a lens for that inquiry without requiring you to adopt a particular belief.\n\n"
+            f"One useful doorway is [{primary_title}]({primary_url})."
+        ),
+        "resources": [{"title": primary_title, "url": primary_url}],
+    }
 
 def _v385_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
@@ -244,7 +222,7 @@ def _v385_finalize(*args, **kwargs):
         recovered = _transition_retrieval_strategy(user_query)
         existing_aligned = [doc for doc in docs if _is_query_aligned_transition_doorway(doc, user_query)]
         aligned = _merge_recovered_documents(existing_aligned, recovered)
-        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:2]
+        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:1]
         return _direct_open_transition_response(user_query, calibrated_docs)
     if profile.get("explicit_framework"):
         return _original_generate_llm_response(*args, **kwargs)
@@ -252,7 +230,6 @@ def _v385_finalize(*args, **kwargs):
     if not neutral_docs:
         return _original_generate_llm_response(*args, **kwargs)
     return _original_generate_llm_response(*args, **kwargs)
-
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
