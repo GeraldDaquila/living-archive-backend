@@ -1,14 +1,15 @@
-# USE PRODUCTION VERSION: v381 — transition evidence bridge
-# Structural intervention: for open transition inquiries, generation may only receive
-# resources that satisfy the transition-fit contract. Protected use_core.py remains unchanged.
+# USE PRODUCTION VERSION: v382 — transition selection continuation
+# Structural intervention: for open transition inquiries, continue transition-fit
+# selection through generation so frame-neutral but unrelated resources cannot
+# displace the transition evidence bridge. Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v381"
-DEPLOYMENT_FINGERPRINT = "USE-v381-transition-evidence-bridge"
-CANONICAL_BUILD_ID = "USE-BUILD-v381-transition-evidence-bridge"
+APP_VERSION = "v382"
+DEPLOYMENT_FINGERPRINT = "USE-v382-transition-selection-continuation"
+CANONICAL_BUILD_ID = "USE-BUILD-v382-transition-selection-continuation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -23,11 +24,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v381 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v382 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v381 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v382 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -268,7 +269,7 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _v381_finalize(*args, **kwargs):
+def _v382_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -308,8 +309,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v381_finalize
+use_core.generate_llm_response = _v382_finalize
 print(
-    f"USE v381 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v382 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
