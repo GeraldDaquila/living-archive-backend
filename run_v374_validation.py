@@ -1,6 +1,8 @@
 from pathlib import Path
 import ast
 import hashlib
+import re
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "main.py"
@@ -48,10 +50,20 @@ assert "_call_original_with_calibrated_context" in finalize_text
 assert "_transition_retrieval_strategy" in finalize_text
 assert "_frame_neutral_generation_documents" in finalize_text
 
-# The live transition doorway that exposed the architectural defect must be
-# classified as a composite framework for an uncommitted visitor state.
-ns = {}
-exec(compile(ast.Module(body=[node for node in module.body if isinstance(node, ast.FunctionDef) or isinstance(node, ast.Assign)], type_ignores=[]), "main.py", "exec"), ns)
+# Exercise the new resource-frame classifier without importing the production
+# module or its external runtime dependencies.
+function_names = {
+    "_normalize_title",
+    "_clean_evidence_text",
+    "_query_profile",
+    "_resource_frame_groups",
+    "_is_specialized_framework_resource",
+    "_requested_frame_groups",
+}
+selected_nodes = [node for node in module.body if isinstance(node, ast.FunctionDef) and node.name in function_names]
+assign_nodes = [node for node in module.body if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_FRAME_SIGNAL_GROUPS" for t in node.targets)]
+ns = {"re": re, "use_core": SimpleNamespace(_is_specialized_framework_resource=lambda doc: False)}
+exec(compile(ast.Module(body=assign_nodes + selected_nodes, type_ignores=[]), "main.py", "exec"), ns)
 transition_doc = {
     "title": "Thriving in the Age of Flux: Harnessing AI, Indigenous Wisdom, and Spiritual Insight to Navigate Epochal Change",
     "url": "https://geralddaquila.com/2025/06/05/thriving-in-the-age-of-flux-harnessing-ai-indigenous-wisdom-and-spiritual-insight-to-navigate-epochal-change/",
