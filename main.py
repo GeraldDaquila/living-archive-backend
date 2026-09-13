@@ -1,13 +1,14 @@
-# USE PRODUCTION VERSION: v380 — open transition generation authority
-# Prevent legacy unrelated-resource fallback after an open transition query is established.
+# USE PRODUCTION VERSION: v381 — transition evidence bridge
+# Structural intervention: for open transition inquiries, generation may only receive
+# resources that satisfy the transition-fit contract. Protected use_core.py remains unchanged.
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v380"
-DEPLOYMENT_FINGERPRINT = "USE-v380-open-transition-generation-authority"
-CANONICAL_BUILD_ID = "USE-BUILD-v380-open-transition-generation-authority"
+APP_VERSION = "v381"
+DEPLOYMENT_FINGERPRINT = "USE-v381-transition-evidence-bridge"
+CANONICAL_BUILD_ID = "USE-BUILD-v381-transition-evidence-bridge"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 
@@ -22,11 +23,11 @@ _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = _sha256(_MAIN_PATH.read_bytes())
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v380 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v381 package integrity failure: use_core.py is missing.")
 _core_runtime_sha = _git_blob_sha256(_CORE_PATH.read_bytes())
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError(
-        f"USE v380 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
+        f"USE v381 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}"
     )
 
 use_core = importlib.import_module("use_core")
@@ -112,21 +113,12 @@ def _requested_frame_groups(query: str) -> set:
     return groups
 
 
-def _frame_neutral_generation_documents(query: str, intent: str, docs: list):
-    requested = _requested_frame_groups(query)
-    frame_neutral = not requested
-    if not frame_neutral:
-        return docs, False
-    neutral = [doc for doc in docs if not _is_specialized_framework_resource(doc)]
-    return neutral, True
-
-
 def _transition_evidence_fit(doc: dict, profile: dict):
     title = _normalize_title(doc.get("title") or "").casefold()
     text = _clean_evidence_text(doc.get("text") or "").casefold()
     hay = f"{title} {text}"
     clusters = {
-        "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point)\b", hay)),
+        "transition": bool(re.search(r"\b(?:transition|change|chapter|starting over|moving forward|uncertain|flux|reorientation|turning point|new beginning)\b", hay)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|identity|sensemaking|sense-making|making sense)\b", hay)),
         "experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating)\b", hay)),
         "grounding": bool(re.search(r"\b(?:ground|grounding|practical|reflect|reflection|notice|naming|journal|practice)\b", hay)),
@@ -182,8 +174,6 @@ def _is_query_aligned_transition_doorway(doc: dict, query: str) -> bool:
     if not (clusters["experience"] or clusters["meaning"]):
         return False
     if not clusters["open"] and not qfit["meaning"]:
-        return False
-    if clusters["support"] and not qfit["support"] and not clusters["transition"]:
         return False
     return score >= 15
 
@@ -278,7 +268,7 @@ def _call_original_with_calibrated_context(args, kwargs, context: str, contract:
     return _original_generate_llm_response(*call_args, **call_kwargs)
 
 
-def _v380_finalize(*args, **kwargs):
+def _v381_finalize(*args, **kwargs):
     user_query = str(kwargs.get("user_query") or (args[0] if args else "") or "")
     intent = str(kwargs.get("intent") or (args[2] if len(args) > 2 else "") or "")
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -291,15 +281,15 @@ def _v380_finalize(*args, **kwargs):
     merged_docs = _merge_recovered_documents(docs, recovered_docs)
     if is_open_transition:
         aligned = [doc for doc in merged_docs if _is_query_aligned_transition_doorway(doc, user_query)]
-        if aligned:
-            calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:8]
-            calibrated_context = _rebuild_context_blocks(calibrated_docs)
-            contract = _visitor_experience_contract(user_query, calibrated_docs, False)
-            return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
-        unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
-        if callable(unavailable):
-            return unavailable(user_query)
-        return {"response": "The Guide could not identify a sufficiently aligned canonical doorway for this transition question yet.", "resources": []}
+        if not aligned:
+            unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
+            if callable(unavailable):
+                return unavailable(user_query)
+            return {"response": "The Guide could not identify a sufficiently aligned canonical doorway for this transition question yet.", "resources": []}
+        calibrated_docs = sorted(aligned, key=lambda doc: _transition_doorway_score(doc, user_query), reverse=True)[:8]
+        calibrated_context = _rebuild_context_blocks(calibrated_docs)
+        contract = _visitor_experience_contract(user_query, calibrated_docs, False)
+        return _call_original_with_calibrated_context(args, kwargs, calibrated_context, contract)
     calibrated_docs, frame_neutral = _frame_neutral_generation_documents(user_query, intent, merged_docs)
     if frame_neutral and not calibrated_docs:
         unavailable = getattr(use_core, "_frame_neutral_evidence_unavailable_response", None)
@@ -318,8 +308,8 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v380_finalize
+use_core.generate_llm_response = _v381_finalize
 print(
-    f"USE v380 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"USE v381 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
     f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"
 )
