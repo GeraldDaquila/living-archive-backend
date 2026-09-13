@@ -28,13 +28,13 @@ assert "X-USE-Fingerprint" in core_source
 assert "X-USE-Source-SHA256" in core_source
 
 for required in (
-    "def _transition_profile",
-    "def _transition_retrieval_strategy",
-    "def _direct_open_transition_response",
-    "def _v387_finalize",
-    "def _query_profile",
-    "def _guide_answer_architecture",
-    "def _build_sensitive_recommendation_answer",
+    "def _transition_profile(user_query: str) -> dict:",
+    "def _transition_retrieval_strategy(query: str):",
+    "def _direct_open_transition_response(query: str, docs: list) -> dict:",
+    "def _v387_finalize(*args, **kwargs):",
+    "def _query_profile(user_query: str, docs: list) -> dict:",
+    "def _guide_answer_architecture(user_query: str, primary: dict, docs: list) -> dict:",
+    "def _build_sensitive_recommendation_answer(user_query: str, primary: dict, docs: list) -> str:",
 ):
     assert required in main_source, required
 
