@@ -44,8 +44,6 @@ def _extract_user_query(args, kwargs):
         value = kwargs.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    # Actual production signature is generate_llm_response(query, context, intent, ...).
-    # Prefer that explicit positional contract over heuristic string scanning.
     if len(args) >= 1 and isinstance(args[0], str) and args[0].strip():
         return args[0].strip()
     return ""
