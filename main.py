@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v456 — foundation gateway survival
+# USE PRODUCTION VERSION: v457 — foundation authority preservation
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v456"
-DEPLOYMENT_FINGERPRINT = "USE-v456-foundation-gateway-survival"
-CANONICAL_BUILD_ID = "USE-BUILD-v456-foundation-gateway-survival"
+APP_VERSION = "v457"
+DEPLOYMENT_FINGERPRINT = "USE-v457-foundation-authority-preservation"
+CANONICAL_BUILD_ID = "USE-BUILD-v457-foundation-authority-preservation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v456 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v457 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v456 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v457 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v456 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v457 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v456 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v457 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -517,12 +517,41 @@ def _build_anger_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
-def _persistent_visitor_construction(query: str, docs: list, profile: dict):
+def _foundation_authoritative_documents(query: str, context_blocks: str, canonical_link_context: str):
+    """Carry the already-selected canonical doorway into foundation construction."""
+    canonical_docs = _parse_context_documents(canonical_link_context)
+    generation_docs = _parse_context_documents(context_blocks)
+    if not canonical_docs:
+        return generation_docs
+
+    primary = canonical_docs[0]
+    if not _valid_doc_url(primary) or not _normalize_title(primary.get("title") or ""):
+        return generation_docs
+
+    ordered = [primary]
+    seen = {_doc_identity(primary).casefold()}
+    for doc in generation_docs + canonical_docs[1:]:
+        key = _doc_identity(doc).casefold()
+        if not key or key in seen or not _valid_doc_url(doc) or _is_risk_related(doc):
+            continue
+        ordered.append(doc)
+        seen.add(key)
+    return ordered
+
+
+def _persistent_visitor_construction(query: str, docs: list, profile: dict, canonical_link_context: str = ""):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
     if profile.get("foundation_open"):
-        primary = _select_foundation_primary(docs)
-        answer = _build_foundation_answer(query, primary, docs)
+        foundation_docs = _foundation_authoritative_documents(
+            query,
+            "\n\n---\n\n".join(
+                f"Title: {doc.get('title','')}\nURL: {doc.get('url','')}\nContent: {doc.get('text','')}" for doc in docs
+            ),
+            canonical_link_context,
+        )
+        primary = foundation_docs[0] if foundation_docs else _select_foundation_primary(docs)
+        answer = _build_foundation_answer(query, primary, foundation_docs)
         if answer:
             return answer
     if profile.get("coercion_open"):
@@ -579,37 +608,40 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v456_generate_boundary(*args, **kwargs):
+def _v457_generate_boundary(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
+    canonical_link_context = str(kwargs.get("canonical_link_context") or "")
+    if not canonical_link_context and len(args) >= 4 and isinstance(args[3], str):
+        canonical_link_context = args[3]
     profile = _query_profile(user_query)
-    persistent = _persistent_visitor_construction(user_query, docs, profile)
+    persistent = _persistent_visitor_construction(user_query, docs, profile, canonical_link_context)
     if persistent:
         return persistent
     return _original_generate_llm_response(*args, **kwargs)
 
 
-def _v456_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+def _v457_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
     docs = _parse_context_documents(canonical_link_context)
     profile = _query_profile(user_query)
-    persistent = _persistent_visitor_construction(user_query, docs, profile)
+    persistent = _persistent_visitor_construction(user_query, docs, profile, canonical_link_context)
     if persistent:
         return persistent
     return _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context)
 
-_V456_BOUNDARY_QUERY = "What is the Living Archive?"
-_V456_BOUNDARY_AUDIT = _v456_evidence_gap_boundary(_V456_BOUNDARY_QUERY, "")
-if "living archive" not in _V456_BOUNDARY_AUDIT.casefold() or "connected body" not in _V456_BOUNDARY_AUDIT.casefold():
-    raise RuntimeError("USE v456 foundational orientation audit failed: foundational construction did not survive the core bypass.")
+_V457_BOUNDARY_QUERY = "What is the Living Archive?"
+_V457_BOUNDARY_AUDIT = _v457_evidence_gap_boundary(_V457_BOUNDARY_QUERY, "")
+if "living archive" not in _V457_BOUNDARY_AUDIT.casefold() or "connected body" not in _V457_BOUNDARY_AUDIT.casefold():
+    raise RuntimeError("USE v457 foundational orientation audit failed: foundational construction did not survive the core bypass.")
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v456 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v457 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v456_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v456_evidence_gap_boundary
+use_core.generate_llm_response = _v457_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v457_evidence_gap_boundary
