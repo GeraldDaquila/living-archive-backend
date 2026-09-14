@@ -541,27 +541,15 @@ def _v450_generate_boundary(*args, **kwargs):
 
 
 def _v451_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
-    """Preserve v450 visitor construction when the core bypasses generation.
-
-    /api/query can route directly to the core evidence-gap response whenever
-    post-retrieval sufficiency is unavailable. That branch never looks up
-    generate_llm_response, so the normal v450 boundary cannot run there.
-    This wrapper keeps that protected core path intact while giving the
-    existing visitor-construction layer first refusal at the exact bypass.
-    """
+    """Preserve v450 visitor construction when the core bypasses generation."""
     docs = _parse_context_documents(canonical_link_context)
     profile = _query_profile(user_query)
     persistent = _persistent_visitor_construction(user_query, docs, profile)
     if persistent:
         return persistent
-    return _original_evidence_sufficiency_unavailable_response(
-        user_query,
-        canonical_link_context,
-    )
+    return _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context)
 
 
-# Deterministic seam audit: the exact boundary query must receive the
-# transition visitor construction even when no canonical primary is available.
 _V451_BOUNDARY_QUERY = "Everything looks fine from the outside, but my life feels strangely empty. I keep wondering whether I’ve outgrown the life I built."
 _V451_BOUNDARY_AUDIT = _v451_evidence_gap_boundary(_V451_BOUNDARY_QUERY, "")
 if "outgrown" not in _V451_BOUNDARY_AUDIT.casefold() or "uncertainty" not in _V451_BOUNDARY_AUDIT.casefold():
