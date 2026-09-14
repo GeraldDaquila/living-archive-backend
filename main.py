@@ -1,49 +1,27 @@
-# USE PRODUCTION VERSION: v422 — risk boundary restored on v421 structural role boundary
+# USE PRODUCTION VERSION: v423 — risk routing at API request boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v422"
-DEPLOYMENT_FINGERPRINT = "USE-v422-risk-boundary-restored-on-v421"
-CANONICAL_BUILD_ID = "USE-BUILD-v422-risk-boundary-restored-on-v421"
+APP_VERSION = "v423"
+DEPLOYMENT_FINGERPRINT = "USE-v423-risk-request-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v423-risk-request-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v422 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v423 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v422 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v423 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_fetch_canonical_context = use_core.fetch_canonical_context
-
-
-def _parse_context_documents(context_blocks: str):
-    parser = getattr(use_core, "_parse_context_documents", None)
-    if callable(parser):
-        return parser(context_blocks)
-    docs = []
-    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
-        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
-        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
-        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
-        if tm and um and cm:
-            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
-    return docs
-
-
-def _extract_user_query(args, kwargs):
-    for key in ("user_query", "query", "question"):
-        value = kwargs.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
 
 
 def _query_profile(user_query: str) -> dict:
@@ -62,11 +40,33 @@ def _build_risk_answer():
     )
 
 
+def _extract_user_query(args, kwargs):
+    for key in ("user_query", "query", "question"):
+        value = kwargs.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
+
+
 def _context_blocks_from_kwargs(args, kwargs):
     for key in ("retrieved_context_blocks", "retrieved_context", "context_blocks"):
         if kwargs.get(key):
             return str(kwargs[key])
     return args[1] if len(args) >= 2 and isinstance(args[1], str) else ""
+
+
+def _parse_context_documents(context_blocks: str):
+    parser = getattr(use_core, "_parse_context_documents", None)
+    if callable(parser):
+        return parser(context_blocks)
+    docs = []
+    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
+        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
+        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
+        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
+        if tm and um and cm:
+            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
+    return docs
 
 
 def _normalize_title(text: str) -> str:
@@ -120,13 +120,12 @@ def _select_loneliness_primary(docs):
 
 
 def _canonical_complementary_roles(user_query: str, docs, primary):
-    """Use only already-retrieved canonical evidence; never perform a second retrieval."""
     if not docs or not primary:
         return []
     primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
     selector = getattr(use_core, "_select_complementary_generation_evidence", None)
     if not callable(selector):
-        raise RuntimeError("USE v422 structural boundary failure: protected complementary selector is unavailable.")
+        return []
     candidate = selector(docs, user_query, protected_documents=[])
     if isinstance(candidate, dict):
         candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
@@ -162,41 +161,76 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _risk_guarded_fetch_canonical_context(user_query: str):
-    if _query_profile(user_query).get("risk"):
-        return {
-            "intent": "RISK_ROUTING",
-            "orientational_frame": {},
-            "context_blocks": "",
-            "canonical_link_context": "",
-            "risk_route_required": True,
-        }
-    return _original_fetch_canonical_context(user_query)
-
-
-def _v422_finalize(*args, **kwargs):
-    user_query = _extract_user_query(args, kwargs)
-    profile = _query_profile(user_query)
-    if profile.get("risk"):
-        return _build_risk_answer()
-    raw_context = _context_blocks_from_kwargs(args, kwargs)
-    docs = _parse_context_documents(raw_context)
-    if profile.get("loneliness"):
-        primary = _select_loneliness_primary(docs)
-        if primary:
-            answer = _build_loneliness_answer(user_query, primary, docs)
-            if answer:
-                return answer
-    return _original_generate_llm_response(*args, **kwargs)
-
-
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v422 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v423 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.fetch_canonical_context = _risk_guarded_fetch_canonical_context
-use_core.generate_llm_response = _v422_finalize
+
+# Replace the actual FastAPI request boundary. This executes before the
+# protected core's fetch/generation orchestration, so explicit safety routing
+# cannot fall through into provider generation.
+_original_handle_query = getattr(use_core, "handle_query", None)
+if _original_handle_query is None:
+    raise RuntimeError("USE v423 package integrity failure: API query handler is unavailable.")
+
+use_core.fetch_canonical_context = _original_fetch_canonical_context
+use_core.generate_llm_response = _original_generate_llm_response
+
+try:
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+    _QueryRequestModel = getattr(use_core, "FlexibleQueryRequest", None)
+except Exception as exc:
+    raise RuntimeError(f"USE v423 package integrity failure: FastAPI boundary import failed: {exc}")
+
+async def _v423_handle_query(request: Request, payload=None):
+    raw_body = {}
+    try:
+        raw_body = await request.json()
+    except Exception:
+        pass
+
+    query_str = None
+    if payload:
+        query_str = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
+    if not query_str and raw_body:
+        query_str = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
+    if not query_str or not str(query_str).strip():
+        return await _original_handle_query(request, payload)
+
+    query_str = str(query_str).strip()
+    if _query_profile(query_str).get("risk"):
+        headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
+        version = getattr(use_core, "APP_VERSION", APP_VERSION)
+        fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
+        request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": version,
+                "fingerprint": fingerprint,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
+                "request_id": request_id,
+                "query": query_str,
+                "intent": "RISK_ROUTING",
+                "response": _build_risk_answer(),
+            },
+            headers=headers,
+        )
+
+    return await _original_handle_query(request, payload)
+
+use_core.app.router.routes = [
+    route for route in use_core.app.router.routes
+    if not (getattr(route, "path", None) in {"/api/query", "/"} and "POST" in getattr(route, "methods", set()))
+]
+
+from fastapi.routing import APIRoute
+v423_route = APIRoute("/api/query", _v423_handle_query, methods=["POST"], name="handle_query")
+use_core.app.router.routes.insert(0, v423_route)
