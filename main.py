@@ -1,29 +1,34 @@
-# USE PRODUCTION VERSION: v450 — actual API handler generation-boundary correction
+# USE PRODUCTION VERSION: v451 — evidence-gap visitor-construction boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v450"
-DEPLOYMENT_FINGERPRINT = "USE-v450-actual-api-handler-generation-boundary-correction"
-CANONICAL_BUILD_ID = "USE-BUILD-v450-actual-api-handler-generation-boundary-correction"
+APP_VERSION = "v451"
+DEPLOYMENT_FINGERPRINT = "USE-v451-evidence-gap-visitor-construction-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v451-evidence-gap-visitor-construction-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v450 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v451 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v450 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v451 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
+_original_evidence_sufficiency_unavailable_response = getattr(
+    use_core, "_evidence_sufficiency_unavailable_response", None
+)
 if _original_handle_query is None:
-    raise RuntimeError("USE v450 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v451 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response):
+    raise RuntimeError("USE v451 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -535,12 +540,40 @@ def _v450_generate_boundary(*args, **kwargs):
     return _original_generate_llm_response(*args, **kwargs)
 
 
+def _v451_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+    """Preserve v450 visitor construction when the core bypasses generation.
+
+    /api/query can route directly to the core evidence-gap response whenever
+    post-retrieval sufficiency is unavailable. That branch never looks up
+    generate_llm_response, so the normal v450 boundary cannot run there.
+    This wrapper keeps that protected core path intact while giving the
+    existing visitor-construction layer first refusal at the exact bypass.
+    """
+    docs = _parse_context_documents(canonical_link_context)
+    profile = _query_profile(user_query)
+    persistent = _persistent_visitor_construction(user_query, docs, profile)
+    if persistent:
+        return persistent
+    return _original_evidence_sufficiency_unavailable_response(
+        user_query,
+        canonical_link_context,
+    )
+
+
+# Deterministic seam audit: the exact boundary query must receive the
+# transition visitor construction even when no canonical primary is available.
+_V451_BOUNDARY_QUERY = "Everything looks fine from the outside, but my life feels strangely empty. I keep wondering whether I’ve outgrown the life I built."
+_V451_BOUNDARY_AUDIT = _v451_evidence_gap_boundary(_V451_BOUNDARY_QUERY, "")
+if "outgrown" not in _V451_BOUNDARY_AUDIT.casefold() or "uncertainty" not in _V451_BOUNDARY_AUDIT.casefold():
+    raise RuntimeError("USE v451 evidence-gap boundary audit failed: transition construction did not survive the core bypass.")
+
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v450 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v451 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 use_core.generate_llm_response = _v450_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v451_evidence_gap_boundary
