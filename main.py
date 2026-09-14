@@ -1,27 +1,40 @@
-# USE PRODUCTION VERSION: v430 — risk query-handler boundary
+# USE PRODUCTION VERSION: v421 — structural complementary-role boundary on current main
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v430"
-DEPLOYMENT_FINGERPRINT = "USE-v430-risk-query-handler-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v430-risk-query-handler-boundary"
+APP_VERSION = "v421"
+DEPLOYMENT_FINGERPRINT = "USE-v421-structural-complementary-role-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v421-structural-complementary-role-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v430 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v421 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v430 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v421 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
-_original_fetch_canonical_context = use_core.fetch_canonical_context
+
+
+def _parse_context_documents(context_blocks: str):
+    parser = getattr(use_core, "_parse_context_documents", None)
+    if callable(parser):
+        return parser(context_blocks)
+    docs = []
+    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
+        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
+        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
+        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
+        if tm and um and cm:
+            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
+    return docs
 
 
 def _extract_user_query(args, kwargs):
@@ -30,32 +43,6 @@ def _extract_user_query(args, kwargs):
         if isinstance(value, str) and value.strip():
             return value.strip()
     return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
-
-
-def _query_profile(user_query: str) -> dict:
-    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
-    return {
-        "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
-        "meaning": bool(re.search(r"\b(?:meaning|purpose|point of life|what gives life meaning|why am i here|lost about what gives life meaning|sense of purpose)\b", q)),
-        "grief": bool(re.search(r"\b(?:grief|grieving|grieve|mourning|bereaved|bereavement|death of (?:a|my|their|the) (?:loved one|partner|spouse|friend|parent|child)|lost (?:a|my|their|the) (?:loved one|partner|spouse|friend|parent|child))\b", q)),
-        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
-        "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot|starseed)\b", q)),
-    }
-
-
-def _build_risk_answer():
-    return (
-        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
-        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
-        "You do not need to work out the larger meaning of what you are going through before taking that next step."
-    )
-
-
-def _parse_context_documents(context_blocks: str):
-    parser = getattr(use_core, "_parse_context_documents", None)
-    if callable(parser):
-        return parser(context_blocks)
-    return []
 
 
 def _context_blocks_from_kwargs(args, kwargs):
@@ -67,6 +54,14 @@ def _context_blocks_from_kwargs(args, kwargs):
 
 def _normalize_title(text: str) -> str:
     return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", str(text or "").strip()).strip()
+
+
+def _query_profile(user_query: str) -> dict:
+    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
+    return {
+        "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
+    }
 
 
 def _role_evidence(doc: dict) -> dict:
@@ -84,10 +79,6 @@ def _role_evidence(doc: dict) -> dict:
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
-        "title_meaning": bool(re.search(r"\b(?:meaning|purpose|life|consciousness|journey|understanding|perspective|wisdom)\b", title)),
-        "title_grief": bool(re.search(r"\b(?:grief|grieving|mourning|bereavement|loss|death|dying|dying well)\b", title)),
-        "continuity": bool(re.search(r"\b(?:continuity|connection beyond death|afterlife|legacy|what may endure|endure|transcenden)\b", corpus)),
-        "grief_lived": bool(re.search(r"\b(?:grief|grieving|mourning|loss|bereavement|bereaved|companion|comfort|sorrow|lament|heart|heartbreak)\b", corpus)),
     }
 
 
@@ -95,37 +86,95 @@ def _is_risk_related(doc: dict) -> bool:
     e = _role_evidence(doc)
     return e["acute_risk"] or e["title_risk"]
 
-# Preserve all ordinary v429 behavior below by loading the existing implementation
-# from the committed module. Only the public request boundary is wrapped here.
-# v430 is intentionally narrow: explicit risk is handled before fetch/generation;
-# every other query uses the exact v429 functions and behavior.
 
-def _risk_guarded_fetch_canonical_context(user_query: str):
-    if _query_profile(user_query).get("risk"):
-        return {
-            "intent": "RISK_ROUTING",
-            "orientational_frame": {},
-            "context_blocks": "",
-            "canonical_link_context": "",
-            "risk_route_required": True,
-        }
-    return _original_fetch_canonical_context(user_query)
+def _select_loneliness_primary(docs, profile):
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https?://\S+$", url, re.I):
+            continue
+        e = _role_evidence(doc)
+        if _is_risk_related(doc) and not profile.get("risk"):
+            continue
+        score = 100 * int(e["title_loneliness"])
+        score += 75 * int(e["direct_loneliness"])
+        score += 22 * int(e["belonging_connection"])
+        score += 18 * int(e["lived_experience"])
+        score += 8 * int(e["meaning"])
+        score += 5 * int(e["grounded"])
+        if e["worldview"]:
+            score -= 40
+        ranked.append((score, index, doc))
+    ranked = [item for item in ranked if item[0] > 0]
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return ranked[0][2] if ranked else None
 
 
-def _v430_finalize(*args, **kwargs):
+def _canonical_complementary_roles(user_query: str, docs, primary):
+    """Use only already-retrieved canonical evidence; never perform a second retrieval."""
+    if not docs or not primary:
+        return []
+    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
+    selector = getattr(use_core, "_select_complementary_generation_evidence", None)
+    if not callable(selector):
+        raise RuntimeError("USE v421 structural boundary failure: protected complementary selector is unavailable.")
+    candidate = selector(docs, user_query, protected_documents=[])
+    if isinstance(candidate, dict):
+        candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
+    if not isinstance(candidate, list):
+        return []
+    for doc in candidate:
+        if not isinstance(doc, dict):
+            continue
+        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
+        if key and key != primary_key and not _is_risk_related(doc):
+            return [doc]
+    return []
+
+
+def _build_loneliness_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    sections = [
+        "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
+        f"A gentle place to begin is [{title}]({url}).",
+    ]
+    if secondaries:
+        item = secondaries[0]
+        item_title = _normalize_title(item.get("title") or "")
+        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
+        sections.append(f"Another route into the question is [{item_title}]({item_url}).")
+    else:
+        sections.append("The material can open a way into the question without deciding in advance what loneliness must mean.")
+    sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
+    return "\n\n".join(sections)
+
+
+def _v421_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
-    if _query_profile(user_query).get("risk"):
-        return _build_risk_answer()
+    raw_context = _context_blocks_from_kwargs(args, kwargs)
+    docs = _parse_context_documents(raw_context)
+    profile = _query_profile(user_query)
+    if user_query and profile.get("loneliness") and not profile.get("risk"):
+        primary = _select_loneliness_primary(docs, profile)
+        if primary:
+            answer = _build_loneliness_answer(user_query, primary, docs)
+            if answer:
+                return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v430 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v421 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.fetch_canonical_context = _risk_guarded_fetch_canonical_context
-use_core.generate_llm_response = _v430_finalize
+use_core.generate_llm_response = _v421_finalize
