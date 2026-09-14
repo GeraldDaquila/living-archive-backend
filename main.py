@@ -1,27 +1,30 @@
-# USE PRODUCTION VERSION: v423 — risk routing at API request boundary
+# USE PRODUCTION VERSION: v424 — API-boundary risk routing without router mutation
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v423"
-DEPLOYMENT_FINGERPRINT = "USE-v423-risk-request-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v423-risk-request-boundary"
+APP_VERSION = "v424"
+DEPLOYMENT_FINGERPRINT = "USE-v424-api-boundary-risk-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v424-api-boundary-risk-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v423 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v424 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v423 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v424 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_fetch_canonical_context = use_core.fetch_canonical_context
+_original_handle_query = getattr(use_core, "handle_query", None)
+if _original_handle_query is None:
+    raise RuntimeError("USE v424 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -40,197 +43,82 @@ def _build_risk_answer():
     )
 
 
-def _extract_user_query(args, kwargs):
-    for key in ("user_query", "query", "question"):
-        value = kwargs.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
+def _extract_request_query(request, payload) -> str:
+    raw_body = {}
+    try:
+        raw_body = request.state.use_v424_raw_body
+    except Exception:
+        raw_body = {}
+    if payload:
+        value = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
+        if value:
+            return str(value).strip()
+    if raw_body:
+        value = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
+        if value:
+            return str(value).strip()
+    return ""
 
 
-def _context_blocks_from_kwargs(args, kwargs):
-    for key in ("retrieved_context_blocks", "retrieved_context", "context_blocks"):
-        if kwargs.get(key):
-            return str(kwargs[key])
-    return args[1] if len(args) >= 2 and isinstance(args[1], str) else ""
+def _v424_route_guard_factory(original_handler):
+    async def _guarded_handler(request, payload=None):
+        raw_body = {}
+        try:
+            raw_body = await request.json()
+        except Exception:
+            raw_body = {}
+        try:
+            request.state.use_v424_raw_body = raw_body
+        except Exception:
+            pass
 
-
-def _parse_context_documents(context_blocks: str):
-    parser = getattr(use_core, "_parse_context_documents", None)
-    if callable(parser):
-        return parser(context_blocks)
-    docs = []
-    for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
-        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
-        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
-        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
-        if tm and um and cm:
-            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
-    return docs
-
-
-def _normalize_title(text: str) -> str:
-    return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", str(text or "").strip()).strip()
-
-
-def _role_evidence(doc: dict) -> dict:
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
-    title = _normalize_title(doc.get("title") or "").casefold()
-    corpus = title + " " + text
-    return {
-        "direct_loneliness": bool(re.search(r"\b(?:loneliness|lonely|social isolation|socially isolated|feeling alone|sense of aloneness|disconnected|disconnection|lack of connection|need for connection)\b", text)),
-        "belonging_connection": bool(re.search(r"\b(?:belonging|connection|connected|relationship|relationships|community|companionship|being seen|being understood|social connection)\b", corpus)),
-        "lived_experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling|living with)\b", text)),
-        "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
-        "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
-        "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed)\b", corpus)),
-        "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
-        "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
-        "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
-    }
-
-
-def _is_risk_related(doc: dict) -> bool:
-    e = _role_evidence(doc)
-    return e["acute_risk"] or e["title_risk"]
-
-
-def _select_loneliness_primary(docs):
-    ranked = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        if not title or not re.match(r"^https?://\S+$", url, re.I):
-            continue
-        e = _role_evidence(doc)
-        if _is_risk_related(doc):
-            continue
-        score = 100 * int(e["title_loneliness"])
-        score += 75 * int(e["direct_loneliness"])
-        score += 22 * int(e["belonging_connection"])
-        score += 18 * int(e["lived_experience"])
-        score += 8 * int(e["meaning"])
-        score += 5 * int(e["grounded"])
-        if e["worldview"]:
-            score -= 40
-        ranked.append((score, index, doc))
-    ranked = [item for item in ranked if item[0] > 0]
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _canonical_complementary_roles(user_query: str, docs, primary):
-    if not docs or not primary:
-        return []
-    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
-    selector = getattr(use_core, "_select_complementary_generation_evidence", None)
-    if not callable(selector):
-        return []
-    candidate = selector(docs, user_query, protected_documents=[])
-    if isinstance(candidate, dict):
-        candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
-    if not isinstance(candidate, list):
-        return []
-    for doc in candidate:
-        if not isinstance(doc, dict):
-            continue
-        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
-        if key and key != primary_key and not _is_risk_related(doc):
-            return [doc]
-    return []
-
-
-def _build_loneliness_answer(user_query, primary, docs):
-    title = _normalize_title(primary.get("title") or "")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
-        return ""
-    secondaries = _canonical_complementary_roles(user_query, docs, primary)
-    sections = [
-        "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
-        f"A gentle place to begin is [{title}]({url}).",
-    ]
-    if secondaries:
-        item = secondaries[0]
-        item_title = _normalize_title(item.get("title") or "")
-        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
-        if item_title and re.match(r"^https?://\S+$", item_url, re.I):
-            sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
-            sections.append(f"Another route into the question is [{item_title}]({item_url}).")
-    sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
-    return "\n\n".join(sections)
+        query_str = _extract_request_query(request, payload)
+        if query_str and _query_profile(query_str).get("risk"):
+            from fastapi.responses import JSONResponse
+            headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
+            version = getattr(use_core, "APP_VERSION", APP_VERSION)
+            fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
+            request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "ok": True,
+                    "version": version,
+                    "fingerprint": fingerprint,
+                    "source_sha256": RUNTIME_SOURCE_SHA256,
+                    "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
+                    "request_id": request_id,
+                    "query": query_str,
+                    "intent": "RISK_ROUTING",
+                    "response": _build_risk_answer(),
+                },
+                headers=headers,
+            )
+        return await original_handler(request, payload)
+    return _guarded_handler
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v423 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v424 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 
-# Replace the actual FastAPI request boundary. This executes before the
-# protected core's fetch/generation orchestration, so explicit safety routing
-# cannot fall through into provider generation.
-_original_handle_query = getattr(use_core, "handle_query", None)
-if _original_handle_query is None:
-    raise RuntimeError("USE v423 package integrity failure: API query handler is unavailable.")
+# Preserve every protected core function and every existing FastAPI route.
+# Only wrap the already-registered query endpoint in place; no route removal,
+# router reconstruction, or second retrieval/generation path is introduced.
+from fastapi.routing import APIRoute
+_guarded_route = None
+for _route in getattr(app.router, "routes", []):
+    if getattr(_route, "path", None) == "/api/query" and isinstance(_route, APIRoute) and "POST" in getattr(_route, "methods", set()):
+        _guarded_route = _route
+        break
+if _guarded_route is None:
+    raise RuntimeError("USE v424 package integrity failure: registered POST /api/query route is unavailable.")
 
+_guarded_route.endpoint = _v424_route_guard_factory(_original_handle_query)
 use_core.fetch_canonical_context = _original_fetch_canonical_context
 use_core.generate_llm_response = _original_generate_llm_response
-
-try:
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
-    _QueryRequestModel = getattr(use_core, "FlexibleQueryRequest", None)
-except Exception as exc:
-    raise RuntimeError(f"USE v423 package integrity failure: FastAPI boundary import failed: {exc}")
-
-async def _v423_handle_query(request: Request, payload=None):
-    raw_body = {}
-    try:
-        raw_body = await request.json()
-    except Exception:
-        pass
-
-    query_str = None
-    if payload:
-        query_str = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
-    if not query_str and raw_body:
-        query_str = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
-    if not query_str or not str(query_str).strip():
-        return await _original_handle_query(request, payload)
-
-    query_str = str(query_str).strip()
-    if _query_profile(query_str).get("risk"):
-        headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
-        version = getattr(use_core, "APP_VERSION", APP_VERSION)
-        fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
-        request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
-        return JSONResponse(
-            status_code=200,
-            content={
-                "ok": True,
-                "version": version,
-                "fingerprint": fingerprint,
-                "source_sha256": RUNTIME_SOURCE_SHA256,
-                "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
-                "request_id": request_id,
-                "query": query_str,
-                "intent": "RISK_ROUTING",
-                "response": _build_risk_answer(),
-            },
-            headers=headers,
-        )
-
-    return await _original_handle_query(request, payload)
-
-use_core.app.router.routes = [
-    route for route in use_core.app.router.routes
-    if not (getattr(route, "path", None) in {"/api/query", "/"} and "POST" in getattr(route, "methods", set()))
-]
-
-from fastapi.routing import APIRoute
-v423_route = APIRoute("/api/query", _v423_handle_query, methods=["POST"], name="handle_query")
-use_core.app.router.routes.insert(0, v423_route)
