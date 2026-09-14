@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v422 — differentiated complementary-role boundary
+# USE PRODUCTION VERSION: v423 — meaning-orientation boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v422"
-DEPLOYMENT_FINGERPRINT = "USE-v422-differentiated-complementary-role-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v422-differentiated-complementary-role-boundary"
+APP_VERSION = "v423"
+DEPLOYMENT_FINGERPRINT = "USE-v423-meaning-orientation-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v423-meaning-orientation-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v422 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v423 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v422 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v423 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -60,6 +60,7 @@ def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     return {
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|point of life|what gives life meaning|why am i here|lost about what gives life meaning|sense of purpose)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
         "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot|starseed)\b", q)),
     }
@@ -80,6 +81,7 @@ def _role_evidence(doc: dict) -> dict:
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
+        "title_meaning": bool(re.search(r"\b(?:meaning|purpose|life|consciousness|journey|understanding|perspective|wisdom)\b", title)),
     }
 
 
@@ -112,6 +114,31 @@ def _select_loneliness_primary(docs, profile):
     return ranked[0][2] if ranked else None
 
 
+def _select_meaning_primary(docs, profile):
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https?://\S+$", url, re.I):
+            continue
+        e = _role_evidence(doc)
+        if _is_risk_related(doc):
+            continue
+        score = 100 * int(e["title_meaning"])
+        score += 25 * int(e["meaning"])
+        score += 18 * int(e["lived_experience"])
+        score += 12 * int(e["grounded"])
+        score += 10 * int(e["practical_reflection"])
+        if e["worldview"] and not profile.get("explicit_framework"):
+            score -= 90
+        if e["title_meaning"] and e["worldview"] and not profile.get("explicit_framework"):
+            score -= 60
+        ranked.append((score, index, doc))
+    ranked = [item for item in ranked if item[0] > 0]
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return ranked[0][2] if ranked else None
+
+
 def _secondary_role_text(doc: dict) -> str:
     e = _role_evidence(doc)
     if e["grounded"] and e["meaning"]:
@@ -121,16 +148,13 @@ def _secondary_role_text(doc: dict) -> str:
     if e["meaning"] and e["belonging_connection"]:
         return "a route into meaning, connection, and ways of understanding the experience"
     if e["meaning"]:
-        return "a route into meaning, perspective, and ways of understanding loneliness"
-    if e["belonging_connection"] and e["lived_experience"]:
-        return "a route into connection, belonging, and the lived dimensions of loneliness"
-    if e["practical_reflection"]:
-        return "a reflective route for staying with the experience and noticing what it brings into view"
-    return "a complementary perspective on the experience"
+        return "a route into meaning, purpose, and ways of understanding the experience"
+    if e["lived_experience"]:
+        return "a route into the lived human dimensions surrounding the question"
+    return "a complementary perspective on the question"
 
 
 def _canonical_complementary_roles(user_query: str, docs, primary):
-    """Use only already-retrieved evidence; never perform a second retrieval."""
     if not docs or not primary:
         return []
     primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
@@ -180,7 +204,30 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v422_finalize(*args, **kwargs):
+def _build_meaning_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    sections = [
+        "Feeling lost about meaning does not require a single answer before you can begin exploring the question.",
+        f"A useful place to begin is [{title}]({url}).",
+    ]
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        item_title = _normalize_title(doc.get("title") or "")
+        item_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        sections.append("The Archive contains different ways of approaching meaning; they do not all make the same claim about what a meaningful life is.")
+        sections.append(f"Another route into the question is [{item_title}]({item_url}): {item['role_text']}.")
+    else:
+        sections.append("The material can offer a way into the question without requiring you to adopt one worldview as the answer.")
+    sections.append("You can take the first piece as an opening for reflection rather than a final explanation of what gives life meaning.")
+    return "\n\n".join(sections)
+
+
+def _v423_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -191,15 +238,21 @@ def _v422_finalize(*args, **kwargs):
             answer = _build_loneliness_answer(user_query, primary, docs)
             if answer:
                 return answer
+    if user_query and profile.get("meaning") and not profile.get("risk") and not profile.get("explicit_framework"):
+        primary = _select_meaning_primary(docs, profile)
+        if primary:
+            answer = _build_meaning_answer(user_query, primary, docs)
+            if answer:
+                return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v422 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v423 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v422_finalize
+use_core.generate_llm_response = _v423_finalize
