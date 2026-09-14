@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v405 — loneliness complementary route refinement
+# USE PRODUCTION VERSION: v406 — complementary evidence role gating
 # v391 remains the protected production baseline; this wrapper changes only visitor-facing
 # recommendation role selection/construction. Protected use_core.py is unchanged.
 import hashlib
@@ -6,20 +6,20 @@ import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v405"
-DEPLOYMENT_FINGERPRINT = "USE-v405-loneliness-complementary-route-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v405-loneliness-complementary-route-refinement"
+APP_VERSION = "v406"
+DEPLOYMENT_FINGERPRINT = "USE-v406-complementary-evidence-role-gating"
+CANONICAL_BUILD_ID = "USE-BUILD-v406-complementary-evidence-role-gating"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v405 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v406 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v405 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v406 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -108,8 +108,7 @@ def _loneliness_primary_score(doc: dict, profile: dict) -> int:
     evidence = _role_evidence(doc)
     if _is_risk_related(doc) and not profile.get("risk"):
         return -10_000
-    score = 0
-    score += 95 * int(evidence["title_loneliness"])
+    score = 95 * int(evidence["title_loneliness"])
     score += 70 * int(evidence["direct_loneliness"])
     score += 22 * int(evidence["belonging_connection"])
     score += 18 * int(evidence["lived_experience"])
@@ -141,22 +140,37 @@ def _select_loneliness_primary(docs, profile):
 
 def _secondary_roles(doc: dict):
     evidence = _role_evidence(doc)
-    if evidence["acute_risk"] or evidence["title_risk"]:
+    if evidence["acute_risk"] or evidence["title_risk"] or evidence["direct_loneliness"]:
         return []
     roles = []
-    if evidence["grounded"] and not evidence["direct_loneliness"]:
+    if evidence["grounded"]:
         roles.append(("grounded", "a grounded or research-oriented route into the experience", 26))
-    if evidence["meaning"] and not evidence["direct_loneliness"]:
+    if evidence["meaning"]:
         roles.append(("meaning", "a route into meaning, perspective, and ways of understanding loneliness", 25))
-    if evidence["transition"] and not evidence["direct_loneliness"]:
+    if evidence["transition"]:
         roles.append(("transition", "a route into change, uncertainty, and reorientation", 23))
-    if evidence["practical_reflection"] and not evidence["direct_loneliness"]:
+    if evidence["practical_reflection"]:
         roles.append(("reflection", "a reflective route into staying with the experience", 20))
-    if evidence["belonging_connection"] and not evidence["direct_loneliness"]:
+    if evidence["belonging_connection"]:
         roles.append(("belonging", "a route into connection and belonging", 18))
-    if evidence["title_meaning"] and not evidence["direct_loneliness"]:
+    if evidence["title_meaning"]:
         roles.append(("meaning_title", "a broader route into meaning and perspective", 15))
     return roles
+
+
+def _secondary_quality(doc: dict) -> int:
+    evidence = _role_evidence(doc)
+    quality = 0
+    quality += 20 * int(evidence["grounded"])
+    quality += 20 * int(evidence["meaning"])
+    quality += 12 * int(evidence["lived_experience"])
+    quality += 10 * int(evidence["practical_reflection"])
+    quality += 10 * int(evidence["transition"])
+    quality += 8 * int(evidence["title_meaning"])
+    quality -= 12 * int(evidence["worldview"])
+    if _is_risk_related(doc):
+        quality -= 100
+    return quality
 
 
 def _select_loneliness_secondaries(docs, primary_title, profile, limit=2):
@@ -168,8 +182,11 @@ def _select_loneliness_secondaries(docs, primary_title, profile, limit=2):
             continue
         if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", title + " " + str(doc.get("text") or ""), re.I):
             continue
+        quality = _secondary_quality(doc)
+        if quality < 18:
+            continue
         for role_key, role_text, role_score in _secondary_roles(doc):
-            candidates.append((role_score, index, role_key, role_text, doc))
+            candidates.append((quality + role_score, index, role_key, role_text, doc))
     candidates.sort(key=lambda item: (-item[0], item[1]))
     selected, role_keys, title_keys = [], set(), set()
     for score, index, role_key, role_text, doc in candidates:
@@ -216,7 +233,7 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v405_finalize(*args, **kwargs):
+def _v406_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     intent = _extract_intent(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
@@ -227,23 +244,24 @@ def _v405_finalize(*args, **kwargs):
         recommendation_question = bool(use_core._is_recommendation_question(user_query)) if user_query else False
     except Exception:
         recommendation_question = False
-    print(f"USE v405 runtime hook: query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}, args={len(args)}, kwargs={sorted(kwargs.keys())}")
+    print(f"USE v406 runtime hook: query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}, args={len(args)}, kwargs={sorted(kwargs.keys())}")
     if user_query and profile.get("loneliness") and not profile.get("risk"):
         primary = _select_loneliness_primary(docs, profile)
         if primary:
             answer = _build_loneliness_answer(user_query, primary, docs)
             if answer:
-                print(f"USE v405 runtime hook: loneliness interception=ACTIVE primary='{_normalize_title(primary.get('title') or '')}' secondary_count={len(_select_loneliness_secondaries(docs, _normalize_title(primary.get('title') or ''), profile))} recommendation_classifier={recommendation_question}")
+                secondaries = _select_loneliness_secondaries(docs, _normalize_title(primary.get("title") or ""), profile)
+                print(f"USE v406 runtime hook: loneliness interception=ACTIVE primary='{_normalize_title(primary.get('title') or '')}' secondary_count={len(secondaries)} recommendation_classifier={recommendation_question}")
                 return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v405 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v406 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v405_finalize
+use_core.generate_llm_response = _v406_finalize
