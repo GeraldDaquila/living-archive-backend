@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v421 — structural complementary-role boundary
+# USE PRODUCTION VERSION: v422 — differentiated complementary-role boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v421"
-DEPLOYMENT_FINGERPRINT = "USE-v421-structural-complementary-role-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v421-structural-complementary-role-boundary"
+APP_VERSION = "v422"
+DEPLOYMENT_FINGERPRINT = "USE-v422-differentiated-complementary-role-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v422-differentiated-complementary-role-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v421 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v422 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v421 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v422 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -112,27 +112,49 @@ def _select_loneliness_primary(docs, profile):
     return ranked[0][2] if ranked else None
 
 
+def _secondary_role_text(doc: dict) -> str:
+    e = _role_evidence(doc)
+    if e["grounded"] and e["meaning"]:
+        return "a grounded route into meaning and perspective, without requiring a single explanation"
+    if e["grounded"]:
+        return "a grounded or research-oriented route into the experience"
+    if e["meaning"] and e["belonging_connection"]:
+        return "a route into meaning, connection, and ways of understanding the experience"
+    if e["meaning"]:
+        return "a route into meaning, perspective, and ways of understanding loneliness"
+    if e["belonging_connection"] and e["lived_experience"]:
+        return "a route into connection, belonging, and the lived dimensions of loneliness"
+    if e["practical_reflection"]:
+        return "a reflective route for staying with the experience and noticing what it brings into view"
+    return "a complementary perspective on the experience"
+
+
 def _canonical_complementary_roles(user_query: str, docs, primary):
     """Use only already-retrieved evidence; never perform a second retrieval."""
     if not docs or not primary:
         return []
     primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
     selector = getattr(use_core, "_select_complementary_generation_evidence", None)
-    if callable(selector):
-        try:
-            candidate = selector(docs, user_query)
-        except Exception:
-            candidate = []
-        if isinstance(candidate, dict):
-            candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
-        if isinstance(candidate, list):
-            for doc in candidate:
-                if not isinstance(doc, dict):
-                    continue
-                key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
-                if key and key != primary_key and not _is_risk_related(doc):
-                    return [doc]
-    return []
+    if not callable(selector):
+        return []
+    try:
+        candidate = selector(docs, user_query)
+    except Exception:
+        return []
+    if isinstance(candidate, dict):
+        candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
+    if not isinstance(candidate, list):
+        return []
+    result = []
+    for doc in candidate:
+        if not isinstance(doc, dict):
+            continue
+        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
+        if not key or key == primary_key or _is_risk_related(doc):
+            continue
+        result.append({"doc": doc, "role_text": _secondary_role_text(doc)})
+        break
+    return result
 
 
 def _build_loneliness_answer(user_query, primary, docs):
@@ -147,17 +169,18 @@ def _build_loneliness_answer(user_query, primary, docs):
     ]
     if secondaries:
         item = secondaries[0]
-        item_title = _normalize_title(item.get("title") or "")
-        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        doc = item["doc"]
+        item_title = _normalize_title(doc.get("title") or "")
+        item_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
         sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
-        sections.append(f"Another route into the question is [{item_title}]({item_url}).")
+        sections.append(f"Another route into the question is [{item_title}]({item_url}): {item['role_text']}.")
     else:
         sections.append("The material can open a way into the question without deciding in advance what loneliness must mean.")
     sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
     return "\n\n".join(sections)
 
 
-def _v421_finalize(*args, **kwargs):
+def _v422_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -173,10 +196,10 @@ def _v421_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v421 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v422 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v421_finalize
+use_core.generate_llm_response = _v422_finalize
