@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v418 — complementary doorway title fallback
+# USE PRODUCTION VERSION: v419 — structural complementary candidate recovery
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v418"
-DEPLOYMENT_FINGERPRINT = "USE-v418-complementary-doorway-title-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v418-complementary-doorway-title-fallback"
+APP_VERSION = "v419"
+DEPLOYMENT_FINGERPRINT = "USE-v419-structural-complementary-candidate-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v419-structural-complementary-candidate-recovery"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v418 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v419 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v418 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v419 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -185,16 +185,35 @@ def _select_loneliness_secondary(docs, primary_title, profile):
     return candidates[0][4], candidates[0][3], candidates[0][2]
 
 
-def _evidence_boundary_note(docs, has_secondary=False):
-    has_science = any(re.search(r"\b(?:scientific|science|psychological|neuroscientific|clinical|research)\b", str(doc.get("text") or ""), re.I) for doc in docs)
-    has_spiritual = any(re.search(r"\b(?:spiritual|soul|afterlife|religious|mystical|sacred|transcenden)\b", str(doc.get("text") or ""), re.I) for doc in docs)
-    if has_secondary and has_science and has_spiritual:
-        return "The Archive opens different ways of understanding loneliness without requiring them to become one certainty."
-    if has_secondary:
-        return "The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty."
-    if has_spiritual:
-        return "Where the material turns toward spiritual or afterlife possibilities, those are perspectives offered by the work rather than established facts you need to accept."
-    return "The material can open a way into the question without deciding in advance what loneliness must mean."
+def _candidate_document_key(doc: dict) -> str:
+    url = str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold()
+    title = _normalize_title(doc.get("title") or "").casefold()
+    return url or title
+
+
+def _recover_complementary_candidates(docs, primary_title, profile):
+    recovered = []
+    seen = {_normalize_title(primary_title).casefold()}
+    for doc in docs:
+        title = _normalize_title(doc.get("title") or "")
+        key = _candidate_document_key(doc)
+        if not title or not key or title.casefold() in seen:
+            continue
+        e = _role_evidence(doc)
+        if e["acute_risk"] or e["title_risk"] or e["direct_loneliness"]:
+            continue
+        combined = title + " " + str(doc.get("text") or "")
+        if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", combined, re.I):
+            continue
+        role_candidates = _secondary_role_candidates(doc)
+        if not role_candidates:
+            continue
+        best_role = max(role_candidates, key=lambda item: _secondary_role_quality(doc, item[0]) + item[2])
+        quality = _secondary_role_quality(doc, best_role[0]) + best_role[2]
+        if quality >= 42:
+            recovered.append((quality, doc, best_role[1], best_role[0]))
+    recovered.sort(key=lambda item: -item[0])
+    return recovered
 
 
 def _build_loneliness_answer(user_query, primary, docs):
@@ -204,6 +223,10 @@ def _build_loneliness_answer(user_query, primary, docs):
         return ""
     profile = _query_profile(user_query)
     secondary, role_text, _role_key = _select_loneliness_secondary(docs, title, profile)
+    if not secondary:
+        recovered = _recover_complementary_candidates(docs, title, profile)
+        if recovered:
+            _, secondary, role_text, _role_key = recovered[0]
     sections = [
         "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
         f"A gentle place to begin is [{title}]({url}).",
@@ -219,7 +242,7 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v418_finalize(*args, **kwargs):
+def _v419_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -235,10 +258,10 @@ def _v418_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v418 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v419 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v418_finalize
+use_core.generate_llm_response = _v419_finalize
