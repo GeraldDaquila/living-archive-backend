@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v438 — epistemic visitor construction
+# USE PRODUCTION VERSION: v439 — secondary pathway URL integrity
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v438"
-DEPLOYMENT_FINGERPRINT = "USE-v438-epistemic-visitor-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v438-epistemic-visitor-construction"
+APP_VERSION = "v439"
+DEPLOYMENT_FINGERPRINT = "USE-v439-secondary-pathway-url-integrity"
+CANONICAL_BUILD_ID = "USE-BUILD-v439-secondary-pathway-url-integrity"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v438 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v439 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v438 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v439 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v438 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v439 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -183,10 +183,19 @@ def _select_transition_primary(docs):
     return candidates[0][2] if candidates else None
 
 
+def _doc_identity(doc: dict) -> str:
+    return str(doc.get("url") or doc.get("canonical_url") or "").strip()
+
+
+def _valid_doc_url(doc: dict) -> str:
+    url = _doc_identity(doc)
+    return url if re.match(r"^https://\S+$", url, re.I) else ""
+
+
 def _canonical_complementary_roles(user_query: str, docs, primary):
     if not docs or not primary:
         return []
-    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
+    primary_key = _doc_identity(primary).casefold()
     selector = getattr(use_core, "_select_complementary_generation_evidence", None)
     if not callable(selector):
         return []
@@ -198,7 +207,16 @@ def _canonical_complementary_roles(user_query: str, docs, primary):
         candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
     if not isinstance(candidate, list):
         return []
-    return [doc for doc in candidate if isinstance(doc, dict) and str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold() != primary_key and not _is_risk_related(doc)]
+    valid = []
+    for doc in candidate:
+        if not isinstance(doc, dict) or _is_risk_related(doc):
+            continue
+        if not _valid_doc_url(doc):
+            continue
+        if _doc_identity(doc).casefold() == primary_key:
+            continue
+        valid.append(doc)
+    return valid
 
 
 def _complementary_role(doc: dict, primary_role: str):
@@ -234,12 +252,15 @@ def _complementary_role(doc: dict, primary_role: str):
 
 
 def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1):
-    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
+    primary_key = _doc_identity(primary).casefold()
     candidates = _canonical_complementary_roles(user_query, docs, primary)
     ranked = []
     for index, doc in enumerate(candidates):
-        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
+        key = _doc_identity(doc).casefold()
         if not key or key == primary_key:
+            continue
+        sec_url = _valid_doc_url(doc)
+        if not sec_url:
             continue
         role_key, role_text, score = _complementary_role(doc, primary_role)
         if role_key is not None and score > 0:
@@ -269,8 +290,8 @@ def _foothold_text(primary_role: str) -> str:
 
 def _build_grief_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
+    url = _valid_doc_url(primary)
+    if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "grief", limit=1)
     parts = [
@@ -282,16 +303,17 @@ def _build_grief_answer(user_query, primary, docs):
         item = secondaries[0]
         doc = item["doc"]
         sec_title = _normalize_title(doc.get("title") or "")
-        sec_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
     parts.append("There is no need to settle what the loss means all at once. One piece that feels right for today can be enough of a place to begin.")
     return "\n\n".join(parts)
 
 
 def _build_loneliness_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
+    url = _valid_doc_url(primary)
+    if not title or not url:
         return ""
     secondaries = _canonical_complementary_roles(user_query, docs, primary)
     sections = [
@@ -302,9 +324,10 @@ def _build_loneliness_answer(user_query, primary, docs):
     if secondaries:
         item = secondaries[0]
         item_title = _normalize_title(item.get("title") or "")
-        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
-        sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
-        sections.append(f"Another route into the question is [{item_title}]({item_url}).")
+        item_url = _valid_doc_url(item)
+        if item_title and item_url:
+            sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
+            sections.append(f"Another route into the question is [{item_title}]({item_url}).")
     else:
         sections.append("The material can open a way into the question without deciding in advance what loneliness must mean.")
     sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
@@ -313,8 +336,8 @@ def _build_loneliness_answer(user_query, primary, docs):
 
 def _build_meaning_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
+    url = _valid_doc_url(primary)
+    if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "meaning", limit=1)
     primary_evidence = _role_evidence(primary)
@@ -330,17 +353,17 @@ def _build_meaning_answer(user_query, primary, docs):
     if secondaries:
         item = secondaries[0]
         item_title = _normalize_title(item.get("doc", {}).get("title") or "")
-        item_url = str(item.get("doc", {}).get("url") or item.get("doc", {}).get("canonical_url") or "").strip()
-        if item_title and re.match(r"^https?://\S+$", item_url, re.I):
-            parts.append(f"Another route into the question is [{item_title}], offering {item['role_text']}.")
+        item_url = _valid_doc_url(item.get("doc", {}))
+        if item_title and item_url:
+            parts.append(f"Another route into the question is [{item_title}]({item_url}), offering {item['role_text']}.")
     parts.append("You can stay with the question and decide for yourself which parts feel grounded, which feel interpretive, and which may simply hold personal meaning for you.")
     return "\n\n".join(parts)
 
 
 def _build_transition_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
-    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https?://\S+$", url, re.I):
+    url = _valid_doc_url(primary)
+    if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
     parts = [
@@ -352,9 +375,12 @@ def _build_transition_answer(user_query, primary, docs):
         item = secondaries[0]
         doc = item["doc"]
         sec_title = _normalize_title(doc.get("title") or "")
-        sec_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-        parts.append("You can see whether either lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+            parts.append("You can see whether either lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
+        else:
+            parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
     else:
         parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
     return "\n\n".join(parts)
@@ -390,7 +416,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v438_finalize(*args, **kwargs):
+def _v439_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -403,10 +429,10 @@ def _v438_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v438 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v439 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v438_finalize
+use_core.generate_llm_response = _v439_finalize
