@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v408 — complementary retrieval-gap recovery
+# USE PRODUCTION VERSION: v409 — complementary pathway query expansion
 # v391 remains the protected production baseline; this wrapper changes only visitor-facing
 # recommendation role selection/construction. Protected use_core.py is unchanged.
 import hashlib
@@ -6,20 +6,20 @@ import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v408"
-DEPLOYMENT_FINGERPRINT = "USE-v408-complementary-retrieval-gap-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v408-complementary-retrieval-gap-recovery"
+APP_VERSION = "v409"
+DEPLOYMENT_FINGERPRINT = "USE-v409-complementary-pathway-query-expansion"
+CANONICAL_BUILD_ID = "USE-BUILD-v409-complementary-pathway-query-expansion"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v408 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v409 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v408 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v409 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -84,7 +84,6 @@ def _role_evidence(doc: dict) -> dict:
     title = _normalize_title(doc.get("title") or "").casefold()
     return {
         "direct_loneliness": bool(re.search(r"\b(?:loneliness|lonely|social isolation|socially isolated|feeling alone|sense of aloneness|disconnected|disconnection|belonging|lack of connection|need for connection|being seen|being understood)\b", text)),
-        "existential_loneliness": bool(re.search(r"\b(?:loneliness|lonely|despair|emptiness|isolation|existential|meaninglessness|alone)\b", text)),
         "belonging_connection": bool(re.search(r"\b(?:belonging|connection|connected|relationship|relationships|community|companionship|being seen|being understood|social connection)\b", text)),
         "lived_experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling|living with)\b", text)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", text)),
