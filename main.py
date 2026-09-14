@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v417 — restore complementary doorway breadth safely
+# USE PRODUCTION VERSION: v418 — complementary doorway title fallback
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v417"
-DEPLOYMENT_FINGERPRINT = "USE-v417-safe-complementary-doorway-breadth"
-CANONICAL_BUILD_ID = "USE-BUILD-v417-safe-complementary-doorway-breadth"
+APP_VERSION = "v418"
+DEPLOYMENT_FINGERPRINT = "USE-v418-complementary-doorway-title-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v418-complementary-doorway-title-fallback"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v417 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v418 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v417 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v418 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -219,7 +219,7 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v417_finalize(*args, **kwargs):
+def _v418_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -235,10 +235,10 @@ def _v417_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v417 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v418 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v417_finalize
+use_core.generate_llm_response = _v418_finalize
