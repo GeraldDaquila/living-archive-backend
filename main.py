@@ -32,6 +32,7 @@ def _query_profile(user_query: str) -> dict:
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
         "coercion_open": bool(re.search(r"\b(?:controlling|control(?:led|s)?|coercion|coercive|making me feel|can't trust my own judgment|cannot trust my own judgment|undermine(?:s|d)? my judgment|question my own judgment|isolat(?:es|ed)? me|controls what i do|controls what i wear|controls who i see|controls who i talk to|power over me|makes decisions for me)\b", q)) and bool(re.search(r"\b(?:someone in my life|partner|spouse|relationship|person|trust my own judgment|judgment|control|controlling|coercion|worry|worried|concerned|understand|happening|help|power|choice|freedom|safety)\b", q)),
+        "emptiness_open": bool(re.search(r"\b(?:empty|emptiness|numb|numbness|disconnected from my life|disconnected from life|feel disconnected|disconnected|going through the motions|nothing is obviously wrong|nothing is wrong|all right on paper|everything is fine|feel absent from my life)\b", q)) and bool(re.search(r"\b(?:life|my life|unhappy|happiness|numb|empty|disconnected|understand|happening|help|supposed to|supposed)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose|larger meaning|meaning behind)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|going through|believe|belief|what to believe)\b", q)),
         "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q)),
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
@@ -291,6 +292,7 @@ def _foothold_text(primary_role: str) -> str:
         "fear": "For now, you might not need to figure out exactly what you are afraid of. Notice one thing in the situation that feels most immediate, and give yourself permission to take it one small piece at a time.",
         "anger": "For now, you might let yourself name what the anger is protecting or pointing toward—hurt, disappointment, violated expectations, or a sense that something important has been lost—without needing to act on it or resolve it today.",
         "liminality": "For now, you might allow the uncertainty itself to be information. You do not have to decide yet whether this is grief, change, or being stuck; simply notice what feels most absent, most different, or most unfinished.",
+        "emptiness": "For now, you might notice one moment in the day when you feel most present and one when you feel most absent, without judging either one. You do not have to decide yet whether this is unhappiness, numbness, exhaustion, or something else.",
     }
     return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
@@ -496,6 +498,23 @@ def _build_coercion_answer(user_query, primary=None, docs=None):
     return "\n\n".join(parts)
 
 
+def _build_emptiness_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = _valid_doc_url(primary)
+    if not title or not url:
+        return ""
+    primary_evidence = _role_evidence(primary)
+    parts = [
+        "You can be doing what you are supposed to do and still feel strangely absent from your own life. When nothing is obviously wrong, it can be hard to tell whether what you are feeling is unhappiness, numbness, exhaustion, or simply that the life you are living is no longer feeding something important in you.",
+        f"A possible place to begin is [{title}]({url}). Its perspective may help you put language around that sense of emptiness and ask what, beneath the surface, feels missing or unfinished. Treat it as a reflection doorway rather than an explanation you have to accept.",
+        _foothold_text("emptiness"),
+    ]
+    if primary_evidence["worldview"]:
+        parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
+    parts.append("You do not have to decide yet whether this is a problem you should fix, a signal that something needs to change, or simply a season you are moving through. You can start by noticing what feels absent and what, if anything, still makes you feel quietly more alive.")
+    return "\n\n".join(parts)
+
+
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
@@ -519,6 +538,12 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
         primary = _select_transition_primary(docs)
         if primary:
             answer = _build_transition_answer(query, primary, docs)
+            if answer:
+                return answer
+    if profile.get("emptiness_open"):
+        primary = _select_meaning_primary(docs)
+        if primary:
+            answer = _build_emptiness_answer(query, primary, docs)
             if answer:
                 return answer
     if profile.get("meaning_open"):
@@ -548,7 +573,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v444_finalize(*args, **kwargs):
+def _v445_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -567,4 +592,4 @@ use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v444_finalize
+use_core.generate_llm_response = _v445_finalize
