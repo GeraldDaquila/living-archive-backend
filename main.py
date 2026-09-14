@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v439 — secondary pathway URL integrity
+# USE PRODUCTION VERSION: v440 — fear and uncertainty visitor construction
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v439"
-DEPLOYMENT_FINGERPRINT = "USE-v439-secondary-pathway-url-integrity"
-CANONICAL_BUILD_ID = "USE-BUILD-v439-secondary-pathway-url-integrity"
+APP_VERSION = "v440"
+DEPLOYMENT_FINGERPRINT = "USE-v440-fear-uncertainty-visitor-construction"
+CANONICAL_BUILD_ID = "USE-BUILD-v440-fear-uncertainty-visitor-construction"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v439 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v440 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v439 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v440 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v439 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v440 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -394,12 +394,12 @@ def _build_fear_answer(user_query, primary, docs):
     if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "fear", limit=1)
+    primary_evidence = _role_evidence(primary)
     parts = [
         "Feeling scared about what is happening in your life without being able to name the fear clearly can be disorienting. You do not have to explain it perfectly before you can begin to look at it.",
         f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on what can lie beneath an unsettled or uncertain experience, rather than telling you what your fear must mean.",
         _foothold_text("fear"),
     ]
-    primary_evidence = _role_evidence(primary)
     if primary_evidence["worldview"]:
         parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
     if secondaries:
@@ -449,7 +449,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v439_finalize(*args, **kwargs):
+def _v440_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -462,10 +462,10 @@ def _v439_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v439 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v440 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v439_finalize
+use_core.generate_llm_response = _v440_finalize
