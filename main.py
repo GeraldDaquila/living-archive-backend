@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v446 — emptiness selector refinement
+# USE PRODUCTION VERSION: v447 — emptiness holistic refinement
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v446"
-DEPLOYMENT_FINGERPRINT = "USE-v446-emptiness-selector-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v446-emptiness-selector-refinement"
+APP_VERSION = "v447"
+DEPLOYMENT_FINGERPRINT = "USE-v447-emptiness-holistic-refinement"
+CANONICAL_BUILD_ID = "USE-BUILD-v447-emptiness-holistic-refinement"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v446 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v447 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v446 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v447 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v446 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v447 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -189,13 +189,14 @@ def _select_emptiness_primary(docs):
         if not title or not url or _is_risk_related(doc):
             continue
         corpus = f"{title.casefold()} {text}"
+        e = _role_evidence(doc)
         explicit = int(bool(re.search(r"\b(?:emptiness|empty|numb|numbness|disconnected|disconnection|going through the motions|absent from (?:my )?life|nothing is wrong|all right on paper|everything is fine|unhappy|fulfillment|fulfilled)\b", corpus)))
         life_context = int(bool(re.search(r"\b(?:life|living|meaningful|purpose|identity|belonging|connection|what matters|how to live|change|season|chapter|routine|daily life)\b", corpus)))
-        reflective = int(_role_evidence(doc)["meaning"] or _role_evidence(doc)["practical_reflection"])
-        grounded = int(_role_evidence(doc)["grounded"])
-        lived = int(_role_evidence(doc)["lived_experience"])
+        reflective = int(e["meaning"] or e["practical_reflection"])
+        grounded = int(e["grounded"])
+        lived = int(e["lived_experience"])
         score = 45 * explicit + 18 * life_context + 12 * reflective + 8 * grounded + 8 * lived
-        if _role_evidence(doc)["worldview"]:
+        if e["worldview"]:
             score -= 12
         if score > 0:
             candidates.append((score, index, doc))
@@ -357,13 +358,15 @@ def _build_emptiness_answer(user_query, primary, docs):
         return ""
     primary_evidence = _role_evidence(primary)
     parts = [
-        "You can be doing what you are supposed to do and still feel strangely absent from your own life. When nothing is obviously wrong, it can be hard to tell whether what you are feeling is unhappiness, numbness, exhaustion, or simply that the life you are living is no longer feeding something important in you.",
-        f"A possible place to begin is [{title}]({url}). Its perspective may help you put language around that sense of emptiness and ask what, beneath the surface, feels missing or unfinished. Treat it as a reflection doorway rather than an explanation you have to accept.",
+        "You can be doing what you are supposed to do and still feel strangely absent from your own life. Nothing being obviously wrong does not make the feeling less real, and you do not have to decide yet whether it is unhappiness, numbness, exhaustion, or a sign that something in your life has changed.",
+        "What you may be noticing is a gap between functioning and feeling engaged with your life. That can be worth exploring without turning it immediately into a diagnosis or a problem you must fix.",
+        f"A possible place to begin is [{title}]({url}). Its perspective may help you put language around that sense of emptiness and ask what, beneath the surface, feels missing, muted, or unfinished. Treat it as a reflection doorway rather than an explanation you have to accept.",
         _foothold_text("emptiness"),
     ]
     if primary_evidence["worldview"]:
         parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
-    parts.append("You do not have to decide yet whether this is a problem you should fix, a signal that something needs to change, or simply a season you are moving through. You can start by noticing what feels absent and what, if anything, still makes you feel quietly more alive.")
+    parts.append("You can also notice the contrast between moments when you feel most present and most absent: what are you doing, who are you with, and what seems to come alive or go quiet? You do not need to solve the larger question before that pattern begins to tell you something.")
+    parts.append("Whether this turns out to be a season, a signal that something needs to change, or simply something you want to understand more clearly, the next step can be observation rather than judgment.")
     return "\n\n".join(parts)
 
 
@@ -406,11 +409,23 @@ def _build_fear_answer(user_query, primary, docs):
     url = _valid_doc_url(primary)
     if not title or not url:
         return ""
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "fear", limit=1)
+    primary_evidence = _role_evidence(primary)
     parts = [
-        "Fear and uncertainty can make the future feel larger than the next step in front of you. You do not have to resolve the whole question before you can become a little more oriented.",
-        f"A possible place to begin is [{title}]({url}).",
+        "Feeling scared about what is happening in your life without being able to name the fear clearly can be disorienting. You do not have to explain it perfectly before you can begin to look at it.",
+        f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on what can lie beneath an unsettled or uncertain experience, rather than telling you what your fear must mean.",
         _foothold_text("fear"),
     ]
+    if primary_evidence["worldview"]:
+        parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        sec_title = _normalize_title(doc.get("title") or "")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+    parts.append("You can stay with the uncertainty and notice what feels most immediate, without needing to solve the whole situation at once.")
     return "\n\n".join(parts)
 
 
@@ -419,11 +434,24 @@ def _build_anger_answer(user_query, primary, docs):
     url = _valid_doc_url(primary)
     if not title or not url:
         return ""
-    return "\n\n".join([
-        "Anger can be a response to hurt, disappointment, violated expectations, or the sense that something important has been taken from you. It does not have to be dismissed just because it is uncomfortable.",
-        f"A possible place to begin is [{title}]({url}).",
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "anger", limit=1)
+    parts = [
+        "Anger about how your life has turned out can carry more than anger itself—it can hold hurt, disappointment, grief, or the feeling that something important did not go as it should have. You do not have to dismiss the anger or act on it before you can understand it.",
+        f"A possible place to begin is [{title}]({url}). It offers one perspective for reflecting on what is happening beneath the surface of a difficult experience, rather than telling you what your anger must mean.",
         _foothold_text("anger"),
-    ])
+    ]
+    primary_evidence = _role_evidence(primary)
+    if primary_evidence["worldview"]:
+        parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        sec_title = _normalize_title(doc.get("title") or "")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+    parts.append("You can stay with the anger long enough to notice what it may be asking you to see, without needing to turn that understanding into a final judgment about yourself or your life.")
+    return "\n\n".join(parts)
 
 
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
@@ -484,7 +512,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v446_finalize(*args, **kwargs):
+def _v447_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -496,10 +524,10 @@ def _v446_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v446 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v447 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v446_finalize
+use_core.generate_llm_response = _v447_finalize
