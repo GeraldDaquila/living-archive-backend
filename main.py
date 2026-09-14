@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v413 — structural role-plan adjudication and role-specific recovery
+# USE PRODUCTION VERSION: v414 — restore stable generation boundary with structural roles
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v413"
-DEPLOYMENT_FINGERPRINT = "USE-v413-structural-role-plan-adjudication"
-CANONICAL_BUILD_ID = "USE-BUILD-v413-structural-role-plan-adjudication"
+APP_VERSION = "v414"
+DEPLOYMENT_FINGERPRINT = "USE-v414-structural-roles-stable-generation"
+CANONICAL_BUILD_ID = "USE-BUILD-v414-structural-roles-stable-generation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v413 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v414 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v413 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v414 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -92,7 +92,6 @@ def _role_evidence(doc: dict) -> dict:
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
-        "title_meaning": bool(re.search(r"\b(?:meaning|purpose|perspective|wisdom|understanding|journey|soul|life)\b", title)),
         "title_life": bool(re.search(r"\b(?:life|human|person|people|living|death|grief|existential)\b", title)),
     }
 
@@ -136,7 +135,6 @@ def _select_loneliness_primary(docs, profile):
 
 
 def _complementary_role_plan(profile: dict):
-    """Choose complementary dimensions first, before choosing a resource."""
     if profile.get("loneliness"):
         return [
             ("belonging", "belonging connection relationships community companionship being seen understood social connection"),
@@ -214,7 +212,6 @@ def _secondary_role_quality(doc: dict, role_key: str) -> int:
     score += 18 * int(e["meaning"])
     score += 12 * int(e["lived_experience"])
     score += 10 * int(e["belonging_connection"])
-    score += 8 * int(e["title_meaning"])
     score += 6 * int(e["title_life"])
     score += min(16, _role_content_hits(doc, role_key) * 5)
     if _is_risk_related(doc):
@@ -262,7 +259,6 @@ def _select_structural_secondary(docs, primary_title, profile):
 
 
 def _recover_structural_complementary_candidates(user_query, profile, existing_docs):
-    """Recover evidence for the highest-priority unmet role using core retrieval primitives."""
     if not user_query or profile.get("risk") or not getattr(use_core, "index", None):
         return []
     role_plan = _complementary_role_plan(profile)
@@ -304,7 +300,6 @@ def _recover_structural_complementary_candidates(user_query, profile, existing_d
                     continue
                 recovered_keys.add(key)
                 recovered.append(candidate)
-            print(f"USE v413 complementary-role retrieval: role={role_key!r}, candidates={len(role_candidates)}, admitted={min(2, len(role_candidates))}")
             trial = existing_docs + recovered
             primary = _select_loneliness_primary(trial, profile)
             if primary and _select_structural_secondary(trial, _normalize_title(primary.get("title") or ""), profile):
@@ -336,42 +331,27 @@ def _build_structural_companion_answer(user_query, primary, docs, profile):
     if profile.get("loneliness"):
         sections.append("Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.")
         sections.append(f"A gentle place to begin is [{title}]({url}).")
-    elif profile.get("grief"):
-        sections.append("Grief can hold loss, love, meaning, and uncertainty at the same time; it does not need to be reduced to one explanation before you can begin.")
-        sections.append(f"A place to begin is [{title}]({url}).")
-    elif profile.get("transition"):
-        sections.append("A major transition can leave several questions open at once: what is ending, what still matters, and what might come next.")
-        sections.append(f"A useful place to begin is [{title}]({url}).")
-    elif profile.get("meaning"):
-        sections.append("Questions about meaning rarely arrive with a single settled answer. They can open into several different ways of understanding a life and what matters within it.")
-        sections.append(f"A useful place to begin is [{title}]({url}).")
     else:
-        sections.append(f"A useful place to begin is [{title}]({url}).")
+        return ""
     sections.append(_evidence_boundary_note(docs, has_secondary=bool(secondary)))
     if secondary:
         item = secondary["doc"]
         item_title = _normalize_title(item.get("title") or "")
         item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
         sections.append(f"From a different angle, [{item_title}]({item_url}) offers {secondary['role_text']}." )
-    sections.append("You do not have to settle the question all at once. One piece that feels right for today can be enough of a place to begin.")
+    sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
     return "\n\n".join(sections)
 
 
-def _v413_finalize(*args, **kwargs):
+def _v414_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     intent = _extract_intent(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
     profile = _query_profile(user_query)
-    recommendation_question = False
-    try:
-        recommendation_question = bool(use_core._is_recommendation_question(user_query)) if user_query else False
-    except Exception:
-        recommendation_question = False
-    print(f"USE v413 runtime hook: query_present={bool(user_query)}, intent={intent!r}, docs={len(docs)}, recommendation={recommendation_question}, profile={profile}, args={len(args)}, kwargs={sorted(kwargs.keys())}")
-    if user_query and not profile.get("risk"):
-        primary = _select_loneliness_primary(docs, profile) if profile.get("loneliness") else None
-        if profile.get("loneliness") and primary:
+    if user_query and profile.get("loneliness") and not profile.get("risk"):
+        primary = _select_loneliness_primary(docs, profile)
+        if primary:
             secondary = _select_structural_secondary(docs, _normalize_title(primary.get("title") or ""), profile)
             if not secondary:
                 recovered = _recover_structural_complementary_candidates(user_query, profile, docs)
@@ -386,17 +366,17 @@ def _v413_finalize(*args, **kwargs):
             primary = _select_loneliness_primary(docs, profile)
             answer = _build_structural_companion_answer(user_query, primary, docs, profile) if primary else ""
             if answer:
-                print(f"USE v413 runtime hook: structural navigation=ACTIVE family='loneliness' primary='{_normalize_title(primary.get('title') or '')}' secondary={bool(_select_structural_secondary(docs, _normalize_title(primary.get('title') or ''), profile))}")
+                print(f"USE v414 runtime hook: structural navigation=ACTIVE family='loneliness' primary='{_normalize_title(primary.get('title') or '')}' secondary={bool(_select_structural_secondary(docs, _normalize_title(primary.get('title') or ''), profile))}")
                 return answer
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v413 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v414 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v413_finalize
+use_core.generate_llm_response = _v414_finalize
