@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v424 — preserve v421 visitor boundary; add narrow API risk guard
+# USE PRODUCTION VERSION: v425 — direct handler boundary risk guard; preserve v421 visitor boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v424"
-DEPLOYMENT_FINGERPRINT = "USE-v424-preserved-v421-plus-api-risk-guard"
-CANONICAL_BUILD_ID = "USE-BUILD-v424-preserved-v421-plus-api-risk-guard"
+APP_VERSION = "v425"
+DEPLOYMENT_FINGERPRINT = "USE-v425-direct-handler-risk-guard"
+CANONICAL_BUILD_ID = "USE-BUILD-v425-direct-handler-risk-guard"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v424 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v425 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v424 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v425 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v424 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v425 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -43,7 +43,7 @@ def _build_risk_answer():
 
 
 # ---------------------------------------------------------------------
-# Preserve the entire v421 visitor construction boundary.
+# Preserve the v421 visitor construction boundary exactly.
 # ---------------------------------------------------------------------
 def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "_parse_context_documents", None)
@@ -184,7 +184,7 @@ def _v421_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v424 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v425 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
@@ -193,55 +193,53 @@ use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 use_core.generate_llm_response = _v421_finalize
 
 # ---------------------------------------------------------------------
-# Narrow safety seam: replace only the already-registered /api/query endpoint.
-# Do not rebuild the router and do not alter any other route or core function.
+# Narrow safety seam: patch the original API handler directly before it is
+# registered as an endpoint. This avoids router mutation entirely.
 # ---------------------------------------------------------------------
-from fastapi.routing import APIRoute
-from fastapi.responses import JSONResponse
+try:
+    from fastapi.responses import JSONResponse
+except Exception as exc:
+    raise RuntimeError(f"USE v425 package integrity failure: FastAPI import failed: {exc}")
 
-_guarded_route = None
-for _route in getattr(app.router, "routes", []):
-    if getattr(_route, "path", None) == "/api/query" and isinstance(_route, APIRoute) and "POST" in getattr(_route, "methods", set()):
-        _guarded_route = _route
-        break
-if _guarded_route is None:
-    raise RuntimeError("USE v424 package integrity failure: registered POST /api/query route is unavailable.")
+from starlette.requests import Request
 
-_original_endpoint = _guarded_route.endpoint
-_original_endpoint_is_v424 = getattr(_original_endpoint, "_use_v424_wrapped", False)
-if not _original_endpoint_is_v424:
-    async def _v424_guarded_endpoint(request, payload=None):
+async def _v425_handle_query(request: Request, payload=None):
+    raw_body = {}
+    try:
+        raw_body = await request.json()
+    except Exception:
         raw_body = {}
-        try:
-            raw_body = await request.json()
-        except Exception:
-            raw_body = {}
-        query_str = None
-        if payload:
-            query_str = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
-        if not query_str and raw_body:
-            query_str = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
-        query_str = str(query_str or "").strip()
-        if query_str and _query_profile(query_str).get("risk"):
-            version = getattr(use_core, "APP_VERSION", APP_VERSION)
-            fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
-            headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
-            request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "ok": True,
-                    "version": version,
-                    "fingerprint": fingerprint,
-                    "source_sha256": RUNTIME_SOURCE_SHA256,
-                    "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
-                    "request_id": request_id,
-                    "query": query_str,
-                    "intent": "RISK_ROUTING",
-                    "response": _build_risk_answer(),
-                },
-                headers=headers,
-            )
-        return await _original_endpoint(request, payload)
-    _v424_guarded_endpoint._use_v424_wrapped = True
-    _guarded_route.endpoint = _v424_guarded_endpoint
+
+    query_str = None
+    if payload:
+        query_str = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
+    if not query_str and raw_body:
+        query_str = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
+    query_str = str(query_str or "").strip()
+
+    if query_str and _query_profile(query_str).get("risk"):
+        headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
+        version = getattr(use_core, "APP_VERSION", APP_VERSION)
+        fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
+        request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": version,
+                "fingerprint": fingerprint,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
+                "request_id": request_id,
+                "query": query_str,
+                "intent": "RISK_ROUTING",
+                "response": _build_risk_answer(),
+            },
+            headers=headers,
+        )
+
+    return await _original_handle_query(request, payload)
+
+# Replace the module-level handler symbol used by the FastAPI route decorator
+# without rebuilding or mutating the router after application construction.
+use_core.handle_query = _v425_handle_query
