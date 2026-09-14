@@ -1,47 +1,28 @@
-# USE PRODUCTION VERSION: v426 — preserve v421 visitor boundary; direct request-handler seam
+# USE PRODUCTION VERSION: v427 — direct FastAPI route seam (validated build)
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v426"
-DEPLOYMENT_FINGERPRINT = "USE-v426-direct-request-handler-seam"
-CANONICAL_BUILD_ID = "USE-BUILD-v426-direct-request-handler-seam"
+APP_VERSION = "v427"
+DEPLOYMENT_FINGERPRINT = "USE-v427-direct-fastapi-route-seam"
+CANONICAL_BUILD_ID = "USE-BUILD-v427-direct-fastapi-route-seam"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v426 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v427 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v426 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v427 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
-_original_handle_query = getattr(use_core, "handle_query", None)
-if _original_handle_query is None:
-    raise RuntimeError("USE v426 package integrity failure: API query handler is unavailable.")
 
 
-def _query_profile(user_query: str) -> dict:
-    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
-    return {
-        "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
-        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
-    }
-
-
-def _build_risk_answer() -> str:
-    return (
-        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
-        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
-        "You do not need to work out the larger meaning of what you are going through before taking that next step."
-    )
-
-# Preserve the v421 visitor construction boundary exactly.
 def _parse_context_documents(context_blocks: str):
     parser = getattr(use_core, "_parse_context_documents", None)
     if callable(parser):
@@ -75,6 +56,22 @@ def _normalize_title(text: str) -> str:
     return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", str(text or "").strip()).strip()
 
 
+def _query_profile(user_query: str) -> dict:
+    q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
+    return {
+        "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
+    }
+
+
+def _build_risk_answer() -> str:
+    return (
+        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
+        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
+        "You do not need to work out the larger meaning of what you are going through before taking that next step."
+    )
+
+
 def _role_evidence(doc: dict) -> dict:
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
     title = _normalize_title(doc.get("title") or "").casefold()
@@ -86,7 +83,6 @@ def _role_evidence(doc: dict) -> dict:
         "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
         "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
         "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed)\b", corpus)),
-        "practical_reflection": bool(re.search(r"\b(?:reflect|reflection|notice|naming|journal|practice|grounding|orientation|practical|everyday|attention)\b", text)),
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
@@ -98,7 +94,7 @@ def _is_risk_related(doc: dict) -> bool:
     return e["acute_risk"] or e["title_risk"]
 
 
-def _select_loneliness_primary(docs, profile):
+def _select_loneliness_primary(docs):
     ranked = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
@@ -106,7 +102,7 @@ def _select_loneliness_primary(docs, profile):
         if not title or not re.match(r"^https?://\S+$", url, re.I):
             continue
         e = _role_evidence(doc)
-        if _is_risk_related(doc) and not profile.get("risk"):
+        if _is_risk_related(doc):
             continue
         score = 100 * int(e["title_loneliness"])
         score += 75 * int(e["direct_loneliness"])
@@ -171,7 +167,7 @@ def _v421_finalize(*args, **kwargs):
     docs = _parse_context_documents(raw_context)
     profile = _query_profile(user_query)
     if user_query and profile.get("loneliness") and not profile.get("risk"):
-        primary = _select_loneliness_primary(docs, profile)
+        primary = _select_loneliness_primary(docs)
         if primary:
             answer = _build_loneliness_answer(user_query, primary, docs)
             if answer:
@@ -181,7 +177,7 @@ def _v421_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v426 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v427 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
@@ -189,75 +185,17 @@ use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 use_core.generate_llm_response = _v421_finalize
 
-# ---------------------------------------------------------------------
-# Provenance-safe request seam.
-# FastAPI has already registered the protected handler. Runtime indirection is
-# intentionally avoided: the actual route is patched by replacing its endpoint
-# and rebuilding only that route's Starlette handler cache.
-# ---------------------------------------------------------------------
-try:
-    from fastapi.routing import APIRoute
-    from fastapi.responses import JSONResponse
-    from starlette.routing import request_response
-except Exception as exc:
-    raise RuntimeError(f"USE v426 package integrity failure: FastAPI seam imports failed: {exc}")
+from fastapi.routing import APIRoute
+from fastapi.responses import JSONResponse
+from starlette.routing import request_response
 
-
-def _v426_risk_endpoint(request, payload=None):
-    async def _inner():
-        raw_body = {}
-        try:
-            raw_body = await request.json()
-        except Exception:
-            raw_body = {}
-        query_str = None
-        if payload:
-            query_str = getattr(payload, "query", None) or getattr(payload, "user_query", None) or getattr(payload, "question", None) or getattr(payload, "text", None)
-        if not query_str and raw_body:
-            query_str = raw_body.get("query") or raw_body.get("user_query") or raw_body.get("question") or raw_body.get("text") or raw_body.get("input")
-        query_str = str(query_str or "").strip()
-        if query_str and _query_profile(query_str).get("risk"):
-            headers = getattr(use_core, "CORS_RESPONSE_HEADERS", {})
-            version = getattr(use_core, "APP_VERSION", APP_VERSION)
-            fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
-            request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "ok": True,
-                    "version": version,
-                    "fingerprint": fingerprint,
-                    "source_sha256": RUNTIME_SOURCE_SHA256,
-                    "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
-                    "request_id": request_id,
-                    "query": query_str,
-                    "intent": "RISK_ROUTING",
-                    "response": _build_risk_answer(),
-                },
-                headers=headers,
-            )
-        return await _original_handle_query(request, payload)
-    return _inner()
-
-
-_guarded_route = next(
-    (
-        route for route in getattr(app.router, "routes", [])
-        if isinstance(route, APIRoute)
-        and getattr(route, "path", None) == "/api/query"
-        and "POST" in getattr(route, "methods", set())
-    ),
-    None,
-)
+_guarded_route = next((route for route in getattr(app.router, "routes", []) if isinstance(route, APIRoute) and getattr(route, "path", None) == "/api/query" and "POST" in getattr(route, "methods", set())), None)
 if _guarded_route is None:
-    raise RuntimeError("USE v426 package integrity failure: registered POST /api/query route is unavailable.")
+    raise RuntimeError("USE v427 package integrity failure: registered POST /api/query route is unavailable.")
 
-# The original endpoint function is retained for non-risk traffic. The route's
-# endpoint is then rewrapped and its ASGI app cache rebuilt so FastAPI actually
-# dispatches the replacement callable.
 _original_route_endpoint = _guarded_route.endpoint
 
-async def _v426_guarded_endpoint(request, payload=None):
+async def _v427_guarded_endpoint(request, payload=None):
     raw_body = {}
     try:
         raw_body = await request.json()
@@ -274,23 +212,9 @@ async def _v426_guarded_endpoint(request, payload=None):
         version = getattr(use_core, "APP_VERSION", APP_VERSION)
         fingerprint = getattr(use_core, "DEPLOYMENT_FINGERPRINT", DEPLOYMENT_FINGERPRINT)
         request_id = getattr(getattr(request, "state", object()), "use_request_id", "")
-        print(f"USE v426 risk boundary: intercepted request_id={request_id}")
-        return JSONResponse(
-            status_code=200,
-            content={
-                "ok": True,
-                "version": version,
-                "fingerprint": fingerprint,
-                "source_sha256": RUNTIME_SOURCE_SHA256,
-                "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""),
-                "request_id": request_id,
-                "query": query_str,
-                "intent": "RISK_ROUTING",
-                "response": _build_risk_answer(),
-            },
-            headers=headers,
-        )
+        print(f"USE v427 risk boundary: intercepted request_id={request_id}")
+        return JSONResponse(status_code=200, content={"ok": True, "version": version, "fingerprint": fingerprint, "source_sha256": RUNTIME_SOURCE_SHA256, "boot_id": getattr(use_core, "RUNTIME_BOOT_ID", ""), "request_id": request_id, "query": query_str, "intent": "RISK_ROUTING", "response": _build_risk_answer()}, headers=headers)
     return await _original_route_endpoint(request, payload)
 
-_guarded_route.endpoint = _v426_guarded_endpoint
-_guarded_route.app = request_response(_v426_guarded_endpoint)
+_guarded_route.endpoint = _v427_guarded_endpoint
+_guarded_route.app = request_response(_v427_guarded_endpoint)
