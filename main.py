@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v444 — coercion/control visitor gateway
+# USE PRODUCTION VERSION: v445 — emptiness and numbness visitor construction
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v444"
-DEPLOYMENT_FINGERPRINT = "USE-v444-coercion-control-gateway"
-CANONICAL_BUILD_ID = "USE-BUILD-v444-coercion-control-gateway"
+APP_VERSION = "v445"
+DEPLOYMENT_FINGERPRINT = "USE-v445-emptiness-numbness-visitor-construction"
+CANONICAL_BUILD_ID = "USE-BUILD-v445-emptiness-numbness-visitor-construction"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v444 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v445 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v444 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v445 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v444 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v445 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -115,12 +115,21 @@ def _is_risk_related(doc: dict) -> bool:
     return e["acute_risk"] or e["title_risk"]
 
 
+def _valid_doc_url(doc: dict) -> str:
+    url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+    return url if re.match(r"^https://\S+$", url, re.I) else ""
+
+
+def _doc_identity(doc: dict) -> str:
+    return str(doc.get("url") or doc.get("canonical_url") or "").strip()
+
+
 def _select_grief_primary(docs):
     ranked = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        if not title or not re.match(r"^https?://\S+$", url, re.I):
+        url = _valid_doc_url(doc)
+        if not title or not url:
             continue
         e = _role_evidence(doc)
         if _is_risk_related(doc):
@@ -138,8 +147,8 @@ def _select_loneliness_primary(docs, profile):
     ranked = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        if not title or not re.match(r"^https?://\S+$", url, re.I):
+        url = _valid_doc_url(doc)
+        if not title or not url:
             continue
         e = _role_evidence(doc)
         if _is_risk_related(doc) and not profile.get("risk"):
@@ -157,9 +166,9 @@ def _select_meaning_primary(docs):
     candidates = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        url = _valid_doc_url(doc)
         text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip()).casefold()
-        if not title or not re.match(r"^https?://\S+$", url, re.I):
+        if not title or not url:
             continue
         e = _role_evidence(doc)
         score = 12 * int(e["meaning"]) + 10 * int(e["grounded"]) + 8 * int(e["lived_experience"]) + 5 * int(bool(re.search(r"\b(?:purpose|meaningful|existential|existence|identity)\b", text)))
@@ -175,8 +184,8 @@ def _select_transition_primary(docs):
     candidates = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
-        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        if not title or not re.match(r"^https?://\S+$", url, re.I):
+        url = _valid_doc_url(doc)
+        if not title or not url:
             continue
         e = _role_evidence(doc)
         score = 18 * int(e["threshold"]) + 8 * int(e["lived_experience"]) + 6 * int(e["meaning"]) + 4 * int(bool(re.search(r"\b(?:transition|threshold|liminal|crossroads|turning point|change|outgrown|letting go|starting over|reinvent)\b", f"{title} {doc.get('text') or ''}", re.I)))
@@ -188,99 +197,35 @@ def _select_transition_primary(docs):
     return candidates[0][2] if candidates else None
 
 
-def _doc_identity(doc: dict) -> str:
-    return str(doc.get("url") or doc.get("canonical_url") or "").strip()
-
-
-def _valid_doc_url(doc: dict) -> str:
-    url = _doc_identity(doc)
-    return url if re.match(r"^https://\S+$", url, re.I) else ""
-
-
-def _canonical_complementary_roles(user_query: str, docs, primary):
-    if not docs or not primary:
-        return []
-    primary_key = _doc_identity(primary).casefold()
-    selector = getattr(use_core, "_select_complementary_generation_evidence", None)
-    if not callable(selector):
-        return []
-    try:
-        candidate = selector(docs, user_query, protected_documents=[])
-    except Exception:
-        return []
-    if isinstance(candidate, dict):
-        candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
-    if not isinstance(candidate, list):
-        return []
-    valid = []
-    for doc in candidate:
-        if not isinstance(doc, dict) or _is_risk_related(doc):
-            continue
-        if not _valid_doc_url(doc):
-            continue
-        if _doc_identity(doc).casefold() == primary_key:
-            continue
-        valid.append(doc)
-    return valid
-
-
-def _complementary_role(doc: dict, primary_role: str):
-    e = _role_evidence(doc)
-    title_text = f"{doc.get('title') or ''} {doc.get('text') or ''}"
-    if re.search(r"\b(?:starseed|higher-order intelligence|metaphysics|afterlife|reincarnation)\b", title_text, re.I) and primary_role != "explicit_framework":
-        return None, None, -999
-    if primary_role == "transition":
-        if e["meaning"] and not e["worldview"]:
-            return "meaning", "meaning, perspective, and ways of understanding what the transition may open", 18 + 3 * int(e["practical_reflection"])
-        if e["grounded"]:
-            return "grounded", "a grounded or research-oriented route into change", 16
-        if e["continuity"]:
-            return "continuity", "continuity, identity, and what remains connected through change", 15
-        if e["practical_reflection"]:
-            return "reflection", "staying with uncertainty and noticing what matters", 13
-        return None, None, -999
-    if primary_role == "grief":
-        if e["continuity"]:
-            return "continuity", "continuity, connection, and what may endure", 18
-        if e["existential_loneliness"]:
-            return "existential_loneliness", "loneliness, emptiness, and existential dimensions of loss", 15
-        if e["meaning"]:
-            return "meaning", "meaning, perspective, and ways of understanding loss", 13
-        return None, None, -999
-    if e["meaning"] and not e["worldview"]:
-        return "meaning", "meaning, perspective, and ways of understanding the experience", 12
-    if e["grounded"]:
-        return "grounded", "a grounded or research-oriented route into the question", 11
-    if e["practical_reflection"]:
-        return "reflection", "staying with the question through reflection and practice", 10
-    return None, None, -999
-
-
 def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1):
     primary_key = _doc_identity(primary).casefold()
-    candidates = _canonical_complementary_roles(user_query, docs, primary)
+    selector = getattr(use_core, "_select_complementary_generation_evidence", None)
+    candidates = []
+    if callable(selector):
+        try:
+            candidate = selector(docs, user_query, protected_documents=[])
+            if isinstance(candidate, dict):
+                candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
+            if isinstance(candidate, list):
+                candidates = [doc for doc in candidate if isinstance(doc, dict)]
+        except Exception:
+            candidates = []
     ranked = []
     for index, doc in enumerate(candidates):
-        key = _doc_identity(doc).casefold()
-        if not key or key == primary_key:
+        if _is_risk_related(doc) or not _valid_doc_url(doc) or _doc_identity(doc).casefold() == primary_key:
             continue
-        sec_url = _valid_doc_url(doc)
-        if not sec_url:
+        e = _role_evidence(doc)
+        if e["meaning"] and not e["worldview"]:
+            role_text, score = "meaning, perspective, and ways of understanding the experience", 12
+        elif e["grounded"]:
+            role_text, score = "a grounded or research-oriented route into the question", 11
+        elif e["practical_reflection"]:
+            role_text, score = "staying with the question through reflection and practice", 10
+        else:
             continue
-        role_key, role_text, score = _complementary_role(doc, primary_role)
-        if role_key is not None and score > 0:
-            ranked.append((score, index, role_key, role_text, doc))
+        ranked.append((score, index, role_text, doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    selected = []
-    role_keys = set()
-    for score, index, role_key, role_text, doc in ranked:
-        if role_key in role_keys:
-            continue
-        role_keys.add(role_key)
-        selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
-        if len(selected) >= limit:
-            break
-    return selected
+    return [{"doc": item[3], "role_text": item[2], "score": item[0]} for item in ranked[:limit]]
 
 
 def _foothold_text(primary_role: str) -> str:
@@ -324,7 +269,7 @@ def _build_loneliness_answer(user_query, primary, docs):
     url = _valid_doc_url(primary)
     if not title or not url:
         return ""
-    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "loneliness", limit=1)
     sections = [
         "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
         f"A gentle place to begin is [{title}]({url}).",
@@ -332,8 +277,8 @@ def _build_loneliness_answer(user_query, primary, docs):
     ]
     if secondaries:
         item = secondaries[0]
-        item_title = _normalize_title(item.get("title") or "")
-        item_url = _valid_doc_url(item)
+        item_title = _normalize_title(item["doc"].get("title") or "")
+        item_url = _valid_doc_url(item["doc"])
         if item_title and item_url:
             sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
             sections.append(f"Another route into the question is [{item_title}]({item_url}).")
@@ -361,8 +306,8 @@ def _build_meaning_answer(user_query, primary, docs):
         parts.append("The essay also works with spiritual or cosmological possibilities. Those belong to a worldview or interpretation presented in the Archive, rather than established fact, so you can explore them without having to adopt them.")
     if secondaries:
         item = secondaries[0]
-        item_title = _normalize_title(item.get("doc", {}).get("title") or "")
-        item_url = _valid_doc_url(item.get("doc", {}))
+        item_title = _normalize_title(item["doc"].get("title") or "")
+        item_url = _valid_doc_url(item["doc"])
         if item_title and item_url:
             parts.append(f"Another route into the question is [{item_title}]({item_url}), offering {item['role_text']}.")
     parts.append("You can stay with the question and decide for yourself which parts feel grounded, which feel interpretive, and which may simply hold personal meaning for you.")
@@ -387,11 +332,7 @@ def _build_transition_answer(user_query, primary, docs):
         sec_url = _valid_doc_url(doc)
         if sec_title and sec_url:
             parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-            parts.append("You can see whether either lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
-        else:
-            parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
-    else:
-        parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
+    parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
     return "\n\n".join(parts)
 
 
@@ -583,10 +524,9 @@ def _v445_finalize(*args, **kwargs):
         return persistent
     return _original_generate_llm_response(*args, **kwargs)
 
-
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v444 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v445 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
