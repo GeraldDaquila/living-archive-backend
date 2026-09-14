@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v434 — transition regression repair + grief route construction
+# USE PRODUCTION VERSION: v436 — calibration visitor foothold
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v434"
-DEPLOYMENT_FINGERPRINT = "USE-v434-transition-regression-repair-grief-route-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v434-transition-regression-repair-grief-route-construction"
+APP_VERSION = "v436"
+DEPLOYMENT_FINGERPRINT = "USE-v436-calibration-visitor-foothold"
+CANONICAL_BUILD_ID = "USE-BUILD-v436-calibration-visitor-foothold"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v434 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v436 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v434 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v436 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v434 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v436 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -227,24 +227,38 @@ def _complementary_role(doc: dict, primary_role: str):
     return None, None, -999
 
 
-def _select_secondary_pathways(user_query, docs, primary, primary_role, limit=1):
+def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1):
     primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
     candidates = _canonical_complementary_roles(user_query, docs, primary)
     ranked = []
-    seen_roles = set()
     for index, doc in enumerate(candidates):
         key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
         if not key or key == primary_key:
             continue
         role_key, role_text, score = _complementary_role(doc, primary_role)
-        if role_key is None or role_key in seen_roles or score <= 0:
-            continue
-        ranked.append((score, index, role_key, role_text, doc))
+        if role_key is not None and score > 0:
+            ranked.append((score, index, role_key, role_text, doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    if not ranked:
-        return []
-    _, _, role_key, role_text, doc = ranked[0]
-    return [{"doc": doc, "role_key": role_key, "role_text": role_text}]
+    selected = []
+    role_keys = set()
+    for score, index, role_key, role_text, doc in ranked:
+        if role_key in role_keys:
+            continue
+        role_keys.add(role_key)
+        selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
+        if len(selected) >= limit:
+            break
+    return selected
+
+
+def _foothold_text(primary_role: str) -> str:
+    footholds = {
+        "grief": "For now, it may be enough to stay close to what you are actually feeling and choose one small act of care today—rest, a quiet walk, a conversation with someone you trust, or simply giving yourself permission not to make sense of everything yet.",
+        "transition": "For now, you might simply name what no longer fits and give yourself one small space today in which nothing has to be decided. A walk, a page of writing, or a conversation with someone you trust can be enough.",
+        "meaning": "For now, you might choose one thing that still feels quietly worth caring about and give it your attention today. You do not need a complete philosophy of life before taking one meaningful step.",
+        "loneliness": "For now, a gentle foothold might be one small movement toward connection—a message to someone you trust, sitting with someone, or simply naming what you wish another person could understand.",
+    }
+    return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
 
 def _build_grief_answer(user_query, primary, docs):
@@ -252,10 +266,11 @@ def _build_grief_answer(user_query, primary, docs):
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https?://\S+$", url, re.I):
         return ""
-    secondaries = _select_secondary_pathways(user_query, docs, primary, "grief")
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "grief", limit=1)
     parts = [
         "Grief after the death of someone you love can leave many questions open at once, and there is no need to force the experience into one meaning.",
         f"A possible place to begin is [{title}]({url}). It approaches loss through spiritual and scientific perspectives, including questions of meaning that can arise after someone dies. You can see whether that lens speaks to the grief you’re carrying.",
+        _foothold_text("grief"),
     ]
     if secondaries:
         item = secondaries[0]
@@ -267,15 +282,60 @@ def _build_grief_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
+def _build_loneliness_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    sections = [
+        "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
+        f"A gentle place to begin is [{title}]({url}).",
+        _foothold_text("loneliness"),
+    ]
+    if secondaries:
+        item = secondaries[0]
+        item_title = _normalize_title(item.get("title") or "")
+        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
+        sections.append(f"Another route into the question is [{item_title}]({item_url}).")
+    else:
+        sections.append("The material can open a way into the question without deciding in advance what loneliness must mean.")
+    sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
+    return "\n\n".join(sections)
+
+
+def _build_meaning_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    parts = [
+        "Feeling lost about what gives life meaning can leave the question genuinely open; The Guide does not need to turn it into one answer.",
+        f"A possible place to begin is [{title}]({url}). You can see whether that lens speaks to the question you’re carrying.",
+        _foothold_text("meaning"),
+        "The Archive also contains spiritual and cosmological ways of approaching meaning, but those are lenses the visitor can consider rather than facts the question requires us to assume.",
+    ]
+    if secondaries:
+        item = secondaries[0]
+        item_title = _normalize_title(item.get("title") or "")
+        item_url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        parts.append(f"Another route into the question is [{item_title}]({item_url}).")
+    parts.append("You can stay with the question without needing to settle it all at once.")
+    return "\n\n".join(parts)
+
+
 def _build_transition_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https?://\S+$", url, re.I):
         return ""
-    secondaries = _select_secondary_pathways(user_query, docs, primary, "transition")
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
     parts = [
         "When an old way of seeing your life no longer seems to fit, it can be hard to know what to trust next.",
         f"A possible place to begin is [{title}]({url}), which offers one way of exploring transition without telling you what your experience must mean.",
+        _foothold_text("transition"),
     ]
     if secondaries:
         item = secondaries[0]
@@ -283,7 +343,9 @@ def _build_transition_answer(user_query, primary, docs):
         sec_title = _normalize_title(doc.get("title") or "")
         sec_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
         parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-    parts.append("You can see whether either lens speaks to the question you’re carrying, without needing to decide the whole path at once.")
+        parts.append("You can see whether either lens speaks to the question you’re carrying, without needing to decide the whole path at once.")
+    else:
+        parts.append("You can see whether this lens speaks to the question you’re carrying, without needing to decide the whole path at once.")
     return "\n\n".join(parts)
 
 
@@ -317,7 +379,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v434_finalize(*args, **kwargs):
+def _v436_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -330,10 +392,10 @@ def _v434_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v434 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v436 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v434_finalize
+use_core.generate_llm_response = _v436_finalize
