@@ -34,6 +34,7 @@ def _query_profile(user_query: str) -> dict:
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose|larger meaning|meaning behind)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|going through|believe|belief|what to believe)\b", q)),
         "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q)),
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
+        "fear_open": bool(re.search(r"\b(?:scared|afraid|fear|fearful|frightened|terrified|anxious|anxiety|uneasy|uncertain|uncertainty)\b", q)) and bool(re.search(r"\b(?:what(?:'s| is) happening|happening|make sense|understand|explore|help|don't know|do not know|not sure|life|going on)\b", q)),
     }
 
 
@@ -284,6 +285,7 @@ def _foothold_text(primary_role: str) -> str:
         "transition": "For now, you might simply name what no longer fits and give yourself one small space today in which nothing has to be decided. A walk, a page of writing, or a conversation with someone you trust can be enough.",
         "meaning": "For now, you might choose one thing that still feels quietly worth caring about and give it your attention today. You do not need a complete philosophy of life before taking one meaningful step.",
         "loneliness": "For now, a gentle foothold might be one small movement toward connection—a message to someone you trust, sitting with someone, or simply naming what you wish another person could understand.",
+        "fear": "For now, you might not need to figure out exactly what you are afraid of. Notice one thing in the situation that feels most immediate, and give yourself permission to take it one small piece at a time.",
     }
     return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
@@ -386,6 +388,31 @@ def _build_transition_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
+def _build_fear_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = _valid_doc_url(primary)
+    if not title or not url:
+        return ""
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "fear", limit=1)
+    parts = [
+        "Feeling scared about what is happening in your life without being able to name the fear clearly can be disorienting. You do not have to explain it perfectly before you can begin to look at it.",
+        f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on what can lie beneath an unsettled or uncertain experience, rather than telling you what your fear must mean.",
+        _foothold_text("fear"),
+    ]
+    primary_evidence = _role_evidence(primary)
+    if primary_evidence["worldview"]:
+        parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        sec_title = _normalize_title(doc.get("title") or "")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+    parts.append("You can stay with the uncertainty and notice what feels most immediate, without needing to solve the whole situation at once.")
+    return "\n\n".join(parts)
+
+
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
@@ -411,6 +438,12 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
         primary = _select_loneliness_primary(docs, profile)
         if primary:
             answer = _build_loneliness_answer(query, primary, docs)
+            if answer:
+                return answer
+    if profile.get("fear_open"):
+        primary = _select_meaning_primary(docs)
+        if primary:
+            answer = _build_fear_answer(query, primary, docs)
             if answer:
                 return answer
     return None
