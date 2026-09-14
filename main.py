@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v447 — emptiness holistic refinement
+# USE PRODUCTION VERSION: v448 — transition/emptiness fallback refinement
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v447"
-DEPLOYMENT_FINGERPRINT = "USE-v447-emptiness-holistic-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v447-emptiness-holistic-refinement"
+APP_VERSION = "v448"
+DEPLOYMENT_FINGERPRINT = "USE-v448-transition-emptiness-fallback-refinement"
+CANONICAL_BUILD_ID = "USE-BUILD-v448-transition-emptiness-fallback-refinement"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v447 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v448 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v447 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v448 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v447 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v448 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -266,6 +266,10 @@ def _foothold_text(primary_role: str) -> str:
     return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
 
+def _build_risk_answer_from_query(user_query: str = ""):
+    return _build_risk_answer(user_query)
+
+
 def _build_grief_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
     url = _valid_doc_url(primary)
@@ -329,26 +333,31 @@ def _build_meaning_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
-def _build_transition_answer(user_query, primary, docs):
-    title = _normalize_title(primary.get("title") or "")
-    url = _valid_doc_url(primary)
-    if not title or not url:
-        return ""
-    parts = [
-        "When an old way of living no longer fits, the uncertainty can be real even when part of you already knows that something has changed.",
-        f"A possible place to begin is [{title}]({url}).",
-        _foothold_text("transition"),
-    ]
-    secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
-    if secondaries:
-        item = secondaries[0]
-        doc = item["doc"]
-        sec_title = _normalize_title(doc.get("title") or "")
-        sec_url = _valid_doc_url(doc)
-        if sec_title and sec_url:
-            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-    parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
-    return "\n\n".join(parts)
+def _build_transition_answer(user_query, primary=None, docs=None):
+    docs = docs or []
+    if primary:
+        title = _normalize_title(primary.get("title") or "")
+        url = _valid_doc_url(primary)
+        if title and url:
+            parts = [
+                "When an old way of living no longer fits, the uncertainty can be real even when part of you already knows that something has changed.",
+                f"A possible place to begin is [{title}]({url}).",
+                _foothold_text("transition"),
+            ]
+            secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
+            if secondaries:
+                item = secondaries[0]
+                doc = item["doc"]
+                sec_title = _normalize_title(doc.get("title") or "")
+                sec_url = _valid_doc_url(doc)
+                if sec_title and sec_url:
+                    parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+            parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
+            return "\n\n".join(parts)
+    return ("It is possible to sense that a life you have built no longer fits without knowing yet what needs to change. "
+            "That uncertainty does not have to be resolved before it can be listened to. "
+            "For now, notice what feels most outgrown, what still feels alive, and what you are reluctant to lose. "
+            "A small piece of observation can be more useful than forcing yourself to decide what the next chapter should be.")
 
 
 def _build_emptiness_answer(user_query, primary, docs):
@@ -475,10 +484,9 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
                 return answer
     if profile.get("transition_open"):
         primary = _select_transition_primary(docs)
-        if primary:
-            answer = _build_transition_answer(query, primary, docs)
-            if answer:
-                return answer
+        answer = _build_transition_answer(query, primary, docs)
+        if answer:
+            return answer
     if profile.get("emptiness_open"):
         primary = _select_emptiness_primary(docs)
         if primary:
@@ -512,7 +520,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v447_finalize(*args, **kwargs):
+def _v448_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -524,10 +532,10 @@ def _v447_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v447 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v448 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v447_finalize
+use_core.generate_llm_response = _v448_finalize
