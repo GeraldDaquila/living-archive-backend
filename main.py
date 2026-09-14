@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v442 — ambiguous loss and liminality routing
+# USE PRODUCTION VERSION: v443 — coercion/control visitor construction
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v442"
-DEPLOYMENT_FINGERPRINT = "USE-v442-ambiguous-loss-liminal-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v442-ambiguous-loss-liminal-routing"
+APP_VERSION = "v443"
+DEPLOYMENT_FINGERPRINT = "USE-v443-coercion-visitor-construction"
+CANONICAL_BUILD_ID = "USE-BUILD-v443-coercion-visitor-construction"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v442 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v443 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v442 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v443 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v442 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v443 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -31,6 +31,7 @@ def _query_profile(user_query: str) -> dict:
     return {
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
+        "coercion_open": bool(re.search(r"\b(?:controlling|control(?:led|s)?|coercion|coercive|making me feel|can't trust my own judgment|cannot trust my own judgment|undermine(?:s|d)? my judgment|question my own judgment|isolat(?:es|ed)? me|controls what i do|controls what i wear|controls who i see|controls who i talk to)\b", q)) and bool(re.search(r"\b(?:someone in my life|partner|spouse|relationship|person|trust my own judgment|judgment|control|controlling|coercion|worry|worried|concerned|understand|happening|help)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose|larger meaning|meaning behind)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|going through|believe|belief|what to believe)\b", q)),
         "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q)),
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
@@ -464,9 +465,20 @@ def _build_liminality_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
+def _build_coercion_answer(user_query, primary=None, docs=None):
+    return ("When someone repeatedly controls what you do or leaves you doubting your own judgment, it is reasonable to take that pattern seriously. "
+            "You do not need to decide today whether it has a particular label before you can notice what it is doing to your sense of safety and autonomy.\n\n"
+            "For now, consider writing down a few specific things that have happened, especially moments when you felt pressured, isolated, or unable to make an ordinary choice freely. If it feels safe, sharing those observations with someone you trust can give you another perspective.\n\n"
+            "The Living Archive can offer reflection, but this is also a situation where support from a trusted person or appropriate local support service may be more useful than trying to interpret the experience alone. You are allowed to take your own unease seriously without having to prove a case first.")
+
+
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
+    if profile.get("coercion_open"):
+        answer = _build_coercion_answer(query)
+        if answer:
+            return answer
     if profile.get("ambiguous_loss_open"):
         primary = _select_transition_primary(docs)
         if primary:
@@ -512,7 +524,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v442_finalize(*args, **kwargs):
+def _v443_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -525,10 +537,10 @@ def _v442_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v442 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v443 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v442_finalize
+use_core.generate_llm_response = _v443_finalize
