@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v455 — foundational orientation gateway
+# USE PRODUCTION VERSION: v456 — foundation gateway survival
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v455"
-DEPLOYMENT_FINGERPRINT = "USE-v455-foundational-orientation-gateway"
-CANONICAL_BUILD_ID = "USE-BUILD-v455-foundational-orientation-gateway"
+APP_VERSION = "v456"
+DEPLOYMENT_FINGERPRINT = "USE-v456-foundation-gateway-survival"
+CANONICAL_BUILD_ID = "USE-BUILD-v456-foundation-gateway-survival"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v455 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v456 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v455 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v456 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v455 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v456 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v455 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v456 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -171,32 +171,12 @@ def _select_meaning_primary(docs):
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
         url = _valid_doc_url(doc)
-        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip()).casefold()
         if not title or not url:
             continue
         e = _role_evidence(doc)
-        score = 12 * int(e["meaning"]) + 10 * int(e["grounded"]) + 8 * int(e["lived_experience"]) + 5 * int(bool(re.search(r"\b(?:purpose|meaningful|existential|existence|identity)\b", text)))
-        if e["worldview"]:
-            score -= 10
-        candidates.append((score, index, doc))
-    candidates = [item for item in candidates if item[0] > 0]
-    candidates.sort(key=lambda item: (-item[0], item[1]))
-    return candidates[0][2] if candidates else None
-
-
-def _select_emptiness_primary(docs):
-    candidates = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip()).casefold()
-        if not title or not url or _is_risk_related(doc):
-            continue
-        corpus = f"{title.casefold()} {text}"
-        e = _role_evidence(doc)
-        explicit = int(bool(re.search(r"\b(?:emptiness|empty|numb|numbness|disconnected|disconnection|going through the motions|absent from (?:my )?life|nothing is wrong|all right on paper|everything is fine|unhappy|fulfillment|fulfilled)\b", corpus)))
-        life_context = int(bool(re.search(r"\b(?:life|living|meaningful|purpose|identity|belonging|connection|what matters|how to live|change|season|chapter|routine|daily life)\b", corpus)))
-        reflective = int(e["meaning"] or e["practical_reflection"])
+        explicit = int(bool(re.search(r"\b(?:meaning|purpose|worldview|belief|beliefs|spirituality|metaphysics|existential)\b", title.casefold())))
+        life_context = int(bool(re.search(r"\b(?:life|living|human|experience|questions|perspective)\b", f"{title} {doc.get('text') or ''}", re.I)))
+        reflective = int(e["meaning"])
         grounded = int(e["grounded"])
         lived = int(e["lived_experience"])
         score = 45 * explicit + 18 * life_context + 12 * reflective + 8 * grounded + 8 * lived
@@ -282,6 +262,17 @@ def _select_foundation_primary(docs):
     return ranked[0][2] if ranked else None
 
 
+def _foundation_document_set(primary, docs):
+    if not primary:
+        return docs
+    primary_key = _doc_identity(primary).casefold()
+    ordered = [primary]
+    for doc in docs:
+        if _doc_identity(doc).casefold() != primary_key and _valid_doc_url(doc) and not _is_risk_related(doc):
+            ordered.append(doc)
+    return ordered
+
+
 def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1):
     primary_key = _doc_identity(primary).casefold()
     selector = getattr(use_core, "_select_complementary_generation_evidence", None)
@@ -300,7 +291,16 @@ def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1)
         if _is_risk_related(doc) or not _valid_doc_url(doc) or _doc_identity(doc).casefold() == primary_key:
             continue
         e = _role_evidence(doc)
-        if primary_role == "transition":
+        if primary_role == "foundation":
+            if e["meaning"] and not e["worldview"]:
+                role_text, score = "another grounded or interpretive route into the Archive's questions", 12
+            elif e["grounded"] and not e["worldview"]:
+                role_text, score = "a grounded or research-oriented route into the broader questions the Archive explores", 11
+            elif e["practical_reflection"] and not e["worldview"]:
+                role_text, score = "a reflective route for staying with a question as you explore it", 10
+            else:
+                continue
+        elif primary_role == "transition":
             if e["grounded"] and not e["worldview"]:
                 role_text, score = "a grounded or research-oriented route into change and adaptation", 18
             elif e["practical_reflection"] and not e["worldview"]:
@@ -341,11 +341,19 @@ def _build_foundation_answer(user_query, primary=None, docs=None):
         title = _normalize_title(primary.get("title") or "")
         url = _valid_doc_url(primary)
         if title and url:
-            return "\n\n".join([
+            secondaries = _select_secondary_pathways(user_query, primary, docs, "foundation", limit=1)
+            parts = [
                 "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",
                 f"A useful place to begin is [{title}]({url}). It helps show how the Archive works as an orientation layer: offering different ways into a question so you can recognize what is established, what is interpretive, and what may simply hold personal meaning.",
-                "You do not need to understand the whole Archive before using it. Start with the question that brought you here, and follow the pathway that feels most relevant; the aim is to help you find your bearings, not to tell you what you must believe.",
-            ])
+            ]
+            if secondaries:
+                item = secondaries[0]
+                sec_title = _normalize_title(item["doc"].get("title") or "")
+                sec_url = _valid_doc_url(item["doc"])
+                if sec_title and sec_url:
+                    parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+            parts.append("You do not need to understand the whole Archive before using it. Start with the question that brought you here, and follow the pathway that feels most relevant; the aim is to help you find your bearings, not to tell you what you must believe.")
+            return "\n\n".join(parts)
     return ("The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer. "
             "It is meant to help you find your bearings, explore different perspectives, and decide for yourself what is useful, established, interpretive, or personally meaningful. "
             "You can begin with the question that brought you here and follow from there.")
@@ -571,7 +579,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v450_generate_boundary(*args, **kwargs):
+def _v456_generate_boundary(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -582,7 +590,7 @@ def _v450_generate_boundary(*args, **kwargs):
     return _original_generate_llm_response(*args, **kwargs)
 
 
-def _v451_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+def _v456_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
     docs = _parse_context_documents(canonical_link_context)
     profile = _query_profile(user_query)
     persistent = _persistent_visitor_construction(user_query, docs, profile)
@@ -590,18 +598,18 @@ def _v451_evidence_gap_boundary(user_query: str, canonical_link_context: str = "
         return persistent
     return _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context)
 
-_V455_BOUNDARY_QUERY = "What is the Living Archive?"
-_V455_BOUNDARY_AUDIT = _v451_evidence_gap_boundary(_V455_BOUNDARY_QUERY, "")
-if "living archive" not in _V455_BOUNDARY_AUDIT.casefold() or "connected body" not in _V455_BOUNDARY_AUDIT.casefold():
-    raise RuntimeError("USE v455 foundational orientation audit failed: foundational construction did not survive the core bypass.")
+_V456_BOUNDARY_QUERY = "What is the Living Archive?"
+_V456_BOUNDARY_AUDIT = _v456_evidence_gap_boundary(_V456_BOUNDARY_QUERY, "")
+if "living archive" not in _V456_BOUNDARY_AUDIT.casefold() or "connected body" not in _V456_BOUNDARY_AUDIT.casefold():
+    raise RuntimeError("USE v456 foundational orientation audit failed: foundational construction did not survive the core bypass.")
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v455 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v456 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v450_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v451_evidence_gap_boundary
+use_core.generate_llm_response = _v456_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v456_evidence_gap_boundary
