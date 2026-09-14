@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v430 — meaning-question epistemic boundary + curated anchor
+# USE PRODUCTION VERSION: v431 — persistent visitor construction contract
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v430"
-DEPLOYMENT_FINGERPRINT = "USE-v430-meaning-question-epistemic-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v430-meaning-question-epistemic-boundary"
+APP_VERSION = "v431"
+DEPLOYMENT_FINGERPRINT = "USE-v431-persistent-visitor-construction-contract"
+CANONICAL_BUILD_ID = "USE-BUILD-v431-persistent-visitor-construction-contract"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v430 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v431 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v430 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v431 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v430 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v431 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -32,26 +32,21 @@ def _query_profile(user_query: str) -> dict:
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin)\b", q)),
+        "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help)\b", q)),
     }
 
 
 def _build_risk_answer(user_query: str = "") -> str:
     q = str(user_query or "").casefold()
     if re.search(r"\b(?:suicid\w*|self-harm|self harm|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q):
-        return (
-            "If you are thinking about killing yourself or may act on thoughts of self-harm, please treat this as something that needs human help now. "
-            "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
-            "You do not need to work out the larger meaning of what you are going through before taking that next step."
-        )
+        return ("If you are thinking about killing yourself or may act on thoughts of self-harm, please treat this as something that needs human help now. "
+                "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
+                "You do not need to work out the larger meaning of what you are going through before taking that next step.")
     if re.search(r"\b(?:abuse|coercion|threatened|unsafe)\b", q):
-        return (
-            "If someone is threatening, abusing, or coercing you, or you are not safe where you are, prioritize getting to a safer place and contacting a trusted person or local emergency service now. "
-            "You do not need to settle the larger meaning of the situation before taking a step toward safety."
-        )
-    return (
-        "If you may be in immediate danger or cannot keep yourself safe, please seek human help now. "
-        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help."
-    )
+        return ("If someone is threatening, abusing, or coercing you, or you are not safe where you are, prioritize getting to a safer place and contacting a trusted person or local emergency service now. "
+                "You do not need to settle the larger meaning of the situation before taking a step toward safety.")
+    return ("If you may be in immediate danger or cannot keep yourself safe, please seek human help now. "
+            "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help.")
 
 
 def _parse_context_documents(context_blocks: str):
@@ -98,6 +93,7 @@ def _role_evidence(doc: dict) -> dict:
         "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
         "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
         "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed)\b", corpus)),
+        "threshold": bool(re.search(r"\b(?:threshold|transition|turning point|old way|new way|change|chapter|uncertain|beginning|ending|liminal|crossroads)\b", corpus)),
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
@@ -146,6 +142,23 @@ def _select_meaning_primary(docs):
     return candidates[0][2] if candidates else None
 
 
+def _select_transition_primary(docs):
+    candidates = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https?://\S+$", url, re.I):
+            continue
+        e = _role_evidence(doc)
+        score = 18 * int(e["threshold"]) + 8 * int(e["lived_experience"]) + 6 * int(e["meaning"]) + 4 * int(bool(re.search(r"\b(?:transition|threshold|liminal|crossroads|turning point|change)\b", f"{title} {doc.get('text') or ''}", re.I)))
+        if e["worldview"]:
+            score -= 8
+        candidates.append((score, index, doc))
+    candidates = [item for item in candidates if item[0] > 0]
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    return candidates[0][2] if candidates else None
+
+
 def _canonical_complementary_roles(user_query: str, docs, primary):
     if not docs or not primary:
         return []
@@ -168,6 +181,31 @@ def _canonical_complementary_roles(user_query: str, docs, primary):
         if key and key != primary_key and not _is_risk_related(doc):
             return [doc]
     return []
+
+
+def _select_transition_secondary(docs, primary):
+    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
+    candidates = []
+    for index, doc in enumerate(docs):
+        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
+        if not key or key == primary_key or _is_risk_related(doc):
+            continue
+        e = _role_evidence(doc)
+        role_score = 0
+        if e["meaning"]:
+            role_score += 3
+        if e["lived_experience"]:
+            role_score += 2
+        if e["threshold"]:
+            role_score += 2
+        if e["grounded"]:
+            role_score += 1
+        if e["worldview"]:
+            role_score -= 1
+        if role_score > 0:
+            candidates.append((role_score, index, doc))
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    return candidates[0][2] if candidates else None
 
 
 def _build_loneliness_answer(user_query, primary, docs):
@@ -200,7 +238,7 @@ def _build_meaning_answer(user_query, primary, docs):
     secondaries = _canonical_complementary_roles(user_query, docs, primary)
     parts = [
         "Feeling lost about what gives life meaning can leave the question genuinely open; The Guide does not need to turn it into one answer.",
-        f"A grounded place to begin is [{title}]({url}).",
+        f"A possible place to begin is [{title}]({url}). You can see whether that lens speaks to the question you’re carrying.",
         "The Archive also contains spiritual and cosmological ways of approaching meaning, but those are lenses the visitor can consider rather than facts the question requires us to assume.",
     ]
     if secondaries:
@@ -212,34 +250,65 @@ def _build_meaning_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
-def _v430_finalize(*args, **kwargs):
+def _build_transition_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondary = _select_transition_secondary(docs, primary)
+    parts = [
+        "When an old way of seeing your life no longer seems to fit, it can be hard to know what to trust next.",
+        f"A possible place to begin is [{title}]({url}), which offers one way of exploring transition without telling you what your experience must mean.",
+    ]
+    if secondary:
+        sec_title = _normalize_title(secondary.get("title") or "")
+        sec_url = str(secondary.get("url") or secondary.get("canonical_url") or "").strip()
+        parts.append(f"Another route into the question is [{sec_title}]({sec_url}).")
+    parts.append("You can see whether either lens speaks to the question you’re carrying, without needing to decide the whole path at once.")
+    return "\n\n".join(parts)
+
+
+def _persistent_visitor_construction(query: str, docs: list, profile: dict):
+    if profile.get("risk"):
+        return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
+    if profile.get("transition_open"):
+        primary = _select_transition_primary(docs)
+        if primary:
+            answer = _build_transition_answer(query, primary, docs)
+            if answer:
+                return answer
+    if profile.get("meaning_open"):
+        primary = _select_meaning_primary(docs)
+        if primary:
+            answer = _build_meaning_answer(query, primary, docs)
+            if answer:
+                return answer
+    if profile.get("loneliness"):
+        primary = _select_loneliness_primary(docs, profile)
+        if primary:
+            answer = _build_loneliness_answer(query, primary, docs)
+            if answer:
+                return answer
+    return None
+
+
+def _v431_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
     profile = _query_profile(user_query)
-    if user_query and profile.get("risk"):
-        return f"<visitor_answer>{_build_risk_answer(user_query)}</visitor_answer>"
-    if user_query and profile.get("meaning_open"):
-        primary = _select_meaning_primary(docs)
-        if primary:
-            answer = _build_meaning_answer(user_query, primary, docs)
-            if answer:
-                return answer
-    if user_query and profile.get("loneliness"):
-        primary = _select_loneliness_primary(docs, profile)
-        if primary:
-            answer = _build_loneliness_answer(user_query, primary, docs)
-            if answer:
-                return answer
+    persistent = _persistent_visitor_construction(user_query, docs, profile)
+    if persistent:
+        return persistent
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v430 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v431 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v430_finalize
+use_core.generate_llm_response = _v431_finalize
