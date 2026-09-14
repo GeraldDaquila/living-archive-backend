@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v432 — grief visitor construction refinement
+# USE PRODUCTION VERSION: v433 — grief complementary-route qualification
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v432"
-DEPLOYMENT_FINGERPRINT = "USE-v432-grief-visitor-construction-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v432-grief-visitor-construction-refinement"
+APP_VERSION = "v433"
+DEPLOYMENT_FINGERPRINT = "USE-v433-grief-complementary-route-qualification"
+CANONICAL_BUILD_ID = "USE-BUILD-v433-grief-complementary-route-qualification"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v432 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v433 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v432 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v433 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v432 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v433 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -195,60 +195,33 @@ def _canonical_complementary_roles(user_query: str, docs, primary):
         candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
     if not isinstance(candidate, list):
         return []
-    for doc in candidate:
-        if not isinstance(doc, dict):
-            continue
-        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
-        if key and key != primary_key and not _is_risk_related(doc):
-            return [doc]
-    return []
-
-
-def _select_transition_secondary(docs, primary):
-    primary_key = str(primary.get("url") or primary.get("canonical_url") or _normalize_title(primary.get("title") or "")).strip().casefold()
-    candidates = []
-    for index, doc in enumerate(docs):
-        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
-        if not key or key == primary_key or _is_risk_related(doc):
-            continue
-        e = _role_evidence(doc)
-        role_score = 0
-        if e["meaning"]:
-            role_score += 3
-        if e["lived_experience"]:
-            role_score += 2
-        if e["threshold"]:
-            role_score += 2
-        if e["grounded"]:
-            role_score += 1
-        if e["worldview"]:
-            role_score -= 1
-        if role_score > 0:
-            candidates.append((role_score, index, doc))
-    candidates.sort(key=lambda item: (-item[0], item[1]))
-    return candidates[0][2] if candidates else None
+    return [doc for doc in candidate if isinstance(doc, dict) and str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold() != primary_key and not _is_risk_related(doc)]
 
 
 def _select_grief_secondary(user_query, docs, primary):
     candidates = _canonical_complementary_roles(user_query, docs, primary)
-    if not candidates:
-        return None
-    primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip().casefold()
-    for doc in candidates:
-        if str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold() == primary_url:
+    primary_key = str(primary.get("url") or primary.get("canonical_url") or "").strip().casefold()
+    qualified = []
+    for index, doc in enumerate(candidates):
+        key = str(doc.get("url") or doc.get("canonical_url") or _normalize_title(doc.get("title") or "")).strip().casefold()
+        if not key or key == primary_key:
             continue
         e = _role_evidence(doc)
-        title = _normalize_title(doc.get("title") or "").casefold()
-        role = ""
-        if bool(re.search(r"\b(?:loneliness|lonely|emptiness|isolation|isolated)\b", title + " " + str(doc.get("text") or "").casefold())):
-            role = "loneliness"
-        elif bool(re.search(r"\b(?:continuity|connection|endure|afterlife|meaning|what may endure)\b", title + " " + str(doc.get("text") or "").casefold())):
-            role = "continuity"
+        corpus = f"{_normalize_title(doc.get('title') or '')} {doc.get('text') or ''}".casefold()
+        loneliness_hits = len(re.findall(r"\b(?:loneliness|lonely|emptiness|isolation|isolated|alone)\b", corpus))
+        continuity_hits = len(re.findall(r"\b(?:continuity|connection|endure|afterlife|meaning|what may endure)\b", corpus))
+        role = "loneliness" if loneliness_hits >= 2 and loneliness_hits >= continuity_hits else ("continuity" if continuity_hits >= 2 else "")
         if role and e["grief"]:
-            doc = dict(doc)
-            doc["_grief_role"] = role
-            return doc
-    return None
+            distinct = loneliness_hits + continuity_hits
+            score = 10 * distinct + 4 * int(e["lived_experience"]) + 2 * int(e["meaning"]) + int(e["grounded"]) - 2 * int(e["worldview"] and role != "continuity")
+            qualified.append((score, index, role, doc))
+    qualified.sort(key=lambda item: (-item[0], item[1]))
+    if not qualified:
+        return None
+    _, _, role, doc = qualified[0]
+    chosen = dict(doc)
+    chosen["_grief_role"] = role
+    return chosen
 
 
 def _build_grief_answer(user_query, primary, docs):
@@ -362,7 +335,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v432_finalize(*args, **kwargs):
+def _v433_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -375,10 +348,10 @@ def _v432_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v432 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v433 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v432_finalize
+use_core.generate_llm_response = _v433_finalize
