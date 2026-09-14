@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v443 — coercion/control visitor construction
+# USE PRODUCTION VERSION: v444 — coercion/control visitor gateway
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v443"
-DEPLOYMENT_FINGERPRINT = "USE-v443-coercion-visitor-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v443-coercion-visitor-construction"
+APP_VERSION = "v444"
+DEPLOYMENT_FINGERPRINT = "USE-v444-coercion-control-gateway"
+CANONICAL_BUILD_ID = "USE-BUILD-v444-coercion-control-gateway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v443 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v444 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v443 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v444 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v443 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v444 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -31,7 +31,7 @@ def _query_profile(user_query: str) -> dict:
     return {
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
-        "coercion_open": bool(re.search(r"\b(?:controlling|control(?:led|s)?|coercion|coercive|making me feel|can't trust my own judgment|cannot trust my own judgment|undermine(?:s|d)? my judgment|question my own judgment|isolat(?:es|ed)? me|controls what i do|controls what i wear|controls who i see|controls who i talk to)\b", q)) and bool(re.search(r"\b(?:someone in my life|partner|spouse|relationship|person|trust my own judgment|judgment|control|controlling|coercion|worry|worried|concerned|understand|happening|help)\b", q)),
+        "coercion_open": bool(re.search(r"\b(?:controlling|control(?:led|s)?|coercion|coercive|making me feel|can't trust my own judgment|cannot trust my own judgment|undermine(?:s|d)? my judgment|question my own judgment|isolat(?:es|ed)? me|controls what i do|controls what i wear|controls who i see|controls who i talk to|power over me|makes decisions for me)\b", q)) and bool(re.search(r"\b(?:someone in my life|partner|spouse|relationship|person|trust my own judgment|judgment|control|controlling|coercion|worry|worried|concerned|understand|happening|help|power|choice|freedom|safety)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose|larger meaning|meaning behind)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|going through|believe|belief|what to believe)\b", q)),
         "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q)),
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
@@ -466,17 +466,41 @@ def _build_liminality_answer(user_query, primary, docs):
 
 
 def _build_coercion_answer(user_query, primary=None, docs=None):
-    return ("When someone repeatedly controls what you do or leaves you doubting your own judgment, it is reasonable to take that pattern seriously. "
-            "You do not need to decide today whether it has a particular label before you can notice what it is doing to your sense of safety and autonomy.\n\n"
-            "For now, consider writing down a few specific things that have happened, especially moments when you felt pressured, isolated, or unable to make an ordinary choice freely. If it feels safe, sharing those observations with someone you trust can give you another perspective.\n\n"
-            "The Living Archive can offer reflection, but this is also a situation where support from a trusted person or appropriate local support service may be more useful than trying to interpret the experience alone. You are allowed to take your own unease seriously without having to prove a case first.")
+    docs = docs or []
+    candidates = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = _valid_doc_url(doc)
+        corpus = f"{title} {doc.get('text') or ''}".casefold()
+        if not title or not url or _is_risk_related(doc):
+            continue
+        score = 0
+        score += 120 * int(bool(re.search(r"\b(?:control|controlling|coercion|coercive|abuse|abusive|autonomy|agency|manipulation|manipulative|boundaries|boundary|isolation|isolating|judgment|self-trust)\b", title.casefold())))
+        score += 45 * int(bool(re.search(r"\b(?:control|controlling|coercion|coercive|abuse|abusive|autonomy|agency|manipulation|manipulative|boundaries|boundary|isolation|isolating|judgment|self-trust)\b", corpus)))
+        score += 10 * int(bool(re.search(r"\b(?:relationship|power|choice|freedom|voice|safety)\b", corpus)))
+        if re.search(r"\b(?:projection|inner shadow|shadow)\b", f"{title} {doc.get('text') or ''}", re.I):
+            score -= 100
+        if score > 0:
+            candidates.append((score, index, title, url))
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    parts = [
+        "When someone repeatedly controls what you do or leaves you doubting your own judgment, it is reasonable to take that pattern seriously. You do not need to decide today whether it has a particular label before you can notice what it is doing to your sense of safety and autonomy.",
+    ]
+    if candidates:
+        _, _, title, url = candidates[0]
+        parts.append(f"A possible place to begin in the Living Archive is [{title}]({url}). Treat it as a reflection doorway rather than a verdict about your situation; the point is to see whether its language helps you recognize what is happening without overriding your own judgment.")
+    else:
+        parts.append("The Living Archive does not need to supply a label before your experience can be taken seriously. A useful next step is to look for material about autonomy, power, boundaries, control, or self-trust rather than forcing the experience into a more generic psychological frame.")
+    parts.append("For now, consider writing down a few specific things that have happened, especially moments when you felt pressured, isolated, or unable to make an ordinary choice freely. If it feels safe, sharing those observations with someone you trust can give you another perspective.")
+    parts.append("Support from a trusted person or appropriate local support service may be more useful than trying to interpret the experience alone. You are allowed to take your own unease seriously without having to prove a case first.")
+    return "\n\n".join(parts)
 
 
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
     if profile.get("coercion_open"):
-        answer = _build_coercion_answer(query)
+        answer = _build_coercion_answer(query, docs=docs)
         if answer:
             return answer
     if profile.get("ambiguous_loss_open"):
@@ -524,7 +548,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v443_finalize(*args, **kwargs):
+def _v444_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -537,10 +561,10 @@ def _v443_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v443 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v444 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v443_finalize
+use_core.generate_llm_response = _v444_finalize
