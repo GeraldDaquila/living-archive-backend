@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v431 — persistent visitor construction contract
+# USE PRODUCTION VERSION: v432 — grief visitor construction refinement
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v431"
-DEPLOYMENT_FINGERPRINT = "USE-v431-persistent-visitor-construction-contract"
-CANONICAL_BUILD_ID = "USE-BUILD-v431-persistent-visitor-construction-contract"
+APP_VERSION = "v432"
+DEPLOYMENT_FINGERPRINT = "USE-v432-grief-visitor-construction-refinement"
+CANONICAL_BUILD_ID = "USE-BUILD-v432-grief-visitor-construction-refinement"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v431 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v432 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v431 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v432 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v431 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v432 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -33,6 +33,7 @@ def _query_profile(user_query: str) -> dict:
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin)\b", q)),
         "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help)\b", q)),
+        "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
     }
 
 
@@ -97,12 +98,32 @@ def _role_evidence(doc: dict) -> dict:
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
+        "grief": bool(re.search(r"\b(?:grief|grieving|loss|mourning|death|bereavement|dying|meaning after loss)\b", corpus)),
     }
 
 
 def _is_risk_related(doc: dict) -> bool:
     e = _role_evidence(doc)
     return e["acute_risk"] or e["title_risk"]
+
+
+def _select_grief_primary(docs):
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https?://\S+$", url, re.I):
+            continue
+        e = _role_evidence(doc)
+        if _is_risk_related(doc):
+            continue
+        score = 120 * int(bool(re.search(r"\b(?:grief|loss|mourning|bereavement)\b", title.casefold()))) + 35 * int(e["grief"]) + 18 * int(e["meaning"]) + 12 * int(e["lived_experience"]) + 8 * int(e["grounded"])
+        if e["worldview"]:
+            score -= 4
+        ranked.append((score, index, doc))
+    ranked = [item for item in ranked if item[0] > 0]
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return ranked[0][2] if ranked else None
 
 
 def _select_loneliness_primary(docs, profile):
@@ -208,6 +229,49 @@ def _select_transition_secondary(docs, primary):
     return candidates[0][2] if candidates else None
 
 
+def _select_grief_secondary(user_query, docs, primary):
+    candidates = _canonical_complementary_roles(user_query, docs, primary)
+    if not candidates:
+        return None
+    primary_url = str(primary.get("url") or primary.get("canonical_url") or "").strip().casefold()
+    for doc in candidates:
+        if str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold() == primary_url:
+            continue
+        e = _role_evidence(doc)
+        title = _normalize_title(doc.get("title") or "").casefold()
+        role = ""
+        if bool(re.search(r"\b(?:loneliness|lonely|emptiness|isolation|isolated)\b", title + " " + str(doc.get("text") or "").casefold())):
+            role = "loneliness"
+        elif bool(re.search(r"\b(?:continuity|connection|endure|afterlife|meaning|what may endure)\b", title + " " + str(doc.get("text") or "").casefold())):
+            role = "continuity"
+        if role and e["grief"]:
+            doc = dict(doc)
+            doc["_grief_role"] = role
+            return doc
+    return None
+
+
+def _build_grief_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondary = _select_grief_secondary(user_query, docs, primary)
+    parts = [
+        "Grief after the death of someone you love can leave many questions open at once, and there is no need to force the experience into one meaning.",
+        f"A possible place to begin is [{title}]({url}). It approaches loss through spiritual and scientific perspectives, including questions of meaning that can arise after someone dies. You can see whether that lens speaks to the grief you’re carrying.",
+    ]
+    if secondary:
+        sec_title = _normalize_title(secondary.get("title") or "")
+        sec_url = str(secondary.get("url") or secondary.get("canonical_url") or "").strip()
+        if secondary.get("_grief_role") == "loneliness":
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), which looks more closely at loneliness, emptiness, and the experience of living with loss.")
+        else:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), which explores continuity, connection, and questions about what may endure.")
+    parts.append("There is no need to settle what the loss means all at once. One piece that feels right for today can be enough of a place to begin.")
+    return "\n\n".join(parts)
+
+
 def _build_loneliness_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
@@ -271,6 +335,12 @@ def _build_transition_answer(user_query, primary, docs):
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
+    if profile.get("grief"):
+        primary = _select_grief_primary(docs)
+        if primary:
+            answer = _build_grief_answer(query, primary, docs)
+            if answer:
+                return answer
     if profile.get("transition_open"):
         primary = _select_transition_primary(docs)
         if primary:
@@ -292,7 +362,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v431_finalize(*args, **kwargs):
+def _v432_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -305,10 +375,10 @@ def _v431_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v431 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v432 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v431_finalize
+use_core.generate_llm_response = _v432_finalize
