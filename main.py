@@ -1,44 +1,55 @@
-# USE PRODUCTION VERSION: v428 — risk-aware visitor construction boundary
+# USE PRODUCTION VERSION: v429 — risk-aware visitor construction boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v428"
-DEPLOYMENT_FINGERPRINT = "USE-v428-risk-aware-visitor-construction-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v428-risk-aware-visitor-construction-boundary"
+APP_VERSION = "v429"
+DEPLOYMENT_FINGERPRINT = "USE-v429-risk-aware-visitor-construction-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v429-risk-aware-visitor-construction-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v428 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v429 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v428 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v429 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v428 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v429 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
     return {
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
-        "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
+        "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
     }
 
 
-def _build_risk_answer() -> str:
+def _build_risk_answer(user_query: str = "") -> str:
+    q = str(user_query or "").casefold()
+    if re.search(r"\b(?:suicid\w*|self-harm|self harm|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q):
+        return (
+            "If you are thinking about killing yourself or may act on thoughts of self-harm, please treat this as something that needs human help now. "
+            "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
+            "You do not need to work out the larger meaning of what you are going through before taking that next step."
+        )
+    if re.search(r"\b(?:abuse|coercion|threatened|unsafe)\b", q):
+        return (
+            "If someone is threatening, abusing, or coercing you, or you are not safe where you are, prioritize getting to a safer place and contacting a trusted person or local emergency service now. "
+            "You do not need to settle the larger meaning of the situation before taking a step toward safety."
+        )
     return (
-        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
-        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
-        "You do not need to work out the larger meaning of what you are going through before taking that next step."
+        "If you may be in immediate danger or cannot keep yourself safe, please seek human help now. "
+        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help."
     )
 
 
@@ -180,13 +191,13 @@ def _v421_finalize(*args, **kwargs):
             if answer:
                 return answer
     if user_query and profile.get("risk"):
-        return f"<visitor_answer>{_build_risk_answer()}</visitor_answer>"
+        return f"<visitor_answer>{_build_risk_answer(user_query)}</visitor_answer>"
     return _original_generate_llm_response(*args, **kwargs)
 
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v428 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v429 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
