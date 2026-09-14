@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v424 — warm meaning-orientation voice
+# USE PRODUCTION VERSION: v425 — warm meaning and compact visitor voice
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v424"
-DEPLOYMENT_FINGERPRINT = "USE-v424-warm-meaning-orientation-voice"
-CANONICAL_BUILD_ID = "USE-BUILD-v424-warm-meaning-orientation-voice"
+APP_VERSION = "v425"
+DEPLOYMENT_FINGERPRINT = "USE-v425-warm-meaning-and-compact-visitor-voice"
+CANONICAL_BUILD_ID = "USE-BUILD-v425-warm-meaning-and-compact-visitor-voice"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v424 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v425 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v424 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v425 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -211,8 +211,8 @@ def _build_meaning_answer(user_query, primary, docs):
         return ""
     secondaries = _canonical_complementary_roles(user_query, docs, primary)
     sections = [
-        "It can be unsettling to feel lost about meaning, especially when an answer that once felt clear no longer does. You do not have to arrive at one certainty before you begin exploring the question.",
-        f"A useful place to begin is [{title}]({url}). It offers a way of opening the question without asking you to settle it all at once.",
+        "Sometimes it is hard to know what gives life meaning, especially when an answer that once felt clear no longer does. You do not have to solve that question all at once.",
+        f"A useful place to begin is [{title}]({url}). It can give you a way into the question without asking you to settle it before you have had time to explore it.",
     ]
     if secondaries:
         item = secondaries[0]
@@ -227,7 +227,7 @@ def _build_meaning_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v424_finalize(*args, **kwargs):
+def _v425_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -249,10 +249,10 @@ def _v424_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v424 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v425 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v424_finalize
+use_core.generate_llm_response = _v425_finalize
