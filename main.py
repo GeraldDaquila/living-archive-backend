@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v427 — warm grief doorway polish
+# USE PRODUCTION VERSION: v428 — explicit risk boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v427"
-DEPLOYMENT_FINGERPRINT = "USE-v427-warm-grief-doorway-polish"
-CANONICAL_BUILD_ID = "USE-BUILD-v427-warm-grief-doorway-polish"
+APP_VERSION = "v428"
+DEPLOYMENT_FINGERPRINT = "USE-v428-explicit-risk-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v428-explicit-risk-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v427 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v428 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v427 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v428 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -278,6 +278,29 @@ def _canonical_complementary_roles(user_query: str, docs, primary):
     return result
 
 
+def _build_loneliness_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https?://\S+$", url, re.I):
+        return ""
+    secondaries = _canonical_complementary_roles(user_query, docs, primary)
+    sections = [
+        "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
+        f"A gentle place to begin is [{title}]({url}).",
+    ]
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        item_title = _normalize_title(doc.get("title") or "")
+        item_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        sections.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
+        sections.append(f"Another route into the question is [{item_title}]({item_url}): {item['role_text']}.")
+    else:
+        sections.append("The material can open a way into the question without deciding in advance what loneliness must mean.")
+    sections.append("You do not have to turn loneliness into a diagnosis or a final explanation. A useful piece can simply give you another language for noticing what the experience is asking you to consider.")
+    return "\n\n".join(sections)
+
+
 def _build_meaning_answer(user_query, primary, docs):
     title = _normalize_title(primary.get("title") or "")
     url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
@@ -301,24 +324,34 @@ def _build_meaning_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v427_finalize(*args, **kwargs):
+def _build_risk_answer():
+    return (
+        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
+        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
+        "You do not need to work out the larger meaning of what you are going through before taking that next step."
+    )
+
+
+def _v428_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
     profile = _query_profile(user_query)
-    if user_query and profile.get("loneliness") and not profile.get("risk"):
+    if profile.get("risk"):
+        return _build_risk_answer()
+    if user_query and profile.get("loneliness"):
         primary = _select_loneliness_primary(docs, profile)
         if primary:
             answer = _build_loneliness_answer(user_query, primary, docs)
             if answer:
                 return answer
-    if user_query and profile.get("meaning") and not profile.get("risk") and not profile.get("explicit_framework"):
+    if user_query and profile.get("meaning") and not profile.get("explicit_framework"):
         primary = _select_meaning_primary(docs, profile)
         if primary:
             answer = _build_meaning_answer(user_query, primary, docs)
             if answer:
                 return answer
-    if user_query and profile.get("grief") and not profile.get("risk"):
+    if user_query and profile.get("grief"):
         primary = _select_grief_primary(docs, profile)
         if primary:
             answer = _build_grief_answer(user_query, primary, docs)
@@ -329,10 +362,10 @@ def _v427_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v427 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v428 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v427_finalize
+use_core.generate_llm_response = _v428_finalize
