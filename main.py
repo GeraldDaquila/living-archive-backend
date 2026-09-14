@@ -1,29 +1,29 @@
-# USE PRODUCTION VERSION: v441 — anger visitor construction
+# USE PRODUCTION VERSION: v442 — ambiguous loss and liminality routing
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v441"
-DEPLOYMENT_FINGERPRINT = "USE-v441-anger-visitor-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v441-anger-visitor-construction"
+APP_VERSION = "v442"
+DEPLOYMENT_FINGERPRINT = "USE-v442-ambiguous-loss-liminal-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v442-ambiguous-loss-liminal-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v441 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v442 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v441 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v442 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v441 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v442 package integrity failure: API query handler is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -36,6 +36,7 @@ def _query_profile(user_query: str) -> dict:
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
         "fear_open": bool(re.search(r"\b(?:scared|afraid|fear|fearful|frightened|terrified|anxious|anxiety|uneasy|uncertain|uncertainty)\b", q)) and bool(re.search(r"\b(?:what(?:'s| is) happening|happening|make sense|understand|explore|help|don't know|do not know|not sure|life|going on)\b", q)),
         "anger_open": bool(re.search(r"\b(?:angr\w*|furious|resent\w*|resentment|frustrat\w*|frustration|bitter\w*|bitterness)\b", q)) and bool(re.search(r"\b(?:life|carrying|long time|understand|understanding|help|doing to me|happened|turned out|going on|explore)\b", q)),
+        "ambiguous_loss_open": bool(re.search(r"\b(?:lost something important|lost something|can't quite put my finger|not sure whether i'm grieving|not sure whether i am grieving|grieving, changing|changing, or just stuck|grieving|stuck)\b", q)) and bool(re.search(r"\b(?:lost|loss|grieving|changing|stuck|what's happening|what is happening|understand|help|explore)\b", q)),
     }
 
 
@@ -288,6 +289,7 @@ def _foothold_text(primary_role: str) -> str:
         "loneliness": "For now, a gentle foothold might be one small movement toward connection—a message to someone you trust, sitting with someone, or simply naming what you wish another person could understand.",
         "fear": "For now, you might not need to figure out exactly what you are afraid of. Notice one thing in the situation that feels most immediate, and give yourself permission to take it one small piece at a time.",
         "anger": "For now, you might let yourself name what the anger is protecting or pointing toward—hurt, disappointment, violated expectations, or a sense that something important has been lost—without needing to act on it or resolve it today.",
+        "liminality": "For now, you might allow the uncertainty itself to be information. You do not have to decide yet whether this is grief, change, or being stuck; simply notice what feels most absent, most different, or most unfinished.",
     }
     return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
@@ -440,9 +442,37 @@ def _build_anger_answer(user_query, primary, docs):
     return "\n\n".join(parts)
 
 
+def _build_liminality_answer(user_query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = _valid_doc_url(primary)
+    if not title or not url:
+        return ""
+    secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
+    parts = [
+        "It is possible to feel a real sense of loss without knowing yet whether you are grieving, changing, or simply feeling stuck. You do not have to decide which category fits before you can pay attention to what has changed.",
+        f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on transition and meaning without requiring you to name the experience as grief, change, or something else yet.",
+        _foothold_text("liminality"),
+    ]
+    if secondaries:
+        item = secondaries[0]
+        doc = item["doc"]
+        sec_title = _normalize_title(doc.get("title") or "")
+        sec_url = _valid_doc_url(doc)
+        if sec_title and sec_url:
+            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+    parts.append("You can let the uncertainty remain open for a while. Sometimes the most useful first step is noticing what no longer feels present, what has changed, and what still matters to you.")
+    return "\n\n".join(parts)
+
+
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
+    if profile.get("ambiguous_loss_open"):
+        primary = _select_transition_primary(docs)
+        if primary:
+            answer = _build_liminality_answer(query, primary, docs)
+            if answer:
+                return answer
     if profile.get("grief"):
         primary = _select_grief_primary(docs)
         if primary:
@@ -482,7 +512,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     return None
 
 
-def _v441_finalize(*args, **kwargs):
+def _v442_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -495,10 +525,10 @@ def _v441_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v441 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v442 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v441_finalize
+use_core.generate_llm_response = _v442_finalize
