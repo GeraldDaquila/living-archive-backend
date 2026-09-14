@@ -1,47 +1,44 @@
-# USE PRODUCTION VERSION: v454 — transition gateway calibration
+# USE PRODUCTION VERSION: v455 — foundational orientation gateway
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v454"
-DEPLOYMENT_FINGERPRINT = "USE-v454-transition-gateway-calibration"
-CANONICAL_BUILD_ID = "USE-BUILD-v454-transition-gateway-calibration"
+APP_VERSION = "v455"
+DEPLOYMENT_FINGERPRINT = "USE-v455-foundational-orientation-gateway"
+CANONICAL_BUILD_ID = "USE-BUILD-v455-foundational-orientation-gateway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v454 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v455 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v454 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v455 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v454 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v455 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v454 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v455 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
-    transition_marker = bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q))
-    transition_context = bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q))
-    emptiness_marker = bool(re.search(r"\b(?:empty|emptiness|numb|numbness|disconnected from my life|disconnected from life|feel disconnected|disconnected|going through the motions|nothing is obviously wrong|nothing is wrong|all right on paper|everything is fine|feel absent from my life)\b", q))
-    emptiness_context = bool(re.search(r"\b(?:life|my life|unhappy|happiness|numb|empty|disconnected|understand|happening|help|supposed to|supposed)\b", q))
     return {
+        "foundation_open": bool(re.search(r"\b(?:what is|what's|how does|how do|where do i|where should i|where can i|what can i|tell me about)\b", q)) and bool(re.search(r"\b(?:living archive|archive|guide|start|begin|work|purpose|find here|about this)\b", q)),
         "loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|isolat|disconnected|belonging|connection)\b", q)),
         "risk": bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q)),
         "coercion_open": bool(re.search(r"\b(?:controlling|control(?:led|s)?|coercion|coercive|making me feel|can't trust my own judgment|cannot trust my own judgment|undermine(?:s|d)? my judgment|question my own judgment|isolat(?:es|ed)? me|controls what i do|controls what i wear|controls who i see|controls who i talk to|power over me|makes decisions for me)\b", q)) and bool(re.search(r"\b(?:someone in my life|partner|spouse|relationship|person|trust my own judgment|judgment|control|controlling|coercion|worry|worried|concerned|understand|happening|help|power|choice|freedom|safety)\b", q)),
-        "emptiness_open": emptiness_marker and emptiness_context,
+        "emptiness_open": bool(re.search(r"\b(?:empty|emptiness|numb|numbness|disconnected from my life|disconnected from life|feel disconnected|disconnected|going through the motions|nothing is obviously wrong|nothing is wrong|all right on paper|everything is fine|feel absent from my life)\b", q)) and bool(re.search(r"\b(?:life|my life|unhappy|happiness|numb|empty|disconnected|understand|happening|help|supposed to|supposed)\b", q)),
         "meaning_open": bool(re.search(r"\b(?:what gives life meaning|meaning in life|what makes life meaningful|what matters|purpose|larger meaning|meaning behind)\b", q)) and bool(re.search(r"\b(?:lost|not sure|don't know|do not know|uncertain|explore|exploring|where might i begin|where should i begin|going through|believe|belief|what to believe)\b", q)),
-        "transition_open": transition_marker and transition_context,
+        "transition_open": bool(re.search(r"\b(?:old way|no longer works|what comes next|next chapter|different way of seeing|way of seeing.*no longer|transition|turning point|threshold|outgrown|outgrew|no longer feels like me|changed so much|life has changed|change it|changing|what no longer fits|what no longer feels right|built.*afraid.*lose|afraid.*lose.*change|move on|moving on|new chapter|leave.*behind|letting go|rebuild|starting over|reinvent)\b", q)) and bool(re.search(r"\b(?:life|my life|what comes next|think|explore|help|built|change|changed|fits|right|lose|leaving|starting|begin|next)\b", q)),
         "grief": bool(re.search(r"\b(?:griev\w*|grief|mourning|death of (?:a|my|their) (?:love|loved) one|loss of (?:a|my|their) (?:love|loved) one|someone (?:i|we|they) love(?:d)? died)\b", q)),
         "fear_open": bool(re.search(r"\b(?:scared|afraid|fear|fearful|frightened|terrified|anxious|anxiety|uneasy|uncertain|uncertainty)\b", q)) and bool(re.search(r"\b(?:what(?:'s| is) happening|happening|make sense|understand|explore|help|don't know|do not know|not sure|life|going on)\b", q)),
         "anger_open": bool(re.search(r"\b(?:angr\w*|furious|resent\w*|resentment|frustrat\w*|frustration|bitter\w*|bitterness)\b", q)) and bool(re.search(r"\b(?:life|carrying|long time|understand|understanding|help|doing to me|happened|turned out|going on|explore)\b", q)),
@@ -229,7 +226,6 @@ def _select_transition_primary(docs):
 
 
 def _transition_gateway_evidence(doc: dict) -> dict:
-    """Score whether a candidate actually helps a visitor orient to life transition."""
     title = _normalize_title(doc.get("title") or "").casefold()
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
     corpus = f"{title} {text}"
@@ -238,18 +234,7 @@ def _transition_gateway_evidence(doc: dict) -> dict:
     generic = bool(re.search(r"\b(?:soul|spiritual|spirituality|cosmic|ascension|metaphysical|afterlife|universe)\b", title))
     life_transition = bool(re.search(r"\b(?:life transition|transition|turning point|new chapter|chapter|change|changing|crossroads|threshold|letting go|starting over|reinvent|outgrown|old way|new way|what no longer fits|life stage|season of life)\b", corpus))
     identity_agency = bool(re.search(r"\b(?:identity|self|values|choice|agency|autonomy|direction|purpose|what matters|meaning|how to live|decision|decide)\b", corpus))
-    grounded = e["grounded"]
-    practical = e["practical_reflection"]
-    threshold = e["threshold"]
-    return {
-        "life_transition": life_transition,
-        "identity_agency": identity_agency,
-        "grounded": grounded,
-        "practical": practical,
-        "threshold": threshold,
-        "dramatic": dramatic,
-        "generic_worldview": generic,
-    }
+    return {"life_transition": life_transition,"identity_agency": identity_agency,"grounded": e["grounded"],"practical": e["practical_reflection"],"threshold": e["threshold"],"dramatic": dramatic,"generic_worldview": generic}
 
 
 def _select_transition_gateway_primary(docs):
@@ -260,17 +245,39 @@ def _select_transition_gateway_primary(docs):
         if not title or not url or _is_risk_related(doc):
             continue
         e = _transition_gateway_evidence(doc)
-        score = (
-            42 * int(e["life_transition"])
-            + 18 * int(e["identity_agency"])
-            + 12 * int(e["practical"])
-            + 8 * int(e["grounded"])
-            + 6 * int(e["threshold"])
-            - 14 * int(e["dramatic"])
-            - 8 * int(e["generic_worldview"])
-        )
+        score = 42 * int(e["life_transition"]) + 18 * int(e["identity_agency"]) + 12 * int(e["practical"]) + 8 * int(e["grounded"]) + 6 * int(e["threshold"]) - 14 * int(e["dramatic"]) - 8 * int(e["generic_worldview"])
         if score > 0:
             ranked.append((score, index, doc))
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return ranked[0][2] if ranked else None
+
+
+def _foundation_evidence(doc: dict) -> dict:
+    title = _normalize_title(doc.get("title") or "").casefold()
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
+    corpus = f"{title} {text}"
+    return {
+        "identity": bool(re.search(r"\b(?:living archive|archive|collection|body of work|essays|essay|writing|inquiry|orientation|sense-making|sense making|navigate|navigation)\b", corpus)),
+        "purpose": bool(re.search(r"\b(?:help people|help readers|make sense|understand|orientation|orient|meaning|complex questions|questions|wisdom|perspective|explore|pathway|pathways|framework|frameworks)\b", corpus)),
+        "broad": bool(re.search(r"\b(?:connected|network|multiple perspectives|different perspectives|disciplin|across|interdisciplinary|spiritual|scientific|philosophical|cultural|historical)\b", corpus)),
+        "visitor": bool(re.search(r"\b(?:begin|starting point|where to begin|find|reader|visitor|you can|explore|follow)\b", corpus)),
+        "worldview_heavy": bool(re.search(r"\b(?:higher-order intelligence|ascension|reincarnation|afterlife|cosmic curriculum|starseed)\b", title)),
+    }
+
+
+def _select_foundation_primary(docs):
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = _valid_doc_url(doc)
+        if not title or not url or _is_risk_related(doc):
+            continue
+        e = _foundation_evidence(doc)
+        score = 42 * int(e["identity"]) + 28 * int(e["purpose"]) + 14 * int(e["broad"]) + 8 * int(e["visitor"])
+        if e["worldview_heavy"]:
+            score -= 25
+        if score > 0:
+            ranked.append((score,index,doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
     return ranked[0][2] if ranked else None
 
@@ -293,21 +300,30 @@ def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1)
         if _is_risk_related(doc) or not _valid_doc_url(doc) or _doc_identity(doc).casefold() == primary_key:
             continue
         e = _role_evidence(doc)
-        if e["meaning"] and not e["worldview"]:
+        if primary_role == "transition":
+            if e["grounded"] and not e["worldview"]:
+                role_text, score = "a grounded or research-oriented route into change and adaptation", 18
+            elif e["practical_reflection"] and not e["worldview"]:
+                role_text, score = "staying with change through reflection and practice", 16
+            elif e["meaning"] and e["threshold"] and not e["worldview"]:
+                role_text, score = "meaning, perspective, and ways of understanding a changing life", 15
+            else:
+                continue
+        elif e["meaning"] and not e["worldview"]:
             role_text, score = "meaning, perspective, and ways of understanding the experience", 12
-        elif e["grounded"]:
+        elif e["grounded"] and not e["worldview"]:
             role_text, score = "a grounded or research-oriented route into the question", 11
-        elif e["practical_reflection"]:
+        elif e["practical_reflection"] and not e["worldview"]:
             role_text, score = "staying with the question through reflection and practice", 10
         else:
             continue
-        ranked.append((score, index, role_text, doc))
+        ranked.append((score,index,role_text,doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
     return [{"doc": item[3], "role_text": item[2], "score": item[0]} for item in ranked[:limit]]
 
 
 def _foothold_text(primary_role: str) -> str:
-    footholds = {
+    return {
         "grief": "For now, it may be enough to stay close to what you are actually feeling and choose one small act of care today—rest, a quiet walk, a conversation with someone you trust, or simply giving yourself permission not to make sense of everything yet.",
         "transition": "For now, you might simply name what no longer fits and give yourself one small space today in which nothing has to be decided. A walk, a page of writing, or a conversation with someone you trust can be enough.",
         "meaning": "For now, you might choose one thing that still feels quietly worth caring about and give it your attention today. You do not need a complete philosophy of life before taking one meaningful step.",
@@ -316,12 +332,23 @@ def _foothold_text(primary_role: str) -> str:
         "anger": "For now, you might let yourself name what the anger is protecting or pointing toward—hurt, disappointment, violated expectations, or a sense that something important has been lost—without needing to act on it or resolve it today.",
         "liminality": "For now, you might allow the uncertainty itself to be information. You do not have to decide yet whether this is grief, change, or being stuck; simply notice what feels most absent, most different, or most unfinished.",
         "emptiness": "For now, you might notice one moment in the day when you feel most present and one when you feel most absent, without judging either one. You do not have to decide yet whether this is unhappiness, numbness, exhaustion, or something else.",
-    }
-    return footholds.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
+    }.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
 
 
-def _build_risk_answer_from_query(user_query: str = ""):
-    return _build_risk_answer(user_query)
+def _build_foundation_answer(user_query, primary=None, docs=None):
+    docs = docs or []
+    if primary:
+        title = _normalize_title(primary.get("title") or "")
+        url = _valid_doc_url(primary)
+        if title and url:
+            return "\n\n".join([
+                "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",
+                f"A useful place to begin is [{title}]({url}). It helps show how the Archive works as an orientation layer: offering different ways into a question so you can recognize what is established, what is interpretive, and what may simply hold personal meaning.",
+                "You do not need to understand the whole Archive before using it. Start with the question that brought you here, and follow the pathway that feels most relevant; the aim is to help you find your bearings, not to tell you what you must believe.",
+            ])
+    return ("The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer. "
+            "It is meant to help you find your bearings, explore different perspectives, and decide for yourself what is useful, established, interpretive, or personally meaningful. "
+            "You can begin with the question that brought you here and follow from there.")
 
 
 def _build_grief_answer(user_query, primary, docs):
@@ -330,11 +357,7 @@ def _build_grief_answer(user_query, primary, docs):
     if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "grief", limit=1)
-    parts = [
-        "Grief after the death of someone you love can leave many questions open at once, and there is no need to force the experience into one meaning.",
-        f"A possible place to begin is [{title}]({url}). It approaches loss through spiritual and scientific perspectives, including questions of meaning that can arise after someone dies. You can see whether that lens speaks to the grief you’re carrying.",
-        _foothold_text("grief"),
-    ]
+    parts = ["Grief after the death of someone you love can leave many questions open at once, and there is no need to force the experience into one meaning.", f"A possible place to begin is [{title}]({url}). It approaches loss through spiritual and scientific perspectives, including questions of meaning that can arise after someone dies. You can see whether that lens speaks to the grief you’re carrying.", _foothold_text("grief")]
     if secondaries:
         item = secondaries[0]
         doc = item["doc"]
@@ -352,17 +375,12 @@ def _build_loneliness_answer(user_query, primary, docs):
     if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "loneliness", limit=1)
-    parts = [
-        "Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.",
-        f"A gentle place to begin is [{title}]({url}).",
-        _foothold_text("loneliness"),
-    ]
+    parts = ["Loneliness can be difficult to name because it is not always only about being physically alone. It can touch belonging, connection, meaning, and the sense of being seen or understood.", f"A gentle place to begin is [{title}]({url}).", _foothold_text("loneliness")]
     if secondaries:
         item = secondaries[0]
         item_title = _normalize_title(item["doc"].get("title") or "")
         item_url = _valid_doc_url(item["doc"])
         if item_title and item_url:
-            parts.append("The Archive offers more than one way into the question, and the routes do different work rather than resolving it into one certainty.")
             parts.append(f"Another route into the question is [{item_title}]({item_url}).")
     return "\n\n".join(parts)
 
@@ -393,11 +411,7 @@ def _build_transition_answer(user_query, primary=None, docs=None):
         title = _normalize_title(primary.get("title") or "")
         url = _valid_doc_url(primary)
         if title and url:
-            parts = [
-                "When an old way of living no longer fits, the uncertainty can be real even when part of you already knows that something has changed.",
-                f"A possible place to begin is [{title}]({url}).",
-                _foothold_text("transition"),
-            ]
+            parts = ["When an old way of living no longer fits, the uncertainty can be real even when part of you already knows that something has changed.", f"A possible place to begin is [{title}]({url}).", _foothold_text("transition")]
             secondaries = _select_secondary_pathways(user_query, primary, docs, "transition", limit=1)
             if secondaries:
                 item = secondaries[0]
@@ -408,10 +422,7 @@ def _build_transition_answer(user_query, primary=None, docs=None):
                     parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
             parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
             return "\n\n".join(parts)
-    return ("It is possible to sense that a life you have built no longer fits without knowing yet what needs to change. "
-            "That uncertainty does not have to be resolved before it can be listened to. "
-            "For now, notice what feels most outgrown, what still feels alive, and what you are reluctant to lose. "
-            "A small piece of observation can be more useful than forcing yourself to decide what the next chapter should be.")
+    return "It is possible to sense that a life you have built no longer fits without knowing yet what needs to change. That uncertainty does not have to be resolved before it can be listened to. For now, notice what feels most outgrown, what still feels alive, and what you are reluctant to lose. A small piece of observation can be more useful than forcing yourself to decide what the next chapter should be."
 
 
 def _build_emptiness_answer(user_query, primary, docs):
@@ -420,12 +431,7 @@ def _build_emptiness_answer(user_query, primary, docs):
     if not title or not url:
         return ""
     primary_evidence = _role_evidence(primary)
-    parts = [
-        "You can be doing what you are supposed to do and still feel strangely absent from your own life. Nothing being obviously wrong does not make the feeling less real, and you do not have to decide yet whether it is unhappiness, numbness, exhaustion, or a sign that something in your life has changed.",
-        "What you may be noticing is a gap between functioning and feeling engaged with your life. That can be worth exploring without turning it immediately into a diagnosis or a problem you must fix.",
-        f"A possible place to begin is [{title}]({url}). Its perspective may help you put language around that sense of emptiness and ask what, beneath the surface, feels missing, muted, or unfinished. Treat it as a reflection doorway rather than an explanation you have to accept.",
-        _foothold_text("emptiness"),
-    ]
+    parts = ["You can be doing what you are supposed to do and still feel strangely absent from your own life. Nothing being obviously wrong does not make the feeling less real, and you do not have to decide yet whether it is unhappiness, numbness, exhaustion, or a sign that something in your life has changed.", "What you may be noticing is a gap between functioning and feeling engaged with your life. That can be worth exploring without turning it immediately into a diagnosis or a problem you must fix.", f"A possible place to begin is [{title}]({url}). Its perspective may help you put language around that sense of emptiness and ask what, beneath the surface, feels missing, muted, or unfinished. Treat it as a reflection doorway rather than an explanation you have to accept.", _foothold_text("emptiness")]
     if primary_evidence["worldview"]:
         parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
     parts.append("You can also notice the contrast between moments when you feel most present and most absent: what are you doing, who are you with, and what seems to come alive or go quiet? You do not need to solve the larger question before that pattern begins to tell you something.")
@@ -434,9 +440,7 @@ def _build_emptiness_answer(user_query, primary, docs):
 
 
 def _build_coercion_answer(user_query, docs):
-    parts = [
-        "When someone repeatedly controls what you do or leaves you doubting your own judgment, it is reasonable to take that pattern seriously. You do not need to decide today whether it has a particular label before you can notice what it is doing to your sense of safety and autonomy.",
-    ]
+    parts = ["When someone repeatedly controls what you do or leaves you doubting your own judgment, it is reasonable to take that pattern seriously. You do not need to decide today whether it has a particular label before you can notice what it is doing to your sense of safety and autonomy."]
     candidates = []
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
@@ -460,11 +464,7 @@ def _build_liminality_answer(user_query, primary, docs):
     url = _valid_doc_url(primary)
     if not title or not url:
         return ""
-    return "\n\n".join([
-        "Sometimes something important has been lost, but the experience does not yet feel like straightforward grief. It can also be a period in which your life is changing and you cannot tell what the feeling means yet.",
-        f"A possible place to begin is [{title}]({url}).",
-        _foothold_text("liminality"),
-    ])
+    return "\n\n".join(["Sometimes something important has been lost, but the experience does not yet feel like straightforward grief. It can also be a period in which your life is changing and you cannot tell what the feeling means yet.", f"A possible place to begin is [{title}]({url}).", _foothold_text("liminality")])
 
 
 def _build_fear_answer(user_query, primary, docs):
@@ -474,11 +474,7 @@ def _build_fear_answer(user_query, primary, docs):
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "fear", limit=1)
     primary_evidence = _role_evidence(primary)
-    parts = [
-        "Feeling scared about what is happening in your life without being able to name the fear clearly can be disorienting. You do not have to explain it perfectly before you can begin to look at it.",
-        f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on what can lie beneath an unsettled or uncertain experience, rather than telling you what your fear must mean.",
-        _foothold_text("fear"),
-    ]
+    parts = ["Feeling scared about what is happening in your life without being able to name the fear clearly can be disorienting. You do not have to explain it perfectly before you can begin to look at it.", f"A possible place to begin is [{title}]({url}). It offers one way of reflecting on what can lie beneath an unsettled or uncertain experience, rather than telling you what your fear must mean.", _foothold_text("fear")]
     if primary_evidence["worldview"]:
         parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
     if secondaries:
@@ -498,11 +494,7 @@ def _build_anger_answer(user_query, primary, docs):
     if not title or not url:
         return ""
     secondaries = _select_secondary_pathways(user_query, primary, docs, "anger", limit=1)
-    parts = [
-        "Anger about how your life has turned out can carry more than anger itself—it can hold hurt, disappointment, grief, or the feeling that something important did not go as it should have. You do not have to dismiss the anger or act on it before you can understand it.",
-        f"A possible place to begin is [{title}]({url}). It offers one perspective for reflecting on what is happening beneath the surface of a difficult experience, rather than telling you what your anger must mean.",
-        _foothold_text("anger"),
-    ]
+    parts = ["Anger about how your life has turned out can carry more than anger itself—it can hold hurt, disappointment, grief, or the feeling that something important did not go as it should have. You do not have to dismiss the anger or act on it before you can understand it.", f"A possible place to begin is [{title}]({url}). It offers one perspective for reflecting on what is happening beneath the surface of a difficult experience, rather than telling you what your anger must mean.", _foothold_text("anger")]
     primary_evidence = _role_evidence(primary)
     if primary_evidence["worldview"]:
         parts.append("If the essay moves into spiritual or cosmological interpretation, that belongs to the perspective presented in the Archive rather than established fact, so you can consider it without having to adopt it.")
@@ -520,6 +512,11 @@ def _build_anger_answer(user_query, primary, docs):
 def _persistent_visitor_construction(query: str, docs: list, profile: dict):
     if profile.get("risk"):
         return f"<visitor_answer>{_build_risk_answer(query)}</visitor_answer>"
+    if profile.get("foundation_open"):
+        primary = _select_foundation_primary(docs)
+        answer = _build_foundation_answer(query, primary, docs)
+        if answer:
+            return answer
     if profile.get("coercion_open"):
         answer = _build_coercion_answer(query, docs=docs)
         if answer:
@@ -593,14 +590,14 @@ def _v451_evidence_gap_boundary(user_query: str, canonical_link_context: str = "
         return persistent
     return _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context)
 
-_V454_BOUNDARY_QUERY = "Everything looks fine from the outside, but my life feels strangely empty. I keep wondering whether I’ve outgrown the life I built."
-_V454_BOUNDARY_AUDIT = _v451_evidence_gap_boundary(_V454_BOUNDARY_QUERY, "")
-if "outgrown" not in _V454_BOUNDARY_AUDIT.casefold() or "uncertainty" not in _V454_BOUNDARY_AUDIT.casefold():
-    raise RuntimeError("USE v454 evidence-gap boundary audit failed: transition construction did not survive the core bypass.")
+_V455_BOUNDARY_QUERY = "What is the Living Archive?"
+_V455_BOUNDARY_AUDIT = _v451_evidence_gap_boundary(_V455_BOUNDARY_QUERY, "")
+if "living archive" not in _V455_BOUNDARY_AUDIT.casefold() or "connected body" not in _V455_BOUNDARY_AUDIT.casefold():
+    raise RuntimeError("USE v455 foundational orientation audit failed: foundational construction did not survive the core bypass.")
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v454 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v455 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
