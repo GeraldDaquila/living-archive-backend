@@ -1,26 +1,27 @@
-# USE PRODUCTION VERSION: v428 — explicit risk boundary
+# USE PRODUCTION VERSION: v429 — risk path routing
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v428"
-DEPLOYMENT_FINGERPRINT = "USE-v428-explicit-risk-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v428-explicit-risk-boundary"
+APP_VERSION = "v429"
+DEPLOYMENT_FINGERPRINT = "USE-v429-risk-path-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v429-risk-path-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v428 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v429 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v428 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v429 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
+_original_fetch_canonical_context = use_core.fetch_canonical_context
 
 
 def _parse_context_documents(context_blocks: str):
@@ -65,6 +66,27 @@ def _query_profile(user_query: str) -> dict:
         "risk": bool(re.search(r"\b(?:suicid|self-harm|overdose|abuse|coercion|immediate danger|unsafe|threatened)\b", q)),
         "explicit_framework": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|astrology|tarot|starseed)\b", q)),
     }
+
+
+def _build_risk_answer():
+    return (
+        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
+        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
+        "You do not need to work out the larger meaning of what you are going through before taking that next step."
+    )
+
+
+def _risk_guarded_fetch_canonical_context(user_query: str):
+    """Terminate the canonical evidence path for explicit acute-risk queries."""
+    if _query_profile(user_query).get("risk"):
+        return {
+            "intent": "RISK_ROUTING",
+            "orientational_frame": {},
+            "context_blocks": "",
+            "canonical_link_context": "",
+            "risk_route_required": True,
+        }
+    return _original_fetch_canonical_context(user_query)
 
 
 def _role_evidence(doc: dict) -> dict:
@@ -324,21 +346,13 @@ def _build_meaning_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _build_risk_answer():
-    return (
-        "If you are thinking about killing yourself or may be in immediate danger, please treat this as something that needs human help now. "
-        "Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. "
-        "You do not need to work out the larger meaning of what you are going through before taking that next step."
-    )
-
-
-def _v428_finalize(*args, **kwargs):
+def _v429_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
-    raw_context = _context_blocks_from_kwargs(args, kwargs)
-    docs = _parse_context_documents(raw_context)
     profile = _query_profile(user_query)
     if profile.get("risk"):
         return _build_risk_answer()
+    raw_context = _context_blocks_from_kwargs(args, kwargs)
+    docs = _parse_context_documents(raw_context)
     if user_query and profile.get("loneliness"):
         primary = _select_loneliness_primary(docs, profile)
         if primary:
@@ -362,10 +376,11 @@ def _v428_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v428 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v429 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v428_finalize
+use_core.fetch_canonical_context = _risk_guarded_fetch_canonical_context
+use_core.generate_llm_response = _v429_finalize
