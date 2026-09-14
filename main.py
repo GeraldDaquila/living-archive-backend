@@ -78,12 +78,13 @@ def _role_evidence(doc: dict) -> dict:
     title = _normalize_title(doc.get("title") or "").casefold()
     corpus = title + " " + text
     return {
-        "direct_loneliness": bool(re.search(r"\b(?:loneliness|lonely|social isolation|socially isolated|feeling alone|sense of aloneness|disconnected|disconnection|belonging|lack of connection|need for connection|being seen|being understood)\b", text)),
+        "direct_loneliness": bool(re.search(r"\b(?:loneliness|lonely|social isolation|socially isolated|feeling alone|sense of aloneness|disconnected|disconnection|lack of connection|need for connection)\b", text)),
         "belonging_connection": bool(re.search(r"\b(?:belonging|connection|connected|relationship|relationships|community|companionship|being seen|being understood|social connection)\b", corpus)),
         "lived_experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling|living with)\b", text)),
         "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
         "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
         "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed)\b", corpus)),
+        "practical_reflection": bool(re.search(r"\b(?:reflect|reflection|notice|naming|journal|practice|grounding|orientation|practical|everyday|attention)\b", text)),
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
@@ -139,7 +140,7 @@ def _secondary_role_candidates(doc: dict):
         candidates.append(("grounded", "a grounded or research-oriented route into the experience", 30))
     if e["meaning"]:
         candidates.append(("meaning", "a route into meaning, perspective, and ways of understanding loneliness", 28))
-    if e["practical_reflection"] if "practical_reflection" in e else False:
+    if e["practical_reflection"]:
         candidates.append(("reflection", "a reflective route into staying with the experience", 24))
     if e["belonging_connection"]:
         candidates.append(("belonging", "a route into connection and belonging", 22))
@@ -165,11 +166,18 @@ def _secondary_role_quality(doc: dict, role_key: str) -> int:
     score -= 18 * int(e["worldview"])
     if re.search(r"\b(?:recommend|should|must|need to|therapy|treatment|diagnos)\b", text):
         score -= 20
-    if role_key == "grounded" and e["grounded"]: score += 20
-    if role_key == "meaning" and e["meaning"]: score += 18
-    if role_key == "belonging" and e["belonging_connection"]: score += 12
-    if role_key == "meaning_title" and e["title_meaning"]: score += 12
-    if role_key == "human" and e["lived_experience"] and e["title_life"]: score += 16
+    if role_key == "grounded" and e["grounded"]:
+        score += 20
+    if role_key == "meaning" and e["meaning"]:
+        score += 18
+    if role_key == "reflection" and e["practical_reflection"]:
+        score += 16
+    if role_key == "belonging" and e["belonging_connection"]:
+        score += 12
+    if role_key == "meaning_title" and e["title_meaning"]:
+        score += 12
+    if role_key == "human" and e["lived_experience"] and e["title_life"]:
+        score += 16
     return score
 
 
@@ -179,21 +187,27 @@ def _select_loneliness_secondaries(docs, primary_title, profile, limit=1):
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
         url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        if not title or not url or title.casefold() in seen:
+        if not title or not re.match(r"^https?://\S+$", url, re.I) or title.casefold() in seen:
             continue
         combined = title + " " + str(doc.get("text") or "")
         if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", combined, re.I):
             continue
         for role_key, role_text, role_bonus in _secondary_role_candidates(doc):
             role_quality = _secondary_role_quality(doc, role_key)
-            if role_quality < 30:
+            if role_quality < 36:
                 continue
             candidates.append((role_quality + role_bonus, index, role_key, role_text, doc))
     candidates.sort(key=lambda item: (-item[0], item[1]))
-    if not candidates:
-        return []
-    score, index, role_key, role_text, doc = candidates[0]
-    return [{"doc": doc, "role_key": role_key, "role_text": role_text, "score": score}]
+    selected = []
+    roles = set()
+    for score, index, role_key, role_text, doc in candidates:
+        if role_key in roles:
+            continue
+        roles.add(role_key)
+        selected.append({"doc": doc, "role_key": role_key, "role_text": role_text, "score": score})
+        if len(selected) >= limit:
+            break
+    return selected
 
 
 def _evidence_boundary_note(docs):
@@ -244,7 +258,7 @@ def _v411_finalize(*args, **kwargs):
         if primary:
             answer = _build_loneliness_answer(user_query, primary, docs)
             if answer:
-                secondaries = _select_loneliness_secondaries(docs, _normalize_title(primary.get("title") or ""), profile, limit=1)
+                secondaries = _select_loneliness_secondaries(docs, _normalize_title(primary.get('title') or ''), profile, limit=1)
                 print(f"USE v411 runtime hook: loneliness interception=ACTIVE primary='{_normalize_title(primary.get('title') or '')}' secondary_count={len(secondaries)} recommendation_classifier={recommendation_question}")
                 return answer
     return _original_generate_llm_response(*args, **kwargs)
