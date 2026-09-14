@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v416 — safe complementary doorway selection
+# USE PRODUCTION VERSION: v417 — restore complementary doorway breadth safely
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v416"
-DEPLOYMENT_FINGERPRINT = "USE-v416-safe-complementary-doorway-selection"
-CANONICAL_BUILD_ID = "USE-BUILD-v416-safe-complementary-doorway-selection"
+APP_VERSION = "v417"
+DEPLOYMENT_FINGERPRINT = "USE-v417-safe-complementary-doorway-breadth"
+CANONICAL_BUILD_ID = "USE-BUILD-v417-safe-complementary-doorway-breadth"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v416 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v417 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v416 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v417 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
@@ -80,6 +80,8 @@ def _role_evidence(doc: dict) -> dict:
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
+        "title_meaning": bool(re.search(r"\b(?:meaning|purpose|perspective|wisdom|understanding|journey|soul|life)\b", title)),
+        "title_life": bool(re.search(r"\b(?:life|human|person|people|living|death|grief|existential)\b", title)),
     }
 
 
@@ -126,14 +128,18 @@ def _secondary_role_candidates(doc: dict):
     if e["acute_risk"] or e["title_risk"] or e["direct_loneliness"]:
         return []
     candidates = []
-    if e["grounded"] and e["lived_experience"]:
+    if e["grounded"]:
         candidates.append(("grounded", "a grounded or research-oriented route into the experience", 30))
-    if e["meaning"] and e["lived_experience"]:
+    if e["meaning"]:
         candidates.append(("meaning", "a route into meaning, perspective, and ways of understanding loneliness", 28))
-    if e["practical_reflection"] and e["lived_experience"]:
+    if e["practical_reflection"]:
         candidates.append(("reflection", "a reflective route into staying with the experience", 24))
-    if e["belonging_connection"] and not e["direct_loneliness"]:
+    if e["belonging_connection"]:
         candidates.append(("belonging", "a route into connection and belonging", 22))
+    if e["title_meaning"]:
+        candidates.append(("meaning_title", "a broader route into meaning and perspective", 18))
+    if e["title_life"] and e["lived_experience"]:
+        candidates.append(("human", "a broader route into the lived human dimensions around loneliness", 20))
     return candidates
 
 
@@ -142,16 +148,19 @@ def _secondary_role_quality(doc: dict, role_key: str) -> int:
     text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
     if e["acute_risk"] or e["title_risk"]:
         return -1000
-    score = 12 * int(e["lived_experience"])
-    score += 10 * int(e["belonging_connection"])
-    score += 18 * int(e["meaning"])
+    score = 0
     score += 18 * int(e["grounded"])
+    score += 18 * int(e["meaning"])
+    score += 12 * int(e["lived_experience"])
+    score += 10 * int(e["belonging_connection"])
+    score += 8 * int(e["title_meaning"])
+    score += 6 * int(e["title_life"])
     score += 10 * int(e["practical_reflection"])
     score -= 18 * int(e["worldview"])
     if re.search(r"\b(?:recommend|should|must|need to|therapy|treatment|diagnos)\b", text):
         score -= 20
-    score += {"grounded": 16, "meaning": 16, "reflection": 14, "belonging": 10}.get(role_key, 0)
-    return score
+    role_bonus = {"grounded": 22, "meaning": 20, "reflection": 18, "belonging": 16, "meaning_title": 12, "human": 14}
+    return score + role_bonus.get(role_key, 0)
 
 
 def _select_loneliness_secondary(docs, primary_title, profile):
@@ -165,11 +174,11 @@ def _select_loneliness_secondary(docs, primary_title, profile):
         combined = title + " " + str(doc.get("text") or "")
         if not profile.get("explicit_framework") and re.search(r"\b(?:starseed|afterlife|reincarnation|higher-order intelligence)\b", combined, re.I):
             continue
-        for role_key, role_text, bonus in _secondary_role_candidates(doc):
-            quality = _secondary_role_quality(doc, role_key)
-            if quality < 42:
+        for role_key, role_text, role_bonus in _secondary_role_candidates(doc):
+            role_quality = _secondary_role_quality(doc, role_key)
+            if role_quality < 42:
                 continue
-            candidates.append((quality + bonus, index, role_key, role_text, doc))
+            candidates.append((role_quality + role_bonus, index, role_key, role_text, doc))
     candidates.sort(key=lambda item: (-item[0], item[1]))
     if not candidates:
         return None, None, None
@@ -210,7 +219,7 @@ def _build_loneliness_answer(user_query, primary, docs):
     return "\n\n".join(sections)
 
 
-def _v416_finalize(*args, **kwargs):
+def _v417_finalize(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -226,10 +235,10 @@ def _v416_finalize(*args, **kwargs):
 
 app = use_core.app
 app.title = f"Find Your Way (USE) Navigation Engine {APP_VERSION}"
-print(f"USE v416 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"USE v417 GUIDE BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v416_finalize
+use_core.generate_llm_response = _v417_finalize
