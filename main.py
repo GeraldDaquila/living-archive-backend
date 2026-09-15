@@ -1,21 +1,21 @@
-# USE PRODUCTION VERSION: v479 — human inquiry shape calibration
+# USE PRODUCTION VERSION: v480 — canonical doorway selection
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v479"
-DEPLOYMENT_FINGERPRINT="USE-v479-human-inquiry-shape-calibration"
-CANONICAL_BUILD_ID="USE-BUILD-v479-human-inquiry-shape-calibration"
+APP_VERSION="v480"
+DEPLOYMENT_FINGERPRINT="USE-v480-canonical-doorway-selection"
+CANONICAL_BUILD_ID="USE-BUILD-v480-canonical-doorway-selection"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v479 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v480 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v479 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v480 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v479 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v479 package integrity failure: evidence-gap response boundary is unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v480 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v480 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -153,26 +153,39 @@ def _human_foothold(query):
         return "A gentle place to begin is to make room for what you are actually experiencing before deciding what it ought to mean."
     return "A gentle place to begin is to stay with the part of the question that feels most alive, rather than forcing it into a conclusion too quickly."
 
-def _select_human_anchor(claims):
-    if not claims: return None
-    priority=[c for c in claims if re.search(r"\b(?:grief|loss|receiv|giv|growth|relationship|forgiv|anger|fear|pain|letting go)\b",c["text"].casefold())]
-    return priority[0] if priority else claims[0]
+def _doorway_score(query,profile,claim):
+    lowq=query.casefold(); text=claim["text"].casefold(); title=claim["title"].casefold(); score=float(claim.get("score",0))
+    if profile["shape"]=="lived_experience":
+        if re.search(r"\b(?:grief|loss|mourning|letting go|release|goodbye|bereavement|heartbreak|pain|growth|relationship|forgiv|receiv|giv)\b",text): score+=45
+        if re.search(r"\b(?:grief|loss|mourning|letting go|release|goodbye|bereavement|heartbreak)\b",title): score+=35
+        if re.search(r"\b(?:mind|feeling|emotion|growth|relationship|giving|receiving|self|guilt|abandoning)\b",text): score+=15
+        if re.search(r"\b(?:how to|steps|exercise|do this|try this|you should|you need to)\b",text): score-=25
+        if re.search(r"\b(?:spiritual|cosmic|metaphysical|oversoul|afterlife)\b",text) and not re.search(r"\b(?:meaning|possibility|interpret)\b",lowq): score-=10
+    if profile["shape"]=="conceptual":
+        if re.search(rf"\b{re.escape(_query_subject(query).casefold())}\b",text): score+=40
+        if re.search(rf"\b{re.escape(_query_subject(query).casefold())}\b",title): score+=25
+    return score
+
+def _select_human_doorways(query,profile,claims):
+    if not claims: return []
+    ranked=sorted(claims,key=lambda c:_doorway_score(query,profile,c),reverse=True)
+    return ranked[:2]
 
 def _build_lived_experience_answer(query,docs):
     candidates=_candidate_sentences(query,docs); claims=_extract_claims(candidates)
     if not claims: return ""
-    anchor=_select_human_anchor(claims)
+    doorways=_select_human_doorways(query,_query_profile(query),claims); anchor=doorways[0] if doorways else None; adjacent=doorways[1] if len(doorways)>1 else None
     parts=[]
     intro=_human_orientation_intro(query)
-    if intro: parts.append(intro)
-    else: parts.append("What you are describing can make sense as a human tension that does not have to be resolved by explanation alone.")
+    parts.append(intro if intro else "What you are describing can make sense as a human tension that does not have to be resolved by explanation alone.")
     parts.append(_human_foothold(query))
     if anchor:
-        parts.append(f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.")
+        parts.append(f"A possible place to enter the Archive is [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one lens on the question, not a claim that it completely explains your experience.")
     bridge="Taken together, the material here points toward a distinction between understanding something intellectually and being emotionally ready for what it asks of you. That distinction can leave room for grief, uncertainty, or ambivalence without making those responses a failure."
     parts.append(bridge)
-    if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material also enters spiritual or cosmological interpretation; those elements are presented as interpretive perspectives rather than established fact.")
-    parts.append("You can stay with that lens, or follow the adjacent writing from the anchor if another aspect of the question feels more relevant.")
+    if adjacent and adjacent["url"]!=anchor["url"]:
+        parts.append(f"Another doorway, if a different part of the question feels more relevant, is [{adjacent['title']}]({adjacent['url']}).")
+    parts.append("You can stay with whichever doorway feels most relevant, rather than treating either as a complete answer to your experience.")
     return "\n\n".join(parts)
 
 def _render_claim(claim): return claim["text"].rstrip(".")+"."
@@ -213,19 +226,17 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
-def _v479_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v479 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
-def _v479_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v479 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+def _v480_generate_boundary(*args,**kwargs):
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v480 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs)
+def _v480_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v480 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V479_FOUNDATION_AUDIT=_build_foundation_answer()
-_V479_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
-_V479_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V479_FACTUAL_DOC])
-_V479_LIVED_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"Learning to Receive Without Feeling Guilty","url":"https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}])
-if "living archive" not in _V479_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v479 visitor foundation audit failed.")
-if "Overflow" not in _V479_FACTUAL_AUDIT: raise RuntimeError("USE v479 visitor factual audit failed: expected subject missing.")
-if ".." in _V479_FACTUAL_AUDIT: raise RuntimeError("USE v479 visitor factual audit failed: duplicate punctuation survived normalization.")
-if "Connected to the earliest flameholders" in _V479_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V479_FACTUAL_AUDIT: raise RuntimeError("USE v479 visitor factual audit failed: forbidden source fragment leaked.")
-if "Taken together" not in _V479_FACTUAL_AUDIT: raise RuntimeError("USE v479 visitor factual audit failed: semantic synthesis bridge missing.")
-if "grief" not in _V479_LIVED_AUDIT.casefold() or "gentle place to begin" not in _V479_LIVED_AUDIT.casefold() or "Learning to Receive Without Feeling Guilty" not in _V479_LIVED_AUDIT: raise RuntimeError("USE v479 lived-experience audit failed: humane orientation path missing.")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v479 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v479_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v479_evidence_gap_boundary
+_V480_FOUNDATION_AUDIT=_build_foundation_answer()
+_V480_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
+_V480_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V480_FACTUAL_DOC])
+_V480_LIVED_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."},{"title":"Learning to Receive Without Feeling Guilty","url":"https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}])
+if "living archive" not in _V480_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v480 visitor foundation audit failed.")
+if "Overflow" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: expected subject missing.")
+if ".." in _V480_FACTUAL_AUDIT or "Connected to the earliest flameholders" in _V480_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V480_FACTUAL_AUDIT or "Taken together" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 factual calibration failed.")
+if "grief" not in _V480_LIVED_AUDIT.casefold() or "possible place to enter" not in _V480_LIVED_AUDIT.casefold() or "You can stay with" not in _V480_LIVED_AUDIT: raise RuntimeError("USE v480 lived doorway calibration failed.")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v480 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v480_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v480_evidence_gap_boundary
