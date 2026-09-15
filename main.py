@@ -34,40 +34,29 @@ _EXPERIENTIAL_STATE_TERMS = (
     r"heartbreak", r"breakup", r"betrayal", r"burnout", r"stress", r"overwhelmed", r"grief", r"grieving",
     r"bereavement", r"mourning", r"loss", r"relationship", r"abuse", r"trauma", r"forgiveness", r"letting\s+go",
 )
-def _has_experiential_stance(q):
-    return any(re.search(pattern, q, re.I) for pattern in _EXPERIENTIAL_STANCE_PATTERNS)
-def _has_experiential_state(q):
-    return any(re.search(rf"\b{pattern}\b", q, re.I) for pattern in _EXPERIENTIAL_STATE_TERMS)
-def _has_archive_help_request(q):
-    return bool(re.search(r"\b(?:anything|something|something here)\b.{0,100}\b(?:living archive|archive|site|guide)\b.{0,100}\b(?:help|think|start|read|explore|reflect)\b", q, re.I))
+def _has_experiential_stance(q): return any(re.search(pattern, q, re.I) for pattern in _EXPERIENTIAL_STANCE_PATTERNS)
+def _has_experiential_state(q): return any(re.search(rf"\b{pattern}\b", q, re.I) for pattern in _EXPERIENTIAL_STATE_TERMS)
+def _has_archive_help_request(q): return bool(re.search(r"\b(?:anything|something|something here)\b.{0,100}\b(?:living archive|archive|site|guide)\b.{0,100}\b(?:help|think|start|read|explore|reflect)\b", q, re.I))
 _original_weighted_inquiry_profile = _base._weighted_inquiry_profile
 def _weighted_inquiry_profile(query):
-    q = _normalize_query(query)
-    profile = _original_weighted_inquiry_profile(q)
-    if _has_experiential_stance(q) or _has_experiential_state(q):
-        profile["lived"] = max(float(profile.get("lived", 0.0)), 0.86)
-    if _has_archive_help_request(q):
-        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.82)
+    q = _normalize_query(query); profile = _original_weighted_inquiry_profile(q)
+    if _has_experiential_stance(q) or _has_experiential_state(q): profile["lived"] = max(float(profile.get("lived", 0.0)), 0.86)
+    if _has_archive_help_request(q): profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.82)
     return profile
 _base._normalize_query = _normalize_query
 _base._weighted_inquiry_profile = _weighted_inquiry_profile
 
 def _recommendation_rationale(primary, profile):
-    if profile.get("grief"):
-        return "I’m recommending this first because it approaches grief and the human search for continuity directly, making it a more immediate place to reflect on the experience of losing someone you love."
-    if profile.get("ai_truth"):
-        return "I’m recommending this first because it gives you a direct place to examine discernment and the question of how we decide what is actually true."
+    if profile.get("grief"): return "I’m recommending this first because it approaches grief and the human search for continuity directly, making it a more immediate place to reflect on the experience of losing someone you love."
+    if profile.get("ai_truth"): return "I’m recommending this first because it gives you a direct place to examine discernment and the question of how we decide what is actually true."
     return "I’m recommending this first because it offers a direct place to reflect on the question you brought here, without asking you to treat it as the whole answer."
 _base._recommendation_rationale = _recommendation_rationale
 
-_SUBJECT_STOPWORDS = frozenset({
-    "a","an","the","and","or","but","if","then","than","of","on","in","at","to","as","by","for","from","with","into","through","there","here","this","that","these","those","is","are","was","were","be","been","being","am","i","im","my","me","mine","myself","your","you","yourself","our","we","they","them","their","someone","somebody","anyone","anything","something","people","person","what","which","who","when","where","why","how","can","could","would","should","may","might","will","do","does","did","doing","don","dont","don't","not","no","know","sure","about","help","think","thinking","thought","question","questions","living","archive","site","website","guide","place","begin","start","first","read","reading","explore","exploring","reflect","reflection","recommend","recommendation","suggest","suggestion","advice","advise","essay","essays","article","articles","resource","resources","piece","pieces","material","please","find","give","offer","tell","one","best","good","need","want","looking","thing","things","time","way","make","made","keep","still","feel","feels","feeling","care","caring","having","hard","going","experiencing","worried","worry","afraid","confused","unsure","struggling","struggle","dealing","finding","it","its","all","very","just","really","more","less","ever","often","sometimes","now","today"})
+_SUBJECT_STOPWORDS = frozenset({"a","an","the","and","or","but","if","then","than","of","on","in","at","to","as","by","for","from","with","into","through","there","here","this","that","these","those","is","are","was","were","be","been","being","am","i","im","my","me","mine","myself","your","you","yourself","our","we","they","them","their","someone","somebody","anyone","anything","something","people","person","what","which","who","when","where","why","how","can","could","would","should","may","might","will","do","does","did","doing","don","dont","don't","not","no","know","sure","about","help","think","thinking","thought","question","questions","living","archive","site","website","guide","place","begin","start","first","read","reading","explore","exploring","reflect","reflection","recommend","recommendation","suggest","suggestion","advice","advise","essay","essays","article","articles","resource","resources","piece","pieces","material","please","find","give","offer","tell","one","best","good","need","want","looking","thing","things","time","way","make","made","keep","still","feel","feels","feeling","care","caring","having","hard","going","experiencing","worried","worry","afraid","confused","unsure","struggling","struggle","dealing","finding","it","its","all","very","just","really","more","less","ever","often","sometimes","now","today"})
 def _subject_terms(query):
-    tokens = re.findall(r"[a-z0-9]+", _normalize_query(query))
-    return tuple(dict.fromkeys(t for t in tokens if len(t) >= 3 and t not in _SUBJECT_STOPWORDS))
+    tokens = re.findall(r"[a-z0-9]+", _normalize_query(query)); return tuple(dict.fromkeys(t for t in tokens if len(t) >= 3 and t not in _SUBJECT_STOPWORDS))
 def _term_forms(term):
-    value = str(term or "").casefold()
-    forms = {value}
+    value = str(term or "").casefold(); forms = {value}
     if value.endswith("ies") and len(value) > 4: forms.add(value[:-3] + "y")
     if value.endswith("ness") and len(value) > 5: forms.add(value[:-4])
     if value.endswith("ing") and len(value) > 5: forms.add(value[:-3])
@@ -76,71 +65,54 @@ def _term_forms(term):
     if value.endswith("s") and len(value) > 4: forms.add(value[:-1])
     return {f for f in forms if len(f) >= 3}
 def _subject_metrics(query, doc):
-    title = str(doc.get("title") or "").casefold()
-    text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
-    terms = _subject_terms(query)
+    title = str(doc.get("title") or "").casefold(); text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold(); terms = _subject_terms(query)
     if not title or not terms: return (0,0,0,0,0)
-    title_tokens = set(re.findall(r"[a-z0-9]+", title)); early = text[:2400]; early_tokens = set(re.findall(r"[a-z0-9]+", early)); full_tokens = set(re.findall(r"[a-z0-9]+", text))
-    title_hits = sum(bool(_term_forms(term) & title_tokens) for term in terms)
-    early_hits = sum(bool(_term_forms(term) & early_tokens) for term in terms)
-    full_hits = sum(bool(_term_forms(term) & full_tokens) for term in terms)
-    phrase_hits = sum(1 for index in range(len(terms)-1) if f"{terms[index]} {terms[index+1]}" in title or f"{terms[index]} {terms[index+1]}" in early)
-    return (min(8,title_hits), min(8,phrase_hits), min(12,early_hits), min(12,full_hits), int(1000*title_hits/max(1,len(terms))))
+    title_tokens=set(re.findall(r"[a-z0-9]+",title)); early=text[:2400]; early_tokens=set(re.findall(r"[a-z0-9]+",early)); full_tokens=set(re.findall(r"[a-z0-9]+",text))
+    title_hits=sum(bool(_term_forms(term)&title_tokens) for term in terms); early_hits=sum(bool(_term_forms(term)&early_tokens) for term in terms); full_hits=sum(bool(_term_forms(term)&full_tokens) for term in terms)
+    phrase_hits=sum(1 for index in range(len(terms)-1) if f"{terms[index]} {terms[index+1]}" in title or f"{terms[index]} {terms[index+1]}" in early)
+    return (min(8,title_hits),min(8,phrase_hits),min(12,early_hits),min(12,full_hits),int(1000*title_hits/max(1,len(terms))))
 
-_SUBJECT_FAMILIES = {
-    "anger": ("anger","angry","resentment","resentful","irritation","irritated","frustration","frustrated","rage","conflict"),
-    "loneliness": ("loneliness","lonely","isolation","isolated","disconnection","disconnected"),
-    "grief": ("grief","grieving","bereavement","mourning","loss","lost","death"),
-    "fear": ("fear","afraid","anxiety","anxious","worry","worried"),
-    "shame": ("shame","ashamed","guilt","guilty"),
-    "relationship": ("relationship","relationships","partner","partners","interpersonal","marriage","married","friendship","friends","communication","boundaries"),
-}
-_RELATIONAL_PATTERNS = (r"\bsomeone i care about\b",r"\bpeople i care about\b",r"\bperson i care about\b",r"\brelationship\b",r"\bpartner\b",r"\bloved one\b",r"\bfamily\b",r"\bfriend\b",r"\binterpersonal\b",r"\bwith someone\b",r"\bcare about\b")
+_SUBJECT_FAMILIES={"anger":("anger","angry","resentment","resentful","irritation","irritated","frustration","frustrated","rage","conflict"),"loneliness":("loneliness","lonely","isolation","isolated","disconnection","disconnected"),"grief":("grief","grieving","bereavement","mourning","loss","lost","death"),"fear":("fear","afraid","anxiety","anxious","worry","worried"),"shame":("shame","ashamed","guilt","guilty"),"relationship":("relationship","relationships","partner","partners","interpersonal","marriage","married","friendship","friends","communication","boundaries")}
+_RELATIONAL_PATTERNS=(r"\bsomeone i care about\b",r"\bpeople i care about\b",r"\bperson i care about\b",r"\brelationship\b",r"\bpartner\b",r"\bloved one\b",r"\bfamily\b",r"\bfriend\b",r"\binterpersonal\b",r"\bwith someone\b",r"\bcare about\b")
 def _query_frame(query):
-    q=_normalize_query(query)
-    families=tuple(family for family,terms in _SUBJECT_FAMILIES.items() if any(re.search(rf"\b{re.escape(term)}\b",q) for term in terms))
-    return {"families":families,"relational":any(re.search(pattern,q,re.I) for pattern in _RELATIONAL_PATTERNS)}
+    q=_normalize_query(query); families=tuple(family for family,terms in _SUBJECT_FAMILIES.items() if any(re.search(rf"\b{re.escape(term)}\b",q) for term in terms)); return {"families":families,"relational":any(re.search(pattern,q,re.I) for pattern in _RELATIONAL_PATTERNS)}
 def _role_evidence(doc):
     text=re.sub(r"\s+"," ",str(doc.get("text") or doc.get("content") or "").strip().casefold()); title=str(doc.get("title") or "").casefold(); corpus=title+" "+text
-    return {"worldview":bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden\w*|metaphysics|cosmic|oversoul|ascension|law of one|new earth)\b",corpus)),"risk":bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|acute crisis|crisis intervention|immediate danger)\b",corpus)),"abuse":bool(re.search(r"\b(?:abuse|abusive|coercive control|gaslighting)\b",corpus))}
+    return {"worldview":bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden\w*|metaphysics|metaphysical|cosmic|oversoul|ascension|law of one|new earth)\b",corpus)),"risk":bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|acute crisis|crisis intervention|immediate danger)\b",corpus)),"abuse":bool(re.search(r"\b(?:abuse|abusive|coercive control|gaslighting)\b",corpus))}
 _base._role_evidence=_role_evidence
 def _family_hit_count(text,family):
-    tokens=set(re.findall(r"[a-z0-9]+",str(text or "").casefold()))
-    return sum(bool(_term_forms(term)&tokens) for term in _SUBJECT_FAMILIES.get(family,()))
+    tokens=set(re.findall(r"[a-z0-9]+",str(text or "").casefold())); return sum(bool(_term_forms(term)&tokens) for term in _SUBJECT_FAMILIES.get(family,()))
 def _contextual_fit(query,doc):
     frame=_query_frame(query); title=str(doc.get("title") or "").casefold(); text=str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold(); early=text[:3000]
-    family_title=sum(_family_hit_count(title,f)>0 for f in frame["families"]); family_early=sum(_family_hit_count(early,f)>0 for f in frame["families"])
-    relational_title=_family_hit_count(title,"relationship"); relational_early=_family_hit_count(early,"relationship")
-    combined=(family_title>0 and relational_title>0) or (family_early>0 and relational_early>0)
+    family_title=sum(_family_hit_count(title,f)>0 for f in frame["families"]); family_early=sum(_family_hit_count(early,f)>0 for f in frame["families"]); relational_title=_family_hit_count(title,"relationship"); relational_early=_family_hit_count(early,"relationship"); combined=(family_title>0 and relational_title>0) or (family_early>0 and relational_early>0)
     return (family_title,family_early,int(combined),relational_title,relational_early)
 def _relevance_level(metrics, *, allow_full_content=False):
-    title_hits, phrase_hits, early_hits, full_hits, _ = metrics
+    title_hits,phrase_hits,early_hits,full_hits,_=metrics
     if title_hits>=1 or phrase_hits>=1 or (early_hits>=2 and full_hits>=2): return 2
     if allow_full_content and full_hits>=1: return 2
     if full_hits>=1: return 1
     return 0
-def _risk_mismatch(doc,profile):
-    return bool(not profile.get("risk") and _role_evidence(doc)["risk"])
+def _risk_mismatch(doc,profile): return bool(not profile.get("risk") and _role_evidence(doc)["risk"])
 
-def _canonical_primary_from_docs(canonical_docs, query, profile):
+def _canonical_primary_from_docs(canonical_docs,query,profile):
     frame=_query_frame(query); ranked=[]
     for index,doc in enumerate(canonical_docs or []):
         if not isinstance(doc,dict) or not str(doc.get("title") or "").strip() or not str(doc.get("url") or "").startswith("https://"): continue
         role=_role_evidence(doc)
         if role["risk"] and not profile.get("risk"): continue
+        if role["abuse"] and "abuse" not in _normalize_query(query): continue
         if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")): continue
         metrics=_subject_metrics(query,doc); context=_contextual_fit(query,doc); relevance=_relevance_level(metrics,allow_full_content=True)
         if relevance<2: continue
         evidence=_base._candidate_sentences(query,[doc]); claims=_base._extract_claims(evidence) if evidence else []; evidence_score=max((int(c.get("score",0)) for c in claims),default=0)
         mismatch=0
-        if role["abuse"] and "abuse" not in _normalize_query(query): mismatch-=25
         if frame["relational"] and not (context[2] or context[3] or context[4]): mismatch-=8
-        ranked.append((context[0],context[2],context[1],mismatch,metrics,evidence_score,-index,doc))
+        ranked.append((mismatch,context[0],context[2],context[1],metrics,evidence_score,-index,doc))
     if not ranked: return None
     ranked.sort(key=lambda item:item[:-1],reverse=True); selected=ranked[0][-1]
     return {"text":"","title":str(selected["title"]).strip(),"url":str(selected["url"]).strip(),"score":100000.0,"epistemic":"supported","canonical":True,"_authority":"visitor_canonical_relevance_adjudication"}
 
-def _select_adjacent(claims, query, primary_title, profile):
+def _select_adjacent(claims,query,primary_title,profile):
     ranked=[]
     for index,claim in enumerate(claims):
         if str(claim.get("title") or "").casefold()==str(primary_title or "").casefold() or _risk_mismatch(claim,profile): continue
@@ -149,8 +121,7 @@ def _select_adjacent(claims, query, primary_title, profile):
         ranked.append((metrics,float(claim.get("score",0) or 0),-index,claim))
     if not ranked: return None
     ranked.sort(key=lambda item:item[:-1],reverse=True); return ranked[0][-1]
-def _generic_recommendation_wisdom(profile):
-    return "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name."
+def _generic_recommendation_wisdom(profile): return "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name."
 def _recommendation_answer_with_authority(query,docs,profile,canonical_docs=None):
     if profile.get("ai_truth") or profile.get("grief"): return _base._recommendation_answer(query,docs,profile)
     claims=_base._extract_claims(_base._candidate_sentences(query,docs)); primary=_canonical_primary_from_docs(canonical_docs,query,profile)
@@ -197,8 +168,7 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     return "","core"
 _base._unified_visitor_construction=_unified_visitor_construction
 
-# Structural bridge: recommendation/navigation requests are not evidence-gap terminal states.
-_original_fetch_canonical_context = use_core.fetch_canonical_context
+_original_fetch_canonical_context=use_core.fetch_canonical_context
 def _recommendation_first_fetch(query_str):
     data=_original_fetch_canonical_context(query_str); profile=_base._inquiry_profile(query_str)
     if profile["action"] in {"recommendation","navigation"} and not profile["risk"] and isinstance(data,dict):
@@ -211,7 +181,6 @@ def _recommendation_first_fetch(query_str):
     return data
 use_core.fetch_canonical_context=_recommendation_first_fetch
 
-# Startup audit: reproduce the failure class and prove that specialized/risk decoys cannot outrank a directly relevant emotional resource.
 _probe_query="I keep finding myself angry at someone I care about, and I don’t know what to do with that anger. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile=_base._inquiry_profile(_probe_query)
 if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.38 invariant failed: anger action={_probe_profile['action']}")
