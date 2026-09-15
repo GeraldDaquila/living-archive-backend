@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v460 — factual evidence synthesis boundary
+# USE PRODUCTION VERSION: v461 — definition-first factual construction
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v460"
-DEPLOYMENT_FINGERPRINT = "USE-v460-factual-evidence-synthesis"
-CANONICAL_BUILD_ID = "USE-BUILD-v460-factual-evidence-synthesis"
+APP_VERSION = "v461"
+DEPLOYMENT_FINGERPRINT = "USE-v461-definition-first-factual"
+CANONICAL_BUILD_ID = "USE-BUILD-v461-definition-first-factual"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v460 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v461 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v460 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v461 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v460 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v461 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v460 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v461 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -108,8 +108,6 @@ def _role_evidence(doc: dict) -> dict:
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
         "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
         "grief": bool(re.search(r"\b(?:grief|grieving|loss|mourning|death|bereavement|dying|meaning after loss)\b", corpus)),
-        "continuity": bool(re.search(r"\b(?:continuity|connection|endure|afterlife|what may endure|what remains)\b", corpus)),
-        "existential_loneliness": bool(re.search(r"\b(?:loneliness|lonely|emptiness|isolation|isolated|alone|existential)\b", corpus)),
         "practical_reflection": bool(re.search(r"\b(?:reflection|reflective|journal|journaling|practice|practical|questions to consider|what matters|how to live|daily life|everyday)\b", corpus)),
     }
 
@@ -128,241 +126,21 @@ def _doc_identity(doc: dict) -> str:
     return str(doc.get("url") or doc.get("canonical_url") or "").strip()
 
 
-def _select_grief_primary(docs):
-    ranked = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url:
-            continue
-        e = _role_evidence(doc)
-        if _is_risk_related(doc):
-            continue
-        score = 120 * int(bool(re.search(r"\b(?:grief|loss|mourning|bereavement)\b", title.casefold()))) + 35 * int(e["grief"]) + 18 * int(e["meaning"]) + 12 * int(e["lived_experience"]) + 8 * int(e["grounded"])
-        if e["worldview"]:
-            score -= 4
-        ranked.append((score, index, doc))
-    ranked = [item for item in ranked if item[0] > 0]
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _select_loneliness_primary(docs, profile):
-    ranked = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url:
-            continue
-        e = _role_evidence(doc)
-        if _is_risk_related(doc) and not profile.get("risk"):
-            continue
-        score = 100 * int(e["title_loneliness"]) + 75 * int(e["direct_loneliness"]) + 22 * int(e["belonging_connection"]) + 18 * int(e["lived_experience"]) + 8 * int(e["meaning"]) + 5 * int(e["grounded"])
-        if e["worldview"]:
-            score -= 40
-        ranked.append((score, index, doc))
-    ranked = [item for item in ranked if item[0] > 0]
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _select_meaning_primary(docs):
-    candidates = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url:
-            continue
-        e = _role_evidence(doc)
-        explicit = int(bool(re.search(r"\b(?:meaning|purpose|worldview|belief|beliefs|spirituality|metaphysics|existential)\b", title.casefold())))
-        life_context = int(bool(re.search(r"\b(?:life|living|human|experience|questions|perspective)\b", f"{title} {doc.get('text') or ''}", re.I)))
-        reflective = int(e["meaning"])
-        grounded = int(e["grounded"])
-        lived = int(e["lived_experience"])
-        score = 45 * explicit + 18 * life_context + 12 * reflective + 8 * grounded + 8 * lived
-        if e["worldview"]:
-            score -= 12
-        if score > 0:
-            candidates.append((score, index, doc))
-    candidates.sort(key=lambda item: (-item[0], item[1]))
-    return candidates[0][2] if candidates else None
-
-
-def _select_transition_primary(docs):
-    candidates = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url:
-            continue
-        e = _role_evidence(doc)
-        score = 18 * int(e["threshold"]) + 8 * int(e["lived_experience"]) + 6 * int(e["meaning"]) + 4 * int(bool(re.search(r"\b(?:transition|threshold|liminal|crossroads|turning point|change|outgrown|letting go|starting over|reinvent)\b", f"{title} {doc.get('text') or ''}", re.I)))
-        if e["worldview"]:
-            score -= 8
-        if score > 0:
-            candidates.append((score, index, doc))
-    candidates.sort(key=lambda item: (-item[0], item[1]))
-    return candidates[0][2] if candidates else None
-
-
-def _transition_gateway_evidence(doc: dict) -> dict:
-    title = _normalize_title(doc.get("title") or "").casefold()
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
-    corpus = f"{title} {text}"
-    e = _role_evidence(doc)
-    dramatic = bool(re.search(r"\b(?:collapse|breakdown|dark night|ascension|awakening|trauma|crisis|catastrophe)\b", title))
-    generic = bool(re.search(r"\b(?:soul|spiritual|spirituality|cosmic|ascension|metaphysical|afterlife|universe)\b", title))
-    life_transition = bool(re.search(r"\b(?:life transition|transition|turning point|new chapter|chapter|change|changing|crossroads|threshold|letting go|starting over|reinvent|outgrown|old way|new way|what no longer fits|life stage|season of life)\b", corpus))
-    identity_agency = bool(re.search(r"\b(?:identity|self|values|choice|agency|autonomy|direction|purpose|what matters|meaning|how to live|decision|decide)\b", corpus))
-    return {"life_transition": life_transition,"identity_agency": identity_agency,"grounded": e["grounded"],"practical": e["practical_reflection"],"threshold": e["threshold"],"dramatic": dramatic,"generic_worldview": generic}
-
-
-def _select_transition_gateway_primary(docs):
-    ranked = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url or _is_risk_related(doc):
-            continue
-        e = _transition_gateway_evidence(doc)
-        score = 42 * int(e["life_transition"]) + 18 * int(e["identity_agency"]) + 12 * int(e["practical"]) + 8 * int(e["grounded"]) + 6 * int(e["threshold"]) - 14 * int(e["dramatic"]) - 8 * int(e["generic_worldview"])
-        if score > 0:
-            ranked.append((score, index, doc))
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _foundation_evidence(doc: dict) -> dict:
-    title = _normalize_title(doc.get("title") or "").casefold()
-    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
-    corpus = f"{title} {text}"
-    return {
-        "identity": bool(re.search(r"\b(?:living archive|archive|collection|body of work|essays|essay|writing|inquiry|orientation|sense-making|sense making|navigate|navigation)\b", corpus)),
-        "purpose": bool(re.search(r"\b(?:help people|help readers|make sense|understand|orientation|orient|meaning|complex questions|questions|wisdom|perspective|explore|pathway|pathways|framework|frameworks)\b", corpus)),
-        "broad": bool(re.search(r"\b(?:connected|network|multiple perspectives|different perspectives|disciplin|across|interdisciplinary|spiritual|scientific|philosophical|cultural|historical)\b", corpus)),
-        "visitor": bool(re.search(r"\b(?:begin|starting point|where to begin|find|reader|visitor|you can|explore|follow)\b", corpus)),
-        "worldview_heavy": bool(re.search(r"\b(?:higher-order intelligence|ascension|reincarnation|afterlife|cosmic curriculum|starseed)\b", title)),
-    }
-
-
-def _select_foundation_primary(docs):
-    ranked = []
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url or _is_risk_related(doc):
-            continue
-        e = _foundation_evidence(doc)
-        score = 42 * int(e["identity"]) + 28 * int(e["purpose"]) + 14 * int(e["broad"]) + 8 * int(e["visitor"])
-        if e["worldview_heavy"]:
-            score -= 25
-        if score > 0:
-            ranked.append((score,index,doc))
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1):
-    primary_key = _doc_identity(primary).casefold()
-    selector = getattr(use_core, "_select_complementary_generation_evidence", None)
-    candidates = []
-    if callable(selector):
-        try:
-            candidate = selector(docs, user_query, protected_documents=[])
-            if isinstance(candidate, dict):
-                candidate = list(candidate.values()) if all(isinstance(v, dict) for v in candidate.values()) else []
-            if isinstance(candidate, list):
-                candidates = [doc for doc in candidate if isinstance(doc, dict)]
-        except Exception:
-            candidates = []
-    ranked = []
-    for index, doc in enumerate(candidates):
-        if _is_risk_related(doc) or not _valid_doc_url(doc) or _doc_identity(doc).casefold() == primary_key:
-            continue
-        e = _role_evidence(doc)
-        if primary_role == "foundation":
-            if e["meaning"] and not e["worldview"]:
-                role_text, score = "another grounded or interpretive route into the Archive's questions", 12
-            elif e["grounded"] and not e["worldview"]:
-                role_text, score = "a grounded or research-oriented route into the broader questions the Archive explores", 11
-            elif e["practical_reflection"] and not e["worldview"]:
-                role_text, score = "a reflective route for staying with a question as you explore it", 10
-            else:
-                continue
-        elif primary_role == "transition":
-            if e["grounded"] and not e["worldview"]:
-                role_text, score = "a grounded or research-oriented route into change and adaptation", 18
-            elif e["practical_reflection"] and not e["worldview"]:
-                role_text, score = "staying with change through reflection and practice", 16
-            elif e["meaning"] and e["threshold"] and not e["worldview"]:
-                role_text, score = "meaning, perspective, and ways of understanding a changing life", 15
-            else:
-                continue
-        elif e["meaning"] and not e["worldview"]:
-            role_text, score = "meaning, perspective, and ways of understanding the experience", 12
-        elif e["grounded"] and not e["worldview"]:
-            role_text, score = "a grounded or research-oriented route into the question", 11
-        elif e["practical_reflection"] and not e["worldview"]:
-            role_text, score = "staying with the question through reflection and practice", 10
-        else:
-            continue
-        ranked.append((score,index,role_text,doc))
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return [{"doc": item[3], "role_text": item[2], "score": item[0]} for item in ranked[:limit]]
-
-
-def _foothold_text(primary_role: str) -> str:
-    return {
-        "grief": "For now, it may be enough to stay close to what you are actually feeling and choose one small act of care today—rest, a quiet walk, a conversation with someone you trust, or simply giving yourself permission not to make sense of everything yet.",
-        "transition": "For now, you might simply name what no longer fits and give yourself one small space today in which nothing has to be decided. A walk, a page of writing, or a conversation with someone you trust can be enough.",
-        "meaning": "For now, you might choose one thing that still feels quietly worth caring about and give it your attention today. You do not need a complete philosophy of life before taking one meaningful step.",
-        "loneliness": "For now, a gentle foothold might be one small movement toward connection—a message to someone you trust, sitting with someone, or simply naming what you wish another person could understand.",
-        "fear": "For now, you might not need to figure out exactly what you are afraid of. Notice one thing in the situation that feels most immediate, and give yourself permission to take it one small piece at a time.",
-        "anger": "For now, you might let yourself name what the anger is protecting or pointing toward—hurt, disappointment, violated expectations, or a sense that something important has been lost—without needing to act on it or resolve it today.",
-        "liminality": "For now, you might allow the uncertainty itself to be information. You do not have to decide yet whether this is grief, change, or being stuck; simply notice what feels most absent, most different, or most unfinished.",
-        "emptiness": "For now, you might notice one moment in the day when you feel most present and one when you feel most absent, without judging either one. You do not have to decide yet whether this is unhappiness, numbness, exhaustion, or something else.",
-    }.get(primary_role, "For now, one small, humane step is enough. You do not need to settle the larger question before taking it.")
-
-
-def _build_foundation_answer(user_query, primary=None, docs=None):
-    docs = docs or []
-    if primary:
-        title = _normalize_title(primary.get("title") or "")
-        url = _valid_doc_url(primary)
-        if title and url:
-            secondaries = _select_secondary_pathways(user_query, primary, docs, "foundation", limit=1)
-            parts = [
-                "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",
-                f"A useful place to begin is [{title}]({url}). It helps show how the Archive works as an orientation layer: offering different ways into a question so you can recognize what is established, what is interpretive, and what may simply hold personal meaning.",
-            ]
-            if secondaries:
-                item = secondaries[0]
-                sec_title = _normalize_title(item["doc"].get("title") or "")
-                sec_url = _valid_doc_url(item["doc"])
-                if sec_title and sec_url:
-                    parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-            parts.append("You do not need to understand the whole Archive before using it. Start with the question that brought you here, and follow the pathway that feels most relevant; the aim is to help you find your bearings, not to tell you what you must believe.")
-            return "\n\n".join(parts)
-    return ("The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer. "
-            "It is meant to help you find your bearings, explore different perspectives, and decide for yourself what is useful, established, interpretive, or personally meaningful. "
-            "You can begin with the question that brought you here and follow from there.")
-
-
 def _select_factual_primary(query: str, docs: list):
     ranked = []
+    q_terms = [t for t in re.findall(r"[a-z0-9]{3,}", query.casefold()) if t not in {"what","does","this","that","mean","about","tell","explain"}]
     for index, doc in enumerate(docs):
         title = _normalize_title(doc.get("title") or "")
         url = _valid_doc_url(doc)
         if not title or not url or _is_risk_related(doc):
             continue
-        q_terms = [t for t in re.findall(r"[a-z0-9]{3,}", query.casefold()) if t not in {"what","does","this","that","mean","about","tell","explain"}]
-        title_hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", title.casefold()))
         text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
+        title_hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", title.casefold()))
         text_hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", text))
         e = _role_evidence(doc)
-        score = 60 * title_hits + 12 * min(text_hits, 8) + 6 * int(e["grounded"] or e["meaning"] or e["practical_reflection"] or e["lived_experience"])
+        score = 70 * title_hits + 8 * min(text_hits, 8) + 5 * int(e["grounded"] or e["meaning"] or e["practical_reflection"] or e["lived_experience"])
         if e["worldview"] and title_hits == 0:
-            score -= 18
+            score -= 20
         if score > 0:
             ranked.append((score,index,doc))
     ranked.sort(key=lambda item: (-item[0], item[1]))
@@ -397,106 +175,139 @@ def _clean_evidence_text(text: str) -> str:
     return " ".join(kept)
 
 
+def _query_subject(query: str) -> str:
+    q = re.sub(r"\s+", " ", str(query or "").strip())
+    q = re.sub(r"^(?:what is|what's|define|explain|what does)\s+", "", q, flags=re.I)
+    return q.rstrip(" ?.!:")
+
+
+def _definition_strength(query: str, sentence: str, title: str) -> int:
+    subject = _query_subject(query).casefold()
+    low = sentence.casefold()
+    score = 0
+    if subject and re.search(rf"\b{re.escape(subject)}\b", title.casefold()):
+        score += 30
+    if subject and re.search(rf"\b{re.escape(subject)}\b", low):
+        score += 35
+    if re.search(r"\b(?:is|are|means|refers to|describes|defines|understood as|can be understood as|represents)\b", low):
+        score += 25
+    if re.search(r"\b(?:framework|concept|practice|idea|approach|pathway|collection|body of work)\b", low):
+        score += 12
+    if re.search(r"\b(?:spiritual|cosmic|awakening|metaphysical|universal|interconnected reality|co-creator|transcenden)\b", low):
+        if not re.search(r"\b(?:archive describes|the essay presents|the perspective is|a worldview|an interpretation|in this framing)\b", low):
+            score -= 18
+    return score
+
+
 def _build_factual_answer(query: str, primary: dict, docs: list):
     title = _normalize_title(primary.get("title") or "")
     url = _valid_doc_url(primary)
     raw = _clean_evidence_text(primary.get("text") or "")
     if not title or not url or not raw:
         return ""
-    q_terms = [t for t in re.findall(r"[a-z0-9]{3,}", query.casefold()) if t not in {"what","does","this","that","mean","about","tell","explain"}]
-    sentences = re.split(r"(?<=[.!?])\s+", raw)
-    scored = []
-    for index, sentence in enumerate(sentences):
-        low = sentence.casefold()
-        hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", low))
-        quality = hits * 20
-        if re.search(r"\b(?:framework|practice|method|concept|refers to|describes|explores|means|defined|understood)\b", low):
-            quality += 8
-        if re.search(r"\b(?:spiritual|cosmic|awakening|metaphysical|universal|interconnected reality|co-creator)\b", low) and not re.search(r"\b(?:according to|perspective|interpretation|worldview)\b", low):
-            quality -= 12
-        scored.append((quality, index, sentence.strip()))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    selected = [item[2] for item in scored if item[0] > 0][:3]
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", raw) if s.strip()]
+    definition = []
+    supporting = []
+    for idx, sentence in enumerate(sentences):
+        ds = _definition_strength(query, sentence, title)
+        if ds >= 40:
+            definition.append((ds, idx, sentence))
+        elif ds >= 20:
+            supporting.append((ds, idx, sentence))
+    definition.sort(key=lambda item: (-item[0], item[1]))
+    supporting.sort(key=lambda item: (-item[0], item[1]))
+    selected = []
+    if definition:
+        selected.append(definition[0][2])
+        for item in supporting:
+            if len(selected) >= 2:
+                break
+            if item[2] != selected[0]:
+                selected.append(item[2])
+    else:
+        for item in supporting[:2]:
+            selected.append(item[2])
     if not selected:
-        selected = [raw[:500].rstrip()]
-    explanation = " ".join(selected).strip()
-    parts = [f"The closest supported material I found is [{title}]({url}).", explanation]
-    secondaries = _select_secondary_pathways(query, primary, docs, "factual", limit=1)
-    if secondaries:
-        item = secondaries[0]
-        sec_title = _normalize_title(item["doc"].get("title") or "")
-        sec_url = _valid_doc_url(item["doc"])
-        if sec_title and sec_url:
-            parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
+        return f"The Archive has material on [{title}]({url}), but the retrieved evidence does not establish a clear definition of { _query_subject(query) or 'the concept' }. It is better to leave that boundary explicit than infer a definition from adjacent material."
+    subject = _query_subject(query)
+    first = selected[0]
+    prefix = f"The closest supported material I found is [{title}]({url})."
+    if subject and not re.search(rf"\b{re.escape(subject)}\b", first, re.I):
+        prefix += f" The retrieved material does not state a concise definition of {subject} in plain terms, so the explanation below stays close to what it actually supports."
+    parts = [prefix, " ".join(selected)]
+    e = _role_evidence(primary)
+    if e["worldview"]:
+        parts.append("Where the material moves into spiritual, cosmological, or metaphysical interpretation, that should be read as the perspective presented in the Archive rather than as established fact.")
     return "\n\n".join(parts)
 
 
-def _build_grief_answer(user_query, primary, docs):
-    title = _normalize_title(primary.get("title") or "")
-    url = _valid_doc_url(primary)
-    if not title or not url:
-        return ""
-    return "\n\n".join(["Grief after the death of someone you love can leave many questions open at once, and there is no need to force the experience into one meaning.", f"A possible place to begin is [{title}]({url}). It approaches loss through spiritual and scientific perspectives, including questions of meaning that can arise after someone dies. You can see whether that lens speaks to the grief you’re carrying.", _foothold_text("grief"), "There is no need to settle what the loss means all at once. One piece that feels right for today can be enough of a place to begin."])
+def _select_foundation_primary(docs):
+    ranked=[]
+    for index, doc in enumerate(docs):
+        title=_normalize_title(doc.get("title") or ""); url=_valid_doc_url(doc)
+        if not title or not url or _is_risk_related(doc): continue
+        corpus=(title+" "+str(doc.get("text") or "")).casefold()
+        score=42*int(bool(re.search(r"\b(?:living archive|archive|body of work|essays|orientation|navigation)\b",corpus)))+28*int(bool(re.search(r"\b(?:help|understand|questions|perspectives|pathways|frameworks)\b",corpus)))
+        ranked.append((score,index,doc))
+    ranked=[x for x in ranked if x[0]>0]; ranked.sort(key=lambda x:(-x[0],x[1]))
+    return ranked[0][2] if ranked else None
+
+
+def _build_foundation_answer(user_query, primary=None, docs=None):
+    docs=docs or []
+    if primary:
+        title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary)
+        if title and url:
+            return "\n\n".join(["The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.", f"A useful place to begin is [{title}]({url}). It can help you see how the Archive offers different ways into a question while preserving the distinction between what is established, what is interpretive, and what may hold personal meaning.", "You do not need to understand the whole Archive before using it. Begin with the question that brought you here and follow the route that feels most relevant."])
+    return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer. It is meant to help you find your bearings and explore different perspectives without telling you what you must believe."
 
 
 def _persistent_visitor_construction(query: str, docs: list, profile: dict, canonical_link_context: str = ""):
     if profile.get("risk"):
         return _build_risk_answer(query)
     if profile.get("foundation_open"):
-        foundation_docs = _parse_context_documents(canonical_link_context) or docs
-        primary = foundation_docs[0] if foundation_docs else _select_foundation_primary(docs)
-        answer = _build_foundation_answer(query, primary, foundation_docs)
-        if answer:
-            return answer
+        foundation_docs=_parse_context_documents(canonical_link_context) or docs
+        primary=foundation_docs[0] if foundation_docs else _select_foundation_primary(docs)
+        answer=_build_foundation_answer(query,primary,foundation_docs)
+        if answer: return answer
     if _factual_open(query, profile):
-        primary = _select_factual_primary(query, docs)
+        primary=_select_factual_primary(query,docs)
         if primary:
-            answer = _build_factual_answer(query, primary, docs)
-            if answer:
-                return answer
+            answer=_build_factual_answer(query,primary,docs)
+            if answer: return answer
     return None
 
 
 def _sanitize_visitor_output(text: str) -> str:
-    value = str(text or "")
-    value = re.sub(r"\bUSE\b", "The Guide", value)
-    return value
+    return re.sub(r"\bUSE\b", "The Guide", str(text or ""))
 
 
-def _v460_generate_boundary(*args, **kwargs):
-    user_query = _extract_user_query(args, kwargs)
-    raw_context = _context_blocks_from_kwargs(args, kwargs)
-    docs = _parse_context_documents(raw_context)
-    canonical_link_context = str(kwargs.get("canonical_link_context") or "")
-    if not canonical_link_context and len(args) >= 4 and isinstance(args[3], str):
-        canonical_link_context = args[3]
-    profile = _query_profile(user_query)
-    persistent = _persistent_visitor_construction(user_query, docs, profile, canonical_link_context)
-    if persistent:
-        return _sanitize_visitor_output(persistent)
-    return _sanitize_visitor_output(_original_generate_llm_response(*args, **kwargs))
+def _v461_generate_boundary(*args, **kwargs):
+    user_query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(raw_context)
+    canonical_link_context=str(kwargs.get("canonical_link_context") or "")
+    if not canonical_link_context and len(args)>=4 and isinstance(args[3],str): canonical_link_context=args[3]
+    profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
+    if persistent: return _sanitize_visitor_output(persistent)
+    return _sanitize_visitor_output(_original_generate_llm_response(*args,**kwargs))
 
 
-def _v460_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
-    docs = _parse_context_documents(canonical_link_context)
-    profile = _query_profile(user_query)
-    persistent = _persistent_visitor_construction(user_query, docs, profile, canonical_link_context)
-    if persistent:
-        return _sanitize_visitor_output(persistent)
-    return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context))
+def _v461_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+    docs=_parse_context_documents(canonical_link_context); profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
+    if persistent: return _sanitize_visitor_output(persistent)
+    return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V460_BOUNDARY_QUERY = "What is the Living Archive?"
-_V460_BOUNDARY_AUDIT = _v460_evidence_gap_boundary(_V460_BOUNDARY_QUERY, "")
-if "living archive" not in _V460_BOUNDARY_AUDIT.casefold() or "USE" in _V460_BOUNDARY_AUDIT:
-    raise RuntimeError("USE v460 visitor boundary audit failed.")
+_V461_BOUNDARY_QUERY="What is the Living Archive?"
+_V461_BOUNDARY_AUDIT=_v461_evidence_gap_boundary(_V461_BOUNDARY_QUERY,"")
+if "living archive" not in _V461_BOUNDARY_AUDIT.casefold() or "USE" in _V461_BOUNDARY_AUDIT:
+    raise RuntimeError("USE v461 visitor boundary audit failed.")
 
-app = use_core.app
-app.title = f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v460 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v460_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v460_evidence_gap_boundary
+app=use_core.app
+app.title=f"Find Your Way (The Guide) {APP_VERSION}"
+print(f"The Guide v461 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
+use_core.generate_llm_response=_v461_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v461_evidence_gap_boundary
