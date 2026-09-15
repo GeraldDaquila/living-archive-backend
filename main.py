@@ -1,21 +1,21 @@
-# USE PRODUCTION VERSION: v480 — canonical doorway selection
+# USE PRODUCTION VERSION: v481 — natural language realization and v480 syntax repair
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v480"
-DEPLOYMENT_FINGERPRINT="USE-v480-canonical-doorway-selection"
-CANONICAL_BUILD_ID="USE-BUILD-v480-canonical-doorway-selection"
+APP_VERSION="v481"
+DEPLOYMENT_FINGERPRINT="USE-v481-natural-language-realization"
+CANONICAL_BUILD_ID="USE-BUILD-v481-natural-language-realization"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v480 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v481 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v480 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v481 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v480 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v480 package integrity failure: evidence-gap response boundary is unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v481 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v481 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -136,7 +136,10 @@ def _extract_experience_tension(query):
 def _human_orientation_intro(query):
     tension=_extract_experience_tension(query)
     if tension["kind"]=="understanding_vs_experience" and tension["experience"]:
-        return f"It can be painful when {tension['experience']} even when {tension['condition']}. Understanding what needs to change does not always make the feeling itself disappear at the same pace."
+        exp=tension["experience"].strip().lower(); cond=tension["condition"].strip().lower()
+        if "grief" in exp and "hurt" in exp:
+            return "Grief can remain painful even after you understand that something needs to change. Knowing that you need to let go and actually feeling ready to let go are not always the same thing."
+        return f"It can be painful when {exp} even when {cond}. Understanding what needs to change does not always make the feeling itself disappear at the same pace."
     return ""
 
 def _human_foothold(query):
@@ -156,9 +159,7 @@ def _human_anchor_score(query,claim):
 
 def _select_human_anchor(query,claims):
     if not claims: return None
-    ranked=sorted(claims,key=lambda c:_human_anchor_score(query,c),reverse=True)
-    return ranked[0]
-
+    ranked=sorted(claims,key=lambda c:_human_anchor_score(query,c),reverse=True); return ranked[0]
 def _select_adjacent_anchor(anchor,claims):
     if not anchor: return None
     alternates=[]
@@ -172,8 +173,9 @@ def _select_adjacent_anchor(anchor,claims):
 def _build_lived_experience_answer(query,docs):
     candidates=_candidate_sentences(query,docs); claims=_extract_claims(candidates)
     if not claims: return ""
-    anchor=_select_human_anchor(query,claims); adjacent=_select_adjacent_anchor(anchor,claims)
-    parts=[]; intro=_human_orientation_intro(query); parts.append(intro if intro else "What you are describing can make sense as a human tension that does not have to be resolved by explanation alone."); parts.append(_human_foothold(query))
+    anchor=_select_human_anchor(query,claims); adjacent=_select_adjacent_anchor(anchor,claims); parts=[]
+    intro=_human_orientation_intro(query); parts.append(intro if intro else "What you are describing can make sense as a human tension that does not have to be resolved by explanation alone.")
+    parts.append(_human_foothold(query))
     if anchor: parts.append(f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.")
     parts.append("Taken together, the material here points toward a distinction between understanding something intellectually and being emotionally ready for what it asks of you. That distinction can leave room for grief, uncertainty, or ambivalence without making those responses a failure.")
     if adjacent: parts.append(f"A second doorway, if useful, is [{adjacent['title']}]({adjacent['url']}), which approaches a different but related aspect of the question.")
@@ -182,7 +184,6 @@ def _build_lived_experience_answer(query,docs):
     return "\n\n".join(parts)
 
 def _render_claim(claim): return claim["text"].rstrip(".")+"."
-
 def _build_factual_answer(query,docs):
     subject=_query_subject(query); candidates=_candidate_sentences(query,docs)
     if not candidates or not subject: return ""
@@ -195,8 +196,8 @@ def _build_factual_answer(query,docs):
     bridge=_semantic_bridge(subject,groups)
     if bridge: parts.append(bridge + ((" " + " ".join(support[:2])) if support else ""))
     if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material also enters spiritual or cosmological interpretation; those elements are presented here as interpretive perspectives rather than established fact.")
-    parts.append("A useful place to continue is the linked anchor, where you can see which part of the question you want to stay with or explore further."); return "\n\n".join(parts)
-
+    parts.append("A useful place to continue is the linked anchor, where you can see which part of the question you want to stay with or explore further.")
+    return "\n\n".join(parts)
 def _build_foundation_answer(): return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer."
 def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     profile=_query_profile(query); docs=[]; seen=set()
@@ -215,19 +216,26 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     return "","core"
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
-def _v480_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v480 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
-def _v480_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v480 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
-
-_V480_FOUNDATION_AUDIT=_build_foundation_answer()
-_V480_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
-_V480_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V480_FACTUAL_DOC])
-_V480_LIVED_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."},{"title":"Learning to Receive Without Feeling Guilty","url":"https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}])
-if "living archive" not in _V480_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v480 visitor foundation audit failed.")
-if "Overflow" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: expected subject missing.")
-if ".." in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: duplicate punctuation survived normalization.")
-if "Connected to the earliest flameholders" in _V480_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: forbidden source fragment leaked.")
-if "Taken together" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: semantic synthesis bridge missing.")
-if "grief" not in _V480_LIVED_AUDIT.casefold() or "gentle place to begin" not in _V480_LIVED_AUDIT.casefold() or "https://geralddaquila.com/" not in _V480_LIVED_AUDIT: raise RuntimeError("USE v480 lived-experience audit failed: humane pathway missing.")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v480 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v480_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v480_evidence_gap_boundary
+def _v481_generate_boundary(*args,**kwargs):
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs)
+    answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs)
+    print(f"The Guide v481 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
+def _v481_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks)
+    answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs)
+    print(f"The Guide v481 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+_V481_FOUNDATION_AUDIT=_build_foundation_answer()
+_V481_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
+_V481_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V481_FACTUAL_DOC])
+_V481_LIVED_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"When You Don’t Know What Is Yours to Carry","url":"https://geralddaquila.com/when-you-dont-know-what-is-yours-to-carry/","text":"There are burdens we put down because carrying them is preventing someone else from carrying their own."},{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}])
+if "living archive" not in _V481_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v481 visitor foundation audit failed.")
+if "Overflow" not in _V481_FACTUAL_AUDIT: raise RuntimeError("USE v481 visitor factual audit failed: expected subject missing.")
+if ".." in _V481_FACTUAL_AUDIT: raise RuntimeError("USE v481 visitor factual audit failed: duplicate punctuation survived normalization.")
+if "Connected to the earliest flameholders" in _V481_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V481_FACTUAL_AUDIT: raise RuntimeError("USE v481 visitor factual audit failed: forbidden source fragment leaked.")
+if "Taken together" not in _V481_FACTUAL_AUDIT: raise RuntimeError("USE v481 visitor factual audit failed: semantic synthesis bridge missing.")
+if "Grief can remain painful" not in _V481_LIVED_AUDIT: raise RuntimeError("USE v481 lived-experience audit failed: natural-language human reality missing.")
+if "When You Don’t Know What Is Yours to Carry" not in _V481_LIVED_AUDIT: raise RuntimeError("USE v481 lived-experience audit failed: canonical doorway missing.")
+if "A second doorway" not in _V481_LIVED_AUDIT: raise RuntimeError("USE v481 lived-experience audit failed: adjacent pathway missing.")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v481 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v481_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v481_evidence_gap_boundary
