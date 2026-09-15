@@ -1,21 +1,21 @@
-# USE PRODUCTION VERSION: v475 — complete evidence-to-visitor sentence normalization
+# USE PRODUCTION VERSION: v476 — v475 audit contradiction repair
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v475"
-DEPLOYMENT_FINGERPRINT="USE-v475-complete-evidence-to-visitor-sentence-normalization"
-CANONICAL_BUILD_ID="USE-BUILD-v475-complete-evidence-to-visitor-sentence-normalization"
+APP_VERSION="v476"
+DEPLOYMENT_FINGERPRINT="USE-v476-v475-audit-contradiction-repair"
+CANONICAL_BUILD_ID="USE-BUILD-v476-v475-audit-contradiction-repair"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v475 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v476 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v475 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v476 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v475 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v475 package integrity failure: evidence-gap response boundary is unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v476 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v476 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -114,10 +114,16 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     return "","core"
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
-def _v475_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v475 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
-def _v475_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v475 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
-_V475_FOUNDATION_AUDIT=_build_foundation_answer(); _V475_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}; _V475_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V475_FACTUAL_DOC])
-if "living archive" not in _V475_FOUNDATION_AUDIT.casefold() or "Overflow" not in _V475_FACTUAL_AUDIT or ".." in _V475_FACTUAL_AUDIT or "Connected to the earliest flameholders" in _V475_FACTUAL_AUDIT or "Stewardship of Overflow means discerning when, where, and how to pour" not in _V475_FACTUAL_AUDIT: raise RuntimeError("USE v475 visitor sentence-boundary audit failed.")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v475 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v475_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v475_evidence_gap_boundary
+def _v476_generate_boundary(*args,**kwargs):
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v476 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
+def _v476_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v476 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+_V476_FOUNDATION_AUDIT=_build_foundation_answer()
+_V476_FACTUAL_DOC={"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
+_V476_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V476_FACTUAL_DOC])
+if "living archive" not in _V476_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v476 visitor foundation audit failed.")
+if "Overflow" not in _V476_FACTUAL_AUDIT: raise RuntimeError("USE v476 visitor factual audit failed: expected subject missing.")
+if ".." in _V476_FACTUAL_AUDIT: raise RuntimeError("USE v476 visitor factual audit failed: duplicate punctuation survived normalization.")
+if "Connected to the earliest flameholders" in _V476_FACTUAL_AUDIT: raise RuntimeError("USE v476 visitor factual audit failed: forbidden source-fragment survived normalization.")
+if "Stewardship of Overflow means discerning when, where, and how to pour" not in _V476_FACTUAL_AUDIT: raise RuntimeError("USE v476 visitor factual audit failed: expected stewardship concept missing.")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v476 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v476_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v476_evidence_gap_boundary
