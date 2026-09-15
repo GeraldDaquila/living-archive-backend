@@ -127,11 +127,7 @@ def _plain_language_concept(subject,claims):
     return ""
 
 def _extract_experience_tension(query):
-    q=str(query or "").strip()
-    patterns=[
-        (r"(?i)^(?:why\s+does|why\s+do)\s+(.+?)\s+even\s+when\s+(.+?)[?.!]*$", "understanding_vs_experience"),
-        (r"(?i)^(?:how\s+can|how\s+do)\s+(.+?)\s+when\s+(.+?)[?.!]*$", "experience_vs_expectation"),
-    ]
+    q=str(query or "").strip(); patterns=[(r"(?i)^(?:why\s+does|why\s+do)\s+(.+?)\s+even\s+when\s+(.+?)[?.!]*$","understanding_vs_experience"),(r"(?i)^(?:how\s+can|how\s+do)\s+(.+?)\s+when\s+(.+?)[?.!]*$","experience_vs_expectation")]
     for pattern,kind in patterns:
         m=re.match(pattern,q)
         if m: return {"kind":kind,"experience":m.group(1).strip(),"condition":m.group(2).strip()}
@@ -140,52 +136,49 @@ def _extract_experience_tension(query):
 def _human_orientation_intro(query):
     tension=_extract_experience_tension(query)
     if tension["kind"]=="understanding_vs_experience" and tension["experience"]:
-        exp=tension["experience"]
-        cond=tension["condition"]
-        return f"It can be painful when {exp} even when {cond}. Understanding what needs to change does not always make the feeling itself disappear at the same pace."
+        return f"It can be painful when {tension['experience']} even when {tension['condition']}. Understanding what needs to change does not always make the feeling itself disappear at the same pace."
     return ""
 
 def _human_foothold(query):
     tension=_extract_experience_tension(query)
-    if tension["kind"]=="understanding_vs_experience":
-        return "A gentle place to begin is to let the feeling be present without treating its persistence as proof that you are failing to move forward."
-    if tension["kind"]=="experience_vs_expectation":
-        return "A gentle place to begin is to make room for what you are actually experiencing before deciding what it ought to mean."
+    if tension["kind"]=="understanding_vs_experience": return "A gentle place to begin is to let the feeling be present without treating its persistence as proof that you are failing to move forward."
+    if tension["kind"]=="experience_vs_expectation": return "A gentle place to begin is to make room for what you are actually experiencing before deciding what it ought to mean."
     return "A gentle place to begin is to stay with the part of the question that feels most alive, rather than forcing it into a conclusion too quickly."
 
-def _doorway_score(query,profile,claim):
-    lowq=query.casefold(); text=claim["text"].casefold(); title=claim["title"].casefold(); score=float(claim.get("score",0))
-    if profile["shape"]=="lived_experience":
-        if re.search(r"\b(?:grief|loss|mourning|letting go|release|goodbye|bereavement|heartbreak|pain|growth|relationship|forgiv|receiv|giv)\b",text): score+=45
-        if re.search(r"\b(?:grief|loss|mourning|letting go|release|goodbye|bereavement|heartbreak)\b",title): score+=35
-        if re.search(r"\b(?:mind|feeling|emotion|growth|relationship|giving|receiving|self|guilt|abandoning)\b",text): score+=15
-        if re.search(r"\b(?:how to|steps|exercise|do this|try this|you should|you need to)\b",text): score-=25
-        if re.search(r"\b(?:spiritual|cosmic|metaphysical|oversoul|afterlife)\b",text) and not re.search(r"\b(?:meaning|possibility|interpret)\b",lowq): score-=10
-    if profile["shape"]=="conceptual":
-        if re.search(rf"\b{re.escape(_query_subject(query).casefold())}\b",text): score+=40
-        if re.search(rf"\b{re.escape(_query_subject(query).casefold())}\b",title): score+=25
+def _human_anchor_score(query,claim):
+    q=str(query or "").casefold(); text=claim["text"].casefold(); title=claim["title"].casefold(); score=0
+    q_terms=set(re.findall(r"[a-z]{4,}",q)); text_terms=set(re.findall(r"[a-z]{4,}",text)); title_terms=set(re.findall(r"[a-z]{4,}",title))
+    score += 18*len(q_terms & text_terms); score += 10*len(q_terms & title_terms); score += min(int(claim.get("score",0)),35)
+    for term,weight in (("grief",26),("loss",22),("letting go",22),("relationship",18),("forgiveness",16),("growth",10),("receiving",8),("giving",8),("fear",10),("anger",10),("pain",10)):
+        if term in q and term in (text+" "+title): score += weight
+    if claim.get("epistemic")=="interpretive": score -= 4
     return score
 
-def _select_human_doorways(query,profile,claims):
-    if not claims: return []
-    ranked=sorted(claims,key=lambda c:_doorway_score(query,profile,c),reverse=True)
-    return ranked[:2]
+def _select_human_anchor(query,claims):
+    if not claims: return None
+    ranked=sorted(claims,key=lambda c:_human_anchor_score(query,c),reverse=True)
+    return ranked[0]
+
+def _select_adjacent_anchor(anchor,claims):
+    if not anchor: return None
+    alternates=[]
+    for c in claims:
+        if c["url"]==anchor["url"]: continue
+        score=_human_anchor_score(anchor["title"]+" "+anchor["text"],c)
+        if score<28: continue
+        alternates.append((score,c))
+    alternates.sort(key=lambda x:-x[0]); return alternates[0][1] if alternates else None
 
 def _build_lived_experience_answer(query,docs):
     candidates=_candidate_sentences(query,docs); claims=_extract_claims(candidates)
     if not claims: return ""
-    doorways=_select_human_doorways(query,_query_profile(query),claims); anchor=doorways[0] if doorways else None; adjacent=doorways[1] if len(doorways)>1 else None
-    parts=[]
-    intro=_human_orientation_intro(query)
-    parts.append(intro if intro else "What you are describing can make sense as a human tension that does not have to be resolved by explanation alone.")
-    parts.append(_human_foothold(query))
-    if anchor:
-        parts.append(f"A possible place to enter the Archive is [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one lens on the question, not a claim that it completely explains your experience.")
-    bridge="Taken together, the material here points toward a distinction between understanding something intellectually and being emotionally ready for what it asks of you. That distinction can leave room for grief, uncertainty, or ambivalence without making those responses a failure."
-    parts.append(bridge)
-    if adjacent and adjacent["url"]!=anchor["url"]:
-        parts.append(f"Another doorway, if a different part of the question feels more relevant, is [{adjacent['title']}]({adjacent['url']}).")
-    parts.append("You can stay with whichever doorway feels most relevant, rather than treating either as a complete answer to your experience.")
+    anchor=_select_human_anchor(query,claims); adjacent=_select_adjacent_anchor(anchor,claims)
+    parts=[]; intro=_human_orientation_intro(query); parts.append(intro if intro else "What you are describing can make sense as a human tension that does not have to be resolved by explanation alone."); parts.append(_human_foothold(query))
+    if anchor: parts.append(f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.")
+    parts.append("Taken together, the material here points toward a distinction between understanding something intellectually and being emotionally ready for what it asks of you. That distinction can leave room for grief, uncertainty, or ambivalence without making those responses a failure.")
+    if adjacent: parts.append(f"A second doorway, if useful, is [{adjacent['title']}]({adjacent['url']}), which approaches a different but related aspect of the question.")
+    if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material also enters spiritual or cosmological interpretation; those elements are presented as interpretive perspectives rather than established fact.")
+    parts.append("You can stay with the first lens, follow the adjacent doorway, or return with another part of the question that feels more relevant.")
     return "\n\n".join(parts)
 
 def _render_claim(claim): return claim["text"].rstrip(".")+"."
@@ -195,19 +188,16 @@ def _build_factual_answer(query,docs):
     if not candidates or not subject: return ""
     claims=_extract_claims(candidates); groups=_related_claims(claims)
     if not claims: return ""
-    primary=claims[0]; parts=[f"The closest supported material I found is [{primary['title']}]({primary['url']}).",_plain_language_concept(subject,claims)]
-    support=[]
+    primary=claims[0]; parts=[f"The closest supported material I found is [{primary['title']}]({primary['url']}).",_plain_language_concept(subject,claims)]; support=[]
     for claim in claims:
         text=_render_claim(claim)
         if text not in support and len(support)<3 and text.casefold()!=parts[1].casefold(): support.append(text)
     bridge=_semantic_bridge(subject,groups)
     if bridge: parts.append(bridge + ((" " + " ".join(support[:2])) if support else ""))
     if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material also enters spiritual or cosmological interpretation; those elements are presented here as interpretive perspectives rather than established fact.")
-    parts.append("A useful place to continue is the linked anchor, where you can see which part of the question you want to stay with or explore further.")
-    return "\n\n".join(parts)
+    parts.append("A useful place to continue is the linked anchor, where you can see which part of the question you want to stay with or explore further."); return "\n\n".join(parts)
 
 def _build_foundation_answer(): return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer."
-
 def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     profile=_query_profile(query); docs=[]; seen=set()
     for doc in list(canonical_docs or [])+list(retrieved_docs or []):
@@ -223,11 +213,10 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
         answer=_build_factual_answer(query,docs)
         if answer: return answer,"conceptual"
     return "","core"
-
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v480_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v480 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs)
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v480 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
 def _v480_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
     canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v480 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
@@ -237,6 +226,8 @@ _V480_FACTUAL_AUDIT=_build_factual_answer("What is Overflow?",[_V480_FACTUAL_DOC
 _V480_LIVED_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."},{"title":"Learning to Receive Without Feeling Guilty","url":"https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}])
 if "living archive" not in _V480_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v480 visitor foundation audit failed.")
 if "Overflow" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: expected subject missing.")
-if ".." in _V480_FACTUAL_AUDIT or "Connected to the earliest flameholders" in _V480_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V480_FACTUAL_AUDIT or "Taken together" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 factual calibration failed.")
-if "grief" not in _V480_LIVED_AUDIT.casefold() or "possible place to enter" not in _V480_LIVED_AUDIT.casefold() or "You can stay with" not in _V480_LIVED_AUDIT: raise RuntimeError("USE v480 lived doorway calibration failed.")
+if ".." in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: duplicate punctuation survived normalization.")
+if "Connected to the earliest flameholders" in _V480_FACTUAL_AUDIT or "sustaining Overflow resonance" in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: forbidden source fragment leaked.")
+if "Taken together" not in _V480_FACTUAL_AUDIT: raise RuntimeError("USE v480 visitor factual audit failed: semantic synthesis bridge missing.")
+if "grief" not in _V480_LIVED_AUDIT.casefold() or "gentle place to begin" not in _V480_LIVED_AUDIT.casefold() or "https://geralddaquila.com/" not in _V480_LIVED_AUDIT: raise RuntimeError("USE v480 lived-experience audit failed: humane pathway missing.")
 app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v480 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v480_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v480_evidence_gap_boundary
