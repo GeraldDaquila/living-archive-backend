@@ -139,6 +139,14 @@ def _plain_language_concept(subject, candidates):
         return ""
     return "Taken together, the Archive's material presents " + subject + " as a concept explored through several related perspectives."
 
+def _semantic_normalize_sentence(sentence):
+    value = re.sub(r"\s+", " ", str(sentence or "").strip())
+    value = re.sub(r"\b(?:Connected to|Connected with)\s+the earliest flameholders\b[^.]*\.?", "", value, flags=re.I)
+    value = re.sub(r"\b(?:The Archive develops that idea through themes such as|themes such as)\s*$", "", value, flags=re.I)
+    value = re.sub(r"\s+([,.;:])", r"\1", value)
+    value = re.sub(r"\.{2,}", ".", value)
+    return value.strip()
+
 def _build_factual_answer(query, docs):
     subject = _query_subject(query)
     candidates = _concept_sentences(query, docs)
@@ -149,8 +157,9 @@ def _build_factual_answer(query, docs):
     parts = [f"The closest supported material I found is [{title}]({url}).", _plain_language_concept(subject, candidates)]
     supporting = []
     for _, sentence, _, _ in candidates:
-        if sentence not in supporting and len(supporting) < 2:
-            supporting.append(sentence.rstrip("."))
+        normalized = _semantic_normalize_sentence(sentence).rstrip(".")
+        if normalized and normalized not in supporting and len(supporting) < 2:
+            supporting.append(normalized)
     if supporting:
         cleaned = " ".join(supporting)
         cleaned = cleaned[0].upper() + cleaned[1:] + "."
@@ -187,31 +196,31 @@ def _boundary_context(args, kwargs):
     canonical = str(kwargs.get("canonical_link_context") or (args[3] if len(args) >= 4 and isinstance(args[3], str) else ""))
     return query, _parse_context_documents(raw_context), _parse_context_documents(canonical)
 
-def _v472_generate_boundary(*args, **kwargs):
+def _v473_generate_boundary(*args, **kwargs):
     query, retrieved_docs, canonical_docs = _boundary_context(args, kwargs)
     answer, mode = _unified_visitor_construction(query, retrieved_docs, canonical_docs)
-    print(f"The Guide v472 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v473 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args, **kwargs))
 
-def _v472_evidence_gap_boundary(user_query, canonical_link_context="", retrieved_context_blocks=""):
+def _v473_evidence_gap_boundary(user_query, canonical_link_context="", retrieved_context_blocks=""):
     canonical_docs = _parse_context_documents(canonical_link_context)
     retrieved_docs = _parse_context_documents(retrieved_context_blocks)
     answer, mode = _unified_visitor_construction(user_query, retrieved_docs, canonical_docs)
-    print(f"The Guide v472 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v473 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context))
 
-_V472_FOUNDATION_AUDIT = _build_foundation_answer()
-_V472_FACTUAL_AUDIT = _build_factual_answer("What is Overflow?", [{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship."}])
-if "living archive" not in _V472_FOUNDATION_AUDIT.casefold() or "Overflow" not in _V472_FACTUAL_AUDIT or ".." in _V472_FACTUAL_AUDIT:
-    raise RuntimeError("USE v472 visitor translation audit failed.")
+_V473_FOUNDATION_AUDIT = _build_foundation_answer()
+_V473_FACTUAL_AUDIT = _build_factual_answer("What is Overflow?", [{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}])
+if "living archive" not in _V473_FOUNDATION_AUDIT.casefold() or "Overflow" not in _V473_FACTUAL_AUDIT or ".." in _V473_FACTUAL_AUDIT:
+    raise RuntimeError("USE v473 visitor translation audit failed.")
 
 app = use_core.app
-app.title = f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v472 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
-use_core.APP_VERSION = APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+app.title = "Find Your Way (The Guide) v473"
+print(f"The Guide v473 BUILD IDENTITY: build_id=USE-BUILD-v473-semantic-normalization, version=v473, fingerprint=USE-v473-semantic-normalization, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION = "v473"
+use_core.DEPLOYMENT_FINGERPRINT = "USE-v473-semantic-normalization"
+use_core.CANONICAL_BUILD_ID = "USE-BUILD-v473-semantic-normalization"
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v472_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v472_evidence_gap_boundary
+use_core.generate_llm_response = _v473_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v473_evidence_gap_boundary
