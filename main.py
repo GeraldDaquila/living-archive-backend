@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.38 — recommendation-first evidence-gap bridge
+# USE PRODUCTION VERSION: v487.39 — authoritative canonical doorway boundary
 import hashlib
 import importlib
 import re
@@ -7,14 +7,14 @@ from pathlib import Path
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
-APP_VERSION = "v487.38"
-DEPLOYMENT_FINGERPRINT = "USE-v487.38-recommendation-first-evidence-gap-bridge"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.38-recommendation-first-evidence-gap-bridge"
+APP_VERSION = "v487.39"
+DEPLOYMENT_FINGERPRINT = "USE-v487.39-authoritative-canonical-doorway-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.39-authoritative-canonical-doorway-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError("USE v487.38 package integrity failure: protected core mismatch.")
+    raise RuntimeError("USE v487.39 package integrity failure: protected core mismatch.")
 
 def _normalize_query(text):
     return re.sub(r"\s+", " ", str(text or "").strip().casefold().replace("’", "'").replace("‘", "'").replace("`", "'").replace("–", "-").replace("—", "-"))
@@ -169,22 +169,55 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     return "","core"
 _base._unified_visitor_construction=_unified_visitor_construction
 
-_original_fetch_canonical_context=use_core.fetch_canonical_context
+_original_fetch_canonical_context = use_core.fetch_canonical_context
+
+def _serialize_context_documents(docs):
+    blocks=[]
+    for doc in docs or []:
+        title=str(doc.get("title") or "").strip()
+        url=str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        text=str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").strip()
+        if not title or not re.match(r"^https://\S+$",url,re.I) or not text: continue
+        blocks.append(f"Title: {title}\nURL: {url}\nContent: {text}")
+    return "\n\n---\n\n".join(blocks)
+
+def _authoritative_recommendation_docs(query,docs,profile):
+    primary=_canonical_primary_from_docs(docs,query,profile)
+    if not primary: return []
+    target=primary["title"].casefold()
+    for doc in docs or []:
+        if str(doc.get("title") or "").strip().casefold()==target: return [doc]
+    return []
+
 def _recommendation_first_fetch(query_str):
-    data=_original_fetch_canonical_context(query_str); profile=_base._inquiry_profile(query_str)
-    if profile["action"] in {"recommendation","navigation"} and not profile["risk"] and isinstance(data,dict):
+    data=_original_fetch_canonical_context(query_str)
+    profile=_base._inquiry_profile(query_str)
+    if profile["action"] in {"recommendation","navigation"} and not profile["risk"] and not profile.get("grief") and not profile.get("ai_truth") and isinstance(data,dict):
         canonical_context=str(data.get("canonical_link_context") or "")
-        if canonical_context and (data.get("frame_neutral_evidence_unavailable") or data.get("question_structure_evidence_unavailable") or data.get("evidence_sufficiency_unavailable") or data.get("question_evidence_fit_unavailable")):
+        if canonical_context:
             docs=_parse_context_documents(canonical_context)
-            if docs:
-                data=dict(data); data["context_blocks"]=canonical_context; data["evidence_sufficiency_unavailable"]=False; data["question_structure_evidence_unavailable"]=False; data["question_evidence_fit_unavailable"]=False; data["frame_neutral_evidence_unavailable"]=False; data["recommendation_first_evidence_bridge"]=True
-                print(f"The Guide v487.38 recommendation-first evidence bridge: docs={len(docs)}, query={_normalize_query(query_str)[:120]}")
+            authoritative=_authoritative_recommendation_docs(query_str,docs,profile)
+            if authoritative:
+                narrowed_context=_serialize_context_documents(authoritative)
+                data=dict(data)
+                data["canonical_link_context"]=narrowed_context
+                data["context_blocks"]=narrowed_context
+                data["recommendation_first_evidence_bridge"]=True
+                data["recommendation_canonical_boundary"]=True
+                data["recommendation_canonical_count"]=1
+                data["evidence_sufficiency_unavailable"]=False
+                data["question_structure_evidence_unavailable"]=False
+                data["question_evidence_fit_unavailable"]=False
+                data["frame_neutral_evidence_unavailable"]=False
+                print(f"The Guide v487.39 authoritative canonical doorway boundary: selected={authoritative[0]['title']}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
+            elif any(data.get(k) for k in ("frame_neutral_evidence_unavailable","question_structure_evidence_unavailable","evidence_sufficiency_unavailable","question_evidence_fit_unavailable")):
+                data=dict(data); data["context_blocks"]=canonical_context; data["recommendation_first_evidence_bridge"]=True
     return data
 use_core.fetch_canonical_context=_recommendation_first_fetch
 
 _probe_query="I keep finding myself angry at someone I care about, and I don’t know what to do with that anger. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile=_base._inquiry_profile(_probe_query)
-if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.38 invariant failed: anger action={_probe_profile['action']}")
+if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.39 invariant failed: anger action={_probe_profile['action']}")
 _probe_docs=[
     {"title":"Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society","url":"https://geralddaquila.com/suicide","text":"A discussion of suicide, despair, anger, and the soul."},
     {"title":"Unraveling Abuse: The Harm We Inherit, The Healing We Choose","url":"https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/","text":"Abuse in relationships involves power, control, trauma, conflict, projection, and anger. The material examines cycles of harm and healing."},
@@ -193,14 +226,18 @@ _probe_docs=[
 ]
 _probe_answer,_probe_mode=_unified_visitor_construction(_probe_query,_probe_docs,_probe_docs)
 if _probe_mode!="recommendation" or not _probe_answer.startswith("A useful place to begin with this question is [Emotional Hijacking"):
-    raise RuntimeError(f"USE v487.38 invariant failed: direct anger doorway={_probe_answer}")
+    raise RuntimeError(f"USE v487.39 invariant failed: direct anger doorway={_probe_answer}")
 if "Suicide and the Journey of the Soul" in _probe_answer or "The Divine Feminine" in _probe_answer or "Unraveling Abuse" in _probe_answer:
-    raise RuntimeError("USE v487.38 invariant failed: mismatched doorway survived subject/risk/worldview gate")
+    raise RuntimeError("USE v487.39 invariant failed: mismatched doorway survived subject/risk/worldview gate")
 _probe_gap={"evidence_sufficiency_unavailable":True,"canonical_link_context":"Title: Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism\nURL: https://geralddaquila.com/2025/06/09/emotional-hijacking-and-the-search-for-meaning-reconnecting-with-our-true-needs-beyond-materialism/\nContent: Emotional hijacking includes intense emotional responses such as fear or anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
 _bridge_docs=_parse_context_documents(_probe_gap["canonical_link_context"])
-if not _bridge_docs or not _recommendation_first_fetch: raise RuntimeError("USE v487.38 invariant failed: evidence bridge unavailable")
+if not _bridge_docs or not _recommendation_first_fetch: raise RuntimeError("USE v487.39 invariant failed: evidence bridge unavailable")
+_probe_primary=_canonical_primary_from_docs(_probe_docs,_probe_query,_probe_profile)
+if not _probe_primary or _probe_primary["title"]!="Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism": raise RuntimeError(f"USE v487.39 invariant failed: authoritative anger primary={_probe_primary}")
+_probe_authoritative=_authoritative_recommendation_docs(_probe_query,_probe_docs,_probe_profile)
+if len(_probe_authoritative)!=1 or _probe_authoritative[0]["title"]!=_probe_primary["title"]: raise RuntimeError("USE v487.39 invariant failed: canonical doorway narrowing is not authoritative")
 for _query,_label in (("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?","AI"),(_probe_query,"anger"),("I’m struggling with loneliness. Is there anything in the Living Archive that might help me think about it?","loneliness"),("I’m struggling with grief after losing someone I love, and I keep wondering whether I should let go or hold on. Where should I begin in the Living Archive?","grief")):
-    if _base._inquiry_profile(_query)["action"]!="recommendation": raise RuntimeError(f"USE v487.38 invariant failed: {_label} movement task")
+    if _base._inquiry_profile(_query)["action"]!="recommendation": raise RuntimeError(f"USE v487.39 invariant failed: {_label} movement task")
 
 app=_base.app
 app.title=f"Find Your Way (The Guide) {APP_VERSION}"
@@ -212,4 +249,4 @@ use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
 use_core.generate_llm_response=_base._v487_generate_boundary
 use_core._evidence_sufficiency_unavailable_response=_base._v487_evidence_gap_boundary
 use_core.handle_query=_base._v487_query_wrapper
-print(f"USE v487.38 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={getattr(_base,'_core_runtime_sha','')}, source_sha256={RUNTIME_SOURCE_SHA256}")
+print(f"USE v487.39 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={getattr(_base,'_core_runtime_sha','')}, source_sha256={RUNTIME_SOURCE_SHA256}")
