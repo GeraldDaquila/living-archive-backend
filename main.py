@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v462 — bounded factual synthesis restoration
+# USE PRODUCTION VERSION: v463 — bounded factual synthesis calibrated to canonical concept evidence
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v462"
-DEPLOYMENT_FINGERPRINT = "USE-v462-bounded-factual-synthesis"
-CANONICAL_BUILD_ID = "USE-BUILD-v462-bounded-factual-synthesis"
+APP_VERSION = "v463"
+DEPLOYMENT_FINGERPRINT = "USE-v463-bounded-factual-synthesis-calibrated"
+CANONICAL_BUILD_ID = "USE-BUILD-v463-bounded-factual-synthesis-calibrated"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v462 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v463 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v462 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v463 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v462 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v463 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v462 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v463 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -135,8 +135,7 @@ def _clean_evidence_text(text: str) -> str:
     value = re.sub(r"(?:https?://|www\.)\S+", " ", value)
     value = re.sub(r"\b(?:on x|x post|x posts|twitter|hypothetical quantum thread|collective awakening|as an ai|users exploring)\b[^.]*[.]?", " ", value, flags=re.I)
     value = re.sub(r"\b(?:follow me|subscribe|share|like|comment|join the conversation)\b[^.]*[.]?", " ", value, flags=re.I)
-    value = re.sub(r"\s+", " ", value).strip()
-    return value
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def _definition_strength(query: str, sentence: str, title: str) -> int:
@@ -210,7 +209,19 @@ def _build_factual_answer(query: str, primary: dict, docs: list):
     return "\n\n".join(parts)
 
 
-def _build_foundation_answer(query, primary=None, docs=None):
+def _select_foundation_primary(docs):
+    ranked=[]
+    for index, doc in enumerate(docs):
+        title=_normalize_title(doc.get("title") or ""); url=_valid_doc_url(doc)
+        if not title or not url or _is_risk_related(doc): continue
+        corpus=(title+" "+str(doc.get("text") or "")).casefold()
+        score=42*int(bool(re.search(r"\b(?:living archive|archive|body of work|essays|orientation|navigation)\b",corpus)))+28*int(bool(re.search(r"\b(?:help|understand|questions|perspectives|pathways|frameworks)\b",corpus)))
+        ranked.append((score,index,doc))
+    ranked=[x for x in ranked if x[0]>0]; ranked.sort(key=lambda x:(-x[0],x[1]))
+    return ranked[0][2] if ranked else None
+
+
+def _build_foundation_answer(user_query, primary=None, docs=None):
     docs=docs or []
     if primary:
         title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary)
@@ -239,7 +250,7 @@ def _sanitize_visitor_output(text: str) -> str:
     return re.sub(r"\bUSE\b", "The Guide", str(text or ""))
 
 
-def _v462_generate_boundary(*args, **kwargs):
+def _v463_generate_boundary(*args, **kwargs):
     user_query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(raw_context)
     canonical_link_context=str(kwargs.get("canonical_link_context") or "")
     if not canonical_link_context and len(args)>=4 and isinstance(args[3],str): canonical_link_context=args[3]
@@ -248,23 +259,23 @@ def _v462_generate_boundary(*args, **kwargs):
     return _sanitize_visitor_output(_original_generate_llm_response(*args,**kwargs))
 
 
-def _v462_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+def _v463_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
     docs=_parse_context_documents(canonical_link_context); profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
     if persistent: return _sanitize_visitor_output(persistent)
     return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V462_BOUNDARY_QUERY="What is the Living Archive?"
-_V462_BOUNDARY_AUDIT=_v462_evidence_gap_boundary(_V462_BOUNDARY_QUERY,"")
-if "living archive" not in _V462_BOUNDARY_AUDIT.casefold() or "USE" in _V462_BOUNDARY_AUDIT:
-    raise RuntimeError("USE v462 visitor boundary audit failed.")
+_V463_BOUNDARY_QUERY="What is the Living Archive?"
+_V463_BOUNDARY_AUDIT=_v463_evidence_gap_boundary(_V463_BOUNDARY_QUERY,"")
+if "living archive" not in _V463_BOUNDARY_AUDIT.casefold() or "USE" in _V463_BOUNDARY_AUDIT:
+    raise RuntimeError("USE v463 visitor boundary audit failed.")
 
 app=use_core.app
 app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v462 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"The Guide v463 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION=APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response=_v462_generate_boundary
-use_core._evidence_sufficiency_unavailable_response=_v462_evidence_gap_boundary
+use_core.generate_llm_response=_v463_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v463_evidence_gap_boundary
