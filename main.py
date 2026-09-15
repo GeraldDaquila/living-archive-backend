@@ -1,21 +1,21 @@
-# USE PRODUCTION VERSION: v487.3 — constitutional calibration contract scope repair
+# USE PRODUCTION VERSION: v487.4 — secondary doorway structural priority repair
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v487.3"
-DEPLOYMENT_FINGERPRINT="USE-v487.3-constitutional-calibration-contract-scope-repair"
-CANONICAL_BUILD_ID="USE-BUILD-v487.3-constitutional-calibration-contract-scope-repair"
+APP_VERSION="v487.4"
+DEPLOYMENT_FINGERPRINT="USE-v487.4-secondary-doorway-structural-priority-repair"
+CANONICAL_BUILD_ID="USE-BUILD-v487.4-secondary-doorway-structural-priority-repair"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v487.3 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v487.4 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v487.3 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v487.4 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v487.3 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.3 package integrity failure: evidence-gap response boundary is unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v487.4 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.4 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -134,20 +134,27 @@ def _human_anchor_score(query,claim):
     if claim.get("epistemic")=="interpretive" and "grief" in q and not re.search(r"\b(?:afterlife|reincarnation|spiritual|spirituality|cosmic|mystical|metaphysical|transcendence)\b",q): score-=10
     return score
 def _select_human_anchor(query,claims): return sorted(claims,key=lambda c:_human_anchor_score(query,c),reverse=True)[0] if claims else None
+def _explicit_specialized(query): return bool(re.search(r"\b(?:afterlife|reincarnation|spiritual|spirituality|cosmic|mystical|metaphysical|transcendence|near-death|nde)\b",str(query or "").casefold()))
+def _secondary_humanity_score(query,claim):
+    low=(claim.get("title","")+" "+claim.get("text","")).casefold(); score=0
+    for term,weight in (("grief",50),("loss",48),("mourning",44),("bereavement",44),("healing",32),("meaning",28),("wisdom",20),("love",16),("continuity",14),("transformation",12),("growth",12),("acceptance",12)):
+        if term in low: score+=weight
+    if re.search(r"\b(?:death|loved one)\b",low): score+=20
+    if re.search(r"\b(?:afterlife|reincarnation|hypnosis|near-death|nde|cosmic|mystical|metaphysical|ego death|spiritual|spirituality)\b",low) and not _explicit_specialized(query): score-=60
+    return score
 def _adjacent_anchor_score(query,primary,claim,profile):
     if not claim or not primary or claim.get("url")==primary.get("url"): return -10**9
     score=_human_anchor_score(query,claim); low=(claim.get("title","")+" "+claim.get("text","")).casefold(); primary_low=(primary.get("title","")+" "+primary.get("text","")).casefold(); score+=min(int(_human_anchor_score(primary_low,claim)*0.55),45)
     if profile.get("grief"):
+        score+=_secondary_humanity_score(query,claim)
         if re.search(r"\b(?:grief|loss|mourning|bereavement|loved one|meaning in grief|healing|heals|loss and meaning)\b",low): score+=38
         if re.search(r"\b(?:death|grief|loss|mourning|bereavement|loved one)\b",low): score+=18
     if re.search(r"\b(?:meaning|continuity|transformation|growth|healing|surrender|acceptance|forgiv)\b",low): score+=10
     if bool(re.search(r"\b(?:afterlife|reincarnation|hypnosis|near-death|nde|cosmic|mystical|metaphysical|ego death|spiritual|spirituality)\b",low)) and not _explicit_specialized(query): score-=18
     return score
-def _select_adjacent_anchor(anchor,claims,profile):
-    ranked=[(_adjacent_anchor_score(anchor.get("title","")+" "+anchor.get("text","") if anchor else "",anchor,c,profile),c) for c in claims if anchor and c.get("url")!=anchor.get("url")]; ranked.sort(key=lambda x:x[0],reverse=True); return ranked[0][1] if ranked and ranked[0][0]>18 else None
-def _explicit_specialized(query): return bool(re.search(r"\b(?:afterlife|reincarnation|spiritual|spirituality|cosmic|mystical|metaphysical|transcendence|near-death|nde)\b",str(query or "").casefold()))
 def _select_recommendation_adjacent_anchor(query,primary,claims,profile):
-    ranked=[(_adjacent_anchor_score(query,primary,c,profile),c) for c in claims if c.get("url")!=primary.get("url")]; ranked.sort(key=lambda x:x[0],reverse=True); return ranked[0][1] if ranked and ranked[0][0]>18 else None
+    ranked=[(_adjacent_anchor_score(query,primary,c,profile),c) for c in claims if c.get("url")!=primary.get("url")]; ranked.sort(key=lambda x:x[0],reverse=True)
+    return ranked[0][1] if ranked and ranked[0][0]>18 else None
 def _recommendation_anchor_score(query,claim,profile):
     score=_human_anchor_score(query,claim); low=(claim["title"]+" "+claim["text"]).casefold(); specialized=bool(re.search(r"\b(?:afterlife|reincarnation|hypnosis|near-death|nde|cosmic|mystical|metaphysical)\b",low)); explicit_specialized=_explicit_specialized(query)
     if profile.get("grief"):
@@ -181,7 +188,7 @@ def _recommendation_answer(query,docs,profile):
 def _build_lived_experience_answer(query,docs,profile):
     claims=_extract_claims(_candidate_sentences(query,docs))
     if not claims: return ""
-    anchor=_select_human_anchor(query,claims); adjacent=_select_adjacent_anchor(anchor,claims,profile); parts=[_experience_orientation(query,profile),_experience_foothold(profile)]
+    anchor=_select_human_anchor(query,claims); adjacent=_select_recommendation_adjacent_anchor(query,anchor,claims,profile); parts=[_experience_orientation(query,profile),_experience_foothold(profile)]
     if anchor: parts.append(f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.")
     parts.append("Taken together, the material here points toward a distinction between understanding something intellectually and being emotionally ready for what it asks of you. That distinction can leave room for grief, uncertainty, or ambivalence without making those responses a failure.")
     if adjacent: parts.append(f"A second doorway, if useful, is [{adjacent['title']}]({adjacent['url']}), which approaches a different but related aspect of the question.")
@@ -223,23 +230,21 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.3 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.4 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs)
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.3 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.4 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 def _calibration_contract_audit(answer,mode,risk=False):
     text=str(answer or ""); low=text.casefold()
     if risk:
-        checks={"human_reality":True,"humane_foothold":True,"epistemic_boundary":True,"risk_routing":"emergency" in low,"outward_gateway":True,"teacherly_sovereignty_voice":True}
-        return checks
-    checks={
-        "human_reality": bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|what you are describing|what you are experiencing)\b",low)),
-        "humane_foothold": bool(re.search(r"\b(?:for today|next step|gentle|name what|notice|stay with|place to begin|without requiring yourself to solve it)\b",low)),
-        "epistemic_boundary": bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|not the whole answer|rather than established facts?)\b",low)),
-        "risk_routing": True,
-        "outward_gateway": bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text)) and bool(re.search(r"\b(?:nearby path|second doorway|reflection gateway|another aspect|another doorway)\b",low)),
-        "teacherly_sovereignty_voice": bool(re.search(r"\b(?:wisdom|slow work|no single correct timetable|you can|for today|stay with|without requiring yourself to solve it|what this experience means for you|rather than treating it as the final word)\b",low)),
+        return {"human_reality":True,"humane_foothold":True,"epistemic_boundary":True,"risk_routing":"emergency" in low,"outward_gateway":True,"teacherly_sovereignty_voice":True}
+    return {
+        "human_reality":bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|what you are describing|what you are experiencing)\b",low)),
+        "humane_foothold":bool(re.search(r"\b(?:for today|next step|gentle|name what|notice|stay with|place to begin|without requiring yourself to solve it)\b",low)),
+        "epistemic_boundary":bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|not the whole answer|rather than established facts?)\b",low)),
+        "risk_routing":True,
+        "outward_gateway":bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text)) and bool(re.search(r"\b(?:nearby path|second doorway|reflection gateway|another aspect|another doorway)\b",low)),
+        "teacherly_sovereignty_voice":bool(re.search(r"\b(?:wisdom|slow work|no single correct timetable|you can|for today|stay with|without requiring yourself to solve it|what this experience means for you|rather than treating it as the final word)\b",low)),
     }
-    return checks
 _V487_FOUNDATION_AUDIT=_build_foundation_answer()
 _V487_OVERFLOW_AUDIT=_build_factual_answer("What is Overflow?",[{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship."}])
 _V487_GRIEF_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"When You Don’t Know What Is Yours to Carry","url":"https://geralddaquila.com/when-you-dont-know-what-is-yours-to-carry/","text":"There are burdens we put down because carrying them is preventing someone else from carrying their own."},{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’"}],_inquiry_profile("Why does grief still hurt even when I know I need to let go?"))
@@ -247,13 +252,13 @@ _V487_RECOMMEND_AUDIT=_recommendation_answer("What essay from the Living Archive
 _V487_RISK_AUDIT=_unified_visitor_construction("I want to kill myself",[],[])[0]
 _V487_CONTRACT_AUDIT=_calibration_contract_audit(_V487_RECOMMEND_AUDIT,"recommendation")
 _V487_RISK_CONTRACT_AUDIT=_calibration_contract_audit(_V487_RISK_AUDIT,"risk",risk=True)
-if "living archive" not in _V487_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v487.3 invariant audit failed: foundation.")
-if "Overflow" not in _V487_OVERFLOW_AUDIT: raise RuntimeError("USE v487.3 invariant audit failed: conceptual.")
-if "Grief" not in _V487_GRIEF_AUDIT: raise RuntimeError("USE v487.3 invariant audit failed: human reality.")
-if "Death, Grief, and the Human Search for Continuity" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.3 invariant audit failed: anchor doorway.")
-if "The Transformative Power of Loss" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.3 invariant audit failed: adjacent doorway.")
-if "I’m recommending this first because" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.3 invariant audit failed: doorway rationale.")
-if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.3 constitutional calibration contract failed: {_V487_CONTRACT_AUDIT}")
-if "emergency" not in _V487_RISK_AUDIT.casefold(): raise RuntimeError("USE v487.3 invariant audit failed: risk routing.")
-if not all(_V487_RISK_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.3 risk calibration contract failed: {_V487_RISK_CONTRACT_AUDIT}")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v487.3 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
+if "living archive" not in _V487_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v487.4 invariant audit failed: foundation.")
+if "Overflow" not in _V487_OVERFLOW_AUDIT: raise RuntimeError("USE v487.4 invariant audit failed: conceptual.")
+if "Grief" not in _V487_GRIEF_AUDIT: raise RuntimeError("USE v487.4 invariant audit failed: human reality.")
+if "Death, Grief, and the Human Search for Continuity" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.4 invariant audit failed: anchor doorway.")
+if "The Transformative Power of Loss" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.4 invariant audit failed: adjacent doorway.")
+if "I’m recommending this first because" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.4 invariant audit failed: doorway rationale.")
+if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.4 constitutional calibration contract failed: {_V487_CONTRACT_AUDIT}")
+if "emergency" not in _V487_RISK_AUDIT.casefold(): raise RuntimeError("USE v487.4 invariant audit failed: risk routing.")
+if not all(_V487_RISK_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.4 risk calibration contract failed: {_V487_RISK_CONTRACT_AUDIT}")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v487.4 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
