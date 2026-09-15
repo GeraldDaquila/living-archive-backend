@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.31 — canonical doorway authority alignment
+# USE PRODUCTION VERSION: v487.32 — structural canonical doorway adjudication
 import hashlib
 import importlib
 import re
@@ -8,14 +8,14 @@ _BASE_MODULE_NAME="main_v487_28_runtime"
 _base=importlib.import_module(_BASE_MODULE_NAME)
 use_core=_base.use_core
 
-APP_VERSION="v487.31"
-DEPLOYMENT_FINGERPRINT="USE-v487.31-canonical-doorway-authority-alignment"
-CANONICAL_BUILD_ID="USE-BUILD-v487.31-canonical-doorway-authority-alignment"
+APP_VERSION="v487.32"
+DEPLOYMENT_FINGERPRINT="USE-v487.32-structural-canonical-doorway-adjudication"
+CANONICAL_BUILD_ID="USE-BUILD-v487.32-structural-canonical-doorway-adjudication"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if getattr(_base,"_core_runtime_sha","")!=EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError("USE v487.31 package integrity failure: protected core mismatch.")
+    raise RuntimeError("USE v487.32 package integrity failure: protected core mismatch.")
 
 def _normalize_query(text):
     return re.sub(r"\s+"," ",str(text or "").strip().casefold().replace("’","'").replace("‘","'").replace("`","'").replace("–","-").replace("—","-"))
@@ -56,12 +56,27 @@ def _recommendation_rationale(primary,profile):
 _base._recommendation_rationale=_recommendation_rationale
 
 def _canonical_primary_from_docs(canonical_docs,query,profile):
-    """The core-selected canonical doorway is authoritative for visitor movement.
-    The response layer must not independently re-rank evidence and contradict it."""
+    """Select the strongest direct canonical doorway from supplied canonical evidence.
+
+    This boundary resolves the structural gap exposed by v487.31: canonical_link_context
+    is intentionally broader than the final generation set, so its first record is not
+    an authority signal. Primary selection therefore uses the Archive's existing
+    evidence-bound recommendation subject-fit function rather than transport order.
+    """
     docs=[d for d in (canonical_docs or []) if isinstance(d,dict) and str(d.get("title") or "").strip() and str(d.get("url") or "").startswith("https://")]
     if not docs: return None
-    d=docs[0]
-    return {"text":"","title":str(d["title"]).strip(),"url":str(d["url"]).strip(),"score":100000.0,"epistemic":"supported","canonical":True,"_authority":"core_canonical_doorway"}
+    scored=[]
+    for index,d in enumerate(docs):
+        fit=_base._recommendation_subject_fit(query,d)
+        anchor=_base._recommendation_anchor_score(query,d,profile)
+        title=str(d.get("title") or "").casefold()
+        direct_title=0
+        if profile.get("lived"):
+            direct_title += 4*len(re.findall(r"\b(?:loneliness|emptiness|despair|sadness|sorrow|anxiety|fear|anger|shame|guilt|isolation|disconnection|heartbreak|grief|loss|relationship|trauma)\b",title))
+        scored.append((fit, direct_title, anchor, -index, d))
+    scored.sort(key=lambda item:item[:-1],reverse=True)
+    d=scored[0][-1]
+    return {"text":"","title":str(d["title"]).strip(),"url":str(d["url"]).strip(),"score":100000.0,"epistemic":"supported","canonical":True,"_authority":"visitor_canonical_directness_adjudication"}
 
 def _recommendation_answer_with_authority(query,docs,profile,canonical_docs=None):
     if profile.get("ai_truth") or profile.get("grief"):
@@ -102,21 +117,24 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     return "","core"
 _base._unified_visitor_construction=_unified_visitor_construction
 
-# Three-pass startup audit: classification, canonical-authority movement, and
-# regression guards. The decoy proves the response layer cannot override the
-# canonical doorway already selected by the core.
+# Four-pass startup audit: classification, directness adjudication, canonical-authority
+# movement, and regression guards. The decoy is deliberately first in the canonical
+# transport set, proving transport order cannot masquerade as doorway authority.
 _probe_query="I’m struggling with loneliness. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile=_base._inquiry_profile(_probe_query)
-if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.31 invariant failed: loneliness action={_probe_profile['action']}")
-_probe_canonical=[{"title":"The Silent Epidemic: Exploring Loneliness, Despair, Emptiness, and the Redemptive Power of the Eternal Now","url":"https://geralddaquila.com/2025/06/03/the-silent-epidemic-exploring-loneliness-despair-emptiness-and-the-redemptive-power-of-the-eternal-now/","text":"","canonical":True}]
+if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.32 invariant failed: loneliness action={_probe_profile['action']}")
+_probe_canonical=[
+    {"title":"Why Social Media Makes Us Anxious: FOMO, Comparison, and Mental Health Explained","url":"https://geralddaquila.com/2025/06/02/why-social-media-makes-us-anxious-fomo-comparison-and-mental-health-explained/","text":"Social comparison can contribute to feelings of disconnection."},
+    {"title":"The Silent Epidemic: Exploring Loneliness, Despair, Emptiness, and the Redemptive Power of the Eternal Now","url":"https://geralddaquila.com/2025/06/03/the-silent-epidemic-exploring-loneliness-despair-emptiness-and-the-redemptive-power-of-the-eternal-now/","text":"Loneliness and emptiness are examined directly."},
+]
 _probe_retrieved=[{"title":"You Are Enough: Freeing Inner Beauty from the Clutches of Expectations","url":"https://geralddaquila.com/2025/06/01/you-are-enough-freeing-inner-beauty-from-the-clutches-of-expectations/","text":"Expectations can shape how people understand themselves."}]
 _probe_answer,_probe_mode=_unified_visitor_construction(_probe_query,_probe_retrieved,_probe_canonical)
 if _probe_mode!="recommendation" or not _probe_answer.startswith("A useful place to begin with this question is [The Silent Epidemic:"):
-    raise RuntimeError(f"USE v487.31 invariant failed: canonical doorway authority: {_probe_answer}")
+    raise RuntimeError(f"USE v487.32 invariant failed: canonical directness adjudication: {_probe_answer}")
 _ai="I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?"
 _grief="I’m struggling with grief after losing someone I love, and I keep wondering whether I should let go or hold on. Where should I begin in the Living Archive?"
-if _base._inquiry_profile(_ai)["action"]!="recommendation": raise RuntimeError("USE v487.31 invariant failed: AI movement task")
-if _base._inquiry_profile(_grief)["action"]!="recommendation": raise RuntimeError("USE v487.31 invariant failed: grief movement task")
+if _base._inquiry_profile(_ai)["action"]!="recommendation": raise RuntimeError("USE v487.32 invariant failed: AI movement task")
+if _base._inquiry_profile(_grief)["action"]!="recommendation": raise RuntimeError("USE v487.32 invariant failed: grief movement task")
 
 app=_base.app
 app.title=f"Find Your Way (The Guide) {APP_VERSION}"
@@ -128,4 +146,4 @@ use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
 use_core.generate_llm_response=_base._v487_generate_boundary
 use_core._evidence_sufficiency_unavailable_response=_base._v487_evidence_gap_boundary
 use_core.handle_query=_base._v487_query_wrapper
-print(f"USE v487.31 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={getattr(_base,'_core_runtime_sha','')}, source_sha256={RUNTIME_SOURCE_SHA256}")
+print(f"USE v487.32 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={getattr(_base,'_core_runtime_sha','')}, source_sha256={RUNTIME_SOURCE_SHA256}")
