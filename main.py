@@ -45,23 +45,13 @@ def _context_blocks_from_kwargs(args,kwargs):
         if kwargs.get(key): return str(kwargs[key])
     return args[1] if len(args)>=2 and isinstance(args[1],str) else ""
 
-def _has(q,patterns): return bool(re.search(r"\b(?:"+"|".join(patterns)+r")\b",q))
-def _score(q,patterns,weight=1.0): return min(1.0, sum(weight for p in patterns if re.search(r"(?:^|\b)"+p+r"(?:\b|$)",q)))
+def _has(q,patterns): return bool(re.search(r"(?:^|\b)(?:"+"|".join(patterns)+r")(?:\b|$)",q))
 def _weighted_inquiry_profile(query):
     q=re.sub(r"\s+"," ",str(query or "").strip().casefold())
-    p={
-        "risk":0.0,
-        "recommendation":0.0,
-        "navigation":0.0,
-        "foundation":0.0,
-        "lived":0.0,
-        "conceptual":0.0,
-        "grief":0.0,
-        "specialized":0.0,
-    }
+    p={"risk":0.0,"recommendation":0.0,"navigation":0.0,"foundation":0.0,"lived":0.0,"conceptual":0.0,"grief":0.0,"specialized":0.0}
     if _has(q,[r"suicid\w*",r"self[- ]harm",r"overdose",r"immediate danger",r"unsafe",r"threatened",r"kill(?:ing)? myself",r"kill(?:ing)? yourself",r"want(?:ing)? to die",r"end my life",r"take my own life",r"harm myself",r"hurt myself"]): p["risk"]=1.0
-    if _has(q,[r"recommend\w*",r"advise",r"advice",r"essay\w*",r"article\w*",r"read(?:ing)?",r"what should i read",r"what can i read",r"where can i start",r"what would you recommend"]): p["recommendation"]+=0.78
-    if _has(q,[r"which .*read",r"which .*essay",r"which .*article"]): p["recommendation"]+=0.22
+    if _has(q,[r"recommend\w*",r"advise",r"advice",r"essay\w*",r"article\w*",r"read(?:ing)?",r"what should i read",r"what can i read",r"where can i start",r"what would you recommend"]): p["recommendation"]+=0.82
+    if _has(q,[r"which .*read",r"which .*essay",r"which .*article"]): p["recommendation"]+=0.18
     if _has(q,[r"where can i find",r"where do i find",r"how do i get to",r"find the",r"browse",r"explore the",r"show me",r"take me to",r"link me to"]): p["navigation"]=0.92
     if re.search(r"^(?:what is|what's|tell me about|how does)\s+(?:the )?(?:living archive|the guide)\b",q): p["foundation"]=1.0
     elif _has(q,[r"how does the living archive work",r"what is the living archive for",r"what is the guide for"]): p["foundation"]=1.0
@@ -76,9 +66,9 @@ def _weighted_inquiry_profile(query):
 def _weighted_action(profile):
     if profile["risk"]>=0.80: return "risk"
     scores={k:profile[k] for k in ("recommendation","navigation","lived","foundation","conceptual")}
-    if profile["recommendation"]>0: scores["recommendation"]+=0.08*profile["grief"]+0.05*profile["specialized"]
+    if profile["recommendation"]>0: scores["recommendation"]+=0.10*profile["grief"]+0.05*profile["specialized"]
     if profile["lived"]>0: scores["lived"]+=0.08*profile["grief"]
-    if profile["foundation"]>0: scores["foundation"]-=0.20*profile["recommendation"]-0.10*profile["lived"]
+    if profile["foundation"]>0: scores["foundation"]-=0.35*profile["recommendation"]
     return max(scores,key=scores.get) if max(scores.values())>=0.35 else "core"
 
 def _inquiry_profile(query):
@@ -230,12 +220,12 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
         key=(str(doc.get("url") or ""),str(doc.get("title") or ""))
         if key in seen: continue
         seen.add(key); docs.append(doc)
-    action=_weighted_action(_weighted_inquiry_profile(query))
+    action=profile["action"]
     if action=="risk": return _build_risk_answer(query),"risk"
     if action in {"recommendation","navigation"}:
         answer=_recommendation_answer(query,docs,profile)
         if answer: return answer,"recommendation"
-    if action=="lived":
+    if action=="lived_experience" or (action=="core" and profile.get("lived")):
         answer=_build_lived_experience_answer(query,docs,profile)
         if answer: return answer,"lived_experience"
     if action=="foundation": return _build_foundation_answer(),"foundation"
