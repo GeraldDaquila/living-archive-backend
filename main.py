@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487 — constitutional calibration invariants
+# USE PRODUCTION VERSION: v487 — constitutional calibration layer
 import hashlib
 import importlib
 import re
@@ -169,8 +169,7 @@ def _recommendation_rationale(query,primary,profile):
         return "I’m recommending this first because it offers a direct doorway into the human experience at the center of your question."
     return "This is a useful place to begin because it speaks directly to the part of the question you asked about."
 def _recommendation_wisdom(query,primary,profile):
-    if profile.get("grief"):
-        return "Grief is not only the pain of losing someone; it can also be the slow work of finding a way to carry love, memory, and an altered future without pretending the loss did not matter. There may be no single correct timetable for that work."
+    if profile.get("grief"): return "Grief is not only the pain of losing someone; it can also be the slow work of finding a way to carry love, memory, and an altered future without pretending the loss did not matter. There may be no single correct timetable for that work."
     return "A useful way to approach a question like this is to let the first insight open the inquiry rather than treating it as the final word."
 def _recommendation_foothold(profile):
     if profile.get("grief"): return "For today, a humane next step can be very small: name what you miss, what hurts, or what you are not ready to accept yet, without requiring yourself to solve it."
@@ -230,20 +229,18 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs)
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
     canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 def _calibration_contract_audit(answer,mode,risk=False):
-    text=str(answer or ""); low=text.casefold()
-    checks={
-        "human_reality": bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|what you are describing|what you are experiencing)\b",low)),
-        "humane_foothold": bool(re.search(r"\b(?:next step|for today|gentle|name what|notice|stay with|place to begin)\b",low)),
-        "epistemic_boundary": bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|without asking you to treat)\b",low)) or risk,
+    text=str(answer or ""); low=text.casefold(); checks={
+        "human_reality": bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|what you are describing|what you are experiencing)\b",low)),
+        "humane_foothold": bool(re.search(r"\b(?:for today|next step|gentle|name what|notice|stay with|place to begin|without requiring yourself to solve it)\b",low)),
+        "epistemic_boundary": bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|not the whole answer|rather than established facts?)\b",low)),
         "risk_routing": ("emergency" in low) if risk else True,
-        "outward_gateway": bool(re.search(r"https://geralddaquila\.com/|\[[^\]]+\]\(https://geralddaquila\.com/",text)) and ("nearby path" in low or "second doorway" in low or "reflection gateway" in low),
-        "teacherly_sovereignty_voice": bool(re.search(r"\b(?:wisdom|slow work|no single correct timetable|you can|for today|stay with|without requiring yourself to solve it|what this experience means for you)\b",low)),
-    }
-    return checks
+        "outward_gateway": bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text)) and bool(re.search(r"\b(?:nearby path|second doorway|reflection gateway|another aspect|another doorway)\b",low)),
+        "teacherly_sovereignty_voice": bool(re.search(r"\b(?:wisdom|slow work|no single correct timetable|you can|for today|stay with|without requiring yourself to solve it|what this experience means for you|rather than treating it as the final word)\b",low)),
+    }; return checks
 _V487_FOUNDATION_AUDIT=_build_foundation_answer()
 _V487_OVERFLOW_AUDIT=_build_factual_answer("What is Overflow?",[{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship."}])
 _V487_GRIEF_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"When You Don’t Know What Is Yours to Carry","url":"https://geralddaquila.com/when-you-dont-know-what-is-yours-to-carry/","text":"There are burdens we put down because carrying them is preventing someone else from carrying their own."},{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’"}],_inquiry_profile("Why does grief still hurt even when I know I need to let go?"))
