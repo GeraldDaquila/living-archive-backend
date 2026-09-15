@@ -1,21 +1,21 @@
-# USE PRODUCTION VERSION: v484 — doorway rationale
+# USE PRODUCTION VERSION: v485 — weighted inquiry engine
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v484"
-DEPLOYMENT_FINGERPRINT="USE-v484-doorway-rationale"
-CANONICAL_BUILD_ID="USE-BUILD-v484-doorway-rationale"
+APP_VERSION="v485"
+DEPLOYMENT_FINGERPRINT="USE-v485-weighted-inquiry-engine"
+CANONICAL_BUILD_ID="USE-BUILD-v485-weighted-inquiry-engine"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v484 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v485 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v484 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v485 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v484 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v484 package integrity failure: evidence-gap response boundary is unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v485 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v485 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -45,24 +45,45 @@ def _context_blocks_from_kwargs(args,kwargs):
         if kwargs.get(key): return str(kwargs[key])
     return args[1] if len(args)>=2 and isinstance(args[1],str) else ""
 
-def _inquiry_profile(query):
+def _has(q,patterns): return bool(re.search(r"\b(?:"+"|".join(patterns)+r")\b",q))
+def _score(q,patterns,weight=1.0): return min(1.0, sum(weight for p in patterns if re.search(r"(?:^|\b)"+p+r"(?:\b|$)",q)))
+def _weighted_inquiry_profile(query):
     q=re.sub(r"\s+"," ",str(query or "").strip().casefold())
-    risk=bool(re.search(r"\b(?:suicid\w*|self-harm|self harm|overdose|abuse|coercion|immediate danger|unsafe|threatened|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|end my life|take my own life|harm myself|hurt myself)\b",q))
-    recommendation=bool(re.search(r"\b(?:recommend|recommendation|advise|advice|essay|essays|article|articles|writing|reading|what should i read|what can i read|which .*?(?:read|essay|article)|where can i start|what would you recommend)\b",q))
-    navigation=bool(re.search(r"\b(?:where can i find|where do i find|how do i get to|find the|browse|explore the|show me|take me to|link me to)\b",q))
-    grief=bool(re.search(r"\b(?:grief|grieving|bereavement|death of|died|loss of|lost (?:a|my|someone)|mourning|love one|loved one)\b",q))
-    lived=bool(re.search(r"\b(?:i feel|i'm feeling|i am feeling|i can't|i cannot|i keep|i still|i don't know how|i don't know why|i know i need|it hurts|this hurts|my grief|my anger|my fear|my anxiety|my loneliness|my relationship|my partner|my loss|someone left|they left|letting go|let go|forgive|forgiveness|heartbreak|breakup|betrayal|abuse|trauma|overwhelmed|afraid|scared|angry|grieving|grief|bereavement|mourning|loss)\b",q))
-    foundation_specific=bool(re.search(r"^(?:what is|what's|tell me about|how does)\s+(?:the )?(?:living archive|the guide)\b",q)) or bool(re.search(r"\b(?:how does the living archive work|what is the living archive for|what is the guide for)\b",q))
-    conceptual=bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b",q))
-    if risk: action="risk"
-    elif recommendation: action="recommendation"
-    elif navigation: action="navigation"
-    elif foundation_specific: action="foundation"
-    elif lived: action="lived_experience"
-    elif conceptual: action="conceptual"
-    else: action="open_inquiry"
-    subject="grief" if grief else ""
-    return {"risk":risk,"recommendation":recommendation,"navigation":navigation,"foundation":foundation_specific,"lived":lived,"conceptual":conceptual,"grief":grief,"subject":subject,"action":action}
+    p={
+        "risk":0.0,
+        "recommendation":0.0,
+        "navigation":0.0,
+        "foundation":0.0,
+        "lived":0.0,
+        "conceptual":0.0,
+        "grief":0.0,
+        "specialized":0.0,
+    }
+    if _has(q,[r"suicid\w*",r"self[- ]harm",r"overdose",r"immediate danger",r"unsafe",r"threatened",r"kill(?:ing)? myself",r"kill(?:ing)? yourself",r"want(?:ing)? to die",r"end my life",r"take my own life",r"harm myself",r"hurt myself"]): p["risk"]=1.0
+    if _has(q,[r"recommend\w*",r"advise",r"advice",r"essay\w*",r"article\w*",r"read(?:ing)?",r"what should i read",r"what can i read",r"where can i start",r"what would you recommend"]): p["recommendation"]+=0.78
+    if _has(q,[r"which .*read",r"which .*essay",r"which .*article"]): p["recommendation"]+=0.22
+    if _has(q,[r"where can i find",r"where do i find",r"how do i get to",r"find the",r"browse",r"explore the",r"show me",r"take me to",r"link me to"]): p["navigation"]=0.92
+    if re.search(r"^(?:what is|what's|tell me about|how does)\s+(?:the )?(?:living archive|the guide)\b",q): p["foundation"]=1.0
+    elif _has(q,[r"how does the living archive work",r"what is the living archive for",r"what is the guide for"]): p["foundation"]=1.0
+    if _has(q,[r"i feel",r"i'm feeling",r"i am feeling",r"i can't",r"i cannot",r"i keep",r"i still",r"i don't know how",r"i don't know why",r"i know i need",r"it hurts",r"this hurts",r"my grief",r"my anger",r"my fear",r"my anxiety",r"my loneliness",r"my relationship",r"my partner",r"my loss",r"someone left",r"they left",r"letting go",r"let go",r"forgive",r"forgiveness",r"heartbreak",r"breakup",r"betrayal",r"abuse",r"trauma",r"overwhelmed",r"afraid",r"scared",r"angry",r"grieving",r"grief",r"bereavement",r"mourning",r"loss"]): p["lived"]=0.86
+    if re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b",q): p["conceptual"]=0.72
+    if _has(q,[r"grief",r"grieving",r"bereavement",r"death of",r"died",r"loss of",r"lost (?:a|my|someone)",r"mourning",r"love one",r"loved one"]): p["grief"]=0.95
+    if _has(q,[r"afterlife",r"reincarnation",r"spiritual",r"spirituality",r"cosmic",r"mystical",r"metaphysical",r"transcendence",r"near-death",r"nde"]): p["specialized"]=0.92
+    if p["grief"]: p["lived"]=max(p["lived"],0.90)
+    if p["recommendation"] and p["grief"]: p["recommendation"]=min(1.0,p["recommendation"]+0.10)
+    return p
+
+def _weighted_action(profile):
+    if profile["risk"]>=0.80: return "risk"
+    scores={k:profile[k] for k in ("recommendation","navigation","lived","foundation","conceptual")}
+    if profile["recommendation"]>0: scores["recommendation"]+=0.08*profile["grief"]+0.05*profile["specialized"]
+    if profile["lived"]>0: scores["lived"]+=0.08*profile["grief"]
+    if profile["foundation"]>0: scores["foundation"]-=0.20*profile["recommendation"]-0.10*profile["lived"]
+    return max(scores,key=scores.get) if max(scores.values())>=0.35 else "core"
+
+def _inquiry_profile(query):
+    p=_weighted_inquiry_profile(query); action=_weighted_action(p)
+    return {**p,"subject":"grief" if p["grief"]>=0.5 else "","action":action,"risk":p["risk"]>=0.8,"recommendation":p["recommendation"]>=0.5,"navigation":p["navigation"]>=0.5,"foundation":p["foundation"]>=0.5,"lived":p["lived"]>=0.5,"conceptual":p["conceptual"]>=0.5,"grief":p["grief"]>=0.5}
 
 def _build_risk_answer(query):
     q=str(query or "").casefold()
@@ -70,7 +91,7 @@ def _build_risk_answer(query):
     return "If you may be in immediate danger or cannot keep yourself safe, please seek human help now. Call emergency services or go to the nearest emergency department."
 
 def _candidate_sentences(query,docs):
-    q=re.sub(r"\s+"," ",str(query or "").casefold()); terms=set(re.findall(r"[a-z]{4,}",q)); candidates=[]; seen=set()
+    q=re.sub(r"\s+"," ",str(query or "").strip().casefold()); terms=set(re.findall(r"[a-z]{4,}",q)); candidates=[]; seen=set()
     for doc in docs:
         if not isinstance(doc,dict) or _is_risk_related(doc): continue
         title=_normalize_title(doc.get("title") or ""); url=_valid_doc_url(doc); raw=_clean_evidence_text(doc.get("text") or "")
@@ -209,40 +230,43 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
         key=(str(doc.get("url") or ""),str(doc.get("title") or ""))
         if key in seen: continue
         seen.add(key); docs.append(doc)
-    if profile["risk"]: return _build_risk_answer(query),"risk"
-    if profile["recommendation"] or profile["navigation"]:
+    action=_weighted_action(_weighted_inquiry_profile(query))
+    if action=="risk": return _build_risk_answer(query),"risk"
+    if action in {"recommendation","navigation"}:
         answer=_recommendation_answer(query,docs,profile)
         if answer: return answer,"recommendation"
-    if profile["lived"]:
+    if action=="lived":
         answer=_build_lived_experience_answer(query,docs,profile)
         if answer: return answer,"lived_experience"
-    if profile["foundation"]: return _build_foundation_answer(),"foundation"
-    if profile["conceptual"]:
+    if action=="foundation": return _build_foundation_answer(),"foundation"
+    if action=="conceptual":
         answer=_build_factual_answer(query,docs)
         if answer: return answer,"conceptual"
     return "","core"
 
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
-def _v484_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v484 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
-def _v484_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v484 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+def _v485_generate_boundary(*args,**kwargs):
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v485 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
+def _v485_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v485 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V484_FOUNDATION_AUDIT=_build_foundation_answer()
-_V484_OVERFLOW_AUDIT=_build_factual_answer("What is Overflow?",[{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}])
-_V484_GRIEF_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"When You Don’t Know What Is Yours to Carry","url":"https://geralddaquila.com/when-you-dont-know-what-is-yours-to-carry/","text":"There are burdens we put down because carrying them is preventing someone else from carrying their own."},{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}],_inquiry_profile("Why does grief still hurt even when I know I need to let go?"))
-_V484_RECOMMEND_AUDIT=_recommendation_answer("What essay from the Living Archive would you recommend for someone grieving from the death of a loved one?",[{"title":"Death, Grief, and the Human Search for Continuity","url":"https://geralddaquila.com/2025/05/24/embracing-the-cosmic-journey-finding-peace-after-losing-a-loved-one/","text":"The writing addresses death, grief, and the human search for continuity after losing a loved one."},{"title":"Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences","url":"https://geralddaquila.com/2025/05/03/journey-beyond-exploring-the-afterlife-and-reincarnation-through-hypnosis-and-near-death-experiences/","text":"The writing explores afterlife and reincarnation through hypnosis and near-death experiences."}],_inquiry_profile("What essay from the Living Archive would you recommend for someone grieving from the death of a loved one?"))
-_V484_FOUNDATION_QUERY_AUDIT=_unified_visitor_construction("What is the Living Archive?",[],[])
-_V484_RISK_AUDIT=_unified_visitor_construction("I want to kill myself",[],[])[0]
-if "living archive" not in _V484_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v484 capability audit failed: foundation.")
-if "Overflow" not in _V484_OVERFLOW_AUDIT: raise RuntimeError("USE v484 capability audit failed: conceptual.")
-if "Grief can remain painful" not in _V484_GRIEF_AUDIT: raise RuntimeError("USE v484 capability audit failed: lived experience.")
-if "When You Don’t Know What Is Yours to Carry" not in _V484_GRIEF_AUDIT: raise RuntimeError("USE v484 capability audit failed: lived doorway.")
-if "Death, Grief, and the Human Search for Continuity" not in _V484_RECOMMEND_AUDIT: raise RuntimeError("USE v484 capability audit failed: bereavement recommendation.")
-if "Journey Beyond" not in _V484_RECOMMEND_AUDIT: raise RuntimeError("USE v484 capability audit failed: adjacent specialized doorway.")
-if "I’m recommending this first because" not in _V484_RECOMMEND_AUDIT: raise RuntimeError("USE v484 capability audit failed: doorway rationale.")
-if _V484_RECOMMEND_AUDIT.index("Death, Grief, and the Human Search for Continuity") > _V484_RECOMMEND_AUDIT.index("Journey Beyond"): raise RuntimeError("USE v484 capability audit failed: bereavement doorway ranking.")
-if "emergency" not in _V484_RISK_AUDIT.casefold(): raise RuntimeError("USE v484 capability audit failed: risk routing.")
-if _V484_FOUNDATION_QUERY_AUDIT[1]!="foundation": raise RuntimeError("USE v484 capability audit failed: foundation query routing.")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v484 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v484_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v484_evidence_gap_boundary
+_V485_FOUNDATION_AUDIT=_build_foundation_answer()
+_V485_OVERFLOW_AUDIT=_build_factual_answer("What is Overflow?",[{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}])
+_V485_GRIEF_AUDIT=_build_lived_experience_answer("Why does grief still hurt even when I know I need to let go?",[{"title":"When You Don’t Know What Is Yours to Carry","url":"https://geralddaquila.com/when-you-dont-know-what-is-yours-to-carry/","text":"There are burdens we put down because carrying them is preventing someone else from carrying their own."},{"title":"Learning to Say No Without Feeling Like a Bad Person","url":"https://geralddaquila.com/2026/02/02/learning-to-say-no-without-feeling-like-a-bad-person/","text":"Giving and Receiving Are One System. Your mind might say: ‘I’m letting them down.’ But often what’s really happening is: ‘I’m no longer abandoning myself to keep everything comfortable.’ That’s growth."}],_inquiry_profile("Why does grief still hurt even when I know I need to let go?"))
+_V485_RECOMMEND_AUDIT=_recommendation_answer("What essay from the Living Archive would you recommend for someone grieving from the death of a loved one?",[{"title":"Death, Grief, and the Human Search for Continuity","url":"https://geralddaquila.com/2025/05/24/embracing-the-cosmic-journey-finding-peace-after-losing-a-loved-one/","text":"The writing addresses death, grief, and the human search for continuity after losing a loved one."},{"title":"Journey Beyond: Exploring the Afterlife and Reincarnation Through Hypnosis and Near-Death Experiences","url":"https://geralddaquila.com/2025/05/03/journey-beyond-exploring-the-afterlife-and-reincarnation-through-hypnosis-and-near-death-experiences/","text":"The writing explores afterlife and reincarnation through hypnosis and near-death experiences."}],_inquiry_profile("What essay from the Living Archive would you recommend for someone grieving from the death of a loved one?"))
+_V485_MIXED_RECOMMEND_AUDIT=_unified_visitor_construction("What essay from the Living Archive would you recommend for someone grieving from the death of a loved one?",[],[{"title":"Death, Grief, and the Human Search for Continuity","url":"https://geralddaquila.com/2025/05/24/embracing-the-cosmic-journey-finding-peace-after-losing-a-loved-one/","text":"The writing addresses death, grief, and the human search for continuity after losing a loved one."}])
+_V485_FOUNDATION_QUERY_AUDIT=_unified_visitor_construction("What is the Living Archive?",[],[])
+_V485_RISK_AUDIT=_unified_visitor_construction("I want to kill myself",[],[])[0]
+if "living archive" not in _V485_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v485 capability audit failed: foundation.")
+if "Overflow" not in _V485_OVERFLOW_AUDIT: raise RuntimeError("USE v485 capability audit failed: conceptual.")
+if "Grief can remain painful" not in _V485_GRIEF_AUDIT: raise RuntimeError("USE v485 capability audit failed: lived experience.")
+if "When You Don’t Know What Is Yours to Carry" not in _V485_GRIEF_AUDIT: raise RuntimeError("USE v485 capability audit failed: lived doorway.")
+if "Death, Grief, and the Human Search for Continuity" not in _V485_RECOMMEND_AUDIT: raise RuntimeError("USE v485 capability audit failed: bereavement recommendation.")
+if "Journey Beyond" not in _V485_RECOMMEND_AUDIT: raise RuntimeError("USE v485 capability audit failed: adjacent specialized doorway.")
+if "I’m recommending this first because" not in _V485_RECOMMEND_AUDIT: raise RuntimeError("USE v485 capability audit failed: doorway rationale.")
+if _V485_RECOMMEND_AUDIT.index("Death, Grief, and the Human Search for Continuity") > _V485_RECOMMEND_AUDIT.index("Journey Beyond"): raise RuntimeError("USE v485 capability audit failed: bereavement doorway ranking.")
+if _V485_MIXED_RECOMMEND_AUDIT[1]!="recommendation": raise RuntimeError("USE v485 weighted audit failed: mixed recommendation/foundation routing.")
+if "emergency" not in _V485_RISK_AUDIT.casefold(): raise RuntimeError("USE v485 capability audit failed: risk routing.")
+if _V485_FOUNDATION_QUERY_AUDIT[1]!="foundation": raise RuntimeError("USE v485 capability audit failed: foundation query routing.")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v485 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v485_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v485_evidence_gap_boundary
