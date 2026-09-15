@@ -1,21 +1,24 @@
-# USE PRODUCTION VERSION: v487 — constitutional calibration layer
+# USE PRODUCTION VERSION: v487.1 — constitutional calibration layer (syntax repair)
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION="v487"
-DEPLOYMENT_FINGERPRINT="USE-v487-constitutional-calibration"
-CANONICAL_BUILD_ID="USE-BUILD-v487-constitutional-calibration"
+APP_VERSION="v487.1"
+DEPLOYMENT_FINGERPRINT="USE-v487.1-constitutional-calibration-syntax-repair"
+CANONICAL_BUILD_ID="USE-BUILD-v487.1-constitutional-calibration-syntax-repair"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v487 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v487.1 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v487 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
-use_core=importlib.import_module("use_core"); _original_generate_llm_response=use_core.generate_llm_response; _original_handle_query=getattr(use_core,"handle_query",None); _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v487 package integrity failure: API query handler is unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487 package integrity failure: evidence-gap response boundary is unavailable.")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError(f"USE v487.1 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+use_core=importlib.import_module("use_core")
+_original_generate_llm_response=use_core.generate_llm_response
+_original_handle_query=getattr(use_core,"handle_query",None)
+_original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
+if _original_handle_query is None: raise RuntimeError("USE v487.1 package integrity failure: API query handler is unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.1 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -143,7 +146,7 @@ def _select_adjacent_anchor(anchor,claims):
         if s>=28: ranked.append((s,c))
     ranked.sort(key=lambda x:-x[0]); return ranked[0][1] if ranked else None
 def _build_lived_experience_answer(query,docs,profile):
-    claims=_extract_claims(_candidate_sentences(query,docs));
+    claims=_extract_claims(_candidate_sentences(query,docs))
     if not claims: return ""
     anchor=_select_human_anchor(query,claims); adjacent=_select_adjacent_anchor(anchor,claims); parts=[_experience_orientation(query,profile),_experience_foothold(profile)]
     if anchor: parts.append(f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.")
@@ -199,7 +202,7 @@ def _build_factual_answer(query,docs):
     if not claims or not subject: return ""
     groups=_related_claims(claims); primary=claims[0]; parts=[f"The closest supported material I found is [{primary['title']}]({primary['url']}).",_plain_language_concept(subject,claims)]; support=[]
     for claim in claims:
-        text=claim["text"].rstrip(".")+".";
+        text=claim["text"].rstrip(".")+"."
         if text not in support and len(support)<3 and text.casefold()!=parts[1].casefold(): support.append(text)
     bridge=_semantic_bridge(subject,groups)
     if bridge: parts.append(bridge+((" "+" ".join(support[:2])) if support else ""))
@@ -229,9 +232,15 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs)
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs)
+    answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs)
+    print(f"The Guide v487.1 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args,**kwargs))
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks)
+    answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs)
+    print(f"The Guide v487.1 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 def _calibration_contract_audit(answer,mode,risk=False):
     text=str(answer or ""); low=text.casefold(); checks={
         "human_reality": bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|what you are describing|what you are experiencing)\b",low)),
@@ -248,13 +257,15 @@ _V487_RECOMMEND_AUDIT=_recommendation_answer("What essay from the Living Archive
 _V487_RISK_AUDIT=_unified_visitor_construction("I want to kill myself",[],[])[0]
 _V487_CONTRACT_AUDIT=_calibration_contract_audit(_V487_RECOMMEND_AUDIT,"recommendation")
 _V487_RISK_CONTRACT_AUDIT=_calibration_contract_audit(_V487_RISK_AUDIT,"risk",risk=True)
-if "living archive" not in _V487_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v487 invariant audit failed: foundation.")
-if "Overflow" not in _V487_OVERFLOW_AUDIT: raise RuntimeError("USE v487 invariant audit failed: conceptual.")
-if "Grief" not in _V487_GRIEF_AUDIT: raise RuntimeError("USE v487 invariant audit failed: human reality.")
-if "Death, Grief, and the Human Search for Continuity" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487 invariant audit failed: anchor doorway.")
-if "The Transformative Power of Loss" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487 invariant audit failed: adjacent doorway.")
-if "I’m recommending this first because" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487 invariant audit failed: doorway rationale.")
-if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487 constitutional calibration contract failed: {_V487_CONTRACT_AUDIT}")
-if "emergency" not in _V487_RISK_AUDIT.casefold(): raise RuntimeError("USE v487 invariant audit failed: risk routing.")
-if not all(_V487_RISK_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487 risk calibration contract failed: {_V487_RISK_CONTRACT_AUDIT}")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"; print(f"The Guide v487 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}"); use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
+if "living archive" not in _V487_FOUNDATION_AUDIT.casefold(): raise RuntimeError("USE v487.1 invariant audit failed: foundation.")
+if "Overflow" not in _V487_OVERFLOW_AUDIT: raise RuntimeError("USE v487.1 invariant audit failed: conceptual.")
+if "Grief" not in _V487_GRIEF_AUDIT: raise RuntimeError("USE v487.1 invariant audit failed: human reality.")
+if "Death, Grief, and the Human Search for Continuity" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.1 invariant audit failed: anchor doorway.")
+if "The Transformative Power of Loss" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.1 invariant audit failed: adjacent doorway.")
+if "I’m recommending this first because" not in _V487_RECOMMEND_AUDIT: raise RuntimeError("USE v487.1 invariant audit failed: doorway rationale.")
+if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.1 constitutional calibration contract failed: {_V487_CONTRACT_AUDIT}")
+if "emergency" not in _V487_RISK_AUDIT.casefold(): raise RuntimeError("USE v487.1 invariant audit failed: risk routing.")
+if not all(_V487_RISK_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.1 risk calibration contract failed: {_V487_RISK_CONTRACT_AUDIT}")
+app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"
+print(f"The Guide v487.1 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
