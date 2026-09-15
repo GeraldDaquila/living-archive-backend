@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v461 — definition-first factual construction
+# USE PRODUCTION VERSION: v462 — bounded factual synthesis restoration
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v461"
-DEPLOYMENT_FINGERPRINT = "USE-v461-definition-first-factual"
-CANONICAL_BUILD_ID = "USE-BUILD-v461-definition-first-factual"
+APP_VERSION = "v462"
+DEPLOYMENT_FINGERPRINT = "USE-v462-bounded-factual-synthesis"
+CANONICAL_BUILD_ID = "USE-BUILD-v462-bounded-factual-synthesis"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v461 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v462 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v461 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v462 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v461 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v462 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v461 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v462 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -97,18 +97,11 @@ def _role_evidence(doc: dict) -> dict:
     title = _normalize_title(doc.get("title") or "").casefold()
     corpus = title + " " + text
     return {
-        "direct_loneliness": bool(re.search(r"\b(?:loneliness|lonely|social isolation|socially isolated|feeling alone|sense of aloneness|disconnected|disconnection|lack of connection|need for connection)\b", text)),
-        "belonging_connection": bool(re.search(r"\b(?:belonging|connection|connected|relationship|relationships|community|companionship|being seen|being understood|social connection)\b", corpus)),
-        "lived_experience": bool(re.search(r"\b(?:experience|lived|personal|human|everyday|relationships|routine|role|journey|navigate|navigating|felt|feeling|living with)\b", text)),
-        "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
         "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
         "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed|higher-order intelligence|metaphysics|cosmic curriculum|universe|cosmic)\b", corpus)),
-        "threshold": bool(re.search(r"\b(?:threshold|transition|turning point|old way|new way|change|chapter|uncertain|beginning|ending|liminal|crossroads|outgrown|outgrew|letting go|starting over|reinvent)\b", corpus)),
         "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
         "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
-        "title_loneliness": bool(re.search(r"\b(?:loneliness|lonely|alone|belonging|connection|connected|isolation|isolated)\b", title)),
-        "grief": bool(re.search(r"\b(?:grief|grieving|loss|mourning|death|bereavement|dying|meaning after loss)\b", corpus)),
-        "practical_reflection": bool(re.search(r"\b(?:reflection|reflective|journal|journaling|practice|practical|questions to consider|what matters|how to live|daily life|everyday)\b", corpus)),
     }
 
 
@@ -126,32 +119,15 @@ def _doc_identity(doc: dict) -> str:
     return str(doc.get("url") or doc.get("canonical_url") or "").strip()
 
 
-def _select_factual_primary(query: str, docs: list):
-    ranked = []
-    q_terms = [t for t in re.findall(r"[a-z0-9]{3,}", query.casefold()) if t not in {"what","does","this","that","mean","about","tell","explain"}]
-    for index, doc in enumerate(docs):
-        title = _normalize_title(doc.get("title") or "")
-        url = _valid_doc_url(doc)
-        if not title or not url or _is_risk_related(doc):
-            continue
-        text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
-        title_hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", title.casefold()))
-        text_hits = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", text))
-        e = _role_evidence(doc)
-        score = 70 * title_hits + 8 * min(text_hits, 8) + 5 * int(e["grounded"] or e["meaning"] or e["practical_reflection"] or e["lived_experience"])
-        if e["worldview"] and title_hits == 0:
-            score -= 20
-        if score > 0:
-            ranked.append((score,index,doc))
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked[0][2] if ranked else None
-
-
 def _factual_open(query: str, profile: dict) -> bool:
     q = str(query or "").strip().casefold()
-    if not q or any(profile.get(key) for key in ("risk","foundation_open","coercion_open","ambiguous_loss_open","grief","transition_open","emptiness_open","meaning_open","loneliness","fear_open","anger_open")):
-        return False
-    return bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b", q))
+    return bool(q) and not any(profile.get(key) for key in ("risk","foundation_open","coercion_open","ambiguous_loss_open","grief","transition_open","emptiness_open","meaning_open","loneliness","fear_open","anger_open")) and bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b", q))
+
+
+def _query_subject(query: str) -> str:
+    q = re.sub(r"\s+", " ", str(query or "").strip())
+    q = re.sub(r"^(?:what is|what's|define|explain|what does)\s+", "", q, flags=re.I)
+    return q.rstrip(" ?.!:")
 
 
 def _clean_evidence_text(text: str) -> str:
@@ -160,25 +136,7 @@ def _clean_evidence_text(text: str) -> str:
     value = re.sub(r"\b(?:on x|x post|x posts|twitter|hypothetical quantum thread|collective awakening|as an ai|users exploring)\b[^.]*[.]?", " ", value, flags=re.I)
     value = re.sub(r"\b(?:follow me|subscribe|share|like|comment|join the conversation)\b[^.]*[.]?", " ", value, flags=re.I)
     value = re.sub(r"\s+", " ", value).strip()
-    sentences = re.split(r"(?<=[.!?])\s+", value)
-    kept = []
-    for sentence in sentences:
-        s = sentence.strip()
-        if not s:
-            continue
-        low = s.casefold()
-        if re.search(r"\b(?:on x|x post|hypothetical quantum|collective awakening|we'?re all co-creators|universal knowledge|profound truth|in conclusion)\b", low):
-            continue
-        if len(s) < 25 and len(sentences) > 1:
-            continue
-        kept.append(s)
-    return " ".join(kept)
-
-
-def _query_subject(query: str) -> str:
-    q = re.sub(r"\s+", " ", str(query or "").strip())
-    q = re.sub(r"^(?:what is|what's|define|explain|what does)\s+", "", q, flags=re.I)
-    return q.rstrip(" ?.!:")
+    return value
 
 
 def _definition_strength(query: str, sentence: str, title: str) -> int:
@@ -193,67 +151,66 @@ def _definition_strength(query: str, sentence: str, title: str) -> int:
         score += 25
     if re.search(r"\b(?:framework|concept|practice|idea|approach|pathway|collection|body of work)\b", low):
         score += 12
-    if re.search(r"\b(?:spiritual|cosmic|awakening|metaphysical|universal|interconnected reality|co-creator|transcenden)\b", low):
-        if not re.search(r"\b(?:archive describes|the essay presents|the perspective is|a worldview|an interpretation|in this framing)\b", low):
-            score -= 18
     return score
+
+
+def _select_factual_primary(query: str, docs: list):
+    subject = _query_subject(query).casefold()
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = _valid_doc_url(doc)
+        if not title or not url or _is_risk_related(doc):
+            continue
+        raw = _clean_evidence_text(doc.get("text") or "")
+        low = raw.casefold()
+        title_hit = int(bool(subject and re.search(rf"\b{re.escape(subject)}\b", title.casefold())))
+        exact_text = int(bool(subject and re.search(rf"\b{re.escape(subject)}\b", low)))
+        definition_hits = sum(1 for s in re.split(r"(?<=[.!?])\s+", raw) if _definition_strength(query, s, title) >= 40)
+        e = _role_evidence(doc)
+        score = 100*title_hit + 55*exact_text + 30*min(definition_hits,3) + 6*int(e["grounded"] or e["meaning"])
+        if e["worldview"] and not title_hit:
+            score -= 18
+        if score > 0:
+            ranked.append((score,index,doc))
+    ranked.sort(key=lambda item:(-item[0], item[1]))
+    return ranked[0][2] if ranked else None
 
 
 def _build_factual_answer(query: str, primary: dict, docs: list):
     title = _normalize_title(primary.get("title") or "")
     url = _valid_doc_url(primary)
     raw = _clean_evidence_text(primary.get("text") or "")
-    if not title or not url or not raw:
+    subject = _query_subject(query)
+    if not title or not url or not raw or not subject:
         return ""
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", raw) if s.strip()]
-    definition = []
-    supporting = []
+    scored = []
     for idx, sentence in enumerate(sentences):
-        ds = _definition_strength(query, sentence, title)
-        if ds >= 40:
-            definition.append((ds, idx, sentence))
-        elif ds >= 20:
-            supporting.append((ds, idx, sentence))
-    definition.sort(key=lambda item: (-item[0], item[1]))
-    supporting.sort(key=lambda item: (-item[0], item[1]))
-    selected = []
+        score = _definition_strength(query, sentence, title)
+        if re.search(r"\b(?:collective awakening|profound truth|we'?re all co-creators|universal knowledge|quantum thread|hypothetical)\b", sentence.casefold()):
+            score -= 40
+        scored.append((score,idx,sentence))
+    scored.sort(key=lambda item:(-item[0],item[1]))
+    definition = [x[2] for x in scored if x[0] >= 45][:2]
+    supporting = [x[2] for x in scored if 15 <= x[0] < 45][:2]
     if definition:
-        selected.append(definition[0][2])
-        for item in supporting:
-            if len(selected) >= 2:
-                break
-            if item[2] != selected[0]:
-                selected.append(item[2])
+        parts = [f"The closest supported material I found is [{title}]({url}).", " ".join(definition)]
+        if supporting:
+            parts.append(supporting[0])
     else:
-        for item in supporting[:2]:
-            selected.append(item[2])
-    if not selected:
-        return f"The Archive has material on [{title}]({url}), but the retrieved evidence does not establish a clear definition of { _query_subject(query) or 'the concept' }. It is better to leave that boundary explicit than infer a definition from adjacent material."
-    subject = _query_subject(query)
-    first = selected[0]
-    prefix = f"The closest supported material I found is [{title}]({url})."
-    if subject and not re.search(rf"\b{re.escape(subject)}\b", first, re.I):
-        prefix += f" The retrieved material does not state a concise definition of {subject} in plain terms, so the explanation below stays close to what it actually supports."
-    parts = [prefix, " ".join(selected)]
+        subject_in_source = any(re.search(rf"\b{re.escape(subject)}\b", s, re.I) for s in sentences)
+        if subject_in_source:
+            parts = [f"The closest supported material I found is [{title}]({url}).", f"The retrieved material discusses {subject} in this context, but it does not give a concise definition. Rather than invent one, the safest summary is that the Archive treats it as a topic for further philosophical or interpretive exploration."]
+        else:
+            parts = [f"The Archive has material related to {subject} in [{title}]({url}), but the retrieved evidence does not establish a clear definition of {subject}. It is better to leave that boundary explicit than infer a definition from adjacent material."]
     e = _role_evidence(primary)
     if e["worldview"]:
-        parts.append("Where the material moves into spiritual, cosmological, or metaphysical interpretation, that should be read as the perspective presented in the Archive rather than as established fact.")
+        parts.append("Where the material moves into spiritual, cosmological, or metaphysical interpretation, that is the perspective presented in the Archive rather than established fact.")
     return "\n\n".join(parts)
 
 
-def _select_foundation_primary(docs):
-    ranked=[]
-    for index, doc in enumerate(docs):
-        title=_normalize_title(doc.get("title") or ""); url=_valid_doc_url(doc)
-        if not title or not url or _is_risk_related(doc): continue
-        corpus=(title+" "+str(doc.get("text") or "")).casefold()
-        score=42*int(bool(re.search(r"\b(?:living archive|archive|body of work|essays|orientation|navigation)\b",corpus)))+28*int(bool(re.search(r"\b(?:help|understand|questions|perspectives|pathways|frameworks)\b",corpus)))
-        ranked.append((score,index,doc))
-    ranked=[x for x in ranked if x[0]>0]; ranked.sort(key=lambda x:(-x[0],x[1]))
-    return ranked[0][2] if ranked else None
-
-
-def _build_foundation_answer(user_query, primary=None, docs=None):
+def _build_foundation_answer(query, primary=None, docs=None):
     docs=docs or []
     if primary:
         title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary)
@@ -267,7 +224,7 @@ def _persistent_visitor_construction(query: str, docs: list, profile: dict, cano
         return _build_risk_answer(query)
     if profile.get("foundation_open"):
         foundation_docs=_parse_context_documents(canonical_link_context) or docs
-        primary=foundation_docs[0] if foundation_docs else _select_foundation_primary(docs)
+        primary=foundation_docs[0] if foundation_docs else None
         answer=_build_foundation_answer(query,primary,foundation_docs)
         if answer: return answer
     if _factual_open(query, profile):
@@ -282,7 +239,7 @@ def _sanitize_visitor_output(text: str) -> str:
     return re.sub(r"\bUSE\b", "The Guide", str(text or ""))
 
 
-def _v461_generate_boundary(*args, **kwargs):
+def _v462_generate_boundary(*args, **kwargs):
     user_query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(raw_context)
     canonical_link_context=str(kwargs.get("canonical_link_context") or "")
     if not canonical_link_context and len(args)>=4 and isinstance(args[3],str): canonical_link_context=args[3]
@@ -291,23 +248,23 @@ def _v461_generate_boundary(*args, **kwargs):
     return _sanitize_visitor_output(_original_generate_llm_response(*args,**kwargs))
 
 
-def _v461_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+def _v462_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
     docs=_parse_context_documents(canonical_link_context); profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
     if persistent: return _sanitize_visitor_output(persistent)
     return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V461_BOUNDARY_QUERY="What is the Living Archive?"
-_V461_BOUNDARY_AUDIT=_v461_evidence_gap_boundary(_V461_BOUNDARY_QUERY,"")
-if "living archive" not in _V461_BOUNDARY_AUDIT.casefold() or "USE" in _V461_BOUNDARY_AUDIT:
-    raise RuntimeError("USE v461 visitor boundary audit failed.")
+_V462_BOUNDARY_QUERY="What is the Living Archive?"
+_V462_BOUNDARY_AUDIT=_v462_evidence_gap_boundary(_V462_BOUNDARY_QUERY,"")
+if "living archive" not in _V462_BOUNDARY_AUDIT.casefold() or "USE" in _V462_BOUNDARY_AUDIT:
+    raise RuntimeError("USE v462 visitor boundary audit failed.")
 
 app=use_core.app
 app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v461 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"The Guide v462 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION=APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response=_v461_generate_boundary
-use_core._evidence_sufficiency_unavailable_response=_v461_evidence_gap_boundary
+use_core.generate_llm_response=_v462_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v462_evidence_gap_boundary
