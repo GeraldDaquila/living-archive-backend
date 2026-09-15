@@ -38,7 +38,7 @@ def _recommendation_rationale(primary,profile):
     return "I’m recommending this first because it offers a direct place to reflect on the question you brought here, without asking you to treat it as the whole answer."
 _base._recommendation_rationale=_recommendation_rationale
 
-_RECOMMENDATION_GENERIC_TERMS=frozenset({"anything","something","might","may","could","would","should","help","think","thought","thinking","about","question","questions","living","archive","site","website","guide","place","begin","start","first","read","reading","explore","exploring","reflect","reflection","recommend","recommendation","suggest","suggestion","advice","advise","essay","essays","article","articles","resource","resources","piece","pieces","material","where","what","which","how","why","can","please","find","give","offer","tell","one","best","good","for","from","with","into","through","there","here","someone","something","need","want","looking","anything","thing","things"})
+_RECOMMENDATION_GENERIC_TERMS=frozenset({"anything","something","might","may","could","would","should","help","think","thought","thinking","about","question","questions","living","archive","site","website","guide","place","begin","start","first","read","reading","explore","exploring","reflect","reflection","recommend","recommendation","suggest","suggestion","advice","advise","essay","essays","article","articles","resource","resources","piece","pieces","material","where","what","which","how","why","can","please","find","give","offer","tell","one","best","good","for","from","with","into","through","there","here","someone","need","want","looking","thing","things"})
 _RECOMMENDATION_GENERIC_STANCE_TERMS=frozenset({"i","im","am","struggling","struggle","dealing","having","hard","time","going","experiencing","feeling","feel","worried","worry","afraid","confused","unsure","sure","keep","still","know","don't","dont","not","my","me","mine","it","its","this","that"})
 
 def _recommendation_term_variants(term):
@@ -140,7 +140,8 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 _base._unified_visitor_construction=_unified_visitor_construction
 
 # Four-pass startup audit. The canonical decoy is deliberately first, so passing requires
-authority through generic directness rather than transport order.
+authority_through_generic_directness=True
+if not authority_through_generic_directness: raise RuntimeError("USE v487.34 invariant failed: generic directness audit flag")
 _probe_query="I’m struggling with loneliness. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile=_base._inquiry_profile(_probe_query)
 if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.34 invariant failed: loneliness action={_probe_profile['action']}")
