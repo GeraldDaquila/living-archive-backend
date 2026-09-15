@@ -58,10 +58,11 @@ _base._recommendation_rationale=_recommendation_rationale
 def _canonical_primary_from_docs(canonical_docs,query,profile):
     """Select the strongest direct canonical doorway from supplied canonical evidence.
 
-    This boundary resolves the structural gap exposed by v487.31: canonical_link_context
-    is intentionally broader than the final generation set, so its first record is not
-    an authority signal. Primary selection therefore uses the Archive's existing
-    evidence-bound recommendation subject-fit function rather than transport order.
+    canonical_link_context is intentionally broader than the final generation set,
+    so transport order is not an authority signal. The primary doorway is selected
+    by the existing evidence-bound recommendation subject-fit function, with the
+    existing recommendation anchor score as a secondary evidence signal and original
+    order used only as a deterministic final tie-breaker.
     """
     docs=[d for d in (canonical_docs or []) if isinstance(d,dict) and str(d.get("title") or "").strip() and str(d.get("url") or "").startswith("https://")]
     if not docs: return None
@@ -69,11 +70,7 @@ def _canonical_primary_from_docs(canonical_docs,query,profile):
     for index,d in enumerate(docs):
         fit=_base._recommendation_subject_fit(query,d)
         anchor=_base._recommendation_anchor_score(query,d,profile)
-        title=str(d.get("title") or "").casefold()
-        direct_title=0
-        if profile.get("lived"):
-            direct_title += 4*len(re.findall(r"\b(?:loneliness|emptiness|despair|sadness|sorrow|anxiety|fear|anger|shame|guilt|isolation|disconnection|heartbreak|grief|loss|relationship|trauma)\b",title))
-        scored.append((fit, direct_title, anchor, -index, d))
+        scored.append((fit,anchor,-index,d))
     scored.sort(key=lambda item:item[:-1],reverse=True)
     d=scored[0][-1]
     return {"text":"","title":str(d["title"]).strip(),"url":str(d["url"]).strip(),"score":100000.0,"epistemic":"supported","canonical":True,"_authority":"visitor_canonical_directness_adjudication"}
