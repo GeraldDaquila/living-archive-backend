@@ -1,23 +1,25 @@
-# USE PRODUCTION VERSION: v487.12 — full visitor architecture restore and AI truth navigation
+# USE PRODUCTION VERSION: v487.13 — canonical doorway ranking root-cause repair
 import hashlib
 import importlib
 import re
 from pathlib import Path
-APP_VERSION="v487.12"
-DEPLOYMENT_FINGERPRINT="USE-v487.12-ai-truth-navigation-calibration"
-CANONICAL_BUILD_ID="USE-BUILD-v487.12-ai-truth-navigation-calibration"
+
+APP_VERSION="v487.13"
+DEPLOYMENT_FINGERPRINT="USE-v487.13-canonical-doorway-ranking"
+CANONICAL_BUILD_ID="USE-BUILD-v487.13-canonical-doorway-ranking"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v487.12 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v487.13 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.12 package integrity failure: protected core mismatch.")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.13 package integrity failure: protected core mismatch.")
 use_core=importlib.import_module("use_core")
 _original_generate_llm_response=use_core.generate_llm_response
 _original_handle_query=getattr(use_core,"handle_query",None)
 _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v487.12 package integrity failure: API query handler unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.12 package integrity failure: evidence-gap boundary unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v487.13 package integrity failure: API query handler unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.13 package integrity failure: evidence-gap boundary unavailable.")
+
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
 def _valid_doc_url(doc):
@@ -62,6 +64,7 @@ def _weighted_inquiry_profile(query):
     if p["grief"]: p["lived"]=max(p["lived"],0.90)
     if p["recommendation"] and p["grief"]: p["recommendation"]=min(1.0,p["recommendation"]+0.10)
     return p
+
 def _weighted_action(profile):
     if profile["risk"]>=0.80: return "risk"
     if profile["ai_truth"]>=0.80 and profile["navigation"]>=0.70: return "recommendation"
@@ -70,6 +73,7 @@ def _weighted_action(profile):
     if profile["lived"]>0: scores["lived"]+=0.08*profile["grief"]
     if profile["foundation"]>0: scores["foundation"]-=0.35*profile["recommendation"]
     return max(scores,key=scores.get) if max(scores.values())>=0.35 else "core"
+
 def _inquiry_profile(query):
     p=_weighted_inquiry_profile(query); action=_weighted_action(p); return {**p,"subject":"grief" if p["grief"]>=0.5 else "","action":action,"risk":p["risk"]>=0.8,"recommendation":p["recommendation"]>=0.5,"navigation":p["navigation"]>=0.5,"foundation":p["foundation"]>=0.5,"lived":p["lived"]>=0.5,"conceptual":p["conceptual"]>=0.5,"grief":p["grief"]>=0.5}
 def _build_risk_answer(query):
@@ -109,20 +113,29 @@ def _extract_claims(candidates):
         if key in seen: continue
         seen.add(key); claims.append({"text":normalized,"title":c["title"],"url":c["url"],"score":c["score"],"claim_type":_claim_type(normalized),"epistemic":_epistemic_type(normalized,c["worldview"])})
     return claims
-def _related_claims(claims):
-    groups={"definition":[],"relationship":[],"exploration":[]}
-    for c in claims: groups[c["claim_type"]].append(c)
-    return groups
-def _recommendation_anchor_score(query,claim,profile):
-    low=(claim["title"]+" "+claim["text"]).casefold(); score=float(claim.get("score",0)); specialized=bool(re.search(r"\b(?:afterlife|reincarnation|hypnosis|near-death|nde|cosmic|mystical|metaphysical)\b",low))
+
+def _canonical_role(title,text,profile):
+    low=f"{title} {text}".casefold(); role="general"
     if profile.get("ai_truth"):
-        if re.search(r"\b(?:truth|discernment|discern|knowledge|wisdom|ai|artificial intelligence|misinformation|disinformation|identity|meaning)\b",low): score+=45
-        if re.search(r"\b(?:spiritual|metaphysical|higher-order intelligence|afterlife|reincarnation)\b",low) and not profile.get("specialized"): score-=30
+        if re.search(r"\b(?:truth in the age of ai|discernment|truth.*ai|ai.*truth|knowledge stewardship.*ai|knowledge stewardship|information to wisdom)\b",low): role="ai_truth_direct"
+        elif re.search(r"\b(?:meaning crisis.*artificial intelligence|artificial intelligence.*meaning crisis|ai.*meaning|ai.*identity|identity.*ai)\b",low): role="ai_truth_adjacent"
+        elif re.search(r"\b(?:living archive navigator|network architecture|regeneration)\b",low): role="ai_truth_structural"
     if profile.get("grief"):
-        if re.search(r"\b(?:death|grief|grieving|mourning|loss|bereavement|loved one|continuity|meaning in grief)\b",low): score+=35
-        if specialized and not profile.get("specialized"): score-=25
-    if profile.get("specialized") and specialized: score+=25
+        if re.search(r"\b(?:death, grief|grief.*continuity|meaning in grief|transformative power of loss|grief.*loss)\b",low): role="grief_direct"
+        elif re.search(r"\b(?:afterlife|reincarnation|near-death|hypnosis)\b",low): role="grief_specialized"
+    return role
+
+def _recommendation_anchor_score(query,claim,profile):
+    low=(claim["title"]+" "+claim["text"]).casefold(); score=float(claim.get("score",0)); role=_canonical_role(claim["title"],claim["text"],profile)
+    if profile.get("ai_truth"):
+        score += {"ai_truth_direct":120,"ai_truth_adjacent":70,"ai_truth_structural":-35,"general":0}.get(role,0)
+        if re.search(r"\b(?:truth|discernment|knowledge|wisdom|ai|artificial intelligence|misinformation|disinformation)\b",low): score+=25
+    if profile.get("grief"):
+        score += {"grief_direct":110,"grief_specialized":-20,"general":0}.get(role,0)
+    if profile.get("specialized") and profile.get("ai_truth") and role=="ai_truth_structural": score+=15
+    if profile.get("specialized") and role=="grief_specialized": score+=30
     return score
+
 def _recommendation_rationale(query,primary,profile):
     low=(primary["title"]+" "+primary["text"]).casefold()
     if profile.get("ai_truth"): return "I’m recommending this first because it speaks directly to the question underneath your question: how to distinguish what can be known from what is generated, interpreted, or merely persuasive in the AI era."
@@ -131,23 +144,27 @@ def _recommendation_rationale(query,primary,profile):
         if re.search(r"\b(?:grief|loss|mourning|bereavement)\b",low): return "I’m recommending this first because it speaks directly to grief and loss, rather than asking you to begin with a more specialized interpretation of what happens after death."
         return "I’m recommending this first because it offers a direct doorway into the human experience at the center of your question."
     return "This is a useful place to begin because it speaks directly to the part of the question you asked about."
+
 def _recommendation_wisdom(query,primary,profile):
     if profile.get("ai_truth"): return "In a time when information can be generated faster than it can be understood, discernment becomes less about finding one perfect source and more about learning how to recognize what kind of claim you are encountering."
     if profile.get("grief"): return "Grief is not only the pain of losing someone; it can also be the slow work of finding a way to carry love, memory, and an altered future without pretending the loss did not matter. There may be no single correct timetable for that work."
     return "A useful way to approach a question like this is to let the first insight open the inquiry rather than treating it as the final word."
+
 def _recommendation_foothold(profile):
     if profile.get("ai_truth"): return "For now, a humane next step is to take one claim or answer that you are unsure about and ask: what here is established, what is interpretation, and what would I need to verify before I build a conclusion on it?"
     if profile.get("grief"): return "For today, a humane next step can be very small: name what you miss, what hurts, or what you are not ready to accept yet, without requiring yourself to solve it."
     return "A humane next step is to notice which part of the question matters most to you now and stay with that part before moving on."
+
 def _foundation_teacherly_answer(query,docs):
     low=str(query or "").casefold()
     if re.search(r"\bwhat is the living archive\b|\bwhat's the living archive\b",low): return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer. It is less a place to collect conclusions than a way to begin finding your bearings.\n\nYou can enter with a question, follow a pathway that helps you orient to it, and then move outward into the connected essays that deepen or complicate what you are seeing."
     return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer."
+
 def _build_lived_experience_answer(query,docs,profile):
     claims=_extract_claims(_candidate_sentences(query,docs))
     if not claims: return ""
-    anchor=claims[0]; parts=[_recommendation_wisdom(query,anchor,profile),_recommendation_foothold(profile),f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.","You can stay with this lens, follow the connected material, or return with another part of the question that feels more relevant."]
-    return "\n\n".join(parts)
+    anchor=claims[0]; return "\n\n".join([_recommendation_wisdom(query,anchor,profile),_recommendation_foothold(profile),f"The Archive offers a related lens in [{anchor['title']}]({anchor['url']}), where the material explores {anchor['text'].rstrip('.')}. This is one way into the question, not a claim that it completely explains your experience.","You can stay with this lens, follow the connected material, or return with another part of the question that feels more relevant."])
+
 def _build_factual_answer(query,docs):
     subject=re.sub(r"^(?:what is|what's|define|explain|what does|who is|who was|where is|where was|why is|why does|how does)\s+","",query.strip(),flags=re.I).rstrip(" ?.!:"); claims=_extract_claims(_candidate_sentences(query,docs))
     if not claims or not subject: return ""
@@ -157,16 +174,17 @@ def _build_factual_answer(query,docs):
     if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material enters spiritual or cosmological interpretation; those elements remain interpretive possibilities rather than established facts.")
     parts.append("A useful place to continue is the linked anchor, where you can see which part of the question you want to stay with or explore further.")
     return "\n\n".join(parts)
+
 def _recommendation_answer(query,docs,profile):
     claims=_extract_claims(_candidate_sentences(query,docs))
     if not claims: return ""
-    ranked=sorted(claims,key=lambda c:_recommendation_anchor_score(query,c,profile),reverse=True)
-    primary=ranked[0]; adjacent=ranked[1] if len(ranked)>1 else None
+    ranked=sorted(claims,key=lambda c:_recommendation_anchor_score(query,c,profile),reverse=True); primary=ranked[0]; adjacent=ranked[1] if len(ranked)>1 else None
     label="For someone grieving, a good place to begin is" if profile.get("grief") else "A good place to begin is"
     parts=[f"{label} [{primary['title']}]({primary['url']}).",_recommendation_wisdom(query,primary,profile),_recommendation_foothold(profile),_recommendation_rationale(query,primary,profile),"This doorway is offered as a reflection gateway, not as a complete explanation or prescription."]
     if adjacent: parts.append(f"A nearby path is [{adjacent['title']}]({adjacent['url']}), which opens another aspect of the question without asking you to treat either doorway as the whole answer.")
     if any(c["epistemic"]=="interpretive" for c in claims): parts.append("Some of the Archive's material enters spiritual or cosmological interpretation; those elements remain interpretive possibilities rather than established facts.")
     return "\n\n".join(parts)
+
 def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
     profile=_inquiry_profile(query); docs=[]; seen=set()
     for doc in list(canonical_docs or [])+list(retrieved_docs or []):
@@ -186,33 +204,36 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
         answer=_build_factual_answer(query,docs)
         if answer: return answer,"conceptual"
     return "","core"
+
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
     query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs)
     answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs)
-    print(f"The Guide v487.12 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v487.13 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     fallback=answer if answer else _original_generate_llm_response(*args,**kwargs)
     return _sanitize_visitor_output(fallback)
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
     canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks)
     answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs)
-    print(f"The Guide v487.12 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v487.13 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     fallback=answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context)
     return _sanitize_visitor_output(fallback)
+
 def _calibration_contract_audit(answer,mode,risk=False):
     text=str(answer or ""); low=text.casefold()
     if risk: return {"human_reality":True,"humane_foothold":True,"epistemic_boundary":True,"risk_routing":"emergency" in low,"outward_gateway":True,"teacherly_sovereignty_voice":True}
     if mode=="foundation": return {"human_reality":bool(re.search(r"\b(?:human questions|finding your bearings|human|people)\b",low)),"humane_foothold":bool(re.search(r"\b(?:begin|finding your bearings|way to begin|enter with a question|follow a pathway|move outward)\b",low)),"epistemic_boundary":True,"risk_routing":True,"outward_gateway":True,"teacherly_sovereignty_voice":bool(re.search(r"\b(?:finding your bearings|way to begin|less a place to collect conclusions|enter with a question|move outward)\b",low))}
     return {"human_reality":bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|question|uncertain|discernment|truth)\b",low)),"humane_foothold":bool(re.search(r"\b(?:for today|next step|humane next step|notice|stay with|place to begin|ask|verify)\b",low)),"epistemic_boundary":bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|not the whole answer|what can be known|what is interpretation|verify)\b",low)),"risk_routing":True,"outward_gateway":bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text)) and bool(re.search(r"\b(?:nearby path|second doorway|reflection gateway|another aspect|linked anchor)\b",low)),"teacherly_sovereignty_voice":bool(re.search(r"\b(?:wisdom|you can|for today|stay with|what kind of claim|finding your bearings|open the inquiry|rather than treating it as the final word)\b",low))}
+
 _V487_FOUNDATION_AUDIT=_foundation_teacherly_answer("What is the Living Archive?",[])
 _V487_AI_TRUTH_AUDIT=_recommendation_answer("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?",[{"title":"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill","url":"https://geralddaquila.com/truth-in-the-age-of-ai-why-discernment-is-becoming-a-survival-skill/","text":"Discernment becomes essential when generated information can resemble knowledge; the human task is to distinguish what can be known from what is generated or interpreted."},{"title":"Knowledge Stewardship in the AI Era: From Information to Wisdom","url":"https://geralddaquila.com/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/","text":"Knowledge stewardship asks how information becomes wisdom through discernment, responsibility, and reflection."},{"title":"The Meaning Crisis in the Age of Artificial Intelligence","url":"https://geralddaquila.com/the-meaning-crisis-in-the-age-of-artificial-intelligence/","text":"The AI era can deepen questions of meaning, identity, and the human need for reflection."}],_inquiry_profile("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?"))
 _V487_FOUNDATION_CONTRACT_AUDIT=_calibration_contract_audit(_V487_FOUNDATION_AUDIT,"foundation")
 _V487_CONTRACT_AUDIT=_calibration_contract_audit(_V487_AI_TRUTH_AUDIT,"recommendation")
-if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.12 invariant audit failed: foundation.")
-if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.12 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
-if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.12 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
-if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.12 recommendation calibration contract failed: {_V487_CONTRACT_AUDIT}")
+if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.13 invariant audit failed: foundation.")
+if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.13 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
+if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.13 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
+if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.13 recommendation calibration contract failed: {_V487_CONTRACT_AUDIT}")
 app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v487.12 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
+print(f"The Guide v487.13 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
 use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
