@@ -115,7 +115,8 @@ def _canonical_primary_from_docs(canonical_docs,query,profile):
 def _select_adjacent(claims,query,primary_title,profile):
     ranked=[]
     for index,claim in enumerate(claims):
-        if str(claim.get("title") or "").casefold()==str(primary_title or "").casefold() or _risk_mismatch(claim,profile): continue
+        role=_role_evidence(claim)
+        if str(claim.get("title") or "").casefold()==str(primary_title or "").casefold() or role["risk"] or (role["abuse"] and "abuse" not in _normalize_query(query)) or (role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth"))): continue
         metrics=_subject_metrics(query,claim)
         if _relevance_level(metrics)<1: continue
         ranked.append((metrics,float(claim.get("score",0) or 0),-index,claim))
