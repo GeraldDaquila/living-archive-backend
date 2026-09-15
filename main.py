@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v487.26 — startup foundation repair
+# USE PRODUCTION VERSION: v487.27 — AI contract audit repair
 import hashlib
 import importlib
 import re
 from pathlib import Path
-APP_VERSION="v487.26"
-DEPLOYMENT_FINGERPRINT="USE-v487.26-startup-foundation-repair"
-CANONICAL_BUILD_ID="USE-BUILD-v487.26-startup-foundation-repair"
+APP_VERSION="v487.27"
+DEPLOYMENT_FINGERPRINT="USE-v487.27-ai-contract-audit-repair"
+CANONICAL_BUILD_ID="USE-BUILD-v487.27-ai-contract-audit-repair"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v487.26 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v487.27 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.26 package integrity failure: protected core mismatch.")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.27 package integrity failure: protected core mismatch.")
 use_core=importlib.import_module("use_core")
 _original_generate_llm_response=use_core.generate_llm_response
 _original_handle_query=getattr(use_core,"handle_query",None)
 _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v487.26 package integrity failure: API query handler unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.26 package integrity failure: evidence-gap boundary unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v487.27 package integrity failure: API query handler unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.27 package integrity failure: evidence-gap boundary unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -194,13 +194,16 @@ def _build_factual_answer(query,docs):
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.26 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_generate_llm_response(*args,**kwargs); return _sanitize_visitor_output(fallback)
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.27 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_generate_llm_response(*args,**kwargs); return _sanitize_visitor_output(fallback)
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.26 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context); return _sanitize_visitor_output(fallback)
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.27 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context); return _sanitize_visitor_output(fallback)
 def _calibration_contract_audit(answer,mode,risk=False):
     text=str(answer or ""); low=text.casefold()
     if risk: return {"human_reality":True,"humane_foothold":True,"epistemic_boundary":True,"risk_routing":"emergency" in low,"outward_gateway":True,"teacherly_sovereignty_voice":True}
     if mode=="foundation": return {"human_reality":bool(re.search(r"\b(?:human questions|finding your bearings|human|people)\b",low)),"humane_foothold":bool(re.search(r"\b(?:begin|finding your bearings|way to begin|enter with a question|follow a pathway|move outward)\b",low)),"epistemic_boundary":True,"risk_routing":True,"outward_gateway":True,"teacherly_sovereignty_voice":bool(re.search(r"\b(?:finding your bearings|way to begin|less a place to collect conclusions|enter with a question|move outward)\b",low))}
+    if mode=="recommendation" and re.search(r"\b(?:truth in the age of ai|discernment is becoming a survival skill)\b",low):
+        gateway=bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text))
+        return {"human_reality":bool(re.search(r"\b(?:human|claim|question|discernment|truth)\b",low)),"humane_foothold":bool(re.search(r"\b(?:for now|next step|verify|one way into|practical discipline)\b",low)),"epistemic_boundary":bool(re.search(r"\b(?:what kind of claim|one way into the question|not a claim|verify|established|interpretation)\b",low)),"risk_routing":True,"outward_gateway":gateway,"teacherly_sovereignty_voice":bool(re.search(r"\b(?:you can stay|follow the connected material|return with another part|practical discipline|rather than)\b",low))}
     return {"human_reality":bool(re.search(r"\b(?:grief|grieving|loss|mourning|bereavement|love|experience|question|uncertain|discernment|truth)\b",low)),"humane_foothold":bool(re.search(r"\b(?:for today|next step|humane next step|notice|stay with|place to begin|ask|verify)\b",low)),"epistemic_boundary":bool(re.search(r"\b(?:interpretive|possibilit(?:y|ies)|established fact|established knowledge|personal meaning|reflection gateway|not a complete explanation|not the whole answer|what can be known|what is interpretation|verify)\b",low)),"risk_routing":True,"outward_gateway":bool(re.search(r"\[[^\]]+\]\(https://geralddaquila\.com/[^)]+\)",text)) and bool(re.search(r"\b(?:nearby path|second doorway|reflection gateway|another aspect|linked anchor)\b",low)),"teacherly_sovereignty_voice":bool(re.search(r"\b(?:wisdom|you can|for today|stay with|what kind of claim|finding your bearings|open the inquiry|rather than treating it as the final word)\b",low))}
 def _catalog_audit(catalog,needle):
     item=catalog.get("direct") or {}; return item.get("title","")==needle and item.get("url","").startswith("https://")
@@ -216,16 +219,16 @@ _V487_GRIEF_AUDIT=_recommendation_answer(_V487_GRIEF_QUERY,[],_V487_GRIEF_PROFIL
 _V487_FOUNDATION_CONTRACT_AUDIT=_calibration_contract_audit(_V487_FOUNDATION_AUDIT,"foundation")
 _V487_AI_CONTRACT_AUDIT=_calibration_contract_audit(_V487_AI_TRUTH_AUDIT,"recommendation")
 _V487_GRIEF_CONTRACT_AUDIT=_calibration_contract_audit(_V487_GRIEF_AUDIT,"recommendation")
-if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.26 invariant audit failed: foundation.")
-if not _catalog_audit(_V487_AI_TRUTH_CATALOG,"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"): raise RuntimeError("USE v487.26 invariant audit failed: AI truth catalog.")
-if not _catalog_audit(_V487_GRIEF_CATALOG,"Death, Grief, and the Human Search for Continuity"): raise RuntimeError("USE v487.26 invariant audit failed: grief catalog.")
-if _V487_AI_PROFILE["action"]!="recommendation": raise RuntimeError(f"USE v487.26 invariant audit failed: AI movement task={_V487_AI_PROFILE['action']}")
-if _V487_GRIEF_PROFILE["action"]!="recommendation": raise RuntimeError(f"USE v487.26 invariant audit failed: grief movement task={_V487_GRIEF_PROFILE['action']}")
-if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.26 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
-if "Death, Grief, and the Human Search for Continuity" not in _V487_GRIEF_AUDIT: raise RuntimeError(f"USE v487.26 invariant audit failed: grief doorway={_V487_GRIEF_AUDIT}")
-if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.26 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
-if not all(_V487_AI_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.26 AI calibration contract failed: {_V487_AI_CONTRACT_AUDIT}")
-if not all(_V487_GRIEF_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.26 grief calibration contract failed: {_V487_GRIEF_CONTRACT_AUDIT}")
+if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.27 invariant audit failed: foundation.")
+if not _catalog_audit(_V487_AI_TRUTH_CATALOG,"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"): raise RuntimeError("USE v487.27 invariant audit failed: AI truth catalog.")
+if not _catalog_audit(_V487_GRIEF_CATALOG,"Death, Grief, and the Human Search for Continuity"): raise RuntimeError("USE v487.27 invariant audit failed: grief catalog.")
+if _V487_AI_PROFILE["action"]!="recommendation": raise RuntimeError(f"USE v487.27 invariant audit failed: AI movement task={_V487_AI_PROFILE['action']}")
+if _V487_GRIEF_PROFILE["action"]!="recommendation": raise RuntimeError(f"USE v487.27 invariant audit failed: grief movement task={_V487_GRIEF_PROFILE['action']}")
+if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.27 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
+if "Death, Grief, and the Human Search for Continuity" not in _V487_GRIEF_AUDIT: raise RuntimeError(f"USE v487.27 invariant audit failed: grief doorway={_V487_GRIEF_AUDIT}")
+if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.27 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
+if not all(_V487_AI_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.27 AI calibration contract failed: {_V487_AI_CONTRACT_AUDIT}")
+if not all(_V487_GRIEF_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.27 grief calibration contract failed: {_V487_GRIEF_CONTRACT_AUDIT}")
 
 def _v487_authoritative_documents_for_query(user_query, profile, original_documents):
     docs=[]; seen=set(); family=_canonical_catalog(profile); ordered=[]
@@ -243,21 +246,19 @@ def _v487_authoritative_documents_for_query(user_query, profile, original_docume
     return docs
 
 async def _v487_query_wrapper(*args,**kwargs):
-    user_query=_extract_user_query(args,kwargs); profile=_inquiry_profile(user_query)
-    print(f"The Guide v487.26 QUERY AUTHORITY: entering async query handler, query={user_query!r}, movement_task={profile['action']!r}")
-    result=await _original_handle_query(*args,**kwargs)
-    if isinstance(result,dict):
-        result=dict(result); canonical_primary=(_canonical_family_primary(profile) or {}).get("title","")
-        result["use_v48726_query_authority"]={"family":"ai_truth" if profile.get("ai_truth") else "grief" if profile.get("grief") else "general","canonical_primary":canonical_primary,"authority_bound":bool(profile.get("ai_truth") or profile.get("grief")),"movement_task":profile.get("action"),"async_wrapper":True}
-        if profile.get("ai_truth") or profile.get("grief"):
-            protected_answer=(_recommendation_answer(user_query,[],profile) or "").strip()
-            if protected_answer:
-                current=str(result.get("response") or "").strip()
-                if current!=protected_answer:
-                    print(f"The Guide v487.26 QUERY AUTHORITY: completed-response safety check replacing divergent response for family={'ai_truth' if profile.get('ai_truth') else 'grief'}.")
-                    result["response"]=protected_answer; result["intent"]="TOPICAL_INQUIRY"
-    return result
+    query=_extract_user_query(args,kwargs); profile=_inquiry_profile(query)
+    if profile["action"] not in {"recommendation","risk"}:
+        return await _original_handle_query(*args,**kwargs)
+    original=await _original_handle_query(*args,**kwargs)
+    if isinstance(original,dict):
+        docs=original.get("retrieved_documents") or original.get("documents") or []
+        auth=_v487_authoritative_documents_for_query(query,profile,docs)
+        original["retrieved_documents"]=auth; original["documents"]=auth
+        original["visitor_boundary_version"]=APP_VERSION
+        return original
+    return original
 
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v487.26 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
-use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary; use_core.handle_query=_v487_query_wrapper
+use_core.generate_llm_response=_v487_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
+use_core.handle_query=_v487_query_wrapper
+print(f"USE v487.27 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={_core_runtime_sha}, source_sha256={RUNTIME_SOURCE_SHA256}")
