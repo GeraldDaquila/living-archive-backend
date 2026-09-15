@@ -1,35 +1,33 @@
-# USE PRODUCTION VERSION: v472 — visitor translation and orientation boundary
+# USE PRODUCTION VERSION: v474 — evidence-fragment boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v472"
-DEPLOYMENT_FINGERPRINT = "USE-v472-visitor-translation-orientation"
-CANONICAL_BUILD_ID = "USE-BUILD-v472-visitor-translation-orientation"
+APP_VERSION = "v474"
+DEPLOYMENT_FINGERPRINT = "USE-v474-evidence-fragment-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v474-evidence-fragment-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v472 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v474 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v472 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v474 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v472 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v474 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v472 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v474 package integrity failure: evidence-gap response boundary is unavailable.")
 
-# Reuse the existing calibrated visitor-construction surface from the previous production lineage.
-# This v472 file is intentionally self-contained but keeps the visitor boundary narrow.
 def _sanitize_visitor_output(text):
     return re.sub(r"\bUSE\b", "The Guide", str(text or "")).replace("..", ".")
 
@@ -141,11 +139,21 @@ def _plain_language_concept(subject, candidates):
 
 def _semantic_normalize_sentence(sentence):
     value = re.sub(r"\s+", " ", str(sentence or "").strip())
-    value = re.sub(r"\b(?:Connected to|Connected with)\s+the earliest flameholders\b[^.]*\.?", "", value, flags=re.I)
-    value = re.sub(r"\b(?:The Archive develops that idea through themes such as|themes such as)\s*$", "", value, flags=re.I)
+    value = re.sub(r"\b(?:Connected to|Connected with)\s+the earliest flameholders\b[^.]*", "", value, flags=re.I)
     value = re.sub(r"\s+([,.;:])", r"\1", value)
     value = re.sub(r"\.{2,}", ".", value)
-    return value.strip()
+    value = re.sub(r"\s{2,}", " ", value).strip()
+    return value
+
+def _usable_supporting_sentence(sentence):
+    value = _semantic_normalize_sentence(sentence).rstrip(".").strip()
+    if not value:
+        return ""
+    if len(value.split()) < 8:
+        return ""
+    if not re.search(r"[A-Za-z]", value):
+        return ""
+    return value
 
 def _build_factual_answer(query, docs):
     subject = _query_subject(query)
@@ -157,12 +165,11 @@ def _build_factual_answer(query, docs):
     parts = [f"The closest supported material I found is [{title}]({url}).", _plain_language_concept(subject, candidates)]
     supporting = []
     for _, sentence, _, _ in candidates:
-        normalized = _semantic_normalize_sentence(sentence).rstrip(".")
+        normalized = _usable_supporting_sentence(sentence)
         if normalized and normalized not in supporting and len(supporting) < 2:
             supporting.append(normalized)
     if supporting:
-        cleaned = " ".join(supporting)
-        cleaned = cleaned[0].upper() + cleaned[1:] + "."
+        cleaned = ". ".join(s.rstrip(".") for s in supporting) + "."
         parts.append(f"The Archive develops that idea through themes such as {cleaned}")
     if any(_role_evidence(d)["worldview"] for d in docs if isinstance(d, dict)):
         parts.append("The Archive also moves into spiritual or cosmological interpretation here; those elements are presented as interpretive perspectives rather than established fact.")
@@ -196,31 +203,32 @@ def _boundary_context(args, kwargs):
     canonical = str(kwargs.get("canonical_link_context") or (args[3] if len(args) >= 4 and isinstance(args[3], str) else ""))
     return query, _parse_context_documents(raw_context), _parse_context_documents(canonical)
 
-def _v473_generate_boundary(*args, **kwargs):
+def _v474_generate_boundary(*args, **kwargs):
     query, retrieved_docs, canonical_docs = _boundary_context(args, kwargs)
     answer, mode = _unified_visitor_construction(query, retrieved_docs, canonical_docs)
-    print(f"The Guide v473 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v474 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     return _sanitize_visitor_output(answer if answer else _original_generate_llm_response(*args, **kwargs))
 
-def _v473_evidence_gap_boundary(user_query, canonical_link_context="", retrieved_context_blocks=""):
+def _v474_evidence_gap_boundary(user_query, canonical_link_context="", retrieved_context_blocks=""):
     canonical_docs = _parse_context_documents(canonical_link_context)
     retrieved_docs = _parse_context_documents(retrieved_context_blocks)
     answer, mode = _unified_visitor_construction(user_query, retrieved_docs, canonical_docs)
-    print(f"The Guide v473 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    print(f"The Guide v474 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
     return _sanitize_visitor_output(answer if answer else _original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context))
 
-_V473_FOUNDATION_AUDIT = _build_foundation_answer()
-_V473_FACTUAL_AUDIT = _build_factual_answer("What is Overflow?", [{"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}])
-if "living archive" not in _V473_FOUNDATION_AUDIT.casefold() or "Overflow" not in _V473_FACTUAL_AUDIT or ".." in _V473_FACTUAL_AUDIT:
-    raise RuntimeError("USE v473 visitor translation audit failed.")
+_V474_FOUNDATION_AUDIT = _build_foundation_answer()
+_V474_FACTUAL_DOC = {"title":"Codex of the Overflow Pathway","url":"https://geralddaquila.com/overflow-2/","text":"Overflow relates to meaning, transcendence, creation, and stewardship. Connected to the earliest flameholders who discovered that breath was the simplest and most direct pathway to sustaining Overflow resonance, even without ritual or form.."}
+_V474_FACTUAL_AUDIT = _build_factual_answer("What is Overflow?", [_V474_FACTUAL_DOC])
+if "living archive" not in _V474_FOUNDATION_AUDIT.casefold() or "Overflow" not in _V474_FACTUAL_AUDIT or ".." in _V474_FACTUAL_AUDIT or "Connected to the earliest flameholders" in _V474_FACTUAL_AUDIT:
+    raise RuntimeError("USE v474 visitor fragment-boundary audit failed.")
 
 app = use_core.app
-app.title = "Find Your Way (The Guide) v473"
-print(f"The Guide v473 BUILD IDENTITY: build_id=USE-BUILD-v473-semantic-normalization, version=v473, fingerprint=USE-v473-semantic-normalization, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
-use_core.APP_VERSION = "v473"
-use_core.DEPLOYMENT_FINGERPRINT = "USE-v473-semantic-normalization"
-use_core.CANONICAL_BUILD_ID = "USE-BUILD-v473-semantic-normalization"
-use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v473_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v473_evidence_gap_boundary
+app.title = f"Find Your Way (The Guide) {APP_VERSION}"
+print(f"The Guide v474 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
+use_core.generate_llm_response=_v474_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v474_evidence_gap_boundary
