@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v465 — canonical concept eligibility boundary
+# USE PRODUCTION VERSION: v466 — canonical concept construction bridge
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v465"
-DEPLOYMENT_FINGERPRINT = "USE-v465-canonical-concept-eligibility"
-CANONICAL_BUILD_ID = "USE-BUILD-v465-canonical-concept-eligibility"
+APP_VERSION = "v466"
+DEPLOYMENT_FINGERPRINT = "USE-v466-canonical-concept-construction-bridge"
+CANONICAL_BUILD_ID = "USE-BUILD-v466-canonical-concept-construction-bridge"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v465 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v466 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v465 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v466 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v465 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v466 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v465 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v466 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _query_profile(user_query):
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -45,7 +45,7 @@ def _query_profile(user_query):
     }
 
 def _build_risk_answer(user_query=""):
-    q = str(user_query or "").casefold()
+    q=str(user_query or "").casefold()
     if re.search(r"\b(?:suicid\w*|self-harm|self harm|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|don't want to (?:live|be here)|do not want to (?:live|be here)|end my life|take my own life|harm myself|hurt myself|better off dead|wish I were dead)\b", q):
         return "If you are thinking about killing yourself or may act on thoughts of self-harm, please treat this as something that needs human help now. Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help. You do not need to work out the larger meaning of what you are going through before taking that next step."
     if re.search(r"\b(?:abuse|coercion|threatened|unsafe)\b", q):
@@ -53,11 +53,11 @@ def _build_risk_answer(user_query=""):
     return "If you may be in immediate danger or cannot keep yourself safe, please seek human help now. Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help."
 
 def _parse_context_documents(context_blocks):
-    parser = getattr(use_core, "_parse_context_documents", None)
+    parser=getattr(use_core,"_parse_context_documents",None)
     if callable(parser): return parser(context_blocks)
-    docs = []
+    docs=[]
     for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
-        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M); um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M|re.I); cm = re.search(r"^Content:\s*(.*)$", block, re.M|re.S)
+        tm=re.search(r"^Title:\s*(.+?)\s*$",block,re.M); um=re.search(r"^URL:\s*(https?://\S+)\s*$",block,re.M|re.I); cm=re.search(r"^Content:\s*(.*)$",block,re.M|re.S)
         if tm and um and cm: docs.append({"title":tm.group(1).strip(),"url":um.group(1).strip().rstrip(".,;"),"text":cm.group(1).strip()})
     return docs
 
@@ -158,13 +158,16 @@ def _build_factual_answer(query,primary,docs):
 
 def _build_foundation_answer(query,primary=None,docs=None):
     if primary and _valid_doc_url(primary):
-        title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary); return "\n\n".join(["The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",f"A useful place to begin is [{title}]({url}). It offers a way into the Archive while preserving the distinction between what is established, what is interpretive, and what may hold personal meaning.","Begin with the question that brought you here and follow the route that feels most relevant."])
+        title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary)
+        return "\n\n".join(["The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",f"A useful place to begin is [{title}]({url}). It offers a way into the Archive while preserving the distinction between what is established, what is interpretive, and what may hold personal meaning.","Begin with the question that brought you here and follow the route that feels most relevant."])
     return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer."
 
 def _persistent_visitor_construction(query,docs,profile,canonical_link_context=""):
     if profile.get("risk"): return _build_risk_answer(query)
     if profile.get("foundation_open"):
-        foundation_docs=_parse_context_documents(canonical_link_context) or docs; primary=foundation_docs[0] if foundation_docs else None; answer=_build_foundation_answer(query,primary,foundation_docs)
+        foundation_docs=_parse_context_documents(canonical_link_context) or docs
+        primary=foundation_docs[0] if foundation_docs else None
+        answer=_build_foundation_answer(query,primary,foundation_docs)
         if answer: return answer
     if _factual_open(query,profile):
         primary=_select_factual_primary(query,docs)
@@ -175,21 +178,33 @@ def _persistent_visitor_construction(query,docs,profile,canonical_link_context="
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or ""))
 
-def _v465_generate_boundary(*args,**kwargs):
+def _v466_generate_boundary(*args,**kwargs):
     user_query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(raw_context); canonical_link_context=str(kwargs.get("canonical_link_context") or "")
     if not canonical_link_context and len(args)>=4 and isinstance(args[3],str): canonical_link_context=args[3]
-    profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
+    profile=_query_profile(user_query)
+    persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
     if persistent: return _sanitize_visitor_output(persistent)
-    return _sanitize_visitor_output(_original_generate_llm_response(*args,**kwargs))
+    response=_original_generate_llm_response(*args,**kwargs)
+    if _factual_open(user_query,profile):
+        response=_sanitize_visitor_output(response)
+    return _sanitize_visitor_output(response)
 
-def _v465_evidence_gap_boundary(user_query,canonical_link_context=""):
+def _v466_evidence_gap_boundary(user_query,canonical_link_context=""):
     docs=_parse_context_documents(canonical_link_context); profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
     if persistent: return _sanitize_visitor_output(persistent)
     return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
 
-_V465_BOUNDARY_QUERY="What is the Living Archive?"; _V465_BOUNDARY_AUDIT=_v465_evidence_gap_boundary(_V465_BOUNDARY_QUERY,"")
-if "living archive" not in _V465_BOUNDARY_AUDIT.casefold() or "USE" in _V465_BOUNDARY_AUDIT: raise RuntimeError("USE v465 visitor boundary audit failed.")
-app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v465 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
-use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response=_v465_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v465_evidence_gap_boundary
+_V466_BOUNDARY_QUERY="What is the Living Archive?"
+_V466_BOUNDARY_AUDIT=_v466_evidence_gap_boundary(_V466_BOUNDARY_QUERY,"")
+if "living archive" not in _V466_BOUNDARY_AUDIT.casefold() or "USE" in _V466_BOUNDARY_AUDIT: raise RuntimeError("USE v466 visitor boundary audit failed.")
+
+app=use_core.app
+app.title=f"Find Your Way (The Guide) {APP_VERSION}"
+print(f"The Guide v466 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION=APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
+use_core.generate_llm_response=_v466_generate_boundary
+use_core._evidence_sufficiency_unavailable_response=_v466_evidence_gap_boundary
