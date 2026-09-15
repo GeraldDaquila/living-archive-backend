@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v469 — startup audit corrected
+# USE PRODUCTION VERSION: v470 — unified visitor orchestration boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v469"
-DEPLOYMENT_FINGERPRINT = "USE-v469-startup-audit-corrected"
-CANONICAL_BUILD_ID = "USE-BUILD-v469-startup-audit-corrected"
+APP_VERSION = "v470"
+DEPLOYMENT_FINGERPRINT = "USE-v470-unified-visitor-orchestration"
+CANONICAL_BUILD_ID = "USE-BUILD-v470-unified-visitor-orchestration"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v469 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v470 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v469 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v470 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v469 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v470 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v469 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v470 package integrity failure: evidence-gap response boundary is unavailable.")
 
 def _query_profile(user_query):
     q = re.sub(r"\s+", " ", str(user_query or "").strip().casefold())
@@ -54,150 +54,250 @@ def _build_risk_answer(user_query=""):
 
 def _parse_context_documents(context_blocks):
     parser = getattr(use_core, "_parse_context_documents", None)
-    if callable(parser): return parser(context_blocks)
+    if callable(parser):
+        return parser(context_blocks)
     docs = []
     for block in str(context_blocks or "").strip().split("\n\n---\n\n"):
-        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M); um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M|re.I); cm = re.search(r"^Content:\s*(.*)$", block, re.M|re.S)
-        if tm and um and cm: docs.append({"title":tm.group(1).strip(),"url":um.group(1).strip().rstrip(".,;"),"text":cm.group(1).strip()})
+        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
+        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
+        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
+        if tm and um and cm:
+            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip().rstrip(".,;"), "text": cm.group(1).strip()})
     return docs
 
-def _extract_user_query(args,kwargs):
-    for key in ("user_query","query","question"):
-        value=kwargs.get(key)
-        if isinstance(value,str) and value.strip(): return value.strip()
-    return args[0].strip() if len(args)>=1 and isinstance(args[0],str) and args[0].strip() else ""
+def _extract_user_query(args, kwargs):
+    for key in ("user_query", "query", "question"):
+        value = kwargs.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return args[0].strip() if len(args) >= 1 and isinstance(args[0], str) and args[0].strip() else ""
 
-def _context_blocks_from_kwargs(args,kwargs):
-    for key in ("retrieved_context_blocks","retrieved_context","context_blocks"):
-        if kwargs.get(key): return str(kwargs[key])
-    return args[1] if len(args)>=2 and isinstance(args[1],str) else ""
+def _context_blocks_from_kwargs(args, kwargs):
+    for key in ("retrieved_context_blocks", "retrieved_context", "context_blocks"):
+        if kwargs.get(key):
+            return str(kwargs[key])
+    return args[1] if len(args) >= 2 and isinstance(args[1], str) else ""
 
-def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
+def _normalize_title(text):
+    return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*", "", str(text or "").strip()).strip()
 
 def _role_evidence(doc):
-    text=re.sub(r"\s+"," ",str(doc.get("text") or "").strip().casefold()); title=_normalize_title(doc.get("title") or "").casefold(); corpus=title+" "+text
-    return {"grounded":bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b",corpus)),"meaning":bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b",corpus)),"worldview":bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed|higher-order intelligence|metaphysics|cosmic curriculum|universe|cosmic)\b",corpus)),"acute_risk":bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b",corpus)),"title_risk":bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b",title))}
+    text = re.sub(r"\s+", " ", str(doc.get("text") or "").strip().casefold())
+    title = _normalize_title(doc.get("title") or "").casefold()
+    corpus = title + " " + text
+    return {
+        "grounded": bool(re.search(r"\b(?:science|scientific|research|psychological|clinical|neuroscientific|evidence|empirical)\b", corpus)),
+        "meaning": bool(re.search(r"\b(?:meaning|purpose|wisdom|perspective|understanding|sense-making|make sense|interpretation)\b", corpus)),
+        "worldview": bool(re.search(r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden|starseed|higher-order intelligence|metaphysics|cosmic curriculum|universe|cosmic)\b", corpus)),
+        "acute_risk": bool(re.search(r"\b(?:suicid(?:e|al|ality)|suicidal ideation|self-harm|overdose|acute crisis|crisis intervention|immediate danger)\b", corpus)),
+        "title_risk": bool(re.search(r"\b(?:suicide|suicidal|self-harm|overdose|crisis intervention|acute crisis)\b", title)),
+    }
 
 def _is_risk_related(doc):
-    e=_role_evidence(doc); return e["acute_risk"] or e["title_risk"]
+    e = _role_evidence(doc)
+    return e["acute_risk"] or e["title_risk"]
 
 def _valid_doc_url(doc):
-    url=str(doc.get("url") or doc.get("canonical_url") or "").strip(); return url if re.match(r"^https://\S+$",url,re.I) else ""
+    url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+    return url if re.match(r"^https://\S+$", url, re.I) else ""
 
 def _query_subject(query):
-    q=re.sub(r"\s+"," ",str(query or "").strip()); q=re.sub(r"^(?:what is|what's|define|explain|what does)\s+","",q,flags=re.I); return q.rstrip(" ?.!:")
+    q = re.sub(r"\s+", " ", str(query or "").strip())
+    q = re.sub(r"^(?:what is|what's|define|explain|what does)\s+", "", q, flags=re.I)
+    return q.rstrip(" ?.!:")
 
 def _clean_evidence_text(text):
-    value=re.sub(r"<[^>]+>"," ",str(text or "")); value=re.sub(r"(?:https?://|www\.)\S+"," ",value); value=re.sub(r"\b(?:on x|x post|x posts|twitter|hypothetical quantum thread|collective awakening|as an ai|users exploring)\b[^.]*[.]?"," ",value,flags=re.I); value=re.sub(r"\b(?:follow me|subscribe|share|like|comment|join the conversation)\b[^.]*[.]?"," ",value,flags=re.I); return re.sub(r"\s+"," ",value).strip()
+    value = re.sub(r"<[^>]+>", " ", str(text or ""))
+    value = re.sub(r"(?:https?://|www\.)\S+", " ", value)
+    value = re.sub(r"\b(?:on x|x post|x posts|twitter|hypothetical quantum thread|collective awakening|as an ai|users exploring)\b[^.]*[.]?", " ", value, flags=re.I)
+    value = re.sub(r"\b(?:follow me|subscribe|share|like|comment|join the conversation)\b[^.]*[.]?", " ", value, flags=re.I)
+    return re.sub(r"\s+", " ", value).strip()
 
-def _definition_strength(query,sentence,title):
-    subject=_query_subject(query).casefold(); low=sentence.casefold(); score=0
-    if subject and re.search(rf"\b{re.escape(subject)}\b",title.casefold()): score+=30
-    if subject and re.search(rf"\b{re.escape(subject)}\b",low): score+=35
-    if re.search(r"\b(?:is|are|means|refers to|describes|defines|understood as|can be understood as|represents)\b",low): score+=25
-    if re.search(r"\b(?:framework|concept|practice|idea|approach|pathway|collection|body of work|relates to|concerns|explores)\b",low): score+=12
-    if re.search(r"\b(?:spiritual|cosmic|awakening|metaphysical|universal|interconnected reality|co-creator|transcenden)\b",low) and not re.search(r"\b(?:perspective|interpretation|worldview|framing|in the archive|the essay)\b",low): score-=18
+def _definition_strength(query, sentence, title):
+    subject = _query_subject(query).casefold()
+    low = sentence.casefold()
+    score = 0
+    if subject and re.search(rf"\b{re.escape(subject)}\b", title.casefold()):
+        score += 30
+    if subject and re.search(rf"\b{re.escape(subject)}\b", low):
+        score += 35
+    if re.search(r"\b(?:is|are|means|refers to|describes|defines|understood as|can be understood as|represents)\b", low):
+        score += 25
+    if re.search(r"\b(?:framework|concept|practice|idea|approach|pathway|collection|body of work|relates to|concerns|explores)\b", low):
+        score += 12
+    if re.search(r"\b(?:spiritual|cosmic|awakening|metaphysical|universal|interconnected reality|co-creator|transcenden)\b", low) and not re.search(r"\b(?:perspective|interpretation|worldview|framing|in the archive|the essay)\b", low):
+        score -= 18
     return score
 
-def _select_factual_primary(query,docs):
-    subject=_query_subject(query).casefold(); ranked=[]
-    for index,doc in enumerate(docs):
-        title=_normalize_title(doc.get("title") or ""); url=_valid_doc_url(doc)
-        if not title or not url or _is_risk_related(doc): continue
-        raw=_clean_evidence_text(doc.get("text") or ""); low=raw.casefold(); title_hit=int(bool(subject and re.search(rf"\b{re.escape(subject)}\b",title.casefold()))); exact_text=int(bool(subject and re.search(rf"\b{re.escape(subject)}\b",low))); definition_hits=sum(1 for s in re.split(r"(?<=[.!?])\s+",raw) if _definition_strength(query,s,title)>=40); e=_role_evidence(doc)
-        score=100*title_hit+55*exact_text+30*min(definition_hits,3)+6*int(e["grounded"] or e["meaning"])
-        if e["worldview"] and not title_hit: score-=18
-        if score>0: ranked.append((score,index,doc))
-    ranked.sort(key=lambda x:(-x[0],x[1])); return ranked[0][2] if ranked else None
+def _select_factual_primary(query, docs):
+    subject = _query_subject(query).casefold()
+    ranked = []
+    for index, doc in enumerate(docs):
+        title = _normalize_title(doc.get("title") or "")
+        url = _valid_doc_url(doc)
+        if not title or not url or _is_risk_related(doc):
+            continue
+        raw = _clean_evidence_text(doc.get("text") or "")
+        low = raw.casefold()
+        title_hit = int(bool(subject and re.search(rf"\b{re.escape(subject)}\b", title.casefold())))
+        exact_text = int(bool(subject and re.search(rf"\b{re.escape(subject)}\b", low)))
+        definition_hits = sum(1 for s in re.split(r"(?<=[.!?])\s+", raw) if _definition_strength(query, s, title) >= 40)
+        e = _role_evidence(doc)
+        score = 100 * title_hit + 55 * exact_text + 30 * min(definition_hits, 3) + 6 * int(e["grounded"] or e["meaning"])
+        if e["worldview"] and not title_hit:
+            score -= 18
+        if score > 0:
+            ranked.append((score, index, doc))
+    ranked.sort(key=lambda x: (-x[0], x[1]))
+    return ranked[0][2] if ranked else None
 
-def _definition_candidates(query,primary):
-    raw=_clean_evidence_text(primary.get("text") or ""); title=_normalize_title(primary.get("title") or ""); sentences=[s.strip() for s in re.split(r"(?<=[.!?])\s+",raw) if s.strip()]; definition=[]; supporting=[]
-    for idx,sentence in enumerate(sentences):
-        score=_definition_strength(query,sentence,title)
-        if score>=45: definition.append((score,idx,sentence))
-        elif score>=15: supporting.append((score,idx,sentence))
-    definition.sort(key=lambda x:(-x[0],x[1])); supporting.sort(key=lambda x:(-x[0],x[1])); return definition[:3],supporting[:4]
+def _definition_candidates(query, primary):
+    raw = _clean_evidence_text(primary.get("text") or "")
+    title = _normalize_title(primary.get("title") or "")
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", raw) if s.strip()]
+    definition = []
+    supporting = []
+    for idx, sentence in enumerate(sentences):
+        score = _definition_strength(query, sentence, title)
+        if score >= 45:
+            definition.append((score, idx, sentence))
+        elif score >= 15:
+            supporting.append((score, idx, sentence))
+    definition.sort(key=lambda x: (-x[0], x[1]))
+    supporting.sort(key=lambda x: (-x[0], x[1]))
+    return definition[:3], supporting[:4]
 
-def _concept_synthesis(query,primary):
-    subject=_query_subject(query); definition,supporting=_definition_candidates(query,primary); usable=[]
-    for item in definition+supporting:
-        low=item[2].casefold()
-        if re.search(r"\b(?:collective awakening|profound truth|we'?re all co-creators|universal knowledge|quantum thread|hypothetical|we are all co-creators)\b",low): continue
+def _concept_synthesis(query, primary):
+    subject = _query_subject(query)
+    definition, supporting = _definition_candidates(query, primary)
+    usable = []
+    for item in definition + supporting:
+        low = item[2].casefold()
+        if re.search(r"\b(?:collective awakening|profound truth|we'?re all co-creators|universal knowledge|quantum thread|hypothetical|we are all co-creators)\b", low):
+            continue
         usable.append(item[2])
-    if not usable: return ""
-    exact=[s for s in usable if subject and re.search(rf"\b{re.escape(subject)}\b",s,re.I)]; chosen=exact[:2] or usable[:2]
+    if not usable:
+        return ""
+    exact = [s for s in usable if subject and re.search(rf"\b{re.escape(subject)}\b", s, re.I)]
+    chosen = exact[:2] or usable[:2]
     if definition:
-        if len(chosen)==1 and supporting: chosen.append(supporting[0][2])
+        if len(chosen) == 1 and supporting:
+            chosen.append(supporting[0][2])
         return " ".join(chosen).strip()
-    if len(chosen)>=2:
-        merged=" ".join(chosen).strip(); merged=re.sub(r"^[Tt]his collection explores\s+","a concept explored through ",merged,count=1); merged=re.sub(r"^[Tt]hese writings consider\s+","its relationship to ",merged,count=1); return f"Taken together, the retrieved material presents {subject} as {merged}."
+    if len(chosen) >= 2:
+        merged = " ".join(chosen).strip()
+        merged = re.sub(r"^[Tt]his collection explores\s+", "a concept explored through ", merged, count=1)
+        merged = re.sub(r"^[Tt]hese writings consider\s+", "its relationship to ", merged, count=1)
+        return f"Taken together, the retrieved material presents {subject} as {merged}."
     return chosen[0]
 
-def _canonical_concept_hit(query,primary):
-    subject=_query_subject(query).casefold(); title=_normalize_title(primary.get("title") or "").casefold(); text=_clean_evidence_text(primary.get("text") or "").casefold()
-    if not subject: return False
-    if re.search(rf"\b{re.escape(subject)}\b",title): return True
-    return bool(re.search(rf"\b{re.escape(subject)}\b",text) and any(k in title for k in ("codex","glyph","pathway","overflow","declaration","cosmic dance","tapestry")))
+def _canonical_concept_hit(query, primary):
+    subject = _query_subject(query).casefold()
+    title = _normalize_title(primary.get("title") or "").casefold()
+    text = _clean_evidence_text(primary.get("text") or "").casefold()
+    if not subject:
+        return False
+    if re.search(rf"\b{re.escape(subject)}\b", title):
+        return True
+    return bool(re.search(rf"\b{re.escape(subject)}\b", text) and any(k in title for k in ("codex", "glyph", "pathway", "overflow", "declaration", "cosmic dance", "tapestry")))
 
-def _factual_open(query,profile):
-    q=str(query or "").strip().casefold(); return bool(q) and not any(profile.get(k) for k in ("risk","foundation_open","coercion_open","ambiguous_loss_open","grief","transition_open","emptiness_open","meaning_open","loneliness","fear_open","anger_open")) and bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b",q))
+def _factual_open(query, profile):
+    q = str(query or "").strip().casefold()
+    return bool(q) and not any(profile.get(k) for k in ("risk", "foundation_open", "coercion_open", "ambiguous_loss_open", "grief", "transition_open", "emptiness_open", "meaning_open", "loneliness", "fear_open", "anger_open")) and bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b", q))
 
-def _build_factual_answer(query,primary,docs):
-    title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary); subject=_query_subject(query)
-    if not title or not url or not subject: return ""
-    synthesis=_concept_synthesis(query,primary)
+def _build_factual_answer(query, primary, docs):
+    title = _normalize_title(primary.get("title") or "")
+    url = _valid_doc_url(primary)
+    subject = _query_subject(query)
+    if not title or not url or not subject:
+        return ""
+    synthesis = _concept_synthesis(query, primary)
     if synthesis:
-        parts=[f"The closest supported material I found is [{title}]({url}).",synthesis]; e=_role_evidence(primary)
-        if e["worldview"]: parts.append("The Archive also moves into spiritual, cosmological, or metaphysical interpretation here; those elements are presented as an interpretive perspective rather than established fact.")
+        parts = [f"The closest supported material I found is [{title}]({url}).", synthesis]
+        e = _role_evidence(primary)
+        if e["worldview"]:
+            parts.append("The Archive also moves into spiritual, cosmological, or metaphysical interpretation here; those elements are presented as an interpretive perspective rather than established fact.")
         return "\n\n".join(parts)
     return f"The Archive has material related to {subject} in [{title}]({url}), but the retrieved evidence does not establish a clear definition. It is better to leave that boundary explicit than infer one from adjacent material."
 
-def _build_foundation_answer(query,primary=None,docs=None):
+def _build_foundation_answer(query, primary=None, docs=None):
     if primary and _valid_doc_url(primary):
-        title=_normalize_title(primary.get("title") or ""); url=_valid_doc_url(primary)
-        return "\n\n".join(["The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",f"A useful place to begin is [{title}]({url}). It offers a way into the Archive while preserving the distinction between what is established, what is interpretive, and what may hold personal meaning.","Begin with the question that brought you here and follow the route that feels most relevant."])
+        title = _normalize_title(primary.get("title") or "")
+        url = _valid_doc_url(primary)
+        return "\n\n".join([
+            "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer.",
+            f"A useful place to begin is [{title}]({url}). It offers a way into the Archive while preserving the distinction between what is established, what is interpretive, and what may hold personal meaning.",
+            "Begin with the question that brought you here and follow the route that feels most relevant.",
+        ])
     return "The Living Archive is a connected body of essays, perspectives, frameworks, and pathways for making sense of complex human questions without reducing them to a single answer."
 
-def _persistent_visitor_construction(query,docs,profile,canonical_link_context=""):
-    if profile.get("risk"): return _build_risk_answer(query)
+def _unified_visitor_construction(query, retrieved_docs, canonical_docs, profile):
+    combined = []
+    seen = set()
+    for doc in (canonical_docs or []) + (retrieved_docs or []):
+        key = (str(doc.get("url") or ""), str(doc.get("title") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        combined.append(doc)
+    if profile.get("risk"):
+        return _build_risk_answer(query), "risk"
     if profile.get("foundation_open"):
-        foundation_docs=_parse_context_documents(canonical_link_context) or docs; primary=foundation_docs[0] if foundation_docs else None; answer=_build_foundation_answer(query,primary,foundation_docs)
-        if answer: return answer
-    if _factual_open(query,profile):
-        primary=_select_factual_primary(query,docs)
-        if primary and _canonical_concept_hit(query,primary):
-            answer=_build_factual_answer(query,primary,docs)
-            if answer: return answer
-    return None
+        primary = (canonical_docs or combined or [None])[0]
+        answer = _build_foundation_answer(query, primary, canonical_docs or combined)
+        if answer:
+            return answer, "foundation"
+    if _factual_open(query, profile):
+        primary = _select_factual_primary(query, combined)
+        if primary and _canonical_concept_hit(query, primary):
+            answer = _build_factual_answer(query, primary, combined)
+            if answer:
+                return answer, "factual"
+    return "", "core"
 
-def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or ""))
+def _sanitize_visitor_output(text):
+    return re.sub(r"\bUSE\b", "The Guide", str(text or ""))
 
-def _v469_generate_boundary(*args,**kwargs):
-    user_query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); docs=_parse_context_documents(raw_context); canonical_link_context=str(kwargs.get("canonical_link_context") or "")
-    if not canonical_link_context and len(args)>=4 and isinstance(args[3],str): canonical_link_context=args[3]
-    profile=_query_profile(user_query)
-    persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
-    if persistent: return _sanitize_visitor_output(persistent)
-    return _sanitize_visitor_output(_original_generate_llm_response(*args,**kwargs))
+def _v470_generate_boundary(*args, **kwargs):
+    user_query = _extract_user_query(args, kwargs)
+    raw_context = _context_blocks_from_kwargs(args, kwargs)
+    retrieved_docs = _parse_context_documents(raw_context)
+    canonical_link_context = str(kwargs.get("canonical_link_context") or "")
+    if not canonical_link_context and len(args) >= 4 and isinstance(args[3], str):
+        canonical_link_context = args[3]
+    canonical_docs = _parse_context_documents(canonical_link_context)
+    profile = _query_profile(user_query)
+    persistent, mode = _unified_visitor_construction(user_query, retrieved_docs, canonical_docs, profile)
+    print(f"The Guide v470 visitor orchestration: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    if persistent:
+        return _sanitize_visitor_output(persistent)
+    return _sanitize_visitor_output(_original_generate_llm_response(*args, **kwargs))
 
-def _v469_evidence_gap_boundary(user_query,canonical_link_context=""):
-    docs=_parse_context_documents(canonical_link_context); profile=_query_profile(user_query); persistent=_persistent_visitor_construction(user_query,docs,profile,canonical_link_context)
-    if persistent: return _sanitize_visitor_output(persistent)
-    return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context))
+def _v470_evidence_gap_boundary(user_query, canonical_link_context="", retrieved_context_blocks=""):
+    canonical_docs = _parse_context_documents(canonical_link_context)
+    retrieved_docs = _parse_context_documents(retrieved_context_blocks)
+    profile = _query_profile(user_query)
+    persistent, mode = _unified_visitor_construction(user_query, retrieved_docs, canonical_docs, profile)
+    print(f"The Guide v470 evidence-gap orchestration: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}")
+    if persistent:
+        return _sanitize_visitor_output(persistent)
+    return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context))
 
-# Startup audit must validate a profile that can actually construct without retrieved evidence.
-_V469_BOUNDARY_QUERY="What is the Living Archive?"
-_V469_BOUNDARY_AUDIT=_build_foundation_answer(_V469_BOUNDARY_QUERY,None,[])
-if "living archive" not in _V469_BOUNDARY_AUDIT.casefold() or "USE" in _V469_BOUNDARY_AUDIT:
-    raise RuntimeError("USE v469 visitor boundary audit failed.")
+_V470_FOUNDATION_AUDIT = _build_foundation_answer("What is the Living Archive?", None, [])
+if "living archive" not in _V470_FOUNDATION_AUDIT.casefold() or "USE" in _V470_FOUNDATION_AUDIT:
+    raise RuntimeError("USE v470 visitor orchestration audit failed.")
+_V470_FACTUAL_AUDIT_DOC = {"title": "Codex of the Overflow Pathway", "url": "https://geralddaquila.com/overflow-2/", "text": "Overflow relates to meaning, transcendence, creation, and the larger patterns from which stewardship emerges."}
+_V470_FACTUAL_AUDIT = _build_factual_answer("What is Overflow?", _V470_FACTUAL_AUDIT_DOC, [_V470_FACTUAL_AUDIT_DOC])
+if "Overflow" not in _V470_FACTUAL_AUDIT or "The closest supported material" not in _V470_FACTUAL_AUDIT or "USE" in _V470_FACTUAL_AUDIT:
+    raise RuntimeError("USE v470 factual orchestration audit failed.")
 
-app=use_core.app
-app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v469 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
-use_core.APP_VERSION=APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response=_v469_generate_boundary
-use_core._evidence_sufficiency_unavailable_response=_v469_evidence_gap_boundary
+app = use_core.app
+app.title = f"Find Your Way (The Guide) {APP_VERSION}"
+print(f"The Guide v470 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+use_core.APP_VERSION = APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
+use_core.generate_llm_response = _v470_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v470_evidence_gap_boundary
