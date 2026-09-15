@@ -1,23 +1,23 @@
-# USE PRODUCTION VERSION: v487.16 — canonical catalog audit hardening
+# USE PRODUCTION VERSION: v487.17 — grief doorway invariant hardening
 import hashlib
 import importlib
 import re
 from pathlib import Path
-APP_VERSION="v487.16"
-DEPLOYMENT_FINGERPRINT="USE-v487.16-canonical-catalog-audit-hardening"
-CANONICAL_BUILD_ID="USE-BUILD-v487.16-canonical-catalog-audit-hardening"
+APP_VERSION="v487.17"
+DEPLOYMENT_FINGERPRINT="USE-v487.17-grief-doorway-invariant"
+CANONICAL_BUILD_ID="USE-BUILD-v487.17-grief-doorway-invariant"
 EXPECTED_CORE_BLOB_SHA="fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH=Path(__file__).resolve(); _CORE_PATH=_MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256=hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
-if not _CORE_PATH.exists(): raise RuntimeError("USE v487.16 package integrity failure: use_core.py is missing.")
+if not _CORE_PATH.exists(): raise RuntimeError("USE v487.17 package integrity failure: use_core.py is missing.")
 _core_bytes=_CORE_PATH.read_bytes(); _core_runtime_sha=hashlib.sha1(f"blob {len(_core_bytes)}\0".encode()+_core_bytes).hexdigest()
-if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.16 package integrity failure: protected core mismatch.")
+if _core_runtime_sha!=EXPECTED_CORE_BLOB_SHA: raise RuntimeError("USE v487.17 package integrity failure: protected core mismatch.")
 use_core=importlib.import_module("use_core")
 _original_generate_llm_response=use_core.generate_llm_response
 _original_handle_query=getattr(use_core,"handle_query",None)
 _original_evidence_sufficiency_unavailable_response=getattr(use_core,"_evidence_sufficiency_unavailable_response",None)
-if _original_handle_query is None: raise RuntimeError("USE v487.16 package integrity failure: API query handler unavailable.")
-if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.16 package integrity failure: evidence-gap boundary unavailable.")
+if _original_handle_query is None: raise RuntimeError("USE v487.17 package integrity failure: API query handler unavailable.")
+if not callable(_original_evidence_sufficiency_unavailable_response): raise RuntimeError("USE v487.17 package integrity failure: evidence-gap boundary unavailable.")
 
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
@@ -37,6 +37,7 @@ def _parse_context_documents(context_blocks):
         tm=re.search(r"^Title:\s*(.+?)\s*$",block,re.M); um=re.search(r"^URL:\s*(https?://\S+)\s*$",block,re.M|re.I); cm=re.search(r"^Content:\s*(.*)$",block,re.M|re.S)
         if tm and um and cm: docs.append({"title":tm.group(1).strip(),"url":um.group(1).strip().rstrip(".,;"),"text":cm.group(1).strip()})
     return docs
+
 def _extract_user_query(args,kwargs):
     for key in ("user_query","query","question"):
         value=kwargs.get(key)
@@ -68,17 +69,20 @@ def _weighted_inquiry_profile(query):
 def _weighted_action(profile):
     if profile["risk"]>=0.80: return "risk"
     if profile["ai_truth"]>=0.80: return "recommendation"
+    if profile["grief"]>=0.80 and profile["recommendation"]>=0.70: return "recommendation"
     scores={k:profile[k] for k in ("recommendation","navigation","lived","foundation","conceptual")}
     if profile["recommendation"]>0: scores["recommendation"]+=0.10*profile["grief"]+0.05*profile["specialized"]
     if profile["lived"]>0: scores["lived"]+=0.08*profile["grief"]
     if profile["foundation"]>0: scores["foundation"]-=0.35*profile["recommendation"]
     return max(scores,key=scores.get) if max(scores.values())>=0.35 else "core"
+
 def _inquiry_profile(query):
     p=_weighted_inquiry_profile(query); action=_weighted_action(p); return {**p,"subject":"grief" if p["grief"]>=0.5 else "","action":action,"risk":p["risk"]>=0.8,"recommendation":p["recommendation"]>=0.5,"navigation":p["navigation"]>=0.5,"foundation":p["foundation"]>=0.5,"lived":p["lived"]>=0.5,"conceptual":p["conceptual"]>=0.5,"grief":p["grief"]>=0.5}
 def _build_risk_answer(query):
     q=str(query or "").casefold()
     if re.search(r"\b(?:suicid\w*|self-harm|self harm|kill(?:ing)? myself|kill(?:ing)? yourself|want(?:ing)? to die|end my life|take my own life|harm myself|hurt myself)\b",q): return "If you are thinking about killing yourself or may act on thoughts of self-harm, please seek human help now. Call emergency services or go to the nearest emergency department, and if you can, stay with another person while you get help."
     return "If you may be in immediate danger or cannot keep yourself safe, please seek human help now. Call emergency services or go to the nearest emergency department."
+
 def _candidate_sentences(query,docs):
     q=re.sub(r"\s+"," ",str(query or "").strip().casefold()); terms=set(re.findall(r"[a-z]{4,}",q)); candidates=[]; seen=set()
     for doc in docs:
@@ -87,8 +91,7 @@ def _candidate_sentences(query,docs):
         if not title or not url or not raw: continue
         title_terms=set(re.findall(r"[a-z]{4,}",title.casefold()))
         for sentence in [s.strip() for s in re.split(r"(?<=[.!?])\s+",raw) if s.strip()]:
-            low=sentence.casefold()
-            score=10*len(terms & set(re.findall(r"[a-z]{4,}",low))); score+=8*len(terms & title_terms)
+            low=sentence.casefold(); score=10*len(terms & set(re.findall(r"[a-z]{4,}",low))); score+=8*len(terms & title_terms)
             if len(sentence)>18: score+=5
             key=re.sub(r"\W+"," ",low).strip()
             if key in seen: continue
@@ -107,7 +110,8 @@ def _extract_claims(candidates):
 def _canonical_catalog(profile):
     if profile.get("ai_truth"):
         return {"direct":{"title":"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill","url":"https://geralddaquila.com/truth-in-the-age-of-ai-why-discernment-is-becoming-a-survival-skill/"},"adjacent":[{"title":"Knowledge Stewardship in the AI Era: From Information to Wisdom","url":"https://geralddaquila.com/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/"},{"title":"The Meaning Crisis in the Age of Artificial Intelligence","url":"https://geralddaquila.com/the-meaning-crisis-in-the-age-of-artificial-intelligence/"}]}
-    if profile.get("grief"): return {"direct":{"title":"Death, Grief, and the Human Search for Continuity","url":"https://geralddaquila.com/2025/05/24/embracing-the-cosmic-journey-finding-peace-after-losing-a-loved-one/"},"adjacent":[{"title":"The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom","url":"https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"}]}
+    if profile.get("grief"):
+        return {"direct":{"title":"Death, Grief, and the Human Search for Continuity","url":"https://geralddaquila.com/2025/05/24/embracing-the-cosmic-journey-finding-peace-after-losing-a-loved-one/"},"adjacent":[{"title":"The Transformative Power of Loss: Finding Meaning in Grief Through Spiritual and Scientific Wisdom","url":"https://geralddaquila.com/2025/05/12/the-transformative-power-of-loss-finding-meaning-in-grief-through-spiritual-and-scientific-wisdom/"}]}
     return {"direct":None,"adjacent":[]}
 def _catalog_claim(item,claims):
     if not item: return None
@@ -196,9 +200,9 @@ def _unified_visitor_construction(query,retrieved_docs,canonical_docs):
 def _boundary_context(args,kwargs):
     query=_extract_user_query(args,kwargs); raw_context=_context_blocks_from_kwargs(args,kwargs); canonical=str(kwargs.get("canonical_link_context") or (args[3] if len(args)>=4 and isinstance(args[3],str) else "")); return query,_parse_context_documents(raw_context),_parse_context_documents(canonical)
 def _v487_generate_boundary(*args,**kwargs):
-    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.16 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_generate_llm_response(*args,**kwargs); return _sanitize_visitor_output(fallback)
+    query,retrieved_docs,canonical_docs=_boundary_context(args,kwargs); answer,mode=_unified_visitor_construction(query,retrieved_docs,canonical_docs); print(f"The Guide v487.17 visitor boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_generate_llm_response(*args,**kwargs); return _sanitize_visitor_output(fallback)
 def _v487_evidence_gap_boundary(user_query,canonical_link_context="",retrieved_context_blocks=""):
-    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.16 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context); return _sanitize_visitor_output(fallback)
+    canonical_docs=_parse_context_documents(canonical_link_context); retrieved_docs=_parse_context_documents(retrieved_context_blocks); answer,mode=_unified_visitor_construction(user_query,retrieved_docs,canonical_docs); print(f"The Guide v487.17 evidence-gap boundary: mode={mode}, retrieved={len(retrieved_docs)}, canonical={len(canonical_docs)}"); fallback=answer if answer else _original_evidence_sufficiency_unavailable_response(user_query,canonical_link_context); return _sanitize_visitor_output(fallback)
 
 def _calibration_contract_audit(answer,mode,risk=False):
     text=str(answer or ""); low=text.casefold()
@@ -211,13 +215,21 @@ _V487_FOUNDATION_AUDIT=_foundation_teacherly_answer("What is the Living Archive?
 _V487_AI_PROFILE=_inquiry_profile("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?")
 _V487_AI_TRUTH_CATALOG=_canonical_catalog(_V487_AI_PROFILE)
 _V487_AI_TRUTH_AUDIT=_recommendation_answer("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?",[],_V487_AI_PROFILE)
+_V487_GRIEF_QUERY="I’m struggling with grief after losing someone I love, and I keep wondering whether I should let go or hold on. Where should I begin in the Living Archive?"
+_V487_GRIEF_PROFILE=_inquiry_profile(_V487_GRIEF_QUERY)
+_V487_GRIEF_CATALOG=_canonical_catalog(_V487_GRIEF_PROFILE)
+_V487_GRIEF_AUDIT=_recommendation_answer(_V487_GRIEF_QUERY,[],_V487_GRIEF_PROFILE)
 _V487_FOUNDATION_CONTRACT_AUDIT=_calibration_contract_audit(_V487_FOUNDATION_AUDIT,"foundation")
-_V487_CONTRACT_AUDIT=_calibration_contract_audit(_V487_AI_TRUTH_AUDIT,"recommendation")
-if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.16 invariant audit failed: foundation.")
-if not _catalog_audit(_V487_AI_TRUTH_CATALOG,"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"): raise RuntimeError("USE v487.16 invariant audit failed: AI truth catalog.")
-if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.16 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
-if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.16 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
-if not all(_V487_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.16 recommendation calibration contract failed: {_V487_CONTRACT_AUDIT}")
+_V487_AI_CONTRACT_AUDIT=_calibration_contract_audit(_V487_AI_TRUTH_AUDIT,"recommendation")
+_V487_GRIEF_CONTRACT_AUDIT=_calibration_contract_audit(_V487_GRIEF_AUDIT,"recommendation")
+if "Living Archive" not in _V487_FOUNDATION_AUDIT: raise RuntimeError("USE v487.17 invariant audit failed: foundation.")
+if not _catalog_audit(_V487_AI_TRUTH_CATALOG,"Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"): raise RuntimeError("USE v487.17 invariant audit failed: AI truth catalog.")
+if not _catalog_audit(_V487_GRIEF_CATALOG,"Death, Grief, and the Human Search for Continuity"): raise RuntimeError("USE v487.17 invariant audit failed: grief catalog.")
+if "Truth in the Age of AI" not in _V487_AI_TRUTH_AUDIT: raise RuntimeError(f"USE v487.17 invariant audit failed: AI truth doorway={_V487_AI_TRUTH_AUDIT}")
+if "Death, Grief, and the Human Search for Continuity" not in _V487_GRIEF_AUDIT: raise RuntimeError(f"USE v487.17 invariant audit failed: grief doorway={_V487_GRIEF_AUDIT}")
+if not all(_V487_FOUNDATION_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.17 foundation calibration contract failed: {_V487_FOUNDATION_CONTRACT_AUDIT}")
+if not all(_V487_AI_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.17 AI calibration contract failed: {_V487_AI_CONTRACT_AUDIT}")
+if not all(_V487_GRIEF_CONTRACT_AUDIT.values()): raise RuntimeError(f"USE v487.17 grief calibration contract failed: {_V487_GRIEF_CONTRACT_AUDIT}")
 app=use_core.app; app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v487.16 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
+print(f"The Guide v487.17 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha={_core_runtime_sha}")
 use_core.APP_VERSION=APP_VERSION; use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT; use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID; use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256; use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA; use_core.generate_llm_response=_v487_generate_boundary; use_core._evidence_sufficiency_unavailable_response=_v487_evidence_gap_boundary
