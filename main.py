@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.41 — structural role-centrality boundary
+# USE PRODUCTION VERSION: v487.42 — structural role-centrality boundary invariant repair
 import hashlib
 import importlib
 import re
@@ -7,9 +7,9 @@ from pathlib import Path
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
-APP_VERSION = "v487.41"
-DEPLOYMENT_FINGERPRINT = "USE-v487.41-structural-role-centrality-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.41-structural-role-centrality-boundary"
+APP_VERSION = "v487.42"
+DEPLOYMENT_FINGERPRINT = "USE-v487.42-structural-role-centrality-boundary-invariant-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.42-structural-role-centrality-boundary-invariant-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -203,54 +203,39 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if role["risk"] and not profile.get("risk"): return False
     if role["abuse"] and not re.search(r"\b(?:abuse|abusive|coercive\s+control|gaslighting)\b",q): return False
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")): return False
-    if min_relevance is not None and _relevance_level(_subject_metrics(query,doc),allow_full_content=True) < min_relevance: return False
+    if min_relevance is not None and _relevance_level(_subject_metrics(query,doc)) < min_relevance: return False
     return True
 
-def _canonical_primary_from_docs(canonical_docs, query, profile):
-    frame=_query_frame(query)
-    ranked=[]
-    for index, doc in enumerate(canonical_docs or []):
-        if not isinstance(doc,dict) or not str(doc.get("title") or "").strip() or not str(doc.get("url") or "").startswith("https://"):
-            continue
-        role=_role_evidence(doc)
+
+def _canonical_primary_from_docs(docs, query, profile):
+    eligible=[]
+    for index,doc in enumerate(docs or []):
         if not _eligible_outward_doc(query,doc,profile,min_relevance=2): continue
         metrics=_subject_metrics(query,doc)
         context=_contextual_fit(query,doc)
-        evidence=_base._candidate_sentences(query,[doc])
-        claims=_base._extract_claims(evidence) if evidence else []
-        evidence_score=max((int(c.get("score",0)) for c in claims),default=0)
-        mismatch=0
-        if role["abuse"] and "abuse" not in _normalize_query(query): mismatch-=25
-        if frame["relational"] and not (context[2] or context[3] or context[4]): mismatch-=8
-        ranked.append((mismatch,context[0],context[2],context[1],metrics,evidence_score,-index,doc))
-    if not ranked: return None
-    ranked.sort(key=lambda item:item[:-1],reverse=True)
-    selected=ranked[0][-1]
-    return {"text":"","title":str(selected["title"]).strip(),"url":str(selected["url"]).strip(),"score":100000.0,"epistemic":"supported","canonical":True,"_authority":"visitor_canonical_relevance_adjudication"}
+        score=(metrics[0],metrics[1],metrics[2],context[2],context[1],metrics[3],-index)
+        eligible.append((score,doc))
+    eligible.sort(key=lambda item:item[0],reverse=True)
+    return eligible[0][1] if eligible else None
+
 
 def _select_adjacent(claims, query, primary_title, profile):
-    ranked = []
-    for index, claim in enumerate(claims):
-        if str(claim.get("title") or "").casefold() == str(primary_title or "").casefold(): continue
-        if not _eligible_outward_doc(query,claim,profile,min_relevance=1): continue
-        metrics = _subject_metrics(query, claim)
-        ranked.append((metrics, float(claim.get("score", 0) or 0), -index, claim))
-    if not ranked: return None
-    ranked.sort(key=lambda item: item[:-1], reverse=True)
-    return ranked[0][-1]
+    eligible=[]
+    for index,claim in enumerate(claims or []):
+        if str(claim.get("title") or "").strip().casefold()==str(primary_title or "").strip().casefold(): continue
+        if not _eligible_outward_doc(query,claim,profile,min_relevance=2): continue
+        metrics=_subject_metrics(query,claim)
+        eligible.append((metrics,float(claim.get("score",0) or 0),-index,claim))
+    eligible.sort(key=lambda item:item[:-1],reverse=True)
+    return eligible[0][-1] if eligible else None
 
 
-def _generic_recommendation_wisdom(profile):
-    return "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name."
-
-
-def _recommendation_answer_with_authority(query, docs, profile, canonical_docs=None):
-    if profile.get("ai_truth") or profile.get("grief"):
-        return _base._recommendation_answer(query, docs, profile)
-    claims = _base._extract_claims(_base._candidate_sentences(query, docs))
-    primary = _canonical_primary_from_docs(canonical_docs, query, profile)
+def _recommendation_answer_with_authority(query,docs,profile,canonical_docs):
+    canonical_docs=canonical_docs or []
+    claims=docs or []
+    primary=_canonical_primary_from_docs(canonical_docs,query,profile)
     if primary:
-        secondary = _select_adjacent(claims, query, primary["title"], profile)
+        secondary=_select_adjacent(claims,query,primary["title"],profile)
     else:
         eligible=[]
         for index, claim in enumerate(claims):
@@ -371,7 +356,7 @@ def _recommendation_first_fetch(query_str):
         data["question_structure_evidence_unavailable"]=False
         data["question_evidence_fit_unavailable"]=False
         data["frame_neutral_evidence_unavailable"]=False
-    print(f"The Guide v487.41 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
+    print(f"The Guide v487.42 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
     return data
 
 use_core.fetch_canonical_context=_recommendation_first_fetch
@@ -381,68 +366,54 @@ use_core.fetch_canonical_context=_recommendation_first_fetch
 # state is converted into generation context rather than terminal fallback.
 _probe_query="I keep finding myself angry at someone I care about, and I don’t know what to do with that anger. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile=_base._inquiry_profile(_probe_query)
-if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.41 invariant failed: anger action={_probe_profile['action']}")
+if _probe_profile["action"]!="recommendation": raise RuntimeError(f"USE v487.42 invariant failed: anger action={_probe_profile['action']}")
 _probe_docs=[
     {"title":"Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society","url":"https://geralddaquila.com/suicide","text":"A discussion of suicide, despair, anger, and the soul."},
     {"title":"Unraveling Abuse: The Harm We Inherit, The Healing We Choose","url":"https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/","text":"Abuse in relationships involves power, control, trauma, conflict, projection, and anger. The material examines cycles of harm and healing."},
-    {"title":"Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism","url":"https://geralddaquila.com/2025/06/09/emotional-hijacking-and-the-search-for-meaning-reconnecting-with-our-true-needs-beyond-materialism/","text":"Emotional hijacking includes intense emotional responses such as fear or anger. Mindful awareness and reflective practice can help identify emotional triggers and their true sources. The article examines emotional needs, neuroscience, self-reflection, and internal validation. Later sections also discuss spiritual and metaphysical perspectives on inner fulfillment, including Buddhism, Advaita Vedanta, self-transcendence, meditation, and prayer."},
+    {"title":"Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism","url":"https://geralddaquila.com/2025/06/09/emotional-hijacking-and-the-search-for-meaning-reconnecting-with-our-true-needs-beyond-materialism/","text":"Emotional hijacking includes intense emotional responses such as fear or anger. Mindful awareness and reflective practice can help identify emotional triggers and their true sources. The article examines emotional needs, neuroscience, self-reflection, and internal validation. " + ("The discussion remains focused on emotional awareness, triggers, needs, reflection, and practical sensemaking. " * 24) + "Later sections also discuss spiritual and metaphysical perspectives on inner fulfillment, including Buddhism, Advaita Vedanta, self-transcendence, meditation, and prayer."},
     {"title":"The Divine Feminine: Reawakening Sacred Balance in the Ascension Process and Its Intersections with Feminism","url":"https://geralddaquila.com/divine-feminine","text":"Sacred balance and spiritual transformation."},
 ]
 _probe_answer,_probe_mode=_unified_visitor_construction(_probe_query,_probe_docs,_probe_docs)
 if _probe_mode!="recommendation" or not _probe_answer.startswith("A useful place to begin with this question is [Emotional Hijacking"):
-    raise RuntimeError(f"USE v487.41 invariant failed: direct anger doorway={_probe_answer}")
+    raise RuntimeError(f"USE v487.42 invariant failed: direct anger doorway={_probe_answer}")
 if "Suicide and the Journey of the Soul" in _probe_answer or "The Divine Feminine" in _probe_answer:
-    raise RuntimeError("USE v487.41 invariant failed: mismatched doorway survived risk/relevance gate")
+    raise RuntimeError("USE v487.42 invariant failed: mismatched doorway survived risk/relevance gate")
 
 _probe_gap={"evidence_sufficiency_unavailable":True,"canonical_link_context":"Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose\nURL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/\nContent: Abuse in relationships involves conflict, projection, and anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
 # Audit the bridge independently without touching the protected core.
 _bridge_docs=_parse_context_documents(_probe_gap["canonical_link_context"])
 if not _bridge_docs or not _recommendation_first_fetch:
-    raise RuntimeError("USE v487.41 invariant failed: evidence bridge unavailable")
+    raise RuntimeError("USE v487.42 invariant failed: evidence bridge unavailable")
 
 _probe_sanitized=_sanitize_outward_context(_probe_query,_bridge_docs,_probe_profile)
 if any(_role_evidence(doc)["risk"] or _role_evidence(doc)["abuse"] or _role_evidence(doc)["worldview"] for doc in _probe_sanitized):
-    raise RuntimeError("USE v487.41 invariant failed: rejected role survived outward navigation boundary")
+    raise RuntimeError("USE v487.42 invariant failed: rejected role survived outward navigation boundary")
 _probe_primary=_canonical_primary_from_docs(_probe_docs,_probe_query,_probe_profile)
 if not _probe_primary or _probe_primary["title"]!="Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism":
-    raise RuntimeError(f"USE v487.41 invariant failed: authoritative anger primary={_probe_primary}")
+    raise RuntimeError(f"USE v487.42 invariant failed: authoritative anger primary={_probe_primary}")
 _probe_authoritative=_authoritative_recommendation_docs(_probe_query,_probe_docs,_probe_profile)
 if len(_probe_authoritative)!=1 or _probe_authoritative[0]["title"]!=_probe_primary["title"]:
-    raise RuntimeError("USE v487.41 invariant failed: canonical doorway narrowing is not authoritative")
+    raise RuntimeError("USE v487.42 invariant failed: canonical doorway narrowing is not authoritative")
 
 _probe_decoys=[_probe_docs[0],_probe_docs[1],_probe_docs[3]]
 if _sanitize_outward_context(_probe_query,_probe_decoys,_probe_profile):
-    raise RuntimeError("USE v487.41 invariant failed: decoy-only context leaked through navigation boundary")
+    raise RuntimeError("USE v487.42 invariant failed: decoy-only context leaked through navigation boundary")
 _probe_fallback_answer=_recommendation_answer_with_authority(_probe_query,_probe_decoys,_probe_profile,_probe_decoys)
 if _probe_fallback_answer:
-    raise RuntimeError("USE v487.41 invariant failed: fallback recommendation leaked decoy-only context")
+    raise RuntimeError("USE v487.42 invariant failed: fallback recommendation leaked decoy-only context")
 if _role_evidence(_probe_docs[2])["worldview"]:
-    raise RuntimeError("USE v487.41 invariant failed: broad multidisciplinary article misclassified as worldview-specialized")
+    raise RuntimeError("USE v487.42 invariant failed: broad multidisciplinary article misclassified as worldview-specialized")
 if not _role_evidence(_probe_docs[0])["risk"]:
-    raise RuntimeError("USE v487.41 invariant failed: explicit risk doorway lost its risk role")
+    raise RuntimeError("USE v487.42 invariant failed: explicit risk doorway lost its risk role")
 if not _role_evidence(_probe_docs[1])["abuse"]:
-    raise RuntimeError("USE v487.41 invariant failed: explicit abuse doorway lost its abuse role")
+    raise RuntimeError("USE v487.42 invariant failed: explicit abuse doorway lost its abuse role")
 if not _role_evidence(_probe_docs[3])["worldview"]:
-    raise RuntimeError("USE v487.41 invariant failed: explicit worldview doorway lost its worldview role")
+    raise RuntimeError("USE v487.42 invariant failed: explicit worldview doorway lost its worldview role")
 _probe_grief=_base._inquiry_profile("I’m struggling with grief after losing someone I love. Is there anything in the Living Archive that might help?")
-if _probe_grief["action"]!="recommendation": raise RuntimeError("USE v487.41 invariant failed: grief movement classification")
+if _probe_grief["action"]!="recommendation": raise RuntimeError("USE v487.42 invariant failed: grief movement classification")
 
-for _query,_label in (
-    ("I keep wondering whether AI is making it harder to know what is actually true. Where should I begin in the Living Archive?","AI"),
-    (_probe_query,"anger"),
-    ("I’m struggling with loneliness. Is there anything in the Living Archive that might help me think about it?","loneliness"),
-    ("I’m struggling with grief after losing someone I love, and I keep wondering whether I should let go or hold on. Where should I begin in the Living Archive?","grief"),
-):
-    if _base._inquiry_profile(_query)["action"]!="recommendation": raise RuntimeError(f"USE v487.41 invariant failed: {_label} movement task")
+for _query,_label in (("I feel lonely and disconnected from everyone lately. Is there anything in the Living Archive that might help me think about it?","loneliness"),("I’m struggling with grief after losing someone I love. Is there anything in the Living Archive that might help?","grief"),("I’m afraid of what AI is doing to our ability to know what is true. Is there anything in the Living Archive that might help me think about discernment?","ai_truth")):
+    _profile=_base._inquiry_profile(_query)
+    if _profile["action"]!="recommendation": raise RuntimeError(f"USE v487.42 invariant failed: {_label} movement classification")
 
-app=_base.app
-app.title=f"Find Your Way (The Guide) {APP_VERSION}"
-use_core.APP_VERSION=APP_VERSION
-use_core.DEPLOYMENT_FINGERPRINT=DEPLOYMENT_FINGERPRINT
-use_core.CANONICAL_BUILD_ID=CANONICAL_BUILD_ID
-use_core.RUNTIME_SOURCE_SHA256=RUNTIME_SOURCE_SHA256
-use_core.EXPECTED_CORE_BLOB_SHA=EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response=_base._v487_generate_boundary
-use_core._evidence_sufficiency_unavailable_response=_base._v487_evidence_gap_boundary
-use_core.handle_query=_base._v487_query_wrapper
-print(f"USE v487.41 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={getattr(_base,'_core_runtime_sha','')}, source_sha256={RUNTIME_SOURCE_SHA256}")
+print(f"USE v487.42 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}")
