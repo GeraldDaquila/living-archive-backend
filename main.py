@@ -1,32 +1,32 @@
-# USE PRODUCTION VERSION: v458 — factual evidence construction + visitor language boundary
+# USE PRODUCTION VERSION: v459 — truthful factual evidence construction + holistic visitor boundary
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
-APP_VERSION = "v458"
-DEPLOYMENT_FINGERPRINT = "USE-v458-factual-evidence-construction"
-CANONICAL_BUILD_ID = "USE-BUILD-v458-factual-evidence-construction"
+APP_VERSION = "v459"
+DEPLOYMENT_FINGERPRINT = "USE-v459-factual-evidence-construction"
+CANONICAL_BUILD_ID = "USE-BUILD-v459-factual-evidence-construction"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 if not _CORE_PATH.exists():
-    raise RuntimeError("USE v458 package integrity failure: use_core.py is missing.")
+    raise RuntimeError("USE v459 package integrity failure: use_core.py is missing.")
 _core_bytes = _CORE_PATH.read_bytes()
 _core_runtime_sha = hashlib.sha1(f"blob {len(_core_bytes)}\0".encode() + _core_bytes).hexdigest()
 if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
-    raise RuntimeError(f"USE v458 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
+    raise RuntimeError(f"USE v459 package integrity failure: expected protected core blob sha={EXPECTED_CORE_BLOB_SHA}, actual={_core_runtime_sha}")
 
 use_core = importlib.import_module("use_core")
 _original_generate_llm_response = use_core.generate_llm_response
 _original_handle_query = getattr(use_core, "handle_query", None)
 _original_evidence_sufficiency_unavailable_response = getattr(use_core, "_evidence_sufficiency_unavailable_response", None)
 if _original_handle_query is None:
-    raise RuntimeError("USE v458 package integrity failure: API query handler is unavailable.")
+    raise RuntimeError("USE v459 package integrity failure: API query handler is unavailable.")
 if not callable(_original_evidence_sufficiency_unavailable_response):
-    raise RuntimeError("USE v458 package integrity failure: evidence-gap response boundary is unavailable.")
+    raise RuntimeError("USE v459 package integrity failure: evidence-gap response boundary is unavailable.")
 
 
 def _query_profile(user_query: str) -> dict:
@@ -309,6 +309,15 @@ def _select_secondary_pathways(user_query, primary, docs, primary_role, limit=1)
                 role_text, score = "meaning, perspective, and ways of understanding a changing life", 15
             else:
                 continue
+        elif primary_role == "factual":
+            if e["grounded"] and not e["worldview"]:
+                role_text, score = "a grounded route for checking or extending the explanation", 16
+            elif e["meaning"] and not e["worldview"]:
+                role_text, score = "another interpretive route into the question", 11
+            elif e["practical_reflection"] and not e["worldview"]:
+                role_text, score = "a reflective route for extending the question", 10
+            else:
+                continue
         elif e["meaning"] and not e["worldview"]:
             role_text, score = "meaning, perspective, and ways of understanding the experience", 12
         elif e["grounded"] and not e["worldview"]:
@@ -428,7 +437,7 @@ def _build_transition_answer(user_query, primary=None, docs=None):
                 sec_url = _valid_doc_url(doc)
                 if sec_title and sec_url:
                     parts.append(f"Another route into the question is [{sec_title}]({sec_url}), offering {item['role_text']}.")
-            parts.append("You can see whether this lens speaks to the tension you’re carrying, without needing to decide whether to stay or leave, keep or let go, all at once.")
+            parts.append("You do not need to decide what comes next all at once. It may be enough to notice what feels outgrown, what remains alive, and what you are reluctant to lose.")
             return "\n\n".join(parts)
     return "It is possible to sense that a life you have built no longer fits without knowing yet what needs to change. That uncertainty does not have to be resolved before it can be listened to. For now, notice what feels most outgrown, what still feels alive, and what you are reluctant to lose. A small piece of observation can be more useful than forcing yourself to decide what the next chapter should be."
 
@@ -561,30 +570,57 @@ def _select_factual_primary(query: str, docs: list):
     return ranked[0][2] if ranked else None
 
 
-def _factual_open(query: str, profile: dict) -> bool:
-    q = str(query or "").strip().casefold()
+def _factual_open(query: str, profile: dict):
+    q = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not q or any(profile.get(key) for key in ("risk","foundation_open","coercion_open","ambiguous_loss_open","grief","transition_open","emptiness_open","meaning_open","loneliness","fear_open","anger_open")):
         return False
-    return bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b", q))
+    return bool(re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|what does|what are|define|explain)\b", q))
+
+
+def _clean_source_text(text: str) -> str:
+    value = re.sub(r"\s+", " ", str(text or "").strip())
+    value = re.sub(r"(?:^|\s)#(?:[A-Za-z0-9_-]+(?:\s+#[A-Za-z0-9_-]+)*)", " ", value)
+    value = re.sub(r"\b(?:post|blog)\s*:\s*", "", value, flags=re.I)
+    value = re.sub(r"\b(?:in conclusion|to conclude|ultimately)\s*[:,-]?\s*", "", value, flags=re.I)
+    return re.sub(r"\s{2,}", " ", value).strip()
+
+
+def _best_factual_span(text: str, query: str) -> str:
+    cleaned = _clean_source_text(text)
+    if not cleaned:
+        return ""
+    q_terms = [term for term in re.findall(r"[a-z0-9]{4,}", query.casefold()) if term not in {"what","does","this","that","mean","about","tell","explain","overflow"}]
+    sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+    scored = []
+    for index, sentence in enumerate(sentences):
+        low = sentence.casefold()
+        overlap = sum(1 for term in q_terms if re.search(rf"\b{re.escape(term)}\b", low))
+        if overlap:
+            scored.append((overlap, -index, sentence))
+    if scored:
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        selected = [item[2] for item in scored[:2]]
+        return " ".join(selected)[:650].rstrip()
+    return cleaned[:650].rstrip()
 
 
 def _build_factual_answer(query: str, primary: dict, docs: list):
     title = _normalize_title(primary.get("title") or "")
     url = _valid_doc_url(primary)
-    text = re.sub(r"\s+", " ", str(primary.get("text") or "").strip())
+    text = _clean_source_text(primary.get("text") or "")
     if not title or not url or not text:
         return ""
-    snippet = text[:700].rstrip()
-    if len(text) > len(snippet):
-        snippet = snippet.rsplit(" ", 1)[0] + "…"
-    parts = [f"Here is the closest supported explanation in the Living Archive: [{title}]({url}).", snippet]
+    span = _best_factual_span(text, query)
+    if not span:
+        return ""
+    parts = [f"The closest supported material I found is [{title}]({url}).", span]
     secondaries = _select_secondary_pathways(query, primary, docs, "factual", limit=1)
     if secondaries:
         item = secondaries[0]
         sec_title = _normalize_title(item["doc"].get("title") or "")
         sec_url = _valid_doc_url(item["doc"])
         if sec_title and sec_url:
-            parts.append(f"For another route into the question, you can also look at [{sec_title}]({sec_url}).")
+            parts.append(f"For another route into the question, you can also look at [{sec_title}]({sec_url}), offering {item['role_text']}.")
     return "\n\n".join(parts)
 
 
@@ -663,7 +699,7 @@ def _sanitize_visitor_output(text: str) -> str:
     return value
 
 
-def _v458_generate_boundary(*args, **kwargs):
+def _v459_generate_boundary(*args, **kwargs):
     user_query = _extract_user_query(args, kwargs)
     raw_context = _context_blocks_from_kwargs(args, kwargs)
     docs = _parse_context_documents(raw_context)
@@ -677,7 +713,7 @@ def _v458_generate_boundary(*args, **kwargs):
     return _sanitize_visitor_output(_original_generate_llm_response(*args, **kwargs))
 
 
-def _v458_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
+def _v459_evidence_gap_boundary(user_query: str, canonical_link_context: str = "") -> str:
     docs = _parse_context_documents(canonical_link_context)
     profile = _query_profile(user_query)
     persistent = _persistent_visitor_construction(user_query, docs, profile, canonical_link_context)
@@ -685,18 +721,18 @@ def _v458_evidence_gap_boundary(user_query: str, canonical_link_context: str = "
         return _sanitize_visitor_output(persistent)
     return _sanitize_visitor_output(_original_evidence_sufficiency_unavailable_response(user_query, canonical_link_context))
 
-_V458_BOUNDARY_QUERY = "What is the Living Archive?"
-_V458_BOUNDARY_AUDIT = _v458_evidence_gap_boundary(_V458_BOUNDARY_QUERY, "")
-if "living archive" not in _V458_BOUNDARY_AUDIT.casefold() or "connected body" not in _V458_BOUNDARY_AUDIT.casefold() or "USE" in _V458_BOUNDARY_AUDIT:
-    raise RuntimeError("USE v458 foundational orientation audit failed: visitor construction or language boundary failed.")
+_V459_BOUNDARY_QUERY = "What is the Living Archive?"
+_V459_BOUNDARY_AUDIT = _v459_evidence_gap_boundary(_V459_BOUNDARY_QUERY, "")
+if "living archive" not in _V459_BOUNDARY_AUDIT.casefold() or "connected body" not in _V459_BOUNDARY_AUDIT.casefold() or "USE" in _V459_BOUNDARY_AUDIT:
+    raise RuntimeError("USE v459 foundational orientation audit failed: visitor construction or language boundary failed.")
 
 app = use_core.app
 app.title = f"Find Your Way (The Guide) {APP_VERSION}"
-print(f"The Guide v458 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
+print(f"The Guide v459 BUILD IDENTITY: build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, core_blob_sha256={_core_runtime_sha}")
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
 use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
 use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
-use_core.generate_llm_response = _v458_generate_boundary
-use_core._evidence_sufficiency_unavailable_response = _v458_evidence_gap_boundary
+use_core.generate_llm_response = _v459_generate_boundary
+use_core._evidence_sufficiency_unavailable_response = _v459_evidence_gap_boundary
