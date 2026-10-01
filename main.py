@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.57 — LLM capability routing
+# USE PRODUCTION VERSION: v487.59 — relational route governance
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.57"
-DEPLOYMENT_FINGERPRINT = "USE-v487.57-asgi-capability-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.57-asgi-capability-routing"
+APP_VERSION = "v487.59"
+DEPLOYMENT_FINGERPRINT = "USE-v487.59-relational-route-governance"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.59-relational-route-governance"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -942,7 +942,7 @@ def _guide_route_model():
     try:
         live_models = list(get_models() or [])
     except Exception as exc:
-        print(f"USE v487.57 route model discovery failed: {exc}")
+        print(f"USE v487.59 route model discovery failed: {exc}")
         return None, None
 
     # Capability-aware preference: routing is short but interpretively important.
@@ -1017,7 +1017,7 @@ def _guide_capability_route(query, history=None):
                 )
                 preflight(model_id, estimated)
             except Exception as exc:
-                print(f"USE v487.57 route preflight skipped: {exc}")
+                print(f"USE v487.59 route preflight skipped: {exc}")
 
         response = groq_client.chat.completions.create(**provider_kwargs)
         raw = str(response.choices[0].message.content or "").strip()
@@ -1032,24 +1032,26 @@ def _guide_capability_route(query, history=None):
         reason = str(parsed.get("reason") or "").strip()
         alternatives = parsed.get("alternatives") or []
 
-        # The early LLM identifies the capability; the bounded deterministic
-        # territory assessment governs whether a genuine relational experience
-        # enters the delegated journey. The model must not be allowed to turn
-        # a clearly relational lived question into a direct Guide answer merely
-        # by returning mode=direct.
-        if route == "relationship":
-            relational_assessment = _relationship_territory_assessment(query, history)
-            if relational_assessment.get("invoke"):
-                mode = "delegated_journey"
-                confidence = max(
-                    confidence,
-                    float(relational_assessment.get("score", 0.0) or 0.0),
-                    0.70,
-                )
-                reason = (
-                    "bounded relational territory confirmed; "
-                    "delegated relational journey required"
-                )
+        # The early LLM identifies the likely capability, but it does not
+        # have final authority over a clearly bounded relational lived question.
+        # The deterministic territory assessment is the governance boundary:
+        # when it confirms genuine relational territory, the route itself is
+        # promoted to Seeing the Relationship even if the LLM returned guide
+        # or mode=direct. This prevents a classification disagreement from
+        # collapsing a genuine relational journey back into ordinary retrieval.
+        relational_assessment = _relationship_territory_assessment(query, history)
+        if relational_assessment.get("invoke"):
+            route = "relationship"
+            mode = "delegated_journey"
+            confidence = max(
+                confidence,
+                float(relational_assessment.get("score", 0.0) or 0.0),
+                0.70,
+            )
+            reason = (
+                "bounded relational territory confirmed; "
+                "relational route authority requires delegated journey"
+            )
 
         if route not in _GUIDE_ROUTE_IDS:
             raise ValueError(f"unsupported route {route!r}")
@@ -1085,7 +1087,7 @@ def _guide_capability_route(query, history=None):
         }
 
         print(
-            "USE v487.57 capability route: "
+            "USE v487.59 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
@@ -1093,7 +1095,7 @@ def _guide_capability_route(query, history=None):
 
     except Exception as exc:
         print(
-            "USE v487.57 capability route failed safely: "
+            "USE v487.59 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
@@ -1295,7 +1297,7 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     print(
-        "The Guide v487.57 capability boundary: "
+        "The Guide v487.59 capability boundary: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
     )
@@ -1379,4 +1381,4 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
         raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
 
 
-print(f"USE v487.57 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.59 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
