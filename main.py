@@ -1,8 +1,10 @@
-# USE PRODUCTION VERSION: v487.54 — Guide relational delegation
+# USE PRODUCTION VERSION: v487.55 — delegated relational journey
 import hashlib
 import importlib
 import re
 from pathlib import Path
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 from specialist_registry import (
     SPECIALIST_PIPE_CONTRACT_VERSION,
@@ -28,9 +30,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.54"
-DEPLOYMENT_FINGERPRINT = "USE-v487.54-guide-relational-delegation"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.54-guide-relational-delegation"
+APP_VERSION = "v487.55"
+DEPLOYMENT_FINGERPRINT = "USE-v487.55-delegated-relational-journey"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.55-delegated-relational-journey"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -588,34 +590,269 @@ def _relationship_integrated_response(contribution):
     if question and not bool(movement.get("rest")): parts.append(question)
     return "\n\n".join(parts)
 
-async def _v48754_query_wrapper(*args,**kwargs):
-    query=_extract_user_query(args,kwargs); history=kwargs.get("history") or kwargs.get("conversation_history"); raw_body={}
-    if args and hasattr(args[0],"json"):
-        try: raw_body=await args[0].json()
-        except Exception: raw_body={}
-    if not isinstance(raw_body,dict): raw_body={}
-    if history is None: history=raw_body.get("history") or raw_body.get("conversation_history")
-    assessment=_relationship_territory_assessment(query,history)
-    print("The Guide relational delegation: " f"invoke={assessment['invoke']}, score={assessment['score']}, reason={assessment['reason']}, query={_normalize_query(query)[:120]}")
+async def _v48755_relational_return(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    session_id = str(body.get("session_id") or "").strip()
+    original_question = str(body.get("original_question") or body.get("query") or "").strip()
+    conversation = str(body.get("conversation") or "").strip()
+    thread_summary = str(body.get("thread_summary") or "").strip()
+    working_hypothesis = str(body.get("working_hypothesis") or "").strip()
+    completed_insight = str(body.get("completed_insight") or "").strip()
+    perspective_delta = str(body.get("perspective_delta") or "").strip()
+    body_of_thought = str(body.get("body_of_thought") or "").strip()
+    underlying_need = str(body.get("underlying_need") or "").strip()
+    desired_condition = str(body.get("desired_condition") or "").strip()
+    next_horizon = str(body.get("next_horizon") or "").strip()
+    resource_fit = str(body.get("resource_fit") or "").strip()
+    fractal_maturity = str(body.get("fractal_maturity") or "").strip().casefold()
+
+    if not original_question or not conversation:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_incomplete",
+                "response": "The completed relational conversation was not supplied in full.",
+            },
+        )
+
+    if fractal_maturity not in {"complete", "mature", "consolidating", ""}:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_not_ready",
+                "response": "The relational inquiry has not reached a return point yet.",
+                "fractal_maturity": fractal_maturity,
+            },
+        )
+
+    # The Guide receives the whole journey, not merely HRN's final sentence.
+    # The synthesis query is deliberately constructed from HRN's own evolving
+    # state; no deterministic classifier is asked to reconstruct the meaning.
+    synthesis_parts = [
+        original_question,
+        "Conversation thread: " + thread_summary,
+        "What became clearer: " + perspective_delta,
+        "Completed insight: " + completed_insight,
+        "Underlying need: " + underlying_need,
+        "Desired condition: " + desired_condition,
+        "Living body of thought: " + body_of_thought,
+        "Next horizon: " + next_horizon,
+        "Canonical doorway fit noted by Seeing the Relationship: " + resource_fit,
+    ]
+    synthesis_query = "\n".join(part for part in synthesis_parts if part.split(": ", 1)[-1].strip())
+    synthesis_query = synthesis_query[:12000]
+
+    try:
+        context_data = _original_fetch_canonical_context(synthesis_query)
+        canonical_context = str(
+            context_data.get("canonical_link_context")
+            or context_data.get("context_blocks")
+            or ""
+        ) if isinstance(context_data, dict) else ""
+        docs = _parse_context_documents(canonical_context)
+
+        # Final doorway selection remains a Guide responsibility. HRN's own
+        # candidates are evidence, not authority, and are not blindly accepted.
+        profile = _base._inquiry_profile(original_question)
+        profile["action"] = "recommendation"
+        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.90)
+        outward = _sanitize_outward_context(synthesis_query, docs, profile)
+        primary = _canonical_primary_from_docs(outward, synthesis_query, profile)
+
+        if not primary:
+            # One bounded retry against the strongest completed insight when
+            # the composite journey query is too diffuse for canonical retrieval.
+            fallback_query = " ".join(
+                value for value in (
+                    completed_insight,
+                    perspective_delta,
+                    underlying_need,
+                    original_question,
+                ) if value
+            )[:8000]
+            fallback_data = _original_fetch_canonical_context(fallback_query)
+            fallback_context = str(
+                fallback_data.get("canonical_link_context")
+                or fallback_data.get("context_blocks")
+                or ""
+            ) if isinstance(fallback_data, dict) else ""
+            fallback_docs = _parse_context_documents(fallback_context)
+            fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
+            primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
+            if primary:
+                outward = fallback_outward
+
+        print(
+            "The Guide v487.55 relational return: "
+            f"session={session_id or 'none'}, "
+            f"complete={fractal_maturity or 'unspecified'}, "
+            f"selected={primary['title'] if primary else 'none'}, "
+            f"conversation_chars={len(conversation)}, "
+            f"query={_normalize_query(original_question)[:120]}"
+        )
+
+        if primary:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "request_id": session_id,
+                    "intent": "RELATIONAL_CANONICAL_RETURN",
+                    "response": "You have brought this question to a meaningful place. If you want to carry it further, this is one place in the Archive you can now enter.",
+                    "canonical_doorway": {
+                        "title": primary["title"],
+                        "url": primary["url"],
+                    },
+                    "relational_journey": {
+                        "state": "complete",
+                        "session_id": session_id,
+                        "perspective_delta": perspective_delta,
+                        "completed_insight": completed_insight,
+                        "next_horizon": next_horizon,
+                    },
+                    "visitor_boundary_version": APP_VERSION,
+                },
+            )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "You have brought this question to a meaningful place. You do not need to force a next step if no doorway feels right yet.",
+                "canonical_doorway": None,
+                "relational_journey": {
+                    "state": "complete",
+                    "session_id": session_id,
+                    "perspective_delta": perspective_delta,
+                    "completed_insight": completed_insight,
+                    "next_horizon": next_horizon,
+                },
+                "visitor_boundary_version": APP_VERSION,
+            },
+        )
+    except Exception as exc:
+        print(f"The Guide v487.55 relational return failed safely: {exc}")
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "The relational conversation is complete. The Archive doorway could not be prepared right now.",
+                "canonical_doorway": None,
+                "error_type": "relational_return_retrieval_failure",
+            },
+        )
+
+
+async def _v48755_query_middleware(request: Request, call_next):
+    if request.method.upper() != "POST" or request.url.path not in {"/api/query", "/"}:
+        return await call_next(request)
+
+    try:
+        raw_body = await request.json()
+    except Exception:
+        raw_body = {}
+    if not isinstance(raw_body, dict):
+        raw_body = {}
+
+    query = str(
+        raw_body.get("query")
+        or raw_body.get("user_query")
+        or raw_body.get("question")
+        or raw_body.get("text")
+        or raw_body.get("input")
+        or ""
+    ).strip()
+    history = raw_body.get("history") or raw_body.get("conversation_history")
+
+    assessment = _relationship_territory_assessment(query, history)
+    print(
+        "The Guide v487.55 relational gate: "
+        f"invoke={assessment['invoke']}, score={assessment['score']}, "
+        f"reason={assessment['reason']}, query={_normalize_query(query)[:120]}"
+    )
+
     if assessment["invoke"]:
-        request_id=""
-        if args and hasattr(args[0],"state"): request_id=str(getattr(args[0].state,"use_request_id","") or "")
-        if not request_id: request_id="relationship-"+hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
-        try:
-            contribution=invoke_specialist(SPECIALIST_ADAPTER_REGISTRY,request_id=request_id,guide_version=APP_VERSION,specialist_id="relationship",original_question=query,recognized_territory="human-relational",processing_purpose="deepen relational perspective and support meaningful movement",guide_context=_relationship_guide_context(history,raw_body),safety_state=str(raw_body.get("safety_stage") or "green"))
-            safety_flags=contribution.get("safety_flags") or {}
-            if safety_flags.get("safety_interrupt"):
-                return {"ok":True,"version":APP_VERSION,"query":query,"intent":"RELATIONAL_SAFETY","response":str(contribution.get("human_response") or ""),"safety":True,"safety_interrupt":True,"safety_question":safety_flags.get("safety_question"),"visitor_boundary_version":APP_VERSION,"request_id":request_id}
-            integrated=_relationship_integrated_response(contribution)
-            if integrated:
-                return {"ok":True,"version":APP_VERSION,"query":query,"intent":"RELATIONAL_INQUIRY","response":_sanitize_visitor_output(integrated),"visitor_boundary_version":APP_VERSION,"request_id":request_id,"relational_delegation":"Seeing the Relationship"}
-        except Exception as exc:
-            print(f"The Guide relational delegation failed safely: {exc}")
-    return await _original_guide_handle_query(*args,**kwargs)
+        request_id = str(getattr(request.state, "use_request_id", "") or "")
+        if not request_id:
+            request_id = "relationship-" + hashlib.sha1(
+                (query + "|" + _history_text(history)).encode("utf-8")
+            ).hexdigest()[:16]
 
-use_core.handle_query=_v48754_query_wrapper
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "RELATIONAL_HANDOFF",
+                "response": "",
+                "relational_delegation": {
+                    "state": "open",
+                    "specialist": "Seeing the Relationship",
+                    "specialist_id": "relationship",
+                    "session_id": request_id,
+                    "seed_message": query,
+                    "conversation": _history_text(history),
+                    "handoff_reason": "This question is better served by a relational conversation before the Archive chooses a doorway.",
+                    "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
+                    "guide_return_endpoint": "/api/relational-return",
+                },
+                "visitor_boundary_version": APP_VERSION,
+                "request_id": request_id,
+            },
+        )
 
-# v487.54 relational delegation invariants.
+    return await call_next(request)
+
+
+app.middleware("http")(_v48755_query_middleware)
+
+
+@app.post("/api/relational-return")
+async def _v48755_relational_return_route(request: Request):
+    return await _v48755_relational_return(request)
+
+
+# v487.55 delegated relational journey invariants.
+_RELATIONSHIP_TESTS=(
+    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
+    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
+    ("What should I read about relationships in the Living Archive?",False),
+    ("What is a relationship?",False),
+    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
+    ("What do I do now?",True),
+)
+for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
+    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
+    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
+    if _relationship_test["invoke"]!=_relationship_expected:
+        raise RuntimeError("USE v487.55 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
+
+# The middleware, not mutation of FastAPI's stored endpoint objects, owns
+# relational interception. This preserves the base route's validated request
+# contract for every non-relational query.
+if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
+    raise RuntimeError("USE v487.55 invariant failed: relational return route not registered")
+
+
+# v487.54 relational delegation invariants retired by v487.55.
 _RELATIONSHIP_TESTS=(
     ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
     ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
@@ -631,4 +868,4 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
         raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
 
 
-print(f"USE v487.54 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, relational_delegation=enabled")
+print(f"USE v487.55 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, relational_delegation=delegated_journey")
