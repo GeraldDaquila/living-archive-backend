@@ -1,7 +1,8 @@
-# USE PRODUCTION VERSION: v487.55 — delegated relational journey
+# USE PRODUCTION VERSION: v487.56 — LLM capability routing
 import hashlib
 import importlib
 import re
+import json
 from pathlib import Path
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -30,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.55"
-DEPLOYMENT_FINGERPRINT = "USE-v487.55-delegated-relational-journey"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.55-delegated-relational-journey"
+APP_VERSION = "v487.56"
+DEPLOYMENT_FINGERPRINT = "USE-v487.56-llm-capability-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.56-llm-capability-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -760,7 +761,336 @@ async def _v48755_relational_return(request: Request):
         )
 
 
-async def _v48755_query_middleware(request: Request, call_next):
+# ---------------------------------------------------------------------
+# v487.56 — EARLY GUIDE CAPABILITY ROUTING
+# ---------------------------------------------------------------------
+#
+# The first Guide decision is now an LLM interpretation task, not a
+# deterministic specialist keyword gate. The purpose of this pass is only
+# to understand what kind of doorway the question may need. It does not
+# answer the visitor, select canonical resources, or release Guide ownership.
+#
+# Existing USE/Groq model discovery and capability management are reused from
+# use_core.py. Deterministic governance remains authoritative after the model
+# proposes a route. A specialist is invoked only when it is registered and
+# explicitly available.
+#
+_GUIDE_ROUTE_IDS = frozenset({
+    "guide",
+    "relationship",
+    "formation",
+    "catalogue",
+    "systems_ph",
+    "safety",
+    "glossary",
+    "glyph",
+})
+
+_GUIDE_ROUTE_PROMPT = """You are the internal routing interpreter for The Guide,
+the orientation layer of the Living Archive.
+
+Your task is NOT to answer the visitor and NOT to recommend an Archive resource.
+Interpret the visitor's question only to determine what kind of doorway or
+processing would best serve the question.
+
+Possible routes:
+- guide: remain with The Guide's broad Archive orientation/navigation
+- relationship: Seeing the Relationship; bounded exploration of relationships
+  across self, person-to-person, family, group, community, organization,
+  institution, and intergroup situations
+- formation: Stewardship Formation Navigator; questions about what a situation
+  may be asking a person to learn, practice, examine, or carry
+- catalogue: Stewardship Catalogue; bounded navigation of stewardship resources
+- systems_ph: Philippine Systems Lens; interacting Philippine systems and
+  conditions
+- safety: Safety / Crisis; acute or potentially acute safety concerns
+- glossary: a vocabulary/definition lookup is the apparent need
+- glyph: a glyph/symbol lookup is the apparent need
+
+Important:
+- A relationship can exist in work, leadership, family, friendship, community,
+  institutional, or group settings. Do not require the word "relationship".
+- A question can contain relational material without needing a relational
+  specialist. Prefer relationship only when the human situation itself is
+  central and exploratory.
+- Definitions should not be routed to a conversational specialist merely
+  because the defined concept happens to concern relationships.
+- Preserve ambiguity. When no specialized door is clearly warranted, choose
+  guide.
+- Safety concerns are never downgraded because another route seems relevant.
+- Do not infer diagnosis, motives, mental state, or hidden conditions.
+
+Return ONLY valid JSON in this shape:
+{
+  "route": "guide|relationship|formation|catalogue|systems_ph|safety|glossary|glyph",
+  "mode": "direct|delegated_journey|lookup|clarify|safety",
+  "confidence": 0.0,
+  "reason": "short internal explanation",
+  "alternatives": ["guide"]
+}
+"""
+
+def _guide_route_history_text(history):
+    if not isinstance(history, list):
+        return ""
+    parts = []
+    for item in history[-6:]:
+        if isinstance(item, dict):
+            role = str(item.get("role") or item.get("speaker") or "").strip()
+            value = str(
+                item.get("content")
+                or item.get("message")
+                or item.get("text")
+                or item.get("response")
+                or item.get("question")
+                or ""
+            ).strip()
+            if value:
+                parts.append(f"{role}: {value}" if role else value)
+        elif item is not None:
+            value = str(item).strip()
+            if value:
+                parts.append(value)
+    return "\n".join(parts)[-6000:]
+
+
+def _guide_route_fallback(query, history=None):
+    """Conservative fallback when the early LLM route cannot execute."""
+    q = _normalize_query(query)
+    combined = " ".join(part for part in (q, _guide_route_history_text(history)) if part)
+
+    # Safety remains the highest deterministic boundary.
+    try:
+        profile = _base._inquiry_profile(query)
+        if profile.get("risk"):
+            return {
+                "route": "safety",
+                "mode": "safety",
+                "confidence": 1.0,
+                "reason": "deterministic safety boundary",
+                "alternatives": ["guide"],
+                "source": "deterministic-safety-fallback",
+            }
+    except Exception:
+        pass
+
+    workplace_relational = bool(re.search(
+        r"\b(?:manager|supervisor|boss|employee|colleague|coworker|co-worker|team|"
+        r"direct report|department|workplace|office|leader|leadership)\b",
+        combined,
+        re.I,
+    )) and bool(re.search(
+        r"\b(?:trust|trusted|trusts|micromanag|control|controlled|controll|"
+        r"communication|conflict|tension|relationship|misunderstand|"
+        r"respect|respectful|feedback|check-ins?|boundar|disagree|"
+        r"feel|feeling|concern|worried|unsure)\b",
+        combined,
+        re.I,
+    ))
+
+    current_relationship = _relationship_territory_assessment(query, history)
+    if current_relationship.get("invoke") or workplace_relational:
+        return {
+            "route": "relationship",
+            "mode": "delegated_journey",
+            "confidence": 0.70 if workplace_relational else float(current_relationship.get("score", 0.0)),
+            "reason": "conservative relational fallback",
+            "alternatives": ["guide"],
+            "source": "deterministic-relational-fallback",
+        }
+
+    if re.search(r"\b(?:glyph|symbol|icon|mark)\b", q) and re.search(
+        r"\b(?:find|show|lookup|look up|meaning|what does)\b", q, re.I
+    ):
+        return {
+            "route": "glyph",
+            "mode": "lookup",
+            "confidence": 0.65,
+            "reason": "explicit glyph lookup language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    if re.search(r"\b(?:define|definition|what is|what does .* mean|meaning of)\b", q, re.I):
+        return {
+            "route": "glossary",
+            "mode": "lookup",
+            "confidence": 0.65,
+            "reason": "explicit definition language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    return {
+        "route": "guide",
+        "mode": "direct",
+        "confidence": 0.50,
+        "reason": "no sufficiently bounded specialist route established",
+        "alternatives": ["guide"],
+        "source": "deterministic-fallback",
+    }
+
+
+def _guide_route_model():
+    """Select the early routing model from the existing USE model pool."""
+    get_models = getattr(use_core, "get_live_groq_models", None)
+    budget_profile = getattr(use_core, "_generation_budget_profile", None)
+
+    if not callable(get_models):
+        return None, None
+
+    try:
+        live_models = list(get_models() or [])
+    except Exception as exc:
+        print(f"USE v487.56 route model discovery failed: {exc}")
+        return None, None
+
+    # Capability-aware preference: routing is short but interpretively important.
+    # Prefer the existing class-2 reasoning model, then class-3, then class-1.
+    preferred = []
+    if callable(budget_profile):
+        for complexity in (2, 3, 1, 4):
+            try:
+                model = str(
+                    budget_profile({"complexity": complexity}).get("model") or ""
+                ).strip()
+                if model and model not in preferred:
+                    preferred.append(model)
+            except Exception:
+                continue
+
+    for model in preferred:
+        if model in live_models:
+            return model, preferred
+
+    for model in live_models:
+        if model:
+            return model, preferred
+
+    return None, preferred
+
+
+def _guide_capability_route(query, history=None):
+    """Interpret the first question through the existing Groq model architecture."""
+    fallback = _guide_route_fallback(query, history)
+
+    groq_client = getattr(use_core, "groq_client", None)
+    if groq_client is None:
+        return fallback
+
+    model_id, preference_order = _guide_route_model()
+    if not model_id:
+        return fallback
+
+    history_text = _guide_route_history_text(history)
+    user_content = (
+        "Visitor question:\n"
+        + str(query).strip()
+        + (
+            "\n\nRecent conversation context:\n" + history_text
+            if history_text else ""
+        )
+    )
+
+    try:
+        provider_kwargs = {
+            "model": model_id,
+            "messages": [
+                {"role": "system", "content": _GUIDE_ROUTE_PROMPT},
+                {"role": "user", "content": user_content[:9000]},
+            ],
+            "temperature": 0.0,
+            "max_completion_tokens": 300,
+            "response_format": {"type": "json_object"},
+        }
+
+        if model_id.startswith("openai/gpt-oss-"):
+            provider_kwargs["reasoning_effort"] = "low"
+            provider_kwargs["reasoning_format"] = "hidden"
+
+        preflight = getattr(use_core, "_known_daily_tpd_preflight", None)
+        estimate = getattr(use_core, "_estimate_quota_tokens", None)
+        if callable(preflight) and callable(estimate):
+            try:
+                estimated = int(
+                    estimate(provider_kwargs["messages"], 300)
+                )
+                preflight(model_id, estimated)
+            except Exception as exc:
+                print(f"USE v487.56 route preflight skipped: {exc}")
+
+        response = groq_client.chat.completions.create(**provider_kwargs)
+        raw = str(response.choices[0].message.content or "").strip()
+        parsed = json.loads(raw)
+
+        if not isinstance(parsed, dict):
+            raise ValueError("route response was not an object")
+
+        route = str(parsed.get("route") or "guide").strip().casefold()
+        mode = str(parsed.get("mode") or "direct").strip().casefold()
+        confidence = float(parsed.get("confidence", 0.0) or 0.0)
+        reason = str(parsed.get("reason") or "").strip()
+        alternatives = parsed.get("alternatives") or []
+
+        if route not in _GUIDE_ROUTE_IDS:
+            raise ValueError(f"unsupported route {route!r}")
+        if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
+            mode = "direct"
+        confidence = max(0.0, min(1.0, confidence))
+        alternatives = [
+            str(item).strip().casefold()
+            for item in alternatives
+            if str(item).strip().casefold() in _GUIDE_ROUTE_IDS
+        ][:3]
+
+        # Deterministic safety remains authoritative.
+        try:
+            profile = _base._inquiry_profile(query)
+            if profile.get("risk"):
+                route = "safety"
+                mode = "safety"
+                confidence = 1.0
+                reason = "deterministic safety boundary"
+        except Exception:
+            pass
+
+        result = {
+            "route": route,
+            "mode": mode,
+            "confidence": confidence,
+            "reason": reason[:500],
+            "alternatives": alternatives or ["guide"],
+            "source": "groq",
+            "model": model_id,
+            "preference_order": preference_order,
+        }
+
+        print(
+            "USE v487.56 capability route: "
+            f"source=groq, model={model_id}, route={route}, mode={mode}, "
+            f"confidence={confidence:.3f}, reason={reason[:180]!r}"
+        )
+        return result
+
+    except Exception as exc:
+        print(
+            "USE v487.56 capability route failed safely: "
+            f"model={model_id}, error={exc}"
+        )
+        return fallback
+
+
+def _registered_available_specialist(specialist_id):
+    for capability in SPECIALIST_CAPABILITY_REGISTRY:
+        if (
+            capability.specialist_id == specialist_id
+            and capability.status == "available"
+        ):
+            return capability
+    return None
+
+
+async def _v48756_query_middleware(request: Request, call_next):
     if request.method.upper() != "POST" or request.url.path not in {"/api/query", "/"}:
         return await call_next(request)
 
@@ -781,14 +1111,31 @@ async def _v48755_query_middleware(request: Request, call_next):
     ).strip()
     history = raw_body.get("history") or raw_body.get("conversation_history")
 
-    assessment = _relationship_territory_assessment(query, history)
-    print(
-        "The Guide v487.55 relational gate: "
-        f"invoke={assessment['invoke']}, score={assessment['score']}, "
-        f"reason={assessment['reason']}, query={_normalize_query(query)[:120]}"
+    if not query:
+        return await call_next(request)
+
+    route = _guide_capability_route(query, history)
+    route_id = str(route.get("route") or "guide").strip().casefold()
+    mode = str(route.get("mode") or "direct").strip().casefold()
+    confidence = float(route.get("confidence", 0.0) or 0.0)
+
+    # Only an actually available specialist can receive a delegated journey.
+    # The LLM proposes; registry governance authorizes.
+    capability = _registered_available_specialist(route_id)
+    should_delegate = (
+        capability is not None
+        and route_id == "relationship"
+        and mode == "delegated_journey"
+        and confidence >= 0.60
     )
 
-    if assessment["invoke"]:
+    print(
+        "The Guide v487.56 capability gate: "
+        f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
+        f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
+    )
+
+    if should_delegate:
         request_id = str(getattr(request.state, "use_request_id", "") or "")
         if not request_id:
             request_id = "relationship-" + hashlib.sha1(
@@ -805,12 +1152,12 @@ async def _v48755_query_middleware(request: Request, call_next):
                 "response": "",
                 "relational_delegation": {
                     "state": "open",
-                    "specialist": "Seeing the Relationship",
-                    "specialist_id": "relationship",
+                    "specialist": capability.public_name,
+                    "specialist_id": capability.specialist_id,
                     "session_id": request_id,
                     "seed_message": query,
                     "conversation": _history_text(history),
-                    "handoff_reason": "This question is better served by a relational conversation before the Archive chooses a doorway.",
+                    "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
                     "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
                     "guide_return_endpoint": "/api/relational-return",
                 },
@@ -821,8 +1168,7 @@ async def _v48755_query_middleware(request: Request, call_next):
 
     return await call_next(request)
 
-
-app.middleware("http")(_v48755_query_middleware)
+app.middleware("http")(_v48756_query_middleware)
 
 
 @app.post("/api/relational-return")
@@ -830,7 +1176,7 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v487.55 delegated relational journey invariants.
+# v487.56 capability-routing invariants.
 _RELATIONSHIP_TESTS=(
     ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
     ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
@@ -849,10 +1195,10 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
 # relational interception. This preserves the base route's validated request
 # contract for every non-relational query.
 if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
-    raise RuntimeError("USE v487.55 invariant failed: relational return route not registered")
+    raise RuntimeError("USE v487.56 invariant failed: relational return route not registered")
 
 
-# v487.54 relational delegation invariants retired by v487.55.
+# Legacy relational territory invariants retained as fallback safeguards.
 _RELATIONSHIP_TESTS=(
     ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
     ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
@@ -868,4 +1214,4 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
         raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
 
 
-print(f"USE v487.55 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, relational_delegation=delegated_journey")
+print(f"USE v487.56 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
