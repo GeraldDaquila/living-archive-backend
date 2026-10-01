@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.61 — Round 1 mode governance
+# USE PRODUCTION VERSION: v487.62 — Whole-journey synthesis return
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.61"
-DEPLOYMENT_FINGERPRINT = "USE-v487.61-round1-mode-governance"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.61-round1-mode-governance"
+APP_VERSION = "v487.62"
+DEPLOYMENT_FINGERPRINT = "USE-v487.62-journey-synthesis-return"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.62-journey-synthesis-return"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -622,6 +622,7 @@ async def _v48755_relational_return(request: Request):
         "Living body of thought: " + body_of_thought,
         "Next horizon: " + next_horizon,
         "Canonical doorway fit noted by Seeing the Relationship: " + resource_fit,
+        "Whole-journey synthesis from Seeing the Relationship: " + journey_synthesis,
     ]
     synthesis_query = "\n".join(part for part in synthesis_parts if part.split(": ", 1)[-1].strip())
     synthesis_query = synthesis_query[:12000]
@@ -667,7 +668,7 @@ async def _v48755_relational_return(request: Request):
                 outward = fallback_outward
 
         print(
-            "The Guide v487.55 relational return: "
+            "The Guide v487.62 relational return: "
             f"session={session_id or 'none'}, "
             f"complete={fractal_maturity or 'unspecified'}, "
             f"selected={primary['title'] if primary else 'none'}, "
@@ -694,6 +695,7 @@ async def _v48755_relational_return(request: Request):
                         "perspective_delta": perspective_delta,
                         "completed_insight": completed_insight,
                         "next_horizon": next_horizon,
+                        "journey_synthesis": journey_synthesis,
                     },
                     "visitor_boundary_version": APP_VERSION,
                 },
@@ -714,12 +716,13 @@ async def _v48755_relational_return(request: Request):
                     "perspective_delta": perspective_delta,
                     "completed_insight": completed_insight,
                     "next_horizon": next_horizon,
+                    "journey_synthesis": journey_synthesis,
                 },
                 "visitor_boundary_version": APP_VERSION,
             },
         )
     except Exception as exc:
-        print(f"The Guide v487.55 relational return failed safely: {exc}")
+        print(f"The Guide v487.62 relational return failed safely: {exc}")
         return JSONResponse(
             status_code=200,
             content={
