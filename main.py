@@ -1006,7 +1006,7 @@ def _guide_capability_route(query, history=None):
 
         if model_id.startswith("openai/gpt-oss-"):
             provider_kwargs["reasoning_effort"] = "low"
-            provider_kwargs["reasoning_format"] = "hidden"
+            provider_kwargs["include_reasoning"] = False
 
         preflight = getattr(use_core, "_known_daily_tpd_preflight", None)
         estimate = getattr(use_core, "_estimate_quota_tokens", None)
