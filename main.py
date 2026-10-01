@@ -1,16 +1,22 @@
-# USE PRODUCTION VERSION: v487.49 — production identity propagation after wiring restoration
+# USE PRODUCTION VERSION: v487.50 — specialist pipe contract registry foundation
 import hashlib
 import importlib
 import re
 from pathlib import Path
 
+from specialist_registry import (
+    SPECIALIST_PIPE_CONTRACT_VERSION,
+    registry_snapshot,
+    validate_registry,
+)
+
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
-APP_VERSION = "v487.49"
-DEPLOYMENT_FINGERPRINT = "USE-v487.49-production-identity-propagation-after-wiring-restoration"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.49-production-identity-propagation-after-wiring-restoration"
+APP_VERSION = "v487.50"
+DEPLOYMENT_FINGERPRINT = "USE-v487.50-specialist-pipe-contract-registry-foundation"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.50-specialist-pipe-contract-registry-foundation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -21,6 +27,9 @@ use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
 use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError("USE protected core integrity failure: protected core mismatch.")
+
+validate_registry()
+SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 
 
 def _normalize_query(text):
@@ -462,4 +471,4 @@ for _query, _label in (
     if _profile["action"] != "recommendation":
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
-print(f"USE v487.49 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}")
+print(f"USE v487.50 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}")
