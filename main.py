@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.53 — production Seeing the Relationship adapter
+# USE PRODUCTION VERSION: v487.54 — Guide relational delegation
 import hashlib
 import importlib
 import re
@@ -20,15 +20,17 @@ from specialist_adapters import (
     SPECIALIST_ADAPTER_CONTRACT_VERSION,
     SpecialistAdapterRegistry,
     adapter_contract_snapshot,
+    invoke_specialist,
 )
 
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
-APP_VERSION = "v487.53"
-DEPLOYMENT_FINGERPRINT = "USE-v487.53-production-seeing-the-relationship-adapter"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.53-production-seeing-the-relationship-adapter"
+_original_guide_handle_query = use_core.handle_query
+APP_VERSION = "v487.54"
+DEPLOYMENT_FINGERPRINT = "USE-v487.54-guide-relational-delegation"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.54-guide-relational-delegation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -504,4 +506,129 @@ for _query, _label in (
     if _profile["action"] != "recommendation":
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
-print(f"USE v487.53 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
+def _history_text(history):
+    if not history: return ""
+    if isinstance(history, str): return history.strip()
+    parts=[]
+    for item in list(history)[-8:]:
+        if isinstance(item, dict):
+            role=str(item.get("role") or item.get("speaker") or "").strip()
+            content=str(item.get("content") or item.get("message") or item.get("text") or item.get("response") or item.get("question") or "").strip()
+            if content: parts.append(f"{role}: {content}" if role else content)
+        elif item is not None:
+            value=str(item).strip()
+            if value: parts.append(value)
+    return "\n".join(parts)
+
+_RELATIONSHIP_INTERACTION_PATTERNS=(
+    r"\bbetween us\b",r"\bbetween me and\b",r"\bbetween you and\b",r"\bwe keep\b",
+    r"\bwe(?:'re| are)\b",r"\bwe can(?:'t|not)\b",r"\bwe don't\b",r"\bwe disagree\b",
+    r"\bwe argue\b",r"\bargu(?:e|ing|ed)\b",r"\bconflict\b",r"\btension\b",
+    r"\bcommunication\b",r"\bcommunicat(?:e|ing|ion)\b",r"\bunderstand(?:ing)?\b",
+    r"\bmisunderstand(?:ing)?\b",r"\bdistance\b",r"\bdisconnect(?:ed|ion)?\b",
+    r"\breconnect\b",r"\btrust\b",r"\bforgive(?:ness)?\b",r"\bresent(?:ment|ful)?\b",
+    r"\bboundar(?:y|ies)\b",r"\bhurt\b",r"\bheal(?:ing)?\b",r"\bcare about\b",
+    r"\bclose to\b",r"\bdrift(?:ed|ing)?\b",r"\bfeel(?:ing)? unheard\b",r"\bfeel(?:ing)? unseen\b",
+)
+_RELATIONSHIP_PERSON_PATTERNS=(
+    r"\bsomeone i care about\b",r"\bperson i care about\b",r"\bpeople i care about\b",
+    r"\bsomeone i love\b",r"\bmy partner\b",r"\bmy spouse\b",r"\bmy husband\b",
+    r"\bmy wife\b",r"\bmy family\b",r"\bmy friend\b",r"\bmy friends\b",
+    r"\ba friend\b",r"\ba loved one\b",r"\bmy relationship\b",r"\bour relationship\b",
+    r"\bthis relationship\b",r"\bwith someone\b",r"\bwith my\b",
+)
+
+def _relationship_territory_assessment(query, history=None):
+    current=_normalize_query(query); prior=_normalize_query(_history_text(history))
+    combined=" ".join(part for part in (current,prior) if part).strip()
+    if not combined: return {"invoke":False,"score":0.0,"reason":"empty"}
+    person_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_PERSON_PATTERNS)
+    interaction_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_INTERACTION_PATTERNS)
+    family_signal=bool(_query_frame(combined)["relational"])
+    experiential_signal=_has_experiential_stance(current) or _has_experiential_state(current)
+    current_relational=family_signal or person_signal
+    history_relational=bool(prior) and any(re.search(pattern,prior,re.I) for pattern in (*_RELATIONSHIP_PERSON_PATTERNS,*_RELATIONSHIP_INTERACTION_PATTERNS))
+    followup_signal=bool(history_relational and re.search(r"\b(?:what do i do now|what do we do now|what now|where do we go from here|how do i respond|how do i handle this|how do i move forward|what happens next)\b",current,re.I))
+    profile=_base._inquiry_profile(query)
+    if profile.get("risk"): return {"invoke":False,"score":0.0,"reason":"safety-boundary"}
+    if profile.get("conceptual") and not experiential_signal and not interaction_signal and not history_relational:
+        return {"invoke":False,"score":0.0,"reason":"conceptual-only"}
+    score=0.0
+    if person_signal: score+=0.34
+    if family_signal: score+=0.22
+    if interaction_signal: score+=0.24
+    if experiential_signal: score+=0.12
+    if history_relational: score+=0.18
+    if followup_signal: score+=0.30
+    if current_relational and (interaction_signal or experiential_signal): score+=0.10
+    if profile.get("navigation") and not experiential_signal and not interaction_signal: score-=0.20
+    invoke=score>=0.50 and (current_relational or history_relational)
+    return {"invoke":bool(invoke),"score":round(score,3),"reason":"relational-territory" if invoke else "insufficient-relational-signal","current_relational":current_relational,"history_relational":history_relational,"person_signal":person_signal,"interaction_signal":interaction_signal,"experiential_signal":experiential_signal}
+
+def _relationship_guide_context(history, raw_body):
+    history_text=_history_text(history)
+    return {"conversation":history_text,"visitor_history":history_text,"unit_turns":len(history) if isinstance(history,list) else 0,"safety_question":str((raw_body or {}).get("safety_question") or ""),"country":str((raw_body or {}).get("country") or "")}
+
+def _relationship_primary_doorway(contribution):
+    for index,item in enumerate(contribution.get("canonical_candidates") or []):
+        if not isinstance(item,dict): continue
+        title=str(item.get("title") or "").strip(); url=str(item.get("url") or item.get("canonical_url") or "").strip()
+        access_class=str(item.get("access_class") or "public").strip().casefold()
+        if title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I) and access_class in {"public",""}: return index,title,url
+    return None
+
+def _relationship_integrated_response(contribution):
+    human=str(contribution.get("human_response") or "").strip()
+    if not human: return ""
+    parts=[human]; doorway=_relationship_primary_doorway(contribution); movement=contribution.get("movement") or {}
+    if doorway:
+        _,title,url=doorway
+        parts.append(f"If you want to continue from here, one doorway into the Archive is [{title}]({url}).")
+    question=str(movement.get("question") or "").strip()
+    if question and not bool(movement.get("rest")): parts.append(question)
+    return "\n\n".join(parts)
+
+async def _v48754_query_wrapper(*args,**kwargs):
+    query=_extract_user_query(args,kwargs); history=kwargs.get("history") or kwargs.get("conversation_history"); raw_body={}
+    if args and hasattr(args[0],"json"):
+        try: raw_body=await args[0].json()
+        except Exception: raw_body={}
+    if not isinstance(raw_body,dict): raw_body={}
+    if history is None: history=raw_body.get("history") or raw_body.get("conversation_history")
+    assessment=_relationship_territory_assessment(query,history)
+    print("The Guide relational delegation: " f"invoke={assessment['invoke']}, score={assessment['score']}, reason={assessment['reason']}, query={_normalize_query(query)[:120]}")
+    if assessment["invoke"]:
+        request_id=""
+        if args and hasattr(args[0],"state"): request_id=str(getattr(args[0].state,"use_request_id","") or "")
+        if not request_id: request_id="relationship-"+hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        try:
+            contribution=invoke_specialist(SPECIALIST_ADAPTER_REGISTRY,request_id=request_id,guide_version=APP_VERSION,specialist_id="relationship",original_question=query,recognized_territory="human-relational",processing_purpose="deepen relational perspective and support meaningful movement",guide_context=_relationship_guide_context(history,raw_body),safety_state=str(raw_body.get("safety_stage") or "green"))
+            safety_flags=contribution.get("safety_flags") or {}
+            if safety_flags.get("safety_interrupt"):
+                return {"ok":True,"version":APP_VERSION,"query":query,"intent":"RELATIONAL_SAFETY","response":str(contribution.get("human_response") or ""),"safety":True,"safety_interrupt":True,"safety_question":safety_flags.get("safety_question"),"visitor_boundary_version":APP_VERSION,"request_id":request_id}
+            integrated=_relationship_integrated_response(contribution)
+            if integrated:
+                return {"ok":True,"version":APP_VERSION,"query":query,"intent":"RELATIONAL_INQUIRY","response":_sanitize_visitor_output(integrated),"visitor_boundary_version":APP_VERSION,"request_id":request_id,"relational_delegation":"Seeing the Relationship"}
+        except Exception as exc:
+            print(f"The Guide relational delegation failed safely: {exc}")
+    return await _original_guide_handle_query(*args,**kwargs)
+
+use_core.handle_query=_v48754_query_wrapper
+
+# v487.54 relational delegation invariants.
+_RELATIONSHIP_TESTS=(
+    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
+    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
+    ("What should I read about relationships in the Living Archive?",False),
+    ("What is a relationship?",False),
+    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
+    ("What do I do now?",True),
+)
+for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
+    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
+    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
+    if _relationship_test["invoke"]!=_relationship_expected:
+        raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
+
+
+print(f"USE v487.54 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, relational_delegation=enabled")
