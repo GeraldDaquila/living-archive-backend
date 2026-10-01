@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.56 — LLM capability routing
+# USE PRODUCTION VERSION: v487.57 — LLM capability routing
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.56"
-DEPLOYMENT_FINGERPRINT = "USE-v487.56-llm-capability-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.56-llm-capability-routing"
+APP_VERSION = "v487.57"
+DEPLOYMENT_FINGERPRINT = "USE-v487.57-asgi-capability-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.57-asgi-capability-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -762,7 +762,7 @@ async def _v48755_relational_return(request: Request):
 
 
 # ---------------------------------------------------------------------
-# v487.56 — EARLY GUIDE CAPABILITY ROUTING
+# v487.57 — EARLY GUIDE CAPABILITY ROUTING
 # ---------------------------------------------------------------------
 #
 # The first Guide decision is now an LLM interpretation task, not a
@@ -942,7 +942,7 @@ def _guide_route_model():
     try:
         live_models = list(get_models() or [])
     except Exception as exc:
-        print(f"USE v487.56 route model discovery failed: {exc}")
+        print(f"USE v487.57 route model discovery failed: {exc}")
         return None, None
 
     # Capability-aware preference: routing is short but interpretively important.
@@ -1017,7 +1017,7 @@ def _guide_capability_route(query, history=None):
                 )
                 preflight(model_id, estimated)
             except Exception as exc:
-                print(f"USE v487.56 route preflight skipped: {exc}")
+                print(f"USE v487.57 route preflight skipped: {exc}")
 
         response = groq_client.chat.completions.create(**provider_kwargs)
         raw = str(response.choices[0].message.content or "").strip()
@@ -1066,7 +1066,7 @@ def _guide_capability_route(query, history=None):
         }
 
         print(
-            "USE v487.56 capability route: "
+            "USE v487.57 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
@@ -1074,7 +1074,7 @@ def _guide_capability_route(query, history=None):
 
     except Exception as exc:
         print(
-            "USE v487.56 capability route failed safely: "
+            "USE v487.57 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
@@ -1130,7 +1130,7 @@ async def _v48756_query_middleware(request: Request, call_next):
     )
 
     print(
-        "The Guide v487.56 capability gate: "
+        "The Guide v487.57 capability gate: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
     )
@@ -1168,7 +1168,149 @@ async def _v48756_query_middleware(request: Request, call_next):
 
     return await call_next(request)
 
-app.middleware("http")(_v48756_query_middleware)
+# v487.57 request-boundary interception.
+#
+# The v487.56 HTTP middleware did not reliably reach /api/query in the live
+# FastAPI application. The inherited core request path could execute first,
+# which is why the benchmark still produced the v487.28 visitor boundary
+# instead of RELATIONAL_HANDOFF.
+#
+# Keep the FastAPI application intact and wrap it at the ASGI boundary.
+# Non-relational traffic is replayed unchanged into the original FastAPI
+# application, preserving its CORS, request-id, retrieval, generation,
+# safety, and visitor-boundary middleware.
+
+async def _v48757_read_body(receive):
+    chunks = []
+    while True:
+        message = await receive()
+        message_type = message.get("type")
+        if message_type == "http.disconnect":
+            break
+        if message_type != "http.request":
+            continue
+        body = message.get("body") or b""
+        if body:
+            chunks.append(body)
+        if not message.get("more_body", False):
+            break
+    return b"".join(chunks)
+
+
+def _v48757_replay_receive(body):
+    sent = False
+
+    async def _receive():
+        nonlocal sent
+        if not sent:
+            sent = True
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    return _receive
+
+
+async def _v48757_send_json(send, payload, status_code=200):
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    await send({
+        "type": "http.response.start",
+        "status": status_code,
+        "headers": [
+            (b"content-type", b"application/json; charset=utf-8"),
+            (b"content-length", str(len(body)).encode("ascii")),
+            (b"access-control-allow-origin", b"*"),
+        ],
+    })
+    await send({"type": "http.response.body", "body": body})
+
+
+_FASTAPI_APP = app
+
+
+async def _v48757_query_asgi(scope, receive, send):
+    if scope.get("type") != "http":
+        await _FASTAPI_APP(scope, receive, send)
+        return
+
+    method = str(scope.get("method") or "").upper()
+    path = str(scope.get("path") or "")
+    if method != "POST" or path not in {"/api/query", "/"}:
+        await _FASTAPI_APP(scope, receive, send)
+        return
+
+    raw_body = await _v48757_read_body(receive)
+    try:
+        raw_body_text = raw_body.decode("utf-8")
+        parsed_body = json.loads(raw_body_text) if raw_body_text else {}
+    except Exception:
+        parsed_body = {}
+
+    if not isinstance(parsed_body, dict):
+        parsed_body = {}
+
+    query = str(
+        parsed_body.get("query")
+        or parsed_body.get("user_query")
+        or parsed_body.get("question")
+        or parsed_body.get("text")
+        or parsed_body.get("input")
+        or ""
+    ).strip()
+    history = parsed_body.get("history") or parsed_body.get("conversation_history")
+
+    if not query:
+        await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
+        return
+
+    route = _guide_capability_route(query, history)
+    route_id = str(route.get("route") or "guide").strip().casefold()
+    mode = str(route.get("mode") or "direct").strip().casefold()
+    confidence = float(route.get("confidence", 0.0) or 0.0)
+
+    capability = _registered_available_specialist(route_id)
+    should_delegate = (
+        capability is not None
+        and route_id == "relationship"
+        and mode == "delegated_journey"
+        and confidence >= 0.60
+    )
+
+    print(
+        "The Guide v487.57 capability boundary: "
+        f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
+        f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
+    )
+
+    if should_delegate:
+        request_id = "relationship-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+
+        return await _v48757_send_json(
+            send,
+            {
+                "ok": True,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "RELATIONAL_HANDOFF",
+                "response": "",
+                "relational_delegation": {
+                    "state": "open",
+                    "specialist": capability.public_name,
+                    "specialist_id": capability.specialist_id,
+                    "session_id": request_id,
+                    "seed_message": query,
+                    "conversation": _history_text(history),
+                    "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
+                    "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
+                    "guide_return_endpoint": "/api/relational-return",
+                },
+                "visitor_boundary_version": APP_VERSION,
+                "request_id": request_id,
+            },
+        )
+
+    await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
 
 
 @app.post("/api/relational-return")
@@ -1176,7 +1318,7 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v487.56 capability-routing invariants.
+# v487.57 capability-routing invariants.
 _RELATIONSHIP_TESTS=(
     ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
     ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
@@ -1195,7 +1337,11 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
 # relational interception. This preserves the base route's validated request
 # contract for every non-relational query.
 if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
-    raise RuntimeError("USE v487.56 invariant failed: relational return route not registered")
+    raise RuntimeError("USE v487.57 invariant failed: relational return route not registered")
+
+# Only expose the ASGI wrapper after every FastAPI route and startup invariant
+# has been registered against the original application object.
+app = _v48757_query_asgi
 
 
 # Legacy relational territory invariants retained as fallback safeguards.
@@ -1214,4 +1360,4 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
         raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
 
 
-print(f"USE v487.56 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.57 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
