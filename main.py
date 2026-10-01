@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.51 — specialist adapter contract foundation
+# USE PRODUCTION VERSION: v487.52 — Seeing the Relationship contribution grammar
 import hashlib
 import importlib
 import re
@@ -8,6 +8,12 @@ from specialist_registry import (
     SPECIALIST_PIPE_CONTRACT_VERSION,
     registry_snapshot,
     validate_registry,
+)
+from relationship_contribution import (
+    RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
+    RELATIONSHIP_VOICE_POLICY,
+    relationship_contract_snapshot,
+    validate_relationship_contribution,
 )
 from specialist_adapters import (
     SPECIALIST_ADAPTER_CONTRACT_VERSION,
@@ -19,9 +25,9 @@ _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
-APP_VERSION = "v487.51"
-DEPLOYMENT_FINGERPRINT = "USE-v487.51-specialist-adapter-contract-foundation"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.51-specialist-adapter-contract-foundation"
+APP_VERSION = "v487.52"
+DEPLOYMENT_FINGERPRINT = "USE-v487.52-seeing-the-relationship-contribution-grammar"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.52-seeing-the-relationship-contribution-grammar"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -37,7 +43,25 @@ validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
+RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
 
+
+# Seeing the Relationship contribution invariant: HRN's human voice is
+# preserved by contract. The Guide may integrate it, but does not rewrite it
+# merely to impose Guide phrasing.
+_relationship_contract_probe = validate_relationship_contribution({
+    "status": "CONTRIBUTION",
+    "voice_policy": RELATIONSHIP_VOICE_POLICY,
+    "human_response": "Sometimes the first thing worth noticing is not whether the relationship is right or wrong, but what happens between you when this particular tension appears.",
+    "interpretation": {"focus": "relational pattern"},
+    "perspectives": [{"view": "visitor"}, {"view": "relationship"}],
+    "movement": {"direction": "perspective"},
+    "canonical_candidates": [],
+})
+if _relationship_contract_probe["voice_policy"] != "preserve_specialist_voice":
+    raise RuntimeError("USE v487.52 invariant failed: relational voice-preservation policy lost")
+if _relationship_contract_probe["human_response"].startswith("A useful place to begin"):
+    raise RuntimeError("USE v487.52 invariant failed: relational contribution was rewritten into Guide voice")
 
 def _normalize_query(text):
     return re.sub(r"\s+", " ", str(text or "").strip().casefold().replace("’", "'").replace("‘", "'").replace("`", "'").replace("–", "-").replace("—", "-"))
@@ -478,4 +502,4 @@ for _query, _label in (
     if _profile["action"] != "recommendation":
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
-print(f"USE v487.51 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
+print(f"USE v487.52 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
