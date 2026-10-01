@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.46 — early subject centrality repair for ordinary anger doorway
+# USE PRODUCTION VERSION: v487.47 — application wiring restoration after centrality repair
 import hashlib
 import importlib
 import re
@@ -7,9 +7,10 @@ from pathlib import Path
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
-APP_VERSION = "v487.46"
-DEPLOYMENT_FINGERPRINT = "USE-v487.46-early-subject-centrality-repair-ordinary-anger-doorway"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.46-early-subject-centrality-repair-ordinary-anger-doorway"
+app = _base.app
+APP_VERSION = "v487.47"
+DEPLOYMENT_FINGERPRINT = "USE-v487.47-application-wiring-restoration-after-centrality-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.47-application-wiring-restoration-after-centrality-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -401,7 +402,7 @@ def _recommendation_first_fetch(query_str):
         data["question_structure_evidence_unavailable"] = False
         data["question_evidence_fit_unavailable"] = False
         data["frame_neutral_evidence_unavailable"] = False
-    print(f"The Guide v487.45 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
+    print(f"The Guide v487.47 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
     return data
 
 
@@ -421,31 +422,31 @@ _probe_docs = [
 
 _probe_answer, _probe_mode = _unified_visitor_construction(_probe_query, _probe_docs, [_probe_docs[2], _probe_docs[0], _probe_docs[1], _probe_docs[3]])
 if _probe_mode != "recommendation" or not _probe_answer.startswith("A useful place to begin with this question is [Emotional Hijacking"):
-    raise RuntimeError(f"USE v487.46 invariant failed: direct anger doorway={_probe_answer}")
+    raise RuntimeError(f"USE v487.47 invariant failed: direct anger doorway={_probe_answer}")
 if "Suicide and the Journey of the Soul" in _probe_answer or "The Divine Feminine" in _probe_answer:
-    raise RuntimeError("USE v487.46 invariant failed: mismatched doorway survived risk/worldview gate")
+    raise RuntimeError("USE v487.47 invariant failed: mismatched doorway survived risk/worldview gate")
 if _role_evidence(_probe_docs[2])["worldview"]:
-    raise RuntimeError("USE v487.46 invariant failed: broad multidisciplinary article misclassified as worldview-specialized")
+    raise RuntimeError("USE v487.47 invariant failed: broad multidisciplinary article misclassified as worldview-specialized")
 if _role_evidence(_probe_docs[0])["risk"] is not True:
-    raise RuntimeError("USE v487.46 invariant failed: explicit risk doorway lost its risk role")
+    raise RuntimeError("USE v487.47 invariant failed: explicit risk doorway lost its risk role")
 if _role_evidence(_probe_docs[1])["abuse"] is not True:
-    raise RuntimeError("USE v487.46 invariant failed: explicit abuse doorway lost its abuse role")
+    raise RuntimeError("USE v487.47 invariant failed: explicit abuse doorway lost its abuse role")
 if _role_evidence(_probe_docs[3])["worldview"] is not True:
-    raise RuntimeError("USE v487.46 invariant failed: explicit worldview doorway lost its worldview role")
+    raise RuntimeError("USE v487.47 invariant failed: explicit worldview doorway lost its worldview role")
 
 _probe_decoys = [_probe_docs[0], _probe_docs[1], _probe_docs[3]]
 if _sanitize_outward_context(_probe_query, _probe_decoys, _probe_profile):
-    raise RuntimeError("USE v487.46 invariant failed: decoy-only context leaked through navigation boundary")
+    raise RuntimeError("USE v487.47 invariant failed: decoy-only context leaked through navigation boundary")
 _probe_fallback_answer = _recommendation_answer_with_authority(_probe_query, _probe_decoys, _probe_profile, _probe_decoys)
 if _probe_fallback_answer:
-    raise RuntimeError("USE v487.46 invariant failed: fallback recommendation leaked decoy-only context")
+    raise RuntimeError("USE v487.47 invariant failed: fallback recommendation leaked decoy-only context")
 
 _probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose\nURL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/\nContent: Abuse in relationships involves conflict, projection, and anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
 _bridge_docs = _parse_context_documents(_probe_gap["canonical_link_context"])
 if not _bridge_docs or not _recommendation_first_fetch:
-    raise RuntimeError("USE v487.46 invariant failed: evidence bridge unavailable")
+    raise RuntimeError("USE v487.47 invariant failed: evidence bridge unavailable")
 if _sanitize_outward_context(_probe_query, _bridge_docs, _probe_profile):
-    raise RuntimeError("USE v487.46 invariant failed: rejected evidence-gap context survived outward boundary")
+    raise RuntimeError("USE v487.47 invariant failed: rejected evidence-gap context survived outward boundary")
 
 for _query, _label in (
     ("I feel lonely and disconnected from everyone lately. Is there anything in the Living Archive that might help me think about it?", "loneliness"),
@@ -454,6 +455,6 @@ for _query, _label in (
 ):
     _profile = _base._inquiry_profile(_query)
     if _profile["action"] != "recommendation":
-        raise RuntimeError(f"USE v487.46 invariant failed: {_label} movement classification")
+        raise RuntimeError(f"USE v487.47 invariant failed: {_label} movement classification")
 
-print(f"USE v487.46 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}")
+print(f"USE v487.47 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}")
