@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.59 — relational route governance
+# USE PRODUCTION VERSION: v487.60 — Guide Round 1 reasoning
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.59"
-DEPLOYMENT_FINGERPRINT = "USE-v487.59-relational-route-governance"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.59-relational-route-governance"
+APP_VERSION = "v487.60"
+DEPLOYMENT_FINGERPRINT = "USE-v487.60-guide-round1-reasoning"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.60-guide-round1-reasoning"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -541,33 +541,6 @@ _RELATIONSHIP_PERSON_PATTERNS=(
     r"\bthis relationship\b",r"\bwith someone\b",r"\bwith my\b",
 )
 
-def _relationship_territory_assessment(query, history=None):
-    current=_normalize_query(query); prior=_normalize_query(_history_text(history))
-    combined=" ".join(part for part in (current,prior) if part).strip()
-    if not combined: return {"invoke":False,"score":0.0,"reason":"empty"}
-    person_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_PERSON_PATTERNS)
-    interaction_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_INTERACTION_PATTERNS)
-    family_signal=bool(_query_frame(combined)["relational"])
-    experiential_signal=_has_experiential_stance(current) or _has_experiential_state(current)
-    current_relational=family_signal or person_signal
-    history_relational=bool(prior) and any(re.search(pattern,prior,re.I) for pattern in (*_RELATIONSHIP_PERSON_PATTERNS,*_RELATIONSHIP_INTERACTION_PATTERNS))
-    followup_signal=bool(history_relational and re.search(r"\b(?:what do i do now|what do we do now|what now|where do we go from here|how do i respond|how do i handle this|how do i move forward|what happens next)\b",current,re.I))
-    profile=_base._inquiry_profile(query)
-    if profile.get("risk"): return {"invoke":False,"score":0.0,"reason":"safety-boundary"}
-    if profile.get("conceptual") and not experiential_signal and not interaction_signal and not history_relational:
-        return {"invoke":False,"score":0.0,"reason":"conceptual-only"}
-    score=0.0
-    if person_signal: score+=0.34
-    if family_signal: score+=0.22
-    if interaction_signal: score+=0.24
-    if experiential_signal: score+=0.12
-    if history_relational: score+=0.18
-    if followup_signal: score+=0.30
-    if current_relational and (interaction_signal or experiential_signal): score+=0.10
-    if profile.get("navigation") and not experiential_signal and not interaction_signal: score-=0.20
-    invoke=score>=0.50 and (current_relational or history_relational)
-    return {"invoke":bool(invoke),"score":round(score,3),"reason":"relational-territory" if invoke else "insufficient-relational-signal","current_relational":current_relational,"history_relational":history_relational,"person_signal":person_signal,"interaction_signal":interaction_signal,"experiential_signal":experiential_signal}
-
 def _relationship_guide_context(history, raw_body):
     history_text=_history_text(history)
     return {"conversation":history_text,"visitor_history":history_text,"unit_turns":len(history) if isinstance(history,list) else 0,"safety_question":str((raw_body or {}).get("safety_question") or ""),"country":str((raw_body or {}).get("country") or "")}
@@ -786,48 +759,104 @@ _GUIDE_ROUTE_IDS = frozenset({
     "glyph",
 })
 
-_GUIDE_ROUTE_PROMPT = """You are the internal routing interpreter for The Guide,
-the orientation layer of the Living Archive.
+_GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
+the macro orientation layer of the Living Archive.
 
-Your task is NOT to answer the visitor and NOT to recommend an Archive resource.
-Interpret the visitor's question only to determine what kind of doorway or
-processing would best serve the question.
+The visitor's first question is an open human inquiry. Do not treat it as a
+keyword-classification exercise. Before choosing a route, reason about what
+the visitor may actually be trying to understand, resolve, explore, find,
+change, or move toward.
+
+Use the same disciplined first-move reasoning used by Seeing the Relationship,
+but at the macro level of the Archive.
+
+First distinguish:
+- what the visitor literally says;
+- the presenting situation or proposition;
+- the experience or human reality being brought;
+- the assumption, explanation, or proposed solution the visitor is already
+  carrying;
+- the underlying question or tension that may be more important than the
+  literal wording;
+- what remains genuinely uncertain;
+- what kind of movement would actually help the visitor now.
+
+Do not assume the visitor's explanation is correct. Do not manufacture hidden
+motives, diagnoses, mental states, or facts about other people. Preserve
+uncertainty. A tentative interpretation is not a fact.
+
+Then determine what kind of processing would best serve the visitor at this
+moment.
 
 Possible routes:
-- guide: remain with The Guide's broad Archive orientation/navigation
-- relationship: Seeing the Relationship; bounded exploration of relationships
-  across self, person-to-person, family, group, community, organization,
+- guide: The Guide remains with broad Archive orientation/navigation
+- relationship: Seeing the Relationship; open relational exploration across
+  self, person-to-person, family, group, community, organization,
   institution, and intergroup situations
-- formation: Stewardship Formation Navigator; questions about what a situation
-  may be asking a person to learn, practice, examine, or carry
-- catalogue: Stewardship Catalogue; bounded navigation of stewardship resources
-- systems_ph: Philippine Systems Lens; interacting Philippine systems and
-  conditions
-- safety: Safety / Crisis; acute or potentially acute safety concerns
-- glossary: a vocabulary/definition lookup is the apparent need
-- glyph: a glyph/symbol lookup is the apparent need
+- formation: Stewardship Formation Navigator; formation-oriented inquiry about
+  what a situation may be asking someone to learn, practice, examine, or carry
+- catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
+- systems_ph: Philippine Systems Lens; bounded inquiry into interacting
+  Philippine systems and conditions
+- safety: Safety / Crisis
+- glossary: vocabulary/definition lookup
+- glyph: glyph/symbol lookup
 
-Important:
-- A relationship can exist in work, leadership, family, friendship, community,
-  institutional, or group settings. Do not require the word "relationship".
-- A question can contain relational material without needing a relational
-  specialist. Prefer relationship only when the human situation itself is
-  central and exploratory.
-- Definitions should not be routed to a conversational specialist merely
-  because the defined concept happens to concern relationships.
-- Preserve ambiguity. When no specialized door is clearly warranted, choose
-  guide.
-- Safety concerns are never downgraded because another route seems relevant.
-- Do not infer diagnosis, motives, mental state, or hidden conditions.
+Important routing principles:
+- The initial question may be about anything. Do not require a domain keyword.
+- Do not route by topic alone. Route by the kind of movement or processing the
+  visitor appears to need.
+- A relational topic does not automatically mean Seeing the Relationship.
+- Seeing the Relationship is appropriate when the lived human situation itself
+  is central and exploratory, and relational inquiry is likely to create more
+  perspective than immediately selecting a resource.
+- A question can begin in one terrain and reveal another. On later turns,
+  reconsider the accumulated conversation rather than protecting the initial
+  route.
+- If the visitor explicitly seeks a definition, glyph, catalogue item, or
+  bounded systems/formation task, honor that clear intent.
+- If the visitor is presenting a lived situation whose useful next step is
+  discovery rather than retrieval, prefer the processing mode that can create
+  that discovery.
+- Do not select a specialist merely because its subject appears somewhere in
+  the question.
+- Preserve ambiguity when no specialized processing is clearly warranted.
+- Safety concerns remain the highest boundary.
+- The Guide remains the steward of the whole journey even when processing is
+  delegated.
+- The specialist is an internal capability, not a visitor-facing explanation
+  of the machinery.
 
-Return ONLY valid JSON in this shape:
+Return ONLY valid JSON with exactly these keys:
 {
+  "human_reality": "what human reality is being brought, if discernible",
+  "presenting_situation": "what is happening on the surface",
+  "visitor_proposition": "the explanation, assumption, or proposed solution the visitor is carrying",
+  "underlying_question": "what the visitor may actually be trying to understand or resolve",
+  "uncertainty": "the uncertainty whose clarification would most change direction",
+  "desired_movement": "the kind of movement that would help now",
+  "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
   "route": "guide|relationship|formation|catalogue|systems_ph|safety|glossary|glyph",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
-  "reason": "short internal explanation",
+  "reason": "short internal explanation of why this processing mode and route fit",
   "alternatives": ["guide"]
 }
+
+The interpretation fields are internal reasoning instruments. They are not
+visitor-facing labels.
+
+A critical distinction:
+- route answers WHERE the visitor should be processed;
+- mode answers HOW the question should be processed there.
+Do not return relationship + direct when the visitor's lived relational
+situation itself calls for exploratory relational processing. Likewise, do not
+force delegated processing when the visitor is simply asking for a resource
+or definition.
+
+Think strategically: the first move sets the tone for the journey. The goal
+is not to solve the visitor's question in Round 1. The goal is to choose the
+most intelligent next mode of engagement.
 """
 
 def _guide_route_history_text(history):
@@ -874,31 +903,9 @@ def _guide_route_fallback(query, history=None):
     except Exception:
         pass
 
-    workplace_relational = bool(re.search(
-        r"\b(?:manager|supervisor|boss|employee|colleague|coworker|co-worker|team|"
-        r"direct report|department|workplace|office|leader|leadership)\b",
-        combined,
-        re.I,
-    )) and bool(re.search(
-        r"\b(?:trust|trusted|trusts|micromanag|control|controlled|controll|"
-        r"communication|conflict|tension|relationship|misunderstand|"
-        r"respect|respectful|feedback|check-ins?|boundar|disagree|"
-        r"feel|feeling|concern|worried|unsure)\b",
-        combined,
-        re.I,
-    ))
-
-    current_relationship = _relationship_territory_assessment(query, history)
-    if current_relationship.get("invoke") or workplace_relational:
-        return {
-            "route": "relationship",
-            "mode": "delegated_journey",
-            "confidence": 0.70 if workplace_relational else float(current_relationship.get("score", 0.0)),
-            "reason": "conservative relational fallback",
-            "alternatives": ["guide"],
-            "source": "deterministic-relational-fallback",
-        }
-
+    # If the reasoning model is unavailable, remain conservative at the
+    # macro Guide layer. Do not substitute a deterministic topic classifier
+    # for the open-ended Round 1 reasoning. Safety remains authoritative.
     if re.search(r"\b(?:glyph|symbol|icon|mark)\b", q) and re.search(
         r"\b(?:find|show|lookup|look up|meaning|what does)\b", q, re.I
     ):
@@ -942,7 +949,7 @@ def _guide_route_model():
     try:
         live_models = list(get_models() or [])
     except Exception as exc:
-        print(f"USE v487.59 route model discovery failed: {exc}")
+        print(f"USE v487.60 route model discovery failed: {exc}")
         return None, None
 
     # Capability-aware preference: routing is short but interpretively important.
@@ -1000,12 +1007,12 @@ def _guide_capability_route(query, history=None):
                 {"role": "user", "content": user_content[:9000]},
             ],
             "temperature": 0.0,
-            "max_completion_tokens": 300,
+            "max_completion_tokens": 650,
             "response_format": {"type": "json_object"},
         }
 
         if model_id.startswith("openai/gpt-oss-"):
-            provider_kwargs["reasoning_effort"] = "low"
+            provider_kwargs["reasoning_effort"] = "medium"
             provider_kwargs["include_reasoning"] = False
 
         preflight = getattr(use_core, "_known_daily_tpd_preflight", None)
@@ -1017,7 +1024,7 @@ def _guide_capability_route(query, history=None):
                 )
                 preflight(model_id, estimated)
             except Exception as exc:
-                print(f"USE v487.59 route preflight skipped: {exc}")
+                print(f"USE v487.60 route preflight skipped: {exc}")
 
         response = groq_client.chat.completions.create(**provider_kwargs)
         raw = str(response.choices[0].message.content or "").strip()
@@ -1031,27 +1038,15 @@ def _guide_capability_route(query, history=None):
         confidence = float(parsed.get("confidence", 0.0) or 0.0)
         reason = str(parsed.get("reason") or "").strip()
         alternatives = parsed.get("alternatives") or []
-
-        # The early LLM identifies the likely capability, but it does not
-        # have final authority over a clearly bounded relational lived question.
-        # The deterministic territory assessment is the governance boundary:
-        # when it confirms genuine relational territory, the route itself is
-        # promoted to Seeing the Relationship even if the LLM returned guide
-        # or mode=direct. This prevents a classification disagreement from
-        # collapsing a genuine relational journey back into ordinary retrieval.
-        relational_assessment = _relationship_territory_assessment(query, history)
-        if relational_assessment.get("invoke"):
-            route = "relationship"
-            mode = "delegated_journey"
-            confidence = max(
-                confidence,
-                float(relational_assessment.get("score", 0.0) or 0.0),
-                0.70,
-            )
-            reason = (
-                "bounded relational territory confirmed; "
-                "relational route authority requires delegated journey"
-            )
+        interpretation = {
+            "human_reality": str(parsed.get("human_reality") or "").strip(),
+            "presenting_situation": str(parsed.get("presenting_situation") or "").strip(),
+            "visitor_proposition": str(parsed.get("visitor_proposition") or "").strip(),
+            "underlying_question": str(parsed.get("underlying_question") or "").strip(),
+            "uncertainty": str(parsed.get("uncertainty") or "").strip(),
+            "desired_movement": str(parsed.get("desired_movement") or "").strip(),
+            "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
+        }
 
         if route not in _GUIDE_ROUTE_IDS:
             raise ValueError(f"unsupported route {route!r}")
@@ -1084,10 +1079,11 @@ def _guide_capability_route(query, history=None):
             "source": "groq",
             "model": model_id,
             "preference_order": preference_order,
+            "round1_interpretation": interpretation,
         }
 
         print(
-            "USE v487.59 capability route: "
+            "USE v487.60 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
@@ -1095,7 +1091,7 @@ def _guide_capability_route(query, history=None):
 
     except Exception as exc:
         print(
-            "USE v487.59 capability route failed safely: "
+            "USE v487.60 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
@@ -1297,7 +1293,7 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     print(
-        "The Guide v487.59 capability boundary: "
+        "The Guide v487.60 capability boundary: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
     )
@@ -1339,21 +1335,6 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v487.57 capability-routing invariants.
-_RELATIONSHIP_TESTS=(
-    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
-    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
-    ("What should I read about relationships in the Living Archive?",False),
-    ("What is a relationship?",False),
-    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
-    ("What do I do now?",True),
-)
-for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
-    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
-    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
-    if _relationship_test["invoke"]!=_relationship_expected:
-        raise RuntimeError("USE v487.55 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
-
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
 # contract for every non-relational query.
@@ -1365,20 +1346,4 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-# Legacy relational territory invariants retained as fallback safeguards.
-_RELATIONSHIP_TESTS=(
-    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
-    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
-    ("What should I read about relationships in the Living Archive?",False),
-    ("What is a relationship?",False),
-    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
-    ("What do I do now?",True),
-)
-for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
-    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
-    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
-    if _relationship_test["invoke"]!=_relationship_expected:
-        raise RuntimeError("USE v487.54 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
-
-
-print(f"USE v487.59 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.60 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
