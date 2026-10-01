@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.44 — structural role-centrality abuse-boundary repair
+# USE PRODUCTION VERSION: v487.45 — contextual relevance repair for ordinary anger doorway
 import hashlib
 import importlib
 import re
@@ -7,9 +7,9 @@ from pathlib import Path
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
-APP_VERSION = "v487.44"
-DEPLOYMENT_FINGERPRINT = "USE-v487.44-structural-role-centrality-abuse-boundary-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.44-structural-role-centrality-abuse-boundary-repair"
+APP_VERSION = "v487.45"
+DEPLOYMENT_FINGERPRINT = "USE-v487.45-contextual-relevance-repair-ordinary-anger-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.45-contextual-relevance-repair-ordinary-anger-doorway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -222,8 +222,16 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
         return False
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
         return False
-    if min_relevance is not None and _relevance_level(_subject_metrics(query, doc)) < min_relevance:
-        return False
+    metrics = _subject_metrics(query, doc)
+    if min_relevance is not None and _relevance_level(metrics) < min_relevance:
+        # A canonical doorway can be semantically central even when the query's
+        # exact wording appears only once in the opening. Preserve that case
+        # when the relevant subject family is established early and reinforced
+        # across the document, rather than requiring literal title overlap.
+        frame = _query_frame(query)
+        contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[3] >= 2
+        if not contextual_family_support:
+            return False
     return True
 
 
@@ -393,7 +401,7 @@ def _recommendation_first_fetch(query_str):
         data["question_structure_evidence_unavailable"] = False
         data["question_evidence_fit_unavailable"] = False
         data["frame_neutral_evidence_unavailable"] = False
-    print(f"The Guide v487.44 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
+    print(f"The Guide v487.45 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
     return data
 
 
@@ -403,7 +411,7 @@ use_core.fetch_canonical_context = _recommendation_first_fetch
 _probe_query = "I keep finding myself angry at someone I care about, and I don’t know what to do with that anger. Is there anything in the Living Archive that might help me think about it?"
 _probe_profile = _base._inquiry_profile(_probe_query)
 if _probe_profile["action"] != "recommendation":
-    raise RuntimeError(f"USE v487.44 invariant failed: anger action={_probe_profile['action']}")
+    raise RuntimeError(f"USE v487.45 invariant failed: anger action={_probe_profile['action']}")
 _probe_docs = [
     {"title": "Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society", "url": "https://geralddaquila.com/suicide", "text": "A discussion of suicide, despair, anger, and the soul."},
     {"title": "Unraveling Abuse: The Harm We Inherit, The Healing We Choose", "url": "https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/", "text": "Abuse in relationships involves power, control, trauma, conflict, projection, and anger. The material examines cycles of harm and healing."},
