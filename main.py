@@ -541,33 +541,6 @@ _RELATIONSHIP_PERSON_PATTERNS=(
     r"\bthis relationship\b",r"\bwith someone\b",r"\bwith my\b",
 )
 
-def _relationship_territory_assessment(query, history=None):
-    current=_normalize_query(query); prior=_normalize_query(_history_text(history))
-    combined=" ".join(part for part in (current,prior) if part).strip()
-    if not combined: return {"invoke":False,"score":0.0,"reason":"empty"}
-    person_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_PERSON_PATTERNS)
-    interaction_signal=any(re.search(pattern,combined,re.I) for pattern in _RELATIONSHIP_INTERACTION_PATTERNS)
-    family_signal=bool(_query_frame(combined)["relational"])
-    experiential_signal=_has_experiential_stance(current) or _has_experiential_state(current)
-    current_relational=family_signal or person_signal
-    history_relational=bool(prior) and any(re.search(pattern,prior,re.I) for pattern in (*_RELATIONSHIP_PERSON_PATTERNS,*_RELATIONSHIP_INTERACTION_PATTERNS))
-    followup_signal=bool(history_relational and re.search(r"\b(?:what do i do now|what do we do now|what now|where do we go from here|how do i respond|how do i handle this|how do i move forward|what happens next)\b",current,re.I))
-    profile=_base._inquiry_profile(query)
-    if profile.get("risk"): return {"invoke":False,"score":0.0,"reason":"safety-boundary"}
-    if profile.get("conceptual") and not experiential_signal and not interaction_signal and not history_relational:
-        return {"invoke":False,"score":0.0,"reason":"conceptual-only"}
-    score=0.0
-    if person_signal: score+=0.34
-    if family_signal: score+=0.22
-    if interaction_signal: score+=0.24
-    if experiential_signal: score+=0.12
-    if history_relational: score+=0.18
-    if followup_signal: score+=0.30
-    if current_relational and (interaction_signal or experiential_signal): score+=0.10
-    if profile.get("navigation") and not experiential_signal and not interaction_signal: score-=0.20
-    invoke=score>=0.50 and (current_relational or history_relational)
-    return {"invoke":bool(invoke),"score":round(score,3),"reason":"relational-territory" if invoke else "insufficient-relational-signal","current_relational":current_relational,"history_relational":history_relational,"person_signal":person_signal,"interaction_signal":interaction_signal,"experiential_signal":experiential_signal}
-
 def _relationship_guide_context(history, raw_body):
     history_text=_history_text(history)
     return {"conversation":history_text,"visitor_history":history_text,"unit_turns":len(history) if isinstance(history,list) else 0,"safety_question":str((raw_body or {}).get("safety_question") or ""),"country":str((raw_body or {}).get("country") or "")}
@@ -1362,21 +1335,6 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v487.60 capability-routing invariants.
-_RELATIONSHIP_TESTS=(
-    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
-    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
-    ("What should I read about relationships in the Living Archive?",False),
-    ("What is a relationship?",False),
-    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
-    ("What do I do now?",True),
-)
-for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
-    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
-    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
-    if _relationship_test["invoke"]!=_relationship_expected:
-        raise RuntimeError("USE v487.60 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
-
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
 # contract for every non-relational query.
@@ -1386,22 +1344,6 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 # Only expose the ASGI wrapper after every FastAPI route and startup invariant
 # has been registered against the original application object.
 app = _v48757_query_asgi
-
-
-# Legacy relational territory invariants retained as fallback safeguards.
-_RELATIONSHIP_TESTS=(
-    ("I keep getting angry with someone I care about and I don't know what to do with it.",True),
-    ("My partner and I keep misunderstanding each other and I want to see what is happening between us.",True),
-    ("What should I read about relationships in the Living Archive?",False),
-    ("What is a relationship?",False),
-    ("I keep wondering whether AI is making it harder to know what is true. Where should I begin?",False),
-    ("What do I do now?",True),
-)
-for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
-    _relationship_test_history=([{"role":"user","content":"My partner and I keep misunderstanding each other."}] if _relationship_test_query=="What do I do now?" else [])
-    _relationship_test=_relationship_territory_assessment(_relationship_test_query,_relationship_test_history)
-    if _relationship_test["invoke"]!=_relationship_expected:
-        raise RuntimeError("USE v487.60 relational territory invariant failed: " f"expected={_relationship_expected}, result={_relationship_test}")
 
 
 print(f"USE v487.60 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
