@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.50 — specialist pipe contract registry foundation
+# USE PRODUCTION VERSION: v487.51 — specialist adapter contract foundation
 import hashlib
 import importlib
 import re
@@ -9,14 +9,19 @@ from specialist_registry import (
     registry_snapshot,
     validate_registry,
 )
+from specialist_adapters import (
+    SPECIALIST_ADAPTER_CONTRACT_VERSION,
+    SpecialistAdapterRegistry,
+    adapter_contract_snapshot,
+)
 
 _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
-APP_VERSION = "v487.50"
-DEPLOYMENT_FINGERPRINT = "USE-v487.50-specialist-pipe-contract-registry-foundation"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.50-specialist-pipe-contract-registry-foundation"
+APP_VERSION = "v487.51"
+DEPLOYMENT_FINGERPRINT = "USE-v487.51-specialist-adapter-contract-foundation"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.51-specialist-adapter-contract-foundation"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -30,6 +35,8 @@ if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
 
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
+SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
+SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
 
 
 def _normalize_query(text):
@@ -471,4 +478,4 @@ for _query, _label in (
     if _profile["action"] != "recommendation":
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
-print(f"USE v487.50 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}")
+print(f"USE v487.51 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
