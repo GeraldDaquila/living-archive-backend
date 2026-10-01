@@ -1313,9 +1313,6 @@ async def _v48757_query_asgi(scope, receive, send):
     await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
 
 
-app = _v48757_query_asgi
-
-
 @app.post("/api/relational-return")
 async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
@@ -1341,6 +1338,10 @@ for _relationship_test_query,_relationship_expected in _RELATIONSHIP_TESTS:
 # contract for every non-relational query.
 if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
     raise RuntimeError("USE v487.57 invariant failed: relational return route not registered")
+
+# Only expose the ASGI wrapper after every FastAPI route and startup invariant
+# has been registered against the original application object.
+app = _v48757_query_asgi
 
 
 # Legacy relational territory invariants retained as fallback safeguards.
