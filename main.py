@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.52 — Seeing the Relationship contribution grammar
+# USE PRODUCTION VERSION: v487.53 — production Seeing the Relationship adapter
 import hashlib
 import importlib
 import re
@@ -15,6 +15,7 @@ from relationship_contribution import (
     relationship_contract_snapshot,
     validate_relationship_contribution,
 )
+from relationship_adapter import RelationshipAdapter
 from specialist_adapters import (
     SPECIALIST_ADAPTER_CONTRACT_VERSION,
     SpecialistAdapterRegistry,
@@ -25,9 +26,9 @@ _BASE_MODULE_NAME = "main_v487_28_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
-APP_VERSION = "v487.52"
-DEPLOYMENT_FINGERPRINT = "USE-v487.52-seeing-the-relationship-contribution-grammar"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.52-seeing-the-relationship-contribution-grammar"
+APP_VERSION = "v487.53"
+DEPLOYMENT_FINGERPRINT = "USE-v487.53-production-seeing-the-relationship-adapter"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.53-production-seeing-the-relationship-adapter"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -42,6 +43,7 @@ if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
+SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
 RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
 
@@ -502,4 +504,4 @@ for _query, _label in (
     if _profile["action"] != "recommendation":
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
-print(f"USE v487.52 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
+print(f"USE v487.53 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}")
