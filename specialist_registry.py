@@ -41,7 +41,7 @@ SPECIALIST_REGISTRY: Tuple[SpecialistCapability, ...] = (
         entry_point="relationship",
         trigger_territory="self, person-to-person, family, group, community, organization, institution, and intergroup relationships",
         access_class="public",
-        status="planned",
+        status="available",
     ),
     SpecialistCapability(
         specialist_id="formation",
