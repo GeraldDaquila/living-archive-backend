@@ -1107,7 +1107,7 @@ def _guide_capability_route(query, history=None):
         }
 
         print(
-            "USE v487.61 capability route: "
+            "USE v487.62 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
@@ -1115,7 +1115,7 @@ def _guide_capability_route(query, history=None):
 
     except Exception as exc:
         print(
-            "USE v487.61 capability route failed safely: "
+            "USE v487.62 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
@@ -1317,7 +1317,7 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     print(
-        "The Guide v487.61 capability boundary: "
+        "The Guide v487.62 capability boundary: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
     )
@@ -1370,4 +1370,4 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.61 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.62 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
