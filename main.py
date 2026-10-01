@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.60 — Guide Round 1 reasoning
+# USE PRODUCTION VERSION: v487.61 — Round 1 mode governance
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.60"
-DEPLOYMENT_FINGERPRINT = "USE-v487.60-guide-round1-reasoning"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.60-guide-round1-reasoning"
+APP_VERSION = "v487.61"
+DEPLOYMENT_FINGERPRINT = "USE-v487.61-round1-mode-governance"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.61-round1-mode-governance"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1052,6 +1052,27 @@ def _guide_capability_route(query, history=None):
             raise ValueError(f"unsupported route {route!r}")
         if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
             mode = "direct"
+
+        # Round 1 governance: the model's own interpretation determines whether
+        # a relational lived situation calls for exploratory processing. We do
+        # not use topic keywords or a separate relational classifier here.
+        #
+        # HRN's first move is the precedent: when the visitor is carrying a
+        # lived relational situation and the useful next movement is exploration,
+        # the correct mode is the delegated relational journey. The Guide still
+        # retains authority over route validity, specialist availability,
+        # safety, and the final visitor boundary.
+        if (
+            route == "relationship"
+            and mode == "direct"
+            and str(interpretation.get("processing_need") or "").casefold() == "exploration"
+        ):
+            mode = "delegated_journey"
+            reason = (
+                "Round 1 identified a lived relational inquiry whose useful next "
+                "movement is exploratory processing; delegated relational journey selected."
+            )
+
         confidence = max(0.0, min(1.0, confidence))
         alternatives = [
             str(item).strip().casefold()
@@ -1083,7 +1104,7 @@ def _guide_capability_route(query, history=None):
         }
 
         print(
-            "USE v487.60 capability route: "
+            "USE v487.61 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
@@ -1091,7 +1112,7 @@ def _guide_capability_route(query, history=None):
 
     except Exception as exc:
         print(
-            "USE v487.60 capability route failed safely: "
+            "USE v487.61 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
@@ -1293,7 +1314,7 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     print(
-        "The Guide v487.60 capability boundary: "
+        "The Guide v487.61 capability boundary: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
     )
@@ -1346,4 +1367,4 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.60 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.61 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
