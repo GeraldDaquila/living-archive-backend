@@ -1032,6 +1032,25 @@ def _guide_capability_route(query, history=None):
         reason = str(parsed.get("reason") or "").strip()
         alternatives = parsed.get("alternatives") or []
 
+        # The early LLM identifies the capability; the bounded deterministic
+        # territory assessment governs whether a genuine relational experience
+        # enters the delegated journey. The model must not be allowed to turn
+        # a clearly relational lived question into a direct Guide answer merely
+        # by returning mode=direct.
+        if route == "relationship":
+            relational_assessment = _relationship_territory_assessment(query, history)
+            if relational_assessment.get("invoke"):
+                mode = "delegated_journey"
+                confidence = max(
+                    confidence,
+                    float(relational_assessment.get("score", 0.0) or 0.0),
+                    0.70,
+                )
+                reason = (
+                    "bounded relational territory confirmed; "
+                    "delegated relational journey required"
+                )
+
         if route not in _GUIDE_ROUTE_IDS:
             raise ValueError(f"unsupported route {route!r}")
         if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
