@@ -1359,28 +1359,13 @@ async def _v48757_query_asgi(scope, receive, send):
     confidence = float(route.get("confidence", 0.0) or 0.0)
 
     capability = _registered_available_specialist(route_id)
-    # The Groq interpretation is the semantic routing authority. The only
-    # deterministic work here is governance: confirm that the proposed
-    # specialist exists and is available, preserve the safety override, and
-    # authorize the specialist journey when Groq has identified a relational
-    # exploration. Do not run a second semantic classifier at this boundary.
-    if (
-        route_id == "relationship"
-        and mode == "direct"
-        and str(route.get("round1_interpretation", {}).get("processing_need") or "").casefold() == "exploration"
-    ):
-        mode = "delegated_journey"
-        route["mode"] = mode
-        route["reason"] = (
-            "Groq identified a lived relational inquiry requiring exploratory "
-            "processing; relational journey authorized."
-        )
-
+    # Groq #1 has selected the specialist. The Guide boundary is a
+    # governance gate only: the selected specialist must exist and be
+    # available. It must not reinterpret or veto the specialist selection
+    # based on mode, processing_need, or confidence.
     should_delegate = (
         capability is not None
         and route_id == "relationship"
-        and mode == "delegated_journey"
-        and confidence >= 0.60
     )
 
     print(
