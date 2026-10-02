@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.65 — Seamless HRN journey closure
+# USE PRODUCTION VERSION: v487.66 — Seamless HRN gift return
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.65"
-DEPLOYMENT_FINGERPRINT = "USE-v487.65-seamless-hrn-journey-closure"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.65-seamless-hrn-journey-closure"
+APP_VERSION = "v487.66"
+DEPLOYMENT_FINGERPRINT = "USE-v487.66-seamless-hrn-gift-return"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.66-seamless-hrn-gift-return"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1265,6 +1265,7 @@ async def _v48756_query_middleware(request: Request, call_next):
                     "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
                     "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
                     "guide_return_endpoint": "/api/relational-return",
+                    "return_mode": "background_gift",
                     "return_mode": "background_gift",
                 },
                 "visitor_boundary_version": APP_VERSION,
