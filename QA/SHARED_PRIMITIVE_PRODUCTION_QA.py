@@ -45,13 +45,19 @@ def main() -> int:
         "groq_client",
         "fetch_canonical_context",
         "pinecone",
-        "canonical authority",
-        "routing",
-        "visitor-facing prose",
-        "specialist",
     )
     assert not any(marker in seam_source.casefold() for marker in forbidden)
 
+    # Policy-boundary vocabulary is checked against executable seam code,
+    # not against the explanatory docstring.
+    executable = seam_source.split('"""', 2)[-1]
+    production_forbidden = (
+        "routing",
+        "visitor-facing prose",
+        "specialist",
+        "canonical authority",
+    )
+    assert not any(marker in executable.casefold() for marker in production_forbidden)
     for field in ('"id": item.id', '"title": item.title', '"url": item.url', '"text": item.text'):
         assert field in seam_source
 
