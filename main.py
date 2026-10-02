@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.64 — Relational handoff resilience
+# USE PRODUCTION VERSION: v487.65 — HRN Round 1 driver and journey contract
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.64"
-DEPLOYMENT_FINGERPRINT = "USE-v487.64-relational-handoff-resilience"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.64-relational-handoff-resilience"
+APP_VERSION = "v487.65"
+DEPLOYMENT_FINGERPRINT = "USE-v487.65-hrn-round1-journey-contract"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.65-hrn-round1-journey-contract"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -553,16 +553,53 @@ def _relationship_primary_doorway(contribution):
         if title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I) and access_class in {"public",""}: return index,title,url
     return None
 
+RELATIONSHIP_JOURNEY_CONTRACT_VERSION = "v2"
+_RELATIONSHIP_JOURNEY_ACTIONS = frozenset({"continue", "end"})
+_RELATIONSHIP_LOCAL_STATES = frozenset({"in_progress", "spiral_complete", "journey_complete"})
+
 def _relationship_integrated_response(contribution):
-    human=str(contribution.get("human_response") or "").strip()
-    if not human: return ""
-    parts=[human]; doorway=_relationship_primary_doorway(contribution); movement=contribution.get("movement") or {}
-    if doorway:
-        _,title,url=doorway
-        parts.append(f"If you want to continue from here, one doorway into the Archive is [{title}]({url}).")
-    question=str(movement.get("question") or "").strip()
-    if question and not bool(movement.get("rest")): parts.append(question)
+    """Integrate HRN's response without taking over HRN's steering or doorway authority."""
+    human = str(contribution.get("human_response") or "").strip()
+    if not human:
+        return ""
+    movement = contribution.get("movement") or {}
+    parts = [human]
+    question = str(movement.get("question") or "").strip()
+    if question and not bool(movement.get("rest")):
+        parts.append(question)
     return "\n\n".join(parts)
+
+
+def _relationship_journey_state(contribution):
+    """Normalize internal HRN journey state while keeping it invisible to visitors."""
+    movement = contribution.get("movement") or {}
+    state = str(
+        movement.get("journey_state")
+        or contribution.get("journey_state")
+        or ""
+    ).strip().casefold()
+    if state not in _RELATIONSHIP_LOCAL_STATES:
+        movement_state = str(movement.get("movement_state") or "").strip().casefold()
+        state = "spiral_complete" if bool(
+            movement.get("spiral_complete")
+            or movement.get("topic_complete")
+            or movement.get("unit_complete")
+        ) else "in_progress"
+        if movement_state in {"journey_complete", "complete"}:
+            state = "journey_complete"
+    action = str(
+        movement.get("journey_action")
+        or contribution.get("journey_action")
+        or ""
+    ).strip().casefold()
+    if action not in _RELATIONSHIP_JOURNEY_ACTIONS:
+        action = "continue" if state == "spiral_complete" else "end" if state == "journey_complete" else "continue"
+    return {
+        "state": state,
+        "action": action,
+        "spiral_complete": state == "spiral_complete",
+        "journey_complete": state == "journey_complete",
+    }
 
 async def _v48755_relational_return(request: Request):
     try:
