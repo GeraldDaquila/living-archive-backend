@@ -1,4 +1,9 @@
 """Focused compatibility tests for the v487.85 production seam."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from shared_evidence import normalize_documents_for_use
 
 def main() -> int:
