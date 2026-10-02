@@ -19,7 +19,7 @@ jobs:
         run: python -m py_compile main.py use_core.py run_v387_authority_validation.py
       - name: Authority validation
         run: python run_v387_authority_validation.py
-      - name: Regression test
+      - name: Repository regression suite
         run: python -m pytest -q
       - name: v487.85 shared evidence seam QA
         run: python QA/SHARED_PRIMITIVE_PRODUCTION_QA.py
