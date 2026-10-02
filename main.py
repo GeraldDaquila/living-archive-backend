@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.64 — Relational handoff resilience
+# USE PRODUCTION VERSION: v487.65 — Seamless HRN journey closure
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.64"
-DEPLOYMENT_FINGERPRINT = "USE-v487.64-relational-handoff-resilience"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.64-relational-handoff-resilience"
+APP_VERSION = "v487.65"
+DEPLOYMENT_FINGERPRINT = "USE-v487.65-seamless-hrn-journey-closure"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.65-seamless-hrn-journey-closure"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -553,16 +553,51 @@ def _relationship_primary_doorway(contribution):
         if title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I) and access_class in {"public",""}: return index,title,url
     return None
 
+RELATIONSHIP_JOURNEY_CONTRACT_VERSION = "v2"
+_RELATIONSHIP_JOURNEY_ACTIONS = frozenset({"continue", "end"})
+_RELATIONSHIP_LOCAL_STATES = frozenset({"in_progress", "spiral_complete", "journey_complete"})
+
 def _relationship_integrated_response(contribution):
-    human=str(contribution.get("human_response") or "").strip()
-    if not human: return ""
-    parts=[human]; doorway=_relationship_primary_doorway(contribution); movement=contribution.get("movement") or {}
-    if doorway:
-        _,title,url=doorway
-        parts.append(f"If you want to continue from here, one doorway into the Archive is [{title}]({url}).")
-    question=str(movement.get("question") or "").strip()
-    if question and not bool(movement.get("rest")): parts.append(question)
+    """Preserve HRN's human response and its steering question; doorway selection stays with USE at closure."""
+    human = str(contribution.get("human_response") or "").strip()
+    if not human:
+        return ""
+    movement = contribution.get("movement") or {}
+    parts = [human]
+    question = str(movement.get("question") or "").strip()
+    if question and not bool(movement.get("rest")):
+        parts.append(question)
     return "\n\n".join(parts)
+
+
+def _relationship_journey_state(contribution):
+    movement = contribution.get("movement") or {}
+    state = str(
+        movement.get("journey_state")
+        or contribution.get("journey_state")
+        or ""
+    ).strip().casefold()
+    if state not in _RELATIONSHIP_LOCAL_STATES:
+        state = "spiral_complete" if bool(
+            movement.get("spiral_complete")
+            or movement.get("topic_complete")
+            or movement.get("unit_complete")
+        ) else "in_progress"
+        if str(movement.get("movement_state") or "").strip().casefold() in {"journey_complete", "complete"}:
+            state = "journey_complete"
+    action = str(
+        movement.get("journey_action")
+        or contribution.get("journey_action")
+        or ""
+    ).strip().casefold()
+    if action not in _RELATIONSHIP_JOURNEY_ACTIONS:
+        action = "continue" if state != "journey_complete" else "end"
+    return {
+        "state": state,
+        "action": action,
+        "spiral_complete": state == "spiral_complete",
+        "journey_complete": state == "journey_complete",
+    }
 
 async def _v48755_relational_return(request: Request):
     try:
@@ -704,6 +739,7 @@ async def _v48755_relational_return(request: Request):
                     "request_id": session_id,
                     "intent": "RELATIONAL_CANONICAL_RETURN",
                     "response": "There is a place in the Archive that may carry this new perspective further.",
+                    "display_mode": "hrn",
                     "canonical_doorway": {
                         "title": primary["title"],
                         "url": primary["url"],
@@ -722,6 +758,7 @@ async def _v48755_relational_return(request: Request):
                 "intent": "RELATIONAL_CANONICAL_RETURN",
                 "response": "You have brought the conversation to a meaningful place. No doorway was close enough to offer honestly from what emerged.",
                 "canonical_doorway": None,
+                "display_mode": "hrn",
                 "relational_journey": journey_payload,
                 "visitor_boundary_version": APP_VERSION,
             },
@@ -1228,6 +1265,7 @@ async def _v48756_query_middleware(request: Request, call_next):
                     "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
                     "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
                     "guide_return_endpoint": "/api/relational-return",
+                    "return_mode": "background_gift",
                 },
                 "visitor_boundary_version": APP_VERSION,
                 "request_id": request_id,
