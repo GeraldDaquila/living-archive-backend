@@ -22,7 +22,7 @@ PROTECTED = {
 }
 
 def blob_sha1(data: bytes) -> str:
-    return hashlib.sha1(f"blob {len(data)}\\0".encode() + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 def main() -> int:
     for rel, expected in PROTECTED.items():
