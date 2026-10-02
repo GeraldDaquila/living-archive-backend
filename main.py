@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.85 — shared evidence normalization seam
+# USE PRODUCTION VERSION: v487.86 — shared claim normalization seam
 import hashlib
 import importlib
 import re
@@ -327,7 +327,7 @@ def _select_adjacent(claims, query, primary_title, profile):
 
 def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     canonical_docs = canonical_docs or []
-    claims = docs or []
+    claims = _normalize_shared_claims_for_use(docs or [])
     primary = _canonical_primary_from_docs(canonical_docs, query, profile)
     if primary:
         secondary = _select_adjacent(claims, query, primary["title"], profile)
@@ -1482,6 +1482,6 @@ print(f"USE v487.86 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGE
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE v487.86 invariant failed: shared evidence contract drift.")
 
-# v487.86 claim seam invariant: shared claim normalization remains opt-in at the claim boundary.
-if not callable(_normalize_shared_claims_for_use):
-    raise RuntimeError("USE v487.86 invariant failed: shared claim seam unavailable.")
+# v487.86 claim seam invariant: USE answer composition consumes the shared claim transformer.
+if "claims = _normalize_shared_claims_for_use(docs or [])" not in open(_MAIN_PATH, encoding="utf-8").read():
+    raise RuntimeError("USE v487.86 invariant failed: shared claim seam wiring missing.")
