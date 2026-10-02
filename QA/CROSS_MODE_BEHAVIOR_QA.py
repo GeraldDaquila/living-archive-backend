@@ -5,6 +5,7 @@ import hashlib
 import subprocess
 import sys
 
+
 ROOT = Path(__file__).resolve().parents[1]
 
 PROTECTED = {
@@ -23,6 +24,8 @@ def blob_sha1(data: bytes) -> str:
 
 
 def main() -> int:
+    # The protected SHA list is a source-control assertion. It proves that
+    # this branch has not altered the current production assets.
     for rel, expected in PROTECTED.items():
         actual = blob_sha1((ROOT / rel).read_bytes())
         assert actual == expected, (rel, expected, actual)
@@ -31,8 +34,8 @@ def main() -> int:
     source = harness.read_text(encoding="utf-8")
     ast.parse(source, filename=str(harness))
 
-    # No production runtime or specialist implementation is imported or
-    # invoked by this QA artifact.
+    # No production runtime, specialist implementation, or General Utility
+    # candidate may be imported or invoked by this harness.
     assert "import main" not in source
     assert "import use_core" not in source
     assert "relationship_adapter.process" not in source
