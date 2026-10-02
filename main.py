@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.63 — Semantic HRN journey closure
+# USE PRODUCTION VERSION: v487.64 — Relational handoff resilience
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.63"
-DEPLOYMENT_FINGERPRINT = "USE-v487.63-semantic-hrn-journey-closure"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.63-semantic-hrn-journey-closure"
+APP_VERSION = "v487.64"
+DEPLOYMENT_FINGERPRINT = "USE-v487.64-relational-handoff-resilience"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.64-relational-handoff-resilience"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1397,4 +1397,4 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.62 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.64 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
