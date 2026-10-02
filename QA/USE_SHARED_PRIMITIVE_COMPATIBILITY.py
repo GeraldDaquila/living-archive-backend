@@ -13,6 +13,11 @@ from shared_intelligence_primitives import (
     normalize_claims,
     normalize_doorway_candidates,
     normalize_evidence,
+    operation_result,
+    visitor_language_ready,
+    READY,
+    DELEGATE,
+    NEEDS_RETRY,
 )
 
 
@@ -66,15 +71,25 @@ def legacy_claims(items, evidence_ids):
         if not key or key in seen:
             continue
         seen.add(key)
-        refs = tuple(str(ref) for ref in item.get("evidence_ids", ()) if str(ref) in allowed)
+        refs = tuple(
+            str(ref) for ref in item.get("evidence_ids", ()) if str(ref) in allowed
+        )
         claim_type = item.get("claim_type") or "exploration"
         epistemic = item.get("epistemic") or "uncertain"
         if claim_type not in {
-            "definition", "relationship", "observation", "interpretation", "exploration"
+            "definition",
+            "relationship",
+            "observation",
+            "interpretation",
+            "exploration",
         }:
             claim_type = "exploration"
         if epistemic not in {
-            "supported", "inferred", "interpretive", "visitor-originated", "uncertain"
+            "supported",
+            "inferred",
+            "interpretive",
+            "visitor-originated",
+            "uncertain",
         }:
             epistemic = "uncertain"
         output.append(
@@ -86,6 +101,43 @@ def legacy_claims(items, evidence_ids):
             }
         )
     return output
+
+
+def legacy_doorways(items):
+    output = []
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = legacy_clean(item.get("title"))
+        url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https://\S+$", url, re.I) or url in seen:
+            continue
+        seen.add(url)
+        try:
+            rank = int(item["candidate_rank"]) if item.get("candidate_rank") is not None else None
+        except (TypeError, ValueError):
+            rank = None
+        output.append(
+            {
+                "title": title,
+                "url": url,
+                "relevance_basis": legacy_clean(item.get("relevance_basis")),
+                "source_ids": tuple(str(x) for x in item.get("source_ids", ())),
+                "candidate_rank": rank,
+            }
+        )
+    return output
+
+
+def legacy_operation_result(status, mode, payload=None, reason=""):
+    status = str(status or "").strip().upper()
+    return {
+        "status": status,
+        "mode": mode,
+        "payload": payload,
+        "reason": legacy_clean(reason),
+    }
 
 
 def main() -> int:
@@ -112,57 +164,33 @@ def main() -> int:
     legacy_docs = legacy_normalize_documents(documents)
     shared_docs = normalize_evidence(documents)
     assert [
-        (d["title"], d["url"], d["text"]) for d in legacy_docs
+        (d["id"], d["title"], d["url"], d["text"]) for d in legacy_docs
     ] == [
-        (d.title, d.url, d.text) for d in shared_docs
+        (d.id, d.title, d.url, d.text) for d in shared_docs
     ]
 
-    legacy_claim_list = legacy_claims(
-        [
-            {
-                "text": "Attention is shaped by context.",
-                "evidence_ids": ["doc-a"],
-                "claim_type": "observation",
-                "epistemic": "supported",
-            },
-            {
-                "text": "Attention is shaped by context.",
-                "evidence_ids": ["doc-a"],
-                "claim_type": "observation",
-                "epistemic": "supported",
-            },
-            {
-                "text": "This is an interpretation.",
-                "evidence_ids": ["missing"],
-                "claim_type": "interpretation",
-                "epistemic": "interpretive",
-            },
-        ],
-        evidence_ids=["doc-a"],
-    )
-    shared_claim_list = normalize_claims(
-        [
-            {
-                "text": "Attention is shaped by context.",
-                "evidence_ids": ["doc-a"],
-                "claim_type": "observation",
-                "epistemic": "supported",
-            },
-            {
-                "text": "Attention is shaped by context.",
-                "evidence_ids": ["doc-a"],
-                "claim_type": "observation",
-                "epistemic": "supported",
-            },
-            {
-                "text": "This is an interpretation.",
-                "evidence_ids": ["missing"],
-                "claim_type": "interpretation",
-                "epistemic": "interpretive",
-            },
-        ],
-        evidence_ids=["doc-a"],
-    )
+    raw_claims = [
+        {
+            "text": "Attention is shaped by context.",
+            "evidence_ids": ["doc-a"],
+            "claim_type": "observation",
+            "epistemic": "supported",
+        },
+        {
+            "text": "Attention is shaped by context.",
+            "evidence_ids": ["doc-a"],
+            "claim_type": "observation",
+            "epistemic": "supported",
+        },
+        {
+            "text": "This is an interpretation.",
+            "evidence_ids": ["missing"],
+            "claim_type": "interpretation",
+            "epistemic": "interpretive",
+        },
+    ]
+    legacy_claim_list = legacy_claims(raw_claims, evidence_ids=["doc-a"])
+    shared_claim_list = normalize_claims(raw_claims, evidence_ids=["doc-a"])
     assert [
         (x["text"], x["evidence_ids"], x["claim_type"], x["epistemic"])
         for x in legacy_claim_list
@@ -176,13 +204,13 @@ def main() -> int:
     assert build_epistemic_tag(visitor_originated=True, supported=True) == "visitor-originated"
     assert build_epistemic_tag(uncertain=True, supported=True) == "uncertain"
 
-    candidate_maps = [
+    raw_doorways = [
         {
-            "title": "Attention",
+            "title": "<b>Attention</b>",
             "url": "https://geralddaquila.com/attention/",
-            "relevance_basis": "direct",
+            "relevance_basis": "<p>direct</p>",
             "source_ids": ["doc-a"],
-            "candidate_rank": 1,
+            "candidate_rank": "1",
         },
         {
             "title": "Attention",
@@ -190,16 +218,63 @@ def main() -> int:
             "relevance_basis": "duplicate",
         },
     ]
-    doorways = normalize_doorway_candidates(candidate_maps)
-    assert len(doorways) == 1
-    assert doorways[0].title == "Attention"
-    assert doorways[0].url.endswith("/attention/")
+    legacy_doorway_list = legacy_doorways(raw_doorways)
+    shared_doorway_list = normalize_doorway_candidates(raw_doorways)
+    assert [
+        (
+            x["title"],
+            x["url"],
+            x["relevance_basis"],
+            x["source_ids"],
+            x["candidate_rank"],
+        )
+        for x in legacy_doorway_list
+    ] == [
+        (
+            x.title,
+            x.url,
+            x.relevance_basis,
+            x.source_ids,
+            x.candidate_rank,
+        )
+        for x in shared_doorway_list
+    ]
+
+    for status, mode, payload, reason in (
+        (READY, "general", {"ok": True}, ""),
+        (DELEGATE, "safety", None, "Specialist route required."),
+        (NEEDS_RETRY, "general", None, "Evidence unavailable."),
+    ):
+        legacy = legacy_operation_result(status, mode, payload, reason)
+        shared = operation_result(status, mode=mode, payload=payload, reason=reason)
+        assert shared.status == legacy["status"]
+        assert shared.mode == legacy["mode"]
+        assert shared.payload == legacy["payload"]
+        assert shared.reason == legacy["reason"]
+
+    assert visitor_language_ready("This is ordinary visitor language.")
+    assert not visitor_language_ready("OperationResult(status=READY)")
+
+    # The shared operation state is deliberately stricter for invalid states:
+    # it must not silently represent success without payload or failure without reason.
+    for status, mode, payload, reason in (
+        (READY, "general", None, ""),
+        (NEEDS_RETRY, "general", None, ""),
+    ):
+        failed = False
+        try:
+            operation_result(status, mode=mode, payload=payload, reason=reason)
+        except ValueError:
+            failed = True
+        assert failed
 
     print("v487.84 USE/shared primitive compatibility: PASS")
     print("document normalization: equivalent")
     print("claim normalization: equivalent")
     print("epistemic tagging: equivalent")
-    print("doorway candidate normalization: bounded")
+    print("doorway candidate normalization: equivalent")
+    print("operation-state behavior: compatible, stricter on invalid states")
+    print("visitor-language boundary: bounded")
     print("production runtime: untouched")
     return 0
 
