@@ -1,8 +1,9 @@
-# USE PRODUCTION VERSION: v487.76 — runtime/version integrity enforcement
+# USE PRODUCTION VERSION: v487.85 — shared evidence normalization seam
 import hashlib
 import importlib
 import re
 import json
+from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from pathlib import Path
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -31,15 +32,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.76"
-DEPLOYMENT_FINGERPRINT = "USE-v487.76-runtime-version-integrity-enforcement"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.76-runtime-version-integrity-enforcement"
+APP_VERSION = "v487.85"
+DEPLOYMENT_FINGERPRINT = "USE-v487.85-shared-evidence-normalization-seam"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.85-shared-evidence-normalization-seam"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.76":
+if str(APP_VERSION) != "v487.85":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -354,10 +355,16 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     return "\n\n".join(parts)
 
 
+def _normalize_shared_evidence_for_use(documents, *, provenance="supplied"):
+    """Apply the shared evidence transformation and return the legacy USE shape."""
+    return normalize_documents_for_use(documents, provenance=provenance)
+
+
 def _parse_context_documents(context_blocks):
     parser = getattr(use_core, "_parse_context_documents", None)
     if callable(parser):
-        return parser(context_blocks)
+        parsed = parser(context_blocks)
+        return _normalize_shared_evidence_for_use(parsed, provenance="retrieved-context")
     docs = []
     for block in str(context_blocks or "").split("\n\n---\n\n"):
         tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
@@ -1433,4 +1440,9 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.76 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.85 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+
+# v487.85 seam invariant: shared evidence transformation is wired only at the
+# document parsing boundary; the legacy dictionary shape remains authoritative.
+if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE v487.85 invariant failed: shared evidence contract drift.")
