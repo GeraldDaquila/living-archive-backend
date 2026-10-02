@@ -1,0 +1,27 @@
+name: USE current validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt pytest
+      - name: Compile production modules
+        run: python -m py_compile main.py main_v487_28_runtime.py use_core.py specialist_registry.py specialist_adapters.py relationship_contribution.py relationship_adapter.py
+      - name: Run repository guard
+        run: python QA/USE_REPOSITORY_GUARD.py
+      - name: Run current HRN policy tests
+        run: python QA/HRN_VISITOR_RESPONSE_POLICY_TESTS.py
