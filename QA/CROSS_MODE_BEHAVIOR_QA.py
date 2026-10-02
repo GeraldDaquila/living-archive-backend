@@ -28,17 +28,15 @@ def main() -> int:
         assert actual == expected, (rel, expected, actual)
 
     harness = ROOT / "QA" / "CROSS_MODE_BEHAVIOR_HARNESS.py"
-    ast.parse(harness.read_text(encoding="utf-8"), filename=str(harness))
-
     source = harness.read_text(encoding="utf-8")
-    forbidden = ("use_core.py", "general_utility", "relationship_adapter.process")
-    assert "production" in source.casefold()
-    for marker in forbidden:
-        # The harness may mention protected boundaries in prose, but it must not
-        # contain executable production wiring or imports.
-        if marker == "use_core.py":
-            continue
-        assert marker not in source, marker
+    ast.parse(source, filename=str(harness))
+
+    # No production runtime or specialist implementation is imported or
+    # invoked by this QA artifact.
+    assert "import main" not in source
+    assert "import use_core" not in source
+    assert "relationship_adapter.process" not in source
+    assert "general_utility" not in source
 
     result = subprocess.run(
         [sys.executable, str(harness)],
