@@ -23,3 +23,8 @@ jobs:
         run: python QA/SHARED_PRIMITIVE_PRODUCTION_QA.py
       - name: v487.85 shared evidence seam tests
         run: PYTHONPATH=. python QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py
+
+      - name: v487.86 claim seam QA
+        run: PYTHONPATH=. python QA/V487_86_CLAIM_SEAM_QA.py
+      - name: v487.86 claim seam compatibility tests
+        run: PYTHONPATH=. python QA/V487_86_CLAIM_SEAM_TESTS.py
