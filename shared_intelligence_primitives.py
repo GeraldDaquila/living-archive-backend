@@ -16,7 +16,6 @@ import re
 
 CONTRACT_VERSION = "v1"
 
-
 READY = "READY"
 DELEGATE = "DELEGATE"
 NEEDS_RETRY = "NEEDS_RETRY"
@@ -89,16 +88,17 @@ class OperationResult:
 
 def _clean(value: Any) -> str:
     value = re.sub(r"<[^>]+>", " ", str(value or ""))
-    value = re.sub(r"https?://S+|www.S+", " ", value)
-    return re.sub(r"s+", " ", value).strip()
+    value = re.sub(r"https?://\S+|www\.\S+", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def _valid_https_url(value: Any) -> bool:
     raw = str(value or "").strip()
     try:
-        return urlparse(raw).scheme.lower() == "https" and bool(urlparse(raw).netloc)
+        parsed = urlparse(raw)
     except ValueError:
         return False
+    return parsed.scheme.lower() == "https" and bool(parsed.netloc)
 
 
 def normalize_evidence(
@@ -109,25 +109,47 @@ def normalize_evidence(
     """Clean, validate, and deduplicate source material."""
     output: list[EvidenceItem] = []
     seen: set[tuple[str, str]] = set()
+    clean_provenance = _clean(provenance) or "supplied"
+
     for document in documents:
         if not isinstance(document, Mapping):
             continue
+
         title = _clean(document.get("title"))
         url = str(document.get("url") or document.get("canonical_url") or "").strip()
-        text = _clean(document.get("text") or document.get("content") or document.get("excerpt"))
+        text = _clean(
+            document.get("text")
+            or document.get("content")
+            or document.get("excerpt")
+        )
+
         if not title or not _valid_https_url(url) or not text:
             continue
+
         key = (url, title.casefold())
         if key in seen:
             continue
         seen.add(key)
-        item_id = str(document.get("id") or f"source:{len(output) + 1}")
-        output.append(EvidenceItem(item_id, title, url, text, provenance))
+
+        item_id = _clean(document.get("id"))
+        if not item_id:
+            item_id = f"source:{len(output) + 1}"
+
+        output.append(
+            EvidenceItem(
+                id=item_id,
+                title=title,
+                url=url,
+                text=text,
+                provenance=clean_provenance,
+            )
+        )
+
     return tuple(output)
 
 
 def _claim_key(text: str) -> str:
-    return re.sub(r"W+", " ", text.casefold()).strip()
+    return re.sub(r"\W+", " ", text.casefold()).strip()
 
 
 def normalize_claims(
@@ -136,15 +158,18 @@ def normalize_claims(
     evidence_ids: Iterable[str] = (),
 ) -> tuple[Claim, ...]:
     """Normalize claims without merging independent propositions."""
-    allowed_evidence = set(str(x) for x in evidence_ids)
+    allowed_evidence = {str(x) for x in evidence_ids}
     output: list[Claim] = []
     seen: set[str] = set()
+
     for item in claims:
         if not isinstance(item, Mapping):
             continue
+
         text = _clean(item.get("text"))
         if not text:
             continue
+
         key = _claim_key(text)
         if not key or key in seen:
             continue
@@ -155,6 +180,7 @@ def normalize_claims(
             for ref in item.get("evidence_ids", ())
             if str(ref) in allowed_evidence
         )
+
         claim_type = str(item.get("claim_type") or "exploration")
         if claim_type not in ALLOWED_CLAIM_TYPES:
             claim_type = "exploration"
@@ -179,6 +205,7 @@ def normalize_claims(
                 confidence=confidence,
             )
         )
+
     return tuple(output)
 
 
@@ -192,7 +219,7 @@ def build_epistemic_tag(
 ) -> str:
     """Return one explicit epistemic treatment tag.
 
-    Precedence keeps visitor-originated material and uncertainty from being
+    Visitor-originated and uncertain material take precedence so it cannot be
     silently promoted into source-supported fact.
     """
     if visitor_originated:
@@ -224,13 +251,16 @@ def build_synthesis_material(
             for ref in claim.evidence_ids
         )
     )
-    clean_tensions = tuple(_clean(x) for x in unresolved_tensions if _clean(x))
-    clean_perspectives = tuple(_clean(x) for x in perspective_options if _clean(x))
-    statement = _clean(relationship_statement)
+    clean_tensions = tuple(
+        value for value in (_clean(x) for x in unresolved_tensions) if value
+    )
+    clean_perspectives = tuple(
+        value for value in (_clean(x) for x in perspective_options) if value
+    )
 
     return SynthesisMaterial(
         claims=clean_claims,
-        relationship_statement=statement,
+        relationship_statement=_clean(relationship_statement),
         unresolved_tensions=clean_tensions,
         perspective_options=clean_perspectives,
         source_ids=source_ids,
@@ -247,16 +277,21 @@ def normalize_doorway_candidates(
     for item in candidates:
         if not isinstance(item, Mapping):
             continue
+
         title = _clean(item.get("title"))
         url = str(item.get("url") or item.get("canonical_url") or "").strip()
+
         if not title or not _valid_https_url(url) or url in seen:
             continue
+
         seen.add(url)
+
         rank = item.get("candidate_rank")
         try:
             rank = int(rank) if rank is not None else None
         except (TypeError, ValueError):
             rank = None
+
         output.append(
             DoorwayCandidate(
                 title=title,
@@ -266,6 +301,7 @@ def normalize_doorway_candidates(
                 candidate_rank=rank,
             )
         )
+
     return tuple(output)
 
 
@@ -276,13 +312,16 @@ def operation_result(
     payload: Any = None,
     reason: str = "",
 ) -> OperationResult:
-    status = str(status or "").upper()
+    status = str(status or "").strip().upper()
     if status not in ALLOWED_STATUSES:
         raise ValueError(f"Unsupported operation status: {status}")
+
     if status == READY and payload is None:
         raise ValueError("READY requires payload")
+
     if status != READY and not _clean(reason):
         raise ValueError(f"{status} requires an explicit reason")
+
     return OperationResult(
         status=status,
         mode=str(mode or "").strip(),
@@ -292,14 +331,11 @@ def operation_result(
 
 
 def visitor_language_ready(text: Any) -> bool:
-    """Minimal boundary check: reject internal protocol leakage.
-
-    This is intentionally weaker than any specialist-specific behavioral
-    boundary. Active modes remain responsible for their own visitor policy.
-    """
+    """Minimal boundary check; active modes retain their own visitor policies."""
     value = str(text or "").strip()
     if not value:
         return False
+
     forbidden = (
         "EvidenceItem(",
         "OperationResult(",
