@@ -26,9 +26,11 @@ def main() -> int:
     assert "def normalize_claims" in primitive
     assert "def _extract_claims" not in main_source
     assert "normalize_claims as _shared_normalize_claims" in main_source
-    print("v487.86 claim seam QA baseline: PASS")
+    assert 'claims = _normalize_shared_claims_for_use(docs or [])' in main_source
+    assert 'def _normalize_shared_claims_for_use(candidates):' in main_source
+    print("v487.86 claim normalization seam QA: PASS")
     print("protected assets: PASS")
-    print("production claim seam: ABSENT")
+    print("production claim seam: PASS")
     return 0
 
 if __name__ == "__main__":
