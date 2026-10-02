@@ -32,16 +32,23 @@ def main() -> int:
     ast.parse(compatibility.read_text(encoding="utf-8"), filename=str(compatibility))
     ast.parse(primitive.read_text(encoding="utf-8"), filename=str(primitive))
 
-    for production_name in (
-        "main.py",
-        "main_v487_28_runtime.py",
-        "use_core.py",
-        "specialist_adapters.py",
-        "relationship_adapter.py",
-        "relationship_contribution.py",
-    ):
-        source = (ROOT / production_name).read_text(encoding="utf-8")
-        assert "shared_intelligence_primitives" not in source, production_name
+    source = compatibility.read_text(encoding="utf-8")
+    assert "legacy_normalize_documents" in source
+    assert "legacy_claims" in source
+    assert "legacy_doorways" in source
+    assert "legacy_operation_result" in source
+
+    production_files = (
+        ROOT / "main.py",
+        ROOT / "main_v487_28_runtime.py",
+        ROOT / "use_core.py",
+        ROOT / "specialist_adapters.py",
+        ROOT / "relationship_adapter.py",
+        ROOT / "relationship_contribution.py",
+    )
+    for path in production_files:
+        production_source = path.read_text(encoding="utf-8")
+        assert "shared_intelligence_primitives" not in production_source, path.name
 
     result = subprocess.run(
         [sys.executable, str(compatibility)],
@@ -53,6 +60,8 @@ def main() -> int:
 
     print("v487.84 compatibility QA: PASS")
     print("legacy/shared transformations: equivalent for tested cases")
+    print("operation states: compatible, stricter on invalid states")
+    print("visitor-language boundary: bounded")
     print("protected production assets: PASS")
     print("production integration: ABSENT")
     return 0
