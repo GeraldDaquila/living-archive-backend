@@ -710,7 +710,7 @@ async def _v48755_relational_return(request: Request):
                 outward = fallback_outward
 
         print(
-            "The Guide v487.63 relational closure: "
+            "The Guide v487.66 seamless HRN gift return: "
             f"session={session_id or 'none'}, "
             f"selected={primary['title'] if primary else 'none'}, "
             f"conversation_chars={len(conversation)}, "
