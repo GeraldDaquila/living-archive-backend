@@ -983,55 +983,27 @@ def _guide_route_fallback(query, history=None):
     }
 
 
-def _guide_route_model():
-    """Select the early routing model from the existing USE model pool."""
+def _guide_route_models():
+    """Return the centralized USE/Groq candidate pool in core-defined order."""
     get_models = getattr(use_core, "get_live_groq_models", None)
-    budget_profile = getattr(use_core, "_generation_budget_profile", None)
-
     if not callable(get_models):
-        return None, None
-
+        return []
     try:
-        live_models = list(get_models() or [])
+        return [str(model).strip() for model in (get_models() or []) if str(model).strip()]
     except Exception as exc:
-        print(f"USE v487.60 route model discovery failed: {exc}")
-        return None, None
-
-    # Capability-aware preference: routing is short but interpretively important.
-    # Prefer the existing class-2 reasoning model, then class-3, then class-1.
-    preferred = []
-    if callable(budget_profile):
-        for complexity in (2, 3, 1, 4):
-            try:
-                model = str(
-                    budget_profile({"complexity": complexity}).get("model") or ""
-                ).strip()
-                if model and model not in preferred:
-                    preferred.append(model)
-            except Exception:
-                continue
-
-    for model in preferred:
-        if model in live_models:
-            return model, preferred
-
-    for model in live_models:
-        if model:
-            return model, preferred
-
-    return None, preferred
+        print(f"USE v487.72 route model discovery failed: {exc}")
+        return []
 
 
 def _guide_capability_route(query, history=None):
-    """Interpret the opening inquiry at the macro Guide boundary."""
+    """Interpret the opening inquiry with the centralized USE/Groq model pool."""
     fallback = _guide_route_fallback(query, history)
-
     groq_client = getattr(use_core, "groq_client", None)
     if groq_client is None:
         return fallback
 
-    model_id, preference_order = _guide_route_model()
-    if not model_id:
+    model_candidates = _guide_route_models()
+    if not model_candidates:
         return fallback
 
     history_text = _guide_route_history_text(history)
@@ -1041,7 +1013,10 @@ def _guide_capability_route(query, history=None):
         + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
     )
 
-    try:
+    route_max_tokens = 320
+    last_error = ""
+
+    for model_id in model_candidates:
         provider_kwargs = {
             "model": model_id,
             "messages": [
@@ -1049,141 +1024,154 @@ def _guide_capability_route(query, history=None):
                 {"role": "user", "content": user_content[:9000]},
             ],
             "temperature": 0.0,
-            "max_completion_tokens": 650,
+            "max_completion_tokens": route_max_tokens,
             "response_format": {"type": "json_object"},
         }
-
         if model_id.startswith("openai/gpt-oss-"):
-            provider_kwargs["reasoning_effort"] = "medium"
+            provider_kwargs["reasoning_effort"] = "low"
             provider_kwargs["include_reasoning"] = False
 
-        preflight = getattr(use_core, "_known_daily_tpd_preflight", None)
-        estimate = getattr(use_core, "_estimate_quota_tokens", None)
-        if callable(preflight) and callable(estimate):
-            try:
-                estimated = int(estimate(provider_kwargs["messages"], 300))
+        try:
+            preflight = getattr(use_core, "_known_daily_tpd_preflight", None)
+            estimate = getattr(use_core, "_estimate_quota_tokens", None)
+            if callable(preflight) and callable(estimate):
+                estimated = int(estimate(provider_kwargs["messages"], route_max_tokens))
                 preflight(model_id, estimated)
-            except Exception as exc:
-                print(f"USE v487.60 route preflight skipped: {exc}")
 
-        response = groq_client.chat.completions.create(**provider_kwargs)
-        raw = str(response.choices[0].message.content or "").strip()
-        parsed = json.loads(raw)
-        if not isinstance(parsed, dict):
-            raise ValueError("route response was not an object")
-
-        route = str(parsed.get("route") or "guide").strip().casefold()
-        mode = str(parsed.get("mode") or "direct").strip().casefold()
-        confidence = float(parsed.get("confidence", 0.0) or 0.0)
-        reason = str(parsed.get("reason") or "").strip()
-        alternatives = parsed.get("alternatives") or []
-        interpretation = {
-            "human_reality": str(parsed.get("human_reality") or "").strip(),
-            "presenting_situation": str(parsed.get("presenting_situation") or "").strip(),
-            "visitor_proposition": str(parsed.get("visitor_proposition") or "").strip(),
-            "underlying_question": str(parsed.get("underlying_question") or "").strip(),
-            "uncertainty": str(parsed.get("uncertainty") or "").strip(),
-            "desired_movement": str(parsed.get("desired_movement") or "").strip(),
-            "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
-        }
-
-        if route not in _GUIDE_ROUTE_IDS:
-            raise ValueError(f"unsupported route {route!r}")
-        if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
-            mode = "direct"
-
-        if (
-            route == "relationship"
-            and mode == "direct"
-            and str(interpretation.get("processing_need") or "").casefold() == "exploration"
-        ):
-            mode = "delegated_journey"
-            reason = (
-                "Round 1 identified a lived relational inquiry whose useful next "
-                "movement is exploratory processing; delegated relational journey selected."
-            )
-
-        confidence = max(0.0, min(1.0, confidence))
-        alternatives = [
-            str(item).strip().casefold()
-            for item in alternatives
-            if str(item).strip().casefold() in _GUIDE_ROUTE_IDS
-        ][:3]
-
-        try:
-            profile = _base._inquiry_profile(query)
-            if profile.get("risk"):
-                route = "safety"
-                mode = "safety"
-                confidence = 1.0
-                reason = "deterministic safety boundary"
-        except Exception:
-            pass
-
-        result = {
-            "route": route,
-            "mode": mode,
-            "confidence": confidence,
-            "reason": reason[:500],
-            "alternatives": alternatives or ["guide"],
-            "source": "groq",
-            "model": model_id,
-            "preference_order": preference_order,
-            "round1_interpretation": interpretation,
-        }
-
-        print(
-            "USE v487.64 capability route: "
-            f"source=groq, model={model_id}, route={route}, mode={mode}, "
-            f"confidence={confidence:.3f}, reason={reason[:180]!r}"
-        )
-        return result
-
-    except Exception as exc:
-        try:
-            profile = _base._inquiry_profile(query)
-        except Exception:
-            profile = {}
-
-        q = _normalize_query(query)
-        deterministic_relationship = (
-            not profile.get("risk")
-            and bool(_query_frame(query).get("relational"))
-            and (
-                _has_experiential_stance(q)
-                or _has_experiential_state(q)
-                or bool(re.search(r"\b(?:afraid|fear|worried|hesitat|putting off|avoid)\b", q, re.I))
-            )
-        )
-        if deterministic_relationship:
             print(
-                "USE v487.64 capability route fallback: "
-                "relationship/delegated_journey after Groq routing failure"
+                "USE v487.72 capability routing attempt: "
+                f"model={model_id}, input_chars={sum(len(str(m.get('content', ''))) for m in provider_kwargs['messages'])}"
             )
-            return {
-                "route": "relationship",
-                "mode": "delegated_journey",
-                "confidence": 0.70,
-                "reason": "bounded relational fallback after routing-model failure",
-                "alternatives": ["guide"],
-                "source": "deterministic-relational-fallback",
-                "round1_interpretation": {
-                    "human_reality": "",
-                    "presenting_situation": str(query).strip(),
-                    "visitor_proposition": "",
-                    "underlying_question": "",
-                    "uncertainty": "",
-                    "desired_movement": "exploration",
-                    "processing_need": "exploration",
-                },
+            response = groq_client.chat.completions.create(**provider_kwargs)
+            raw = str(response.choices[0].message.content or "").strip()
+            parsed = json.loads(raw)
+            if not isinstance(parsed, dict):
+                raise ValueError("route response was not an object")
+
+            route = str(parsed.get("route") or "guide").strip().casefold()
+            mode = str(parsed.get("mode") or "direct").strip().casefold()
+            confidence = float(parsed.get("confidence", 0.0) or 0.0)
+            reason = str(parsed.get("reason") or "").strip()
+            alternatives = parsed.get("alternatives") or []
+            interpretation = {
+                "human_reality": str(parsed.get("human_reality") or "").strip(),
+                "presenting_situation": str(parsed.get("presenting_situation") or "").strip(),
+                "visitor_proposition": str(parsed.get("visitor_proposition") or "").strip(),
+                "underlying_question": str(parsed.get("underlying_question") or "").strip(),
+                "uncertainty": str(parsed.get("uncertainty") or "").strip(),
+                "desired_movement": str(parsed.get("desired_movement") or "").strip(),
+                "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
             }
 
-        print(
-            "USE v487.64 capability route failed safely: "
-            f"model={model_id}, error={exc}"
-        )
-        return fallback
+            if route not in _GUIDE_ROUTE_IDS:
+                raise ValueError(f"unsupported route {route!r}")
+            if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
+                mode = "direct"
 
+            if (
+                route == "relationship"
+                and mode == "direct"
+                and str(interpretation.get("processing_need") or "").casefold() == "exploration"
+            ):
+                mode = "delegated_journey"
+                reason = (
+                    "Round 1 identified a lived relational inquiry whose useful next "
+                    "movement is exploratory processing; delegated relational journey selected."
+                )
+
+            confidence = max(0.0, min(1.0, confidence))
+            alternatives = [
+                str(item).strip().casefold()
+                for item in alternatives
+                if str(item).strip().casefold() in _GUIDE_ROUTE_IDS
+            ][:3]
+
+            try:
+                profile = _base._inquiry_profile(query)
+                if profile.get("risk"):
+                    route = "safety"
+                    mode = "safety"
+                    confidence = 1.0
+                    reason = "deterministic safety boundary"
+            except Exception:
+                pass
+
+            result = {
+                "route": route,
+                "mode": mode,
+                "confidence": confidence,
+                "reason": reason[:500],
+                "alternatives": alternatives or ["guide"],
+                "source": "groq",
+                "model": model_id,
+                "preference_order": list(model_candidates),
+                "round1_interpretation": interpretation,
+            }
+            print(
+                "USE v487.72 capability route: "
+                f"source=groq, model={model_id}, route={route}, mode={mode}, "
+                f"confidence={confidence:.3f}, reason={reason[:180]!r}"
+            )
+            return result
+
+        except Exception as exc:
+            last_error = str(exc)
+            error_text = last_error
+            if "model_terms_required" in error_text.lower() or "requires terms acceptance" in error_text.lower():
+                cache = getattr(use_core, "MODEL_CACHE", None)
+                if isinstance(cache, dict):
+                    cache.setdefault("terms_required_models", set()).add(model_id)
+                print(f"USE v487.72 route quarantine: terms acceptance required for '{model_id}'")
+                continue
+
+            known_quota = getattr(use_core, "KnownDailyQuotaInsufficient", None)
+            if known_quota is not None and isinstance(exc, known_quota):
+                print(f"USE v487.72 route preflight: skip '{model_id}' because observed daily quota is insufficient")
+                continue
+
+            is_rate_limit = getattr(use_core, "_is_rate_limit_error", None)
+            if callable(is_rate_limit) and is_rate_limit(error_text):
+                record_tpd = getattr(use_core, "_record_daily_tpd_state", None)
+                if callable(record_tpd):
+                    try:
+                        record_tpd(model_id, error_text)
+                    except Exception:
+                        pass
+                cooldown_fn = getattr(use_core, "_rate_limit_seconds", None)
+                cooldown = 30.0
+                if callable(cooldown_fn):
+                    try:
+                        cooldown = float(cooldown_fn(error_text))
+                    except Exception:
+                        pass
+                cache = getattr(use_core, "MODEL_CACHE", None)
+                if isinstance(cache, dict):
+                    cache.setdefault("rate_limited_until", {})[model_id] = __import__("time").time() + cooldown
+                print(
+                    "USE v487.72 route quarantine: "
+                    f"rate-limited '{model_id}' for approximately {cooldown:.0f}s"
+                )
+                continue
+
+            is_too_large = getattr(use_core, "_is_request_too_large_error", None)
+            if callable(is_too_large) and is_too_large(error_text):
+                cache = getattr(use_core, "MODEL_CACHE", None)
+                if isinstance(cache, dict):
+                    cache.setdefault("request_too_large_models", set()).add(model_id)
+                print(f"USE v487.72 route quarantine: request too large for '{model_id}'")
+                continue
+
+            print(
+                "USE v487.72 capability routing candidate failed: "
+                f"model={model_id}, error={error_text[:300]}"
+            )
+            continue
+
+    print(
+        "USE v487.72 capability routing exhausted LLM candidates: "
+        f"last_error={last_error[:400]}"
+    )
+    return fallback
 
 def _registered_available_specialist(specialist_id):
     for capability in SPECIALIST_CAPABILITY_REGISTRY:
