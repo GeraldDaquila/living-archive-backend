@@ -1,28 +1,14 @@
-# v487.81 Cross-Mode Behavioral Harness
+# v487.81 Cross-Mode Behavioral Validation
 
-## Purpose
+## Gate result
 
-Move the shared-intelligence work from abstract interface design to a bounded behavioral comparison.
+The comparison has moved from a list of proposed interfaces to explicit case assertions.
 
-The harness is intentionally runtime-independent. It records representative cases and checks whether
-the same *discipline* is needed in both USE and HRN while keeping authority and mode-specific semantics
-separate.
+The harness now verifies that the same reasoning *disciplines* recur across representative USE and
+HRN operating situations without making their internal semantics identical.
 
-## Cases
+## Shared disciplines supported by the comparison
 
-The current matrix covers:
-- conceptual inquiry;
-- lived relational inquiry;
-- open inquiry;
-- navigation/orientation;
-- safety-sensitive inquiry;
-- evidence-poor inquiry;
-- specialist handoff;
-- provider failure.
-
-## What the harness establishes
-
-The following are treated as shared disciplines:
 - evidence normalization;
 - claim separation;
 - epistemic boundaries;
@@ -30,39 +16,48 @@ The following are treated as shared disciplines:
 - visitor-language boundary;
 - explicit operation states.
 
-Inquiry/movement representation and canonical doorway proposal are shared only at the interface level:
-their semantics and authority remain mode-aware.
+These are suitable candidates for a shared infrastructure layer, subject to implementation-level
+regression testing.
 
-## What remains outside
+## Shared, but authority-sensitive
 
-HRN retains:
+**Inquiry / movement representation** is common infrastructure only as a neutral carrier. USE may
+populate macro intent; HRN may populate conversational movement. The shared layer must not choose
+between those meanings.
+
+**Doorway proposal** is a common proposal mechanism. Final canonical authority remains with USE.
+
+**Retry state** is common infrastructure. Provider selection and specialist-specific recovery remain
+outside it until independently verified.
+
+## Explicitly not shared
+
+HRN continues to own:
 - relational conversation state;
-- living-fractal progression;
-- perspective movement / perspective delta;
 - question-led steering;
+- living-fractal progression;
+- perspective movement and perspective delta;
+- specialist voice;
 - spiral/journey semantics.
 
-USE retains:
+USE continues to own:
 - macro routing;
 - specialist delegation;
 - contribution integration;
 - final canonical authority.
 
-FSD retains its systems/fractal diagnostic semantics.
+Safety interruption/routing remains outside the generic reasoning grammar.
 
-## Provider arbitration
+## Important correction to the previous stage
 
-Provider arbitration is deliberately *not* promoted by this harness. It requires evidence from real
-USE and HRN failure/quota conditions before becoming a platform primitive.
+The earlier harness encoded many values as unconditional booleans. That was not a meaningful behavioral
+test. v487.81 replaces that with structural assertions over case-level boundaries, so a future change
+can actually break the harness rather than merely update a table of claims.
 
-## QA boundary
+## Next gate
 
-This branch must not:
-- modify `use_core.py`;
-- modify the live HRN plugin;
-- wire a new shared runtime module into production;
-- promote `general_utility.py`;
-- change the current visitor experience.
+The next step is implementation archaeology: identify the smallest existing functions that realize the
+validated shared disciplines, map duplication across USE and HRN, and only then extract a shared runtime
+module.
 
-The next implementation step is therefore evidence-driven extraction of only the primitives that pass
-this comparison and a separate import-level regression suite against protected production assets.
+No production code should be changed until that mapping is complete and its regression suite is in place.
