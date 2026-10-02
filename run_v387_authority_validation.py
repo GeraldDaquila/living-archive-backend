@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 import ast
 
@@ -29,9 +30,9 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert 'APP_VERSION = "v487.85"' in main_source
-assert 'DEPLOYMENT_FINGERPRINT = "USE-v487.85-shared-evidence-normalization-seam"' in main_source
-assert 'CANONICAL_BUILD_ID = "USE-BUILD-v487.85-shared-evidence-normalization-seam"' in main_source
+assert re.search(r'APP_VERSION = "v487\.86"', main_source)
+assert 'USE-v487.86-shared-claim-normalization-seam' in main_source
+assert 'USE-BUILD-v487.86-shared-claim-normalization-seam' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
