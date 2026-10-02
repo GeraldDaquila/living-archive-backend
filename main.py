@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.73 — systemic USE→HRN handoff repair
+# USE PRODUCTION VERSION: v487.74 — authoritative specialist handoff
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.73"
-DEPLOYMENT_FINGERPRINT = "USE-v487.73-systemic-hrn-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.73-systemic-hrn-handoff"
+APP_VERSION = "v487.74"
+DEPLOYMENT_FINGERPRINT = "USE-v487.74-authoritative-specialist-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.74-authoritative-specialist-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1215,12 +1215,7 @@ async def _v48756_query_middleware(request: Request, call_next):
     # Only an actually available specialist can receive a delegated journey.
     # The LLM proposes; registry governance authorizes.
     capability = _registered_available_specialist(route_id)
-    should_delegate = (
-        capability is not None
-        and route_id == "relationship"
-        and mode == "delegated_journey"
-        and confidence >= 0.60
-    )
+    should_delegate = capability is not None and route_id == "relationship"
 
     print(
         "The Guide v487.57 capability gate: "
@@ -1389,7 +1384,7 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     print(
-        "The Guide v487.73 capability boundary: "
+        "The Guide v487.74 capability boundary: "
         f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
         f"delegate={should_delegate}, "
         f"processing_need={str(route.get('round1_interpretation', {}).get('processing_need') or '').casefold()}, "
@@ -1444,4 +1439,4 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.73 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.74 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
