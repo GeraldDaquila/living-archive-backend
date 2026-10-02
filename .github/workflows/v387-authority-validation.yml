@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile current production modules
-        run: python -m py_compile main.py use_core.py main_v487_28_runtime.py shared_evidence.py shared_intelligence_primitives.py QA/SHARED_PRIMITIVE_PRODUCTION_QA.py QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py
+        run: python -m py_compile main.py use_core.py main_v487_28_runtime.py shared_evidence.py shared_intelligence_primitives.py QA/SHARED_PRIMITIVE_PRODUCTION_QA.py QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py QA/V487_87_SYNTHESIS_SEAM_QA.py QA/V487_87_SYNTHESIS_SEAM_TESTS.py
       - name: v487 protected-runtime compatibility validation
         run: python run_v387_authority_validation.py
       - name: v487.85 shared evidence seam QA
@@ -28,3 +28,8 @@ jobs:
         run: PYTHONPATH=. python QA/V487_86_CLAIM_SEAM_QA.py
       - name: v487.86 claim seam compatibility tests
         run: PYTHONPATH=. python QA/V487_86_CLAIM_SEAM_TESTS.py
+
+      - name: v487.87 synthesis material seam QA
+        run: PYTHONPATH=. python QA/V487_87_SYNTHESIS_SEAM_QA.py
+      - name: v487.87 synthesis material seam compatibility tests
+        run: PYTHONPATH=. python QA/V487_87_SYNTHESIS_SEAM_TESTS.py
