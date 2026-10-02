@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.62 — Whole-journey synthesis return
+# USE PRODUCTION VERSION: v487.63 — Semantic HRN journey closure
 import hashlib
 import importlib
 import re
@@ -31,9 +31,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.62"
-DEPLOYMENT_FINGERPRINT = "USE-v487.62-journey-synthesis-return"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.62-journey-synthesis-return"
+APP_VERSION = "v487.63"
+DEPLOYMENT_FINGERPRINT = "USE-v487.63-semantic-hrn-journey-closure"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.63-semantic-hrn-journey-closure"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -564,7 +564,7 @@ def _relationship_integrated_response(contribution):
     if question and not bool(movement.get("rest")): parts.append(question)
     return "\n\n".join(parts)
 
-async def _v48755_relational_return(request: Request):
+async async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
     except Exception:
@@ -585,6 +585,22 @@ async def _v48755_relational_return(request: Request):
     next_horizon = str(body.get("next_horizon") or "").strip()
     resource_fit = str(body.get("resource_fit") or "").strip()
     fractal_maturity = str(body.get("fractal_maturity") or "").strip().casefold()
+    journey_action = str(body.get("journey_action") or "").strip().casefold()
+    journey_synthesis = str(body.get("journey_synthesis") or "").strip()
+    journey_ledger = body.get("journey_ledger") if isinstance(body.get("journey_ledger"), dict) else {}
+    fractal_records = body.get("fractal_records") if isinstance(body.get("fractal_records"), list) else []
+    round_synthesis_history = body.get("round_synthesis_history") if isinstance(body.get("round_synthesis_history"), list) else []
+
+    if journey_action != "end":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_requires_closure",
+                "response": "The relational journey is still open.",
+            },
+        )
 
     if not original_question or not conversation:
         return JSONResponse(
@@ -597,21 +613,8 @@ async def _v48755_relational_return(request: Request):
             },
         )
 
-    if fractal_maturity not in {"complete", "mature", "consolidating", ""}:
-        return JSONResponse(
-            status_code=409,
-            content={
-                "ok": False,
-                "version": APP_VERSION,
-                "error_type": "relational_return_not_ready",
-                "response": "The relational inquiry has not reached a return point yet.",
-                "fractal_maturity": fractal_maturity,
-            },
-        )
-
-    # The Guide receives the whole journey, not merely HRN's final sentence.
-    # The synthesis query is deliberately constructed from HRN's own evolving
-    # state; no deterministic classifier is asked to reconstruct the meaning.
+    # The Guide receives the whole journey only after the visitor has explicitly
+    # chosen to close it. Mid-journey topic-fractal junctions never trigger this path.
     synthesis_parts = [
         original_question,
         "Conversation thread: " + thread_summary,
@@ -620,12 +623,15 @@ async def _v48755_relational_return(request: Request):
         "Underlying need: " + underlying_need,
         "Desired condition: " + desired_condition,
         "Living body of thought: " + body_of_thought,
+        "Previous topic-fractal syntheses: " + json.dumps(fractal_records, ensure_ascii=False),
+        "Round-by-round synthesis history: " + json.dumps(round_synthesis_history, ensure_ascii=False),
+        "Journey ledger: " + json.dumps(journey_ledger, ensure_ascii=False),
+        "Whole-journey synthesis from Seeing the Relationship: " + journey_synthesis,
         "Next horizon: " + next_horizon,
         "Canonical doorway fit noted by Seeing the Relationship: " + resource_fit,
-        "Whole-journey synthesis from Seeing the Relationship: " + journey_synthesis,
     ]
     synthesis_query = "\n".join(part for part in synthesis_parts if part.split(": ", 1)[-1].strip())
-    synthesis_query = synthesis_query[:12000]
+    synthesis_query = synthesis_query[:18000]
 
     try:
         context_data = _original_fetch_canonical_context(synthesis_query)
@@ -636,25 +642,26 @@ async def _v48755_relational_return(request: Request):
         ) if isinstance(context_data, dict) else ""
         docs = _parse_context_documents(canonical_context)
 
-        # Final doorway selection remains a Guide responsibility. HRN's own
-        # candidates are evidence, not authority, and are not blindly accepted.
-        profile = _base._inquiry_profile(original_question)
+        # The final doorway is still a Guide responsibility. The completed
+        # perspective, not the visitor's opening wording alone, governs the gift.
+        profile = _base._inquiry_profile(synthesis_query)
         profile["action"] = "recommendation"
-        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.90)
+        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
         outward = _sanitize_outward_context(synthesis_query, docs, profile)
         primary = _canonical_primary_from_docs(outward, synthesis_query, profile)
 
         if not primary:
-            # One bounded retry against the strongest completed insight when
-            # the composite journey query is too diffuse for canonical retrieval.
+            # One bounded retry against the strongest earned perspective.
             fallback_query = " ".join(
                 value for value in (
+                    journey_synthesis,
                     completed_insight,
                     perspective_delta,
                     underlying_need,
+                    next_horizon,
                     original_question,
                 ) if value
-            )[:8000]
+            )[:10000]
             fallback_data = _original_fetch_canonical_context(fallback_query)
             fallback_context = str(
                 fallback_data.get("canonical_link_context")
@@ -668,13 +675,25 @@ async def _v48755_relational_return(request: Request):
                 outward = fallback_outward
 
         print(
-            "The Guide v487.62 relational return: "
+            "The Guide v487.63 relational closure: "
             f"session={session_id or 'none'}, "
-            f"complete={fractal_maturity or 'unspecified'}, "
             f"selected={primary['title'] if primary else 'none'}, "
             f"conversation_chars={len(conversation)}, "
+            f"ledger_fractals={len(fractal_records)}, "
+            f"round_syntheses={len(round_synthesis_history)}, "
             f"query={_normalize_query(original_question)[:120]}"
         )
+
+        journey_payload = {
+            "state": "complete",
+            "session_id": session_id,
+            "perspective_delta": perspective_delta,
+            "completed_insight": completed_insight,
+            "next_horizon": next_horizon,
+            "journey_synthesis": journey_synthesis,
+            "fractal_records": fractal_records,
+            "round_synthesis_history": round_synthesis_history,
+        }
 
         if primary:
             return JSONResponse(
@@ -684,19 +703,12 @@ async def _v48755_relational_return(request: Request):
                     "version": APP_VERSION,
                     "request_id": session_id,
                     "intent": "RELATIONAL_CANONICAL_RETURN",
-                    "response": "You have brought this question to a meaningful place. If you want to carry it further, this is one place in the Archive you can now enter.",
+                    "response": "There is a place in the Archive that may carry this new perspective further.",
                     "canonical_doorway": {
                         "title": primary["title"],
                         "url": primary["url"],
                     },
-                    "relational_journey": {
-                        "state": "complete",
-                        "session_id": session_id,
-                        "perspective_delta": perspective_delta,
-                        "completed_insight": completed_insight,
-                        "next_horizon": next_horizon,
-                        "journey_synthesis": journey_synthesis,
-                    },
+                    "relational_journey": journey_payload,
                     "visitor_boundary_version": APP_VERSION,
                 },
             )
@@ -708,21 +720,14 @@ async def _v48755_relational_return(request: Request):
                 "version": APP_VERSION,
                 "request_id": session_id,
                 "intent": "RELATIONAL_CANONICAL_RETURN",
-                "response": "You have brought this question to a meaningful place. You do not need to force a next step if no doorway feels right yet.",
+                "response": "You have brought the conversation to a meaningful place. No doorway was close enough to offer honestly from what emerged.",
                 "canonical_doorway": None,
-                "relational_journey": {
-                    "state": "complete",
-                    "session_id": session_id,
-                    "perspective_delta": perspective_delta,
-                    "completed_insight": completed_insight,
-                    "next_horizon": next_horizon,
-                    "journey_synthesis": journey_synthesis,
-                },
+                "relational_journey": journey_payload,
                 "visitor_boundary_version": APP_VERSION,
             },
         )
     except Exception as exc:
-        print(f"The Guide v487.62 relational return failed safely: {exc}")
+        print(f"The Guide v487.63 relational closure failed safely: {exc}")
         return JSONResponse(
             status_code=200,
             content={
@@ -730,7 +735,7 @@ async def _v48755_relational_return(request: Request):
                 "version": APP_VERSION,
                 "request_id": session_id,
                 "intent": "RELATIONAL_CANONICAL_RETURN",
-                "response": "The relational conversation is complete. The Archive doorway could not be prepared right now.",
+                "response": "The conversation is complete, but the Archive doorway could not be prepared right now.",
                 "canonical_doorway": None,
                 "error_type": "relational_return_retrieval_failure",
             },
