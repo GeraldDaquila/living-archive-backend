@@ -1,4 +1,5 @@
 # USE PRODUCTION VERSION: v487.65 — HRN Round 1 driver and journey contract
+# v487.65 implementation contract: Round 1 is an active relational steering move;\n# completed spirals remain inside HRN; only explicit whole-journey end returns to USE.
 import hashlib
 import importlib
 import re
