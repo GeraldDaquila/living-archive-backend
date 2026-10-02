@@ -1,4 +1,4 @@
-name: USE v387 authority validation
+name: USE v487 production seam validation
 
 on:
   pull_request:
@@ -14,10 +14,12 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest
-      - name: Compile
-        run: python -m py_compile main.py use_core.py run_v387_authority_validation.py tests/test_v387_secondary_pathway_relevance.py
-      - name: Authority validation
+        run: pip install -r requirements.txt
+      - name: Compile current production modules
+        run: python -m py_compile main.py use_core.py main_v487_28_runtime.py shared_evidence.py shared_intelligence_primitives.py QA/SHARED_PRIMITIVE_PRODUCTION_QA.py QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py
+      - name: v487 protected-runtime compatibility validation
         run: python run_v387_authority_validation.py
-      - name: Regression test
-        run: python -m pytest -q tests/test_v387_secondary_pathway_relevance.py
+      - name: v487.85 shared evidence seam QA
+        run: python QA/SHARED_PRIMITIVE_PRODUCTION_QA.py
+      - name: v487.85 shared evidence seam tests
+        run: PYTHONPATH=. python QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py
