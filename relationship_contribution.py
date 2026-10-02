@@ -1,13 +1,8 @@
-"""Seeing the Relationship -> The Guide contribution grammar v1.
+"""Seeing the Relationship -> The Guide contribution grammar v2.
 
-This module defines the narrow contribution boundary for the relational
-specialist. It intentionally does not implement HRN, transport, routing,
-retrieval, or visitor-session behavior.
-
-The distinctive rule is voice preservation: when HRN supplies a coherent
-human-facing relational response, The Guide should preserve that language
-rather than rewrite it merely to match Guide phrasing. The Guide still owns
-safety, canonical authority, journey continuity, and final integration.
+The adapter boundary preserves HRN voice and carries the relational journey
+state back to The Guide without allowing Guide prose or canonical selection to
+take ownership of HRN's visible experience.
 """
 
 from __future__ import annotations
@@ -15,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Dict, Mapping
 
 
-RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION = "v1"
+RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION = "v2"
 RELATIONSHIP_VOICE_POLICY = "preserve_specialist_voice"
 
 _ALLOWED_STATUSES = frozenset({
@@ -33,11 +28,7 @@ class RelationshipContributionError(ValueError):
 def validate_relationship_contribution(
     contribution: Mapping[str, Any],
 ) -> Dict[str, Any]:
-    """Validate the relationship-specific contribution grammar.
-
-    The returned object is still internal material. It is not a statement
-    that every field must be shown to the visitor.
-    """
+    """Validate and normalize HRN contribution data."""
 
     if not isinstance(contribution, Mapping):
         raise RelationshipContributionError(
@@ -51,10 +42,8 @@ def validate_relationship_contribution(
         )
 
     voice_policy = str(
-        contribution.get("voice_policy")
-        or RELATIONSHIP_VOICE_POLICY
+        contribution.get("voice_policy") or RELATIONSHIP_VOICE_POLICY
     ).strip()
-
     if voice_policy != RELATIONSHIP_VOICE_POLICY:
         raise RelationshipContributionError(
             "Seeing the Relationship must use preserve_specialist_voice."
@@ -92,6 +81,12 @@ def validate_relationship_contribution(
             "canonical_candidates must be a list when supplied."
         )
 
+    journey = contribution.get("journey")
+    if journey is not None and not isinstance(journey, Mapping):
+        raise RelationshipContributionError(
+            "journey must be a mapping when supplied."
+        )
+
     normalized = {
         "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
         "status": status,
@@ -101,6 +96,7 @@ def validate_relationship_contribution(
         "perspectives": list(perspectives or []),
         "movement": dict(movement or {}),
         "canonical_candidates": list(canonical_candidates or []),
+        "journey": dict(journey or {}),
         "boundary_notes": contribution.get("boundary_notes"),
         "safety_flags": contribution.get("safety_flags"),
     }
@@ -121,4 +117,6 @@ def relationship_contract_snapshot() -> Dict[str, Any]:
             RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
         "voice_policy": RELATIONSHIP_VOICE_POLICY,
         "guide_rewrites_specialist_voice": False,
+        "guide_owns_final_canonical_selection": True,
+        "journey_state_transport": True,
     }
