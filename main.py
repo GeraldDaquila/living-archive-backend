@@ -1267,6 +1267,7 @@ async def _v48756_query_middleware(request: Request, call_next):
                     "guide_return_endpoint": "/api/relational-return",
                     "return_mode": "background_gift",
                     "return_mode": "background_gift",
+                    "return_mode": "background_gift",
                 },
                 "visitor_boundary_version": APP_VERSION,
                 "request_id": request_id,
