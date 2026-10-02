@@ -564,7 +564,7 @@ def _relationship_integrated_response(contribution):
     if question and not bool(movement.get("rest")): parts.append(question)
     return "\n\n".join(parts)
 
-async async def _v48755_relational_return(request: Request):
+async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
     except Exception:
