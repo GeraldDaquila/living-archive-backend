@@ -4,7 +4,7 @@ import importlib
 import re
 import json
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
-from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims
+from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -33,15 +33,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.86"
-DEPLOYMENT_FINGERPRINT = "USE-v487.86-shared-claim-normalization-seam"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.86-shared-claim-normalization-seam"
+APP_VERSION = "v487.87"
+DEPLOYMENT_FINGERPRINT = "USE-v487.87-shared-synthesis-material-seam"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.87-shared-synthesis-material-seam"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.86":
+if str(APP_VERSION) != "v487.87":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -328,6 +328,7 @@ def _select_adjacent(claims, query, primary_title, profile):
 def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     canonical_docs = canonical_docs or []
     claims = _normalize_shared_claims_for_use(docs or [])
+    synthesis = _build_shared_synthesis_material_for_use(claims)
     primary = _canonical_primary_from_docs(canonical_docs, query, profile)
     if primary:
         secondary = _select_adjacent(claims, query, primary["title"], profile)
@@ -394,6 +395,25 @@ def _normalize_shared_claims_for_use(candidates):
         for item in normalized
     ]
 
+
+def _build_shared_synthesis_material_for_use(claims):
+    """Package normalized USE claims through the shared synthesis primitive."""
+    shared_claims = _shared_normalize_claims_for_use(claims or [])
+    return _shared_build_synthesis_material([
+        _shared_claim_object(item) for item in shared_claims
+    ])
+
+
+def _shared_claim_object(item):
+    """Return one normalized shared Claim object from a legacy claim mapping."""
+    normalized = _shared_normalize_claims(
+        [{"text": str(item.get("text") or "").strip(),
+          "evidence_ids": [str(item.get("id") or "claim:1")],
+          "claim_type": "interpretation" if item.get("epistemic") == "interpretive" else "observation",
+          "epistemic": str(item.get("epistemic") or "uncertain")}],
+        evidence_ids=[str(item.get("id") or "claim:1")],
+    )
+    return normalized[0] if normalized else None
 
 def _parse_context_documents(context_blocks):
     parser = getattr(use_core, "_parse_context_documents", None)
@@ -1475,13 +1495,17 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.86 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.87 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
 # v487.86 claim seam invariant: shared evidence transformation is wired only at the
 # document parsing boundary; the legacy dictionary shape remains authoritative.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
-    raise RuntimeError("USE v487.86 invariant failed: shared evidence contract drift.")
+    raise RuntimeError("USE v487.87 invariant failed: shared evidence contract drift.")
 
 # v487.86 claim seam invariant: USE answer composition consumes the shared claim transformer.
 if "claims = _normalize_shared_claims_for_use(docs or [])" not in open(_MAIN_PATH, encoding="utf-8").read():
-    raise RuntimeError("USE v487.86 invariant failed: shared claim seam wiring missing.")
+    raise RuntimeError("USE v487.87 invariant failed: shared claim seam wiring missing.")
+if "synthesis = _build_shared_synthesis_material_for_use(claims)" not in open(_MAIN_PATH, encoding="utf-8").read():
+    raise RuntimeError("USE v487.87 invariant failed: shared synthesis seam wiring missing.")
+if "build_synthesis_material as _shared_build_synthesis_material" not in open(_MAIN_PATH, encoding="utf-8").read():
+    raise RuntimeError("USE v487.87 invariant failed: shared synthesis primitive import missing.")
