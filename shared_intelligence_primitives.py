@@ -1,10 +1,11 @@
-"""Draft shared reasoning primitives for USE and bounded operating modes.
+"""Shared reasoning primitives currently consumed by the v487.85 evidence seam.
 
 This module is deliberately pure and authority-free. It does not retrieve,
 route, select canonical resources authoritatively, call a model, or generate
 final visitor-facing prose.
 
-It is a candidate extraction from the implementation archaeology only.
+The active production seam currently consumes only the evidence normalization primitive;
+other primitives remain inert until separately introduced and validated.
 """
 from __future__ import annotations
 
