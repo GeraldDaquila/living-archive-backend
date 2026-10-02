@@ -986,7 +986,7 @@ def _guide_route_model():
 
 
 def _guide_capability_route(query, history=None):
-    """Interpret the first question through the existing Groq model architecture."""
+    """Interpret the opening inquiry at the macro Guide boundary."""
     fallback = _guide_route_fallback(query, history)
 
     groq_client = getattr(use_core, "groq_client", None)
@@ -1001,10 +1001,7 @@ def _guide_capability_route(query, history=None):
     user_content = (
         "Visitor question:\n"
         + str(query).strip()
-        + (
-            "\n\nRecent conversation context:\n" + history_text
-            if history_text else ""
-        )
+        + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
     )
 
     try:
@@ -1027,9 +1024,7 @@ def _guide_capability_route(query, history=None):
         estimate = getattr(use_core, "_estimate_quota_tokens", None)
         if callable(preflight) and callable(estimate):
             try:
-                estimated = int(
-                    estimate(provider_kwargs["messages"], 300)
-                )
+                estimated = int(estimate(provider_kwargs["messages"], 300))
                 preflight(model_id, estimated)
             except Exception as exc:
                 print(f"USE v487.60 route preflight skipped: {exc}")
@@ -1037,7 +1032,6 @@ def _guide_capability_route(query, history=None):
         response = groq_client.chat.completions.create(**provider_kwargs)
         raw = str(response.choices[0].message.content or "").strip()
         parsed = json.loads(raw)
-
         if not isinstance(parsed, dict):
             raise ValueError("route response was not an object")
 
@@ -1061,15 +1055,6 @@ def _guide_capability_route(query, history=None):
         if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
             mode = "direct"
 
-        # Round 1 governance: the model's own interpretation determines whether
-        # a relational lived situation calls for exploratory processing. We do
-        # not use topic keywords or a separate relational classifier here.
-        #
-        # HRN's first move is the precedent: when the visitor is carrying a
-        # lived relational situation and the useful next movement is exploration,
-        # the correct mode is the delegated relational journey. The Guide still
-        # retains authority over route validity, specialist availability,
-        # safety, and the final visitor boundary.
         if (
             route == "relationship"
             and mode == "direct"
@@ -1088,7 +1073,6 @@ def _guide_capability_route(query, history=None):
             if str(item).strip().casefold() in _GUIDE_ROUTE_IDS
         ][:3]
 
-        # Deterministic safety remains authoritative.
         try:
             profile = _base._inquiry_profile(query)
             if profile.get("risk"):
@@ -1112,15 +1096,53 @@ def _guide_capability_route(query, history=None):
         }
 
         print(
-            "USE v487.62 capability route: "
+            "USE v487.64 capability route: "
             f"source=groq, model={model_id}, route={route}, mode={mode}, "
             f"confidence={confidence:.3f}, reason={reason[:180]!r}"
         )
         return result
 
     except Exception as exc:
+        try:
+            profile = _base._inquiry_profile(query)
+        except Exception:
+            profile = {}
+
+        q = _normalize_query(query)
+        deterministic_relationship = (
+            not profile.get("risk")
+            and bool(_query_frame(query).get("relational"))
+            and (
+                _has_experiential_stance(q)
+                or _has_experiential_state(q)
+                or bool(re.search(r"\b(?:afraid|fear|worried|hesitat|putting off|avoid)\b", q, re.I))
+            )
+        )
+        if deterministic_relationship:
+            print(
+                "USE v487.64 capability route fallback: "
+                "relationship/delegated_journey after Groq routing failure"
+            )
+            return {
+                "route": "relationship",
+                "mode": "delegated_journey",
+                "confidence": 0.70,
+                "reason": "bounded relational fallback after routing-model failure",
+                "alternatives": ["guide"],
+                "source": "deterministic-relational-fallback",
+                "round1_interpretation": {
+                    "human_reality": "",
+                    "presenting_situation": str(query).strip(),
+                    "visitor_proposition": "",
+                    "underlying_question": "",
+                    "uncertainty": "",
+                    "desired_movement": "exploration",
+                    "processing_need": "exploration",
+                },
+            }
+
         print(
-            "USE v487.62 capability route failed safely: "
+            "USE v487.64 capability route failed safely: "
             f"model={model_id}, error={exc}"
         )
         return fallback
