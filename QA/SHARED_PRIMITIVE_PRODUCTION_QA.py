@@ -36,7 +36,8 @@ def main() -> int:
     seam_source = (ROOT / "shared_evidence.py").read_text(encoding="utf-8")
 
     assert "from shared_evidence import" in main_source
-    assert "normalize_documents_for_use(parsed, provenance=\"retrieved-context\")" in main_source
+    assert "_normalize_shared_evidence_for_use(parsed, provenance=\"retrieved-context\")" in main_source
+    assert "return normalize_documents_for_use(documents, provenance=provenance)" in main_source
     assert "SHARED_EVIDENCE_CONTRACT_VERSION" in main_source
     assert 'APP_VERSION = "v487.85"' in main_source
     assert "from shared_intelligence_primitives import EvidenceItem, normalize_evidence" in seam_source
