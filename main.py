@@ -1723,7 +1723,7 @@ async def _formation_entrance_route(request: Request):
         url = str(door.get("url") or "").strip()
         if not door_id or door_id in seen_ids:
             continue
-        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+        if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
             continue
         seen_ids.add(door_id)
         bounded_doors.append(
