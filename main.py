@@ -1673,11 +1673,15 @@ async def _formation_entrance_route(request: Request):
             "formation_entrance_source",
         )
 
+    # Steward Entrance is itself a Guide-owned request boundary.
+    # Propagate one bounded request identity through the common specialist pipe.
     request_id = (
-        "formation-"
+        "guide-formation-"
         + hashlib.sha1(
             (
-                choice
+                FORMATION_ENTRANCE_SOURCE
+                + "|"
+                + choice
                 + "|"
                 + situation
                 + "|"
