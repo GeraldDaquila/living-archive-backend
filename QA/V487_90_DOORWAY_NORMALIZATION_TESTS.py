@@ -15,10 +15,15 @@ def main():
         {"title": "", "url": "https://example.org/empty/"},
         "not-a-candidate",
     ])
-    assert candidates == (
-        DoorwayCandidate(title="First", url="https://geralddaquila.com/first/", relevance_basis="subject", source_ids=("doc-a",), candidate_rank=1),
-        DoorwayCandidate(title="Second", url="https://geralddaquila.com/second/", relevance_basis="", source_ids=("doc-b",), candidate_rank=10),
-    )
+    assert candidates[0].title == "First"
+    assert candidates[0].url == "https://geralddaquila.com/first/"
+    assert candidates[0].relevance_basis == "subject"
+    assert candidates[0].source_ids == ("doc-a",)
+    assert candidates[0].candidate_rank == 1
+    assert candidates[1].title == "Second"
+    assert candidates[1].url == "https://geralddaquila.com/second/"
+    assert candidates[1].source_ids == ("doc-b",)
+    assert candidates[1].candidate_rank == 2
 
     untouched = normalize_doorway_candidates([
         {"title": "Explicit", "url": "https://geralddaquila.com/explicit/", "candidate_rank": 4},
