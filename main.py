@@ -1400,6 +1400,7 @@ async def _v48756_query_middleware(request: Request, call_next):
                 "query": query,
                 "intent": "RELATIONAL_HANDOFF",
                 "response": "",
+                "handoff": "relationship",
                 "relational_delegation": {
                     "state": "open",
                     "specialist": capability.public_name,
