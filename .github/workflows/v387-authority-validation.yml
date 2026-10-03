@@ -42,3 +42,8 @@ jobs:
         run: PYTHONPATH=. python QA/V487_90_DOORWAY_NORMALIZATION_QA.py
       - name: v487.90 doorway normalization compatibility tests
         run: PYTHONPATH=. python QA/V487_90_DOORWAY_NORMALIZATION_TESTS.py
+
+      - name: v487.91 doorway adapter QA
+        run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_QA.py
+      - name: v487.91 doorway adapter compatibility tests
+        run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_TESTS.py
