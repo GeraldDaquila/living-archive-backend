@@ -19,7 +19,7 @@ PROTECTED = {
 }
 
 def blob_sha1(data):
-    return hashlib.sha1(f"blob {len(data)}\\0".encode() + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 def main():
     for rel, expected in PROTECTED.items():
