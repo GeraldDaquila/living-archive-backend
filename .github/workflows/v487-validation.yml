@@ -19,8 +19,8 @@ jobs:
         run: python run_v387_authority_validation.py
       - name: v487.94 specialist-pipe integrity QA
         run: PYTHONPATH=. python QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py
-      - name: v487.92 journey contribution QA
-        run: PYTHONPATH=. python QA/V487_92_JOURNEY_CONTRIBUTION_QA.py
+      - name: v487.94 journey contribution structural QA
+        run: PYTHONPATH=. python QA/V487_94_JOURNEY_CONTRIBUTION_QA.py
       - name: v487.92 journey contribution compatibility tests
         run: PYTHONPATH=. python QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py
       - name: v487.94 Formation specialist pipe QA
