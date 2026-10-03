@@ -1604,6 +1604,166 @@ async def _v48757_query_asgi(scope, receive, send):
     await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
 
 
+FORMATION_ENTRANCE_CONTRACT_VERSION = "v1"
+FORMATION_ENTRANCE_SOURCE = "steward-entrance"
+
+
+def _formation_entrance_error(message, error_type, status_code=400):
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "ok": False,
+            "version": APP_VERSION,
+            "intent": "FORMATION_HANDOFF",
+            "response": "",
+            "error_type": error_type,
+            "contract_version": FORMATION_ENTRANCE_CONTRACT_VERSION,
+            "source": FORMATION_ENTRANCE_SOURCE,
+            "message": message,
+        },
+    )
+
+
+async def _formation_entrance_route(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        return _formation_entrance_error(
+            "The Formation entrance payload must be valid JSON.",
+            "formation_entrance_invalid_json",
+        )
+
+    if not isinstance(body, dict):
+        return _formation_entrance_error(
+            "The Formation entrance payload must be a JSON object.",
+            "formation_entrance_invalid_payload",
+        )
+
+    choice = str(body.get("choice") or "").strip()
+    situation = str(body.get("situation") or "").strip()
+    possibility = str(body.get("possibility") or "").strip()
+
+    missing = [
+        name for name, value in (
+            ("choice", choice),
+            ("situation", situation),
+            ("possibility", possibility),
+        ) if not value
+    ]
+    if missing:
+        return _formation_entrance_error(
+            "The Formation entrance requires choice, situation, and possibility.",
+            "formation_entrance_missing_fields",
+        )
+
+    contract_version = str(
+        body.get("contract_version") or FORMATION_ENTRANCE_CONTRACT_VERSION
+    ).strip()
+    source = str(body.get("source") or FORMATION_ENTRANCE_SOURCE).strip()
+
+    if contract_version != FORMATION_ENTRANCE_CONTRACT_VERSION:
+        return _formation_entrance_error(
+            "Unsupported Formation entrance contract version.",
+            "formation_entrance_contract_version",
+        )
+    if source != FORMATION_ENTRANCE_SOURCE:
+        return _formation_entrance_error(
+            "Unsupported Formation entrance source.",
+            "formation_entrance_source",
+        )
+
+    request_id = (
+        "formation-"
+        + hashlib.sha1(
+            (
+                choice
+                + "|"
+                + situation
+                + "|"
+                + possibility
+            ).encode("utf-8")
+        ).hexdigest()[:16]
+    )
+
+    try:
+        contribution = invoke_specialist(
+            SPECIALIST_ADAPTER_REGISTRY,
+            request_id=request_id,
+            guide_version=APP_VERSION,
+            specialist_id="formation",
+            original_question=situation,
+            recognized_territory="stewardship formation",
+            processing_purpose="bounded formation navigation from Steward Entrance",
+            guide_context={
+                "choice": choice,
+                "situation": situation,
+                "possibility": possibility,
+            },
+            safety_state="green",
+        )
+    except Exception as exc:
+        print(f"USE v487.94 Formation entrance failed safely: {exc}")
+        return _formation_entrance_error(
+            "The Formation pathway could not be opened right now.",
+            "formation_entrance_specialist_failure",
+            status_code=503,
+        )
+
+    interpretation = contribution.get("interpretation") or {}
+    movement = contribution.get("movement") or {}
+    doors = contribution.get("canonical_candidates") or []
+
+    bounded_doors = []
+    seen_ids = set()
+    for door in doors:
+        if not isinstance(door, dict):
+            continue
+        door_id = str(door.get("id") or "").strip()
+        title = str(door.get("title") or "").strip()
+        url = str(door.get("url") or "").strip()
+        if not door_id or door_id in seen_ids:
+            continue
+        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            continue
+        seen_ids.add(door_id)
+        bounded_doors.append(
+            {
+                "id": door_id,
+                "title": title,
+                "url": url,
+            }
+        )
+        if len(bounded_doors) >= 3:
+            break
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "ok": True,
+            "version": APP_VERSION,
+            "intent": "FORMATION_HANDOFF",
+            "contract_version": FORMATION_ENTRANCE_CONTRACT_VERSION,
+            "source": FORMATION_ENTRANCE_SOURCE,
+            "request_id": request_id,
+            "choice": choice,
+            "situation": situation,
+            "possibility": possibility,
+            "response": str(interpretation.get("pathway") or "").strip(),
+            "formation_contribution": {
+                "status": str(contribution.get("status") or ""),
+                "contract_version": FORMATION_CONTRIBUTION_CONTRACT_VERSION,
+                "voice_policy": FORMATION_VOICE_POLICY,
+                "interpretation": interpretation,
+                "movement": movement,
+                "canonical_candidates": bounded_doors,
+                "boundary_notes": contribution.get("boundary_notes"),
+                "safety_flags": contribution.get("safety_flags"),
+            },
+            "visitor_boundary_version": APP_VERSION,
+        },
+    )
+
+
 @app.post("/api/relational-return")
 async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
