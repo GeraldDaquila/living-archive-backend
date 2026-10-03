@@ -2,7 +2,7 @@
 
 Verifies:
 - protected core/runtime assets remain unchanged;
-- the shared evidence and claim primitives are the only new production dependencies;
+- the shared evidence, claim, and synthesis primitives are the only new production dependencies;
 - the production seams preserve legacy document and claim shapes;
 - the seam performs no routing, authority, retrieval, provider, or visitor-prose work.
 """
