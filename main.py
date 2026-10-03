@@ -688,6 +688,31 @@ def _relationship_journey_state(contribution):
         "journey_complete": state == "journey_complete",
     }
 
+
+def _build_journey_contribution_for_use(body):
+    """Package HRN closure material without selecting, retrieving, or generating."""
+    from shared_intelligence_primitives import normalize_journey_contribution as _normalize_shared_journey
+    payload = {
+        "original_question": body.get("original_question") or body.get("query"),
+        "conversation": body.get("conversation"),
+        "thread_summary": body.get("thread_summary"),
+        "working_hypothesis": body.get("working_hypothesis"),
+        "completed_insight": body.get("completed_insight"),
+        "perspective_delta": body.get("perspective_delta"),
+        "body_of_thought": body.get("body_of_thought"),
+        "underlying_need": body.get("underlying_need"),
+        "desired_condition": body.get("desired_condition"),
+        "next_horizon": body.get("next_horizon"),
+        "resource_fit": body.get("resource_fit"),
+        "journey_synthesis": body.get("journey_synthesis"),
+        "journey_action": body.get("journey_action"),
+        "journey_ledger": body.get("journey_ledger"),
+        "fractal_records": body.get("fractal_records"),
+        "round_synthesis_history": body.get("round_synthesis_history"),
+    }
+    return _normalize_shared_journey(payload)
+
+
 async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
@@ -697,23 +722,23 @@ async def _v48755_relational_return(request: Request):
         body = {}
 
     session_id = str(body.get("session_id") or "").strip()
-    original_question = str(body.get("original_question") or body.get("query") or "").strip()
-    conversation = str(body.get("conversation") or "").strip()
-    thread_summary = str(body.get("thread_summary") or "").strip()
-    working_hypothesis = str(body.get("working_hypothesis") or "").strip()
-    completed_insight = str(body.get("completed_insight") or "").strip()
-    perspective_delta = str(body.get("perspective_delta") or "").strip()
-    body_of_thought = str(body.get("body_of_thought") or "").strip()
-    underlying_need = str(body.get("underlying_need") or "").strip()
-    desired_condition = str(body.get("desired_condition") or "").strip()
-    next_horizon = str(body.get("next_horizon") or "").strip()
-    resource_fit = str(body.get("resource_fit") or "").strip()
-    fractal_maturity = str(body.get("fractal_maturity") or "").strip().casefold()
-    journey_action = str(body.get("journey_action") or "").strip().casefold()
-    journey_synthesis = str(body.get("journey_synthesis") or "").strip()
-    journey_ledger = body.get("journey_ledger") if isinstance(body.get("journey_ledger"), dict) else {}
-    fractal_records = body.get("fractal_records") if isinstance(body.get("fractal_records"), list) else []
-    round_synthesis_history = body.get("round_synthesis_history") if isinstance(body.get("round_synthesis_history"), list) else []
+    journey_contribution = _build_journey_contribution_for_use(body)
+    original_question = journey_contribution.original_question
+    conversation = journey_contribution.conversation
+    thread_summary = journey_contribution.thread_summary
+    working_hypothesis = journey_contribution.working_hypothesis
+    completed_insight = journey_contribution.completed_insight
+    perspective_delta = journey_contribution.perspective_delta
+    body_of_thought = journey_contribution.body_of_thought
+    underlying_need = journey_contribution.underlying_need
+    desired_condition = journey_contribution.desired_condition
+    next_horizon = journey_contribution.next_horizon
+    resource_fit = journey_contribution.resource_fit
+    journey_action = journey_contribution.journey_action
+    journey_synthesis = journey_contribution.journey_synthesis
+    journey_ledger = dict(journey_contribution.journey_ledger)
+    fractal_records = list(journey_contribution.fractal_records)
+    round_synthesis_history = list(journey_contribution.round_synthesis_history)
 
     if journey_action != "end":
         return JSONResponse(
@@ -1526,3 +1551,7 @@ if "synthesis = _build_shared_synthesis_material_for_use(claims)" not in open(_M
     raise RuntimeError("USE v487.87 invariant failed: shared synthesis seam wiring missing.")
 if "build_synthesis_material as _shared_build_synthesis_material" not in open(_MAIN_PATH, encoding="utf-8").read():
     raise RuntimeError("USE v487.87 invariant failed: shared synthesis primitive import missing.")
+if "normalize_journey_contribution as _normalize_shared_journey" not in open(_MAIN_PATH, encoding="utf-8").read():
+    raise RuntimeError("USE v487.92 invariant failed: journey contribution seam wiring missing.")
+if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding="utf-8").read():
+    raise RuntimeError("USE v487.92 invariant failed: journey contribution adapter consumption missing.")
