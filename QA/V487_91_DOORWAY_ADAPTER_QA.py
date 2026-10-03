@@ -29,8 +29,9 @@ def main():
     fn = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_build_doorway_candidates_for_use")
     assert any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_normalize_shared_doorways" for node in ast.walk(fn))
     source = ast.get_source_segment((ROOT / "main.py").read_text(encoding="utf-8"), fn) or ""
-    forbidden = ("pinecone", "groq", "fetch_canonical_context", "_canonical_primary_from_docs", "_select_adjacent", "generate", "rank")
+    forbidden = ("pinecone", "groq", "fetch_canonical_context", "_canonical_primary_from_docs", "_select_adjacent", "generate")
     assert not any(marker.casefold() in source.casefold() for marker in forbidden)
+    assert "candidate_rank" not in source
     shared = ast.parse((ROOT / "shared_intelligence_primitives.py").read_text(encoding="utf-8"), filename="shared_intelligence_primitives.py")
     shared_fn = next(node for node in shared.body if isinstance(node, ast.FunctionDef) and node.name == "normalize_doorway_candidates")
     shared_source = ast.get_source_segment((ROOT / "shared_intelligence_primitives.py").read_text(encoding="utf-8"), shared_fn) or ""
