@@ -28,8 +28,9 @@ def main():
     forbidden = ("pinecone", "groq", "fetch_canonical_context", "select canonical")
     executable = source.split('"""\n')[2] if '"""\n' in source else source
     assert not any(marker.casefold() in executable.casefold() for marker in forbidden)
+    # The shared primitive is intentionally independent of the protected runtime.
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert "use_core.py" not in main_source
+    assert "shared_intelligence_primitives" in main_source
     print("v487.90 doorway normalization QA: PASS")
 
 if __name__ == "__main__":
