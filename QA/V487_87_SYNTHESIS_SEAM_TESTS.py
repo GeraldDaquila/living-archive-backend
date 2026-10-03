@@ -16,7 +16,7 @@ def main():
     assert material.relationship_statement == "Two propositions sit beside one another."
     assert material.unresolved_tensions == ("Different readings remain possible.",)
     assert material.perspective_options == ("Stay with the supported proposition.",)
-    print("v487.87 synthesis material compatibility probes: PASS")
+    print("v487.88 synthesis hardening compatibility probes: PASS")
 
 if __name__ == "__main__":
     main()

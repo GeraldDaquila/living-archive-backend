@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.86 — shared claim normalization seam
+# USE PRODUCTION VERSION: v487.88 — synthesis material hardening
 import hashlib
 import importlib
 import re
@@ -33,15 +33,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.87"
-DEPLOYMENT_FINGERPRINT = "USE-v487.87-shared-synthesis-material-seam"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.87-shared-synthesis-material-seam"
+APP_VERSION = "v487.88"
+DEPLOYMENT_FINGERPRINT = "USE-v487.88-synthesis-material-hardening"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.88-synthesis-material-hardening"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.87":
+if str(APP_VERSION) != "v487.88":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -329,12 +329,13 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     canonical_docs = canonical_docs or []
     claims = _normalize_shared_claims_for_use(docs or [])
     synthesis = _build_shared_synthesis_material_for_use(claims)
+    claims_for_composition = _legacy_claims_from_synthesis(synthesis, claims)
     primary = _canonical_primary_from_docs(canonical_docs, query, profile)
     if primary:
-        secondary = _select_adjacent(claims, query, primary["title"], profile)
+        secondary = _select_adjacent(claims_for_composition, query, primary["title"], profile)
     else:
         eligible = []
-        for index, claim in enumerate(claims):
+        for index, claim in enumerate(claims_for_composition):
             if not _eligible_outward_doc(query, claim, profile, min_relevance=2):
                 continue
             metrics = _subject_metrics(query, claim)
@@ -397,23 +398,35 @@ def _normalize_shared_claims_for_use(candidates):
 
 
 def _build_shared_synthesis_material_for_use(claims):
-    """Package normalized USE claims through the shared synthesis primitive."""
-    shared_claims = _shared_normalize_claims_for_use(claims or [])
-    return _shared_build_synthesis_material([
-        _shared_claim_object(item) for item in shared_claims
-    ])
+    """Package already-normalized USE claims through the shared synthesis primitive."""
+    shared_claims = [_shared_claim_object(item) for item in (claims or []) if isinstance(item, dict)]
+    return _shared_build_synthesis_material([item for item in shared_claims if item is not None])
 
 
 def _shared_claim_object(item):
-    """Return one normalized shared Claim object from a legacy claim mapping."""
+    """Convert one legacy claim mapping to the shared Claim object."""
+    evidence_id = str(item.get("id") or "claim:1")
     normalized = _shared_normalize_claims(
-        [{"text": str(item.get("text") or "").strip(),
-          "evidence_ids": [str(item.get("id") or "claim:1")],
-          "claim_type": "interpretation" if item.get("epistemic") == "interpretive" else "observation",
-          "epistemic": str(item.get("epistemic") or "uncertain")}],
-        evidence_ids=[str(item.get("id") or "claim:1")],
+        [{
+            "text": str(item.get("text") or "").strip(),
+            "evidence_ids": [evidence_id],
+            "claim_type": "interpretation" if item.get("epistemic") == "interpretive" else "observation",
+            "epistemic": str(item.get("epistemic") or "uncertain"),
+        }],
+        evidence_ids=[evidence_id],
     )
     return normalized[0] if normalized else None
+
+
+def _legacy_claims_from_synthesis(synthesis, fallback_claims):
+    """Return the legacy claim mappings represented by SynthesisMaterial."""
+    fallback_by_text = {str(item.get("text") or "").strip(): item for item in (fallback_claims or []) if isinstance(item, dict)}
+    return [{
+        **fallback_by_text.get(item.text, {}),
+        "text": item.text,
+        "epistemic": item.epistemic,
+    } for item in (getattr(synthesis, "claims", ()) or ())]
+
 
 def _parse_context_documents(context_blocks):
     parser = getattr(use_core, "_parse_context_documents", None)
@@ -1495,13 +1508,13 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.87 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.88 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
-# v487.87 shared synthesis seam invariant: shared transformations remain bounded and authority-free.
+# v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
-    raise RuntimeError("USE v487.87 invariant failed: shared evidence contract drift.")
+    raise RuntimeError("USE v487.88 invariant failed: shared evidence contract drift.")
 
-# v487.87 shared synthesis seam invariant: USE answer composition consumes the shared claim transformer and synthesis packager.
+# v487.88 synthesis hardening invariant: USE answer composition consumes the shared claim transformer and synthesis packager exactly once.
 if "claims = _normalize_shared_claims_for_use(docs or [])" not in open(_MAIN_PATH, encoding="utf-8").read():
     raise RuntimeError("USE v487.87 invariant failed: shared claim seam wiring missing.")
 if "synthesis = _build_shared_synthesis_material_for_use(claims)" not in open(_MAIN_PATH, encoding="utf-8").read():
