@@ -30,7 +30,7 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert re.search(r'APP_VERSION = "v487\.86"', main_source)
+assert re.search(r'APP_VERSION = "v487\.87"', main_source)
 assert 'USE-v487.87-shared-synthesis-material-seam' in main_source
 assert 'USE-BUILD-v487.87-shared-synthesis-material-seam' in main_source
 
