@@ -272,9 +272,10 @@ def build_synthesis_material(
 def normalize_doorway_candidates(
     candidates: Iterable[Mapping[str, Any]],
 ) -> tuple[DoorwayCandidate, ...]:
-    """Normalize candidate doorways; never establishes canonical authority."""
+    """Normalize supplied doorway candidates without choosing among them."""
     output: list[DoorwayCandidate] = []
-    seen: set[str] = set()
+    seen_urls: set[str] = set()
+    next_rank = 1
 
     for item in candidates:
         if not isinstance(item, Mapping):
@@ -283,29 +284,40 @@ def normalize_doorway_candidates(
         title = _clean(item.get("title"))
         url = str(item.get("url") or item.get("canonical_url") or "").strip()
 
-        if not title or not _valid_https_url(url) or url in seen:
+        if not title or not _valid_https_url(url):
             continue
 
-        seen.add(url)
+        url_key = url.rstrip("/").casefold()
+        if url_key in seen_urls:
+            continue
+        seen_urls.add(url_key)
 
-        rank = item.get("candidate_rank")
+        relevance_basis = _clean(item.get("relevance_basis"))
+        source_ids = tuple(
+            ref for ref in (_clean(x) for x in item.get("source_ids", ())) if ref
+        )
+
+        raw_rank = item.get("candidate_rank")
         try:
-            rank = int(rank) if rank is not None else None
+            rank = int(raw_rank) if raw_rank is not None else None
         except (TypeError, ValueError):
             rank = None
+
+        if rank is None or rank < 1:
+            rank = next_rank
+        next_rank = max(next_rank + 1, rank + 1)
 
         output.append(
             DoorwayCandidate(
                 title=title,
                 url=url,
-                relevance_basis=_clean(item.get("relevance_basis")),
-                source_ids=tuple(str(x) for x in item.get("source_ids", ())),
+                relevance_basis=relevance_basis,
+                source_ids=source_ids,
                 candidate_rank=rank,
             )
         )
 
     return tuple(output)
-
 
 def operation_result(
     status: str,
