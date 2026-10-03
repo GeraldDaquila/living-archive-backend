@@ -17,10 +17,8 @@ jobs:
         run: python -m py_compile main.py use_core.py main_v487_28_runtime.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_QA.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_QA.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py
       - name: v487 protected-runtime compatibility validation
         run: python run_v387_authority_validation.py
-      - name: v487.91 doorway adapter QA
-        run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_QA.py
-      - name: v487.91 doorway adapter compatibility tests
-        run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_TESTS.py
+      - name: v487.94 specialist-pipe integrity QA
+        run: PYTHONPATH=. python QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py
       - name: v487.92 journey contribution QA
         run: PYTHONPATH=. python QA/V487_92_JOURNEY_CONTRIBUTION_QA.py
       - name: v487.92 journey contribution compatibility tests
