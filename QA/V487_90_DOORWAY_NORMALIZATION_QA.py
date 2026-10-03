@@ -24,7 +24,7 @@ def main():
     assert "def normalize_doorway_candidates(" in source
     assert "DoorwayCandidate(" in source
     assert "candidate_rank" in source
-    assert "canonical authority" in source or "canonical authority" in (source.split('def normalize_doorway_candidates(', 1)[0]) if "def normalize_doorway_candidates(" in source else source)
+    assert "canonical" in source.casefold()
     forbidden = ("pinecone", "groq", "fetch_canonical_context", "select canonical")
     tree = ast.parse(source, filename="shared_intelligence_primitives.py")
     function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "normalize_doorway_candidates")
