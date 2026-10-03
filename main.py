@@ -1539,9 +1539,43 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     if should_delegate:
-        request_id = "relationship-" + hashlib.sha1(
+        request_id = route_id + "-" + hashlib.sha1(
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
+
+        if route_id == "formation":
+            try:
+                formation_result = _formation_specialist_response(
+                    query, history, route, request_id
+                )
+                return await _v48757_send_json(
+                    send,
+                    {
+                        "ok": True,
+                        "version": APP_VERSION,
+                        "query": query,
+                        "intent": "FORMATION_HANDOFF",
+                        "response": formation_result["response"],
+                        "formation_delegation": formation_result["formation_delegation"],
+                        "visitor_boundary_version": APP_VERSION,
+                        "request_id": request_id,
+                    },
+                )
+            except Exception as exc:
+                print(f"USE v487.94 Formation specialist failed safely: {exc}")
+                return await _v48757_send_json(
+                    send,
+                    {
+                        "ok": False,
+                        "version": APP_VERSION,
+                        "query": query,
+                        "intent": "FORMATION_HANDOFF",
+                        "response": "The Formation pathway could not be opened right now.",
+                        "error_type": "formation_specialist_failure",
+                        "request_id": request_id,
+                    },
+                    status_code=503,
+                )
 
         return await _v48757_send_json(
             send,
