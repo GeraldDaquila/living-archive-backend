@@ -21,6 +21,12 @@ from relationship_contribution import (
     validate_relationship_contribution,
 )
 from relationship_adapter import RelationshipAdapter
+from formation_adapter import FormationAdapter
+from formation_contribution import (
+    FORMATION_CONTRIBUTION_CONTRACT_VERSION,
+    FORMATION_VOICE_POLICY,
+    formation_contract_snapshot,
+)
 from specialist_adapters import (
     SPECIALIST_ADAPTER_CONTRACT_VERSION,
     SpecialistAdapterRegistry,
@@ -60,8 +66,10 @@ validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
 SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
 RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
+FORMATION_CONTRIBUTION_DIAGNOSTICS = formation_contract_snapshot()
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -1287,6 +1295,46 @@ def _guide_capability_route(query, history=None):
     )
     return fallback
 
+def _formation_specialist_response(query, history, route, request_id):
+    """Run Formation through the common specialist pipe and integrate it into Guide output."""
+    interpretation = route.get("round1_interpretation") or {}
+    context = {
+        "conversation": _history_text(history),
+        "situation": str(interpretation.get("presenting_situation") or query),
+        "possibility": str(interpretation.get("desired_movement") or ""),
+        "desired_movement": str(interpretation.get("desired_movement") or ""),
+    }
+    contribution = invoke_specialist(
+        SPECIALIST_ADAPTER_REGISTRY,
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        specialist_id="formation",
+        original_question=query,
+        recognized_territory="stewardship formation",
+        processing_purpose="bounded formation navigation",
+        guide_context=context,
+        safety_state="green",
+    )
+    interpretation_data = contribution.get("interpretation") or {}
+    pathway = str(interpretation_data.get("pathway") or "").strip()
+    doors = contribution.get("canonical_candidates") or []
+    response = pathway or "There is something here worth staying with before deciding what it means."
+    return {
+        "response": response,
+        "formation_delegation": {
+            "state": "open",
+            "specialist": "Stewardship Formation Navigator",
+            "specialist_id": "formation",
+            "contract_version": FORMATION_CONTRIBUTION_CONTRACT_VERSION,
+            "voice_policy": FORMATION_VOICE_POLICY,
+            "doors": doors,
+            "movement": contribution.get("movement") or {},
+            "interpretation": interpretation_data,
+            "return_mode": "guide_integrated",
+        },
+    }
+
+
 def _registered_available_specialist(specialist_id):
     for capability in SPECIALIST_CAPABILITY_REGISTRY:
         if (
@@ -1479,7 +1527,7 @@ async def _v48757_query_asgi(scope, receive, send):
     # based on mode, processing_need, or confidence.
     should_delegate = (
         capability is not None
-        and route_id == "relationship"
+        and route_id in {"relationship", "formation"}
     )
 
     print(
@@ -1491,9 +1539,43 @@ async def _v48757_query_asgi(scope, receive, send):
     )
 
     if should_delegate:
-        request_id = "relationship-" + hashlib.sha1(
+        request_id = route_id + "-" + hashlib.sha1(
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
+
+        if route_id == "formation":
+            try:
+                formation_result = _formation_specialist_response(
+                    query, history, route, request_id
+                )
+                return await _v48757_send_json(
+                    send,
+                    {
+                        "ok": True,
+                        "version": APP_VERSION,
+                        "query": query,
+                        "intent": "FORMATION_HANDOFF",
+                        "response": formation_result["response"],
+                        "formation_delegation": formation_result["formation_delegation"],
+                        "visitor_boundary_version": APP_VERSION,
+                        "request_id": request_id,
+                    },
+                )
+            except Exception as exc:
+                print(f"USE v487.94 Formation specialist failed safely: {exc}")
+                return await _v48757_send_json(
+                    send,
+                    {
+                        "ok": False,
+                        "version": APP_VERSION,
+                        "query": query,
+                        "intent": "FORMATION_HANDOFF",
+                        "response": "The Formation pathway could not be opened right now.",
+                        "error_type": "formation_specialist_failure",
+                        "request_id": request_id,
+                    },
+                    status_code=503,
+                )
 
         return await _v48757_send_json(
             send,
@@ -1538,7 +1620,7 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 app = _v48757_query_asgi
 
 
-print(f"USE v487.88 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.88 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":

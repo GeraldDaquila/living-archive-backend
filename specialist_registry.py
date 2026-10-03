@@ -51,7 +51,7 @@ SPECIALIST_REGISTRY: Tuple[SpecialistCapability, ...] = (
         entry_point="formation",
         trigger_territory="questions about what a situation may be asking a person to learn, practice, examine, or carry",
         access_class="formation",
-        status="planned",
+        status="available",
     ),
     SpecialistCapability(
         specialist_id="catalogue",
