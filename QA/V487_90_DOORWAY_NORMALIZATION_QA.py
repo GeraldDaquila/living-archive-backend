@@ -26,8 +26,9 @@ def main():
     assert "candidate_rank" in source
     assert "canonical authority" in source
     forbidden = ("pinecone", "groq", "fetch_canonical_context", "select canonical")
-    module_doc_end = source.find('"""\n', 3)
-    executable = source[module_doc_end + 4:] if module_doc_end >= 0 else source
+    tree = ast.parse(source, filename="shared_intelligence_primitives.py")
+    function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "normalize_doorway_candidates")
+    executable = ast.get_source_segment(source, function) or ""
     assert not any(marker.casefold() in executable.casefold() for marker in forbidden)
     # The shared primitive is intentionally independent of the protected runtime.
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
