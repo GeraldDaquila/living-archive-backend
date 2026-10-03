@@ -299,6 +299,11 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     return True
 
 
+def _build_doorway_candidates_for_use(docs):
+    """Normalize pre-selected doorway mappings without changing selection authority."""
+    from shared_intelligence_primitives import normalize_doorway_candidates as _normalize_shared_doorways
+    return _normalize_shared_doorways(docs or [])
+
 def _canonical_primary_from_docs(docs, query, profile):
     eligible = []
     for index, doc in enumerate(docs or []):
