@@ -14,12 +14,12 @@ def run() -> None:
         request_id="qa-formation-001",
         guide_version="v487.88",
         specialist_id="formation",
-        original_question="I am taking on a larger responsibility and need to know how to carry it well.",
+        original_question="I am taking on a larger responsibility and need to understand how to carry it well.",
         recognized_territory="stewardship formation",
         processing_purpose="bounded formation navigation",
         guide_context={
             "situation": "I am taking on a larger responsibility and need to know how to carry it well.",
-            "possibility": "I want to become more capable without making everything depend on me.",
+            "possibility": "I want to become more steady without making everything depend on me.",
         },
         safety_state="green",
     )
