@@ -1295,6 +1295,51 @@ def _guide_capability_route(query, history=None):
     )
     return fallback
 
+def _relationship_specialist_response(query, history, route, request_id, raw_body=None):
+    """Run Seeing the Relationship through the common specialist pipe."""
+    context = _relationship_guide_context(history, raw_body or {})
+    context["route_interpretation"] = route.get("round1_interpretation") or {}
+    contribution = invoke_specialist(
+        SPECIALIST_ADAPTER_REGISTRY,
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        specialist_id="relationship",
+        original_question=query,
+        recognized_territory="human relationships",
+        processing_purpose="open relational exploration from The Guide",
+        guide_context=context,
+        safety_state="green",
+    )
+    response = _relationship_integrated_response(contribution)
+    if not response:
+        raise RuntimeError("Seeing the Relationship returned no human response.")
+
+    journey = contribution.get("journey") or {}
+    movement = contribution.get("movement") or {}
+    interpretation = contribution.get("interpretation") or {}
+
+    return {
+        "response": response,
+        "relational_delegation": {
+            "state": "open",
+            "specialist": "Seeing the Relationship",
+            "specialist_id": "relationship",
+            "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
+            "voice_policy": RELATIONSHIP_VOICE_POLICY,
+            "session_id": request_id,
+            "seed_message": query,
+            "conversation": context.get("conversation") or "",
+            "handoff_reason": "The Guide recognized that this lived situation is best explored as a relationship before choosing a doorway into the Archive.",
+            "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
+            "guide_return_endpoint": "/api/relational-return",
+            "return_mode": "guide_integrated",
+            "movement": movement,
+            "interpretation": interpretation,
+            "journey": journey,
+        },
+    }
+
+
 def _formation_specialist_response(query, history, route, request_id):
     """Run Formation through the common specialist pipe and integrate it into Guide output."""
     interpretation = route.get("round1_interpretation") or {}
@@ -1579,29 +1624,47 @@ async def _v48757_query_asgi(scope, receive, send):
                     status_code=503,
                 )
 
-        return await _v48757_send_json(
-            send,
-            {
-                "ok": True,
-                "version": APP_VERSION,
-                "query": query,
-                "intent": "RELATIONAL_HANDOFF",
-                "response": "",
-                "relational_delegation": {
-                    "state": "open",
-                    "specialist": capability.public_name,
-                    "specialist_id": capability.specialist_id,
-                    "session_id": request_id,
-                    "seed_message": query,
-                    "conversation": _history_text(history),
-                    "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
-                    "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
-                    "guide_return_endpoint": "/api/relational-return",
+        try:
+            relationship_result = _relationship_specialist_response(
+                query, history, route, request_id, parsed_body
+            )
+            return await _v48757_send_json(
+                send,
+                {
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "query": query,
+                    "intent": "RELATIONAL_HANDOFF",
+                    "response": relationship_result["response"],
+                    "handoff": "relationship",
+                    "handoff_mode": "specialist",
+                    "relational_delegation": relationship_result["relational_delegation"],
+                    "visitor_boundary_version": APP_VERSION,
+                    "request_id": request_id,
                 },
-                "visitor_boundary_version": APP_VERSION,
-                "request_id": request_id,
-            },
-        )
+            )
+        except Exception as exc:
+            print(f"USE v487.95 Relationship specialist failed safely: {exc}")
+            return await _v48757_send_json(
+                send,
+                {
+                    "ok": False,
+                    "version": APP_VERSION,
+                    "query": query,
+                    "intent": "RELATIONAL_HANDOFF",
+                    "response": "The Seeing the Relationship pathway could not be opened right now.",
+                    "error_type": "relationship_specialist_failure",
+                    "relational_delegation": {
+                        "state": "unavailable",
+                        "specialist": "Seeing the Relationship",
+                        "specialist_id": "relationship",
+                        "session_id": request_id,
+                    },
+                    "visitor_boundary_version": APP_VERSION,
+                    "request_id": request_id,
+                },
+                status_code=503,
+            )
 
     await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
 
