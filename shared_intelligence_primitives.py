@@ -5,8 +5,9 @@ route, select canonical resources authoritatively, call a model, or generate
 final visitor-facing prose.
 
 Active production seams currently cover evidence normalization, claim
-normalization, and synthesis-material packaging. Doorway normalization and
-other primitives remain inert until separately introduced and validated.
+normalization, synthesis-material packaging, bounded doorway normalization,
+and bounded journey-contribution normalization. Other primitives remain inert
+until separately introduced and validated.
 """
 from __future__ import annotations
 
@@ -77,6 +78,28 @@ class DoorwayCandidate:
     relevance_basis: str = ""
     source_ids: tuple[str, ...] = ()
     candidate_rank: int | None = None
+
+
+@dataclass(frozen=True)
+class JourneyContribution:
+    """Bounded closure material received by USE from a completed specialist journey."""
+
+    original_question: str = ""
+    conversation: str = ""
+    thread_summary: str = ""
+    working_hypothesis: str = ""
+    completed_insight: str = ""
+    perspective_delta: str = ""
+    body_of_thought: str = ""
+    underlying_need: str = ""
+    desired_condition: str = ""
+    next_horizon: str = ""
+    resource_fit: str = ""
+    journey_synthesis: str = ""
+    journey_action: str = ""
+    journey_ledger: Mapping[str, Any] = field(default_factory=dict)
+    fractal_records: tuple[Any, ...] = ()
+    round_synthesis_history: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -318,6 +341,46 @@ def normalize_doorway_candidates(
         )
 
     return tuple(output)
+
+def normalize_journey_contribution(
+    contribution: Mapping[str, Any],
+) -> JourneyContribution:
+    """Normalize completed journey material without assigning authority."""
+    if not isinstance(contribution, Mapping):
+        raise ValueError("Journey contribution must be a mapping.")
+
+    def _text(name: str) -> str:
+        return _clean(contribution.get(name))
+
+    ledger = contribution.get("journey_ledger")
+    if not isinstance(ledger, Mapping):
+        ledger = {}
+
+    def _sequence(name: str) -> tuple[Any, ...]:
+        value = contribution.get(name)
+        if isinstance(value, (list, tuple)):
+            return tuple(value)
+        return ()
+
+    return JourneyContribution(
+        original_question=_text("original_question"),
+        conversation=_text("conversation"),
+        thread_summary=_text("thread_summary"),
+        working_hypothesis=_text("working_hypothesis"),
+        completed_insight=_text("completed_insight"),
+        perspective_delta=_text("perspective_delta"),
+        body_of_thought=_text("body_of_thought"),
+        underlying_need=_text("underlying_need"),
+        desired_condition=_text("desired_condition"),
+        next_horizon=_text("next_horizon"),
+        resource_fit=_text("resource_fit"),
+        journey_synthesis=_text("journey_synthesis"),
+        journey_action=_text("journey_action").casefold(),
+        journey_ledger=dict(ledger),
+        fractal_records=_sequence("fractal_records"),
+        round_synthesis_history=_sequence("round_synthesis_history"),
+    )
+
 
 def operation_result(
     status: str,
