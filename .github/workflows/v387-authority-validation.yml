@@ -37,3 +37,8 @@ jobs:
         run: PYTHONPATH=. python QA/V487_87_SYNTHESIS_SEAM_QA.py
       - name: v487.87 synthesis material seam compatibility tests
         run: PYTHONPATH=. python QA/V487_87_SYNTHESIS_SEAM_TESTS.py
+
+      - name: v487.90 doorway normalization QA
+        run: PYTHONPATH=. python QA/V487_90_DOORWAY_NORMALIZATION_QA.py
+      - name: v487.90 doorway normalization compatibility tests
+        run: PYTHONPATH=. python QA/V487_90_DOORWAY_NORMALIZATION_TESTS.py
