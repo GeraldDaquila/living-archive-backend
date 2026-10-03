@@ -39,7 +39,7 @@ def main() -> int:
     assert "_normalize_shared_evidence_for_use(parsed, provenance=\"retrieved-context\")" in main_source
     assert "return normalize_documents_for_use(documents, provenance=provenance)" in main_source
     assert "SHARED_EVIDENCE_CONTRACT_VERSION" in main_source
-    assert 'APP_VERSION = "v487.87"' in main_source
+    assert 'APP_VERSION = "v487.88"' in main_source
     assert "from shared_intelligence_primitives import EvidenceItem, normalize_evidence" in seam_source
 
     forbidden = (
@@ -64,7 +64,7 @@ def main() -> int:
 
     assert "shared_intelligence_primitives" not in (ROOT / "use_core.py").read_text(encoding="utf-8")
     assert "shared_intelligence_primitives" not in (ROOT / "main_v487_28_runtime.py").read_text(encoding="utf-8")
-    assert "# v487.87 shared synthesis seam invariant:" in main_source
+    assert "# v487.88 synthesis hardening invariant:" in main_source
     assert "claims = _normalize_shared_claims_for_use(docs or [])" in main_source
     assert "synthesis = _build_shared_synthesis_material_for_use(claims)" in main_source
     assert "build_synthesis_material as _shared_build_synthesis_material" in main_source
