@@ -23,14 +23,14 @@ def main():
     primitive = (ROOT / "shared_intelligence_primitives.py").read_text(encoding="utf-8")
     ast.parse(main_source)
     ast.parse(primitive)
-    assert 'APP_VERSION = "v487.87"' in main_source
+    assert 'APP_VERSION = "v487.88"' in main_source
     assert "build_synthesis_material as _shared_build_synthesis_material" in main_source
     assert "def _build_shared_synthesis_material_for_use(claims):" in main_source
     assert "synthesis = _build_shared_synthesis_material_for_use(claims)" in main_source
     assert "def build_synthesis_material(" in primitive
     assert "shared_intelligence_primitives" not in (ROOT / "use_core.py").read_text(encoding="utf-8")
     assert "shared_intelligence_primitives" not in (ROOT / "main_v487_28_runtime.py").read_text(encoding="utf-8")
-    print("v487.87 synthesis material seam QA: PASS")
+    print("v487.88 synthesis material seam compatibility QA: PASS")
     print("protected assets: PASS")
     print("shared evidence/claim seams: PASS")
     print("shared synthesis seam: PASS")
