@@ -1,10 +1,11 @@
-"""Shared reasoning primitives currently consumed by the v487.85 evidence seam.
+"""Shared reasoning primitives for bounded USE production seams.
 
 This module is deliberately pure and authority-free. It does not retrieve,
 route, select canonical resources authoritatively, call a model, or generate
 final visitor-facing prose.
 
-The active production seam currently consumes only the evidence normalization primitive;
+Active production seams currently cover evidence normalization, claim
+normalization, and synthesis-material packaging. Doorway normalization and
 other primitives remain inert until separately introduced and validated.
 """
 from __future__ import annotations
