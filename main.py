@@ -1497,12 +1497,11 @@ app = _v48757_query_asgi
 
 print(f"USE v487.87 ACTIVE: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
-# v487.86 claim seam invariant: shared evidence transformation is wired only at the
-# document parsing boundary; the legacy dictionary shape remains authoritative.
+# v487.87 shared synthesis seam invariant: shared transformations remain bounded and authority-free.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE v487.87 invariant failed: shared evidence contract drift.")
 
-# v487.86 claim seam invariant: USE answer composition consumes the shared claim transformer.
+# v487.87 shared synthesis seam invariant: USE answer composition consumes the shared claim transformer and synthesis packager.
 if "claims = _normalize_shared_claims_for_use(docs or [])" not in open(_MAIN_PATH, encoding="utf-8").read():
     raise RuntimeError("USE v487.87 invariant failed: shared claim seam wiring missing.")
 if "synthesis = _build_shared_synthesis_material_for_use(claims)" not in open(_MAIN_PATH, encoding="utf-8").read():
