@@ -1,0 +1,125 @@
+name: TEMP live E2E probe
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  live-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for live service
+        run: |
+          python - <<'PY'
+          import json, time, urllib.request
+          url = "https://living-archive-backend.onrender.com/"
+          deadline = time.time() + 180
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen(url, timeout=15) as r:
+                      body = r.read().decode("utf-8", "replace")
+                      if r.status == 200:
+                          print("Render service reachable:", body[:500])
+                          break
+              except Exception as exc:
+                  print("waiting:", exc)
+              time.sleep(5)
+          else:
+              raise SystemExit("Render service did not become reachable")
+
+      - name: Exercise direct HRN production endpoint
+        run: |
+          python - <<'PY'
+          import json, urllib.error, urllib.request
+          url = "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
+          payload = {
+              "message": "I want to understand something about a relationship without rushing to decide what it means.",
+              "conversation": "",
+              "visitor_history": "",
+              "unit_turns": 0,
+              "safety_stage": "green",
+              "safety_question": "",
+              "country": ""
+          }
+          req = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type":"application/json","Accept":"application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  raw = r.read().decode("utf-8", "replace")
+                  print("HRN HTTP", r.status)
+                  print(raw[:4000])
+                  data = json.loads(raw)
+          except urllib.error.HTTPError as exc:
+              raw = exc.read().decode("utf-8", "replace")
+              print("HRN HTTP", exc.code)
+              print(raw[:4000])
+              raise SystemExit("DIRECT_HRN_FAILURE")
+          if not isinstance(data, dict) or not data.get("ok") or not str(data.get("response") or "").strip():
+              raise SystemExit("DIRECT_HRN_INVALID_RESPONSE")
+          print("DIRECT_HRN_PASS")
+
+      - name: Exercise live USE -> HRN handoff
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          url = "https://living-archive-backend.onrender.com/api/query"
+          payload = {
+              "query": "I promised my father I'd take care of something for him. It felt natural at first, but now the responsibility is becoming much bigger than I expected, and part of me wants to step back. I gave him my word.",
+              "history": []
+          }
+          req = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type":"application/json","Accept":"application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=60) as r:
+              raw = r.read().decode("utf-8", "replace")
+              print("USE HTTP", r.status)
+              print(raw[:6000])
+              data = json.loads(raw)
+          assert data.get("ok") is True, data
+          assert data.get("intent") == "RELATIONAL_HANDOFF", data
+          assert data.get("handoff") == "relationship", data
+          assert str(data.get("response") or "").strip(), data
+          delegation = data.get("relational_delegation") or {}
+          assert delegation.get("specialist_id") == "relationship", data
+          assert delegation.get("voice_policy") == "preserve_specialist_voice", data
+          print("USE_HRN_LIVE_E2E_PASS")
+          PY
+
+      - name: Exercise live Formation entrance
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          url = "https://living-archive-backend.onrender.com/api/formation-entrance"
+          payload = {
+              "choice": "I want to become steadier in carrying responsibility.",
+              "situation": "I am taking on a larger responsibility and need to understand how to carry it well.",
+              "possibility": "I want to become more steady without making everything depend on me."
+          }
+          req = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type":"application/json","Accept":"application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              raw = r.read().decode("utf-8", "replace")
+              print("FORMATION HTTP", r.status)
+              print(raw[:6000])
+              data = json.loads(raw)
+          assert data.get("ok") is True, data
+          assert data.get("intent") == "FORMATION_HANDOFF", data
+          assert str(data.get("response") or "").strip(), data
+          contribution = data.get("formation_contribution") or {}
+          assert str((contribution.get("interpretation") or {}).get("pathway") or "").strip(), data
+          doors = contribution.get("canonical_candidates") or []
+          assert 1 <= len(doors) <= 3, data
+          print("FORMATION_LIVE_E2E_PASS")
+          PY
