@@ -73,3 +73,43 @@ def test_hub_request_rejects_empty_question():
         assert "original_question" in str(exc)
     else:
         raise AssertionError("Expected HubContractError")
+
+
+
+def test_route_spoke_preserves_full_specialist_payload():
+    request = build_hub_request(
+        request_id="req-2",
+        guide_version="v1",
+        original_question="What is happening between us?",
+        recognized_territory="human relationships",
+        processing_purpose="open relational exploration",
+        guide_context={"conversation": "prior turns"},
+        safety_state="green",
+    )
+
+    def invoke(**kwargs):
+        assert kwargs["request_id"] == "req-2"
+        assert kwargs["specialist_id"] == "relationship"
+        return {
+            "contract_version": "v1",
+            "request_id": "req-2",
+            "specialist_id": "relationship",
+            "status": "CONTRIBUTION",
+            "voice_policy": "preserve_specialist_voice",
+            "human_response": "A specialist response stays intact here.",
+            "interpretation": {"focus": "relational pattern"},
+            "perspectives": [{"view": "visitor"}],
+            "movement": {"question": "What happens next?"},
+            "canonical_candidates": [{"title": "Door", "url": "/door"}],
+            "journey": {"journey_state": "in_progress"},
+        }
+
+    result = __import__("hub_contracts").route_spoke(
+        request=request,
+        specialist_id="relationship",
+        invoke=invoke,
+    )
+    assert result.payload["human_response"] == "A specialist response stays intact here."
+    assert result.payload["journey"]["journey_state"] == "in_progress"
+    assert result.payload["movement"]["question"] == "What happens next?"
+    assert result.canonical_candidates[0]["title"] == "Door"
