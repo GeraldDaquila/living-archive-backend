@@ -99,9 +99,23 @@ def validate_hub_contribution(
     if status not in {"CONTRIBUTION", "NO_CONTRIBUTION", "DECLINED", "FAILED"}:
         raise HubContractError(f"Unsupported hub contribution status: {status!r}.")
 
+    # Preserve the full domain contribution inside the generic hub envelope.
+    # The hub must not collapse specialist-owned fields such as human_response
+    # or journey state into a single interpretation mapping.
     payload = contribution.get("payload")
     if payload is None:
-        payload = contribution.get("interpretation") or {}
+        payload = {
+            key: value
+            for key, value in contribution.items()
+            if key not in {
+                "contract_version",
+                "request_id",
+                "specialist_id",
+                "status",
+                "voice_policy",
+                "canonical_candidates",
+            }
+        }
     if not isinstance(payload, Mapping):
         raise HubContractError("Hub contribution payload must be a mapping.")
 
