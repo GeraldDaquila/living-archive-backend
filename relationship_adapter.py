@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from typing import Any, Dict, Mapping
@@ -71,36 +72,68 @@ class RelationshipAdapter(SpecialistAdapter):
             method="POST",
         )
 
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                raw = response.read().decode("utf-8", errors="replace")
-                status_code = int(getattr(response, "status", 200))
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise RuntimeError(
-                f"Seeing the Relationship transport failed: {exc}"
-            ) from exc
+        # HRN composition is deliberately retryable at its REST boundary.
+        # A transient 503 can occur when the provider rejects one generated draft
+        # and immediately succeeds on the next composition attempt. The specialist
+        # adapter must absorb that transient operation failure rather than turning
+        # it into a Guide-level 503 on the first occurrence.
+        last_failure: str | None = None
+        data: Mapping[str, Any] | None = None
 
-        if status_code < 200 or status_code >= 300:
-            raise RuntimeError(
-                f"Seeing the Relationship returned HTTP {status_code}."
-            )
+        for attempt in range(2):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                    raw = response.read().decode("utf-8", errors="replace")
+                    status_code = int(getattr(response, "status", 200))
+            except urllib.error.HTTPError as exc:
+                status_code = int(exc.code)
+                raw = exc.read().decode("utf-8", errors="replace")
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                if attempt == 0:
+                    last_failure = f"Seeing the Relationship transport failed: {exc}"
+                    time.sleep(1.0)
+                    continue
+                raise RuntimeError(
+                    f"Seeing the Relationship transport failed: {exc}"
+                ) from exc
 
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise RuntimeError(
-                "Seeing the Relationship returned non-JSON data."
-            ) from exc
+            if status_code < 200 or status_code >= 300:
+                last_failure = f"Seeing the Relationship returned HTTP {status_code}."
+                if attempt == 0 and status_code in {429, 502, 503, 504}:
+                    time.sleep(1.0)
+                    continue
+                raise RuntimeError(last_failure)
 
-        if not isinstance(data, Mapping):
-            raise RuntimeError(
-                "Seeing the Relationship returned an invalid response envelope."
-            )
+            try:
+                parsed = json.loads(raw)
+            except json.JSONDecodeError as exc:
+                if attempt == 0:
+                    last_failure = "Seeing the Relationship returned non-JSON data."
+                    time.sleep(1.0)
+                    continue
+                raise RuntimeError(
+                    "Seeing the Relationship returned non-JSON data."
+                ) from exc
 
-        if not data.get("ok"):
-            raise RuntimeError(
-                "Seeing the Relationship returned an unsuccessful response."
-            )
+            if not isinstance(parsed, Mapping):
+                if attempt == 0:
+                    last_failure = "Seeing the Relationship returned an invalid response envelope."
+                    time.sleep(1.0)
+                    continue
+                raise RuntimeError(last_failure or "Seeing the Relationship returned an invalid response envelope.")
+
+            if not parsed.get("ok"):
+                last_failure = "Seeing the Relationship returned an unsuccessful response."
+                if attempt == 0 and bool(parsed.get("retryable")):
+                    time.sleep(1.0)
+                    continue
+                raise RuntimeError(last_failure)
+
+            data = parsed
+            break
+
+        if data is None:
+            raise RuntimeError(last_failure or "Seeing the Relationship returned no usable response.")
 
         safety_interrupt = bool(data.get("safety_interrupt"))
         status = "CONTRIBUTION"
