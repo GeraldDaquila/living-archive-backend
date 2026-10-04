@@ -9,6 +9,12 @@ from pathlib import Path
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from hub_contracts import (
+    build_hub_request,
+    hub_contract_snapshot,
+    route_spoke,
+)
+
 from specialist_registry import (
     SPECIALIST_PIPE_CONTRACT_VERSION,
     registry_snapshot,
@@ -70,6 +76,7 @@ SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
 RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
 FORMATION_CONTRIBUTION_DIAGNOSTICS = formation_contract_snapshot()
+HUB_CONTRACT_DIAGNOSTICS = hub_contract_snapshot()
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -1299,17 +1306,45 @@ def _relationship_specialist_response(query, history, route, request_id, raw_bod
     """Run Seeing the Relationship through the common specialist pipe."""
     context = _relationship_guide_context(history, raw_body or {})
     context["route_interpretation"] = route.get("round1_interpretation") or {}
-    contribution = invoke_specialist(
-        SPECIALIST_ADAPTER_REGISTRY,
+    hub_request = build_hub_request(
         request_id=request_id,
         guide_version=APP_VERSION,
-        specialist_id="relationship",
         original_question=query,
         recognized_territory="human relationships",
         processing_purpose="open relational exploration from The Guide",
         guide_context=context,
         safety_state="green",
     )
+    hub_contribution = route_spoke(
+        request=hub_request,
+        specialist_id="relationship",
+        invoke=lambda **kwargs: invoke_specialist(
+            SPECIALIST_ADAPTER_REGISTRY,
+            **kwargs,
+        ),
+    )
+    contribution = {
+        "status": hub_contribution.status,
+        "voice_policy": hub_contribution.voice_policy,
+        "human_response": str(
+            (hub_contribution.payload or {}).get("human_response") or ""
+        ),
+        "interpretation": dict(
+            (hub_contribution.payload or {}).get("interpretation")
+            or hub_contribution.payload
+            or {}
+        ),
+        "perspectives": list(
+            (hub_contribution.payload or {}).get("perspectives") or []
+        ),
+        "movement": dict(
+            (hub_contribution.payload or {}).get("movement") or {}
+        ),
+        "canonical_candidates": list(hub_contribution.canonical_candidates),
+        "journey": dict(
+            (hub_contribution.payload or {}).get("journey") or {}
+        ),
+    }
     response = _relationship_integrated_response(contribution)
     if not response:
         raise RuntimeError("Seeing the Relationship returned no human response.")
@@ -1349,17 +1384,31 @@ def _formation_specialist_response(query, history, route, request_id):
         "possibility": str(interpretation.get("desired_movement") or ""),
         "desired_movement": str(interpretation.get("desired_movement") or ""),
     }
-    contribution = invoke_specialist(
-        SPECIALIST_ADAPTER_REGISTRY,
+    hub_request = build_hub_request(
         request_id=request_id,
         guide_version=APP_VERSION,
-        specialist_id="formation",
         original_question=query,
         recognized_territory="stewardship formation",
         processing_purpose="bounded formation navigation",
         guide_context=context,
         safety_state="green",
     )
+    hub_contribution = route_spoke(
+        request=hub_request,
+        specialist_id="formation",
+        invoke=lambda **kwargs: invoke_specialist(
+            SPECIALIST_ADAPTER_REGISTRY,
+            **kwargs,
+        ),
+    )
+    contribution = {
+        "status": hub_contribution.status,
+        "voice_policy": hub_contribution.voice_policy,
+        "interpretation": dict(hub_contribution.payload or {}),
+        "perspectives": [],
+        "movement": {},
+        "canonical_candidates": list(hub_contribution.canonical_candidates),
+    }
     interpretation_data = contribution.get("interpretation") or {}
     pathway = str(interpretation_data.get("pathway") or "").strip()
     doors = contribution.get("canonical_candidates") or []
