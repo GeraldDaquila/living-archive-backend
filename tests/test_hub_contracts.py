@@ -113,3 +113,21 @@ def test_route_spoke_preserves_full_specialist_payload():
     assert result.payload["journey"]["journey_state"] == "in_progress"
     assert result.payload["movement"]["question"] == "What happens next?"
     assert result.canonical_candidates[0]["title"] == "Door"
+
+
+def test_validate_hub_contribution_preserves_voice_and_journey():
+    request = build_hub_request(
+        request_id="req-3", guide_version="v1", original_question="test",
+        recognized_territory="human relationships", processing_purpose="exploration"
+    )
+    result = validate_hub_contribution({
+        "contract_version": "v1", "request_id": request.request_id,
+        "specialist_id": "relationship", "status": "CONTRIBUTION",
+        "voice_policy": "preserve_specialist_voice",
+        "human_response": "Keep me intact.",
+        "journey": {"journey_state": "in_progress"},
+        "movement": {"question": "Continue?"},
+    }, expected_request_id=request.request_id, expected_specialist_id="relationship")
+    assert result.payload["human_response"] == "Keep me intact."
+    assert result.payload["journey"]["journey_state"] == "in_progress"
+    assert result.payload["movement"]["question"] == "Continue?"
