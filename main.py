@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.93"
-DEPLOYMENT_FINGERPRINT = "USE-v487.93-immediate-hrn-handoff-latency-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.93-immediate-hrn-handoff-latency-repair"
+APP_VERSION = "v487.94"
+DEPLOYMENT_FINGERPRINT = "USE-v487.94-relational-cycle-immediate-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.94-relational-cycle-immediate-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.93":
+if str(APP_VERSION) != "v487.94":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -246,6 +246,15 @@ _RELATIONAL_ACTION_PATTERNS = (
     r"\bdecision\b", r"\bdecide\b", r"\bchoose\b", r"\bchoice\b",
     r"\bburden\b", r"\btension\b", r"\bcommunication\b", r"\bcommunicat(?:e|ing)\b",
     r"\bdistance\b", r"\bdisconnect(?:ed|ion)?\b", r"\brelationship\b",
+
+    # Recurring interaction cycles are relational structure even when the
+    # visitor does not use words such as conflict, boundary, or relationship.
+    r"\bdefensive\b", r"\bgets? angry\b", r"\bget angry\b",
+    r"\bwithdraw(?:s|al|n|ing)?\b", r"\bstops? talking\b",
+    r"\bgoes? quiet\b", r"\bshuts? down\b", r"\bshut down\b",
+    r"\bcycle\b", r"\bloop\b", r"\brepeat(?:s|ed|ing)?\b",
+    r"\bsame thing happens\b", r"\bkeeps? happening\b",
+    r"\bcomes? up again\b",
 
     # Reciprocity and availability are relational dynamics even when there is
     # no conflict, promise, boundary, or named relationship problem.
