@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.99 — Glossary direct handoff startup repair
+# USE PRODUCTION VERSION: v488.00 — Glossary direct handoff diagnostic cleanup
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.99"
-DEPLOYMENT_FINGERPRINT = "USE-v487.99-glossary-direct-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.99-glossary-direct-handoff"
+APP_VERSION = "v488.00"
+DEPLOYMENT_FINGERPRINT = "USE-v488.00-glossary-direct-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.00-glossary-direct-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.99":
+if str(APP_VERSION) != "v488.00":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1280,11 +1280,11 @@ def _normalize_glossary_term(query, interpretation=None):
     return ""
 
 
-# v487.99 regression guards.
+# v488.00 regression guards.
 if _normalize_glossary_term("What does forgiveness mean?") != "forgiveness":
-    raise RuntimeError("USE v487.99 invariant failed: glossary term extraction")
+    raise RuntimeError("USE v488.00 invariant failed: glossary term extraction")
 if _normalize_glossary_term("What is the meaning of stewardship?") != "stewardship":
-    raise RuntimeError("USE v487.98 invariant failed: glossary meaning extraction")
+    raise RuntimeError("USE v488.00 invariant failed: glossary meaning extraction")
 if _normalize_glossary_term("How do I forgive someone who hurt me?"):
     raise RuntimeError("USE v487.98 invariant failed: open inquiry became glossary lookup")
 
