@@ -239,7 +239,12 @@ _RELATIONAL_ACTION_PATTERNS = (
     r"\bdisappoint(?:ed|ing)?\b", r"\bconflict\b", r"\bargu(?:e|ed|ing)\b",
     r"\bdisagree(?:d|ment|ing)?\b", r"\bneed to tell\b", r"\bneed to say\b",
     r"\bhave to tell\b", r"\bhave to say\b", r"\bset a boundary\b",
-    r"\bboundaries\b", r"\btrust\b", r"\bforgive\b", r"\bforgiveness\b"
+    r"\bboundaries\b", r"\btrust\b", r"\bforgive\b", r"\bforgiveness\b",
+    r"\bresponsibilit(?:y|ies)\b", r"\bresponsible for\b", r"\bobligation\b",
+    r"\bobligated\b", r"\bexpectation\b", r"\bexpected\b", r"\bduty\b",
+    r"\bdecision\b", r"\bdecide\b", r"\bchoose\b", r"\bchoice\b",
+    r"\bburden\b", r"\btension\b", r"\bcommunication\b", r"\bcommunicat(?:e|ing)\b",
+    r"\bdistance\b", r"\bdisconnect(?:ed|ion)?\b", r"\brelationship\b"
 )
 
 
@@ -285,17 +290,58 @@ def _lived_relational_structure(query):
     }
 
 
+def _explicit_bounded_archive_request(query):
+    """Detect an explicit request for a bounded Archive/resource operation.
+    
+    A model-generated processing label is not sufficient to suppress relational
+    exploration. The visitor's own wording must establish that retrieval,
+    definition, or lookup is actually what they are asking for.
+    """
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:"
+        r"find|show|lookup|look up|link to|url for|where is|where can i find|"
+        r"recommend (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"suggest (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"which (?:resource|article|essay|page)|"
+        r"what (?:resource|article|essay|page)|"
+        r"is there (?:a|an|anything|something)\s+(?:in|on)\s+(?:the )?"
+        r"(?:living archive|archive|site|website)|"
+        r"anything in (?:the )?(?:living archive|archive|site|website)|"
+        r"resource about|article about|essay about|page about|"
+        r"definition of|meaning of|what does .* mean|what is"
+        r")\b",
+        q,
+        re.I,
+    ))
+
 def _should_open_relationship_specialist(query, interpretation=None):
-    """Systemic Guide-side backstop for lived relational inquiries."""
+    """Systemic Guide-side arbitration for lived relational inquiries.
+    
+    The visitor's processing need is determined from the form of the request,
+    not from a potentially over-broad model label. A lived relational inquiry
+    remains relational unless the visitor explicitly asks the Guide to perform
+    a bounded retrieval/definition/lookup operation.
+    """
     structure = _lived_relational_structure(query)
     if not structure["lived_relational"]:
         return False
-    interpretation = interpretation or {}
-    processing_need = str(interpretation.get("processing_need") or "").casefold().strip()
-    return processing_need not in {"retrieval", "definition", "lookup"}
+    if structure["bounded_lookup"] or _explicit_bounded_archive_request(query):
+        return False
+    return True
 
 
-def _role_evidence(doc):
+_route_probe_lived_relational = "I promised my father I'd take care of something for him. At the time it felt natural. Now the responsibility has become much bigger than I expected, and part of me wants to back out. But I gave him my word."
+if not _lived_relational_structure(_route_probe_lived_relational)["lived_relational"]:
+    raise RuntimeError("USE v487.88 routing invariant failed: lived relational structure not recognized")
+if not _should_open_relationship_specialist(_route_probe_lived_relational, {"processing_need": "retrieval"}):
+    raise RuntimeError("USE v487.88 routing invariant failed: model retrieval label suppressed lived relational routing")
+if _should_open_relationship_specialist(
+    "Is there an article in the Living Archive about setting boundaries with a parent?",
+    {"processing_need": "retrieval"},
+):
+    raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
+\n\ndef _role_evidence(doc):
     title = re.sub(r"\s+", " ", str(doc.get("title") or "").strip().casefold())
     text = re.sub(r"\s+", " ", str(doc.get("text") or doc.get("content") or "").strip().casefold())
     early = text[:1800]
