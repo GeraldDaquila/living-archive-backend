@@ -11,10 +11,11 @@ not decide how a specialist reasons.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional
 
 
 HUB_CONTRACT_VERSION = "v1"
+_ALLOWED_STATUSES = frozenset({"CONTRIBUTION", "NO_CONTRIBUTION", "DECLINED", "FAILED"})
 
 
 @dataclass(frozen=True)
@@ -118,3 +119,50 @@ def validate_hub_contribution(
             item for item in candidates if isinstance(item, Mapping)
         ),
     )
+
+
+def route_spoke(
+    *,
+    request: HubRequest,
+    specialist_id: str,
+    invoke: Callable[..., Mapping[str, Any]],
+    recognized_territory: Optional[str] = None,
+) -> HubContribution:
+    """Invoke one spoke through the hub boundary and validate its return."""
+    target = str(specialist_id or "").strip()
+    if not target:
+        raise HubContractError("A spoke identity is required.")
+
+    raw = invoke(
+        request_id=request.request_id,
+        guide_version=request.guide_version,
+        specialist_id=target,
+        original_question=request.original_question,
+        recognized_territory=recognized_territory or request.recognized_territory,
+        processing_purpose=request.processing_purpose,
+        guide_context=request.guide_context,
+        safety_state=request.safety_state,
+    )
+    return validate_hub_contribution(
+        raw,
+        expected_request_id=request.request_id,
+        expected_specialist_id=target,
+    )
+
+
+def hub_contract_snapshot() -> dict[str, Any]:
+    """Return non-secret diagnostics for the Guide hub boundary."""
+    return {
+        "hub_contract_version": HUB_CONTRACT_VERSION,
+        "topology": {
+            "hub": "guide_use",
+            "spokes": "specialist_capabilities",
+            "legacy_general_utility": "legacy_use_pre_oct_1",
+        },
+        "authority": {
+            "routing": "guide",
+            "specialist_reasoning": "spoke",
+            "canonical_navigation": "guide",
+            "final_visitor_response": "guide",
+        },
+    }
