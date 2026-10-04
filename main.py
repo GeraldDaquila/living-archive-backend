@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.91 — HRN transport timeout alignment
+# USE PRODUCTION VERSION: v487.92 — HRN transport timeout alignment
 import hashlib
 import importlib
 import re
@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.91"
-DEPLOYMENT_FINGERPRINT = "USE-v487.91-hrn-transport-timeout-alignment"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.91-hrn-transport-timeout-alignment"
+APP_VERSION = "v487.92"
+DEPLOYMENT_FINGERPRINT = "USE-v487.92-relationship-reciprocity-routing-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.92-relationship-reciprocity-routing-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.91":
+if str(APP_VERSION) != "v487.92":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -233,6 +233,7 @@ _RELATIONAL_PATTERNS = (
 )
 
 _RELATIONAL_ACTION_PATTERNS = (
+    # Commitments, conflict, responsibility, and explicit relational work.
     r"\bpromised\b", r"\bpromise\b", r"\bgave (?:him|her|them) my word\b",
     r"\bgave my word\b", r"\bcommitted\b", r"\bcommitment\b", r"\bagreed\b",
     r"\bowe\b", r"\bowed\b", r"\btake care of\b", r"\blet .* down\b",
@@ -244,7 +245,21 @@ _RELATIONAL_ACTION_PATTERNS = (
     r"\bobligated\b", r"\bexpectation\b", r"\bexpected\b", r"\bduty\b",
     r"\bdecision\b", r"\bdecide\b", r"\bchoose\b", r"\bchoice\b",
     r"\bburden\b", r"\btension\b", r"\bcommunication\b", r"\bcommunicat(?:e|ing)\b",
-    r"\bdistance\b", r"\bdisconnect(?:ed|ion)?\b", r"\brelationship\b"
+    r"\bdistance\b", r"\bdisconnect(?:ed|ion)?\b", r"\brelationship\b",
+
+    # Reciprocity and availability are relational dynamics even when there is
+    # no conflict, promise, boundary, or named relationship problem.
+    r"\basks? me\b", r"\bask(?:s|ed)? for (?:my )?(?:support|help|time|attention)\b",
+    r"\bneeds? me\b", r"\bneed(?:s|ed)? (?:my )?(?:support|help|time|attention)\b",
+    r"\bsupport(?:s|ed|ing)?\b", r"\bshow(?:s|ed)? up\b", r"\bbeing there\b",
+    r"\bbe there for\b", r"\bavailable\b", r"\bavailability\b",
+    r"\bdisappear(?:s|ed|ing)?\b", r"\bvanish(?:es|ed|ing)?\b",
+    r"\bone[- ]sided\b", r"\bone[- ]way\b", r"\brecipro(?:cal|city)\b",
+    r"\bmutual\b", r"\bgive[- ]and[- ]take\b", r"\bgive\b.*\btake\b",
+    r"\bkeeps? asking\b", r"\bkeep asking\b", r"\brely(?:ing|ies|ied)? on me\b",
+    r"\bdepend(?:s|ed|ing)? on me\b", r"\bonly when\b", r"\bwhenever\b",
+    r"\balways\b.*\b(?:asks?|needs?|expects?|takes?)\b",
+    r"\b(?:asks?|needs?|expects?|takes?)\b.*\balways\b"
 )
 
 
@@ -341,6 +356,18 @@ if _should_open_relationship_specialist(
     {"processing_need": "retrieval"},
 ):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
+
+# v487.92 regression guard: relational reciprocity must route to Seeing the
+# Relationship even when the visitor does not use conflict/boundary language.
+_route_probe_reciprocity = (
+    "My friend always asks me for support when they need something, but "
+    "whenever I need them, they disappear. I'm starting to wonder whether "
+    "this friendship is one-sided."
+)
+if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]:
+    raise RuntimeError("USE v487.92 routing invariant failed: reciprocity pattern not recognized")
+if not _should_open_relationship_specialist(_route_probe_reciprocity, {"processing_need": "orientation"}):
+    raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
 
 
 def _role_evidence(doc):
@@ -1792,7 +1819,7 @@ async def _formation_entrance_route(request: Request):
             safety_state="green",
         )
     except Exception as exc:
-        print(f"USE v487.91 Formation entrance failed safely: {exc}")
+        print(f"USE v487.92 Formation entrance failed safely: {exc}")
         return _formation_entrance_error(
             "The Formation pathway could not be opened right now.",
             "formation_entrance_specialist_failure",
@@ -1879,7 +1906,7 @@ app = _use_request_boundary
 
 
 
-print(f"USE v487.91 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.92 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
