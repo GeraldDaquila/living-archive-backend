@@ -341,7 +341,9 @@ if _should_open_relationship_specialist(
     {"processing_need": "retrieval"},
 ):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
-\n\ndef _role_evidence(doc):
+
+
+def _role_evidence(doc):
     title = re.sub(r"\s+", " ", str(doc.get("title") or "").strip().casefold())
     text = re.sub(r"\s+", " ", str(doc.get("text") or doc.get("content") or "").strip().casefold())
     early = text[:1800]
