@@ -284,7 +284,7 @@ def _query_frame(query):
 # when paired with first-person experience and unresolved relational tension;
 # they are not standalone routing keywords.
 _RELATIONAL_ROLE_PATTERNS = (
-    r"\bmy\s+(?:manager|supervisor|boss|employer|employee|colleague|coworker|co-worker|teammate|team|client|customer|teacher|student|professor|doctor|therapist|counselor|coach|mentor|neighbor|landlord|tenant|caregiver|carer|parent|child|brother|sister|friend|partner|spouse|husband|wife)\\b",
+    r"\bmy\s+(?:manager|supervisor|boss|employer|employee|colleague|coworker|co-worker|teammate|team|client|customer|teacher|student|professor|doctor|therapist|counselor|coach|mentor|neighbor|landlord|tenant|caregiver|carer|parent|child|brother|sister|friend|partner|spouse|husband|wife)\b",
     r"\b(?:manager|supervisor|boss|employer|colleague|coworker|co-worker|teammate)\s+(?:at|from|in)\b",
 )
 
@@ -322,7 +322,7 @@ def _lived_relational_structure(query):
         "bounded_lookup": bounded_lookup,
         "lived_relational": (
             first_person
-            and relational_other
+            and (relational_other or role_context)
             and tension
             and (relational_action or role_context)
             and not bounded_lookup
