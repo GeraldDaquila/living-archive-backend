@@ -1,8 +1,8 @@
-"""v487.94 specialist-pipe integrity QA.
+"""Active specialist-pipe integrity QA.
 
-The protected USE core remains immutable. The Guide integration surface and
-specialist registry are explicitly versioned here because v487.94 intentionally
-changes both to activate the second specialist.
+Protected runtime components remain hash-pinned. The active Guide/USE
+integration surface is validated structurally because it advances with the
+post-Oct.1 hub architecture.
 """
 
 from pathlib import Path
@@ -16,54 +16,39 @@ PROTECTED = {
     "specialist_adapters.py": "ff27c9e7c6df66c622cf389765c7fed775810383",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "c10a26e2f4432a0b7712dbc17e8acca4a76c17c5",
-}
-
-CURRENT_INTEGRATION = {
     "specialist_registry.py": "35eef10d7bf89bffb11d80596d816c8fefd01714",
 }
-
-
-# main.py is the active Guide integration surface and advances during
-# post-Oct.1 architecture work; it is validated structurally below rather
-# than pinned to a historical blob hash.
-
 
 def blob_sha1(data):
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
-
 def main():
-    for rel, expected in {**PROTECTED, **CURRENT_INTEGRATION}.items():
-    
+    for rel, expected in PROTECTED.items():
+        assert blob_sha1((ROOT / rel).read_bytes()) == expected, rel
+
     for rel in (
         "formation_adapter.py",
         "formation_contribution.py",
         "QA/V487_94_FORMATION_SPECIALIST_QA.py",
+        "hub_contracts.py",
     ):
         assert (ROOT / rel).is_file(), rel
-
-    registry = (ROOT / "specialist_registry.py").read_text(encoding="utf-8")
-    assert 'specialist_id="formation"' in registry
-    assert 'status="available"' in registry
 
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert "FormationAdapter()" in main_source
     assert 'route_id in {"relationship", "formation"}' in main_source
     assert '"FORMATION_HANDOFF"' in main_source
-    assert "formation_contract=" in main_source
     assert "from hub_contracts import" in main_source
-    assert "route_spoke(" in main_source
     assert "HUB_CONTRACT_DIAGNOSTICS" in main_source
     assert main_source.count("route_spoke(") >= 2
-    assert main_source.count("use_core.fetch_canonical_context =") == 1
-    assert main_source.count("route_spoke(") >= 2
+    assert "EXPECTED_CORE_BLOB_SHA = " in main_source
 
-    print("v487.94 specialist-pipe integrity QA: PASS")
+    hub_source = (ROOT / "hub_contracts.py").read_text(encoding="utf-8")
+    assert "def route_spoke(" in hub_source
+    assert "expected_specialist_id" in hub_source
+    assert "Preserve the full domain contribution" in hub_source
 
+    print("active specialist-pipe integrity QA: PASS")
 
 if __name__ == "__main__":
     main()
-
-
-# Active-generation hub checks are additive; legacy workflow hashes are not
-# authoritative for main.py after the post-Oct.1 Guide-hub migration.
