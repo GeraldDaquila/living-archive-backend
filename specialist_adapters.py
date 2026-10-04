@@ -1,4 +1,9 @@
 """USE Specialist Adapter Contract v1.
+    
+Domain contributions may use a specialist-owned contract version; the adapter
+layer bridges those contributions into the common Guide pipe without losing
+the specialist-owned payload.
+
 
 The adapter layer is the internal pipe between The Guide and a specialist
 capability. It does not own routing, canonical authority, visitor-facing
