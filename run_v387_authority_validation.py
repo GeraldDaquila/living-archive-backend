@@ -30,9 +30,9 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert re.search(r'APP_VERSION = "v487\.88"', main_source)
-assert 'USE-v487.88-synthesis-material-hardening' in main_source
-assert 'USE-BUILD-v487.88-synthesis-material-hardening' in main_source
+assert re.search(r'APP_VERSION = "v487\.89"', main_source)
+assert 'USE-v487.89-specialist-pipe-payload-repair' in main_source
+assert 'USE-BUILD-v487.89-specialist-pipe-payload-repair' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
