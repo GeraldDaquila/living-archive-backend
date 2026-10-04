@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.97 — Defensive-cycle tension repair
+# USE PRODUCTION VERSION: v487.98 — Glossary direct handoff
 import hashlib
 import importlib
 import re
@@ -6,6 +6,7 @@ import json
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
+from urllib.parse import quote
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
@@ -45,9 +46,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.97"
-DEPLOYMENT_FINGERPRINT = "USE-v487.97-relational-latency-boundary-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.97-relational-latency-boundary-repair"
+APP_VERSION = "v487.98"
+DEPLOYMENT_FINGERPRINT = "USE-v487.98-glossary-direct-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.98-glossary-direct-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1206,7 +1207,8 @@ Return ONLY valid JSON with exactly these keys:
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
-  "alternatives": ["guide"]
+  "alternatives": ["guide"],
+  "glossary_term": "canonical term only when route=glossary"
 }
 
 The interpretation fields are internal reasoning instruments. They are not
@@ -1247,6 +1249,44 @@ def _guide_route_history_text(history):
             if value:
                 parts.append(value)
     return "\n".join(parts)[-6000:]
+
+
+def _normalize_glossary_term(query, interpretation=None):
+    """Extract the bounded canonical term for the native Glossary lookup.
+
+    The Glossary owns term resolution. USE only converts a definition/meaning
+    question into the term that the existing Glossary search contract expects.
+    It never performs glossary retrieval or duplicates the Glossary registry.
+    """
+    interpretation = interpretation or {}
+    candidate = str(interpretation.get("glossary_term") or "").strip()
+    if candidate:
+        candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", candidate)
+        if 1 <= len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+            return candidate
+
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+    patterns = (
+        r"^(?:what does|what is|what's)\s+(?:the\s+)?(?:meaning\s+of\s+)?(.+?)(?:\s+mean)?[?!.]?$",
+        r"^(?:what is the meaning of|meaning of|define|definition of)\s+(.+?)[?!.]?$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, normalized, re.I)
+        if match:
+            term = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", match.group(1))
+            term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+)", "", term, flags=re.I)
+            if 1 <= len(term) <= 120:
+                return term
+    return ""
+
+
+# v487.98 regression guards.
+if _normalize_glossary_term("What does forgiveness mean?") != "forgiveness":
+    raise RuntimeError("USE v487.98 invariant failed: glossary term extraction")
+if _normalize_glossary_term("What is the meaning of stewardship?") != "stewardship":
+    raise RuntimeError("USE v487.98 invariant failed: glossary meaning extraction")
+if _normalize_glossary_term("How do I forgive someone who hurt me?"):
+    raise RuntimeError("USE v487.98 invariant failed: open inquiry became glossary lookup")
 
 
 def _guide_route_fallback(query, history=None):
@@ -1382,6 +1422,7 @@ def _guide_capability_route(query, history=None):
                 "uncertainty": str(parsed.get("uncertainty") or "").strip(),
                 "desired_movement": str(parsed.get("desired_movement") or "").strip(),
                 "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
+                "glossary_term": str(parsed.get("glossary_term") or "").strip(),
             }
 
             # The reasoning model proposes the first route, but the Guide retains
@@ -1765,6 +1806,36 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # Glossary is a visitor-facing specialist surface, not a Guide retrieval
+    # spoke. Hand the canonical term to the Glossary's existing native search
+    # contract and let WordPress perform the authoritative lookup/rendering.
+    if route_id == "glossary" and mode in {"lookup", "definition"}:
+        interpretation = route.get("round1_interpretation") or {}
+        glossary_term = _normalize_glossary_term(query, interpretation)
+        if glossary_term:
+            glossary_url = (
+                "https://geralddaquila.com/glossary/?glossary_term="
+                + quote(glossary_term, safe="")
+            )
+            print(
+                "The Guide direct Glossary handoff: "
+                f"term={glossary_term!r}, url={glossary_url}"
+            )
+            return await _use_send_json(send, {
+                "ok": True,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "GLOSSARY_HANDOFF",
+                "response": "",
+                "handoff": "glossary",
+                "handoff_mode": "direct",
+                "handoff_pending": True,
+                "glossary_term": glossary_term,
+                "glossary_url": glossary_url,
+                "return_mode": "native_glossary_search",
+                "visitor_boundary_version": APP_VERSION,
+            })
 
     if should_delegate:
         request_id = route_id + "-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
