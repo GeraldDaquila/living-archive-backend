@@ -12,7 +12,7 @@ def run() -> None:
     adapter = FormationAdapter()
     context = SpecialistAdapterContext(
         request_id="qa-formation-001",
-        guide_version="v487.88",
+        guide_version="v487.89",
         specialist_id="formation",
         original_question="I am taking on a larger responsibility and need to understand how to carry it well.",
         recognized_territory="stewardship formation",
