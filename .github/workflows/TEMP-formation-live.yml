@@ -1,0 +1,42 @@
+name: TEMP Formation live probe
+on:
+  push:
+    branches: [main]
+jobs:
+  formation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for v487.91
+        run: |
+          python - <<'PY'
+          import json,time,urllib.request
+          u="https://living-archive-backend.onrender.com/"
+          end=time.time()+240
+          while time.time()<end:
+            try:
+              with urllib.request.urlopen(u,timeout=15) as r:
+                d=json.loads(r.read().decode())
+                print(d)
+                if d.get("version")=="v487.91": break
+            except Exception as e: print(e)
+            time.sleep(5)
+          else: raise SystemExit("runtime timeout")
+          PY
+      - name: Formation E2E
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          u="https://living-archive-backend.onrender.com/api/formation-entrance"
+          p={"choice":"I want to become steadier in carrying responsibility.","situation":"I am taking on a larger responsibility and need to understand how to carry it well.","possibility":"I want to become more steady without making everything depend on me."}
+          q=urllib.request.Request(u,data=json.dumps(p).encode(),headers={"Content-Type":"application/json"},method="POST")
+          with urllib.request.urlopen(q,timeout=30) as r:
+            d=json.loads(r.read().decode()); print(json.dumps(d,indent=2))
+          assert d.get("ok") is True,d
+          assert d.get("intent")=="FORMATION_HANDOFF",d
+          assert str(d.get("response") or "").strip(),d
+          i=(d.get("formation_contribution") or {}).get("interpretation") or {}
+          assert str(i.get("pathway") or "").strip(),d
+          doors=(d.get("formation_contribution") or {}).get("canonical_candidates") or []
+          assert 1<=len(doors)<=3,d
+          print("LIVE_FORMATION_PASS")
+          PY
