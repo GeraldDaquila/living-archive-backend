@@ -62,7 +62,7 @@ def main():
         tree = ast.parse(main_source)
         fn = next(
             node for node in tree.body
-            if isinstance(node, ast.AsyncFunctionDef if specialist_fn == "_relationship_specialist_response" else ast.FunctionDef)
+            if isinstance(node, ast.FunctionDef)
             and node.name == specialist_fn
         )
         segment = ast.get_source_segment(main_source, fn) or ""
