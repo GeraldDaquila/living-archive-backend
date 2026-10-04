@@ -9,7 +9,7 @@ jobs:
   live-e2e:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for v487.90 live runtime
+      - name: Wait for v487.91 live runtime
         run: |
           python - <<'PY'
           import json, time, urllib.request
@@ -20,7 +20,7 @@ jobs:
                   with urllib.request.urlopen(url,timeout=15) as r:
                       data=json.loads(r.read().decode("utf-8","replace"))
                       print(data)
-                      if data.get("version")=="v487.90":
+                      if data.get("version")=="v487.91":
                           print("LIVE_V487_90_PASS")
                           break
               except Exception as exc:
