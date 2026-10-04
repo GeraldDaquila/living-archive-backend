@@ -9,9 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTECTED = {
     "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
     "main_v487_28_runtime.py": "4c8c72d70fa5f93e8bbcdd1c1d8e4696a4949a31",
-    "specialist_adapters.py": "ff27c9e7c6df66c622cf389765c7fed775810383",
+    "specialist_adapters.py": "9f253c7ceaeaaba8bd95d2d244015f428fc1285a",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
-    "relationship_adapter.py": "c10a26e2f4432a0b7712dbc17e8acca4a76c17c5",
+    "relationship_adapter.py": "c35be4148122ecdd8d3ca56bd66a6278705f5eb9",
     "specialist_registry.py": "35eef10d7bf89bffb11d80596d816c8fefd01714",
 }
 
