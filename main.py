@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.95"
-DEPLOYMENT_FINGERPRINT = "USE-v487.95-defensive-cycle-immediate-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.95-defensive-cycle-immediate-handoff"
+APP_VERSION = "v487.96"
+DEPLOYMENT_FINGERPRINT = "USE-v487.96-defensive-cycle-tension-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.96-defensive-cycle-tension-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.95":
+if str(APP_VERSION) != "v487.96":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -285,9 +285,9 @@ def _lived_relational_structure(query):
     relational_other = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)
     relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS)
     tension = bool(re.search(
-        r"\b(?:but|however|although|yet|now|instead|can't|cannot|don't|"
-        r"doesn't|not sure|unsure|hard|difficult|overwhelmed|want to|"
-        r"need to|have to|part of me|i wish|i don't know)\b",
+        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|"
+        r"same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
+        r"overwhelmed|want to|need to|have to|part of me|i wish|i don't know)\b",
         q,
         re.I,
     ))
@@ -386,7 +386,7 @@ _route_probe_defensive_cycle = (
     "A few days later everything seems fine until the same thing happens again."
 )
 if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
-    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle not recognized")
+    raise RuntimeError("USE v487.96 routing invariant failed: defensive cycle not recognized")
 if not _should_open_relationship_specialist(
     _route_probe_defensive_cycle, {"processing_need": "orientation"}
 ):
