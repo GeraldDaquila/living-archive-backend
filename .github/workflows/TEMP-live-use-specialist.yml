@@ -1,0 +1,69 @@
+name: TEMP live USE specialist probe
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  live-use:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exercise live USE to HRN handoff
+        run: |
+          python - <<'PY'
+          import json, urllib.request, urllib.error
+          url = "https://living-archive-backend.onrender.com/api/query"
+          payload = {
+              "query": "I promised my father I'd take care of something for him. It felt natural at first, but now the responsibility is becoming much bigger than I expected, and part of me wants to step back. I gave him my word.",
+              "history": []
+          }
+          req = urllib.request.Request(url,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json","Accept":"application/json"},method="POST")
+          try:
+              with urllib.request.urlopen(req, timeout=90) as r:
+                  raw=r.read().decode("utf-8","replace")
+                  print("USE HTTP",r.status)
+                  print(raw[:8000])
+          except urllib.error.HTTPError as e:
+              raw=e.read().decode("utf-8","replace")
+              print("USE HTTP",e.code)
+              print(raw[:8000])
+              raise SystemExit("USE_HRN_LIVE_FAILURE")
+          data=json.loads(raw)
+          assert data.get("ok") is True, data
+          assert data.get("intent")=="RELATIONAL_HANDOFF", data
+          assert str(data.get("response") or "").strip(), data
+          assert (data.get("relational_delegation") or {}).get("specialist_id")=="relationship", data
+          print("USE_HRN_LIVE_PASS")
+          PY
+
+      - name: Exercise live Formation entrance
+        run: |
+          python - <<'PY'
+          import json, urllib.request, urllib.error
+          url="https://living-archive-backend.onrender.com/api/formation-entrance"
+          payload={
+              "choice":"I want to become steadier in carrying responsibility.",
+              "situation":"I am taking on a larger responsibility and need to understand how to carry it well.",
+              "possibility":"I want to become more steady without making everything depend on me."
+          }
+          req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json","Accept":"application/json"},method="POST")
+          try:
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  raw=r.read().decode("utf-8","replace")
+                  print("FORMATION HTTP",r.status)
+                  print(raw[:8000])
+          except urllib.error.HTTPError as e:
+              raw=e.read().decode("utf-8","replace")
+              print("FORMATION HTTP",e.code)
+              print(raw[:8000])
+              raise SystemExit("FORMATION_LIVE_FAILURE")
+          data=json.loads(raw)
+          assert data.get("ok") is True, data
+          assert str(data.get("response") or "").strip(), data
+          interpretation=(data.get("formation_contribution") or {}).get("interpretation") or {}
+          assert str(interpretation.get("pathway") or "").strip(), data
+          doors=(data.get("formation_contribution") or {}).get("canonical_candidates") or []
+          assert 1 <= len(doors) <= 3, data
+          print("FORMATION_LIVE_PASS")
+          PY
