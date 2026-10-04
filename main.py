@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.92 — Relationship reciprocity routing repair
+# USE PRODUCTION VERSION: v487.93 — Immediate HRN handoff latency repair
 import hashlib
 import importlib
 import re
@@ -45,9 +45,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.92"
-DEPLOYMENT_FINGERPRINT = "USE-v487.92-relationship-reciprocity-routing-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.92-relationship-reciprocity-routing-repair"
+APP_VERSION = "v487.93"
+DEPLOYMENT_FINGERPRINT = "USE-v487.93-immediate-hrn-handoff-latency-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.93-immediate-hrn-handoff-latency-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1662,6 +1662,45 @@ async def _use_request_boundary(scope, receive, send):
     if not query:
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
+
+    # Immediate lived-relational handoff: do not spend a Guide routing-model call
+    # or invoke the HRN specialist before the HRN surface is opened. The visitor's
+    # question is already sufficient to establish this bounded structural route.
+    # The Guide remains authoritative for the handoff; HRN owns the actual
+    # interpretation/composition journey after the browser arrives there.
+    if _should_open_relationship_specialist(query):
+        request_id = "relationship-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate HRN handoff: "
+            f"request_id={request_id}, query={_normalize_query(query)[:120]}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "RELATIONAL_HANDOFF",
+            "response": "",
+            "handoff": "relationship",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "relational_delegation": {
+                "state": "pending",
+                "specialist": "Seeing the Relationship",
+                "specialist_id": "relationship",
+                "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
+                "voice_policy": RELATIONSHIP_VOICE_POLICY,
+                "session_id": request_id,
+                "seed_message": query,
+                "conversation": _history_text(history),
+                "handoff_reason": "The Guide recognized a lived relational inquiry and is opening Seeing the Relationship directly.",
+                "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
+                "return_mode": "guide_integrated",
+            },
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
 
     route = _guide_capability_route(query, history)
     route_id = str(route.get("route") or "guide").strip().casefold()
