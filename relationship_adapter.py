@@ -33,7 +33,7 @@ DEFAULT_HRN_ENDPOINT = (
 class RelationshipAdapter(SpecialistAdapter):
     specialist_id = "relationship"
 
-    def __init__(self, endpoint: str | None = None, timeout: float = 12.0) -> None:
+    def __init__(self, endpoint: str | None = None, timeout: float = 45.0) -> None:
         self.endpoint = (
             str(endpoint or os.getenv("HRN_ENDPOINT_URL") or DEFAULT_HRN_ENDPOINT)
             .strip()
