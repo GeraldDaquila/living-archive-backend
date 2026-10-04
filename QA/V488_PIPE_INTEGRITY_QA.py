@@ -40,8 +40,8 @@ def main():
     ):
         assert marker in main_source, marker
 
-    # The active request boundary has exactly one protected-app fallback.
-    assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), send)") == 1
+    # The active request boundary has exactly two protected-app fallbacks: empty-query passthrough and normal non-specialist passthrough.
+    assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), send)") == 2
     assert "app = _use_request_boundary" in main_source
 
     # The hub contract itself must remain authority-light.
