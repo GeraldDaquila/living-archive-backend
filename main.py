@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.94"
-DEPLOYMENT_FINGERPRINT = "USE-v487.94-relational-cycle-immediate-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.94-relational-cycle-immediate-handoff"
+APP_VERSION = "v487.95"
+DEPLOYMENT_FINGERPRINT = "USE-v487.95-defensive-cycle-immediate-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.95-defensive-cycle-immediate-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.94":
+if str(APP_VERSION) != "v487.95":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -377,6 +377,20 @@ if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity pattern not recognized")
 if not _should_open_relationship_specialist(_route_probe_reciprocity, {"processing_need": "orientation"}):
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
+
+# v487.95 regression guard: the observed defensive/anger/withdrawal cycle must
+# bypass the Guide routing-model call and open HRN immediately.
+_route_probe_defensive_cycle = (
+    "Whenever I bring up something that bothers me, my partner becomes defensive. "
+    "Then I get angry, they withdraw, and eventually we stop talking. "
+    "A few days later everything seems fine until the same thing happens again."
+)
+if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
+    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle not recognized")
+if not _should_open_relationship_specialist(
+    _route_probe_defensive_cycle, {"processing_need": "orientation"}
+):
+    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle did not open relationship specialist")
 
 
 def _role_evidence(doc):
