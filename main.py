@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.88 — synthesis material hardening
+# USE PRODUCTION VERSION: v487.89 — specialist pipe payload repair
 import hashlib
 import importlib
 import re
@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.88"
-DEPLOYMENT_FINGERPRINT = "USE-v487.88-synthesis-material-hardening"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.88-synthesis-material-hardening"
+APP_VERSION = "v487.89"
+DEPLOYMENT_FINGERPRINT = "USE-v487.89-specialist-pipe-payload-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.89-specialist-pipe-payload-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.88":
+if str(APP_VERSION) != "v487.89":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1534,17 +1534,14 @@ def _formation_specialist_response(query, history, route, request_id):
             **kwargs,
         ),
     )
-    contribution = {
-        "status": hub_contribution.status,
-        "voice_policy": hub_contribution.voice_policy,
-        "interpretation": dict(hub_contribution.payload or {}),
-        "perspectives": [],
-        "movement": {},
-        "canonical_candidates": list(hub_contribution.canonical_candidates),
-    }
-    interpretation_data = contribution.get("interpretation") or {}
+    # invoke_specialist() preserves the complete domain contribution in
+    # payload when the specialist owns a domain-specific contract. The common
+    # pipe metadata is not the domain interpretation itself.
+    domain_payload = dict(hub_contribution.payload or {})
+    interpretation_data = dict(domain_payload.get("interpretation") or {})
+    movement_data = dict(domain_payload.get("movement") or {})
     pathway = str(interpretation_data.get("pathway") or "").strip()
-    doors = contribution.get("canonical_candidates") or []
+    doors = list(hub_contribution.canonical_candidates)
     response = pathway or "There is something here worth staying with before deciding what it means."
     return {
         "response": response,
@@ -1555,7 +1552,7 @@ def _formation_specialist_response(query, history, route, request_id):
             "contract_version": FORMATION_CONTRIBUTION_CONTRACT_VERSION,
             "voice_policy": FORMATION_VOICE_POLICY,
             "doors": doors,
-            "movement": contribution.get("movement") or {},
+            "movement": movement_data,
             "interpretation": interpretation_data,
             "return_mode": "guide_integrated",
         },
@@ -1795,16 +1792,20 @@ async def _formation_entrance_route(request: Request):
             safety_state="green",
         )
     except Exception as exc:
-        print(f"USE v487.94 Formation entrance failed safely: {exc}")
+        print(f"USE v487.89 Formation entrance failed safely: {exc}")
         return _formation_entrance_error(
             "The Formation pathway could not be opened right now.",
             "formation_entrance_specialist_failure",
             status_code=503,
         )
 
-    interpretation = contribution.get("interpretation") or {}
-    movement = contribution.get("movement") or {}
-    doors = contribution.get("canonical_candidates") or []
+    # The adapter bridges Formation's domain contract into the common
+    # specialist pipe. Read the preserved domain payload, not the common
+    # envelope's optional interpretation field.
+    domain_payload = dict(contribution.get("payload") or {})
+    interpretation = dict(domain_payload.get("interpretation") or {})
+    movement = dict(domain_payload.get("movement") or {})
+    doors = list(contribution.get("canonical_candidates") or [])
 
     bounded_doors = []
     seen_ids = set()
@@ -1878,7 +1879,7 @@ app = _use_request_boundary
 
 
 
-print(f"USE v487.88 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.89 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
