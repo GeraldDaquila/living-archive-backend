@@ -11,7 +11,6 @@ PROTECTED = {
     "relationship_adapter.py": "c10a26e2f4432a0b7712dbc17e8acca4a76c17c5",
 }
 CURRENT_INTEGRATION = {
-    "main.py": "2573fab44a0daf0fafd05ca14d10be2ce0e0c004",
     "specialist_registry.py": "35eef10d7bf89bffb11d80596d816c8fefd01714",
 }
 
@@ -49,6 +48,8 @@ def main():
     assert "journey_contribution.original_question" in main_source
     assert "journey_contribution.journey_synthesis" in main_source
     assert "journey_contribution.journey_ledger" in main_source
+    assert "route_spoke(" in main_source
+    assert "HUB_CONTRACT_DIAGNOSTICS" in main_source
     print("v487.94 journey contribution structural QA: PASS")
 
 if __name__ == "__main__":
