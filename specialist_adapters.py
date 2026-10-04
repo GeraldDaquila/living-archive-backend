@@ -161,6 +161,27 @@ def invoke_specialist(
             f"Specialist adapter failed for {specialist_id!r}: {exc}"
         ) from exc
 
+    # Domain specialists may have their own contribution contract. The common
+    # Guide -> specialist pipe remains v1, so bridge a domain contribution into
+    # the common envelope here while preserving the complete specialist-owned
+    # payload for the Hub to carry without semantic loss.
+    raw_contract_version = str(
+        raw_contribution.get("contract_version") or ""
+    ).strip()
+    if raw_contract_version != SPECIALIST_PIPE_CONTRACT_VERSION:
+        domain_payload = dict(raw_contribution)
+        raw_contribution = {
+            "contract_version": SPECIALIST_PIPE_CONTRACT_VERSION,
+            "request_id": context.request_id,
+            "specialist_id": context.specialist_id,
+            "status": domain_payload.get("status"),
+            "voice_policy": domain_payload.get("voice_policy"),
+            "canonical_candidates": domain_payload.get("canonical_candidates"),
+            "boundary_notes": domain_payload.get("boundary_notes"),
+            "safety_flags": domain_payload.get("safety_flags"),
+            "payload": domain_payload,
+        }
+
     return validate_specialist_contribution(
         raw_contribution,
         expected_request_id=context.request_id,
