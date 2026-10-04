@@ -19,9 +19,13 @@ PROTECTED = {
 }
 
 CURRENT_INTEGRATION = {
-    "main.py": "2573fab44a0daf0fafd05ca14d10be2ce0e0c004",
     "specialist_registry.py": "35eef10d7bf89bffb11d80596d816c8fefd01714",
 }
+
+
+# main.py is the active Guide integration surface and advances during
+# post-Oct.1 architecture work; it is validated structurally below rather
+# than pinned to a historical blob hash.
 
 
 def blob_sha1(data):
