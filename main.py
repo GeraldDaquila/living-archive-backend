@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v487.96 — Defensive-cycle tension repair
+# USE PRODUCTION VERSION: v487.97 — Defensive-cycle tension repair
 import hashlib
 import importlib
 import re
@@ -45,15 +45,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v487.96"
-DEPLOYMENT_FINGERPRINT = "USE-v487.96-defensive-cycle-tension-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v487.96-defensive-cycle-tension-repair"
+APP_VERSION = "v487.97"
+DEPLOYMENT_FINGERPRINT = "USE-v487.97-relational-latency-boundary-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v487.97-relational-latency-boundary-repair"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v487.96":
+if str(APP_VERSION) != "v487.97":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -278,12 +278,27 @@ def _query_frame(query):
     return {"families": families, "relational": any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)}
 
 
+# Relational role/context signals are deliberately broader than named family or
+# partnership terms. A lived relationship can be shaped by authority, work,
+# learning, care, service, or community roles. These signals are only useful
+# when paired with first-person experience and unresolved relational tension;
+# they are not standalone routing keywords.
+_RELATIONAL_ROLE_PATTERNS = (
+    r"\\bmy\\s+(?:manager|supervisor|boss|employer|employee|colleague|coworker|co-worker|teammate|team|client|customer|teacher|student|professor|doctor|therapist|counselor|coach|mentor|neighbor|landlord|tenant|caregiver|carer|parent|child|brother|sister|friend|partner|spouse|husband|wife)\\b",
+    r"\\b(?:manager|supervisor|boss|employer|colleague|coworker|co-worker|teammate)\\s+(?:at|from|in)\\b",
+)
+
+_RELATIONAL_INTERACTION_PATTERNS = (
+    r"\\b(?:trust|trusted|trusts|distrust|check(?:s|ed|ing)?|monitor(?:s|ed|ing)?|control(?:s|led|ling)?|micromanag(?:e|es|ed|ing)|report(?:s|ed|ing)?|update(?:s|d|ing)?|approve(?:s|d|ing)?|question(?:s|ed|ing)?|watch(?:es|ed|ing)?|expect(?:s|ed|ation|ations)?|ask(?:s|ed|ing)?|tell(?:s|ing)?|listen(?:s|ed|ing)?|ignore(?:s|d|ing)?|respect(?:s|ed|ing)?|dismiss(?:es|ed|ing)?)\\b",
+)
+
 def _lived_relational_structure(query):
     """Recognize relational structure from lived-situation form, not topic alone."""
     q = _normalize_query(query)
     first_person = bool(re.search(r"\b(?:i|i'm|im|my|me|we|our)\b", q, re.I))
     relational_other = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)
-    relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS)
+    role_context = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ROLE_PATTERNS)
+    relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS) or any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INTERACTION_PATTERNS)
     tension = bool(re.search(
         r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|"
         r"same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
@@ -301,14 +316,15 @@ def _lived_relational_structure(query):
     return {
         "first_person": first_person,
         "relational_other": relational_other,
+        "role_context": role_context,
         "relational_action": relational_action,
         "tension": tension,
         "bounded_lookup": bounded_lookup,
         "lived_relational": (
             first_person
             and relational_other
-            and relational_action
             and tension
+            and (relational_action or role_context)
             and not bounded_lookup
         ),
     }
@@ -385,8 +401,23 @@ _route_probe_defensive_cycle = (
     "Then I get angry, they withdraw, and eventually we stop talking. "
     "A few days later everything seems fine until the same thing happens again."
 )
+# v487.97 regression guard: workplace/authority relationships must use the
+# same immediate HRN boundary as family/partnership relationships. This avoids
+# sending an unresolved lived relationship through the expensive legacy Guide
+# retrieval path, which can surface as a visitor-facing connection failure when
+# the request exceeds the browser's patience window.
+_route_probe_authority_relationship = (
+    "My manager says they trust me, but they check everything I do and "
+    "constantly ask for updates. I feel like I'm being controlled even "
+    "though they keep saying they trust me."
+)
+if not _lived_relational_structure(_route_probe_authority_relationship)["lived_relational"]:
+    raise RuntimeError("USE v487.97 invariant failed: authority/workplace relational structure not recognized")
+if not _should_open_relationship_specialist(_route_probe_authority_relationship, {"processing_need": "orientation"}):
+    raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
+
 if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
-    raise RuntimeError("USE v487.96 routing invariant failed: defensive cycle not recognized")
+    raise RuntimeError("USE v487.97 routing invariant failed: defensive cycle not recognized")
 if not _should_open_relationship_specialist(
     _route_probe_defensive_cycle, {"processing_need": "orientation"}
 ):
@@ -1968,7 +1999,7 @@ app = _use_request_boundary
 
 
 
-print(f"USE v487.96 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
+print(f"USE v487.97 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
