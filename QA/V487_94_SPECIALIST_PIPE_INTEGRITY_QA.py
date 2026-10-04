@@ -52,7 +52,11 @@ def main():
     assert 'route_id in {"relationship", "formation"}' in main_source
     assert '"FORMATION_HANDOFF"' in main_source
     assert "formation_contract=" in main_source
-    assert "APP_VERSION = \"v487.88\"" in main_source
+    assert "from hub_contracts import" in main_source
+    assert "route_spoke(" in main_source
+    assert "HUB_CONTRACT_DIAGNOSTICS" in main_source
+    assert main_source.count("route_spoke(") >= 2
+    assert main_source.count("use_core.fetch_canonical_context =") == 1
 
     print("v487.94 specialist-pipe integrity QA: PASS")
 
