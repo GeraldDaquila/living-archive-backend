@@ -131,3 +131,28 @@ def test_validate_hub_contribution_preserves_voice_and_journey():
     assert result.payload["human_response"] == "Keep me intact."
     assert result.payload["journey"]["journey_state"] == "in_progress"
     assert result.payload["movement"]["question"] == "Continue?"
+
+def test_validate_hub_contribution_preserves_explicit_payload_and_metadata():
+    contribution = {
+        "contract_version": HUB_CONTRACT_VERSION,
+        "request_id": "req-payload",
+        "specialist_id": "relationship",
+        "status": "CONTRIBUTION",
+        "voice_policy": "preserve_specialist_voice",
+        "payload": {
+            "human_response": "The specialist voice remains intact.",
+            "journey": {"journey_state": "spiral_complete"},
+            "movement": {"question": "Would you like to continue?"},
+        },
+        "canonical_candidates": [{"title": "Door", "url": "https://geralddaquila.com/door"}],
+    }
+    result = validate_hub_contribution(
+        contribution,
+        expected_request_id="req-payload",
+        expected_specialist_id="relationship",
+    )
+    assert result.payload["human_response"] == "The specialist voice remains intact."
+    assert result.payload["journey"]["journey_state"] == "spiral_complete"
+    assert result.payload["movement"]["question"] == "Would you like to continue?"
+    assert result.voice_policy == "preserve_specialist_voice"
+    assert result.canonical_candidates[0]["title"] == "Door"
