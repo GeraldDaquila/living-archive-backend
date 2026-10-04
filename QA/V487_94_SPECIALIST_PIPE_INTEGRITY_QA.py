@@ -63,3 +63,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Active-generation hub checks are additive; legacy workflow hashes are not
+# authoritative for main.py after the post-Oct.1 Guide-hub migration.
