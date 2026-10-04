@@ -1197,16 +1197,23 @@ def _guide_capability_route(query, history=None):
             if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
                 mode = "direct"
 
-            if (
-                route == "relationship"
-                and mode == "direct"
-                and str(interpretation.get("processing_need") or "").casefold() == "exploration"
-            ):
-                mode = "delegated_journey"
-                reason = (
-                    "Round 1 identified a lived relational inquiry whose useful next "
-                    "movement is exploratory processing; delegated relational journey selected."
-                )
+            if route == "relationship" and mode == "direct":
+                processing_need = str(
+                    interpretation.get("processing_need") or ""
+                ).casefold().strip()
+                bounded_needs = {
+                    "retrieval",
+                    "definition",
+                    "lookup",
+                }
+                if processing_need not in bounded_needs:
+                    mode = "delegated_journey"
+                    reason = (
+                        "Round 1 identified a lived relational inquiry. "
+                        "Unless the visitor is explicitly seeking a bounded lookup, "
+                        "definition, or retrieval task, the relationship specialist "
+                        "owns the next exploratory move."
+                    )
 
             confidence = max(0.0, min(1.0, confidence))
             alternatives = [
