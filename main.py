@@ -401,6 +401,13 @@ _route_probe_defensive_cycle = (
     "Then I get angry, they withdraw, and eventually we stop talking. "
     "A few days later everything seems fine until the same thing happens again."
 )
+if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
+    raise RuntimeError("USE v487.97 routing invariant failed: defensive cycle not recognized")
+if not _should_open_relationship_specialist(
+    _route_probe_defensive_cycle, {"processing_need": "orientation"}
+):
+    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle did not open relationship specialist")
+
 # v487.97 regression guard: workplace/authority relationships must use the
 # same immediate HRN boundary as family/partnership relationships. This avoids
 # sending an unresolved lived relationship through the expensive legacy Guide
@@ -416,12 +423,6 @@ if not _lived_relational_structure(_route_probe_authority_relationship)["lived_r
 if not _should_open_relationship_specialist(_route_probe_authority_relationship, {"processing_need": "orientation"}):
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
 
-if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
-    raise RuntimeError("USE v487.97 routing invariant failed: defensive cycle not recognized")
-if not _should_open_relationship_specialist(
-    _route_probe_defensive_cycle, {"processing_need": "orientation"}
-):
-    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle did not open relationship specialist")
 
 
 def _role_evidence(doc):
