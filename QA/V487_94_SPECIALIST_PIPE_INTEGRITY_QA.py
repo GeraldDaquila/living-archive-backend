@@ -57,6 +57,7 @@ def main():
     assert "HUB_CONTRACT_DIAGNOSTICS" in main_source
     assert main_source.count("route_spoke(") >= 2
     assert main_source.count("use_core.fetch_canonical_context =") == 1
+    assert main_source.count("route_spoke(") >= 2
 
     print("v487.94 specialist-pipe integrity QA: PASS")
 
