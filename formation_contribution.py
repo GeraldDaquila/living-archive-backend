@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping
 
-FORMATION_CONTRIBUTION_CONTRACT_VERSION = "v1"
+FORMATION_CONTRIBUTION_CONTRACT_VERSION = "formation-v1"
 FORMATION_VOICE_POLICY = "preserve_specialist_boundary"
 
 _ALLOWED_STATUSES = frozenset({
