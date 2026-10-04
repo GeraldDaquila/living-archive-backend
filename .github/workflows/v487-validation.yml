@@ -27,3 +27,5 @@ jobs:
         run: PYTHONPATH=. python QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py
       - name: v487.94 Formation specialist pipe QA
         run: PYTHONPATH=. python QA/V487_94_FORMATION_SPECIALIST_QA.py
+      - name: post-Oct.1 pipe integrity QA
+        run: PYTHONPATH=. python QA/V488_PIPE_INTEGRITY_QA.py
