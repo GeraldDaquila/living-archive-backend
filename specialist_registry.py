@@ -217,6 +217,9 @@ def validate_specialist_contribution(
         "canonical_candidates": contribution.get("canonical_candidates"),
         "boundary_notes": contribution.get("boundary_notes"),
         "safety_flags": contribution.get("safety_flags"),
+        # Preserve specialist-owned domain material when a specialist bridges
+        # its own contribution contract into the common v1 pipe.
+        "payload": contribution.get("payload"),
     }
 
     return normalized
