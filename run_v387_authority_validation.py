@@ -31,8 +31,8 @@ assert any(
 ), "_parse_context_documents"
 
 assert re.search(r'APP_VERSION = "v487\.90"', main_source)
-assert 'USE-v487.90-specialist-contract-separation' in main_source
-assert 'USE-BUILD-v487.90-specialist-contract-separation' in main_source
+assert 'USE-v487.91-hrn-transport-timeout-alignment' in main_source
+assert 'USE-BUILD-v487.91-hrn-transport-timeout-alignment' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
