@@ -1390,104 +1390,15 @@ def _registered_available_specialist(specialist_id):
     return None
 
 
-async def _v48756_query_middleware(request: Request, call_next):
-    if request.method.upper() != "POST" or request.url.path not in {"/api/query", "/"}:
-        return await call_next(request)
-
-    try:
-        raw_body = await request.json()
-    except Exception:
-        raw_body = {}
-    if not isinstance(raw_body, dict):
-        raw_body = {}
-
-    query = str(
-        raw_body.get("query")
-        or raw_body.get("user_query")
-        or raw_body.get("question")
-        or raw_body.get("text")
-        or raw_body.get("input")
-        or ""
-    ).strip()
-    history = raw_body.get("history") or raw_body.get("conversation_history")
-
-    if not query:
-        return await call_next(request)
-
-    route = _guide_capability_route(query, history)
-    route_id = str(route.get("route") or "guide").strip().casefold()
-    mode = str(route.get("mode") or "direct").strip().casefold()
-    confidence = float(route.get("confidence", 0.0) or 0.0)
-
-    # Only an actually available specialist can receive a delegated journey.
-    # The LLM proposes; registry governance authorizes.
-    capability = _registered_available_specialist(route_id)
-    should_delegate = capability is not None and route_id == "relationship"
-
-    print(
-        "The Guide v487.57 capability gate: "
-        f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
-        f"delegate={should_delegate}, query={_normalize_query(query)[:120]}"
-    )
-
-    if should_delegate:
-        request_id = str(getattr(request.state, "use_request_id", "") or "")
-        if not request_id:
-            request_id = "relationship-" + hashlib.sha1(
-                (query + "|" + _history_text(history)).encode("utf-8")
-            ).hexdigest()[:16]
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "ok": True,
-                "version": APP_VERSION,
-                "query": query,
-                "intent": "RELATIONAL_HANDOFF",
-                "response": "",
-                "handoff": "relationship",
-                "handoff_mode": "specialist",
-                "relational_delegation": {
-                    "state": "open",
-                    "specialist": capability.public_name,
-                    "specialist_id": capability.specialist_id,
-                    "session_id": request_id,
-                    "seed_message": query,
-                    "conversation": _history_text(history),
-                    "handoff_reason": "The Guide recognized that this question may be better explored as a relationship before choosing a doorway into the Archive.",
-                    "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
-                    "guide_return_endpoint": "/api/relational-return",
-                    "return_mode": "background_gift",
-                    "return_mode": "background_gift",
-                    "return_mode": "background_gift",
-                },
-                "visitor_boundary_version": APP_VERSION,
-                "request_id": request_id,
-            },
-        )
-
-    return await call_next(request)
-
-# v487.57 request-boundary interception.
-#
-# The v487.56 HTTP middleware did not reliably reach /api/query in the live
-# FastAPI application. The inherited core request path could execute first,
-# which is why the benchmark still produced the v487.28 visitor boundary
-# instead of RELATIONAL_HANDOFF.
-#
-# Keep the FastAPI application intact and wrap it at the ASGI boundary.
-# Non-relational traffic is replayed unchanged into the original FastAPI
-# application, preserving its CORS, request-id, retrieval, generation,
-# safety, and visitor-boundary middleware.
-
-async def _v48757_read_body(receive):
+# Canonical request boundary: one route decision, one specialist handoff seam,
+# one explicit fallback into the protected FastAPI/core application.
+async def _use_request_body(receive):
     chunks = []
     while True:
         message = await receive()
-        message_type = message.get("type")
-        if message_type == "http.disconnect":
+        if message.get("type") == "http.disconnect":
             break
-        if message_type != "http.request":
+        if message.get("type") != "http.request":
             continue
         body = message.get("body") or b""
         if body:
@@ -1497,176 +1408,106 @@ async def _v48757_read_body(receive):
     return b"".join(chunks)
 
 
-def _v48757_replay_receive(body):
+def _use_replay_receive(body):
     sent = False
-
     async def _receive():
         nonlocal sent
         if not sent:
             sent = True
             return {"type": "http.request", "body": body, "more_body": False}
         return {"type": "http.request", "body": b"", "more_body": False}
-
     return _receive
 
 
-async def _v48757_send_json(send, payload, status_code=200):
+async def _use_send_json(send, payload, status_code=200):
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    await send({
-        "type": "http.response.start",
-        "status": status_code,
-        "headers": [
-            (b"content-type", b"application/json; charset=utf-8"),
-            (b"content-length", str(len(body)).encode("ascii")),
-            (b"access-control-allow-origin", b"*"),
-        ],
-    })
+    await send({"type": "http.response.start", "status": status_code,
+                "headers": [(b"content-type", b"application/json; charset=utf-8"),
+                            (b"content-length", str(len(body)).encode("ascii")),
+                            (b"access-control-allow-origin", b"*")]})
     await send({"type": "http.response.body", "body": body})
 
 
 _FASTAPI_APP = app
 
 
-async def _v48757_query_asgi(scope, receive, send):
+async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
         return
-
     method = str(scope.get("method") or "").upper()
     path = str(scope.get("path") or "")
     if method != "POST" or path not in {"/api/query", "/"}:
         await _FASTAPI_APP(scope, receive, send)
         return
 
-    raw_body = await _v48757_read_body(receive)
+    raw_body = await _use_request_body(receive)
     try:
-        raw_body_text = raw_body.decode("utf-8")
-        parsed_body = json.loads(raw_body_text) if raw_body_text else {}
+        parsed_body = json.loads(raw_body.decode("utf-8")) if raw_body else {}
     except Exception:
         parsed_body = {}
-
     if not isinstance(parsed_body, dict):
         parsed_body = {}
 
-    query = str(
-        parsed_body.get("query")
-        or parsed_body.get("user_query")
-        or parsed_body.get("question")
-        or parsed_body.get("text")
-        or parsed_body.get("input")
-        or ""
-    ).strip()
+    query = str(parsed_body.get("query") or parsed_body.get("user_query") or
+                parsed_body.get("question") or parsed_body.get("text") or
+                parsed_body.get("input") or "").strip()
     history = parsed_body.get("history") or parsed_body.get("conversation_history")
-
     if not query:
-        await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
+        await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
 
     route = _guide_capability_route(query, history)
     route_id = str(route.get("route") or "guide").strip().casefold()
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
-
     capability = _registered_available_specialist(route_id)
-    # Groq #1 has selected the specialist. The Guide boundary is a
-    # governance gate only: the selected specialist must exist and be
-    # available. It must not reinterpret or veto the specialist selection
-    # based on mode, processing_need, or confidence.
-    should_delegate = (
-        capability is not None
-        and route_id in {"relationship", "formation"}
-    )
+    should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
-    print(
-        "The Guide v487.76 capability boundary: "
-        f"route={route_id}, mode={mode}, confidence={confidence:.3f}, "
-        f"delegate={should_delegate}, "
-        f"processing_need={str(route.get('round1_interpretation', {}).get('processing_need') or '').casefold()}, "
-        f"specialist_available={capability is not None}, query={_normalize_query(query)[:120]}"
-    )
+    print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
 
     if should_delegate:
-        request_id = route_id + "-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-
+        request_id = route_id + "-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
         if route_id == "formation":
             try:
-                formation_result = _formation_specialist_response(
-                    query, history, route, request_id
-                )
-                return await _v48757_send_json(
-                    send,
-                    {
-                        "ok": True,
-                        "version": APP_VERSION,
-                        "query": query,
-                        "intent": "FORMATION_HANDOFF",
-                        "response": formation_result["response"],
-                        "formation_delegation": formation_result["formation_delegation"],
-                        "visitor_boundary_version": APP_VERSION,
-                        "request_id": request_id,
-                    },
-                )
+                result = _formation_specialist_response(query, history, route, request_id)
+                return await _use_send_json(send, {
+                    "ok": True, "version": APP_VERSION, "query": query,
+                    "intent": "FORMATION_HANDOFF", "response": result["response"],
+                    "formation_delegation": result["formation_delegation"],
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                })
             except Exception as exc:
-                print(f"USE v487.94 Formation specialist failed safely: {exc}")
-                return await _v48757_send_json(
-                    send,
-                    {
-                        "ok": False,
-                        "version": APP_VERSION,
-                        "query": query,
-                        "intent": "FORMATION_HANDOFF",
-                        "response": "The Formation pathway could not be opened right now.",
-                        "error_type": "formation_specialist_failure",
-                        "request_id": request_id,
-                    },
-                    status_code=503,
-                )
-
+                print(f"USE Formation specialist failed safely: {exc}")
+                return await _use_send_json(send, {
+                    "ok": False, "version": APP_VERSION, "query": query,
+                    "intent": "FORMATION_HANDOFF",
+                    "response": "The Formation pathway could not be opened right now.",
+                    "error_type": "formation_specialist_failure", "request_id": request_id,
+                }, 503)
         try:
-            relationship_result = _relationship_specialist_response(
-                query, history, route, request_id, parsed_body
-            )
-            return await _v48757_send_json(
-                send,
-                {
-                    "ok": True,
-                    "version": APP_VERSION,
-                    "query": query,
-                    "intent": "RELATIONAL_HANDOFF",
-                    "response": relationship_result["response"],
-                    "handoff": "relationship",
-                    "handoff_mode": "specialist",
-                    "relational_delegation": relationship_result["relational_delegation"],
-                    "visitor_boundary_version": APP_VERSION,
-                    "request_id": request_id,
-                },
-            )
+            result = _relationship_specialist_response(query, history, route, request_id, parsed_body)
+            return await _use_send_json(send, {
+                "ok": True, "version": APP_VERSION, "query": query,
+                "intent": "RELATIONAL_HANDOFF", "response": result["response"],
+                "handoff": "relationship", "handoff_mode": "specialist",
+                "relational_delegation": result["relational_delegation"],
+                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+            })
         except Exception as exc:
-            print(f"USE v487.95 Relationship specialist failed safely: {exc}")
-            return await _v48757_send_json(
-                send,
-                {
-                    "ok": False,
-                    "version": APP_VERSION,
-                    "query": query,
-                    "intent": "RELATIONAL_HANDOFF",
-                    "response": "The Seeing the Relationship pathway could not be opened right now.",
-                    "error_type": "relationship_specialist_failure",
-                    "relational_delegation": {
-                        "state": "unavailable",
-                        "specialist": "Seeing the Relationship",
-                        "specialist_id": "relationship",
-                        "session_id": request_id,
-                    },
-                    "visitor_boundary_version": APP_VERSION,
-                    "request_id": request_id,
-                },
-                status_code=503,
-            )
+            print(f"USE Relationship specialist failed safely: {exc}")
+            return await _use_send_json(send, {
+                "ok": False, "version": APP_VERSION, "query": query,
+                "intent": "RELATIONAL_HANDOFF",
+                "response": "The Seeing the Relationship pathway could not be opened right now.",
+                "error_type": "relationship_specialist_failure",
+                "relational_delegation": {"state": "unavailable", "specialist": "Seeing the Relationship",
+                                          "specialist_id": "relationship", "session_id": request_id},
+                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+            }, 503)
 
-    await _FASTAPI_APP(scope, _v48757_replay_receive(raw_body), send)
+    # Exactly one fallback into the original protected application.
+    await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
 
 
 FORMATION_ENTRANCE_CONTRACT_VERSION = "v1"
@@ -1850,9 +1691,9 @@ async def _v48755_relational_return_route(request: Request):
 if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
     raise RuntimeError("USE v487.57 invariant failed: relational return route not registered")
 
-# Only expose the ASGI wrapper after every FastAPI route and startup invariant
-# has been registered against the original application object.
-app = _v48757_query_asgi
+# Single authoritative request boundary; all non-specialist requests fall through once.
+app = _use_request_boundary
+
 
 
 print(f"USE v487.88 ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, capability_routing=groq_first_governed")
