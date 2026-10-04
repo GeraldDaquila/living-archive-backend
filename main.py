@@ -222,8 +222,24 @@ _SUBJECT_FAMILIES = {
     "relationship": ("relationship", "relationships", "partner", "partners", "interpersonal", "marriage", "married", "friendship", "friends", "communication", "boundaries"),
 }
 _RELATIONAL_PATTERNS = (
-    r"\bsomeone i care about\b", r"\bpeople i care about\b", r"\bperson i care about\b", r"\brelationship\b",
-    r"\bpartner\b", r"\bloved one\b", r"\bfamily\b", r"\bfriend\b", r"\binterpersonal\b", r"\bwith someone\b", r"\bcare about\b"
+    r"\bsomeone i care about\b", r"\bpeople i care about\b", r"\bperson i care about\b",
+    r"\brelationship\b", r"\bpartner\b", r"\bloved one\b", r"\bfamily\b", r"\bfriend\b",
+    r"\binterpersonal\b", r"\bwith someone\b", r"\bcare about\b",
+    r"\bmy father\b", r"\bmy mother\b", r"\bmy parent\b", r"\bmy parents\b",
+    r"\bmy son\b", r"\bmy daughter\b", r"\bmy child\b", r"\bmy brother\b",
+    r"\bmy sister\b", r"\bmy husband\b", r"\bmy wife\b", r"\bmy family\b",
+    r"\bmy friend\b", r"\bmy colleague\b", r"\bmy boss\b", r"\bmy coworker\b",
+    r"\bmy client\b", r"\bmy team\b", r"\bbetween us\b", r"\bwith my\b"
+)
+
+_RELATIONAL_ACTION_PATTERNS = (
+    r"\bpromised\b", r"\bpromise\b", r"\bgave (?:him|her|them) my word\b",
+    r"\bgave my word\b", r"\bcommitted\b", r"\bcommitment\b", r"\bagreed\b",
+    r"\bowe\b", r"\bowed\b", r"\btake care of\b", r"\blet .* down\b",
+    r"\bdisappoint(?:ed|ing)?\b", r"\bconflict\b", r"\bargu(?:e|ed|ing)\b",
+    r"\bdisagree(?:d|ment|ing)?\b", r"\bneed to tell\b", r"\bneed to say\b",
+    r"\bhave to tell\b", r"\bhave to say\b", r"\bset a boundary\b",
+    r"\bboundaries\b", r"\btrust\b", r"\bforgive\b", r"\bforgiveness\b"
 )
 
 
@@ -231,6 +247,52 @@ def _query_frame(query):
     q = _normalize_query(query)
     families = tuple(family for family, terms in _SUBJECT_FAMILIES.items() if any(re.search(rf"\b{re.escape(term)}\b", q) for term in terms))
     return {"families": families, "relational": any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)}
+
+
+def _lived_relational_structure(query):
+    """Recognize relational structure from lived-situation form, not topic alone."""
+    q = _normalize_query(query)
+    first_person = bool(re.search(r"\b(?:i|i'm|im|my|me|we|our)\b", q, re.I))
+    relational_other = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)
+    relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS)
+    tension = bool(re.search(
+        r"\b(?:but|however|although|yet|now|instead|can't|cannot|don't|"
+        r"doesn't|not sure|unsure|hard|difficult|overwhelmed|want to|"
+        r"need to|have to|part of me|i wish|i don't know)\b",
+        q,
+        re.I,
+    ))
+    bounded_lookup = bool(re.search(
+        r"\b(?:define|definition|what is|what does .* mean|meaning of|"
+        r"look up|lookup|find (?:the|a) (?:resource|article|essay|page)|"
+        r"where is|url|link)\b",
+        q,
+        re.I,
+    ))
+    return {
+        "first_person": first_person,
+        "relational_other": relational_other,
+        "relational_action": relational_action,
+        "tension": tension,
+        "bounded_lookup": bounded_lookup,
+        "lived_relational": (
+            first_person
+            and relational_other
+            and relational_action
+            and tension
+            and not bounded_lookup
+        ),
+    }
+
+
+def _should_open_relationship_specialist(query, interpretation=None):
+    """Systemic Guide-side backstop for lived relational inquiries."""
+    structure = _lived_relational_structure(query)
+    if not structure["lived_relational"]:
+        return False
+    interpretation = interpretation or {}
+    processing_need = str(interpretation.get("processing_need") or "").casefold().strip()
+    return processing_need not in {"retrieval", "definition", "lookup"}
 
 
 def _role_evidence(doc):
@@ -1191,6 +1253,22 @@ def _guide_capability_route(query, history=None):
                 "desired_movement": str(parsed.get("desired_movement") or "").strip(),
                 "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
             }
+
+            # The reasoning model proposes the first route, but the Guide retains
+            # a structural arbitration boundary. A lived relational situation
+            # must not fall back into ordinary retrieval merely because a
+            # general-purpose routing model labels it "guide".
+            if route == "guide" and _should_open_relationship_specialist(
+                query,
+                interpretation,
+            ):
+                route = "relationship"
+                mode = "delegated_journey"
+                reason = (
+                    "Guide-side structural arbitration recognized a lived "
+                    "relational situation; Seeing the Relationship owns the "
+                    "next exploratory move."
+                )
 
             if route not in _GUIDE_ROUTE_IDS:
                 raise ValueError(f"unsupported route {route!r}")
