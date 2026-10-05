@@ -17,8 +17,8 @@ from typing import Any, Iterable, Mapping
 from urllib.parse import urlparse
 
 
-GUIDE_NODE_REGISTRY_VERSION = "v1"
-GUIDE_NODE_SCHEMA_VERSION = "v1"
+GUIDE_NODE_REGISTRY_VERSION = "v2"
+GUIDE_NODE_SCHEMA_VERSION = "v2"
 
 
 @dataclass(frozen=True)
@@ -35,6 +35,7 @@ class GuideNode:
     menu_depth: int = 0
     discovery_priority: str = "normal"
     semantic_hints: tuple[str, ...] = ()
+    discovery_level: int = 1
 
     def as_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -87,6 +88,13 @@ def validate_node(record: Mapping[str, Any]) -> list[str]:
         str(record["canonical_url"])
     ):
         errors.append("invalid:canonical_url")
+
+    try:
+        level = int(record.get("discovery_level", 1))
+        if level not in {1, 2}:
+            errors.append("invalid:discovery_level")
+    except (TypeError, ValueError):
+        errors.append("invalid:discovery_level")
 
     try:
         depth = int(record.get("menu_depth", 0))
