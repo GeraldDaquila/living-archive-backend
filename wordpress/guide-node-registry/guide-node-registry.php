@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Guide Node Registry
  * Description: Structural registry and navigation inspection boundary for The Guide.
- * Version: 0.1.1-draft
+ * Version: 0.1.2-draft
  * Author: Life.Understood.
  *
  * This plugin is intentionally non-intelligent. WordPress remains the
@@ -115,6 +115,20 @@ function la_guide_node_registry_records() {
             'menu_depth'          => 3,
             'discovery_priority'  => 'high',
             'semantic_hints'      => array( 'leadership challenge', 'leadership problem', 'governance challenge', 'systems challenge', 'leadership case', 'case studies', 'recurring pattern' ),
+        ),
+        array(
+            'node_id'             => 'steward-readiness-instruments',
+            'title'               => 'Steward Readiness Instruments',
+            'branch'              => 'Stewardship Framework',
+            'parent'              => 'Stewardship Readiness',
+            'purpose'             => 'Provide the Archive’s developmental instruments for reflective assessment, behavioral calibration, relational accountability, and stewardship under institutional responsibility.',
+            'asset_type'          => 'assessment_suite',
+            'canonical_url'       => 'https://geralddaquila.com/stewardship-readiness/',
+            'access_class'        => 'mixed',
+            'status'              => 'active',
+            'menu_depth'          => 3,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'steward readiness', 'stewardship readiness instruments', 'SRI', 'SRI-16', 'SRI-24', 'stewardship assessment', 'readiness assessment', 'assessment instruments' ),
         ),
         array(
             'node_id'             => 'learning-arcs',
