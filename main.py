@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.21 — Glyph Finder natural-symbol handoff
+# USE PRODUCTION VERSION: v488.22 — Glyph boundary precedence over Glossary
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.21"
-DEPLOYMENT_FINGERPRINT = "USE-v488.21-glyph-finder-natural-symbol-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.21-glyph-finder-natural-symbol-handoff"
+APP_VERSION = "v488.22"
+DEPLOYMENT_FINGERPRINT = "USE-v488.22-glyph-boundary-precedes-glossary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.22-glyph-boundary-precedes-glossary"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.21":
+if str(APP_VERSION) != "v488.22":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1571,15 +1571,15 @@ def _is_glyph_finder_request(query):
     return lookup_language
 
 
-# v488.21 Glyph Finder natural-language boundary guards.
+# v488.22 Glyph Finder natural-language boundary guards.
 if not _is_glyph_finder_request("What is this symbol?"):
-    raise RuntimeError("USE v488.21 invariant failed: natural symbol lookup not recognized")
+    raise RuntimeError("USE v488.22 invariant failed: natural symbol lookup not recognized")
 if not _is_glyph_finder_request("What does this icon mean?"):
-    raise RuntimeError("USE v488.21 invariant failed: natural icon meaning lookup not recognized")
+    raise RuntimeError("USE v488.22 invariant failed: natural icon meaning lookup not recognized")
 if not _is_glyph_finder_request("Find the mark for sovereignty"):
-    raise RuntimeError("USE v488.21 invariant failed: natural mark lookup not recognized")
+    raise RuntimeError("USE v488.22 invariant failed: natural mark lookup not recognized")
 if _is_glyph_finder_request("The symbol in my report is too large"):
-    raise RuntimeError("USE v488.21 invariant failed: non-lookup symbol context was misrouted")
+    raise RuntimeError("USE v488.22 invariant failed: non-lookup symbol context was misrouted")
 
 
 def _navigator_handoff_url(query):
@@ -2226,6 +2226,35 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
+    # High-confidence Glyph Finder boundary: explicit Glyph requests belong
+    # to the native Finder. Do not let provider/model routing or deterministic
+    # Guide fallback convert a bounded native search into an ordinary answer.
+    if _is_glyph_finder_request(query):
+        glyph_url = _glyph_handoff_url(query)
+        request_id = "glyph-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Glyph Finder handoff: "
+            f"request_id={request_id}, url={glyph_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "GLYPH_HANDOFF",
+            "response": "",
+            "handoff": "glyph",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "glyph_query": query,
+            "glyph_url": glyph_url,
+            "return_mode": "native_guardian_glyph_finder",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+
     # Immediate Glossary handoff: an explicit definition/meaning question is
     # already a bounded lookup request. Do not spend a routing-model call or
     # allow ordinary Guide retrieval to answer it first.
@@ -2329,34 +2358,6 @@ async def _use_request_boundary(scope, receive, send):
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
-    # High-confidence Glyph Finder boundary: explicit Glyph requests belong
-    # to the native Finder. Do not let provider/model routing or deterministic
-    # Guide fallback convert a bounded native search into an ordinary answer.
-    if _is_glyph_finder_request(query):
-        glyph_url = _glyph_handoff_url(query)
-        request_id = "glyph-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-        print(
-            "The Guide direct Glyph Finder handoff: "
-            f"request_id={request_id}, url={glyph_url}"
-        )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "GLYPH_HANDOFF",
-            "response": "",
-            "handoff": "glyph",
-            "handoff_mode": "direct",
-            "handoff_pending": True,
-            "glyph_query": query,
-            "glyph_url": glyph_url,
-            "return_mode": "native_guardian_glyph_finder",
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-        })
-
     # Registered destination precedence is evaluated BEFORE generic
     # orientation and before provider/model routing. A visitor who names a
     # specific Guide Node has already supplied enough destination intent;
