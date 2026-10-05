@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.01 — Glossary direct handoff final QA
+# USE PRODUCTION VERSION: v488.02 — Glossary immediate boundary
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.01"
-DEPLOYMENT_FINGERPRINT = "USE-v488.01-glossary-direct-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.01-glossary-direct-handoff"
+APP_VERSION = "v488.02"
+DEPLOYMENT_FINGERPRINT = "USE-v488.02-glossary-immediate-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.02-glossary-immediate-boundary"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.01":
+if str(APP_VERSION) != "v488.02":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1758,6 +1758,42 @@ async def _use_request_boundary(scope, receive, send):
     if not query:
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
+
+    # Immediate Glossary handoff: an explicit definition/meaning question is
+    # already a bounded lookup request. Do not spend a routing-model call or
+    # allow ordinary Guide retrieval to answer it first.
+    glossary_term = _normalize_glossary_term(query)
+    if glossary_term and re.match(
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\\b",
+        _normalize_query(query),
+        re.I,
+    ):
+        glossary_url = (
+            "https://geralddaquila.com/glossary/?glossary_term="
+            + quote(glossary_term, safe="")
+        )
+        request_id = "glossary-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate Glossary handoff: "
+            f"request_id={request_id}, term={glossary_term!r}, url={glossary_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "GLOSSARY_HANDOFF",
+            "response": "",
+            "handoff": "glossary",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "glossary_term": glossary_term,
+            "glossary_url": glossary_url,
+            "return_mode": "native_glossary_search",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
 
     # Immediate lived-relational handoff: do not spend a Guide routing-model call
     # or invoke the HRN specialist before the HRN surface is opened. The visitor's
