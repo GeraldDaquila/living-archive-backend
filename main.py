@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.08 — Navigator newcomer-orientation routing
+# USE PRODUCTION VERSION: v488.09 — LLM-governed Navigator routing
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.08"
-DEPLOYMENT_FINGERPRINT = "USE-v488.08-navigator-newcomer-orientation-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.08-navigator-newcomer-orientation-routing"
+APP_VERSION = "v488.09"
+DEPLOYMENT_FINGERPRINT = "USE-v488.09-llm-governed-navigator-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.09-llm-governed-navigator-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.07":
+if str(APP_VERSION) != "v488.09":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1166,7 +1166,7 @@ Possible routes:
   what a situation may be asking someone to learn, practice, examine, or carry
 - catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
 - atlas: Living Archive Atlas Finder; bounded visual Reference Map navigation
-- navigator: Living Archive Navigator; public inquiry orientation and three-door canonical navigation
+- navigator: Living Archive Navigator; the universal entry/orientation surface when the visitor is trying to find where to begin, how to enter the Living Archive, or how to discover a useful path through it rather than retrieve one particular resource
 - systems_ph: Philippine Systems Lens; bounded inquiry into interacting
   Philippine systems and conditions
 - safety: Safety / Crisis
@@ -1186,6 +1186,10 @@ Important routing principles:
   route.
 - If the visitor explicitly seeks a definition, glyph, catalogue item, or
   bounded systems/formation task, honor that clear intent.
+- When the visitor is asking where to begin, how to enter, or how to find a
+  useful way into the Living Archive or site as a whole, prefer navigator when
+  that orientation need is central. Do not require the visitor to name the
+  Navigator.
 - If the visitor is presenting a lived situation whose useful next step is
   discovery rather than retrieval, prefer the processing mode that can create
   that discovery.
@@ -1338,60 +1342,6 @@ def _navigator_handoff_url(query):
     )
 
 
-def _is_explicit_navigator_request(query):
-    """Recognize a bounded request for the public Living Archive Navigator.
-
-    Do not route ordinary uses of 'navigate' or 'start' here. The specialist
-    boundary is explicit Navigator / Start Here language or a clear request
-    for help finding a way into the Archive.
-    """
-    q = _normalize_query(query)
-    if re.search(r"\b(?:living\s+archive\s+)?navigator\b", q, re.I):
-        return True
-    if re.search(r"\bstart\s+here\b", q, re.I):
-        return True
-    # A newcomer asking where to go first is a bounded orientation request.
-    # This is intentionally tied to site/archive context so ordinary questions
-    # such as "where should I start with X?" are not swallowed by Navigator.
-    newcomer_orientation = bool(re.search(
-        r"\b(?:i(?:'m|\s+am)\s+new\s+to\s+(?:the\s+)?(?:site|archive|living\s+archive)|"
-        r"new\s+to\s+(?:the\s+)?(?:site|archive|living\s+archive))\b",
-        q,
-        re.I,
-    ))
-    first_step_orientation = bool(re.search(
-        r"\b(?:where\s+(?:do|should|can)\s+(?:i|you)\s+(?:suggest\s+)?(?:i\s+)?go\s+first|"
-        r"where\s+(?:should|do|can)\s+i\s+(?:start|begin)\b|"
-        r"what\s+should\s+i\s+(?:explore|read|see)\s+first|"
-        r"how\s+do\s+i\s+(?:get\s+)?started)\b",
-        q,
-        re.I,
-    ))
-    if newcomer_orientation and first_step_orientation:
-        return True
-
-    site_first_request = bool(re.search(
-        r"\b(?:where|how)\s+(?:do|should|can)\s+i\s+(?:begin|start|go)\b"
-        r".{0,100}\b(?:site|archive|living\s+archive)\b",
-        q,
-        re.I,
-    )) or bool(re.search(
-        r"\b(?:where|what)\s+(?:should|do)\s+i\s+(?:go|start|begin|explore|read)\s+first\b"
-        r".{0,100}\b(?:site|archive|living\s+archive)\b",
-        q,
-        re.I,
-    ))
-    if site_first_request:
-        return True
-
-    return bool(re.search(
-        r"\b(?:find|help|show|give)\b.{0,80}"
-        r"\b(?:way|place|entry|entrance)\b.{0,80}"
-        r"\b(?:into|in)\b.{0,40}\b(?:the\s+)?(?:archive|living\s+archive)\b",
-        q,
-        re.I,
-    ))
-
 
 def _is_explicit_atlas_request(query):
     """Recognize a bounded request for the native Atlas / Reference Map surface.
@@ -1459,15 +1409,6 @@ def _guide_route_fallback(query, history=None):
             "source": "deterministic-fallback",
         }
 
-    if _is_explicit_navigator_request(query):
-        return {
-            "route": "navigator",
-            "mode": "lookup",
-            "confidence": 0.90,
-            "reason": "explicit Living Archive Navigator / Start Here request",
-            "alternatives": ["guide"],
-            "source": "deterministic-fallback",
-        }
 
     if _is_explicit_atlas_request(query):
         return {
@@ -1942,36 +1883,6 @@ async def _use_request_boundary(scope, receive, send):
             "catalogue_query": query,
             "catalogue_url": catalogue_url,
             "return_mode": "native_catalogue_search",
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-        })
-
-        # Immediate Navigator handoff: an explicit request for the public
-    # Living Archive Navigator is already a bounded specialist request.
-    # Do not let ordinary Guide retrieval answer it first. The native
-    # Navigator receives the original inquiry and keeps its own multi-step
-    # conversation, clarification, retrieval, and path planning.
-    if _is_explicit_navigator_request(query):
-        navigator_url = _navigator_handoff_url(query)
-        request_id = "navigator-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-        print(
-            "The Guide immediate Navigator handoff: "
-            f"request_id={request_id}, url={navigator_url}"
-        )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "NAVIGATOR_HANDOFF",
-            "response": "",
-            "handoff": "navigator",
-            "handoff_mode": "immediate",
-            "handoff_pending": True,
-            "navigator_query": query,
-            "navigator_url": navigator_url,
-            "return_mode": "native_archive_navigator",
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
