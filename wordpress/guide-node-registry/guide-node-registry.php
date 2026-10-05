@@ -267,18 +267,33 @@ function la_guide_navigation_sources() {
         }
 
         $items = wp_get_nav_menu_items( $menu_id );
+        $depth_by_id = array();
+
+        foreach ( (array) $items as $menu_item ) {
+            $parent_id = (int) $menu_item->menu_item_parent;
+            $depth = 0;
+
+            if ( $parent_id && isset( $depth_by_id[ $parent_id ] ) ) {
+                $depth = $depth_by_id[ $parent_id ] + 1;
+            }
+
+            $depth_by_id[ (int) $menu_item->ID ] = $depth;
+        }
+
         $sources[] = array(
             'source'   => 'classic_menu',
             'location' => $location,
             'menu_id'  => (int) $menu_id,
             'items'    => array_map(
-                static function ( $item ) {
+                static function ( $item ) use ( $depth_by_id ) {
                     return array(
                         'id'         => (int) $item->ID,
                         'title'      => wp_strip_all_tags( $item->title ),
                         'url'        => esc_url_raw( $item->url ),
                         'parent_id'  => (int) $item->menu_item_parent,
-                        'depth'      => (int) $item->menu_order,
+                        'depth'      => isset( $depth_by_id[ (int) $item->ID ] )
+                            ? (int) $depth_by_id[ (int) $item->ID ]
+                            : 0,
                     );
                 },
                 (array) $items
