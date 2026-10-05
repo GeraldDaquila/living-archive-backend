@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.07 — Navigator immediate specialist handoff
+# USE PRODUCTION VERSION: v488.08 — Navigator newcomer-orientation routing
 import hashlib
 import importlib
 import re
@@ -46,9 +46,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.07"
-DEPLOYMENT_FINGERPRINT = "USE-v488.07-navigator-immediate-specialist-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.07-navigator-immediate-specialist-handoff"
+APP_VERSION = "v488.08"
+DEPLOYMENT_FINGERPRINT = "USE-v488.08-navigator-newcomer-orientation-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.08-navigator-newcomer-orientation-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1350,17 +1350,44 @@ def _is_explicit_navigator_request(query):
         return True
     if re.search(r"\bstart\s+here\b", q, re.I):
         return True
-    if re.search(
-        r"\b(?:where|how)\s+(?:do|should|can)\s+i\s+(?:begin|start)\b"
-        r".{0,100}\b(?:archive|living\s+archive)\b",
+    # A newcomer asking where to go first is a bounded orientation request.
+    # This is intentionally tied to site/archive context so ordinary questions
+    # such as "where should I start with X?" are not swallowed by Navigator.
+    newcomer_orientation = bool(re.search(
+        r"\b(?:i(?:'m|\\s+am)\\s+new\\s+to\\s+(?:the\\s+)?(?:site|archive|living\\s+archive)|"
+        r"new\\s+to\\s+(?:the\\s+)?(?:site|archive|living\\s+archive))\\b",
         q,
         re.I,
-    ):
+    ))
+    first_step_orientation = bool(re.search(
+        r"\b(?:where\\s+(?:do|should|can)\\s+(?:i|you)\\s+(?:suggest\\s+)?(?:i\\s+)?go\\s+first|"
+        r"where\\s+(?:should|do|can)\\s+i\\s+(?:start|begin)\\b|"
+        r"what\\s+should\\s+i\\s+(?:explore|read|see)\\s+first|"
+        r"how\\s+do\\s+i\\s+(?:get\\s+)?started)\\b",
+        q,
+        re.I,
+    ))
+    if newcomer_orientation and first_step_orientation:
         return True
+
+    site_first_request = bool(re.search(
+        r"\\b(?:where|how)\\s+(?:do|should|can)\\s+i\\s+(?:begin|start|go)\\b"
+        r".{0,100}\\b(?:site|archive|living\\s+archive)\\b",
+        q,
+        re.I,
+    )) or bool(re.search(
+        r"\\b(?:where|what)\\s+(?:should|do)\\s+i\\s+(?:go|start|begin|explore|read)\\s+first\\b"
+        r".{0,100}\\b(?:site|archive|living\\s+archive)\\b",
+        q,
+        re.I,
+    ))
+    if site_first_request:
+        return True
+
     return bool(re.search(
-        r"\b(?:find|help|show|give)\b.{0,80}"
-        r"\b(?:way|place|entry|entrance)\b.{0,80}"
-        r"\b(?:into|in)\b.{0,40}\b(?:the\s+)?(?:archive|living\s+archive)\b",
+        r"\\b(?:find|help|show|give)\\b.{0,80}"
+        r"\\b(?:way|place|entry|entrance)\\b.{0,80}"
+        r"\\b(?:into|in)\\b.{0,40}\\b(?:the\\s+)?(?:archive|living\\s+archive)\\b",
         q,
         re.I,
     ))
