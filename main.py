@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.23 — Guide Node semantic-overlap activation
+# USE PRODUCTION VERSION: v488.24 — Guide Node semantic-overlap activation
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.23"
-DEPLOYMENT_FINGERPRINT = "USE-v488.23-guide-node-semantic-overlap-activation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.23-guide-node-semantic-overlap-activation"
+APP_VERSION = "v488.24"
+DEPLOYMENT_FINGERPRINT = "USE-v488.24-guide-node-semantic-overlap-activation"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.24-guide-node-semantic-overlap-activation"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.23":
+if str(APP_VERSION) != "v488.24":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1760,6 +1760,101 @@ def _guide_route_models():
         return []
 
 
+def _guide_node_semantic_activation(query, interpretation, route):
+    """Select a strongly matching approved Guide Node after macro routing.
+
+    This is a registry-bound activation guard, not a second topic classifier.
+    The model still makes the primary routing decision. The guard only
+    activates when the visitor's question and the model's interpretation
+    show multiple meaningful overlaps with one approved node's title, purpose,
+    or semantic hints. Hard specialist boundaries remain authoritative.
+    """
+    route_id = str(route or "guide").strip().casefold()
+    if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator", "case"}:
+        return None
+
+    interpretation = interpretation if isinstance(interpretation, dict) else {}
+    context = " ".join(
+        str(interpretation.get(key) or "").strip()
+        for key in (
+            "human_reality",
+            "presenting_situation",
+            "visitor_proposition",
+            "underlying_question",
+            "uncertainty",
+            "desired_movement",
+            "processing_need",
+        )
+    )
+    combined = _normalize_query(" ".join(part for part in (query, context) if part))
+    query_terms = set(_subject_terms(combined))
+    if not query_terms:
+        return None
+
+    candidates = []
+    for node in _guide_node_registry_snapshot():
+        title = str(node.get("title") or "").strip()
+        purpose = str(node.get("purpose") or "").strip()
+        hints = [str(item).strip() for item in (node.get("semantic_hints") or []) if str(item).strip()]
+        if not title:
+            continue
+
+        score = 0
+        signals = 0
+
+        title_norm = _normalize_query(title)
+        if title_norm and title_norm in combined:
+            score += 12
+            signals += 2
+
+        title_terms = set(_subject_terms(title_norm))
+        title_overlap = query_terms & title_terms
+        if title_overlap:
+            score += min(8, 4 * len(title_overlap))
+            signals += 1
+
+        for hint in hints:
+            hint_norm = _normalize_query(hint)
+            if hint_norm and hint_norm in combined:
+                score += 8
+                signals += 1
+                continue
+            hint_terms = set(_subject_terms(hint_norm))
+            overlap = query_terms & hint_terms
+            if overlap:
+                score += min(6, 2 * len(overlap))
+                signals += 1
+
+        purpose_terms = set(_subject_terms(_normalize_query(purpose)))
+        purpose_overlap = query_terms & purpose_terms
+        if len(purpose_overlap) >= 2:
+            score += min(6, 2 * len(purpose_overlap))
+            signals += 1
+        elif len(purpose_overlap) == 1:
+            score += 2
+
+        if score >= 8 and signals >= 2:
+            candidates.append((score, signals, node))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    best = candidates[0]
+    if len(candidates) > 1:
+        runner_up = candidates[1]
+        if best[0] < runner_up[0] + 3:
+            return None
+
+    node = best[2]
+    print(
+        "The Guide registry semantic activation: "
+        f"route_before={route_id}, node={node.get('node_id')}, "
+        f"score={best[0]}, signals={best[1]}"
+    )
+    return node
+
+
 def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
     fallback = _guide_route_fallback(query, history)
@@ -1820,6 +1915,17 @@ def _guide_capability_route(query, history=None):
         reason = (
             "Guide-side structural arbitration recognized a lived relational "
             "situation; Seeing the Relationship owns the next exploratory move."
+        )
+
+    activated_node = _guide_node_semantic_activation(query, interpretation, route)
+    if activated_node is not None:
+        route = "guide_node"
+        mode = "direct"
+        interpretation["guide_node_id"] = str(activated_node.get("node_id") or "").strip()
+        confidence = max(confidence, 0.90)
+        reason = (
+            "The approved Guide Node is a stronger destination match than the "
+            "broader macro route, based on multiple registry-defined semantic signals."
         )
 
     if route not in _GUIDE_ROUTE_IDS:
@@ -2119,7 +2225,7 @@ def _guide_node_specific_match(query):
     return best if best_score >= 10 else None
 
 
-# v488.23 Guide Node semantic-overlap boundary guard.
+# v488.24 Guide Node semantic-overlap boundary guard.
 # The registered Steward Readiness destination must be reachable from natural
 # language that expresses the destination without reproducing its exact title.
 _steward_readiness_probe = _guide_node_specific_match(
@@ -2127,7 +2233,7 @@ _steward_readiness_probe = _guide_node_specific_match(
 )
 if not _steward_readiness_probe or _steward_readiness_probe.get("node_id") != "steward-readiness-instruments":
     raise RuntimeError(
-        "USE v488.23 invariant failed: natural Steward Readiness destination was not resolved."
+        "USE v488.24 invariant failed: natural Steward Readiness destination was not resolved."
     )
 
 async def _use_request_boundary(scope, receive, send):
