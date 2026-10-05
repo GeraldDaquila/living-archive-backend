@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.11 — Navigator welcome entrance handoff
+# USE PRODUCTION VERSION: v488.12 — systemic Navigator orientation routing
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.11"
-DEPLOYMENT_FINGERPRINT = "USE-v488.11-navigator-welcome-entrance"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.11-navigator-welcome-entrance"
+APP_VERSION = "v488.12"
+DEPLOYMENT_FINGERPRINT = "USE-v488.12-systemic-navigator-orientation-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.12-systemic-navigator-orientation-routing"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.11":
+if str(APP_VERSION) != "v488.12":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1346,6 +1346,57 @@ def _navigator_handoff_url(query):
     """
     return "https://geralddaquila.com/start-here-2/"
 
+def _is_navigator_orientation_request(query):
+    """Recognize high-confidence Archive/site orientation intent before retrieval.
+
+    This is a governance boundary, not a topic classifier. Clear orientation
+    requests are routed to the native Navigator before the Guide can answer
+    them as ordinary retrieval. Ambiguous questions still go through the
+    provider/model bank, preserving LLM judgment for cases that need it.
+
+    The rule intentionally combines an orientation action with an Archive/site
+    context, while also allowing strong first-entry language such as "I am new
+    here" or "where do I begin". It does not inspect the subject matter of the
+    requested resources.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    orientation_action = re.search(
+        r"\b(?:where|how)\b.{0,80}\b(?:start|begin|get\s+started|"
+        r"enter|find\s+my\s+way|explore|navigate)\b"
+        r"|\b(?:best|good|right|useful)\s+(?:place|way)\s+to\s+"
+        r"(?:start|begin)\b"
+        r"|\b(?:new\s+to|new\s+here|new\s+around)\b"
+        r"|\b(?:how\s+do\s+i|where\s+do\s+i)\s+(?:start|begin|"
+        r"get\s+started|go\s+from\s+here)\b",
+        q,
+        re.I,
+    )
+    if not orientation_action:
+        return False
+
+    archive_context = re.search(
+        r"\b(?:living\s+archive|archive|this\s+site|this\s+website|"
+        r"this\s+site|site|website|here)\b",
+        q,
+        re.I,
+    )
+    first_entry = re.search(
+        r"\b(?:i(?:\s+am|'m)\s+new\s+(?:to\s+)?(?:this\s+site|"
+        r"this\s+website|the\s+archive|living\s+archive|here)|"
+        r"i(?:\s+am|'m)\s+new\s+here|"
+        r"where(?:'s|\s+is)\s+(?:the\s+)?(?:best|right|good)\s+place\s+"
+        r"to\s+(?:start|begin)|"
+        r"where\s+should\s+i\s+(?:start|begin))\b",
+        q,
+        re.I,
+    )
+    return bool(archive_context or first_entry)
+
+
+
 
 
 def _is_explicit_atlas_request(query):
@@ -1900,6 +1951,35 @@ async def _use_request_boundary(scope, receive, send):
                 "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
                 "return_mode": "guide_integrated",
             },
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+    # High-confidence orientation boundary: a visitor asking how to enter,
+    # where to begin, or how to find their way into the Archive should not be
+    # allowed to fall through into ordinary Guide retrieval. This is the
+    # systemic counterpart to the Navigator's native welcome entrance.
+    if _is_navigator_orientation_request(query):
+        navigator_url = _navigator_handoff_url(query)
+        request_id = "navigator-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide systemic Navigator orientation handoff: "
+            f"request_id={request_id}, url={navigator_url}, "
+            f"query={_normalize_query(query)[:120]}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "NAVIGATOR_HANDOFF",
+            "response": "",
+            "handoff": "navigator",
+            "handoff_mode": "entrance",
+            "handoff_pending": True,
+            "navigator_url": navigator_url,
+            "return_mode": "native_archive_navigator_welcome",
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
