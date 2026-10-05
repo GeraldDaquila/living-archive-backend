@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.12 — systemic Navigator orientation routing
+# USE PRODUCTION VERSION: v488.13 — Guardian Glyph Finder native handoff
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.12"
-DEPLOYMENT_FINGERPRINT = "USE-v488.12-systemic-navigator-orientation-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.12-systemic-navigator-orientation-routing"
+APP_VERSION = "v488.13"
+DEPLOYMENT_FINGERPRINT = "USE-v488.13-guardian-glyph-finder-native-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.13-guardian-glyph-finder-native-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.12":
+if str(APP_VERSION) != "v488.13":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1336,6 +1336,43 @@ def _atlas_handoff_url(query):
     )
 
 
+def _glyph_handoff_url(query):
+    """Build the native Guardian Glyph Finder destination.
+
+    The Glyph Finder owns canonical Glyph identity resolution, semantic
+    evidence matching, and visitor-facing presentation. USE only carries the
+    visitor's original inquiry across the native search boundary.
+    """
+    return (
+        "https://geralddaquila.com/guardian-glyph-archives/"
+        + "?glyph_finder_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_glyph_finder_request(query):
+    """Recognize a high-confidence request for the native Glyph Finder.
+
+    This is a visitor-boundary rule, not a duplicate Glyph retrieval engine.
+    Explicit Glyph/Guardian Glyph requests are handed to the native Finder
+    before provider routing can turn them into an ordinary Guide answer.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+    if re.search(r"\bguardian\s+glyphs?\b", q, re.I):
+        return True
+    if not re.search(r"\bglyphs?\b", q, re.I):
+        return False
+    return bool(re.search(
+        r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
+        r"where|related\s+to|for|about|tell\s+me\s+about|"
+        r"search|identify)\b",
+        q,
+        re.I,
+    ))
+
+
 def _navigator_handoff_url(query):
     """Build the native Living Archive Navigator entrance destination.
 
@@ -1955,6 +1992,34 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
+    # High-confidence Glyph Finder boundary: explicit Glyph requests belong
+    # to the native Finder. Do not let provider/model routing or deterministic
+    # Guide fallback convert a bounded native search into an ordinary answer.
+    if _is_glyph_finder_request(query):
+        glyph_url = _glyph_handoff_url(query)
+        request_id = "glyph-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Glyph Finder handoff: "
+            f"request_id={request_id}, url={glyph_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "GLYPH_HANDOFF",
+            "response": "",
+            "handoff": "glyph",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "glyph_query": query,
+            "glyph_url": glyph_url,
+            "return_mode": "native_guardian_glyph_finder",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
     # High-confidence orientation boundary: a visitor asking how to enter,
     # where to begin, or how to find their way into the Archive should not be
     # allowed to fall through into ordinary Guide retrieval. This is the
@@ -2071,6 +2136,34 @@ async def _use_request_boundary(scope, receive, send):
             "atlas_query": query,
             "atlas_url": atlas_url,
             "return_mode": "native_atlas_finder",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+    # Glyph Finder is a visitor-facing native search surface. The native
+    # Finder owns identity resolution, semantic evidence weighting, and
+    # presentation; USE only carries the original inquiry across the boundary.
+    if route_id == "glyph":
+        glyph_url = _glyph_handoff_url(query)
+        request_id = "glyph-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Glyph Finder handoff: "
+            f"request_id={request_id}, url={glyph_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "GLYPH_HANDOFF",
+            "response": "",
+            "handoff": "glyph",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "glyph_query": query,
+            "glyph_url": glyph_url,
+            "return_mode": "native_guardian_glyph_finder",
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
