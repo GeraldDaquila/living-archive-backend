@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.28 — Guide Node semantic arbitration refinement
+# USE PRODUCTION VERSION: v488.29 — Guide Node arbitration query anchoring
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.28"
-DEPLOYMENT_FINGERPRINT = "USE-v488.28-guide-node-semantic-arbitration-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.28-guide-node-semantic-arbitration-refinement"
+APP_VERSION = "v488.29"
+DEPLOYMENT_FINGERPRINT = "USE-v488.29-guide-node-arbitration-query-anchoring"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.29-guide-node-arbitration-query-anchoring"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.28":
+if str(APP_VERSION) != "v488.29":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1801,20 +1801,15 @@ def _guide_node_semantic_activation(query, interpretation, route):
         return None
 
     interpretation = interpretation if isinstance(interpretation, dict) else {}
-    context = " ".join(
-        str(interpretation.get(key) or "").strip()
-        for key in (
-            "human_reality",
-            "presenting_situation",
-            "visitor_proposition",
-            "underlying_question",
-            "uncertainty",
-            "desired_movement",
-            "processing_need",
-        )
-    )
-    combined = _normalize_query(" ".join(part for part in (query, context) if part))
-    query_terms = set(_subject_terms(combined))
+    # Destination arbitration must remain anchored to the visitor's actual
+    # words. The provider interpretation is useful for route selection, but it
+    # must not be allowed to manufacture destination evidence and then use that
+    # manufactured evidence to override the visitor's question. Otherwise a
+    # mistaken macro interpretation such as "leadership/system challenge" can
+    # make Leadership Challenge Navigator win a broad territory query that
+    # actually belongs to Series & Analysis.
+    raw_query = _normalize_query(query)
+    query_terms = set(_subject_terms(raw_query))
     if not query_terms:
         return None
 
@@ -1824,7 +1819,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
         "where can i learn", "where can i explore", "what part of the archive",
         "which area", "which part", "understand the broader", "learn more about",
     )
-    broad_request = any(marker in combined for marker in territory_markers)
+    broad_request = any(marker in raw_query for marker in territory_markers)
 
     candidates = []
     for node in _guide_node_registry_snapshot():
@@ -1846,7 +1841,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
         distinctive = 0
 
         title_norm = _normalize_query(title)
-        if title_norm and title_norm in combined:
+        if title_norm and title_norm in raw_query:
             score += 12
             signals += 2
             distinctive += 12
@@ -1862,7 +1857,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
         # isolated generic words. This prevents a Level-I specialist such as
         # Leadership Challenge Navigator from winning merely because a broad
         # territory query happens to contain "systems" and "pattern".
-        query_tokens = tuple(_subject_terms(combined))
+        query_tokens = tuple(_subject_terms(raw_query))
         query_bigrams = {
             " ".join(query_tokens[index:index + 2])
             for index in range(max(0, len(query_tokens) - 1))
@@ -1887,7 +1882,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
 
         for hint in hints:
             hint_norm = _normalize_query(hint)
-            if hint_norm and hint_norm in combined:
+            if hint_norm and hint_norm in raw_query:
                 score += 8
                 signals += 1
                 distinctive += 8
@@ -1946,7 +1941,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
         # visitor clearly names the territory itself.
         explicit_level_two = [
             item for item in level_two
-            if _normalize_query(str(item[3].get("title") or "")) in combined
+            if _normalize_query(str(item[3].get("title") or "")) in raw_query
         ]
         if explicit_level_two:
             explicit_level_two.sort(key=lambda item: (item[0], item[1]), reverse=True)
