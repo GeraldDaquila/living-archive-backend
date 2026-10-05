@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Guide Node Registry
  * Description: Structural registry and navigation inspection boundary for The Guide.
- * Version: 0.1.2-draft
+ * Version: 0.1.3-draft
  * Author: Life.Understood.
  *
  * This plugin is intentionally non-intelligent. WordPress remains the
@@ -129,6 +129,20 @@ function la_guide_node_registry_records() {
             'menu_depth'          => 3,
             'discovery_priority'  => 'high',
             'semantic_hints'      => array( 'steward readiness', 'stewardship readiness instruments', 'SRI', 'SRI-16', 'SRI-24', 'stewardship assessment', 'readiness assessment', 'assessment instruments' ),
+        ),
+        array(
+            'node_id'             => 'sovereign-sensemaking-compass',
+            'title'               => 'Sovereign Sensemaking Compass',
+            'branch'              => 'Core Frameworks',
+            'parent'              => 'Core Frameworks',
+            'purpose'             => 'Provide a grounded map for navigating complexity, uncertainty, cultural identity, and personal transition without losing clarity or agency.',
+            'asset_type'          => 'framework_guide',
+            'canonical_url'       => 'https://geralddaquila.com/the-sovereign-sensemaking-compass/',
+            'access_class'        => 'purchase',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'Sovereign Sensemaking Compass', 'sensemaking compass', 'sensemaking', 'clarity without paranoia', 'Signal vs. Story', 'sovereignty check', 'navigate uncertainty', 'information overload', 'personal transition' ),
         ),
         array(
             'node_id'             => 'learning-arcs',
