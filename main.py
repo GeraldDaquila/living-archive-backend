@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.06 — Atlas immediate specialist handoff
+# USE PRODUCTION VERSION: v488.07 — Navigator immediate specialist handoff
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.06"
-DEPLOYMENT_FINGERPRINT = "USE-v488.06-atlas-immediate-specialist-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.06-atlas-immediate-specialist-handoff"
+APP_VERSION = "v488.07"
+DEPLOYMENT_FINGERPRINT = "USE-v488.07-navigator-immediate-specialist-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.07-navigator-immediate-specialist-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.06":
+if str(APP_VERSION) != "v488.07":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1121,6 +1121,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "formation",
     "catalogue",
     "atlas",
+    "navigator",
     "systems_ph",
     "safety",
     "glossary",
@@ -1165,6 +1166,7 @@ Possible routes:
   what a situation may be asking someone to learn, practice, examine, or carry
 - catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
 - atlas: Living Archive Atlas Finder; bounded visual Reference Map navigation
+- navigator: Living Archive Navigator; public inquiry orientation and three-door canonical navigation
 - systems_ph: Philippine Systems Lens; bounded inquiry into interacting
   Philippine systems and conditions
 - safety: Safety / Crisis
@@ -1205,7 +1207,7 @@ Return ONLY valid JSON with exactly these keys:
   "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
-  "route": "guide|relationship|formation|catalogue|atlas|systems_ph|safety|glossary|glyph",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
@@ -1322,6 +1324,48 @@ def _atlas_handoff_url(query):
     )
 
 
+def _navigator_handoff_url(query):
+    """Build the native Living Archive Navigator destination.
+
+    USE carries the visitor's original inquiry across the specialist boundary.
+    The Navigator remains responsible for its own multi-step clarification,
+    grounded retrieval, path planning, and human-voice rendering.
+    """
+    return (
+        "https://geralddaquila.com/start-here-2/"
+        + "?navigator_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_explicit_navigator_request(query):
+    """Recognize a bounded request for the public Living Archive Navigator.
+
+    Do not route ordinary uses of 'navigate' or 'start' here. The specialist
+    boundary is explicit Navigator / Start Here language or a clear request
+    for help finding a way into the Archive.
+    """
+    q = _normalize_query(query)
+    if re.search(r"\b(?:living\s+archive\s+)?navigator\b", q, re.I):
+        return True
+    if re.search(r"\bstart\s+here\b", q, re.I):
+        return True
+    if re.search(
+        r"\b(?:where|how)\s+(?:do|should|can)\s+i\s+(?:begin|start)\b"
+        r".{0,100}\b(?:archive|living\s+archive)\b",
+        q,
+        re.I,
+    ):
+        return True
+    return bool(re.search(
+        r"\b(?:find|help|show|give)\b.{0,80}"
+        r"\b(?:way|place|entry|entrance)\b.{0,80}"
+        r"\b(?:into|in)\b.{0,40}\b(?:the\s+)?(?:archive|living\s+archive)\b",
+        q,
+        re.I,
+    ))
+
+
 def _is_explicit_atlas_request(query):
     """Recognize a bounded request for the native Atlas / Reference Map surface.
 
@@ -1384,6 +1428,16 @@ def _guide_route_fallback(query, history=None):
             "mode": "lookup",
             "confidence": 0.65,
             "reason": "explicit glyph lookup language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    if _is_explicit_navigator_request(query):
+        return {
+            "route": "navigator",
+            "mode": "lookup",
+            "confidence": 0.90,
+            "reason": "explicit Living Archive Navigator / Start Here request",
             "alternatives": ["guide"],
             "source": "deterministic-fallback",
         }
@@ -1865,7 +1919,37 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    # Immediate Atlas handoff: an explicit Atlas / Reference Map request is
+        # Immediate Navigator handoff: an explicit request for the public
+    # Living Archive Navigator is already a bounded specialist request.
+    # Do not let ordinary Guide retrieval answer it first. The native
+    # Navigator receives the original inquiry and keeps its own multi-step
+    # conversation, clarification, retrieval, and path planning.
+    if _is_explicit_navigator_request(query):
+        navigator_url = _navigator_handoff_url(query)
+        request_id = "navigator-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate Navigator handoff: "
+            f"request_id={request_id}, url={navigator_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "NAVIGATOR_HANDOFF",
+            "response": "",
+            "handoff": "navigator",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "navigator_query": query,
+            "navigator_url": navigator_url,
+            "return_mode": "native_archive_navigator",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+# Immediate Atlas handoff: an explicit Atlas / Reference Map request is
     # already a bounded specialist request. Do not spend a routing-model call
     # or let ordinary Guide retrieval answer it first. The native Atlas page
     # then invokes its existing Finder/AJAX contract with the original query.
@@ -2006,7 +2090,35 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    # Atlas is a visitor-facing specialist surface, not a Guide retrieval
+        # Navigator is a visitor-facing specialist surface. Hand the original
+    # inquiry to its native Start Here/Navigator experience rather than
+    # duplicating its multi-step retrieval and path-planning logic.
+    if route_id == "navigator":
+        navigator_url = _navigator_handoff_url(query)
+        request_id = "navigator-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Navigator handoff: "
+            f"request_id={request_id}, url={navigator_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "NAVIGATOR_HANDOFF",
+            "response": "",
+            "handoff": "navigator",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "navigator_query": query,
+            "navigator_url": navigator_url,
+            "return_mode": "native_archive_navigator",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+# Atlas is a visitor-facing specialist surface, not a Guide retrieval
     # spoke. Hand the original inquiry to the native Atlas Finder surface.
     if route_id == "atlas":
         atlas_url = _atlas_handoff_url(query)
