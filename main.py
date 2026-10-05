@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.18 — Guide Node Registry integration
+# USE PRODUCTION VERSION: v488.19 — Guide Node specific-destination precedence
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.18"
-DEPLOYMENT_FINGERPRINT = "USE-v488.18-guide-node-registry"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.18-guide-node-registry"
+APP_VERSION = "v488.19"
+DEPLOYMENT_FINGERPRINT = "USE-v488.19-guide-node-specific-destination"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.19-guide-node-specific-destination"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.18":
+if str(APP_VERSION) != "v488.19":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2028,6 +2028,59 @@ async def _use_send_json(send, payload, status_code=200):
 _FASTAPI_APP = app
 
 
+
+def _guide_node_specific_match(query):
+    """Resolve a clearly named registered destination before generic Navigator routing.
+
+    This is structural arbitration, not a specialist keyword gate: only the
+    WordPress registry's declared title/semantic-hint phrases can produce a
+    match, and generic one-word hints are intentionally ignored.
+    """
+    normalized = _normalize_query(query)
+    if not normalized:
+        return None
+
+    best = None
+    best_score = 0
+
+    for node in _guide_node_registry_snapshot():
+        labels = [str(node.get("title") or "").strip()]
+        labels.extend(
+            str(hint).strip()
+            for hint in (node.get("semantic_hints") or [])
+            if str(hint).strip()
+        )
+
+        for label in labels:
+            phrase = _normalize_query(label)
+            phrase_tokens = tuple(
+                token for token in re.findall(r"[a-z0-9]+", phrase)
+                if len(token) >= 3
+            )
+            # A registered two-word-or-longer phrase is an explicit discovery
+            # signal. Single generic words such as "symbol" or "culture" are
+            # not strong enough to bypass the Navigator.
+            if len(phrase_tokens) >= 2 and phrase in normalized:
+                score = 100 + len(phrase_tokens)
+                if score > best_score:
+                    best_score = score
+                    best = node
+                continue
+
+            query_tokens = set(re.findall(r"[a-z0-9]+", normalized))
+            meaningful = {
+                token for token in phrase_tokens
+                if token not in {"the", "and", "for", "with", "archive", "living"}
+            }
+            overlap = len(query_tokens & meaningful)
+            if len(meaningful) >= 3 and overlap >= 2:
+                score = 10 + overlap
+                if score > best_score:
+                    best_score = score
+                    best = node
+
+    return best if best_score >= 100 else None
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -2274,10 +2327,36 @@ async def _use_request_boundary(scope, receive, send):
         })
 
     # High-confidence orientation boundary: a visitor asking how to enter,
-    # where to begin, or how to find their way into the Archive should not be
-    # allowed to fall through into ordinary Guide retrieval. This is the
-    # systemic counterpart to the Navigator's native welcome entrance.
+    # Generic orientation normally belongs to the native Navigator. However,
+    # when the visitor names a specific registered destination, that specific
+    # doorway takes precedence over the generic Start Here experience. This
+    # prevents questions such as "Where can I explore Philippine renewal?"
+    # from losing their destination merely because they are phrased as
+    # navigation questions.
     if _is_navigator_orientation_request(query):
+        specific_node = _guide_node_specific_match(query)
+        if specific_node is not None:
+            request_id = "guide-node-" + hashlib.sha1(
+                (query + "|" + str(specific_node.get("node_id"))).encode("utf-8")
+            ).hexdigest()[:16]
+            payload = node_handoff_payload(
+                specific_node,
+                query=query,
+                request_id=request_id,
+                visitor_boundary_version=APP_VERSION,
+            )
+            payload.update({
+                "version": APP_VERSION,
+                "route_source": "registry_specific_destination",
+                "route_confidence": 1.0,
+            })
+            print(
+                "The Guide specific destination precedence: "
+                f"request_id={request_id}, node={specific_node.get('node_id')}, "
+                f"url={specific_node.get('canonical_url')}"
+            )
+            return await _use_send_json(send, payload)
+
         navigator_url = _navigator_handoff_url(query)
         request_id = "navigator-" + hashlib.sha1(
             (query + "|" + _history_text(history)).encode("utf-8")
