@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Guide Node Registry
  * Description: Structural registry and navigation inspection boundary for The Guide.
- * Version: 0.1.3-draft
+ * Version: 0.2.0-draft
  * Author: Life.Understood.
  *
  * This plugin is intentionally non-intelligent. WordPress remains the
@@ -14,11 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'LA_GUIDE_NODE_REGISTRY_VERSION', 'v1' );
-define( 'LA_GUIDE_NODE_REGISTRY_SCHEMA', 'v1' );
+define( 'LA_GUIDE_NODE_REGISTRY_SCHEMA', 'v2' );
 
 function la_guide_node_registry_records() {
     return array(
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'fractal-systems-diagnostic',
             'title'               => 'Fractal Systems Diagnostic',
             'branch'              => 'STEWARD JOURNEYS',
@@ -33,6 +34,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'systems problem', 'organizational difficulty', 'stuck system', 'system pattern' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'living-glossary',
             'title'               => 'Living Glossary',
             'branch'              => 'Resources',
@@ -47,6 +49,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'definition', 'what does this term mean', 'archive vocabulary', 'meaning of a term' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'guardian-glyph-archives',
             'title'               => 'Guardian Glyph Archives',
             'branch'              => 'Resources',
@@ -61,6 +64,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'glyph', 'symbol', 'guardian glyph', 'glyph archive' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'philippine-systems',
             'title'               => 'Philippine Systems, Society, and Culture',
             'branch'              => 'Core Pathways',
@@ -75,6 +79,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'Philippines', 'Filipino society', 'Philippine systems', 'culture', 'governance' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'philippine-renewal-framework',
             'title'               => 'Philippine Renewal Framework',
             'branch'              => 'Knowledge Hubs',
@@ -89,6 +94,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'Philippine renewal', 'civic renewal', 'institutional trust', 'national stewardship' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'access-institute-case-library',
             'title'               => 'Access the Institute Case Library',
             'branch'              => 'Steward Case Library (Micro)',
@@ -103,6 +109,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'case library', 'leadership case', 'learning path', 'case study access' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'leadership-challenge-navigator',
             'title'               => 'Leadership Challenge Navigator',
             'branch'              => 'Steward Case Library (Micro)',
@@ -117,6 +124,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'leadership challenge', 'leadership problem', 'governance challenge', 'systems challenge', 'leadership case', 'case studies', 'recurring pattern' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'steward-readiness-instruments',
             'title'               => 'Steward Readiness Instruments',
             'branch'              => 'Stewardship Framework',
@@ -131,6 +139,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'steward readiness', 'stewardship readiness instruments', 'SRI', 'SRI-16', 'SRI-24', 'stewardship assessment', 'readiness assessment', 'assessment instruments' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'sovereign-sensemaking-compass',
             'title'               => 'Sovereign Sensemaking Compass',
             'branch'              => 'Core Frameworks',
@@ -145,6 +154,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'Sovereign Sensemaking Compass', 'sensemaking compass', 'sensemaking', 'clarity without paranoia', 'Signal vs. Story', 'sovereignty check', 'navigate uncertainty', 'information overload', 'personal transition' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'learning-arcs',
             'title'               => 'Learning Arcs',
             'branch'              => 'Steward Case Library (Micro)',
@@ -159,6 +169,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'learning arc', 'recurring leadership pattern', 'case sequence', 'stewardship learning' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'stewardship-case-atlas',
             'title'               => 'Stewardship Case Atlas',
             'branch'              => 'Steward Case Library (Micro)',
@@ -173,6 +184,7 @@ function la_guide_node_registry_records() {
             'semantic_hints'      => array( 'case atlas', 'leadership cases', 'governance cases', '48 case studies', '12 learning arcs' ),
         ),
         array(
+            'discovery_level'    => 1,
             'node_id'             => 'applied-stewardship-toolkit',
             'title'               => 'Applied Stewardship Toolkit',
             'branch'              => 'Stewardship Practice',
@@ -185,6 +197,126 @@ function la_guide_node_registry_records() {
             'menu_depth'          => 3,
             'discovery_priority'  => 'normal',
             'semantic_hints'      => array( 'governance toolkit', 'community governance', 'governance templates', 'stewardship tools' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'life-under-pressure',
+            'title'               => 'Life Under Pressure',
+            'branch'              => 'Living Archive',
+            'parent'              => 'Living Archive',
+            'purpose'             => 'Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/life-under-pressure/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'life under pressure', 'pressure', 'overwhelm', 'stabilization', 'uncertainty', 'decision-making under pressure', 'stress', 'destabilization' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'ten-public-pillars',
+            'title'               => 'The 10 Public Pillars',
+            'branch'              => 'Living Archive',
+            'parent'              => 'Living Archive',
+            'purpose'             => 'Provide ten enduring domains of human inquiry through which visitors can explore the Living Archive without a prescribed sequence.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/the-10-public-pillars/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'public pillars', 'ten pillars', 'domains of inquiry', 'enduring domains', 'human inquiry', 'explore the archive by domain' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'maps-of-meaning-and-perception',
+            'title'               => 'Maps of Meaning and Perception',
+            'branch'              => 'How to Navigate the Archive',
+            'parent'              => 'How to Navigate the Archive',
+            'purpose'             => 'Explore mental models, narratives, symbolic systems, and interpretive frameworks that shape perception, meaning-making, and systems understanding.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/reading-maps/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'maps of meaning', 'maps of perception', 'mental models', 'interpretive frameworks', 'meaning-making', 'narratives', 'symbolic systems', 'map is not the territory', 'sensemaking' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'leadership-foundations',
+            'title'               => 'Leadership Foundations',
+            'branch'              => 'Core Pathways',
+            'parent'              => 'Human Systems',
+            'purpose'             => 'Explore leadership as a human systems function through self-governance, relationships, responsibility, governance, pressure, and decision-making.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/leadership-foundations/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 3,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'leadership foundations', 'leadership', 'self-governance', 'leadership under pressure', 'leadership systems', 'responsibility', 'human systems', 'governance and stewardship' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'integration',
+            'title'               => 'Integration',
+            'branch'              => 'Living Archive',
+            'parent'              => 'Living Archive',
+            'purpose'             => 'Provide a structured territory for interpreting patterns, systems, and personal experience through disciplined sensemaking and meaning formation.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/integration-making-sense-of-systems-and-self/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'integration', 'sensemaking', 'interpreting patterns', 'meaning formation', 'systems and self', 'making sense of systems', 'integrate experience' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'series-and-analysis',
+            'title'               => 'Series & Analysis',
+            'branch'              => 'Living Archive',
+            'parent'              => 'Living Archive',
+            'purpose'             => 'Explore recurring patterns in human behavior, systems, and society through structured observation across time and context.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/series-analysis/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'normal',
+            'semantic_hints'      => array( 'series and analysis', 'series', 'analysis', 'patterns over time', 'structured observation', 'human behavior patterns', 'systems analysis' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'living-stewardship',
+            'title'               => 'Living Stewardship',
+            'branch'              => 'Living Archive',
+            'parent'              => 'Living Archive',
+            'purpose'             => 'Explore how understanding becomes responsible practice through implementation, feedback, adaptation, stewardship, and real-world experimentation.',
+            'asset_type'          => 'knowledge_territory',
+            'canonical_url'       => 'https://geralddaquila.com/living-projects-2/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'normal',
+            'semantic_hints'      => array( 'living stewardship', 'responsible practice', 'implementation', 'stewardship in practice', 'real-world experimentation', 'applied stewardship', 'practice' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'libraries',
+            'title'               => 'Libraries',
+            'branch'              => 'Resources',
+            'parent'              => 'Resources',
+            'purpose'             => 'Provide structured reference access across the Living Archive by topic, chronology, concept, terminology, and curated collections.',
+            'asset_type'          => 'reference_territory',
+            'canonical_url'       => 'https://geralddaquila.com/libraries/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 2,
+            'discovery_priority'  => 'normal',
+            'semantic_hints'      => array( 'libraries', 'reference', 'subject index', 'browse by subject', 'chronology', 'concept reference', 'archive navigation', 'find material' ),
         ),
     );
 }
