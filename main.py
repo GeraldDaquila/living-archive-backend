@@ -1789,7 +1789,15 @@ def _guide_node_semantic_activation(query, interpretation, route):
     this guard only arbitrates approved destinations after macro routing.
     """
     route_id = str(route or "guide").strip().casefold()
-    if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator", "case"}:
+    if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator"}:
+        return None
+
+    # Case Navigator is a bounded retrieval specialist, but the model can
+    # occasionally choose it for broad pattern/series language because its
+    # territory includes recurring stewardship patterns. Do not let that
+    # mistaken macro route suppress an approved Guide Node. Preserve the Case
+    # Navigator boundary when the visitor actually asks for cases.
+    if route_id == "case" and _is_case_navigator_request(query):
         return None
 
     interpretation = interpretation if isinstance(interpretation, dict) else {}
