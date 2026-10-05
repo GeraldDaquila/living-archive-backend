@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.05 — Catalogue immediate specialist handoff
+# USE PRODUCTION VERSION: v488.06 — Atlas immediate specialist handoff
 import hashlib
 import importlib
 import re
@@ -46,9 +46,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.05"
-DEPLOYMENT_FINGERPRINT = "USE-v488.05-catalogue-immediate-specialist-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.05-catalogue-immediate-specialist-handoff"
+APP_VERSION = "v488.06"
+DEPLOYMENT_FINGERPRINT = "USE-v488.06-atlas-immediate-specialist-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.06-atlas-immediate-specialist-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1120,6 +1120,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "relationship",
     "formation",
     "catalogue",
+    "atlas",
     "systems_ph",
     "safety",
     "glossary",
@@ -1163,6 +1164,7 @@ Possible routes:
 - formation: Stewardship Formation Navigator; formation-oriented inquiry about
   what a situation may be asking someone to learn, practice, examine, or carry
 - catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
+- atlas: Living Archive Atlas Finder; bounded visual Reference Map navigation
 - systems_ph: Philippine Systems Lens; bounded inquiry into interacting
   Philippine systems and conditions
 - safety: Safety / Crisis
@@ -1203,7 +1205,7 @@ Return ONLY valid JSON with exactly these keys:
   "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
-  "route": "guide|relationship|formation|catalogue|systems_ph|safety|glossary|glyph",
+  "route": "guide|relationship|formation|catalogue|atlas|systems_ph|safety|glossary|glyph",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
@@ -1306,6 +1308,51 @@ def _catalogue_handoff_url(query):
     )
 
 
+def _atlas_handoff_url(query):
+    """Build the native Living Archive Atlas Finder destination for a bounded handoff.
+
+    The Atlas Finder owns its own candidate retrieval, Groq semantic selection,
+    visual-asset resolution, and presentation. USE only carries the visitor's
+    original inquiry across the specialist boundary.
+    """
+    return (
+        "https://geralddaquila.com/the-living-archive-atlas/"
+        + "?atlas_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_explicit_atlas_request(query):
+    """Recognize a bounded request for the native Atlas / Reference Map surface.
+
+    Atlas routing must not turn ordinary uses of the word 'map' into a
+    specialist handoff. Explicit Atlas/Reference Map language is authoritative;
+    generic visual-map language is accepted only when paired with a clear
+    map-finding verb and a Living Archive subject context.
+    """
+    q = _normalize_query(query)
+    if re.search(r"\batlas\b", q, re.I):
+        return True
+    if re.search(r"\breference\s+maps?\b", q, re.I):
+        return True
+
+    map_request = bool(re.search(
+        r"\b(?:find|show|explore|looking\s+for|look\s+for|search\s+for|browse)\b"
+        r".{0,90}\b(?:visual\s+)?maps?\b",
+        q,
+        re.I,
+    ))
+    if not map_request:
+        return False
+
+    atlas_context = (
+        r"\b(?:stewardship|governance|leadership|relationships?|systems?|"
+        r"community|knowledge|discernment|transition|reciprocity|resilience|"
+        r"sovereignty|human\s+development)\b"
+    )
+    return bool(re.search(atlas_context, q, re.I))
+
+
 def _guide_route_fallback(query, history=None):
     """Conservative fallback when the early LLM route cannot execute."""
     q = _normalize_query(query)
@@ -1337,6 +1384,16 @@ def _guide_route_fallback(query, history=None):
             "mode": "lookup",
             "confidence": 0.65,
             "reason": "explicit glyph lookup language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    if _is_explicit_atlas_request(query):
+        return {
+            "route": "atlas",
+            "mode": "lookup",
+            "confidence": 0.90,
+            "reason": "explicit Atlas / Reference Map request",
             "alternatives": ["guide"],
             "source": "deterministic-fallback",
         }
@@ -1808,6 +1865,35 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
+    # Immediate Atlas handoff: an explicit Atlas / Reference Map request is
+    # already a bounded specialist request. Do not spend a routing-model call
+    # or let ordinary Guide retrieval answer it first. The native Atlas page
+    # then invokes its existing Finder/AJAX contract with the original query.
+    if _is_explicit_atlas_request(query):
+        atlas_url = _atlas_handoff_url(query)
+        request_id = "atlas-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate Atlas handoff: "
+            f"request_id={request_id}, url={atlas_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "ATLAS_HANDOFF",
+            "response": "",
+            "handoff": "atlas",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "atlas_query": query,
+            "atlas_url": atlas_url,
+            "return_mode": "native_atlas_finder",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
     # Immediate Glossary handoff: an explicit definition/meaning question is
     # already a bounded lookup request. Do not spend a routing-model call or
     # allow ordinary Guide retrieval to answer it first.
@@ -1916,6 +2002,33 @@ async def _use_request_boundary(scope, receive, send):
             "catalogue_query": query,
             "catalogue_url": catalogue_url,
             "return_mode": "native_catalogue_search",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+    # Atlas is a visitor-facing specialist surface, not a Guide retrieval
+    # spoke. Hand the original inquiry to the native Atlas Finder surface.
+    if route_id == "atlas":
+        atlas_url = _atlas_handoff_url(query)
+        request_id = "atlas-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Atlas handoff: "
+            f"request_id={request_id}, url={atlas_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "ATLAS_HANDOFF",
+            "response": "",
+            "handoff": "atlas",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "atlas_query": query,
+            "atlas_url": atlas_url,
+            "return_mode": "native_atlas_finder",
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
