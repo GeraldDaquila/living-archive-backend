@@ -83,6 +83,8 @@ if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
+if GUIDE_NODE_REGISTRY_VERSION != "v1":
+    raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
 
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
@@ -2303,6 +2305,35 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # Guide Nodes are structural destinations, not specialist logic.
+    # WordPress owns the approved registry; USE only selects and opens the
+    # native destination after the model has identified the visitor's need.
+    if route_id == "guide_node":
+        guide_nodes = _guide_node_registry_snapshot()
+        selected_node = _guide_node_by_id(
+            guide_nodes,
+            route.get("round1_interpretation", {}).get("guide_node_id"),
+        )
+        if selected_node is not None:
+            request_id = "guide-node-" + hashlib.sha1(
+                (query + "|" + selected_node["node_id"] + "|" + _history_text(history)).encode("utf-8")
+            ).hexdigest()[:16]
+            payload = node_handoff_payload(
+                selected_node,
+                query=query,
+                request_id=request_id,
+                visitor_boundary_version=APP_VERSION,
+            )
+            print(
+                "The Guide native node handoff: "
+                f"node={selected_node['node_id']}, request_id={request_id}, "
+                f"url={selected_node['canonical_url']}"
+            )
+            return await _use_send_json(send, {
+                **payload,
+                "version": APP_VERSION,
+            })
 
     # FSD is a visitor-facing native diagnostic surface. Once the
     # Guide route identifies it, hand off directly to its landing page.
