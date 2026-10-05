@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.16 — natural FSD diagnostic doorway
+# USE PRODUCTION VERSION: v488.17 — natural FSD diagnostic doorway
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.16"
-DEPLOYMENT_FINGERPRINT = "USE-v488.16-natural-fsd-diagnostic-doorway"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.16-natural-fsd-diagnostic-doorway"
+APP_VERSION = "v488.17"
+DEPLOYMENT_FINGERPRINT = "USE-v488.17-philippine-systems-native-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.17-philippine-systems-native-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.16":
+if str(APP_VERSION) != "v488.17":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1349,6 +1349,11 @@ def _fsd_handoff_url(query):
     return "https://geralddaquila.com/fractal-systems-diagnostic-2/"
 
 
+def _philippine_systems_handoff_url(query):
+    """Build the native Philippine Systems landing page destination."""
+    return "https://geralddaquila.com/understanding-the-philippines-culture-society-history-and-systemic-transformation/"
+
+
 def _is_fsd_request(query):
     """Recognize explicit or high-confidence natural-language FSD doorway requests.
 
@@ -2216,6 +2221,33 @@ async def _use_request_boundary(scope, receive, send):
 
     # FSD is a visitor-facing native diagnostic surface. Once the
     # Guide route identifies it, hand off directly to its landing page.
+    # Philippine Systems is a visitor-facing native knowledge surface.
+    # The LLM has already made the macro routing decision above; hand the
+    # visitor directly to its native landing page.
+    if route_id == "systems_ph":
+        philippine_systems_url = _philippine_systems_handoff_url(query)
+        request_id = "systems-ph-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Philippine Systems handoff: "
+            f"request_id={request_id}, url={philippine_systems_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "SYSTEMS_PH_HANDOFF",
+            "response": "",
+            "handoff": "systems_ph",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "philippine_systems_url": philippine_systems_url,
+            "return_mode": "native_philippine_systems_landing",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
     if route_id == "fsd":
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
@@ -2629,11 +2661,17 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v488.16 FSD native doorway invariants.
+# v488.17 Philippine Systems native doorway invariant.
+if _philippine_systems_handoff_url("test") != "https://geralddaquila.com/understanding-the-philippines-culture-society-history-and-systemic-transformation/":
+    raise RuntimeError("USE v488.17 invariant failed: Philippine Systems landing URL drift.")
+if "systems_ph" not in _GUIDE_ROUTE_IDS:
+    raise RuntimeError("USE v488.17 invariant failed: Philippine Systems route missing.")
+
+# v488.17 FSD native doorway invariants.
 if _fsd_handoff_url("test") != "https://geralddaquila.com/fractal-systems-diagnostic-2/":
-    raise RuntimeError("USE v488.16 invariant failed: FSD landing URL drift.")
+    raise RuntimeError("USE v488.17 invariant failed: FSD landing URL drift.")
 if "fsd" not in _GUIDE_ROUTE_IDS:
-    raise RuntimeError("USE v488.16 invariant failed: FSD route missing.")
+    raise RuntimeError("USE v488.17 invariant failed: FSD route missing.")
 _fsd_route_probes = (
     "What's wrong with my organization? Can you help me where to start.",
     "Something is wrong with my organization. Where do I start?",
@@ -2641,13 +2679,13 @@ _fsd_route_probes = (
     "Why does our community keep getting stuck in the same pattern?",
 )
 if not all(_is_fsd_request(item) for item in _fsd_route_probes):
-    raise RuntimeError("USE v488.16 invariant failed: natural systems diagnostic doorway not recognized.")
+    raise RuntimeError("USE v488.17 invariant failed: natural systems diagnostic doorway not recognized.")
 _fsd_nonroute_probes = (
     "What does stewardship mean?",
     "Can you define continuity?",
 )
 if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
-    raise RuntimeError("USE v488.16 invariant failed: glossary definitions were captured by FSD.")
+    raise RuntimeError("USE v488.17 invariant failed: glossary definitions were captured by FSD.")
 
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
