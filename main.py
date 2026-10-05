@@ -61,6 +61,76 @@ _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v488.18"
 DEPLOYMENT_FINGERPRINT = "USE-v488.18-guide-node-registry"
 CANONICAL_BUILD_ID = "USE-BUILD-v488.18-guide-node-registry"
+
+GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
+_GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
+_GUIDE_NODE_REGISTRY_CACHE_TTL = 300.0
+_GUIDE_NODE_REGISTRY_FAILURE_TTL = 30.0
+
+
+def _guide_node_registry_snapshot():
+    """Read the authoritative WordPress Guide Node Registry with bounded caching."""
+    now = time.time()
+    if _GUIDE_NODE_REGISTRY_CACHE["nodes"] and (
+        now - float(_GUIDE_NODE_REGISTRY_CACHE["fetched_at"]) < _GUIDE_NODE_REGISTRY_CACHE_TTL
+    ):
+        return list(_GUIDE_NODE_REGISTRY_CACHE["nodes"])
+    if float(_GUIDE_NODE_REGISTRY_CACHE["failed_at"]) and (
+        now - float(_GUIDE_NODE_REGISTRY_CACHE["failed_at"]) < _GUIDE_NODE_REGISTRY_FAILURE_TTL
+    ):
+        return []
+    try:
+        request = UrlRequest(
+            GUIDE_NODE_REGISTRY_URL,
+            headers={"Accept": "application/json", "User-Agent": "Living-Archive-The-Guide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=4) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        records = payload.get("nodes") if isinstance(payload, dict) else []
+        nodes = active_nodes(records if isinstance(records, list) else [])
+        _GUIDE_NODE_REGISTRY_CACHE["nodes"] = nodes
+        _GUIDE_NODE_REGISTRY_CACHE["fetched_at"] = now
+        _GUIDE_NODE_REGISTRY_CACHE["failed_at"] = 0.0
+        print(
+            "The Guide Node Registry: "
+            f"source=wordpress, nodes={len(nodes)}, registry_version="
+            f"{payload.get('registry_version') if isinstance(payload, dict) else 'unknown'}"
+        )
+        return list(nodes)
+    except Exception as exc:
+        _GUIDE_NODE_REGISTRY_CACHE["failed_at"] = now
+        print(f"The Guide Node Registry unavailable; continuing without node routing: {exc}")
+        return []
+
+
+def _guide_node_prompt_context():
+    nodes = _guide_node_registry_snapshot()
+    if not nodes:
+        return "No approved Guide Nodes are currently available to the routing layer."
+    return json.dumps([
+        {
+            "node_id": node.get("node_id"),
+            "title": node.get("title"),
+            "purpose": node.get("purpose"),
+            "asset_type": node.get("asset_type"),
+            "access_class": node.get("access_class"),
+            "semantic_hints": node.get("semantic_hints") or [],
+        }
+        for node in nodes
+    ], ensure_ascii=False, separators=(",", ":"))
+
+
+def _guide_node_by_id(node_id):
+    target = str(node_id or "").strip()
+    if not target:
+        return None
+    for node in _guide_node_registry_snapshot():
+        if str(node.get("node_id") or "").strip() == target:
+            return node
+    return None
+
+
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1234,7 +1304,7 @@ Return ONLY valid JSON with exactly these keys:
   "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
-  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd|guide_node",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
@@ -1667,6 +1737,8 @@ def _guide_capability_route(query, history=None):
         "Visitor question:\n"
         + str(query).strip()
         + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
+        + "\n\nApproved Guide Nodes currently available (JSON):\n"
+        + _guide_node_prompt_context()
     )
     messages = [
         {"role": "system", "content": _GUIDE_ROUTE_PROMPT},
@@ -1708,6 +1780,7 @@ def _guide_capability_route(query, history=None):
         "desired_movement": str(parsed.get("desired_movement") or "").strip(),
         "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
         "glossary_term": str(parsed.get("glossary_term") or "").strip(),
+        "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
 
     if route == "guide" and _should_open_relationship_specialist(query, interpretation):
@@ -1721,6 +1794,14 @@ def _guide_capability_route(query, history=None):
     if route not in _GUIDE_ROUTE_IDS:
         print(f"USE provider bank rejected unsupported route {route!r}; using fallback")
         return fallback
+
+    if route == "guide_node":
+        selected_node = _guide_node_by_id(interpretation.get("guide_node_id"))
+        if selected_node is None:
+            print("USE provider bank proposed an unavailable Guide Node; continuing as ordinary Guide.")
+            route = "guide"
+            mode = "direct"
+            reason = "proposed Guide Node was not present in the authoritative active registry"
     if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
         mode = "direct"
 
@@ -2229,6 +2310,32 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # Guide Nodes are visitor-facing native Archive destinations. USE only
+    # selects an approved WordPress node and carries the original question
+    # across the native boundary. The node itself owns its experience.
+    if route_id == "guide_node":
+        node = _guide_node_by_id((route.get("round1_interpretation") or {}).get("guide_node_id"))
+        if node is not None:
+            request_id = "guide-node-" + hashlib.sha1(
+                (query + "|" + str(node.get("node_id"))).encode("utf-8")
+            ).hexdigest()[:16]
+            payload = node_handoff_payload(
+                node,
+                query=query,
+                request_id=request_id,
+                visitor_boundary_version=APP_VERSION,
+            )
+            payload.update({
+                "version": APP_VERSION,
+                "route_source": route.get("source"),
+                "route_confidence": confidence,
+            })
+            print(
+                "The Guide direct Guide Node handoff: "
+                f"request_id={request_id}, node={node.get('node_id')}, url={node.get('canonical_url')}"
+            )
+            return await _use_send_json(send, payload)
 
     # FSD is a visitor-facing native diagnostic surface. Once the
     # Guide route identifies it, hand off directly to its landing page.
