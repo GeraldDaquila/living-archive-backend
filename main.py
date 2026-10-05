@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.13 — Guardian Glyph Finder native handoff
+# USE PRODUCTION VERSION: v488.14 — Case Study Navigator native handoff
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.13"
-DEPLOYMENT_FINGERPRINT = "USE-v488.13-guardian-glyph-finder-native-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.13-guardian-glyph-finder-native-handoff"
+APP_VERSION = "v488.14"
+DEPLOYMENT_FINGERPRINT = "USE-v488.14-case-study-navigator-native-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.14-case-study-navigator-native-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.13":
+if str(APP_VERSION) != "v488.14":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1134,6 +1134,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "safety",
     "glossary",
     "glyph",
+    "case",
 })
 
 _GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
@@ -1180,6 +1181,7 @@ Possible routes:
 - safety: Safety / Crisis
 - glossary: vocabulary/definition lookup
 - glyph: glyph/symbol lookup
+- case: Case Study search; bounded structural case matching based on the visitor situation
 
 Important routing principles:
 - The initial question may be about anything. Do not require a domain keyword.
@@ -1219,7 +1221,7 @@ Return ONLY valid JSON with exactly these keys:
   "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
-  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
@@ -1335,6 +1337,39 @@ def _atlas_handoff_url(query):
         + quote(str(query or "").strip(), safe="")
     )
 
+
+def _case_handoff_url(query):
+    """Build the native Case Navigator destination.
+
+    The Case Navigator owns structural inference, canonical stage/case
+    resolution, explanation, and visitor-facing presentation. USE only
+    carries the visitor's original inquiry across the native boundary.
+    """
+    return (
+        "https://geralddaquila.com/how-to-access-the-case-studies/"
+        + "?case_navigator_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_case_navigator_request(query):
+    """Recognize a high-confidence request for the native Case Navigator."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    if re.search(r"\bcase\s+stud(?:y|ies)\b", q, re.I):
+        return True
+
+    if re.search(r"\b(?:relevant|matching|useful|best)\s+case\b", q, re.I):
+        return True
+
+    return bool(re.search(
+        r"\b(?:find|show|search|which|what|relevant|matching)\b.{0,50}"
+        r"\bcase(?:s)?\b",
+        q,
+        re.I,
+    ))
 
 def _glyph_handoff_url(query):
     """Build the native Guardian Glyph Finder destination.
@@ -1992,6 +2027,34 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
+    # High-confidence Case Navigator boundary: explicit Case Study requests
+    # belong to the native structural case search. Do not let provider routing
+    # or deterministic Guide fallback turn a bounded case request into an
+    # ordinary answer.
+    if _is_case_navigator_request(query):
+        case_url = _case_handoff_url(query)
+        request_id = "case-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Case Navigator handoff: "
+            f"request_id={request_id}, url={case_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "CASE_HANDOFF",
+            "response": "",
+            "handoff": "case",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "case_query": query,
+            "case_url": case_url,
+            "return_mode": "native_case_navigator",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
     # High-confidence Glyph Finder boundary: explicit Glyph requests belong
     # to the native Finder. Do not let provider/model routing or deterministic
     # Guide fallback convert a bounded native search into an ordinary answer.
@@ -2140,6 +2203,32 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
+    # Case Navigator is a visitor-facing native structural search surface.
+    # The native Navigator owns terrain/stage/case inference and presentation.
+    if route_id == "case":
+        case_url = _case_handoff_url(query)
+        request_id = "case-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Case Navigator handoff: "
+            f"request_id={request_id}, url={case_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "CASE_HANDOFF",
+            "response": "",
+            "handoff": "case",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "case_query": query,
+            "case_url": case_url,
+            "return_mode": "native_case_navigator",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
     # Glyph Finder is a visitor-facing native search surface. The native
     # Finder owns identity resolution, semantic evidence weighting, and
     # presentation; USE only carries the original inquiry across the boundary.
