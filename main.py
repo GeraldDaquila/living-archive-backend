@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.26 — FSD diagnostic-boundary refinement
+# USE PRODUCTION VERSION: v488.28 — Guide Node semantic arbitration refinement
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.26"
-DEPLOYMENT_FINGERPRINT = "USE-v488.26-fsd-diagnostic-boundary-refinement"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.26-fsd-diagnostic-boundary-refinement"
+APP_VERSION = "v488.28"
+DEPLOYMENT_FINGERPRINT = "USE-v488.28-guide-node-semantic-arbitration-refinement"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.28-guide-node-semantic-arbitration-refinement"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.26":
+if str(APP_VERSION) != "v488.28":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1843,23 +1843,54 @@ def _guide_node_semantic_activation(query, interpretation, route):
 
         score = 0
         signals = 0
+        distinctive = 0
 
         title_norm = _normalize_query(title)
         if title_norm and title_norm in combined:
             score += 12
             signals += 2
+            distinctive += 12
 
         title_terms = set(_subject_terms(title_norm))
         title_overlap = query_terms & title_terms
         if title_overlap:
             score += min(8, 4 * len(title_overlap))
             signals += 1
+            distinctive += min(8, 4 * len(title_overlap))
+
+        # Multi-word semantic phrases carry more destination information than
+        # isolated generic words. This prevents a Level-I specialist such as
+        # Leadership Challenge Navigator from winning merely because a broad
+        # territory query happens to contain "systems" and "pattern".
+        query_tokens = tuple(_subject_terms(combined))
+        query_bigrams = {
+            " ".join(query_tokens[index:index + 2])
+            for index in range(max(0, len(query_tokens) - 1))
+        }
+        for phrase_source, weight in (
+            (hints, 5),
+            ([purpose], 4),
+        ):
+            for phrase in phrase_source:
+                phrase_norm = _normalize_query(phrase)
+                phrase_tokens = tuple(_subject_terms(phrase_norm))
+                phrase_bigrams = {
+                    " ".join(phrase_tokens[index:index + 2])
+                    for index in range(max(0, len(phrase_tokens) - 1))
+                }
+                phrase_overlap = query_bigrams & phrase_bigrams
+                if phrase_overlap:
+                    hits = min(3, len(phrase_overlap))
+                    score += weight * hits
+                    signals += 1
+                    distinctive += weight * hits
 
         for hint in hints:
             hint_norm = _normalize_query(hint)
             if hint_norm and hint_norm in combined:
                 score += 8
                 signals += 1
+                distinctive += 8
                 continue
             hint_terms = set(_subject_terms(hint_norm))
             overlap = query_terms & hint_terms
@@ -1876,25 +1907,31 @@ def _guide_node_semantic_activation(query, interpretation, route):
             score += 2
 
         if score >= 8 and signals >= 2:
-            candidates.append((score, signals, level, node))
+            candidates.append((score, signals, level, distinctive, node))
 
     if not candidates:
         return None
 
-    candidates.sort(key=lambda item: (item[0], item[1], -item[2]), reverse=True)
+    candidates.sort(key=lambda item: (item[0], item[1], item[3], -item[2]), reverse=True)
 
-    # A concrete Level I destination always wins over a Level II territory
-    # when both are materially supported. This protects every native tool and
-    # verified Level I doorway from being swallowed by a broader territory.
+    # Level I is not an automatic override. A concrete specialist must
+    # demonstrate destination-strength evidence; generic vocabulary must not
+    # suppress a materially better Level-II territory.
     level_one = [item for item in candidates if item[2] == 1]
     level_two = [item for item in candidates if item[2] == 2]
 
     if level_one:
         best_one = level_one[0]
-        if best_one[0] >= 8:
+        best_two_for_comparison = level_two[0] if level_two else None
+        level_one_is_specific = best_one[3] >= 8
+        level_one_is_clear_winner = (
+            best_two_for_comparison is None
+            or best_one[0] >= best_two_for_comparison[0] + 4
+        )
+        if best_one[0] >= 8 and level_one_is_specific and level_one_is_clear_winner:
             if len(level_one) > 1 and best_one[0] < level_one[1][0] + 3:
                 return None
-            node = best_one[3]
+            node = best_one[4]
             print(
                 "The Guide registry Level I activation: "
                 f"route_before={route_id}, node={node.get('node_id')}, "
@@ -1923,7 +1960,7 @@ def _guide_node_semantic_activation(query, interpretation, route):
     if len(level_two) > 1 and best_two[0] < level_two[1][0] + 3:
         return None
 
-    node = best_two[3]
+    node = best_two[4]
     print(
         "The Guide registry Level II activation: "
         f"route_before={route_id}, node={node.get('node_id')}, "
