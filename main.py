@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.15 — Case Study Navigator native handoff
+# USE PRODUCTION VERSION: v488.16 — natural FSD diagnostic doorway
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.15"
-DEPLOYMENT_FINGERPRINT = "USE-v488.15-case-study-navigator-native-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.15-case-study-navigator-native-handoff"
+APP_VERSION = "v488.16"
+DEPLOYMENT_FINGERPRINT = "USE-v488.16-natural-fsd-diagnostic-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.16-natural-fsd-diagnostic-doorway"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.15":
+if str(APP_VERSION) != "v488.16":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1223,7 +1223,7 @@ Return ONLY valid JSON with exactly these keys:
   "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
-  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd",
   "mode": "direct|delegated_journey|lookup|clarify|safety",
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
@@ -1350,15 +1350,42 @@ def _fsd_handoff_url(query):
 
 
 def _is_fsd_request(query):
-    """Recognize a high-confidence request for the native FSD doorway."""
+    """Recognize explicit or high-confidence natural-language FSD doorway requests.
+
+    FSD is a native diagnostic surface. The visitor should not have to know the
+    name of the tool before The Guide can recognize a clear systems-level
+    diagnostic need. The natural-language branch remains deliberately bounded:
+    a systems context and diagnostic/problem language must co-occur.
+    """
     q = _normalize_query(query)
     if not q:
         return False
 
+    # Explicit FSD naming remains the strongest doorway.
     if re.search(r"\bfractal\s+systems?\s+diagnostic\b", q, re.I):
         return True
     if re.search(r"\bfsd\b", q, re.I):
         return True
+
+    systems_context = bool(re.search(
+        r"\b(?:organization|organizational|institution|institutional|community|"
+        r"system|systems|governance|structure|team|company|group)\b",
+        q,
+        re.I,
+    ))
+    diagnostic_language = bool(re.search(
+        r"\b(?:wrong|problem|problems|issue|issues|broken|failing|fails|failure|"
+        r"not\s+working|isn't\s+working|aren't\s+working|stuck|dysfunction(?:al)?|"
+        r"keeps?\s+happening|recurring|underlying|deeper|pattern|diagnos(?:e|is)|"
+        r"assess|assessment|what(?:\s+is|'s)\s+happening|where\s+(?:do\s+i|to)\s+start|"
+        r"help\s+me\s+figure\s+(?:out\s+)?(?:what|how)|understand\s+what(?:\s+is|'s)\s+happening)\b",
+        q,
+        re.I,
+    ))
+    if systems_context and diagnostic_language:
+        return True
+
+    # Preserve the existing explicit systems/organizational diagnostic wording.
     return bool(re.search(
         r"\b(?:systems?|organizational|organization(?:al)?|institutional|community)\s+"
         r"(?:diagnostic|diagnosis|assessment)\b",
@@ -2602,11 +2629,25 @@ async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
 
-# v488.15 FSD native doorway invariant.
+# v488.16 FSD native doorway invariants.
 if _fsd_handoff_url("test") != "https://geralddaquila.com/fractal-systems-diagnostic-2/":
-    raise RuntimeError("USE v488.15 invariant failed: FSD landing URL drift.")
+    raise RuntimeError("USE v488.16 invariant failed: FSD landing URL drift.")
 if "fsd" not in _GUIDE_ROUTE_IDS:
-    raise RuntimeError("USE v488.15 invariant failed: FSD route missing.")
+    raise RuntimeError("USE v488.16 invariant failed: FSD route missing.")
+_fsd_route_probes = (
+    "What's wrong with my organization? Can you help me where to start.",
+    "Something is wrong with my organization. Where do I start?",
+    "Can you help me understand what is happening in my organization?",
+    "Why does our community keep getting stuck in the same pattern?",
+)
+if not all(_is_fsd_request(item) for item in _fsd_route_probes):
+    raise RuntimeError("USE v488.16 invariant failed: natural systems diagnostic doorway not recognized.")
+_fsd_nonroute_probes = (
+    "What does stewardship mean?",
+    "Can you define continuity?",
+)
+if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
+    raise RuntimeError("USE v488.16 invariant failed: glossary definitions were captured by FSD.")
 
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
