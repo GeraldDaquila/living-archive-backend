@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.14 — Case Study Navigator native handoff
+# USE PRODUCTION VERSION: v488.15 — Case Study Navigator native handoff
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.14"
-DEPLOYMENT_FINGERPRINT = "USE-v488.14-case-study-navigator-native-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.14-case-study-navigator-native-handoff"
+APP_VERSION = "v488.15"
+DEPLOYMENT_FINGERPRINT = "USE-v488.15-case-study-navigator-native-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.15-case-study-navigator-native-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.14":
+if str(APP_VERSION) != "v488.15":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1135,6 +1135,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "glossary",
     "glyph",
     "case",
+    "fsd",
 })
 
 _GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
@@ -1182,6 +1183,7 @@ Possible routes:
 - glossary: vocabulary/definition lookup
 - glyph: glyph/symbol lookup
 - case: Case Study search; bounded structural case matching based on the visitor situation
+- fsd: Fractal Systems Diagnostic; native systems-pattern orientation and diagnostic navigation
 
 Important routing principles:
 - The initial question may be about anything. Do not require a domain keyword.
@@ -1336,6 +1338,33 @@ def _atlas_handoff_url(query):
         + "?atlas_query="
         + quote(str(query or "").strip(), safe="")
     )
+
+
+def _fsd_handoff_url(query):
+    """Build the native Fractal Systems Diagnostic landing page destination.
+
+    FSD owns its complete diagnostic experience after arrival. USE only
+    identifies the native doorway and sends the visitor directly to it.
+    """
+    return "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+
+
+def _is_fsd_request(query):
+    """Recognize a high-confidence request for the native FSD doorway."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    if re.search(r"\bfractal\s+systems?\s+diagnostic\b", q, re.I):
+        return True
+    if re.search(r"\bfsd\b", q, re.I):
+        return True
+    return bool(re.search(
+        r"\b(?:systems?|organizational|organization(?:al)?|institutional|community)\s+"
+        r"(?:diagnostic|diagnosis|assessment)\b",
+        q,
+        re.I,
+    ))
 
 
 def _case_handoff_url(query):
@@ -1521,6 +1550,16 @@ def _guide_route_fallback(query, history=None):
             }
     except Exception:
         pass
+
+    if _is_fsd_request(query):
+        return {
+            "route": "fsd",
+            "mode": "direct",
+            "confidence": 0.98,
+            "reason": "explicit Fractal Systems Diagnostic request",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
 
     # If the reasoning model is unavailable, remain conservative at the
     # macro Guide layer. Do not substitute a deterministic topic classifier
@@ -1891,6 +1930,33 @@ async def _use_request_boundary(scope, receive, send):
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
 
+    # Immediate FSD handoff: FSD is a native standalone diagnostic
+    # surface. Do not spend a routing-model call; send the visitor directly
+    # to the canonical landing page and let FSD own the complete experience.
+    if _is_fsd_request(query):
+        fsd_url = _fsd_handoff_url(query)
+        request_id = "fsd-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate FSD handoff: "
+            f"request_id={request_id}, url={fsd_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "FSD_HANDOFF",
+            "response": "",
+            "handoff": "fsd",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "fsd_url": fsd_url,
+            "return_mode": "native_fsd_landing",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
     # Immediate Catalogue handoff: an explicit request to explore or use
     # the Stewardship Catalogue is already a bounded specialist request.
     # Do not spend a routing-model call or let Guide retrieval answer it first.
@@ -2120,6 +2186,32 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # FSD is a visitor-facing native diagnostic surface. Once the
+    # Guide route identifies it, hand off directly to its landing page.
+    if route_id == "fsd":
+        fsd_url = _fsd_handoff_url(query)
+        request_id = "fsd-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct FSD handoff: "
+            f"request_id={request_id}, url={fsd_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "FSD_HANDOFF",
+            "response": "",
+            "handoff": "fsd",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "fsd_url": fsd_url,
+            "return_mode": "native_fsd_landing",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
 
     # Catalogue is a visitor-facing specialist surface, not a Guide retrieval
     # spoke. Preserve the visitor's request and let the native Catalogue own
@@ -2509,6 +2601,12 @@ if not any(getattr(route, "path", "") == "/api/formation-entrance" for route in 
 async def _v48755_relational_return_route(request: Request):
     return await _v48755_relational_return(request)
 
+
+# v488.15 FSD native doorway invariant.
+if _fsd_handoff_url("test") != "https://geralddaquila.com/fractal-systems-diagnostic-2/":
+    raise RuntimeError("USE v488.15 invariant failed: FSD landing URL drift.")
+if "fsd" not in _GUIDE_ROUTE_IDS:
+    raise RuntimeError("USE v488.15 invariant failed: FSD route missing.")
 
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
