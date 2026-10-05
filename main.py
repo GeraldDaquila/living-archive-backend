@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.24 — Guide Node semantic-overlap activation
+# USE PRODUCTION VERSION: v488.25 — Guide Node Level II territory-aware activation
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.24"
-DEPLOYMENT_FINGERPRINT = "USE-v488.24-guide-node-semantic-overlap-activation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.24-guide-node-semantic-overlap-activation"
+APP_VERSION = "v488.25"
+DEPLOYMENT_FINGERPRINT = "USE-v488.25-guide-node-level-ii-territory-aware-activation"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.25-guide-node-level-ii-territory-aware-activation"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -115,6 +115,7 @@ def _guide_node_prompt_context():
             "purpose": node.get("purpose"),
             "asset_type": node.get("asset_type"),
             "access_class": node.get("access_class"),
+            "discovery_level": int(node.get("discovery_level", 1) or 1),
             "semantic_hints": node.get("semantic_hints") or [],
         }
         for node in nodes
@@ -136,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.24":
+if str(APP_VERSION) != "v488.25":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -153,7 +154,7 @@ if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GUIDE_NODE_REGISTRY_VERSION != "v1":
+if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
 
 validate_registry()
@@ -1761,13 +1762,14 @@ def _guide_route_models():
 
 
 def _guide_node_semantic_activation(query, interpretation, route):
-    """Select a strongly matching approved Guide Node after macro routing.
+    """Activate an approved Guide Node with explicit Level I/II precedence.
 
-    This is a registry-bound activation guard, not a second topic classifier.
-    The model still makes the primary routing decision. The guard only
-    activates when the visitor's question and the model's interpretation
-    show multiple meaningful overlaps with one approved node's title, purpose,
-    or semantic hints. Hard specialist boundaries remain authoritative.
+    Level I nodes are concrete destinations: tools, navigators, diagnostics,
+    archives, and other specific experiences. Level II nodes are territories:
+    broader bodies of knowledge or pathways.
+
+    The registry remains structural. USE supplies the routing intelligence and
+    this guard only arbitrates approved destinations after macro routing.
     """
     route_id = str(route or "guide").strip().casefold()
     if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator", "case"}:
@@ -1791,6 +1793,14 @@ def _guide_node_semantic_activation(query, interpretation, route):
     if not query_terms:
         return None
 
+    territory_markers = (
+        "explore", "overview", "broader", "broad", "territory", "area",
+        "domain", "field", "pathway", "body of work", "body of knowledge",
+        "where can i learn", "where can i explore", "what part of the archive",
+        "which area", "which part", "understand the broader", "learn more about",
+    )
+    broad_request = any(marker in combined for marker in territory_markers)
+
     candidates = []
     for node in _guide_node_registry_snapshot():
         title = str(node.get("title") or "").strip()
@@ -1798,6 +1808,13 @@ def _guide_node_semantic_activation(query, interpretation, route):
         hints = [str(item).strip() for item in (node.get("semantic_hints") or []) if str(item).strip()]
         if not title:
             continue
+
+        try:
+            level = int(node.get("discovery_level", 1) or 1)
+        except (TypeError, ValueError):
+            level = 1
+        if level not in {1, 2}:
+            level = 1
 
         score = 0
         signals = 0
@@ -1834,26 +1851,60 @@ def _guide_node_semantic_activation(query, interpretation, route):
             score += 2
 
         if score >= 8 and signals >= 2:
-            candidates.append((score, signals, node))
+            candidates.append((score, signals, level, node))
 
     if not candidates:
         return None
 
-    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    best = candidates[0]
-    if len(candidates) > 1:
-        runner_up = candidates[1]
-        if best[0] < runner_up[0] + 3:
-            return None
+    candidates.sort(key=lambda item: (item[0], item[1], -item[2]), reverse=True)
 
-    node = best[2]
+    # A concrete Level I destination always wins over a Level II territory
+    # when both are materially supported. This protects every native tool and
+    # verified Level I doorway from being swallowed by a broader territory.
+    level_one = [item for item in candidates if item[2] == 1]
+    level_two = [item for item in candidates if item[2] == 2]
+
+    if level_one:
+        best_one = level_one[0]
+        if best_one[0] >= 8:
+            if len(level_one) > 1 and best_one[0] < level_one[1][0] + 3:
+                return None
+            node = best_one[3]
+            print(
+                "The Guide registry Level I activation: "
+                f"route_before={route_id}, node={node.get('node_id')}, "
+                f"score={best_one[0]}, signals={best_one[1]}"
+            )
+            return node
+
+    # Level II is intentionally conservative. It is a territory destination
+    # for broad exploration, not a substitute for a specific native experience.
+    if not broad_request:
+        # An exact territory title/hint can still activate directly when the
+        # visitor clearly names the territory itself.
+        explicit_level_two = [
+            item for item in level_two
+            if _normalize_query(str(item[3].get("title") or "")) in combined
+        ]
+        if explicit_level_two:
+            explicit_level_two.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            return explicit_level_two[0][3]
+        return None
+
+    if not level_two:
+        return None
+
+    best_two = level_two[0]
+    if len(level_two) > 1 and best_two[0] < level_two[1][0] + 3:
+        return None
+
+    node = best_two[3]
     print(
-        "The Guide registry semantic activation: "
+        "The Guide registry Level II activation: "
         f"route_before={route_id}, node={node.get('node_id')}, "
-        f"score={best[0]}, signals={best[1]}"
+        f"score={best_two[0]}, signals={best_two[1]}"
     )
     return node
-
 
 def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
