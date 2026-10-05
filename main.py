@@ -1764,7 +1764,7 @@ async def _use_request_boundary(scope, receive, send):
     # allow ordinary Guide retrieval to answer it first.
     glossary_term = _normalize_glossary_term(query)
     if glossary_term and re.match(
-        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\\b",
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
         _normalize_query(query),
         re.I,
     ):
