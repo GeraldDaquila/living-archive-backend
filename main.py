@@ -1656,6 +1656,61 @@ def _guide_route_models():
         return []
 
 
+GUIDE_NODE_REGISTRY_ENDPOINT = "https://geralddaquila.com/wp-json/guide/v1/nodes"
+_GUIDE_NODE_CACHE_TTL_SECONDS = 300
+_GUIDE_NODE_FAILURE_CACHE_SECONDS = 30
+_GUIDE_NODE_CACHE = {"expires_at": 0.0, "nodes": []}
+
+def _guide_node_registry_snapshot():
+    """Read the authoritative WordPress Guide Node Registry with fail-closed caching."""
+    now = time.time()
+    if now < float(_GUIDE_NODE_CACHE.get("expires_at") or 0):
+        return list(_GUIDE_NODE_CACHE.get("nodes") or [])
+
+    try:
+        request = UrlRequest(
+            GUIDE_NODE_REGISTRY_ENDPOINT,
+            headers={"Accept": "application/json", "User-Agent": "Life.Understood.-The-Guide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=1.5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        if not isinstance(payload, dict) or payload.get("ok") is not True:
+            raise ValueError("WordPress Guide Node Registry returned an invalid envelope.")
+        records = payload.get("nodes") or []
+        if not isinstance(records, list):
+            raise ValueError("WordPress Guide Node Registry returned invalid nodes.")
+
+        nodes = active_nodes(records)
+        _GUIDE_NODE_CACHE["nodes"] = nodes
+        _GUIDE_NODE_CACHE["expires_at"] = now + _GUIDE_NODE_CACHE_TTL_SECONDS
+        return list(nodes)
+    except Exception as exc:
+        _GUIDE_NODE_CACHE["nodes"] = []
+        _GUIDE_NODE_CACHE["expires_at"] = now + _GUIDE_NODE_FAILURE_CACHE_SECONDS
+        print(f"The Guide Node Registry unavailable; continuing without node routing: {exc}")
+        return []
+
+def _guide_node_prompt_context(nodes):
+    if not nodes:
+        return "Approved Guide Nodes currently available: none. Do not select route=guide_node."
+
+    lines = ["Approved Guide Nodes currently available:"]
+    for node in nodes:
+        hints = ", ".join(str(item) for item in (node.get("semantic_hints") or [])[:8])
+        lines.append("- " + str(node.get("node_id") or "") + " | " + str(node.get("title") or "") + " | access=" + str(node.get("access_class") or "") + " | purpose=" + str(node.get("purpose") or "") + (" | hints=" + hints if hints else ""))
+    return "\n".join(lines)
+
+def _guide_node_by_id(nodes, node_id):
+    target = str(node_id or "").strip()
+    if not target:
+        return None
+    for node in nodes:
+        if str(node.get("node_id") or "").strip() == target:
+            return node
+    return None
+
 def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
     fallback = _guide_route_fallback(query, history)
