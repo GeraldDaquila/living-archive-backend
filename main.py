@@ -1354,16 +1354,16 @@ def _is_explicit_navigator_request(query):
     # This is intentionally tied to site/archive context so ordinary questions
     # such as "where should I start with X?" are not swallowed by Navigator.
     newcomer_orientation = bool(re.search(
-        r"\b(?:i(?:'m|\\s+am)\\s+new\\s+to\\s+(?:the\\s+)?(?:site|archive|living\\s+archive)|"
-        r"new\\s+to\\s+(?:the\\s+)?(?:site|archive|living\\s+archive))\\b",
+        r"\b(?:i(?:'m|\s+am)\s+new\s+to\s+(?:the\s+)?(?:site|archive|living\s+archive)|"
+        r"new\s+to\s+(?:the\s+)?(?:site|archive|living\s+archive))\b",
         q,
         re.I,
     ))
     first_step_orientation = bool(re.search(
-        r"\b(?:where\\s+(?:do|should|can)\\s+(?:i|you)\\s+(?:suggest\\s+)?(?:i\\s+)?go\\s+first|"
-        r"where\\s+(?:should|do|can)\\s+i\\s+(?:start|begin)\\b|"
-        r"what\\s+should\\s+i\\s+(?:explore|read|see)\\s+first|"
-        r"how\\s+do\\s+i\\s+(?:get\\s+)?started)\\b",
+        r"\b(?:where\s+(?:do|should|can)\s+(?:i|you)\s+(?:suggest\s+)?(?:i\s+)?go\s+first|"
+        r"where\s+(?:should|do|can)\s+i\s+(?:start|begin)\b|"
+        r"what\s+should\s+i\s+(?:explore|read|see)\s+first|"
+        r"how\s+do\s+i\s+(?:get\s+)?started)\b",
         q,
         re.I,
     ))
@@ -1371,13 +1371,13 @@ def _is_explicit_navigator_request(query):
         return True
 
     site_first_request = bool(re.search(
-        r"\\b(?:where|how)\\s+(?:do|should|can)\\s+i\\s+(?:begin|start|go)\\b"
-        r".{0,100}\\b(?:site|archive|living\\s+archive)\\b",
+        r"\b(?:where|how)\s+(?:do|should|can)\s+i\s+(?:begin|start|go)\b"
+        r".{0,100}\b(?:site|archive|living\s+archive)\b",
         q,
         re.I,
     )) or bool(re.search(
-        r"\\b(?:where|what)\\s+(?:should|do)\\s+i\\s+(?:go|start|begin|explore|read)\\s+first\\b"
-        r".{0,100}\\b(?:site|archive|living\\s+archive)\\b",
+        r"\b(?:where|what)\s+(?:should|do)\s+i\s+(?:go|start|begin|explore|read)\s+first\b"
+        r".{0,100}\b(?:site|archive|living\s+archive)\b",
         q,
         re.I,
     ))
@@ -1385,9 +1385,9 @@ def _is_explicit_navigator_request(query):
         return True
 
     return bool(re.search(
-        r"\\b(?:find|help|show|give)\\b.{0,80}"
-        r"\\b(?:way|place|entry|entrance)\\b.{0,80}"
-        r"\\b(?:into|in)\\b.{0,40}\\b(?:the\\s+)?(?:archive|living\\s+archive)\\b",
+        r"\b(?:find|help|show|give)\b.{0,80}"
+        r"\b(?:way|place|entry|entrance)\b.{0,80}"
+        r"\b(?:into|in)\b.{0,40}\b(?:the\s+)?(?:archive|living\s+archive)\b",
         q,
         re.I,
     ))
