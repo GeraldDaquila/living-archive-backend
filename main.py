@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.25 — Guide Node Level II territory-aware activation
+# USE PRODUCTION VERSION: v488.26 — FSD diagnostic-boundary refinement
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.25"
-DEPLOYMENT_FINGERPRINT = "USE-v488.25-guide-node-level-ii-territory-aware-activation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.25-guide-node-level-ii-territory-aware-activation"
+APP_VERSION = "v488.26"
+DEPLOYMENT_FINGERPRINT = "USE-v488.26-fsd-diagnostic-boundary-refinement"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.26-fsd-diagnostic-boundary-refinement"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.25":
+if str(APP_VERSION) != "v488.26":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1442,8 +1442,14 @@ def _is_fsd_request(query):
 
     FSD is a native diagnostic surface. The visitor should not have to know the
     name of the tool before The Guide can recognize a clear systems-level
-    diagnostic need. The natural-language branch remains deliberately bounded:
-    a systems context and diagnostic/problem language must co-occur.
+    diagnostic need. The natural-language branch is deliberately bounded:
+    systems context must co-occur with genuinely diagnostic/problem language.
+
+    Important boundary:
+    A visitor can legitimately want to explore recurring patterns in people
+    and systems without asking for diagnosis. Broad pattern/series language
+    therefore remains Guide-owned and must not be promoted to FSD merely
+    because words such as "system", "pattern", or "recurring" appear.
     """
     q = _normalize_query(query)
     if not q:
@@ -1455,25 +1461,36 @@ def _is_fsd_request(query):
     if re.search(r"\bfsd\b", q, re.I):
         return True
 
+    # A systems/organizational context is necessary for the natural-language
+    # diagnostic boundary.
     systems_context = bool(re.search(
         r"\b(?:organization|organizational|institution|institutional|community|"
         r"system|systems|governance|structure|team|company|group)\b",
         q,
         re.I,
     ))
+    if not systems_context:
+        return False
+
+    # Require an actual diagnostic/problematization signal. Do NOT treat
+    # generic "pattern", "recurring", "underlying", or "deeper" language as
+    # diagnostic by itself; those are legitimate Series & Analysis / Archive
+    # territory signals.
     diagnostic_language = bool(re.search(
         r"\b(?:wrong|problem|problems|issue|issues|broken|failing|fails|failure|"
-        r"not\s+working|isn't\s+working|aren't\s+working|stuck|dysfunction(?:al)?|"
-        r"keeps?\s+happening|recurring|underlying|deeper|pattern|diagnos(?:e|is)|"
-        r"assess|assessment|what(?:\s+is|'s)\s+happening|where\s+(?:do\s+i|to)\s+start|"
-        r"help\s+me\s+figure\s+(?:out\s+)?(?:what|how)|understand\s+what(?:\s+is|'s)\s+happening)\b",
+        r"not\s+working|isn't\s+working|aren't\s+working|stuck|"
+        r"dysfunction(?:al)?|diagnos(?:e|is|tic)|assess|assessment|"
+        r"what(?:\s+is|'s)\s+happening|"
+        r"help\s+me\s+figure\s+(?:out\s+)?(?:what|how)|"
+        r"underneath|maintaining|causing|driving|"
+        r"where\s+(?:do\s+i|to)\s+start)\b",
         q,
         re.I,
     ))
-    if systems_context and diagnostic_language:
+    if diagnostic_language:
         return True
 
-    # Preserve the existing explicit systems/organizational diagnostic wording.
+    # Preserve explicit systems/organizational diagnostic wording.
     return bool(re.search(
         r"\b(?:systems?|organizational|organization(?:al)?|institutional|community)\s+"
         r"(?:diagnostic|diagnosis|assessment)\b",
