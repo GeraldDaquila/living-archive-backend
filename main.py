@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.04 — Glossary canonical term normalization
+# USE PRODUCTION VERSION: v488.05 — Catalogue immediate specialist handoff
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.04"
-DEPLOYMENT_FINGERPRINT = "USE-v488.04-glossary-canonical-term-normalization"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.04-glossary-canonical-term-normalization"
+APP_VERSION = "v488.05"
+DEPLOYMENT_FINGERPRINT = "USE-v488.05-catalogue-immediate-specialist-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.05-catalogue-immediate-specialist-handoff"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.04":
+if str(APP_VERSION) != "v488.05":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1292,6 +1292,20 @@ if _normalize_glossary_term("How do I forgive someone who hurt me?"):
     raise RuntimeError("USE v487.98 invariant failed: open inquiry became glossary lookup")
 
 
+def _catalogue_handoff_url(query):
+    """Build the native Stewardship Catalogue destination for a bounded handoff.
+
+    The Catalogue owns its own search and presentation. USE only carries the
+    visitor's original request across the specialist boundary; it does not
+    duplicate Catalogue retrieval or ranking.
+    """
+    return (
+        "https://geralddaquila.com/explore-the-stewardship-catalogue/"
+        + "?catalogue_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
 def _guide_route_fallback(query, history=None):
     """Conservative fallback when the early LLM route cannot execute."""
     q = _normalize_query(query)
@@ -1762,6 +1776,38 @@ async def _use_request_boundary(scope, receive, send):
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
 
+    # Immediate Catalogue handoff: an explicit request to explore or use
+    # the Stewardship Catalogue is already a bounded specialist request.
+    # Do not spend a routing-model call or let Guide retrieval answer it first.
+    if re.search(
+        r"\b(?:catalogue|catalog)\b",
+        _normalize_query(query),
+        re.I,
+    ):
+        catalogue_url = _catalogue_handoff_url(query)
+        request_id = "catalogue-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate Catalogue handoff: "
+            f"request_id={request_id}, url={catalogue_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "CATALOGUE_HANDOFF",
+            "response": "",
+            "handoff": "catalogue",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "catalogue_query": query,
+            "catalogue_url": catalogue_url,
+            "return_mode": "native_catalogue_search",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
     # Immediate Glossary handoff: an explicit definition/meaning question is
     # already a bounded lookup request. Do not spend a routing-model call or
     # allow ordinary Guide retrieval to answer it first.
@@ -1845,6 +1891,34 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # Catalogue is a visitor-facing specialist surface, not a Guide retrieval
+    # spoke. Preserve the visitor's request and let the native Catalogue own
+    # the actual resource search and presentation.
+    if route_id == "catalogue":
+        catalogue_url = _catalogue_handoff_url(query)
+        request_id = "catalogue-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide direct Catalogue handoff: "
+            f"request_id={request_id}, url={catalogue_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "CATALOGUE_HANDOFF",
+            "response": "",
+            "handoff": "catalogue",
+            "handoff_mode": "direct",
+            "handoff_pending": True,
+            "catalogue_query": query,
+            "catalogue_url": catalogue_url,
+            "return_mode": "native_catalogue_search",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
 
     # Glossary is a visitor-facing specialist surface, not a Guide retrieval
     # spoke. Hand the canonical term to the Glossary's existing native search
