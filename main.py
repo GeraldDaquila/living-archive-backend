@@ -1192,6 +1192,7 @@ Possible routes:
 - glyph: glyph/symbol lookup
 - case: Case Study search; bounded structural case matching based on the visitor situation
 - fsd: Fractal Systems Diagnostic; native systems-pattern orientation and diagnostic navigation
+- guide_node: a specific approved Guide Node; use only when the visitor's need clearly points to one of the approved destinations supplied below
 
 Important routing principles:
 - The initial question may be about anything. Do not require a domain keyword.
@@ -1236,7 +1237,8 @@ Return ONLY valid JSON with exactly these keys:
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
   "alternatives": ["guide"],
-  "glossary_term": "canonical term only when route=glossary"
+  "glossary_term": "canonical term only when route=glossary",
+  "guide_node_id": "canonical Guide Node ID only when route=guide_node"
 }
 
 The interpretation fields are internal reasoning instruments. They are not
@@ -1715,10 +1717,14 @@ def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
     fallback = _guide_route_fallback(query, history)
     history_text = _guide_route_history_text(history)
+    guide_nodes = _guide_node_registry_snapshot()
+    node_context = _guide_node_prompt_context(guide_nodes)
     user_content = (
         "Visitor question:\n"
         + str(query).strip()
         + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
+        + "\n\n"
+        + node_context
     )
     messages = [
         {"role": "system", "content": _GUIDE_ROUTE_PROMPT},
@@ -1760,6 +1766,7 @@ def _guide_capability_route(query, history=None):
         "desired_movement": str(parsed.get("desired_movement") or "").strip(),
         "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
         "glossary_term": str(parsed.get("glossary_term") or "").strip(),
+        "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
 
     if route == "guide" and _should_open_relationship_specialist(query, interpretation):
@@ -1773,6 +1780,21 @@ def _guide_capability_route(query, history=None):
     if route not in _GUIDE_ROUTE_IDS:
         print(f"USE provider bank rejected unsupported route {route!r}; using fallback")
         return fallback
+
+    if route == "guide_node":
+        selected_node = _guide_node_by_id(
+            guide_nodes,
+            interpretation.get("guide_node_id"),
+        )
+        if selected_node is None:
+            print(
+                "USE provider bank selected guide_node without a valid active "
+                "Guide Node; returning to ordinary Guide ownership."
+            )
+            route = "guide"
+            mode = "direct"
+            reason = "No valid approved Guide Node matched the model's selection."
+            interpretation["guide_node_id"] = ""
     if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
         mode = "direct"
 
