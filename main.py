@@ -1,8 +1,10 @@
-# USE PRODUCTION VERSION: v488.17 — natural FSD diagnostic doorway
+# USE PRODUCTION VERSION: v488.18 — Guide Node Registry integration
 import hashlib
 import importlib
 import re
 import json
+import time
+from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -40,6 +42,11 @@ from specialist_adapters import (
     adapter_contract_snapshot,
     invoke_specialist,
 )
+from guide_node_registry import (
+    GUIDE_NODE_REGISTRY_VERSION,
+    active_nodes,
+    node_handoff_payload,
+)
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
@@ -51,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.17"
-DEPLOYMENT_FINGERPRINT = "USE-v488.17-philippine-systems-native-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.17-philippine-systems-native-handoff"
+APP_VERSION = "v488.18"
+DEPLOYMENT_FINGERPRINT = "USE-v488.18-guide-node-registry"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.18-guide-node-registry"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -76,6 +83,8 @@ if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
+if GUIDE_NODE_REGISTRY_VERSION != "v1":
+    raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
 
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
@@ -1136,6 +1145,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "glyph",
     "case",
     "fsd",
+    "guide_node",
 })
 
 _GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
@@ -1184,6 +1194,7 @@ Possible routes:
 - glyph: glyph/symbol lookup
 - case: Case Study search; bounded structural case matching based on the visitor situation
 - fsd: Fractal Systems Diagnostic; native systems-pattern orientation and diagnostic navigation
+- guide_node: a specific approved Guide Node; use only when the visitor's need clearly points to one of the approved destinations supplied below
 
 Important routing principles:
 - The initial question may be about anything. Do not require a domain keyword.
@@ -1228,7 +1239,8 @@ Return ONLY valid JSON with exactly these keys:
   "confidence": 0.0,
   "reason": "short internal explanation of why this processing mode and route fit",
   "alternatives": ["guide"],
-  "glossary_term": "canonical term only when route=glossary"
+  "glossary_term": "canonical term only when route=glossary",
+  "guide_node_id": "canonical Guide Node ID only when route=guide_node"
 }
 
 The interpretation fields are internal reasoning instruments. They are not
@@ -1648,14 +1660,73 @@ def _guide_route_models():
         return []
 
 
+GUIDE_NODE_REGISTRY_ENDPOINT = "https://geralddaquila.com/wp-json/guide/v1/nodes"
+_GUIDE_NODE_CACHE_TTL_SECONDS = 300
+_GUIDE_NODE_FAILURE_CACHE_SECONDS = 30
+_GUIDE_NODE_CACHE = {"expires_at": 0.0, "nodes": []}
+
+def _guide_node_registry_snapshot():
+    """Read the authoritative WordPress Guide Node Registry with fail-closed caching."""
+    now = time.time()
+    if now < float(_GUIDE_NODE_CACHE.get("expires_at") or 0):
+        return list(_GUIDE_NODE_CACHE.get("nodes") or [])
+
+    try:
+        request = UrlRequest(
+            GUIDE_NODE_REGISTRY_ENDPOINT,
+            headers={"Accept": "application/json", "User-Agent": "Life.Understood.-The-Guide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=1.5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        if not isinstance(payload, dict) or payload.get("ok") is not True:
+            raise ValueError("WordPress Guide Node Registry returned an invalid envelope.")
+        records = payload.get("nodes") or []
+        if not isinstance(records, list):
+            raise ValueError("WordPress Guide Node Registry returned invalid nodes.")
+
+        nodes = active_nodes(records)
+        _GUIDE_NODE_CACHE["nodes"] = nodes
+        _GUIDE_NODE_CACHE["expires_at"] = now + _GUIDE_NODE_CACHE_TTL_SECONDS
+        return list(nodes)
+    except Exception as exc:
+        _GUIDE_NODE_CACHE["nodes"] = []
+        _GUIDE_NODE_CACHE["expires_at"] = now + _GUIDE_NODE_FAILURE_CACHE_SECONDS
+        print(f"The Guide Node Registry unavailable; continuing without node routing: {exc}")
+        return []
+
+def _guide_node_prompt_context(nodes):
+    if not nodes:
+        return "Approved Guide Nodes currently available: none. Do not select route=guide_node."
+
+    lines = ["Approved Guide Nodes currently available:"]
+    for node in nodes:
+        hints = ", ".join(str(item) for item in (node.get("semantic_hints") or [])[:8])
+        lines.append("- " + str(node.get("node_id") or "") + " | " + str(node.get("title") or "") + " | access=" + str(node.get("access_class") or "") + " | purpose=" + str(node.get("purpose") or "") + (" | hints=" + hints if hints else ""))
+    return "\n".join(lines)
+
+def _guide_node_by_id(nodes, node_id):
+    target = str(node_id or "").strip()
+    if not target:
+        return None
+    for node in nodes:
+        if str(node.get("node_id") or "").strip() == target:
+            return node
+    return None
+
 def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
     fallback = _guide_route_fallback(query, history)
     history_text = _guide_route_history_text(history)
+    guide_nodes = _guide_node_registry_snapshot()
+    node_context = _guide_node_prompt_context(guide_nodes)
     user_content = (
         "Visitor question:\n"
         + str(query).strip()
         + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
+        + "\n\n"
+        + node_context
     )
     messages = [
         {"role": "system", "content": _GUIDE_ROUTE_PROMPT},
@@ -1697,6 +1768,7 @@ def _guide_capability_route(query, history=None):
         "desired_movement": str(parsed.get("desired_movement") or "").strip(),
         "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
         "glossary_term": str(parsed.get("glossary_term") or "").strip(),
+        "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
 
     if route == "guide" and _should_open_relationship_specialist(query, interpretation):
@@ -1710,6 +1782,21 @@ def _guide_capability_route(query, history=None):
     if route not in _GUIDE_ROUTE_IDS:
         print(f"USE provider bank rejected unsupported route {route!r}; using fallback")
         return fallback
+
+    if route == "guide_node":
+        selected_node = _guide_node_by_id(
+            guide_nodes,
+            interpretation.get("guide_node_id"),
+        )
+        if selected_node is None:
+            print(
+                "USE provider bank selected guide_node without a valid active "
+                "Guide Node; returning to ordinary Guide ownership."
+            )
+            route = "guide"
+            mode = "direct"
+            reason = "No valid approved Guide Node matched the model's selection."
+            interpretation["guide_node_id"] = ""
     if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
         mode = "direct"
 
@@ -2218,6 +2305,35 @@ async def _use_request_boundary(scope, receive, send):
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query={_normalize_query(query)[:120]}")
+
+    # Guide Nodes are structural destinations, not specialist logic.
+    # WordPress owns the approved registry; USE only selects and opens the
+    # native destination after the model has identified the visitor's need.
+    if route_id == "guide_node":
+        guide_nodes = _guide_node_registry_snapshot()
+        selected_node = _guide_node_by_id(
+            guide_nodes,
+            route.get("round1_interpretation", {}).get("guide_node_id"),
+        )
+        if selected_node is not None:
+            request_id = "guide-node-" + hashlib.sha1(
+                (query + "|" + selected_node["node_id"] + "|" + _history_text(history)).encode("utf-8")
+            ).hexdigest()[:16]
+            payload = node_handoff_payload(
+                selected_node,
+                query=query,
+                request_id=request_id,
+                visitor_boundary_version=APP_VERSION,
+            )
+            print(
+                "The Guide native node handoff: "
+                f"node={selected_node['node_id']}, request_id={request_id}, "
+                f"url={selected_node['canonical_url']}"
+            )
+            return await _use_send_json(send, {
+                **payload,
+                "version": APP_VERSION,
+            })
 
     # FSD is a visitor-facing native diagnostic surface. Once the
     # Guide route identifies it, hand off directly to its landing page.
