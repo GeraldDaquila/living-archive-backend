@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.22 — Glyph boundary precedence over Glossary
+# USE PRODUCTION VERSION: v488.23 — Guide Node semantic-overlap activation
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.22"
-DEPLOYMENT_FINGERPRINT = "USE-v488.22-glyph-boundary-precedes-glossary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.22-glyph-boundary-precedes-glossary"
+APP_VERSION = "v488.23"
+DEPLOYMENT_FINGERPRINT = "USE-v488.23-guide-node-semantic-overlap-activation"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.23-guide-node-semantic-overlap-activation"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.22":
+if str(APP_VERSION) != "v488.23":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2110,7 +2110,25 @@ def _guide_node_specific_match(query):
                     best_score = score
                     best = node
 
-    return best if best_score >= 100 else None
+    # Exact registered phrases remain strongest (100+). When a visitor uses
+    # natural language that expresses the same destination without repeating
+    # the registry phrase verbatim, the registry's own semantic hints may
+    # authorize the destination when at least two meaningful hint terms align.
+    # This is still registry-driven: USE is not maintaining a second keyword
+    # map, and no question-specific rule is added here.
+    return best if best_score >= 10 else None
+
+
+# v488.23 Guide Node semantic-overlap boundary guard.
+# The registered Steward Readiness destination must be reachable from natural
+# language that expresses the destination without reproducing its exact title.
+_steward_readiness_probe = _guide_node_specific_match(
+    "How can I assess my readiness for stewardship?"
+)
+if not _steward_readiness_probe or _steward_readiness_probe.get("node_id") != "steward-readiness-instruments":
+    raise RuntimeError(
+        "USE v488.23 invariant failed: natural Steward Readiness destination was not resolved."
+    )
 
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
