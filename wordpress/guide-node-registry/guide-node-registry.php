@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Guide Node Registry
  * Description: Structural registry and navigation inspection boundary for The Guide.
- * Version: 0.1.0-draft
+ * Version: 0.1.1-draft
  * Author: Life.Understood.
  *
  * This plugin is intentionally non-intelligent. WordPress remains the
@@ -101,6 +101,20 @@ function la_guide_node_registry_records() {
             'menu_depth'          => 3,
             'discovery_priority'  => 'high',
             'semantic_hints'      => array( 'case library', 'leadership case', 'learning path', 'case study access' ),
+        ),
+        array(
+            'node_id'             => 'leadership-challenge-navigator',
+            'title'               => 'Leadership Challenge Navigator',
+            'branch'              => 'Steward Case Library (Micro)',
+            'parent'              => 'Steward Case Library (Micro)',
+            'purpose'             => 'Help readers recognize the stewardship pattern beneath a present leadership, governance, institutional, or systems challenge before selecting cases or Learning Arcs.',
+            'asset_type'          => 'navigator',
+            'canonical_url'       => 'https://geralddaquila.com/leadership-challenge-navigator/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 3,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'leadership challenge', 'leadership problem', 'governance challenge', 'systems challenge', 'leadership case', 'case studies', 'recurring pattern' ),
         ),
         array(
             'node_id'             => 'learning-arcs',
