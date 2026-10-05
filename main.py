@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.03 — Glossary immediate boundary regex repair
+# USE PRODUCTION VERSION: v488.04 — Glossary canonical term normalization
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.03"
-DEPLOYMENT_FINGERPRINT = "USE-v488.03-glossary-immediate-boundary-regex"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.03-glossary-immediate-boundary-regex"
+APP_VERSION = "v488.04"
+DEPLOYMENT_FINGERPRINT = "USE-v488.04-glossary-canonical-term-normalization"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.04-glossary-canonical-term-normalization"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.03":
+if str(APP_VERSION) != "v488.04":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1262,6 +1262,7 @@ def _normalize_glossary_term(query, interpretation=None):
     candidate = str(interpretation.get("glossary_term") or "").strip()
     if candidate:
         candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", candidate)
+        candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
         if 1 <= len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
             return candidate
 
@@ -1274,7 +1275,7 @@ def _normalize_glossary_term(query, interpretation=None):
         match = re.match(pattern, normalized, re.I)
         if match:
             term = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", match.group(1))
-            term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+)", "", term, flags=re.I)
+            term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
             if 1 <= len(term) <= 120:
                 return term
     return ""
@@ -1283,6 +1284,8 @@ def _normalize_glossary_term(query, interpretation=None):
 # v488.00 regression guards.
 if _normalize_glossary_term("What does forgiveness mean?") != "forgiveness":
     raise RuntimeError("USE v488.00 invariant failed: glossary term extraction")
+if _normalize_glossary_term("What does the word stewardship mean?") != "stewardship":
+    raise RuntimeError("USE v488.04 invariant failed: glossary word-prefix extraction")
 if _normalize_glossary_term("What is the meaning of stewardship?") != "stewardship":
     raise RuntimeError("USE v488.00 invariant failed: glossary meaning extraction")
 if _normalize_glossary_term("How do I forgive someone who hurt me?"):
