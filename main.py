@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.10 — provider/model-bank capability routing
+# USE PRODUCTION VERSION: v488.11 — Navigator welcome entrance handoff
 import hashlib
 import importlib
 import re
@@ -51,15 +51,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.10"
-DEPLOYMENT_FINGERPRINT = "USE-v488.10-provider-model-bank-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.10-provider-model-bank-routing"
+APP_VERSION = "v488.11"
+DEPLOYMENT_FINGERPRINT = "USE-v488.11-navigator-welcome-entrance"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.11-navigator-welcome-entrance"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.10":
+if str(APP_VERSION) != "v488.11":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1337,17 +1337,14 @@ def _atlas_handoff_url(query):
 
 
 def _navigator_handoff_url(query):
-    """Build the native Living Archive Navigator destination.
+    """Build the native Living Archive Navigator entrance destination.
 
-    USE carries the visitor's original inquiry across the specialist boundary.
-    The Navigator remains responsible for its own multi-step clarification,
-    grounded retrieval, path planning, and human-voice rendering.
+    The Navigator's first screen is a welcome/orientation entrance, not a
+    question intake. The visitor's original USE question therefore does not
+    travel into the landing URL. The Navigator owns the subsequent inquiry
+    flow after the visitor chooses to begin.
     """
-    return (
-        "https://geralddaquila.com/start-here-2/"
-        + "?navigator_query="
-        + quote(str(query or "").strip(), safe="")
-    )
+    return "https://geralddaquila.com/start-here-2/"
 
 
 
@@ -1963,11 +1960,10 @@ async def _use_request_boundary(scope, receive, send):
             "intent": "NAVIGATOR_HANDOFF",
             "response": "",
             "handoff": "navigator",
-            "handoff_mode": "direct",
+            "handoff_mode": "entrance",
             "handoff_pending": True,
-            "navigator_query": query,
             "navigator_url": navigator_url,
-            "return_mode": "native_archive_navigator",
+            "return_mode": "native_archive_navigator_welcome",
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
