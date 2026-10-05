@@ -1,8 +1,10 @@
-# USE PRODUCTION VERSION: v488.17 — natural FSD diagnostic doorway
+# USE PRODUCTION VERSION: v488.18 — Guide Node Registry integration
 import hashlib
 import importlib
 import re
 import json
+import time
+from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -40,6 +42,11 @@ from specialist_adapters import (
     adapter_contract_snapshot,
     invoke_specialist,
 )
+from guide_node_registry import (
+    GUIDE_NODE_REGISTRY_VERSION,
+    active_nodes,
+    node_handoff_payload,
+)
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
@@ -51,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.17"
-DEPLOYMENT_FINGERPRINT = "USE-v488.17-philippine-systems-native-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.17-philippine-systems-native-handoff"
+APP_VERSION = "v488.18"
+DEPLOYMENT_FINGERPRINT = "USE-v488.18-guide-node-registry"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.18-guide-node-registry"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
@@ -1136,6 +1143,7 @@ _GUIDE_ROUTE_IDS = frozenset({
     "glyph",
     "case",
     "fsd",
+    "guide_node",
 })
 
 _GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
