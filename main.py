@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.29 — Guide Node arbitration query anchoring
+# USE PRODUCTION VERSION: v488.30 — Guide Node phrase-boundary repair
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.29"
-DEPLOYMENT_FINGERPRINT = "USE-v488.29-guide-node-arbitration-query-anchoring"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.29-guide-node-arbitration-query-anchoring"
+APP_VERSION = "v488.30"
+DEPLOYMENT_FINGERPRINT = "USE-v488.30-guide-node-phrase-boundary-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.30-guide-node-phrase-boundary-repair"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.29":
+if str(APP_VERSION) != "v488.30":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2303,14 +2303,26 @@ def _guide_node_specific_match(query):
                 if len(token) >= 3
             )
             # A registered two-word-or-longer phrase is an explicit discovery
-            # signal. Single generic words such as "symbol" or "culture" are
-            # not strong enough to bypass the Navigator.
-            if len(phrase_tokens) >= 2 and phrase in normalized:
-                score = 100 + len(phrase_tokens)
-                if score > best_score:
-                    best_score = score
-                    best = node
-                continue
+            # signal, but it must match complete tokens. Plain substring
+            # matching is unsafe here: "recurring pattern" must NOT match
+            # "recurring patterns". The former is a Leadership Challenge
+            # Navigator hint; the latter belongs to the broader Series &
+            # Analysis territory.
+            normalized_tokens = tuple(re.findall(r"[a-z0-9]+", normalized))
+            if len(phrase_tokens) >= 2:
+                phrase_tuple = tuple(phrase_tokens)
+                exact_phrase_match = any(
+                    normalized_tokens[index:index + len(phrase_tuple)] == phrase_tuple
+                    for index in range(
+                        max(0, len(normalized_tokens) - len(phrase_tuple) + 1)
+                    )
+                )
+                if exact_phrase_match:
+                    score = 100 + len(phrase_tokens)
+                    if score > best_score:
+                        best_score = score
+                        best = node
+                    continue
 
             query_tokens = set(re.findall(r"[a-z0-9]+", normalized))
             meaningful = {
@@ -2342,6 +2354,16 @@ _steward_readiness_probe = _guide_node_specific_match(
 if not _steward_readiness_probe or _steward_readiness_probe.get("node_id") != "steward-readiness-instruments":
     raise RuntimeError(
         "USE v488.24 invariant failed: natural Steward Readiness destination was not resolved."
+    )
+
+# v488.30 phrase-boundary invariant: a singular registered hint must not
+# match a plural visitor phrase merely because the singular is a substring.
+_series_analysis_boundary_probe = _guide_node_specific_match(
+    "I want to explore recurring patterns in people and systems over time."
+)
+if _series_analysis_boundary_probe and _series_analysis_boundary_probe.get("node_id") == "leadership-challenge-navigator":
+    raise RuntimeError(
+        "USE v488.30 invariant failed: singular Leadership hint matched plural pattern query."
     )
 
 async def _use_request_boundary(scope, receive, send):
