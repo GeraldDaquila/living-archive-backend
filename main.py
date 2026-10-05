@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.20 — Guide Node destination precedence
+# USE PRODUCTION VERSION: v488.21 — Glyph Finder natural-symbol handoff
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.20"
-DEPLOYMENT_FINGERPRINT = "USE-v488.20-guide-node-destination-precedence"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.20-guide-node-destination-precedence"
+APP_VERSION = "v488.21"
+DEPLOYMENT_FINGERPRINT = "USE-v488.21-glyph-finder-natural-symbol-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.21-glyph-finder-natural-symbol-handoff"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.20":
+if str(APP_VERSION) != "v488.21":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1534,21 +1534,52 @@ def _is_glyph_finder_request(query):
     This is a visitor-boundary rule, not a duplicate Glyph retrieval engine.
     Explicit Glyph/Guardian Glyph requests are handed to the native Finder
     before provider routing can turn them into an ordinary Guide answer.
+
+    Natural-language symbol/icon/mark requests are also bounded here when the
+    visitor is clearly asking to identify, find, or understand the symbol.
+    This preserves the native Glyph Finder handoff without requiring the
+    visitor
+    to know the Archive's internal term "Glyph" first.
     """
     q = _normalize_query(query)
     if not q:
         return False
+
     if re.search(r"\bguardian\s+glyphs?\b", q, re.I):
         return True
-    if not re.search(r"\bglyphs?\b", q, re.I):
+
+    if re.search(r"\bglyphs?\b", q, re.I):
+        return bool(re.search(
+            r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
+            r"where|related\s+to|for|about|tell\s+me\s+about|"
+            r"search|identify)\b",
+            q,
+            re.I,
+        ))
+
+    symbol_term = bool(re.search(r"\b(?:symbol|icon|mark)\b", q, re.I))
+    if not symbol_term:
         return False
-    return bool(re.search(
+
+    lookup_language = bool(re.search(
         r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
-        r"where|related\s+to|for|about|tell\s+me\s+about|"
-        r"search|identify)\b",
+        r"where|identify|search|tell\s+me\s+about|"
+        r"what(?:\s+is|'s)\s+this|what\s+does\s+this)\b",
         q,
         re.I,
     ))
+    return lookup_language
+
+
+# v488.21 Glyph Finder natural-language boundary guards.
+if not _is_glyph_finder_request("What is this symbol?"):
+    raise RuntimeError("USE v488.21 invariant failed: natural symbol lookup not recognized")
+if not _is_glyph_finder_request("What does this icon mean?"):
+    raise RuntimeError("USE v488.21 invariant failed: natural icon meaning lookup not recognized")
+if not _is_glyph_finder_request("Find the mark for sovereignty"):
+    raise RuntimeError("USE v488.21 invariant failed: natural mark lookup not recognized")
+if _is_glyph_finder_request("The symbol in my report is too large"):
+    raise RuntimeError("USE v488.21 invariant failed: non-lookup symbol context was misrouted")
 
 
 def _navigator_handoff_url(query):
