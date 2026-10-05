@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'LA_GUIDE_NODE_REGISTRY_VERSION', 'v1' );
+define( 'LA_GUIDE_NODE_REGISTRY_VERSION', 'v2' );
 define( 'LA_GUIDE_NODE_REGISTRY_SCHEMA', 'v2' );
 
 function la_guide_node_registry_records() {
