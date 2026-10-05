@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.19 — Guide Node specific-destination precedence
+# USE PRODUCTION VERSION: v488.20 — Guide Node destination precedence
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.19"
-DEPLOYMENT_FINGERPRINT = "USE-v488.19-guide-node-specific-destination"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.19-guide-node-specific-destination"
+APP_VERSION = "v488.20"
+DEPLOYMENT_FINGERPRINT = "USE-v488.20-guide-node-destination-precedence"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.20-guide-node-destination-precedence"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.19":
+if str(APP_VERSION) != "v488.20":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2325,6 +2325,34 @@ async def _use_request_boundary(scope, receive, send):
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
+
+    # Registered destination precedence is evaluated BEFORE generic
+    # orientation and before provider/model routing. A visitor who names a
+    # specific Guide Node has already supplied enough destination intent;
+    # sending that question to Start Here would discard useful specificity.
+    # This is registry-driven, not a question-specific keyword redirect.
+    specific_node = _guide_node_specific_match(query)
+    if specific_node is not None:
+        request_id = "guide-node-" + hashlib.sha1(
+            (query + "|" + str(specific_node.get("node_id"))).encode("utf-8")
+        ).hexdigest()[:16]
+        payload = node_handoff_payload(
+            specific_node,
+            query=query,
+            request_id=request_id,
+            visitor_boundary_version=APP_VERSION,
+        )
+        payload.update({
+            "version": APP_VERSION,
+            "route_source": "registry_specific_destination",
+            "route_confidence": 1.0,
+        })
+        print(
+            "The Guide registry destination precedence: "
+            f"request_id={request_id}, node={specific_node.get('node_id')}, "
+            f"url={specific_node.get('canonical_url')}"
+        )
+        return await _use_send_json(send, payload)
 
     # High-confidence orientation boundary: a visitor asking how to enter,
     # Generic orientation normally belongs to the native Navigator. However,
