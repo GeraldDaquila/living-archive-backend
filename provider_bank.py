@@ -44,6 +44,10 @@ def _failure(exc, provider, model):
         category, s["quarantine_until"] = "authentication", now + 900
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category, s["cooldown_until"] = "rate_limited", now + max(30.0, float(retry_after or 60))
+    elif status == 402:
+        category, s["quarantine_until"] = "quota_or_billing", now + 1800
+    elif status == 404:
+        category, s["quarantine_until"] = "model_unavailable", now + 3600
     elif "request too large" in low or ("context" in low and "length" in low):
         category, s["quarantine_until"] = "request_too_large", now + 1800
     else:
@@ -131,7 +135,12 @@ def _workers(key, account, model, messages, max_tokens):
 def _configured(use_core):
     out = OrderedDict()
     get_models = getattr(use_core, "get_live_groq_models", None)
-    out["groq"] = [str(x).strip() for x in (get_models() if callable(get_models) else []) if str(x).strip()]
+    try:
+        live_groq = get_models() if callable(get_models) else []
+    except Exception as exc:
+        print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
+        live_groq = []
+    out["groq"] = [str(x).strip() for x in (live_groq or []) if str(x).strip()]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
         out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-2.5-flash"]
     if os.getenv("MISTRAL_API_KEY"):
@@ -219,12 +228,22 @@ def route(*, use_core, messages, max_tokens, parse):
     return None
 
 def snapshot(use_core):
-    items = candidates(use_core)
+    configured = _configured(use_core)
+    all_items = [
+        {"provider": provider, "model": model}
+        for provider, models in configured.items()
+        for model in models
+    ]
     return {
         "contract_version": CONTRACT_VERSION,
-        "providers": sorted({x["provider"] for x in items}),
+        "providers": sorted({x["provider"] for x in all_items}),
         "candidates": [
-            {"provider": x["provider"], "model": x["model"], "state": dict(_state(x["provider"], x["model"]))}
-            for x in items
+            {
+                "provider": x["provider"],
+                "model": x["model"],
+                "blocked": _blocked(_state(x["provider"], x["model"])),
+                "state": dict(_state(x["provider"], x["model"])),
+            }
+            for x in all_items
         ],
     }
