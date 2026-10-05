@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.02 — Glossary immediate boundary
+# USE PRODUCTION VERSION: v488.03 — Glossary immediate boundary regex repair
 import hashlib
 import importlib
 import re
@@ -46,15 +46,15 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.02"
-DEPLOYMENT_FINGERPRINT = "USE-v488.02-glossary-immediate-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.02-glossary-immediate-boundary"
+APP_VERSION = "v488.03"
+DEPLOYMENT_FINGERPRINT = "USE-v488.03-glossary-immediate-boundary-regex"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.03-glossary-immediate-boundary-regex"
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.02":
+if str(APP_VERSION) != "v488.03":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
