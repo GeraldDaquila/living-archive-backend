@@ -331,10 +331,9 @@ def normalize_safety_resolution(
     for resource in hrn_resources + emergency_resources:
         if not isinstance(resource, Mapping):
             continue
-        key = (
-            str(resource.get("phone") or "").strip(),
-            str(resource.get("title") or resource.get("display_name") or "").strip().casefold(),
-        )
+        phone = str(resource.get("phone") or "").strip()
+        title = str(resource.get("title") or resource.get("display_name") or "").strip().casefold()
+        key = ("phone", phone) if phone else ("title", title)
         if key in seen_resource_keys:
             continue
         seen_resource_keys.add(key)
