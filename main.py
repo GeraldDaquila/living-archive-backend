@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.50 — Emergency Intelligence sibling reconnection + safety-loop guard
+# USE PRODUCTION VERSION: v488.51 — Emergency Intelligence sibling reconnection + safety-loop progression guard
 import hashlib
 import re
 import json
@@ -60,9 +60,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.50"
-DEPLOYMENT_FINGERPRINT = "USE-v488.50-emergency-intelligence-sibling-reconnection"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.50-emergency-intelligence-sibling-reconnection"
+APP_VERSION = "v488.51"
+DEPLOYMENT_FINGERPRINT = "USE-v488.51-emergency-intelligence-sibling-reconnection"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.51-emergency-intelligence-sibling-reconnection"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
