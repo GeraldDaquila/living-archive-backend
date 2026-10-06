@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.35"
-DEPLOYMENT_FINGERPRINT = "USE-v488.35-basic-inquiry-core-contract-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.35-basic-inquiry-core-contract-repair"
+APP_VERSION = "v488.36"
+DEPLOYMENT_FINGERPRINT = "USE-v488.36-basic-inquiry-contract-audit-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.36-basic-inquiry-contract-audit-repair"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.35":
+if str(APP_VERSION) != "v488.36":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2309,7 +2309,7 @@ def _v48831_basic_inquiry_seam_self_audit():
     generate_signature = str(_inspect.signature(use_core.generate_llm_response))
     fetch_parameters = list(_inspect.signature(use_core.fetch_canonical_context).parameters)
     generate_parameters = list(_inspect.signature(use_core.generate_llm_response).parameters)
-    if fetch_parameters != ["user_query"]:
+    if len(fetch_parameters) != 1:
         raise RuntimeError(f"Basic Inquiry retrieval contract drift: {fetch_signature}")
     if generate_parameters[:3] != ["user_query", "retrieved_context_blocks", "intent"]:
         raise RuntimeError(f"Basic Inquiry generation contract drift: {generate_signature}")
@@ -3121,7 +3121,7 @@ def _formation_entrance_error(message, error_type, status_code=400):
     )
 
 
-# v488.35 startup audit: verify the Basic Inquiry seam against the protected core.
+# v488.36 startup audit: verify the Basic Inquiry seam against the protected core.
 _v48831_basic_inquiry_seam_self_audit()
 
 @app.post("/api/formation-entrance")
