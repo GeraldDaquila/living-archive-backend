@@ -33,6 +33,30 @@ def main():
     assert classify("I am going to kill myself.") == "acute"
     assert classify("Someone I care about is talking about suicide.") == "support"
 
+    # Conversation-boundary regression: an assistant safety turn carries both
+    # its human-facing message and its active safety question. The serializer
+    # must preserve both so short answers remain inside the native safety loop.
+    main_namespace = {}
+    main_tree = ast.parse(main_source, filename="main.py")
+    history_fn = next(
+        node for node in main_tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_history_text"
+    )
+    history_module = ast.Module(body=[history_fn], type_ignores=[])
+    ast.fix_missing_locations(history_module)
+    exec(compile(history_module, "main.py", "exec"), main_namespace, main_namespace)
+    serialized = main_namespace["_history_text"]([
+        {"role": "visitor", "content": "I don't want to live anymore."},
+        {
+            "role": "assistant",
+            "content": "Thank you for telling me. I want to take what you're saying seriously.",
+            "question": "Do you think you might act on these thoughts right now?",
+        },
+        {"role": "visitor", "content": "yes"},
+    ])
+    assert "Do you think you might act on these thoughts right now?" in serialized
+    assert classify("yes", history=serialized) == "acute_followthrough"
+
     assert classify(
         "yes",
         history=(
