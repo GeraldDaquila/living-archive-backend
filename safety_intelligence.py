@@ -15,8 +15,10 @@ import os
 import re
 import urllib.error
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from typing import Any, Mapping
+
+from provider_bank import route as route_with_model_bank
 
 SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2"
 
@@ -87,8 +89,105 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     return None
 
 
+def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | None:
+    """Bounded semantic safety augmentation.
+
+    This is deliberately advisory. Deterministic/protected-core signals remain
+    sufficient to trigger safety; the LLM can only add a safety signal that
+    broadens recall. Provider failure, timeout, malformed output, or uncertainty
+    never blocks the deterministic path.
+    """
+    prompt = (
+        "Classify whether the visitor's language contains a plausible personal "
+        "self-harm or suicide safety signal. This is a safety detector, not a "
+        "therapeutic response generator. Consider paraphrase, indirect wording, "
+        "fragmented language, slang, and context from the recent conversation. "
+        "Do not infer risk merely from discussion of suicide as a topic or from "
+        "third-person concern unless the visitor is expressing their own risk. "
+        "Return JSON only with keys: state, confidence, rationale. "
+        "state must be exactly one of: acute, plan, immediacy, current, none. "
+        "Use acute only when the language reasonably indicates present intent, "
+        "attempt, imminent action, or inability to remain safe; plan for a "
+        "self-harm/suicide plan without clear immediate action; immediacy for "
+        "possible near-term action; current for present suicidal/self-harm "
+        "thinking without evidence of immediate action; none otherwise. "
+        "When uncertain, choose the less severe state. confidence is 0 to 1. "
+        "Never provide advice or resources."
+    )
+    context = (
+        f"VISITOR: {str(query or '').strip()}\n"
+        f"RECENT CONVERSATION: {str(history or '')[-4000:]}"
+    )
+    try:
+        runtime = __import__("guide_runtime")
+        use_core = runtime.use_core
+    except Exception as exc:
+        print(f"The Guide semantic safety detector unavailable: {exc}")
+        return None
+
+    def _parse(raw: str) -> dict[str, Any]:
+        value = json.loads(str(raw or "").strip())
+        if not isinstance(value, dict):
+            raise ValueError("semantic safety response was not an object")
+        state = str(value.get("state") or "none").strip().casefold()
+        if state not in {"acute", "plan", "immediacy", "current", "none"}:
+            raise ValueError("semantic safety response contained an invalid state")
+        confidence = float(value.get("confidence", 0) or 0)
+        if confidence < 0 or confidence > 1:
+            raise ValueError("semantic safety confidence outside 0..1")
+        return {"state": state, "confidence": confidence, "rationale": str(value.get("rationale") or "")[:300]}
+
+    try:
+        result = route_with_model_bank(
+            use_core=use_core,
+            messages=[{"role": "system", "content": prompt}, {"role": "user", "content": context}],
+            max_tokens=120,
+            parse=_parse,
+        )
+        if not isinstance(result, Mapping):
+            return None
+        parsed = result.get("parsed")
+        if not isinstance(parsed, Mapping):
+            return None
+        return {
+            "state": str(parsed.get("state") or "none"),
+            "confidence": float(parsed.get("confidence") or 0),
+            "rationale": str(parsed.get("rationale") or ""),
+            "provider": str(result.get("provider") or ""),
+            "model": str(result.get("model") or ""),
+        }
+    except Exception as exc:
+        print(f"The Guide semantic safety detector failed safely: {exc}")
+        return None
+
+
 def classify_safety(query: str, *, history: str = "") -> str | None:
-    return normalize_safety_state(query, history=history)
+    """Deterministic safety first; bounded LLM augmentation only when unrecognized."""
+    deterministic = normalize_safety_state(query, history=history)
+    if deterministic:
+        return deterministic
+
+    executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="guide-safety-semantic")
+    future = executor.submit(_llm_safety_signal, query, history=history)
+    try:
+        result = future.result(timeout=1.8)
+    except FutureTimeoutError:
+        print("The Guide semantic safety detector exceeded its 1.8s gate; continuing deterministically.")
+        return None
+    except Exception as exc:
+        print(f"The Guide semantic safety detector unavailable: {exc}")
+        return None
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+    if not isinstance(result, Mapping):
+        return None
+    state = str(result.get("state") or "none").casefold()
+    confidence = float(result.get("confidence") or 0)
+    if state in {"acute", "plan", "immediacy", "current"} and confidence >= 0.70:
+        print(f"The Guide semantic safety detector escalated: state={state}, confidence={confidence:.2f}")
+        return state
+    return None
 
 
 def _emergency_location(
