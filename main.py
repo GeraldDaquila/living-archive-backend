@@ -66,6 +66,7 @@ APP_VERSION = "v488.61"
 DEPLOYMENT_FINGERPRINT = "USE-v488.61-deterministic-safety-text-normalization"
 CANONICAL_BUILD_ID = "USE-BUILD-v488.61-deterministic-safety-text-normalization"
 
+# v488.62 systemwide safety boundary contract marker.\n# This marker is intentionally adjacent to the production identity so CI can\n# detect drift between the live Guide boundary and its regression tests.\nSAFETY_BOUNDARY_CONTRACT_VERSION = "v488.62"\n
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
 _GUIDE_NODE_REGISTRY_CACHE_TTL = 300.0
