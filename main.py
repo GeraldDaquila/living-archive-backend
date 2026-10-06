@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.44 — retire historical runtime wrapper
+# USE PRODUCTION VERSION: v488.45 — single routing boundary repair
 import hashlib
 import re
 import json
@@ -57,9 +57,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.44"
-DEPLOYMENT_FINGERPRINT = "USE-v488.44-runtime-wrapper-retirement"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.44-runtime-wrapper-retirement"
+APP_VERSION = "v488.45"
+DEPLOYMENT_FINGERPRINT = "USE-v488.45-single-routing-boundary-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.45-single-routing-boundary-repair"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.44":
+if str(APP_VERSION) != "v488.45":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3006,16 +3006,70 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    # v488.31: ordinary questions use the protected core directly.
-    # Native boundaries above remain authoritative. Formation and Philippine
-    # Systems retain the existing macro-routing path until their deterministic
-    # native boundaries are ready.
+    # v488.45: ordinary questions get exactly one routing decision.
+    # Native boundaries above remain authoritative. Once those boundaries have
+    # been cleared, Basic Inquiry owns the ordinary path. A Basic Inquiry
+    # failure must NOT re-enter the legacy capability router: doing so creates
+    # a second classification decision and can turn a transient generation
+    # failure into a false specialist handoff.
     if not _basic_inquiry_requires_macro_routing(query):
         try:
-            basic_result = _basic_inquiry_response(query=query, history=history, raw_body=parsed_body)
+            basic_result = _basic_inquiry_response(
+                query=query,
+                history=history,
+                raw_body=parsed_body,
+            )
             return await _use_send_json(send, basic_result)
         except Exception as exc:
-            print(f"The Guide Basic Inquiry seam failed safely; preserving legacy macro route: {exc}")
+            print(
+                "The Guide Basic Inquiry seam failed; "
+                f"ordinary route remains ordinary and will not be reclassified: {exc}"
+            )
+            try:
+                context_data = use_core.fetch_canonical_context(query)
+                recovery = _basic_inquiry_round1_deterministic_response(
+                    query,
+                    {},
+                    context_data if isinstance(context_data, dict) else {},
+                )
+                recovery_text = str(recovery.get("response") or "").strip()
+                if recovery_text:
+                    request_id = "basic-recovery-" + hashlib.sha1(
+                        (query + "|" + _history_text(history)).encode("utf-8")
+                    ).hexdigest()[:16]
+                    return await _use_send_json(send, {
+                        "ok": True,
+                        "version": APP_VERSION,
+                        "fingerprint": DEPLOYMENT_FINGERPRINT,
+                        "source_sha256": RUNTIME_SOURCE_SHA256,
+                        "request_id": request_id,
+                        "query": query,
+                        "intent": (
+                            context_data.get("intent", "TOPICAL_INQUIRY")
+                            if isinstance(context_data, dict)
+                            else "TOPICAL_INQUIRY"
+                        ),
+                        "response": recovery_text,
+                        "processing": "basic_inquiry_recovery",
+                        "route_source": "guide_basic_inquiry_recovery",
+                        "recovery": "deterministic_round1",
+                        "visitor_boundary_version": APP_VERSION,
+                    })
+            except Exception as recovery_exc:
+                print(
+                    "The Guide Basic Inquiry deterministic recovery also failed: "
+                    f"{recovery_exc}"
+                )
+            return await _use_send_json(send, {
+                "ok": False,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "TOPICAL_INQUIRY",
+                "response": "The Guide could not complete this question right now.",
+                "error_type": "basic_inquiry_failure",
+                "route_source": "guide_basic_inquiry",
+                "visitor_boundary_version": APP_VERSION,
+            }, 503)
 
     route = _guide_capability_route(query, history)
     route_id = str(route.get("route") or "guide").strip().casefold()
