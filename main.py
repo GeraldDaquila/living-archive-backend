@@ -170,6 +170,11 @@ RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
 FORMATION_CONTRIBUTION_DIAGNOSTICS = formation_contract_snapshot()
 HUB_CONTRACT_DIAGNOSTICS = hub_contract_snapshot()
 SAFETY_UTILITY_DIAGNOSTICS = safety_utility_snapshot()
+SAFETY_INTELLIGENCE_DIAGNOSTICS = safety_intelligence_snapshot()
+if SAFETY_INTELLIGENCE_DIAGNOSTICS.get("contract_version") != SAFETY_INTELLIGENCE_CONTRACT_VERSION:
+    raise RuntimeError("USE safety intelligence contract integrity failure.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not True:
+    raise RuntimeError("USE safety utility integrity failure: HRN safety linkage missing.")
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -2743,7 +2748,7 @@ async def _use_request_boundary(scope, receive, send):
             print(
                 "The Guide sitewide Safety utility: "
                 f"request_id={request_id}, state={safety_state}, "
-                "hrn=not_called, llm=not_called, retrieval=not_called"
+                "hrn_safety_lane=called, ordinary_hrn=not_called, llm=not_called, retrieval=not_called"
             )
             return await _use_send_json(send, {
                 "ok": True,
