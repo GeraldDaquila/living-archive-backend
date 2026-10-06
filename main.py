@@ -2263,7 +2263,7 @@ def _basic_inquiry_round1_requires_discovery(query):
 
     direct_request = bool(re.match(
         r"^(?:what is|what are|who is|who are|when was|when did|where is|where are|"
-        r"define|list|find|show me|give me|how much|how many)\\b",
+        r"define|list|find|show me|give me|how much|how many)\b",
         normalized,
         re.I,
     ))
@@ -2271,12 +2271,12 @@ def _basic_inquiry_round1_requires_discovery(query):
         return False
 
     return bool(re.search(
-        r"\\b(?:why|should i|should we|do i|does this|what does this mean|"
+        r"\b(?:why|should i|should we|do i|does this|what does this mean|"
         r"i(?:'m| am) trying to|i wonder|i keep|keeps? happening|"
         r"same (?:problem|issue|pattern|thing)|again and again|repeatedly|"
         r"recurring|pattern|conflict|stuck|struggling|uncertain|unsure|"
         r"tension|meaning|purpose|relationship|change|changing|"
-        r"not working|doesn't work|cannot|can't)\\b",
+        r"not working|doesn't work|cannot|can't)\b",
         normalized,
         re.I,
     ))
@@ -2434,7 +2434,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     else:
         round1_result = None
-        if _basic_inquiry_round1_requires_discovery(query):
+        round1_gate = _basic_inquiry_round1_requires_discovery(query)
+        print(
+            "The Guide Round 1 gate: "
+            f"activated={round1_gate}, query={_normalize_query(query)[:120]}"
+        )
+        if round1_gate:
             try:
                 route_result = _guide_capability_route(query, history)
                 interpretation = route_result.get("round1_interpretation") if isinstance(route_result, dict) else {}
@@ -2520,6 +2525,8 @@ def _v48831_basic_inquiry_seam_self_audit():
     probe = "I am trying to understand why I keep seeing the same problem in my life."
     if _basic_inquiry_requires_macro_routing(probe):
         raise RuntimeError("Basic Inquiry probe was incorrectly deferred to macro routing.")
+    if not _basic_inquiry_round1_requires_discovery(probe):
+        raise RuntimeError("Basic Inquiry Round 1 discovery gate failed for the canonical probe.")
     if not _basic_inquiry_requires_macro_routing("I want stewardship formation."):
         raise RuntimeError("Formation macro-routing boundary was lost.")
     if not _basic_inquiry_requires_macro_routing("I want to understand Philippine systems."):
