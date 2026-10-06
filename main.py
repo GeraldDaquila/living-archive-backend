@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.31":
+if str(APP_VERSION) != "v488.32":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2364,7 +2364,6 @@ async def _use_send_json(send, payload, status_code=200):
 
 
 # v488.32 startup audit: verify the Basic Inquiry seam against the protected core.
-_v48831_basic_inquiry_seam_self_audit()
 
 _FASTAPI_APP = app
 
@@ -3119,6 +3118,9 @@ def _formation_entrance_error(message, error_type, status_code=400):
         },
     )
 
+
+# v488.33 startup audit: verify the Basic Inquiry seam against the protected core.
+_v48831_basic_inquiry_seam_self_audit()
 
 @app.post("/api/formation-entrance")
 async def _formation_entrance_route(request: Request):
