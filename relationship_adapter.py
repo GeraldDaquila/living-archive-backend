@@ -23,7 +23,7 @@ from relationship_contribution import (
     RELATIONSHIP_VOICE_POLICY,
     validate_relationship_contribution,
 )
-from safety_intelligence import normalize_safety_resolution
+from safety_intelligence import normalize_safety_resolution, resolve_emergency_resources
 
 
 DEFAULT_HRN_ENDPOINT = (
@@ -144,10 +144,23 @@ class RelationshipAdapter(SpecialistAdapter):
 
         safety_resolution = None
         if safety_interrupt:
+            safety_country = str(data.get("country") or guide_context.get("country") or "")
+            safety_location = guide_context.get("location")
+            try:
+                emergency_resolution = resolve_emergency_resources(
+                    service_need="general_emergency",
+                    safety_state=str(data.get("safety") or context.safety_state or "acute"),
+                    country=safety_country,
+                    location=safety_location if isinstance(safety_location, Mapping) else None,
+                )
+            except Exception as exc:
+                print(f"Seeing the Relationship Emergency Intelligence unavailable: {exc}")
+                emergency_resolution = {}
             safety_resolution = normalize_safety_resolution(
                 data,
                 requested_state=str(data.get("safety") or context.safety_state or "current"),
-                country=str(data.get("country") or guide_context.get("country") or ""),
+                country=safety_country,
+                emergency_resolution=emergency_resolution,
             )
 
         contribution = {
