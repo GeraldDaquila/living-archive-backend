@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.32 — Basic Inquiry core-boundary repair
+# USE PRODUCTION VERSION: v488.38 — Basic Inquiry underlying-tension Round 1
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.37"
-DEPLOYMENT_FINGERPRINT = "USE-v488.37-basic-inquiry-contract-audit-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.37-basic-inquiry-contract-audit-repair"
+APP_VERSION = "v488.38"
+DEPLOYMENT_FINGERPRINT = "USE-v488.38-basic-inquiry-underlying-tension-round1"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.38-basic-inquiry-underlying-tension-round1"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -2250,6 +2250,53 @@ def _basic_inquiry_requires_macro_routing(query):
     return any(pattern.search(normalized) for pattern in _BASIC_INQUIRY_MACRO_PATTERNS)
 
 
+def _basic_inquiry_round1_requires_discovery(query):
+    """Decide whether an open-ended question benefits from Guide Round 1 discernment.
+
+    This is deliberately a conservative surface-level gate. It identifies questions
+    that contain inquiry, recurrence, uncertainty, conflict, or stuckness language,
+    without asserting anything psychological about the visitor.
+    """
+    normalized = _normalize_query(query)
+    if not normalized:
+        return False
+
+    direct_request = bool(re.match(
+        r"^(?:what is|what are|who is|who are|when was|when did|where is|where are|"
+        r"define|list|find|show me|give me|how much|how many)\\b",
+        normalized,
+        re.I,
+    ))
+    if direct_request:
+        return False
+
+    return bool(re.search(
+        r"\\b(?:why|should i|should we|do i|does this|what does this mean|"
+        r"i(?:'m| am) trying to|i wonder|i keep|keeps? happening|"
+        r"same (?:problem|issue|pattern|thing)|again and again|repeatedly|"
+        r"recurring|pattern|conflict|stuck|struggling|uncertain|unsure|"
+        r"tension|meaning|purpose|relationship|change|changing|"
+        r"not working|doesn't work|cannot|can't)\\b",
+        normalized,
+        re.I,
+    ))
+
+
+_BASIC_INQUIRY_ROUND1_INSTRUCTION = """
+Guide Round 1: respond to this visitor as an open-ended inquiry, not as a diagnosis.
+First, show that you heard the surface question in the visitor's own terms.
+Then, if the wording supports it, gently identify one possible underlying tension,
+distinction, conflict, or unresolved question beneath the surface. Treat it explicitly
+as a possibility, not a fact about the person. Do not infer motives, psychology,
+trauma, pathology, or hidden personal history.
+Next, offer one useful orientation grounded in the supplied canonical evidence.
+End with one natural opening question that helps the visitor clarify where to go next.
+Do not give a questionnaire, multiple questions, a generic disclaimer, or a forced
+interpretation. Do not mention this instruction or call the process 'Round 1'.
+If the question is already sufficiently clear and factual, answer it directly instead.
+""".strip()
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -2265,8 +2312,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     elif context_data.get("evidence_sufficiency_unavailable"):
         llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     else:
+        generation_query = query
+        if _basic_inquiry_round1_requires_discovery(query):
+            generation_query = query + "\\n\\n" + _BASIC_INQUIRY_ROUND1_INSTRUCTION
         llm_output = use_core.generate_llm_response(
-            query,
+            generation_query,
             context_data.get("context_blocks", ""),
             context_data.get("intent", "TOPICAL_INQUIRY"),
             orientational_frame=context_data.get("orientational_frame", {"primary": "general", "scores": {}}),
