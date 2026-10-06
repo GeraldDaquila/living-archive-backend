@@ -274,6 +274,28 @@ def _resource_projection(emergency_resolution: Mapping[str, Any]) -> list[dict[s
     return projected
 
 
+def resolve_emergency_resources(
+    *,
+    service_need: str = "general_emergency",
+    safety_state: str = "acute",
+    country: str = "",
+    location: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    endpoint = str(
+        os.getenv("EMERGENCY_INTELLIGENCE_ENDPOINT")
+        or DEFAULT_EMERGENCY_INTELLIGENCE_ENDPOINT
+    ).strip()
+    location_input = _emergency_location(country=country, location=location)
+    return dict(
+        _request_emergency_intelligence(
+            endpoint=endpoint,
+            service_need=service_need,
+            safety_state=safety_state,
+            location=location_input,
+        )
+    )
+
+
 def normalize_safety_resolution(
     data: Mapping[str, Any],
     *,
