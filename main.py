@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.61 — deterministic safety text normalization
+# USE PRODUCTION VERSION: v488.63 — safety conversation boundary continuity
 import asyncio
 import hashlib
 import ipaddress
@@ -62,14 +62,14 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.61"
-DEPLOYMENT_FINGERPRINT = "USE-v488.61-deterministic-safety-text-normalization"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.61-deterministic-safety-text-normalization"
+APP_VERSION = "v488.63"
+DEPLOYMENT_FINGERPRINT = "USE-v488.63-safety-conversation-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.63-safety-conversation-boundary"
 
-# v488.62 systemwide safety boundary contract marker.
+# v488.63 systemwide safety conversation boundary contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
 # detect drift between the live Guide boundary and its regression tests.
-SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.62"
+SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.63"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -146,7 +146,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.61":
+if str(APP_VERSION) != "v488.63":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2899,7 +2899,27 @@ async def _use_request_boundary(scope, receive, send):
     # Emergency Intelligence system remains the semantic/resource authority.
     # This is deliberately a sibling linkage, not a replacement safety routine.
     history_text = _history_text(history)
+    safety_question_hint = str(parsed_body.get("safety_question") or "").strip()
+    safety_state_hint = str(parsed_body.get("safety_state") or "").strip().casefold()
+    safety_active_hint = bool(parsed_body.get("safety_active"))
     safety_state = classify_safety(query, history=history_text)
+
+    # Conversation continuity contract: a specialist safety turn may carry an
+    # explicit active-state/question alongside its structured history. This is
+    # a server-side continuity aid, not a client-authorized escalation; it can
+    # only keep an already-active safety conversation inside the safety lane.
+    if (
+        not safety_state
+        and safety_active_hint
+        and safety_question_hint
+    ):
+        safety_state = "acute_followthrough"
+    elif (
+        not safety_state
+        and safety_active_hint
+        and safety_state_hint in {"acute", "plan", "immediacy", "current", "acute_followthrough"}
+    ):
+        safety_state = safety_state_hint
 
     # Boundary recovery: the protected core remains the authoritative
     # deterministic fallback if the auxiliary safety classifier misses a
@@ -2939,7 +2959,7 @@ async def _use_request_boundary(scope, receive, send):
                         "location": safety_location,
                         "conversation": history_text,
                         "visitor_history": history_text,
-                        "safety_question": "",
+                        "safety_question": safety_question_hint,
                         "unit_turns": len(history) if isinstance(history, list) else 0,
                     },
                     safety_state=safety_state,
