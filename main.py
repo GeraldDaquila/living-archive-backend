@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.49 — HRN safety continuity hardening
+# USE PRODUCTION VERSION: v488.50 — Emergency Intelligence sibling reconnection + safety-loop guard
 import hashlib
 import re
 import json
@@ -60,9 +60,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.49"
-DEPLOYMENT_FINGERPRINT = "USE-v488.49-hrn-safety-continuity-hardening"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.49-hrn-safety-continuity-hardening"
+APP_VERSION = "v488.50"
+DEPLOYMENT_FINGERPRINT = "USE-v488.50-emergency-intelligence-sibling-reconnection"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.50-emergency-intelligence-sibling-reconnection"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -2724,6 +2724,25 @@ async def _use_request_boundary(scope, receive, send):
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
         safety_country = str(parsed_body.get("country") or parsed_body.get("visitor_country") or "").strip()
+        safety_location = {
+            key: parsed_body.get(key)
+            for key in (
+                "explicit_country",
+                "browser_country",
+                "ip_country",
+                "timezone_country",
+                "locale_country",
+                "region",
+                "province",
+                "locality",
+                "address",
+                "refused",
+                "user_confirmation",
+            )
+            if parsed_body.get(key) not in ("", None)
+        }
+        if safety_country and "explicit_country" not in safety_location:
+            safety_location["explicit_country"] = safety_country
         try:
             safety_contribution = invoke_specialist(
                 SPECIALIST_ADAPTER_REGISTRY,
@@ -2735,9 +2754,10 @@ async def _use_request_boundary(scope, receive, send):
                 processing_purpose="sitewide safety interruption and emergency-resource movement",
                 guide_context={
                     "country": safety_country,
+                    "location": safety_location,
                     "conversation": history_text,
                     "visitor_history": history_text,
-                    "safety_question": query,
+                    "safety_question": "",
                     "unit_turns": len(history) if isinstance(history, list) else 0,
                 },
                 safety_state=safety_state,
@@ -3721,7 +3741,7 @@ app = _use_request_boundary
 
 
 print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, capability_routing=provider_model_bank")
-print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, sibling_link=relationship")
+print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
