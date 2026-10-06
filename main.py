@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.38 — Basic Inquiry underlying-tension Round 1
+# USE PRODUCTION VERSION: v488.39 — Basic Inquiry underlying-tension Round 1 startup repair
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.38"
-DEPLOYMENT_FINGERPRINT = "USE-v488.38-basic-inquiry-underlying-tension-round1"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.38-basic-inquiry-underlying-tension-round1"
+APP_VERSION = "v488.39"
+DEPLOYMENT_FINGERPRINT = "USE-v488.39-basic-inquiry-underlying-tension-round1"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.39-basic-inquiry-underlying-tension-round1"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.37":
+if str(APP_VERSION) != "v488.39":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
