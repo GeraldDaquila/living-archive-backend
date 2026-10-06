@@ -910,19 +910,44 @@ for _query, _label in (
         raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
 
 def _history_text(history):
-    if not history: return ""
-    if isinstance(history, str): return history.strip()
-    parts=[]
+    """Serialize conversation history without losing safety-loop questions.
+
+    The Guide receives structured turns from specialist frontends. A safety
+    assistant turn can contain both a human-facing message and the active
+    safety question. The previous serializer silently discarded the question
+    whenever content was present, collapsing the safety state machine on short
+    answers such as "yes" or "no".
+
+    This is a shared conversation-boundary contract, not a UI patch: every
+    downstream specialist receives the same lossless recent conversation.
+    """
+    if not history:
+        return ""
+    if isinstance(history, str):
+        return history.strip()
+
+    parts = []
     for item in list(history)[-8:]:
         if isinstance(item, dict):
-            role=str(item.get("role") or item.get("speaker") or "").strip()
-            content=str(item.get("content") or item.get("message") or item.get("text") or item.get("response") or item.get("question") or "").strip()
-            if content: parts.append(f"{role}: {content}" if role else content)
+            role = str(item.get("role") or item.get("speaker") or "").strip()
+            content = str(
+                item.get("content")
+                or item.get("message")
+                or item.get("text")
+                or item.get("response")
+                or ""
+            ).strip()
+            question = str(item.get("question") or "").strip()
+            if content:
+                parts.append(f"{role}: {content}" if role else content)
+            if question and question != content:
+                question_role = f"{role} question" if role else "question"
+                parts.append(f"{question_role}: {question}")
         elif item is not None:
-            value=str(item).strip()
-            if value: parts.append(value)
+            value = str(item).strip()
+            if value:
+                parts.append(value)
     return "\n".join(parts)
-
 _RELATIONSHIP_INTERACTION_PATTERNS=(
     r"\bbetween us\b",r"\bbetween me and\b",r"\bbetween you and\b",r"\bwe keep\b",
     r"\bwe(?:'re| are)\b",r"\bwe can(?:'t|not)\b",r"\bwe don't\b",r"\bwe disagree\b",
