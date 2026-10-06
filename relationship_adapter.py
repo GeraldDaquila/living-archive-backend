@@ -23,6 +23,7 @@ from relationship_contribution import (
     RELATIONSHIP_VOICE_POLICY,
     validate_relationship_contribution,
 )
+from safety_intelligence import normalize_safety_resolution
 
 
 DEFAULT_HRN_ENDPOINT = (
@@ -141,13 +142,25 @@ class RelationshipAdapter(SpecialistAdapter):
         if safety_interrupt:
             status = "CONTRIBUTION"
 
+        safety_resolution = None
+        if safety_interrupt:
+            safety_resolution = normalize_safety_resolution(
+                data,
+                requested_state=str(data.get("safety") or context.safety_state or "current"),
+                country=str(data.get("country") or guide_context.get("country") or ""),
+            )
+
         contribution = {
             "contract_version": "v1",
             "request_id": context.request_id,
             "specialist_id": self.specialist_id,
             "status": status,
             "voice_policy": RELATIONSHIP_VOICE_POLICY,
-            "human_response": str(data.get("response") or ""),
+            "human_response": str(
+                (safety_resolution or {}).get("safety_message")
+                or data.get("response")
+                or ""
+            ),
             "interpretation": {
                 "clarity": data.get("clarity"),
                 "service_orientation": data.get("service_orientation"),
@@ -202,6 +215,12 @@ class RelationshipAdapter(SpecialistAdapter):
                 "safety": data.get("safety"),
                 "safety_interrupt": safety_interrupt,
                 "safety_question": data.get("safety_question"),
+                "safety_message": data.get("safety_message"),
+                "safety_note": data.get("safety_note"),
+                "safety_resources": data.get("safety_resources") or [],
+                "safety_location_required": data.get("safety_location_required"),
+                "country": data.get("country"),
+                "safety_release_ready": data.get("safety_release_ready"),
             },
         }
 
