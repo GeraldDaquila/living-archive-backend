@@ -9,7 +9,7 @@ from safety_intelligence import (
     safety_intelligence_snapshot,
 )
 
-SAFETY_UTILITY_VERSION = "v2"
+SAFETY_UTILITY_VERSION = "v3"
 
 def build_safety_contribution(
     *,
@@ -20,6 +20,7 @@ def build_safety_contribution(
     history: str = "",
     safety_question: str = "",
     unit_turns: int = 0,
+    location: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any]:
     state = str(safety_state or "current").strip().casefold()
     resolution = resolve_safety(
@@ -29,6 +30,7 @@ def build_safety_contribution(
         country=country,
         safety_question=safety_question or query,
         unit_turns=unit_turns,
+        location=location,
     )
     return {
         "contract_version": "v1",
@@ -48,6 +50,10 @@ def build_safety_contribution(
             "resource_owner": "Emergency Intelligence",
             "language_owner": "HRN Safety Fractal",
             "resolver_status": resolution.get("resolver_status", "hrn_emergency_intelligence"),
+            "emergency_selection_status": resolution.get("emergency_selection_status", ""),
+            "emergency_presentation": resolution.get("emergency_presentation") or {},
+            "emergency_registry_authority": "Emergency Intelligence",
+            "safety_loop_guard": resolution.get("loop_guard", "active"),
         },
         "safety_flags": {
             "safety": True,
@@ -71,6 +77,11 @@ def build_safety_contribution(
             "safety_release_ready": bool(resolution.get("safety_release_ready")),
             "resources": list(resolution.get("safety_resources") or []),
             "next_movement": resolution.get("safety_question") or "",
+            "emergency_resolution": resolution.get("emergency_resolution") or {},
+            "emergency_presentation": resolution.get("emergency_presentation") or {},
+            "emergency_selection_status": resolution.get("emergency_selection_status") or "",
+            "safety_presence": resolution.get("safety_presence") or "unknown",
+            "safety_question_context": resolution.get("safety_question_context") or "",
             "resolver_status": resolution.get("resolver_status", "hrn_emergency_intelligence"),
         },
     }
