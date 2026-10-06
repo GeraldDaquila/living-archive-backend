@@ -15,6 +15,7 @@ import os
 import re
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Mapping
 
 SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2"
@@ -200,7 +201,7 @@ def _request_emergency_intelligence(
     service_need: str,
     safety_state: str,
     location: Mapping[str, Any],
-    timeout: float = 6.0,
+    timeout: float = 3.0,
 ) -> Mapping[str, Any]:
     return _request_json(
         endpoint=endpoint,
@@ -224,7 +225,7 @@ def _request_hrn_safety(
     country: str,
     unit_turns: int = 0,
     safety_presence: str = "unknown",
-    timeout: float = 12.0,
+    timeout: float = 5.0,
 ) -> Mapping[str, Any]:
     payload = {
         "message": query,
@@ -389,29 +390,51 @@ def resolve_safety(
 
     emergency_resolution: Mapping[str, Any] | None = None
     emergency_error = ""
-    try:
-        emergency_resolution = _request_emergency_intelligence(
-            endpoint=emergency_endpoint_url,
-            service_need=service_need,
-            safety_state=safety_state,
-            location=location_input,
-        )
-    except Exception as exc:
-        emergency_error = str(exc)
-        emergency_resolution = {}
-        print(f"Emergency Intelligence unavailable; HRN safety remains active: {exc}")
+    data: Mapping[str, Any] | None = None
+    hrn_error = ""
+
+    executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="guide-safety")
+    emergency_future = executor.submit(
+        _request_emergency_intelligence,
+        endpoint=emergency_endpoint_url,
+        service_need=service_need,
+        safety_state=safety_state,
+        location=location_input,
+        timeout=3.0,
+    )
+    hrn_future = executor.submit(
+        _request_hrn_safety,
+        endpoint=endpoint_url,
+        query=query,
+        history=history,
+        safety_state=safety_state,
+        safety_question=previous_question or query,
+        country=country,
+        unit_turns=unit_turns,
+        safety_presence=presence,
+        timeout=5.0,
+    )
 
     try:
-        data = _request_hrn_safety(
-            endpoint=endpoint_url,
-            query=query,
-            history=history,
-            safety_state=safety_state,
-            safety_question=previous_question or query,
-            country=country,
-            unit_turns=unit_turns,
-            safety_presence=presence,
-        )
+        try:
+            emergency_resolution = emergency_future.result(timeout=3.2)
+        except Exception as exc:
+            emergency_error = str(exc)
+            emergency_resolution = {}
+            print(f"Emergency Intelligence unavailable; HRN safety remains active: {exc}")
+
+        try:
+            data = hrn_future.result(timeout=5.2)
+        except Exception as exc:
+            hrn_error = str(exc)
+            data = None
+            print(f"HRN safety sibling unavailable within bound: {exc}")
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+    try:
+        if data is None:
+            raise RuntimeError(hrn_error or "HRN safety sibling returned no response.")
         normalized = normalize_safety_resolution(
             data,
             requested_state=safety_state,
