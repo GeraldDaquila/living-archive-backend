@@ -1,4 +1,5 @@
 # USE PRODUCTION VERSION: v488.51 — Emergency Intelligence sibling reconnection + safety-loop progression guard
+import asyncio
 import hashlib
 import re
 import json
@@ -60,9 +61,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.52"
-DEPLOYMENT_FINGERPRINT = "USE-v488.52-protected-core-safety-boundary-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.52-protected-core-safety-boundary-recovery"
+APP_VERSION = "v488.53"
+DEPLOYMENT_FINGERPRINT = "USE-v488.53-safety-boundary-recovery-latency-cap"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.53-safety-boundary-recovery-latency-cap"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -139,7 +140,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.52":
+if str(APP_VERSION) != "v488.53":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2757,23 +2758,27 @@ async def _use_request_boundary(scope, receive, send):
         if safety_country and "explicit_country" not in safety_location:
             safety_location["explicit_country"] = safety_country
         try:
-            safety_contribution = invoke_specialist(
-                SPECIALIST_ADAPTER_REGISTRY,
-                request_id=request_id,
-                guide_version=APP_VERSION,
-                specialist_id="safety",
-                original_question=query,
-                recognized_territory="immediate safety",
-                processing_purpose="sitewide safety interruption and emergency-resource movement",
-                guide_context={
-                    "country": safety_country,
-                    "location": safety_location,
-                    "conversation": history_text,
-                    "visitor_history": history_text,
-                    "safety_question": "",
-                    "unit_turns": len(history) if isinstance(history, list) else 0,
-                },
-                safety_state=safety_state,
+            safety_contribution = await asyncio.wait_for(
+                asyncio.to_thread(
+                    invoke_specialist,
+                    SPECIALIST_ADAPTER_REGISTRY,
+                    request_id=request_id,
+                    guide_version=APP_VERSION,
+                    specialist_id="safety",
+                    original_question=query,
+                    recognized_territory="immediate safety",
+                    processing_purpose="sitewide safety interruption and emergency-resource movement",
+                    guide_context={
+                        "country": safety_country,
+                        "location": safety_location,
+                        "conversation": history_text,
+                        "visitor_history": history_text,
+                        "safety_question": "",
+                        "unit_turns": len(history) if isinstance(history, list) else 0,
+                    },
+                    safety_state=safety_state,
+                ),
+                timeout=5.5,
             )
             safety_payload = dict(safety_contribution.get("payload") or {})
             safety_response = str(safety_payload.get("human_response") or "").strip()
