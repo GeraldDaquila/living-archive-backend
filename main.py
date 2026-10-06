@@ -1,6 +1,7 @@
 # USE PRODUCTION VERSION: v488.51 — Emergency Intelligence sibling reconnection + safety-loop progression guard
 import asyncio
 import hashlib
+import ipaddress
 import re
 import json
 import time
@@ -61,9 +62,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.54"
-DEPLOYMENT_FINGERPRINT = "USE-v488.54-safety-boundary-recovery-parallel-sibling-resolution"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.54-safety-boundary-recovery-parallel-sibling-resolution"
+APP_VERSION = "v488.55"
+DEPLOYMENT_FINGERPRINT = "USE-v488.55-sitewide-location-triangulation"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.55-sitewide-location-triangulation"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -140,7 +141,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.54":
+if str(APP_VERSION) != "v488.55":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2688,6 +2689,155 @@ if _series_analysis_boundary_probe and _series_analysis_boundary_probe.get("node
         "USE v488.30 invariant failed: singular Leadership hint matched plural pattern query."
     )
 
+
+def _request_header(scope, name):
+    target = str(name or "").strip().lower().encode("latin-1")
+    for key, value in scope.get("headers") or []:
+        if bytes(key).lower() == target:
+            try:
+                return bytes(value).decode("latin-1").strip()
+            except Exception:
+                return ""
+    return ""
+
+
+def _first_forwarded_ip(value):
+    first = str(value or "").split(",", 1)[0].strip()
+    try:
+        ipaddress.ip_address(first)
+        return first
+    except ValueError:
+        return ""
+
+
+def _request_location_context(scope, parsed_body):
+    """Build the Guide's normalized location context without requiring a prompt.
+
+    Precedence is explicit visitor context, browser/device context, trusted edge
+    country metadata, then bounded IP geolocation. The resolver never invents
+    a country and returns an empty context when no reliable signal is available.
+    """
+    headers = {
+        "cf_connecting_ip": _request_header(scope, "cf-connecting-ip"),
+        "true_client_ip": _request_header(scope, "true-client-ip"),
+        "x_forwarded_for": _request_header(scope, "x-forwarded-for"),
+        "cf_ipcountry": _request_header(scope, "cf-ipcountry"),
+        "cf_region": _request_header(scope, "cf-region"),
+        "cf_ipcity": _request_header(scope, "cf-ipcity"),
+        "cf_iplatitude": _request_header(scope, "cf-iplatitude"),
+        "cf_iplongitude": _request_header(scope, "cf-iplongitude"),
+        "cf_timezone": _request_header(scope, "cf-timezone"),
+    }
+    client_ip = ""
+    for candidate in (
+        headers["cf_connecting_ip"],
+        headers["true_client_ip"],
+        _first_forwarded_ip(headers["x_forwarded_for"]),
+    ):
+        try:
+            ipaddress.ip_address(candidate)
+            client_ip = candidate
+            break
+        except ValueError:
+            continue
+
+    context = {}
+    for key in (
+        "explicit_country", "browser_country", "ip_country",
+        "timezone_country", "locale_country", "region", "province",
+        "locality", "address", "refused", "user_confirmation",
+        "latitude", "longitude", "accuracy",
+    ):
+        value = parsed_body.get(key)
+        if value not in ("", None):
+            context[key] = value
+
+    if parsed_body.get("country") not in ("", None) and "explicit_country" not in context:
+        context["explicit_country"] = str(parsed_body.get("country")).strip()
+
+    if headers["cf_ipcountry"] and "browser_country" not in context and "explicit_country" not in context:
+        context["ip_country"] = headers["cf_ipcountry"].strip().upper()
+        context["location_source"] = "cloudflare_edge"
+
+    if headers["cf_region"] and "region" not in context:
+        context["region"] = headers["cf_region"]
+    if headers["cf_ipcity"] and "locality" not in context:
+        context["locality"] = headers["cf_ipcity"]
+    if headers["cf_iplatitude"] and "latitude" not in context:
+        context["latitude"] = headers["cf_iplatitude"]
+    if headers["cf_iplongitude"] and "longitude" not in context:
+        context["longitude"] = headers["cf_iplongitude"]
+    if headers["cf_timezone"] and "timezone" not in context:
+        context["timezone"] = headers["cf_timezone"]
+    if client_ip:
+        context["client_ip"] = client_ip
+
+    return context, client_ip
+
+
+def _ip_geolocation(client_ip, timeout=0.65):
+    if not client_ip:
+        return {}
+    try:
+        ipaddress.ip_address(client_ip)
+    except ValueError:
+        return {}
+    endpoint = "https://get.geojs.io/v1/ip/geo/" + quote(client_ip, safe="")
+    try:
+        request = UrlRequest(
+            endpoint,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "Living-Archive-The-Guide/1.0",
+            },
+            method="GET",
+        )
+        with urlopen(request, timeout=float(timeout)) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        if not isinstance(payload, dict):
+            return {}
+        result = {}
+        country_code = str(payload.get("country_code") or "").strip().upper()
+        if country_code:
+            result["ip_country"] = country_code
+        if payload.get("region"):
+            result["region"] = str(payload.get("region")).strip()
+            result["province"] = str(payload.get("region")).strip()
+        if payload.get("city"):
+            result["locality"] = str(payload.get("city")).strip()
+        for source_key, target_key in (
+            ("latitude", "latitude"),
+            ("longitude", "longitude"),
+            ("accuracy", "accuracy"),
+            ("timezone", "timezone"),
+        ):
+            if payload.get(source_key) not in ("", None):
+                result[target_key] = payload.get(source_key)
+        if result:
+            result["location_source"] = "ip_geolocation"
+        return result
+    except Exception as exc:
+        print(f"The Guide IP location fallback unavailable: {exc}")
+        return {}
+
+
+async def _resolve_request_location(scope, parsed_body):
+    context, client_ip = _request_location_context(scope, parsed_body)
+    # First-party/context supplied by the visitor or edge wins. Only use the
+    # external IP resolver when no country signal exists yet.
+    if any(context.get(key) for key in (
+        "explicit_country", "browser_country", "ip_country",
+        "timezone_country", "locale_country",
+    )):
+        return context
+    if client_ip:
+        fallback = await asyncio.to_thread(_ip_geolocation, client_ip, 0.65)
+        for key, value in fallback.items():
+            if value not in ("", None) and not context.get(key):
+                context[key] = value
+    return context
+
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -2738,25 +2888,11 @@ async def _use_request_boundary(scope, receive, send):
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
         safety_country = str(parsed_body.get("country") or parsed_body.get("visitor_country") or "").strip()
-        safety_location = {
-            key: parsed_body.get(key)
-            for key in (
-                "explicit_country",
-                "browser_country",
-                "ip_country",
-                "timezone_country",
-                "locale_country",
-                "region",
-                "province",
-                "locality",
-                "address",
-                "refused",
-                "user_confirmation",
-            )
-            if parsed_body.get(key) not in ("", None)
-        }
+        safety_location = await _resolve_request_location(scope, parsed_body)
         if safety_country and "explicit_country" not in safety_location:
             safety_location["explicit_country"] = safety_country
+        if safety_location.get("ip_country") and not safety_country:
+            safety_country = str(safety_location.get("ip_country") or "").strip()
         try:
             safety_contribution = await asyncio.wait_for(
                 asyncio.to_thread(
