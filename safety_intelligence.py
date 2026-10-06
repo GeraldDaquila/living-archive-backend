@@ -40,6 +40,9 @@ _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i\s+(?:overdosed|have\s+overdosed|took\s+an\s+overdose)|i\s+(?:have\s+hurt|have\s+harmed)\s+myself)\b", re.I),
     re.compile(r"\b(?:i\s+(?:can't|cannot)\s+(?:keep|stay)\s+myself\s+safe|immediate\s+danger)\b", re.I),
     re.compile(r"\bi\s+want\s+to\s+die\b", re.I),
+    # Plain first-person suicidal intent belongs to the native acute HRN safety loop.
+    # Do not downgrade this boundary to the generic current-risk branch.
+    re.compile(r"\b(?:i(?:'m| am)?\s+want(?:ing)?\s+to)\s+(?:kill\s+myself|end\s+my\s+life)\b", re.I),
 )
 _PLAN_PATTERNS = (
     re.compile(r"\b(?:i\s+(?:have|made)\s+a\s+plan)\b", re.I),
