@@ -24,4 +24,5 @@ class SafetyUtilityAdapter:
                 or context.original_question
             ),
             unit_turns=int(guide_context.get("unit_turns") or 0),
+            location=guide_context.get("location") if isinstance(guide_context.get("location"), Mapping) else None,
         )
