@@ -65,7 +65,7 @@ _CURRENT_PATTERNS = (
 
 
 def normalize_safety_state(query: str, *, history: str = "") -> str | None:
-    text = " ".join(str(query or "").strip().casefold().split())
+    text = " ".join(str(query or "").strip().casefold().split()).replace("’", "'").replace("‘", "'")
     if not text:
         return None
 
