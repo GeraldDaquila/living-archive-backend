@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.1"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -71,11 +71,22 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
 
     history_lines = [line.strip() for line in str(history or "").splitlines() if line.strip()]
     recent = " ".join(history_lines[-2:]).casefold()
+    # A safety conversation remains in the safety lane while the visitor is
+    # answering one of HRN's active safety questions. Short answers such as
+    # "yes", "no", "not yet", or "I don't know" contain too little standalone
+    # semantic material to classify safely. The preceding HRN question is the
+    # authoritative conversational context and must therefore keep the request
+    # inside the safety state machine.
     active_markers = (
         "please move away from anything you could use to hurt yourself",
+        "have you moved away from anything you could use to hurt yourself",
         "can you contact emergency or crisis support now",
+        "do you think you might act on these thoughts right now",
+        "do you feel you might act on these thoughts right now",
         "are you safe from acting on these thoughts right now",
         "can you contact someone you trust and stay connected with them now",
+        "is there someone you can be with right now",
+        "is there someone you trust you can be with right now",
         "if you cannot reach someone you trust, please use the emergency or crisis support above now",
     )
     if any(marker in recent for marker in active_markers):
@@ -92,6 +103,20 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
         return "current"
     return None
 
+
+# v488.60 boundary invariant: a short answer must remain inside the active
+# safety conversation when the preceding HRN question is still open.
+if normalize_safety_state(
+    "yes",
+    history="visitor: I don't want to live anymore.\nassistant: Do you think you might act on these thoughts right now?"
+) != "acute_followthrough":
+    raise RuntimeError("USE v488.60 invariant failed: active safety follow-through lost for short answer.")
+
+if normalize_safety_state(
+    "no",
+    history="visitor: I don't want to live anymore.\nassistant: Have you moved away from anything you could use to hurt yourself?"
+) != "acute_followthrough":
+    raise RuntimeError("USE v488.60 invariant failed: active safety follow-through lost for negative short answer.")
 
 def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | None:
     """Bounded semantic safety augmentation.
