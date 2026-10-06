@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.39 — Basic Inquiry underlying-tension Round 1 startup repair
+# USE PRODUCTION VERSION: v488.40 — Basic Inquiry true Round 1 composition
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.39"
-DEPLOYMENT_FINGERPRINT = "USE-v488.39-basic-inquiry-underlying-tension-round1"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.39-basic-inquiry-underlying-tension-round1"
+APP_VERSION = "v488.40"
+DEPLOYMENT_FINGERPRINT = "USE-v488.40-basic-inquiry-true-round1-composition"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.40-basic-inquiry-true-round1-composition"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.39":
+if str(APP_VERSION) != "v488.40":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2297,6 +2297,127 @@ If the question is already sufficiently clear and factual, answer it directly in
 """.strip()
 
 
+_BASIC_INQUIRY_ROUND1_SYSTEM = """You are the Round 1 composition layer of The Guide, the general orientation instrument of the Living Archive.
+
+Make one intelligent first movement. Demonstrate that the visitor's surface question was heard. When the wording supports it, name one possible underlying tension, distinction, conflict, or unresolved question. Treat it as a possibility, never as a fact about the person. Do not infer motives, trauma, pathology, personality, hidden history, or mental state.
+
+Then offer one useful orientation grounded in the supplied canonical evidence. End with exactly one natural opening question that helps the visitor clarify what to explore next.
+
+Do not use headings such as "Underlying tension", "Round 1", "Analysis", or "Interpretation". Do not use therapeutic language, give advice, provide a list of steps, ask multiple questions, or force a canonical resource into the answer. If a doorway is useful, introduce at most one as a possible lens, not as an explanation of the visitor's experience.
+
+Return ONLY valid JSON with exactly:
+{"response":"2–4 short paragraphs ending with exactly one opening question","doorway_title":"exact canonical title if naturally useful, otherwise empty"}
+""".strip()
+
+
+def _basic_inquiry_round1_response(query, interpretation, context_data):
+    """Compose a true Guide Round 1 response without altering protected core."""
+    interpretation = interpretation or {}
+    try:
+        documents = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        documents = []
+    evidence = []
+    for document in documents[:3]:
+        title = str(document.get("title") or "").strip()
+        content = str(document.get("content") or "").strip()
+        if title:
+            evidence.append({"title": title, "content": content[:2200]})
+
+    internal = {
+        "human_reality": str(interpretation.get("human_reality") or "").strip(),
+        "presenting_situation": str(interpretation.get("presenting_situation") or "").strip(),
+        "visitor_proposition": str(interpretation.get("visitor_proposition") or "").strip(),
+        "underlying_question": str(interpretation.get("underlying_question") or "").strip(),
+        "uncertainty": str(interpretation.get("uncertainty") or "").strip(),
+        "desired_movement": str(interpretation.get("desired_movement") or "").strip(),
+    }
+    user_content = (
+        "Surface question:\n" + str(query).strip()
+        + "\n\nTentative internal interpretation:\n"
+        + json.dumps(internal, ensure_ascii=False)
+        + "\n\nCanonical evidence:\n"
+        + json.dumps(evidence, ensure_ascii=False)
+    )
+
+    def _parse(raw):
+        parsed = json.loads(str(raw or "").strip())
+        if not isinstance(parsed, dict):
+            raise ValueError("Round 1 response was not an object.")
+        response = str(parsed.get("response") or "").strip()
+        title = str(parsed.get("doorway_title") or "").strip()
+        if not response:
+            raise ValueError("Round 1 response was empty.")
+        if response.count("?") != 1:
+            raise ValueError("Round 1 response must contain exactly one opening question.")
+        return {"response": response, "doorway_title": title}
+
+    bank_result = route_with_model_bank(
+        use_core=use_core,
+        messages=[
+            {"role": "system", "content": _BASIC_INQUIRY_ROUND1_SYSTEM},
+            {"role": "user", "content": user_content[:12000]},
+        ],
+        max_tokens=500,
+        parse=_parse,
+    )
+    if not bank_result:
+        return None
+
+    parsed = bank_result["parsed"]
+    canonical_titles = {str(item.get("title") or "").strip() for item in evidence if str(item.get("title") or "").strip()}
+    selected = str(parsed.get("doorway_title") or "").strip()
+    if selected and selected not in canonical_titles:
+        selected = ""
+    return {
+        "response": str(parsed["response"]).strip(),
+        "doorway_title": selected,
+        "provider": str(bank_result.get("provider") or ""),
+        "model": str(bank_result.get("model") or ""),
+    }
+
+
+def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):
+    """Safe fallback that preserves the Round 1 movement without provider prose."""
+    interpretation = interpretation or {}
+    underlying = str(interpretation.get("underlying_question") or "").strip()
+    uncertainty = str(interpretation.get("uncertainty") or "").strip()
+    movement = str(interpretation.get("desired_movement") or "").strip()
+
+    if underlying and uncertainty:
+        opening = f"The question seems to sit between {underlying.rstrip('.')} and not yet knowing {uncertainty.rstrip('.')}."
+    elif underlying:
+        opening = f"The question may be pointing to something slightly deeper than its surface wording: {underlying.rstrip('.')}."
+    else:
+        opening = "There may be a useful distinction beneath the question that is easier to see once the surface question is separated from the explanation we might give it."
+
+    orientation = (
+        f"A useful next movement may be {movement.rstrip('.')}."
+        if movement
+        else "A useful next movement may be to stay with the part of the question that is still genuinely open, rather than deciding too quickly what explains it."
+    )
+
+    try:
+        documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
+    except Exception:
+        documents = []
+    title = str(documents[0].get("title") or "").strip() if documents else ""
+    url = str(documents[0].get("url") or documents[0].get("canonical_url") or "").strip() if documents else ""
+    doorway = (
+        f"One related Archive lens is [{title}]({url}). It is a possible place to look, not an explanation of your experience."
+        if title and url else ""
+    )
+    final_question = "What part of the question feels most important to understand first?"
+    return {
+        "response": "\n\n".join(part for part in (opening, orientation, doorway, final_question) if part),
+        "doorway_title": title,
+        "provider": "deterministic_round1",
+        "model": "",
+    }
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -2312,17 +2433,45 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     elif context_data.get("evidence_sufficiency_unavailable"):
         llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     else:
-        generation_query = query
+        round1_result = None
         if _basic_inquiry_round1_requires_discovery(query):
-            generation_query = query + "\\n\\n" + _BASIC_INQUIRY_ROUND1_INSTRUCTION
-        llm_output = use_core.generate_llm_response(
-            generation_query,
-            context_data.get("context_blocks", ""),
-            context_data.get("intent", "TOPICAL_INQUIRY"),
-            orientational_frame=context_data.get("orientational_frame", {"primary": "general", "scores": {}}),
-            canonical_link_context=context_data.get("canonical_link_context", context_data.get("context_blocks", "")),
-            protected_documents=context_data.get("generation_authority_protected_docs", context_data.get("question_authority_protected_docs")),
-        )
+            try:
+                route_result = _guide_capability_route(query, history)
+                interpretation = route_result.get("round1_interpretation") if isinstance(route_result, dict) else {}
+                route_kind = str(route_result.get("route") or "guide").strip().casefold() if isinstance(route_result, dict) else "guide"
+                if route_kind == "guide":
+                    refined_query = str((interpretation or {}).get("underlying_question") or "").strip()
+                    if refined_query and _normalize_query(refined_query) != _normalize_query(query):
+                        refined_context = use_core.fetch_canonical_context(refined_query)
+                        if isinstance(refined_context, dict) and refined_context.get("context_blocks"):
+                            context_data = refined_context
+                    round1_result = _basic_inquiry_round1_response(query, interpretation or {}, context_data)
+                    if not round1_result:
+                        round1_result = _basic_inquiry_round1_deterministic_response(query, interpretation or {}, context_data)
+            except Exception as exc:
+                print(f"The Guide Round 1 discernment failed safely; using deterministic recovery: {exc}")
+                try:
+                    round1_result = _basic_inquiry_round1_deterministic_response(query, {}, context_data)
+                except Exception:
+                    round1_result = None
+
+        if round1_result:
+            llm_output = round1_result.get("response", "")
+            print(
+                "The Guide Round 1: "
+                f"provider={round1_result.get('provider') or 'unknown'}, "
+                f"model={round1_result.get('model') or 'none'}, "
+                f"doorway={round1_result.get('doorway_title') or 'none'}"
+            )
+        else:
+            llm_output = use_core.generate_llm_response(
+                query,
+                context_data.get("context_blocks", ""),
+                context_data.get("intent", "TOPICAL_INQUIRY"),
+                orientational_frame=context_data.get("orientational_frame", {"primary": "general", "scores": {}}),
+                canonical_link_context=context_data.get("canonical_link_context", context_data.get("context_blocks", "")),
+                protected_documents=context_data.get("generation_authority_protected_docs", context_data.get("question_authority_protected_docs")),
+            )
 
     response = str(llm_output or "").strip()
     if not response:
