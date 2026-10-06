@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.42 — prevent capability-route escape from Basic Inquiry Round 1
+# USE PRODUCTION VERSION: v488.43 — structurally isolate Basic Inquiry from capability routing
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.42"
-DEPLOYMENT_FINGERPRINT = "USE-v488.42-basic-inquiry-round1-operation-preservation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.42-basic-inquiry-round1-operation-preservation"
+APP_VERSION = "v488.43"
+DEPLOYMENT_FINGERPRINT = "USE-v488.43-basic-inquiry-provider-isolation"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.43-basic-inquiry-provider-isolation"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -2441,19 +2441,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         if round1_gate:
             try:
-                route_result = _guide_capability_route(query, history)
-                interpretation = route_result.get("round1_interpretation") if isinstance(route_result, dict) else {}
-                # Basic Inquiry has already won the native-boundary decision before
-                # this function is entered. The capability interpreter may enrich Round 1
-                # with an interpretation, but it must not cancel the Round 1 operation by
-                # privately reclassifying the question as formation, glossary, or another
-                # route. Native specialist boundaries have precedence at the request seam.
-                refined_query = str((interpretation or {}).get("underlying_question") or "").strip()
-                if refined_query and _normalize_query(refined_query) != _normalize_query(query):
-                    refined_context = use_core.fetch_canonical_context(refined_query)
-                    if isinstance(refined_context, dict) and refined_context.get("context_blocks"):
-                        context_data = refined_context
-                round1_result = _basic_inquiry_round1_response(query, interpretation or {}, context_data)
+                # Basic Inquiry owns this operation once native boundaries have
+                # been cleared. It must not call the capability router as a second,
+                # hidden specialist-classification layer. Round 1 composition receives
+                # the visitor's original question and canonical evidence directly.
+                # Any specialist handoff decision has already been made at the request
+                # boundary above; ordinary inquiry must remain ordinary inquiry.
+                interpretation = {}
+                round1_result = _basic_inquiry_round1_response(query, interpretation, context_data)
+                print("The Guide Basic Inquiry Round 1: discernment_source=direct_composition, capability_router=not_called")
                 if not round1_result:
                     round1_result = _basic_inquiry_round1_deterministic_response(query, interpretation or {}, context_data)
             except Exception as exc:
@@ -2530,6 +2526,12 @@ def _v48831_basic_inquiry_seam_self_audit():
         raise RuntimeError("Basic Inquiry probe was incorrectly deferred to macro routing.")
     if not _basic_inquiry_round1_requires_discovery(probe):
         raise RuntimeError("Basic Inquiry Round 1 discovery gate failed for the canonical probe.")
+    source_text = _MAIN_PATH.read_text(encoding="utf-8")
+    basic_start = source_text.find("def _basic_inquiry_response(")
+    basic_end = source_text.find("def _v48831_basic_inquiry_seam_self_audit(", basic_start)
+    basic_block = source_text[basic_start:basic_end] if basic_start >= 0 and basic_end > basic_start else ""
+    if "_guide_capability_route(" in basic_block:
+        raise RuntimeError("Basic Inquiry structural isolation failure: capability router remains inside ordinary inquiry.")
     if not _basic_inquiry_requires_macro_routing("I want stewardship formation."):
         raise RuntimeError("Formation macro-routing boundary was lost.")
     if not _basic_inquiry_requires_macro_routing("I want to understand Philippine systems."):
