@@ -321,6 +321,22 @@ def normalize_safety_resolution(
     if not resources and emergency_resolution is None:
         resources = list(data.get("safety_resources") or [])
 
+    emergency_status = str((emergency_resolution or {}).get("selection", {}).get("selection_status") or "")
+    if emergency_resolution is not None and not resources and emergency_status in {
+        "LOCATION_REQUIRED",
+        "FALLBACK_GENERAL_EMERGENCY",
+    }:
+        safety_message = (
+            "I want to make sure I give you the right local emergency help. "
+            "If you may be in immediate danger, please contact the emergency "
+            "service where you are or go to the nearest emergency department."
+        )
+        safety_question = (
+            "What country are you in right now?"
+            if emergency_status == "LOCATION_REQUIRED"
+            else safety_question
+        )
+
     selection = dict((emergency_resolution or {}).get("selection") or {})
     presentation = dict((emergency_resolution or {}).get("presentation") or {})
 
@@ -415,9 +431,16 @@ def resolve_safety(
                 "It helps that someone is with you. Please stay with them and "
                 "keep away from anything you could use to hurt yourself."
             )
-            normalized["safety_question"] = (
-                "Are you safe from acting on these thoughts right now?"
-            )
+            if "moved away" in previous_question.casefold():
+                normalized["safety_question"] = (
+                    "Are you safe from acting on these thoughts right now?"
+                    if re.search(r"\b(?:yes|i did|i have|i moved|i'm away|i am away)\b", query.casefold())
+                    else "Have you moved away from anything you could use to hurt yourself?"
+                )
+            else:
+                normalized["safety_question"] = (
+                    "Have you moved away from anything you could use to hurt yourself?"
+                )
             normalized["safety_release_ready"] = False
             normalized["loop_guard"] = "contradictory_presence_claim_repaired"
 
