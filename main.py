@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.31 — Basic Inquiry seam
+# USE PRODUCTION VERSION: v488.32 — Basic Inquiry core-boundary repair
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.31"
-DEPLOYMENT_FINGERPRINT = "USE-v488.31-basic-inquiry-seam"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.31-basic-inquiry-seam"
+APP_VERSION = "v488.32"
+DEPLOYMENT_FINGERPRINT = "USE-v488.32-basic-inquiry-core-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.32-basic-inquiry-core-boundary"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -2254,18 +2254,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
     query = str(query or "").strip()
-    context_data = _base.fetch_canonical_context(query)
+    context_data = use_core.fetch_canonical_context(query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
 
     if context_data.get("frame_neutral_evidence_unavailable"):
-        llm_output = _base._frame_neutral_evidence_unavailable_response(query)
+        llm_output = use_core._frame_neutral_evidence_unavailable_response(query)
     elif context_data.get("question_structure_evidence_unavailable"):
-        llm_output = _base._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
+        llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     elif context_data.get("evidence_sufficiency_unavailable"):
         llm_output = _base._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     else:
-        llm_output = _base.generate_llm_response(
+        llm_output = use_core.generate_llm_response(
             query,
             context_data.get("context_blocks", ""),
             context_data.get("intent", "TOPICAL_INQUIRY"),
@@ -2300,13 +2300,13 @@ def _v48831_basic_inquiry_seam_self_audit():
     """Static contract audit for the Basic Inquiry seam."""
     if not _BASIC_INQUIRY_ENABLED:
         raise RuntimeError("Basic Inquiry is disabled by USE_BASIC_INQUIRY_ENABLED.")
-    if not callable(getattr(_base, "fetch_canonical_context", None)):
+    if not callable(getattr(use_core, "fetch_canonical_context", None)):
         raise RuntimeError("Basic Inquiry retrieval boundary is missing.")
-    if not callable(getattr(_base, "generate_llm_response", None)):
+    if not callable(getattr(use_core, "generate_llm_response", None)):
         raise RuntimeError("Basic Inquiry generation boundary is missing.")
     import inspect as _inspect
-    fetch_signature = str(_inspect.signature(_base.fetch_canonical_context))
-    generate_signature = str(_inspect.signature(_base.generate_llm_response))
+    fetch_signature = str(_inspect.signature(use_core.fetch_canonical_context))
+    generate_signature = str(_inspect.signature(use_core.generate_llm_response))
     if "(user_query: str)" not in fetch_signature:
         raise RuntimeError(f"Basic Inquiry retrieval signature drift: {fetch_signature}")
     if "(user_query: str, retrieved_context_blocks: str, intent: str" not in generate_signature:
@@ -2323,7 +2323,7 @@ def _v48831_basic_inquiry_seam_self_audit():
     macro_position = source.find("route = _guide_capability_route(query, history)")
     if basic_position < 0 or macro_position < 0 or not basic_position < macro_position:
         raise RuntimeError("Basic Inquiry seam ordering regression.")
-    print("USE v488.31 BASIC INQUIRY SEAM AUDIT: PASS; ordinary=direct; native_boundaries=precedence; formation_and_philippine_systems=legacy_macro")
+    print("USE v488.32 BASIC INQUIRY SEAM AUDIT: PASS; ordinary=direct; native_boundaries=precedence; formation_and_philippine_systems=legacy_macro")
 
 # Canonical request boundary: one route decision, one specialist handoff seam,
 # one explicit fallback into the protected FastAPI/core application.
@@ -2362,6 +2362,9 @@ async def _use_send_json(send, payload, status_code=200):
                             (b"access-control-allow-origin", b"*")]})
     await send({"type": "http.response.body", "body": body})
 
+
+# v488.32 startup audit: verify the Basic Inquiry seam against the protected core.
+_v48831_basic_inquiry_seam_self_audit()
 
 _FASTAPI_APP = app
 
