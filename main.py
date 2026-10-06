@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.43 — structurally isolate Basic Inquiry from capability routing
+# USE PRODUCTION VERSION: v488.44 — retire historical runtime wrapper
 import hashlib
 import re
 import json
@@ -53,7 +53,7 @@ from provider_bank import (
 )
 
 _BASE_MODULE_NAME = "guide_runtime"
-_base = importlib.import_module(_BASE_MODULE_NAME)
+_base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
