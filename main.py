@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.58 — bounded semantic safety augmentation
+# USE PRODUCTION VERSION: v488.59 — safety conversation semantic hardening
 import asyncio
 import hashlib
 import ipaddress
@@ -62,9 +62,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.58"
-DEPLOYMENT_FINGERPRINT = "USE-v488.58-bounded-semantic-safety-augmentation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.58-bounded-semantic-safety-augmentation"
+APP_VERSION = "v488.59"
+DEPLOYMENT_FINGERPRINT = "USE-v488.59-safety-conversation-semantic-hardening"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.59-safety-conversation-semantic-hardening"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -141,7 +141,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.58":
+if str(APP_VERSION) != "v488.59":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
