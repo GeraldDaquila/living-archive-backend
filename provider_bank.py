@@ -2,7 +2,7 @@
 import json, os, time, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 
-CONTRACT_VERSION = "v1"
+CONTRACT_VERSION = "v2"
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
 
 class ProviderCallError(RuntimeError):
@@ -48,6 +48,15 @@ def _failure(exc, provider, model):
         category, s["quarantine_until"] = "quota_or_billing", now + 1800
     elif status == 404:
         category, s["quarantine_until"] = "model_unavailable", now + 3600
+    elif status == 400 and (
+        "json_validate_failed" in low
+        or "failed to validate json" in low
+        or "invalid_request_error" in low
+    ):
+        # A model that repeatedly cannot satisfy USE's structured-output contract
+        # is not a transient visitor failure. Quarantine it so one bad model cannot
+        # consume the visitor's latency budget on every request.
+        category, s["quarantine_until"] = "structured_output_contract", now + 3600
     elif "request too large" in low or ("context" in low and "length" in low):
         category, s["quarantine_until"] = "request_too_large", now + 1800
     else:
@@ -236,6 +245,7 @@ def snapshot(use_core):
     ]
     return {
         "contract_version": CONTRACT_VERSION,
+        "selection_policy": "provider_health_aware",
         "providers": sorted({x["provider"] for x in all_items}),
         "candidates": [
             {
