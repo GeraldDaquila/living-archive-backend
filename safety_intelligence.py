@@ -323,6 +323,7 @@ def normalize_safety_resolution(
 
     emergency_status = str((emergency_resolution or {}).get("selection", {}).get("selection_status") or "")
     if emergency_resolution is not None and not resources and emergency_status in {
+        "",
         "LOCATION_REQUIRED",
         "FALLBACK_GENERAL_EMERGENCY",
     }:
@@ -397,6 +398,7 @@ def resolve_safety(
         )
     except Exception as exc:
         emergency_error = str(exc)
+        emergency_resolution = {}
         print(f"Emergency Intelligence unavailable; HRN safety remains active: {exc}")
 
     try:
