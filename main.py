@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.30 — Guide Node phrase-boundary repair
+# USE PRODUCTION VERSION: v488.31 — Basic Inquiry seam
 import hashlib
 import importlib
 import re
@@ -58,9 +58,9 @@ _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.30"
-DEPLOYMENT_FINGERPRINT = "USE-v488.30-guide-node-phrase-boundary-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.30-guide-node-phrase-boundary-repair"
+APP_VERSION = "v488.31"
+DEPLOYMENT_FINGERPRINT = "USE-v488.31-basic-inquiry-seam"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.31-basic-inquiry-seam"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +137,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.30":
+if str(APP_VERSION) != "v488.31":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2232,6 +2232,99 @@ def _registered_available_specialist(specialist_id):
     return None
 
 
+# ---------------------------------------------------------------------
+# v488.31 — BASIC INQUIRY
+# ---------------------------------------------------------------------
+_BASIC_INQUIRY_ENABLED = str(__import__("os").getenv("USE_BASIC_INQUIRY_ENABLED", "1")).strip().casefold() not in {"0", "false", "no", "off"}
+
+_BASIC_INQUIRY_MACRO_PATTERNS = (
+    re.compile(r"\b(?:stewardship\s+formation|formation\s+navigator|formation\s+pathway)\b", re.I),
+    re.compile(r"\b(?:philippine\s+systems|philippines?\s+(?:systems?|culture|society|history|systemic\s+transformation)|systems?\s+in\s+the\s+philippines)\b", re.I),
+)
+
+def _basic_inquiry_requires_macro_routing(query):
+    """Keep the two not-yet-deterministic specialist surfaces on the legacy route."""
+    if not _BASIC_INQUIRY_ENABLED:
+        return True
+    normalized = _normalize_query(query)
+    return any(pattern.search(normalized) for pattern in _BASIC_INQUIRY_MACRO_PATTERNS)
+
+
+def _basic_inquiry_response(query, history=None, raw_body=None):
+    """Answer an ordinary Guide question through the protected USE core."""
+    started = time.perf_counter()
+    query = str(query or "").strip()
+    context_data = _base.fetch_canonical_context(query)
+    if not isinstance(context_data, dict):
+        raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+
+    if context_data.get("frame_neutral_evidence_unavailable"):
+        llm_output = _base._frame_neutral_evidence_unavailable_response(query)
+    elif context_data.get("question_structure_evidence_unavailable"):
+        llm_output = _base._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
+    elif context_data.get("evidence_sufficiency_unavailable"):
+        llm_output = _base._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
+    else:
+        llm_output = _base.generate_llm_response(
+            query,
+            context_data.get("context_blocks", ""),
+            context_data.get("intent", "TOPICAL_INQUIRY"),
+            orientational_frame=context_data.get("orientational_frame", {"primary": "general", "scores": {}}),
+            canonical_link_context=context_data.get("canonical_link_context", context_data.get("context_blocks", "")),
+            protected_documents=context_data.get("generation_authority_protected_docs", context_data.get("question_authority_protected_docs")),
+        )
+
+    response = str(llm_output or "").strip()
+    if not response:
+        raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
+
+    request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    payload = {
+        "ok": True,
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "source_sha256": RUNTIME_SOURCE_SHA256,
+        "request_id": request_id,
+        "query": query,
+        "intent": context_data.get("intent", "TOPICAL_INQUIRY"),
+        "response": response,
+        "processing": "basic_inquiry",
+        "route_source": "guide_basic_inquiry",
+        "visitor_boundary_version": APP_VERSION,
+    }
+    print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query={_normalize_query(query)[:120]}")
+    return payload
+
+
+def _v48831_basic_inquiry_seam_self_audit():
+    """Static contract audit for the Basic Inquiry seam."""
+    if not _BASIC_INQUIRY_ENABLED:
+        raise RuntimeError("Basic Inquiry is disabled by USE_BASIC_INQUIRY_ENABLED.")
+    if not callable(getattr(_base, "fetch_canonical_context", None)):
+        raise RuntimeError("Basic Inquiry retrieval boundary is missing.")
+    if not callable(getattr(_base, "generate_llm_response", None)):
+        raise RuntimeError("Basic Inquiry generation boundary is missing.")
+    import inspect as _inspect
+    fetch_signature = str(_inspect.signature(_base.fetch_canonical_context))
+    generate_signature = str(_inspect.signature(_base.generate_llm_response))
+    if "(user_query: str)" not in fetch_signature:
+        raise RuntimeError(f"Basic Inquiry retrieval signature drift: {fetch_signature}")
+    if "(user_query: str, retrieved_context_blocks: str, intent: str" not in generate_signature:
+        raise RuntimeError(f"Basic Inquiry generation signature drift: {generate_signature}")
+    probe = "I am trying to understand why I keep seeing the same problem in my life."
+    if _basic_inquiry_requires_macro_routing(probe):
+        raise RuntimeError("Basic Inquiry probe was incorrectly deferred to macro routing.")
+    if not _basic_inquiry_requires_macro_routing("I want stewardship formation."):
+        raise RuntimeError("Formation macro-routing boundary was lost.")
+    if not _basic_inquiry_requires_macro_routing("I want to understand Philippine systems."):
+        raise RuntimeError("Philippine Systems macro-routing boundary was lost.")
+    source = _inspect.getsource(_use_request_boundary)
+    basic_position = source.find("if not _basic_inquiry_requires_macro_routing(query):")
+    macro_position = source.find("route = _guide_capability_route(query, history)")
+    if basic_position < 0 or macro_position < 0 or not basic_position < macro_position:
+        raise RuntimeError("Basic Inquiry seam ordering regression.")
+    print("USE v488.31 BASIC INQUIRY SEAM AUDIT: PASS; ordinary=direct; native_boundaries=precedence; formation_and_philippine_systems=legacy_macro")
+
 # Canonical request boundary: one route decision, one specialist handoff seam,
 # one explicit fallback into the protected FastAPI/core application.
 async def _use_request_body(receive):
@@ -2694,6 +2787,17 @@ async def _use_request_boundary(scope, receive, send):
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
         })
+
+    # v488.31: ordinary questions use the protected core directly.
+    # Native boundaries above remain authoritative. Formation and Philippine
+    # Systems retain the existing macro-routing path until their deterministic
+    # native boundaries are ready.
+    if not _basic_inquiry_requires_macro_routing(query):
+        try:
+            basic_result = _basic_inquiry_response(query=query, history=history, raw_body=parsed_body)
+            return await _use_send_json(send, basic_result)
+        except Exception as exc:
+            print(f"The Guide Basic Inquiry seam failed safely; preserving legacy macro route: {exc}")
 
     route = _guide_capability_route(query, history)
     route_id = str(route.get("route") or "guide").strip().casefold()
