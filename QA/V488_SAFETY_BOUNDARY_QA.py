@@ -59,6 +59,9 @@ def main():
     assert 'safety_active_hint = bool(parsed_body.get("safety_active"))' in main_source
     assert 'safety_state = "acute_followthrough"' in main_source
     assert '"safety_question": safety_question_hint' in main_source
+    assert "safety_continuity_guard" in main_source
+    assert "missing_next_question_repaired" in main_source
+    assert "if not safety_release_ready and not safety_question:" in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
