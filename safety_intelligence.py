@@ -55,7 +55,11 @@ _IMMEDIACY_PATTERNS = (
     re.compile(r"\b(?:might|may|could)\s+(?:kill|hurt|harm)\s+myself\b", re.I),
 )
 _CURRENT_PATTERNS = (
-    re.compile(r"\b(?:i(?:'m| am)?\s+thinking\s+about)\s+(?:kill(?:ing)?\s+myself|ending\s+my\s+life|taking\s+my\s+own\s+life|harming\s+myself|hurting\s+myself)\b", re.I),
+    # Include both "thinking about" and the equally natural "thinking of".
+    # These describe present suicidal thinking without, by themselves,
+    # establishing near-term action.
+    re.compile(r"\b(?:i(?:'m| am)?\s+thinking\s+(?:about|of))\s+(?:kill(?:ing)?\s+myself|ending\s+my\s+life|taking\s+my\s+own\s+life|harming\s+myself|hurting\s+myself)\b", re.I),
+    re.compile(r"\b(?:i(?:'m| am)?\s+considering)\s+(?:killing\s+myself|ending\s+my\s+life|harming\s+myself|hurting\s+myself)\b", re.I),
     re.compile(r"\b(?:suicid(?:e|al|ality)|self[- ]?harm|wish\s+i\s+were\s+dead|don't\s+want\s+to\s+live|do\s+not\s+want\s+to\s+live)\b", re.I),
 )
 
