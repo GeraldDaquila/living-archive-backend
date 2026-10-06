@@ -23,4 +23,5 @@ class SafetyUtilityAdapter:
                 guide_context.get("safety_question")
                 or context.original_question
             ),
+            unit_turns=int(guide_context.get("unit_turns") or 0),
         )

@@ -54,7 +54,11 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     text = " ".join(str(query or "").strip().casefold().split())
     if not text:
         return None
-    recent = " ".join(str(history or "").casefold().split())
+    # Only the immediately preceding safety exchange may keep the sitewide
+    # interrupt active. Older safety language must not trap a later, released
+    # conversation in the emergency lane.
+    history_lines = [line.strip() for line in str(history or "").splitlines() if line.strip()]
+    recent = " ".join(history_lines[-2:]).casefold()
     active_markers = (
         "please move away from anything you could use to hurt yourself",
         "can you contact emergency or crisis support now",
@@ -87,13 +91,14 @@ def _request_hrn_safety(
     safety_state: str,
     safety_question: str,
     country: str,
+    unit_turns: int = 0,
     timeout: float = 12.0,
 ) -> Mapping[str, Any]:
     payload = {
         "message": query,
         "conversation": history,
         "visitor_history": history,
-        "unit_turns": 0,
+        "unit_turns": int(unit_turns or 0),
         "safety_stage": safety_state,
         "safety_question": safety_question or query,
         "country": country,
@@ -170,6 +175,7 @@ def resolve_safety(
     safety_state: str,
     country: str = "",
     safety_question: str = "",
+    unit_turns: int = 0,
     endpoint: str | None = None,
 ) -> dict[str, Any]:
     endpoint_url = str(
@@ -183,6 +189,8 @@ def resolve_safety(
             safety_state=safety_state,
             safety_question=safety_question or query,
             country=country,
+            unit_turns=unit_turns,
+
         )
         return normalize_safety_resolution(
             data,

@@ -1,4 +1,4 @@
-# USE ACTIVE GUIDE RUNTIME PRIMITIVES: v488.48
+# USE ACTIVE GUIDE RUNTIME PRIMITIVES: v488.49
 # Pure visitor-construction helpers extracted from the historical compatibility
 # wrapper. No monkey-patching, version authority, or request-boundary wrappers.
 

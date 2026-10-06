@@ -19,6 +19,7 @@ def build_safety_contribution(
     country: str = "",
     history: str = "",
     safety_question: str = "",
+    unit_turns: int = 0,
 ) -> Mapping[str, Any]:
     state = str(safety_state or "current").strip().casefold()
     resolution = resolve_safety(
@@ -27,6 +28,7 @@ def build_safety_contribution(
         safety_state=state,
         country=country,
         safety_question=safety_question or query,
+        unit_turns=unit_turns,
     )
     return {
         "contract_version": "v1",

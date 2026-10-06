@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.48 — HRN safety intelligence graft hardening
+# USE PRODUCTION VERSION: v488.49 — HRN safety continuity hardening
 import hashlib
 import re
 import json
@@ -60,9 +60,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.48"
-DEPLOYMENT_FINGERPRINT = "USE-v488.48-hrn-safety-intelligence-graft-hardening"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.48-hrn-safety-intelligence-graft-hardening"
+APP_VERSION = "v488.49"
+DEPLOYMENT_FINGERPRINT = "USE-v488.49-hrn-safety-continuity-hardening"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.49-hrn-safety-continuity-hardening"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -139,7 +139,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.48":
+if str(APP_VERSION) != "v488.49":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2738,6 +2738,7 @@ async def _use_request_boundary(scope, receive, send):
                     "conversation": history_text,
                     "visitor_history": history_text,
                     "safety_question": query,
+                    "unit_turns": len(history) if isinstance(history, list) else 0,
                 },
                 safety_state=safety_state,
             )
