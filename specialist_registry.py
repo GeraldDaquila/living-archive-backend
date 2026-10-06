@@ -81,7 +81,7 @@ SPECIALIST_REGISTRY: Tuple[SpecialistCapability, ...] = (
         entry_point="safety",
         trigger_territory="acute or potentially acute safety concerns",
         access_class="safety",
-        status="planned",
+        status="available",
     ),
 )
 

@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.45 — single routing boundary repair
+# USE PRODUCTION VERSION: v488.46 — sitewide safety utility boundary
 import hashlib
 import re
 import json
@@ -51,15 +51,17 @@ from provider_bank import (
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
 )
+from safety_utility import classify_safety, safety_utility_snapshot
+from safety_adapter import SafetyUtilityAdapter
 
 _BASE_MODULE_NAME = "guide_runtime"
 _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.45"
-DEPLOYMENT_FINGERPRINT = "USE-v488.45-single-routing-boundary-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.45-single-routing-boundary-repair"
+APP_VERSION = "v488.46"
+DEPLOYMENT_FINGERPRINT = "USE-v488.46-sitewide-safety-utility-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.46-sitewide-safety-utility-boundary"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -136,7 +138,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.45":
+if str(APP_VERSION) != "v488.46":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -161,10 +163,12 @@ SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
 SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(SafetyUtilityAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
 RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
 FORMATION_CONTRIBUTION_DIAGNOSTICS = formation_contract_snapshot()
 HUB_CONTRACT_DIAGNOSTICS = hub_contract_snapshot()
+SAFETY_UTILITY_DIAGNOSTICS = safety_utility_snapshot()
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -2702,6 +2706,91 @@ async def _use_request_boundary(scope, receive, send):
     if not query:
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
+
+    # Highest-priority sitewide Safety / Crisis boundary. This runs before
+    # every specialist, including HRN, and before ordinary Guide reasoning.
+    # Safety is a deterministic utility rather than an HRN sub-mode.
+    safety_state = classify_safety(query)
+    if safety_state:
+        request_id = "safety-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        safety_country = str(parsed_body.get("country") or parsed_body.get("visitor_country") or "").strip()
+        try:
+            safety_contribution = invoke_specialist(
+                SPECIALIST_ADAPTER_REGISTRY,
+                request_id=request_id,
+                guide_version=APP_VERSION,
+                specialist_id="safety",
+                original_question=query,
+                recognized_territory="immediate safety",
+                processing_purpose="sitewide safety interruption and emergency-resource movement",
+                guide_context={"country": safety_country},
+                safety_state=safety_state,
+            )
+            safety_payload = dict(safety_contribution.get("payload") or {})
+            safety_response = str(safety_payload.get("human_response") or "").strip()
+            if not safety_response:
+                raise RuntimeError("Safety utility returned no visitor response.")
+            print(
+                "The Guide sitewide Safety utility: "
+                f"request_id={request_id}, state={safety_state}, "
+                "hrn=not_called, llm=not_called, retrieval=not_called"
+            )
+            return await _use_send_json(send, {
+                "ok": True,
+                "version": APP_VERSION,
+                "fingerprint": DEPLOYMENT_FINGERPRINT,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "request_id": request_id,
+                "query": query,
+                "intent": "SAFETY_INTERRUPT",
+                "response": safety_response,
+                "processing": "sitewide_safety_utility",
+                "route_source": "guide_sitewide_safety_boundary",
+                "handoff": "safety",
+                "handoff_mode": "interrupt",
+                "handoff_pending": False,
+                "safety": {
+                    "state": safety_state,
+                    "interrupt": True,
+                    "display_mode": safety_payload.get("display_mode") or "sitewide_safety",
+                    "resources": safety_payload.get("resources") or {},
+                    "next_movement": safety_payload.get("next_movement") or "",
+                    "bypasses_hrn": True,
+                    "bypasses_llm": True,
+                    "bypasses_retrieval": True,
+                },
+                "visitor_boundary_version": APP_VERSION,
+            })
+        except Exception as exc:
+            print(f"The Guide sitewide Safety utility failed closed: {exc}")
+            return await _use_send_json(send, {
+                "ok": True,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "SAFETY_INTERRUPT",
+                "response": (
+                    "If you may be in immediate danger or may act on thoughts "
+                    "of self-harm, please contact your local emergency services "
+                    "or go to the nearest emergency department now. If possible, "
+                    "stay with another person while you get help."
+                ),
+                "processing": "sitewide_safety_utility_fallback",
+                "route_source": "guide_sitewide_safety_boundary",
+                "handoff": "safety",
+                "handoff_mode": "interrupt",
+                "handoff_pending": False,
+                "safety": {
+                    "state": safety_state,
+                    "interrupt": True,
+                    "display_mode": "sitewide_safety",
+                    "bypasses_hrn": True,
+                    "bypasses_llm": True,
+                    "bypasses_retrieval": True,
+                },
+                "visitor_boundary_version": APP_VERSION,
+            })
 
     # Immediate FSD handoff: FSD is a native standalone diagnostic
     # surface. Do not spend a routing-model call; send the visitor directly
