@@ -318,9 +318,27 @@ def normalize_safety_resolution(
     if not safety_message:
         raise RuntimeError("HRN safety lane returned no safety_message.")
 
-    resources = _resource_projection(emergency_resolution or {})
-    if not resources and emergency_resolution is None:
-        resources = list(data.get("safety_resources") or [])
+    # HRN remains the semantic/safety-loop authority. Preserve its full
+    # native safety branch, including crisis-support resources and the next
+    # conversational movement. Emergency Intelligence remains authoritative
+    # for verified emergency-resource selection; its emergency resources are
+    # merged in without replacing HRN's native safety resources.
+    hrn_resources = data.get("safety_resources")
+    hrn_resources = list(hrn_resources) if isinstance(hrn_resources, list) else []
+    emergency_resources = _resource_projection(emergency_resolution or {})
+    resources = []
+    seen_resource_keys = set()
+    for resource in hrn_resources + emergency_resources:
+        if not isinstance(resource, Mapping):
+            continue
+        key = (
+            str(resource.get("phone") or "").strip(),
+            str(resource.get("title") or resource.get("display_name") or "").strip().casefold(),
+        )
+        if key in seen_resource_keys:
+            continue
+        seen_resource_keys.add(key)
+        resources.append(dict(resource))
 
     emergency_status = str((emergency_resolution or {}).get("selection", {}).get("selection_status") or "")
     if emergency_resolution is not None and not resources and emergency_status in {
