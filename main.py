@@ -1,6 +1,5 @@
 # USE PRODUCTION VERSION: v488.43 — structurally isolate Basic Inquiry from capability routing
 import hashlib
-import importlib
 import re
 import json
 import time
@@ -53,14 +52,14 @@ from provider_bank import (
     snapshot as provider_bank_snapshot,
 )
 
-_BASE_MODULE_NAME = "main_v487_28_runtime"
+_BASE_MODULE_NAME = "guide_runtime"
 _base = importlib.import_module(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.43"
-DEPLOYMENT_FINGERPRINT = "USE-v488.43-basic-inquiry-provider-isolation"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.43-basic-inquiry-provider-isolation"
+APP_VERSION = "v488.44"
+DEPLOYMENT_FINGERPRINT = "USE-v488.44-runtime-wrapper-retirement"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.44-runtime-wrapper-retirement"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -137,7 +136,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.43":
+if str(APP_VERSION) != "v488.44":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -231,7 +230,6 @@ def _weighted_inquiry_profile(query):
     return profile
 
 
-_base._normalize_query = _normalize_query
 _base._weighted_inquiry_profile = _weighted_inquiry_profile
 
 
@@ -648,7 +646,7 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
         return ""
     parts = [
         f"A useful place to begin with this question is [{primary['title']}]({primary['url']})",
-        _base._generic_recommendation_wisdom(profile) if hasattr(_base, "_generic_recommendation_wisdom") else "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name.",
+        "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name.",
         _base._recommendation_foothold(profile),
         _recommendation_rationale(primary, profile),
         "This doorway is offered as a reflection gateway, not as a complete explanation or prescription. It is one place to begin noticing what this question opens for you.",
