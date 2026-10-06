@@ -565,6 +565,34 @@ def resolve_safety(
             emergency_resolution=emergency_resolution,
         )
 
+        # The opening safety turn should sound like a human response to what
+        # the visitor actually said. Older HRN safety wording sometimes refers
+        # to a previous "yes" even when the visitor has just disclosed suicidal
+        # thinking. That is a broken conversational reference, not merely a
+        # stylistic preference. Repair it at the shared boundary so every
+        # Guide entry point receives the same coherent opening.
+        if not str(history or "").strip():
+            opening_message = str(normalized.get("safety_message") or "")
+            if re.search(
+                r"taking your\s+[“\"']?yes[”\"']?\s+seriously",
+                opening_message,
+                re.I,
+            ):
+                normalized["safety_message"] = (
+                    "Thank you for telling me. I want to take what you're "
+                    "saying seriously."
+                )
+
+            opening_question = str(normalized.get("safety_question") or "")
+            if re.fullmatch(
+                r"Do you feel you might act on these thoughts right now\?",
+                opening_question,
+                re.I,
+            ):
+                normalized["safety_question"] = (
+                    "Do you think you might act on these thoughts right now?"
+                )
+
         # Compatibility guard for the known HRN loop defect. If the visitor
         # explicitly establishes human presence, HRN must not pass through a
         # generated assertion that the visitor is alone. We repair the
