@@ -55,6 +55,10 @@ def main():
         {"role": "visitor", "content": "yes"},
     ])
     assert "Do you think you might act on these thoughts right now?" in serialized
+    assert 'safety_question_hint = str(parsed_body.get("safety_question") or "").strip()' in main_source
+    assert 'safety_active_hint = bool(parsed_body.get("safety_active"))' in main_source
+    assert 'safety_state = "acute_followthrough"' in main_source
+    assert '"safety_question": safety_question_hint' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
