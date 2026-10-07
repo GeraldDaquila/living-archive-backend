@@ -62,9 +62,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.68"
-DEPLOYMENT_FINGERPRINT = "USE-v488.68-deterministic-safety-fast-path"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.68-deterministic-safety-fast-path"
+APP_VERSION = "v488.69"
+DEPLOYMENT_FINGERPRINT = "USE-v488.69-relational-natural-language-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.69-relational-natural-language-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -341,7 +341,7 @@ _RELATIONAL_ACTION_PATTERNS = (
     r"\bpromised\b", r"\bpromise\b", r"\bgave (?:him|her|them) my word\b",
     r"\bgave my word\b", r"\bcommitted\b", r"\bcommitment\b", r"\bagreed\b",
     r"\bowe\b", r"\bowed\b", r"\btake care of\b", r"\blet .* down\b",
-    r"\bdisappoint(?:ed|ing)?\b", r"\bconflict\b", r"\bargu(?:e|ed|ing)\b",
+    r"\bdisappoint(?:ed|ing)?\b", r"\bconflict(?:s)?\b", r"\bargument(?:s)?\b", r"\bargu(?:e|ed|ing)\b", r"\bfight(?:s|ing)?\b",
     r"\bdisagree(?:d|ment|ing)?\b", r"\bneed to tell\b", r"\bneed to say\b",
     r"\bhave to tell\b", r"\bhave to say\b", r"\bset a boundary\b",
     r"\bboundaries\b", r"\btrust\b", r"\bforgive\b", r"\bforgiveness\b",
@@ -485,6 +485,27 @@ if _should_open_relationship_specialist(
     {"processing_need": "retrieval"},
 ):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
+
+# v488.69 regression guard: natural-language conflict nouns must count as
+# lived relational action. "Argument" is relational structure even when the
+# visitor does not use the verb "argue".
+_route_probe_argument_noun = (
+    "I keep having the same argument with someone I care about, but I'm not "
+    "sure whether the problem is really between us or something I'm bringing into it."
+)
+if not _lived_relational_structure(_route_probe_argument_noun)["lived_relational"]:
+    raise RuntimeError("USE v488.69 routing invariant failed: argument-noun relational inquiry not recognized")
+if not _should_open_relationship_specialist(_route_probe_argument_noun, {"processing_need": "orientation"}):
+    raise RuntimeError("USE v488.69 routing invariant failed: argument-noun inquiry did not open relationship specialist")
+
+# v488.69 regression guard: natural-language fight nouns must remain inside
+# the same relational boundary.
+_route_probe_fight_noun = (
+    "We keep having the same fight, and I can't tell whether we're actually "
+    "disagreeing about the issue or reacting to each other."
+)
+if not _should_open_relationship_specialist(_route_probe_fight_noun, {"processing_need": "orientation"}):
+    raise RuntimeError("USE v488.69 routing invariant failed: fight-noun inquiry did not open relationship specialist")
 
 # v487.92 regression guard: relational reciprocity must route to Seeing the
 # Relationship even when the visitor does not use conflict/boundary language.
