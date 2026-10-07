@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.68 — deterministic first-turn safety fast path
+# USE PRODUCTION VERSION: v488.70 — relational natural-language boundary calibration
 import asyncio
 import hashlib
 import ipaddress
@@ -62,9 +62,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.69"
-DEPLOYMENT_FINGERPRINT = "USE-v488.69-relational-natural-language-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.69-relational-natural-language-boundary"
+APP_VERSION = "v488.70"
+DEPLOYMENT_FINGERPRINT = "USE-v488.70-relational-natural-language-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.70-relational-natural-language-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -146,7 +146,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.68":
+if str(APP_VERSION) != "v488.70":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -486,7 +486,7 @@ if _should_open_relationship_specialist(
 ):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
 
-# v488.69 regression guard: natural-language conflict nouns must count as
+# v488.70 regression guard: natural-language conflict nouns must count as
 # lived relational action. "Argument" is relational structure even when the
 # visitor does not use the verb "argue".
 _route_probe_argument_noun = (
@@ -494,7 +494,7 @@ _route_probe_argument_noun = (
     "sure whether the problem is really between us or something I'm bringing into it."
 )
 if not _lived_relational_structure(_route_probe_argument_noun)["lived_relational"]:
-    raise RuntimeError("USE v488.69 routing invariant failed: argument-noun relational inquiry not recognized")
+    raise RuntimeError("USE v488.70 routing invariant failed: argument-noun relational inquiry not recognized")
 if not _should_open_relationship_specialist(_route_probe_argument_noun, {"processing_need": "orientation"}):
     raise RuntimeError("USE v488.69 routing invariant failed: argument-noun inquiry did not open relationship specialist")
 
