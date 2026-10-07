@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.2"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.3"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -122,6 +122,20 @@ if normalize_safety_state(
 ) != "acute_followthrough":
     raise RuntimeError("USE v488.60 invariant failed: active safety follow-through lost for negative short answer.")
 
+
+# v488.66 invariant: ordinary relational language must not enter the safety lane
+# merely because it contains emotionally charged conflict vocabulary.
+if normalize_safety_state(
+    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking. A few days later everything seems fine until the same thing happens again."
+) is not None:
+    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language classified as safety.")
+if _semantic_safety_candidate(
+    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking."
+):
+    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language opened semantic safety gate.")
+if not _semantic_safety_candidate("I don't want to live anymore."):
+    raise RuntimeError("USE v488.66 invariant failed: direct safety disclosure lost semantic gate.")
+
 def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | None:
     """Bounded semantic safety augmentation.
 
@@ -194,11 +208,48 @@ def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | Non
         return None
 
 
+# The semantic detector is deliberately gated. It must not run on every
+# ordinary Guide question: doing so both adds avoidable latency and allows a
+# broad language model to manufacture a safety signal from emotionally loaded
+# but non-safety language (for example, an ordinary relationship description
+# containing words such as "hurt", "angry", or "defensive").
+#
+# Deterministic safety remains the first and authoritative gate. The semantic
+# detector is only a recall-expansion layer after the visitor's current turn
+# contains a high-signal safety candidate. Active safety follow-through is
+# already handled deterministically from the preceding safety question.
+_SEMANTIC_SAFETY_CANDIDATE_PATTERNS = (
+    re.compile(r"\\b(?:suicid(?:e|al|ality)|self[- ]?harm)\\b", re.I),
+    re.compile(r"\\b(?:kill(?:ing)?|hurt(?:ing)?|harm(?:ing)?)\\s+myself\\b", re.I),
+    re.compile(r"\\b(?:end(?:ing)?|take|taking)\\s+my\\s+(?:own\\s+)?life\\b", re.I),
+    re.compile(r"\\b(?:do(?:n'?t| not)|dont)\\s+want\\s+to\\s+live\\b", re.I),
+    re.compile(r"\\b(?:want(?:ing)?|wish(?:ing)?)\\s+to\\s+die\\b", re.I),
+    re.compile(r"\\b(?:wish|wishing)\\s+(?:i|i'm|i am)\\s+(?:were|was)\\s+dead\\b", re.I),
+    re.compile(r"\\b(?:no|not)\\s+(?:reason|point)\\s+to\\s+live\\b", re.I),
+    re.compile(r"\\b(?:better\\s+off\\s+dead|can't\\s+keep\\s+myself\\s+safe|cannot\\s+keep\\s+myself\\s+safe)\\b", re.I),
+)
+
+
+def _semantic_safety_candidate(query: str) -> bool:
+    text = " ".join(str(query or "").strip().casefold().split())
+    if not text:
+        return False
+    return any(pattern.search(text) for pattern in _SEMANTIC_SAFETY_CANDIDATE_PATTERNS)
+
+
 def classify_safety(query: str, *, history: str = "") -> str | None:
-    """Deterministic safety first; bounded LLM augmentation only when unrecognized."""
+    """Deterministic safety first; semantic augmentation only behind a high-signal gate."""
     deterministic = normalize_safety_state(query, history=history)
     if deterministic:
         return deterministic
+
+    # Ordinary Guide traffic must never pay the semantic-safety latency tax.
+    # More importantly, the LLM must not be allowed to convert ordinary human
+    # conflict/relationship language into an emergency interruption merely
+    # because it contains emotionally charged words. Only a current-turn
+    # safety candidate may reach the semantic recall layer.
+    if not _semantic_safety_candidate(query):
+        return None
 
     executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="guide-safety-semantic")
     future = executor.submit(_llm_safety_signal, query, history=history)
