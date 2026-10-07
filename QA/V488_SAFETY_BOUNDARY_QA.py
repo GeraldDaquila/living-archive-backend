@@ -1,4 +1,4 @@
-"""Sitewide Safety Boundary Regression QA v488.65.
+"""Sitewide Safety Boundary Regression QA v488.66.
 
 Checks deterministic safety normalization, active safety follow-through, and the
 Guide's fail-closed interruption boundary without invoking the protected core
@@ -26,6 +26,7 @@ def main():
     namespace = {}
     exec(compile(safety_source, "safety_intelligence.py", "exec"), namespace, namespace)
     classify = namespace["normalize_safety_state"]
+    semantic_candidate = namespace["_semantic_safety_candidate"]
     repair = namespace["repair_safety_question"]
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
@@ -33,6 +34,19 @@ def main():
     assert classify("I'm thinking of killing myself.") == "current"
     assert classify("I am going to kill myself.") == "acute"
     assert classify("Someone I care about is talking about suicide.") == "support"
+
+    # Ordinary relational conflict must not be escalated into the sitewide
+    # safety lane, and must not even pay the semantic-detector latency cost.
+    ordinary_relational_query = (
+        "Whenever I bring up something that bothers me, my partner becomes defensive. "
+        "Then I get angry, they withdraw, and eventually we stop talking. "
+        "A few days later everything seems fine until the same thing happens again."
+    )
+    assert classify(ordinary_relational_query) is None
+    assert semantic_candidate(ordinary_relational_query) is False
+    assert semantic_candidate("I don't want to live anymore.") is True
+    assert semantic_candidate("I'm thinking of killing myself.") is True
+    assert semantic_candidate("I am angry because my partner hurt my feelings.") is False
 
     # State-aware continuity repair: a missing HRN question must advance the
     # native safety sequence rather than repeat one generic presence question.
@@ -99,8 +113,9 @@ def main():
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
-    assert 'APP_VERSION = "v488.65"' in main_source
-    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.65"' in main_source
+    assert 'APP_VERSION = "v488.66"' in main_source
+    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.66"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.66-safety-candidate-gate"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
