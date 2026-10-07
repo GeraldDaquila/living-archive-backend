@@ -34,6 +34,8 @@ def main():
     assert classify("I'm thinking of killing myself.") == "current"
     assert classify("I am going to kill myself.") == "acute"
     assert classify("Someone I care about is talking about suicide.") == "support"
+    assert classify("What is suicide?") is None
+    assert classify("What does self-harm mean?") is None
 
     # Ordinary relational conflict must not be escalated into the sitewide
     # safety lane, and must not even pay the semantic-detector latency cost.
