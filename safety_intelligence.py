@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.3"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.4"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -621,6 +621,75 @@ def normalize_safety_resolution(
     }
 
 
+def _initial_deterministic_safety_response(
+    *,
+    query: str,
+    safety_state: str,
+    country: str = "",
+    emergency_resolution: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return the first safety movement without waiting for an LLM/provider.
+
+    High-confidence first-turn disclosures already have a deterministic state.
+    There is no safety-language reason to send those turns through the HRN
+    Safety composer before answering. The emergency/resource resolver may still
+    contribute resources when it returns quickly, but it is not allowed to
+    delay the first human-facing movement.
+    """
+    state = str(safety_state or "").strip().casefold()
+    resources = _resource_projection(emergency_resolution or {})
+    if state == "acute":
+        message = (
+            "Thank you for telling me. I want to take what you're saying "
+            "seriously. Please don't stay alone with this. If you can, move "
+            "away from anything you could use to hurt yourself and bring "
+            "another person into this now."
+        )
+        question = "Do you think you might act on these thoughts right now?"
+    elif state in {"plan", "immediacy"}:
+        message = (
+            "Please don't stay alone with this. Move away from anything you "
+            "could use to hurt yourself, and bring another person into this "
+            "now if you can."
+        )
+        question = "Have you moved away from anything you could use to hurt yourself?"
+    else:
+        message = (
+            "Thank you for telling me. I want to take what you're saying "
+            "seriously. Please stay with another person if you can while we "
+            "make sure you are safe."
+        )
+        question = "Do you think you might act on these thoughts right now?"
+
+    return {
+        "safety": state,
+        "safety_interrupt": True,
+        "safety_message": message,
+        "safety_question": question,
+        "safety_note": (
+            "If you are in immediate danger or have already injured yourself, "
+            "contact your local emergency service or go to the nearest emergency "
+            "department now."
+        ),
+        "safety_resources": resources,
+        "safety_location_required": not bool(emergency_resolution),
+        "country": str(country or "").strip(),
+        "safety_release_ready": False,
+        "resolver_status": "deterministic_initial_fast_path",
+        "safety_continuity_guard": "deterministic_initial_movement",
+        "next_movement": question,
+        "safety_presence": "unknown",
+        "safety_question_context": "",
+        "emergency_resolution_status": (
+            str(
+                (emergency_resolution or {}).get("selection", {}).get("selection_status")
+            )
+            if isinstance((emergency_resolution or {}).get("selection"), Mapping)
+            else "unavailable"
+        ),
+    }
+
+
 def resolve_safety(
     *,
     query: str,
@@ -646,6 +715,51 @@ def resolve_safety(
     location_input = _emergency_location(country=country, location=location)
     previous_question = safety_question or _last_safety_question(history)
     presence = _presence_signal(query)
+
+    # High-confidence first-turn safety disclosures must not wait for the
+    # provider-backed HRN Safety composer. The state is already deterministic;
+    # the first human-facing movement should therefore be deterministic too.
+    #
+    # Resource intelligence is best-effort and bounded to a short window. It
+    # can enrich the first response when already fast, but it must never become
+    # the critical path for the first safety question.
+    initial_safety_fast_path = (
+        not str(history or "").strip()
+        and not str(safety_question or "").strip()
+        and safety_state in {"acute", "plan", "immediacy", "current"}
+    )
+    if initial_safety_fast_path:
+        emergency_resolution_fast: Mapping[str, Any] | None = None
+        try:
+            fast_executor = ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="guide-safety-resource-fast",
+            )
+            fast_future = fast_executor.submit(
+                _request_emergency_intelligence,
+                endpoint=emergency_endpoint_url,
+                service_need=service_need,
+                safety_state=safety_state,
+                location=location_input,
+                timeout=0.6,
+            )
+            try:
+                emergency_resolution_fast = fast_future.result(timeout=0.65)
+            except Exception as exc:
+                print(f"Fast safety resource enrichment unavailable; returning immediately: {exc}")
+                emergency_resolution_fast = {}
+            finally:
+                fast_executor.shutdown(wait=False, cancel_futures=True)
+        except Exception as exc:
+            print(f"Fast safety resource path unavailable; returning deterministic movement: {exc}")
+            emergency_resolution_fast = {}
+
+        return _initial_deterministic_safety_response(
+            query=query,
+            safety_state=safety_state,
+            country=country,
+            emergency_resolution=emergency_resolution_fast,
+        )
 
     emergency_resolution: Mapping[str, Any] | None = None
     emergency_error = ""
@@ -816,18 +930,22 @@ def resolve_safety(
 
 
 
-# v488.66 invariant: ordinary relational language must not enter the safety lane
-# merely because it contains emotionally charged conflict vocabulary.
+# v488.67 invariants: ordinary relational language stays out of safety,
+# while a high-confidence first-turn disclosure gets an immediate deterministic
+# safety movement rather than waiting for provider-backed composition.
 if normalize_safety_state(
     "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking. A few days later everything seems fine until the same thing happens again."
 ) is not None:
-    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language classified as safety.")
+    raise RuntimeError("USE v488.67 invariant failed: ordinary relational language classified as safety.")
 if _semantic_safety_candidate(
     "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking."
 ):
-    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language opened semantic safety gate.")
+    raise RuntimeError("USE v488.67 invariant failed: ordinary relational language opened semantic safety gate.")
 if not _semantic_safety_candidate("I don't want to live anymore."):
-    raise RuntimeError("USE v488.66 invariant failed: direct safety disclosure lost semantic gate.")
+    raise RuntimeError("USE v488.67 invariant failed: direct safety disclosure lost semantic gate.")
+if normalize_safety_state("I want to die.") != "acute":
+    raise RuntimeError("USE v488.67 invariant failed: direct 'I want to die' disclosure is not deterministic acute.")
+
 
 def safety_intelligence_snapshot() -> dict[str, Any]:
     return {
