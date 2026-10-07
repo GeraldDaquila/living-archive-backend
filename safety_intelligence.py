@@ -207,13 +207,13 @@ def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | Non
 # already handled deterministically from the preceding safety question.
 _SEMANTIC_SAFETY_CANDIDATE_PATTERNS = (
     re.compile(r"\b(?:suicid(?:e|al|ality)|self[- ]?harm)\b", re.I),
-    re.compile(r"\b(?:kill(?:ing)?|hurt(?:ing)?|harm(?:ing)?)\\s+myself\b", re.I),
-    re.compile(r"\b(?:end(?:ing)?|take|taking)\\s+my\\s+(?:own\\s+)?life\b", re.I),
-    re.compile(r"\b(?:do(?:n'?t| not)|dont)\\s+want\\s+to\\s+live\b", re.I),
-    re.compile(r"\b(?:want(?:ing)?|wish(?:ing)?)\\s+to\\s+die\b", re.I),
-    re.compile(r"\b(?:wish|wishing)\\s+(?:i|i'm|i am)\\s+(?:were|was)\\s+dead\b", re.I),
-    re.compile(r"\b(?:no|not)\\s+(?:reason|point)\\s+to\\s+live\b", re.I),
-    re.compile(r"\b(?:better\\s+off\\s+dead|can't\\s+keep\\s+myself\\s+safe|cannot\\s+keep\\s+myself\\s+safe)\b", re.I),
+    re.compile(r"\b(?:kill(?:ing)?|hurt(?:ing)?|harm(?:ing)?)\s+myself\b", re.I),
+    re.compile(r"\b(?:end(?:ing)?|take|taking)\s+my\s+(?:own\s+)?life\b", re.I),
+    re.compile(r"\b(?:do(?:n'?t| not)|dont)\s+want\s+to\s+live\b", re.I),
+    re.compile(r"\b(?:want(?:ing)?|wish(?:ing)?)\s+to\s+die\b", re.I),
+    re.compile(r"\b(?:wish|wishing)\s+(?:i|i'm|i am)\s+(?:were|was)\s+dead\b", re.I),
+    re.compile(r"\b(?:no|not)\s+(?:reason|point)\s+to\s+live\b", re.I),
+    re.compile(r"\b(?:better\s+off\s+dead|can't\s+keep\s+myself\s+safe|cannot\s+keep\s+myself\s+safe)\b", re.I),
 )
 
 
