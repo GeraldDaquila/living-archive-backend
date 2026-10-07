@@ -60,7 +60,10 @@ _CURRENT_PATTERNS = (
     # establishing near-term action.
     re.compile(r"\b(?:i(?:'m| am)?\s+thinking\s+(?:about|of))\s+(?:kill(?:ing)?\s+myself|ending\s+my\s+life|taking\s+my\s+own\s+life|harming\s+myself|hurting\s+myself)\b", re.I),
     re.compile(r"\b(?:i(?:'m| am)?\s+considering)\s+(?:killing\s+myself|ending\s+my\s+life|harming\s+myself|hurting\s+myself)\b", re.I),
-    re.compile(r"\b(?:suicid(?:e|al|ality)|self[- ]?harm|wish\s+i\s+were\s+dead|don't\s+want\s+to\s+live|do\s+not\s+want\s+to\s+live)\b", re.I),
+    # Generic topic mentions such as "What is suicide?" are not personal-risk disclosures.
+    # They may enter the gated semantic recall layer, but they must not trigger
+    # the sitewide emergency lane deterministically.
+    re.compile(r"\b(?:wish\s+i\s+were\s+dead|don't\s+want\s+to\s+live|do\s+not\s+want\s+to\s+live)\b", re.I),
 )
 
 
