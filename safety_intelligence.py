@@ -123,19 +123,6 @@ if normalize_safety_state(
     raise RuntimeError("USE v488.60 invariant failed: active safety follow-through lost for negative short answer.")
 
 
-# v488.66 invariant: ordinary relational language must not enter the safety lane
-# merely because it contains emotionally charged conflict vocabulary.
-if normalize_safety_state(
-    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking. A few days later everything seems fine until the same thing happens again."
-) is not None:
-    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language classified as safety.")
-if _semantic_safety_candidate(
-    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking."
-):
-    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language opened semantic safety gate.")
-if not _semantic_safety_candidate("I don't want to live anymore."):
-    raise RuntimeError("USE v488.66 invariant failed: direct safety disclosure lost semantic gate.")
-
 def _llm_safety_signal(query: str, *, history: str = "") -> dict[str, Any] | None:
     """Bounded semantic safety augmentation.
 
@@ -824,6 +811,20 @@ def resolve_safety(
             "safety_question_context": previous_question,
         }
 
+
+
+# v488.66 invariant: ordinary relational language must not enter the safety lane
+# merely because it contains emotionally charged conflict vocabulary.
+if normalize_safety_state(
+    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking. A few days later everything seems fine until the same thing happens again."
+) is not None:
+    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language classified as safety.")
+if _semantic_safety_candidate(
+    "Whenever I bring up something that bothers me, my partner becomes defensive. Then I get angry, they withdraw, and eventually we stop talking."
+):
+    raise RuntimeError("USE v488.66 invariant failed: ordinary relational language opened semantic safety gate.")
+if not _semantic_safety_candidate("I don't want to live anymore."):
+    raise RuntimeError("USE v488.66 invariant failed: direct safety disclosure lost semantic gate.")
 
 def safety_intelligence_snapshot() -> dict[str, Any]:
     return {
