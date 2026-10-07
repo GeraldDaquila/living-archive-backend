@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.66 — state-aware safety candidate gate
+# USE PRODUCTION VERSION: v488.67 — deterministic first-turn safety fast path
 import asyncio
 import hashlib
 import ipaddress
@@ -62,14 +62,14 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.66"
-DEPLOYMENT_FINGERPRINT = "USE-v488.66-safety-candidate-gate"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.66-safety-candidate-gate"
+APP_VERSION = "v488.67"
+DEPLOYMENT_FINGERPRINT = "USE-v488.67-deterministic-safety-fast-path"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.67-deterministic-safety-fast-path"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
 # detect drift between the live Guide boundary and its regression tests.
-SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.66"
+SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.67"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -146,7 +146,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.66":
+if str(APP_VERSION) != "v488.67":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
