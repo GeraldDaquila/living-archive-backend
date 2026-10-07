@@ -1,4 +1,4 @@
-"""Sitewide Safety Boundary Regression QA.
+"""Sitewide Safety Boundary Regression QA v488.65.
 
 Checks deterministic safety normalization, active safety follow-through, and the
 Guide's fail-closed interruption boundary without invoking the protected core
@@ -26,12 +26,48 @@ def main():
     namespace = {}
     exec(compile(safety_source, "safety_intelligence.py", "exec"), namespace, namespace)
     classify = namespace["normalize_safety_state"]
+    repair = namespace["repair_safety_question"]
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
     assert classify("I don’t want to live anymore.") in {"current", "acute"}
     assert classify("I'm thinking of killing myself.") == "current"
     assert classify("I am going to kill myself.") == "acute"
     assert classify("Someone I care about is talking about suicide.") == "support"
+
+    # State-aware continuity repair: a missing HRN question must advance the
+    # native safety sequence rather than repeat one generic presence question.
+    assert repair(
+        safety_state="acute",
+        previous_question="",
+        query="I want to kill myself.",
+    ) == "Do you think you might act on these thoughts right now?"
+    assert repair(
+        safety_state="acute_followthrough",
+        previous_question="Do you think you might act on these thoughts right now?",
+        query="yes",
+    ) == "Have you moved away from anything you could use to hurt yourself?"
+    assert repair(
+        safety_state="acute_followthrough",
+        previous_question="Have you moved away from anything you could use to hurt yourself?",
+        query="yes",
+    ) == "Is there someone you trust who can stay with you right now?"
+    assert repair(
+        safety_state="acute_followthrough",
+        previous_question="Is there someone you trust who can stay with you right now?",
+        query="yes",
+    ) == "Can you contact emergency or crisis support now?"
+    assert repair(
+        safety_state="acute_followthrough",
+        previous_question="Can you contact emergency or crisis support now?",
+        query="yes",
+    ) == "Are you safe from acting on these thoughts right now?"
+    assert classify(
+        "yes",
+        history=(
+            "visitor: I want to kill myself.\n"
+            "assistant: Is there someone you trust who can stay with you right now?"
+        ),
+    ) == "acute_followthrough"
 
     # Conversation-boundary regression: an assistant safety turn carries both
     # its human-facing message and its active safety question. The serializer
@@ -60,8 +96,11 @@ def main():
     assert 'safety_state = "acute_followthrough"' in main_source
     assert '"safety_question": safety_question_hint' in main_source
     assert "safety_continuity_guard" in main_source
-    assert "missing_next_question_repaired" in main_source
+    assert "native_next_movement_repaired" in main_source
+    assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
+    assert 'APP_VERSION = "v488.65"' in main_source
+    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.65"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
