@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.1"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.2"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -87,6 +87,10 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
         "can you contact someone you trust and stay connected with them now",
         "is there someone you can be with right now",
         "is there someone you trust you can be with right now",
+        "is there someone you trust who can stay with you right now",
+        "can you stay with them while you get support",
+        "can you contact emergency or crisis support now",
+        "are you safe from acting on these thoughts right now",
         "if you cannot reach someone you trust, please use the emergency or crisis support above now",
     )
     if any(marker in recent for marker in active_markers):
@@ -428,6 +432,72 @@ def resolve_emergency_resources(
     )
 
 
+def repair_safety_question(
+    *,
+    safety_state: str,
+    previous_question: str = "",
+    query: str = "",
+    history: str = "",
+) -> str:
+    """Restore the next native safety movement when HRN returns no question.
+
+    This is a continuity guard, not a second safety system. HRN remains the
+    semantic authority whenever it returns a valid next question. The repair
+    exists only to prevent a live safety interruption from becoming a dead end.
+    It advances the visitor through the existing safety sequence rather than
+    repeating one generic question.
+    """
+    state = str(safety_state or "").strip().casefold()
+    previous = " ".join(str(previous_question or "").strip().casefold().split())
+    answer = " ".join(str(query or "").strip().casefold().split())
+
+    affirmative = bool(re.search(
+        r"^(?:yes|yeah|yep|i did|i have|i moved|i'm away|i am away|already|"
+        r"someone is with me|they are with me|they're with me)\\b",
+        answer,
+        re.I,
+    ))
+    negative = bool(re.search(
+        r"^(?:no|nope|not yet|i haven't|i have not|i am not|i'm not|"
+        r"nobody|no one|alone|i don't know|i do not know)\\b",
+        answer,
+        re.I,
+    ))
+
+    if (
+        "do you think you might act on these thoughts right now" in previous
+        or "do you feel you might act on these thoughts right now" in previous
+        or "are you safe from acting on these thoughts right now" in previous
+    ):
+        if affirmative:
+            return "Have you moved away from anything you could use to hurt yourself?"
+        if negative:
+            return "Is there someone you trust who can stay with you right now?"
+        return "Is there someone you trust who can stay with you right now?"
+
+    if (
+        "moved away from anything you could use to hurt yourself" in previous
+        or "have you moved away from anything you could use to hurt yourself" in previous
+    ):
+        return "Is there someone you trust who can stay with you right now?"
+
+    if (
+        "someone you trust" in previous
+        or "stay with you right now" in previous
+        or "is there someone you can be with right now" in previous
+    ):
+        if negative:
+            return "Can you contact emergency or crisis support now?"
+        return "Can you contact emergency or crisis support now?"
+
+    if "contact emergency or crisis support now" in previous:
+        return "Are you safe from acting on these thoughts right now?"
+
+    if state in {"acute", "plan", "immediacy", "current", "acute_followthrough"}:
+        return "Do you think you might act on these thoughts right now?"
+
+    return "Do you think you might act on these thoughts right now?"
+
 def normalize_safety_resolution(
     data: Mapping[str, Any],
     *,
@@ -590,6 +660,20 @@ def resolve_safety(
             emergency_resolution=emergency_resolution,
         )
 
+        if (
+            not bool(normalized.get("safety_release_ready"))
+            and not str(normalized.get("safety_question") or "").strip()
+        ):
+            repaired_question = repair_safety_question(
+                safety_state=safety_state,
+                previous_question=previous_question,
+                query=query,
+                history=history,
+            )
+            normalized["safety_question"] = repaired_question
+            normalized["safety_continuity_guard"] = "native_next_movement_repaired"
+            normalized["next_movement"] = repaired_question
+
         # The opening safety turn should sound like a human response to what
         # the visitor actually said. Older HRN safety wording sometimes refers
         # to a previous "yes" even when the visitor has just disclosed suicidal
@@ -703,4 +787,5 @@ def safety_intelligence_snapshot() -> dict[str, Any]:
         "retrieval_bypassed": True,
         "emergency_registry_authority": "Emergency Intelligence",
         "safety_loop_guard": "sitewide_compatibility_guard",
+        "continuity_repair": "state_aware_native_next_movement",
     }
