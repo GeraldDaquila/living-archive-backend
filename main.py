@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.67 — deterministic first-turn safety fast path
+# USE PRODUCTION VERSION: v488.68 — deterministic first-turn safety fast path
 import asyncio
 import hashlib
 import ipaddress
@@ -62,14 +62,14 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.67"
-DEPLOYMENT_FINGERPRINT = "USE-v488.67-deterministic-safety-fast-path"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.67-deterministic-safety-fast-path"
+APP_VERSION = "v488.68"
+DEPLOYMENT_FINGERPRINT = "USE-v488.68-deterministic-safety-fast-path"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.68-deterministic-safety-fast-path"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
 # detect drift between the live Guide boundary and its regression tests.
-SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.67"
+SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -146,7 +146,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.67":
+if str(APP_VERSION) != "v488.68":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1421,6 +1421,56 @@ def _normalize_glossary_term(query, interpretation=None):
             term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
             if 1 <= len(term) <= 120:
                 return term
+    embedded = _extract_embedded_glossary_term(query)
+    if embedded:
+        return embedded
+    return ""
+
+
+def _extract_embedded_glossary_term(query):
+    """Extract a bounded glossary term when definition intent is embedded in a longer question.
+
+    This is a visitor-boundary guard, not a second glossary search engine.
+    It exists so genuine meaning/definition requests remain Glossary-owned even
+    when an orientation phrase such as "where should I begin?" appears later
+    in the same sentence.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+    if not normalized:
+        return ""
+
+    patterns = (
+        r"\b(?:the\s+)?(?:word|term)\s+([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\b.{0,120}?\b(?:actually\s+)?means?\b",
+        r"\b(?:not\s+sure|unsure|unclear)\s+what\s+(?:the\s+)?([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\s+(?:actually\s+)?means?\b",
+        r"\bwhat\s+(?:the\s+)?([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\s+is\s+all\s+about\b",
+    )
+
+    for pattern in patterns:
+        match = re.search(pattern, normalized, re.I)
+        if not match:
+            continue
+
+        term = re.sub(
+            r"^[\s\"']+|[\s\"'?.!]+$",
+            "",
+            match.group(1),
+        )
+        term = re.sub(
+            r"\s+(?:here|there)$",
+            "",
+            term,
+            flags=re.I,
+        )
+        term = re.sub(
+            r"^(?:the\s+term\s+|the\s+word\s+|word\s+)",
+            "",
+            term,
+            flags=re.I,
+        )
+
+        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
+            return term
+
     return ""
 
 
@@ -1433,6 +1483,16 @@ if _normalize_glossary_term("What is the meaning of stewardship?") != "stewardsh
     raise RuntimeError("USE v488.00 invariant failed: glossary meaning extraction")
 if _normalize_glossary_term("How do I forgive someone who hurt me?"):
     raise RuntimeError("USE v487.98 invariant failed: open inquiry became glossary lookup")
+if _normalize_glossary_term(
+    "I keep seeing the word stewardship here, but I'm not sure what it actually means. Where should I begin?"
+) != "stewardship":
+    raise RuntimeError("USE v488.68 invariant failed: embedded word-meaning extraction")
+if _normalize_glossary_term(
+    "I want to know what stewardship is all about? How is it different from leadership, or management for that matter?"
+) != "stewardship":
+    raise RuntimeError("USE v488.68 invariant failed: embedded 'all about' extraction")
+if _normalize_glossary_term("Where should I begin exploring the Archive?"):
+    raise RuntimeError("USE v488.68 invariant failed: orientation request became glossary lookup")
 
 
 def _catalogue_handoff_url(query):
@@ -3202,10 +3262,14 @@ async def _use_request_boundary(scope, receive, send):
     # already a bounded lookup request. Do not spend a routing-model call or
     # allow ordinary Guide retrieval to answer it first.
     glossary_term = _normalize_glossary_term(query)
-    if glossary_term and re.match(
-        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
-        _normalize_query(query),
-        re.I,
+    embedded_glossary_term = _extract_embedded_glossary_term(query)
+    if glossary_term and (
+        re.match(
+            r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
+            _normalize_query(query),
+            re.I,
+        )
+        or embedded_glossary_term
     ):
         glossary_url = (
             "https://geralddaquila.com/glossary/?glossary_term="
