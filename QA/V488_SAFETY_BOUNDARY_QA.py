@@ -1,4 +1,4 @@
-"""Sitewide Safety Boundary Regression QA v488.66.
+"""Sitewide Safety Boundary Regression QA v488.67.
 
 Checks deterministic safety normalization, active safety follow-through, and the
 Guide's fail-closed interruption boundary without invoking the protected core
@@ -27,6 +27,7 @@ def main():
     exec(compile(safety_source, "safety_intelligence.py", "exec"), namespace, namespace)
     classify = namespace["normalize_safety_state"]
     semantic_candidate = namespace["_semantic_safety_candidate"]
+    fast_initial = namespace["_initial_deterministic_safety_response"]
     repair = namespace["repair_safety_question"]
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
@@ -48,6 +49,17 @@ def main():
     assert semantic_candidate(ordinary_relational_query) is False
     assert semantic_candidate("I don't want to live anymore.") is True
     assert semantic_candidate("I'm thinking of killing myself.") is True
+    assert classify("I want to die.") == "acute"
+
+    # High-confidence first-turn safety disclosures must have an immediate,
+    # provider-independent movement. The HRN safety composer is not allowed
+    # to become the critical path for this first question.
+    fast = fast_initial(query="I want to die.", safety_state="acute", country="NL", emergency_resolution={})
+    assert fast["safety"] == "acute"
+    assert fast["safety_question"] == "Do you think you might act on these thoughts right now?"
+    assert fast["safety_release_ready"] is False
+    assert fast["resolver_status"] == "deterministic_initial_fast_path"
+    assert "another person" in fast["safety_message"].casefold()
     assert semantic_candidate("I am angry because my partner hurt my feelings.") is False
 
     # State-aware continuity repair: a missing HRN question must advance the
@@ -115,9 +127,9 @@ def main():
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
-    assert 'APP_VERSION = "v488.66"' in main_source
-    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.66"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.66-safety-candidate-gate"' in main_source
+    assert 'APP_VERSION = "v488.67"' in main_source
+    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.67"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.67-deterministic-safety-fast-path"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
