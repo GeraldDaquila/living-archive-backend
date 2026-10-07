@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.64 — safety continuity fail-closed contract
+# USE PRODUCTION VERSION: v488.65 — state-aware safety continuity contract
 import asyncio
 import hashlib
 import ipaddress
@@ -55,21 +55,21 @@ from provider_bank import (
 )
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
-from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, safety_intelligence_snapshot
+from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, repair_safety_question, safety_intelligence_snapshot
 
 _BASE_MODULE_NAME = "guide_runtime"
 _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.64"
-DEPLOYMENT_FINGERPRINT = "USE-v488.64-safety-continuity-fail-closed"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.64-safety-continuity-fail-closed"
+APP_VERSION = "v488.65"
+DEPLOYMENT_FINGERPRINT = "USE-v488.65-safety-native-next-movement"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.65-safety-native-next-movement"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
 # detect drift between the live Guide boundary and its regression tests.
-SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.64"
+SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.65"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
 _GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
@@ -146,7 +146,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.64":
+if str(APP_VERSION) != "v488.65":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2973,18 +2973,22 @@ async def _use_request_boundary(scope, receive, send):
 
             # Fail-closed continuity contract: an active safety interruption
             # may never silently release because HRN returned a response without
-            # its next question. HRN remains the semantic authority, but the
-            # sitewide boundary must preserve a live conversational path while
-            # the specialist is still reporting safety_release_ready=False.
+            # its next question. HRN remains the semantic authority. The shared
+            # safety-intelligence layer supplies a state-aware native next
+            # movement only when HRN omitted one; this boundary repeats that
+            # contract defensively for any malformed specialist payload.
             safety_release_ready = bool(safety_payload.get("safety_release_ready"))
             safety_question = str(safety_payload.get("safety_question") or "").strip()
             if not safety_release_ready and not safety_question:
-                safety_question = (
-                    "Is there someone you trust who can stay with you right now?"
+                safety_question = repair_safety_question(
+                    safety_state=safety_state,
+                    previous_question=safety_question_hint,
+                    query=query,
+                    history=history_text,
                 )
                 safety_payload["safety_question"] = safety_question
                 safety_payload["safety_continuity_guard"] = (
-                    "missing_next_question_repaired"
+                    "native_next_movement_repaired"
                 )
             print(
                 "The Guide sitewide Safety utility: "
@@ -3014,6 +3018,7 @@ async def _use_request_boundary(scope, receive, send):
                 "safety_location_required": bool(safety_payload.get("safety_location_required")),
                 "country": safety_payload.get("country") or safety_country,
                 "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
+                "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
                 "safety": {
                     "state": safety_payload.get("safety_state") or safety_state,
                     "interrupt": True,
@@ -3026,6 +3031,7 @@ async def _use_request_boundary(scope, receive, send):
                     "safety_location_required": bool(safety_payload.get("safety_location_required")),
                     "country": safety_payload.get("country") or safety_country,
                     "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
+                    "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
                     "bypasses_ordinary_hrn": True,
                     "bypasses_llm": True,
                     "bypasses_retrieval": True,
