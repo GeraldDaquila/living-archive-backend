@@ -500,7 +500,7 @@ def repair_safety_question(
     ))
     negative = bool(re.search(
         r"^(?:no|nope|not yet|i haven't|i have not|i am not|i'm not|"
-        r"nobody|no one|alone|i don't know|i do not know)\\b",
+        r"nobody|no one|alone|i don't know|i do not know)\b",
         answer,
         re.I,
     ))
