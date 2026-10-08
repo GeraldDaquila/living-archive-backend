@@ -19,6 +19,7 @@ ALLOWED_OPERATIONS = frozenset({
     "hrn_relational",
     "hrn_perception",
     "atlas_finder",
+    "atlas_vision",
     "mini_use",
     "stewardship_pathway",
 })
