@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.86 — Bounded glossary arbitration + version integrity
+# USE PRODUCTION VERSION: v488.90 — Visitor-language boundary hardening
 import asyncio
 import hashlib
 import ipaddress
@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.89"
-DEPLOYMENT_FINGERPRINT = "USE-v488.89-bounded-glossary-arbitration"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.89-bounded-glossary-arbitration"
+APP_VERSION = "v488.90"
+DEPLOYMENT_FINGERPRINT = "USE-v488.90-visitor-language-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.90-visitor-language-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -172,7 +172,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.89":
+if str(APP_VERSION) != "v488.90":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2641,9 +2641,59 @@ Then offer one useful orientation grounded in the supplied canonical evidence. E
 
 Do not use headings such as "Underlying tension", "Round 1", "Analysis", or "Interpretation". Do not use therapeutic language, give advice, provide a list of steps, ask multiple questions, or force a canonical resource into the answer. If a doorway is useful, introduce at most one as a possible lens, not as an explanation of the visitor's experience.
 
+Never expose implementation or processing language to the visitor. In particular, never write phrases such as "USE", "canonical evidence", "supplied evidence", "evidence excerpt", "bounded by", "internal interpretation", "retrieval", "synthesis", "processing layer", "provider", "model", "route", "handoff", or similar machine-facing terminology. Never add bracketed editorial annotations, debugging notes, or evidence labels. If you need to refer to the material that informed the response, use ordinary language such as "the Archive material", "the material I found", or simply name the relevant collection or essay.
+
 Return ONLY valid JSON with exactly:
 {"response":"2–4 short paragraphs ending with exactly one opening question","doorway_title":"exact canonical title if naturally useful, otherwise empty"}
 """.strip()
+
+
+def _sanitize_basic_inquiry_response(text):
+    """Enforce the visitor-language boundary on provider-composed Guide prose.
+
+    Provider output may contain internal labels even when the composition prompt
+    forbids them. Those labels are implementation metadata, not visitor content.
+    The Guide therefore removes them at the final Basic Inquiry composition seam
+    rather than relying on provider obedience alone.
+    """
+    value = re.sub(r"\s+", " ", str(text or "").strip())
+    if not value:
+        return ""
+
+    internal_bracket_patterns = (
+        r"\s*\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
+        r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
+        r"internal interpretation|retrieval|synthesis|processing layer|provider|model|"
+        r"route|handoff)(?:[^\]]*)\]\s*",
+        r"\s*\((?:evidence excerpt bounded by USE|bounded by USE|internal interpretation|"
+        r"retrieval|synthesis|processing layer)\)\s*",
+    )
+    for pattern in internal_bracket_patterns:
+        value = re.sub(pattern, " ", value, flags=re.I)
+
+    replacements = (
+        (r"\bevidence excerpt bounded by USE\b", "the material I found"),
+        (r"\bcanonical evidence\b", "the Archive material"),
+        (r"\bsupplied evidence\b", "the material I found"),
+        (r"\binternal interpretation\b", "the way the question can be understood"),
+        (r"\bprocessing layer\b", "the material"),
+        (r"\b(?:retrieval|synthesis)\s+layer\b", "the material"),
+    )
+    for pattern, replacement in replacements:
+        value = re.sub(pattern, replacement, value, flags=re.I)
+
+    value = re.sub(r"\s+([,.;!?])", r"\1", value)
+    value = re.sub(r"([.!?])\s*\1+", r"\1", value)
+    value = re.sub(r"\.{2,}", ".", value)
+    value = re.sub(r"\s{2,}", " ", value).strip()
+    return value
+
+
+_BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
+    "This points to the Archive. [evidence excerpt bounded by USE]"
+)
+if _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE != "This points to the Archive.":
+    raise RuntimeError("USE v488.90 visitor-language invariant failed: internal evidence annotation escaped sanitizer.")
 
 
 def _basic_inquiry_round1_response(query, interpretation, context_data):
@@ -2707,8 +2757,21 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
     selected = str(parsed.get("doorway_title") or "").strip()
     if selected and selected not in canonical_titles:
         selected = ""
+    visitor_response = _sanitize_basic_inquiry_response(parsed["response"])
+    if not visitor_response:
+        return None
+    if visitor_response.count("?") != 1:
+        return None
+    if re.search(
+        r"\b(?:evidence excerpt|canonical evidence|internal interpretation|"
+        r"bounded by USE|processing layer|provider|model|retrieval|synthesis)\b",
+        visitor_response,
+        re.I,
+    ):
+        return None
+
     return {
-        "response": str(parsed["response"]).strip(),
+        "response": visitor_response,
         "doorway_title": selected,
         "provider": str(bank_result.get("provider") or ""),
         "model": str(bank_result.get("model") or ""),
