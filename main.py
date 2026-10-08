@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.04 — Separate answer prose from canonical doorway navigation
+# USE PRODUCTION VERSION: v489.05 — Complete answer/navigation separation + compound explanatory quality
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.04"
-DEPLOYMENT_FINGERPRINT = "USE-v489.04-answer-doorway-separation"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.04-answer-doorway-separation"
+APP_VERSION = "v489.05"
+DEPLOYMENT_FINGERPRINT = "USE-v489.05-answer-navigation-quality-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.05-answer-navigation-quality-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.04":
+if str(APP_VERSION) != "v489.05":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2948,20 +2948,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 authoritative_doorway = _general_guide_authoritative_doorway(
                     query, context_data
                 )
-                if authoritative_doorway:
-                    doorway_title = str(authoritative_doorway.get("title") or "").strip()
-                    doorway_url = str(
-                        authoritative_doorway.get("url")
-                        or authoritative_doorway.get("canonical_url")
-                        or ""
-                    ).strip()
-                    if doorway_title and re.match(r"^https://\S+$", doorway_url, re.I):
-                        if doorway_url not in str(llm_output):
-                            llm_output = (
-                                str(llm_output).rstrip()
-                                + "\n\n"
-                                + f"If you'd like to explore this further, [{doorway_title}]({doorway_url}) is a useful place to begin."
-                            )
+                # Navigation is a separate authoritative presentation surface.
+                # The answer payload must contain answer prose only; the frontend
+                # renders the structured recommendation independently. This prevents
+                # menu-era title decoration (including emoji) from leaking back into
+                # the visitor's prose and keeps navigation out of the composition contract.
                 print(
                     "The Guide General Composition: "
                     f"provider={composition_result.get('provider') or 'unknown'}, "
@@ -4321,7 +4312,7 @@ def _formation_entrance_error(message, error_type, status_code=400):
 
 # v488.36 startup audit: verify the Basic Inquiry seam against the protected core.
 _v48831_basic_inquiry_seam_self_audit()
-# v488.94 startup audit: verify the all-purpose Guide is structurally provider-neutral.
+# v489.05 startup audit: verify answer/navigation separation and provider-neutral quality contract.
 _v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
