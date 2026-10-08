@@ -2892,9 +2892,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
     if re.search(
-        r"\\b(?:evidence excerpt|canonical evidence|internal interpretation|"
+        r"\b(?:evidence excerpt|canonical evidence|internal interpretation|
         r"bounded by USE|processing layer|provider|model|retrieval|synthesis|"
-        r"handoff|machine-facing|implementation metadata)\\b",
+        r"handoff|machine-facing|implementation metadata)\b",
         response,
         re.I,
     ):
