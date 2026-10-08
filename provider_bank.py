@@ -56,7 +56,7 @@ OPERATION_SCHEMAS = {
         "strict": True,
         "schema": {
             "type": "object",
-            "additionalProperties": False,
+            "additionalProperties": True,
             "properties": {
                 "response": {"type": "string"},
                 "question": {"type": "string"},
