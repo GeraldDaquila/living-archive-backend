@@ -42,7 +42,7 @@ OPERATION_TOKEN_FLOORS = {
     # The bank owns minimum completion budgets for semantic operations. This
     # prevents a specialist's transport envelope from starving a capable model
     # before it can finish its contractual JSON object.
-    "hrn_relational": 900,
+    "hrn_relational": 1400,
     "hrn_perception": 600,
     "atlas_finder": 500,
     "atlas_vision": 700,
@@ -191,6 +191,11 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
         kwargs["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
     if model.startswith("openai/gpt-oss-"):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
+    elif model == "qwen/qwen3.8-27b":
+        # HRN composition already carries its own relational reasoning in the
+        # prompt. Keep Qwen in efficient instruct mode so completion budget is
+        # spent on the contractual response rather than hidden reasoning tokens.
+        kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
     response = client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
@@ -454,7 +459,7 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.3",
+        "capability_policy_version": "1.4",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "operation_requirements": {
