@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.06"' in MAIN_TEXT, "main.py version is not v489.06")
+    assert_true('APP_VERSION = "v489.07"' in MAIN_TEXT, "main.py version is not v489.07")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -221,7 +221,12 @@ def main():
     assert_true("One relevant place to continue is [" not in main_source, "doorway prose still leaks into ordinary answer construction")
     assert_true('"recommendation": recovery_recommendation' in main_source, "recovery response lost structured recommendation")
 
-    print("V489.06 GENERAL GUIDE COMPOSITION QA: PASS")
+    # Canonical doorway authority must propagate directly from use_core into the Guide envelope.
+    assert_true('"authoritative_doorway": authoritative_doorway' in use_core_source, "use_core does not expose canonical doorway authority")
+    assert_true('context_data.get("authoritative_doorway")' in main_source, "Guide does not consume canonical doorway authority from use_core")
+    assert_true('re-run a second doorway selector' in main_source or 'second doorway selector' in main_source, "recommendation boundary does not document single doorway authority")
+
+    print("V489.07 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
