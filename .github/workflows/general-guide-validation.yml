@@ -15,6 +15,7 @@ on:
       - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
       - "wordpress/the-guide-frontend.html"
       - "tests/e2e/the-guide-browser-smoke.cjs"
+      - "tests/e2e/the-guide-browser-diagnostic.cjs"
       - ".github/workflows/general-guide-validation.yml"
   pull_request:
     paths:
@@ -25,6 +26,7 @@ on:
       - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
       - "wordpress/the-guide-frontend.html"
       - "tests/e2e/the-guide-browser-smoke.cjs"
+      - "tests/e2e/the-guide-browser-diagnostic.cjs"
       - ".github/workflows/general-guide-validation.yml"
 
 jobs:
@@ -46,6 +48,7 @@ jobs:
             guide_frontend:
               - 'wordpress/the-guide-frontend.html'
               - 'tests/e2e/the-guide-browser-smoke.cjs'
+              - 'tests/e2e/the-guide-browser-diagnostic.cjs'
       - uses: actions/setup-node@v4
         if: steps.frontend-changes.outputs.guide_frontend == 'true'
         with:
@@ -58,4 +61,4 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify live Guide browser contract
         if: steps.frontend-changes.outputs.guide_frontend == 'true'
-        run: node tests/e2e/the-guide-browser-smoke.cjs
+        run: node tests/e2e/the-guide-browser-diagnostic.cjs
