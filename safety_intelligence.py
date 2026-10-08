@@ -494,7 +494,7 @@ def repair_safety_question(
 
     affirmative = bool(re.search(
         r"^(?:yes|yeah|yep|i did|i have|i moved|i'm away|i am away|already|"
-        r"someone is with me|they are with me|they're with me)\\b",
+        r"someone is with me|they are with me|they're with me)\b",
         answer,
         re.I,
     ))
