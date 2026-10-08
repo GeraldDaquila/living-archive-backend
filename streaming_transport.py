@@ -14,6 +14,7 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 
 
 STREAM_CONTRACT_VERSION = "SSE-VALIDATED-v1"
+STREAM_TRANSPORT_VERSION = "0.1.1"
 STREAM_PATH = "/api/query-stream"
 
 
@@ -110,7 +111,10 @@ async def validated_query_stream(
         captured.append(message)
 
     try:
-        await target_app(scope, _replay_receive(body), capture_send)
+        target_scope = dict(scope)
+        target_scope["path"] = "/api/query"
+        target_scope["raw_path"] = b"/api/query"
+        await target_app(target_scope, _replay_receive(body), capture_send)
     except Exception as exc:
         await _send_event(
             send,
