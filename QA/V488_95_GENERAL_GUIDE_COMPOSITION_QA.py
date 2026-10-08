@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.00"' in MAIN_TEXT, "main.py version is not v489.00")
+    assert_true('APP_VERSION = "v489.01"' in MAIN_TEXT, "main.py version is not v489.00")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -40,7 +40,7 @@ def main():
     )
 
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
@@ -108,6 +108,34 @@ def main():
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
         assert_true("You can use that idea" in composed["response"], "ordinary visitor language was falsely rejected")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
+
+        # An imperfect optional doorway label must not invalidate the answer.
+        def fake_route_with_bad_doorway(**kwargs):
+            parsed = kwargs["parse"](
+                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+            )
+            return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
+
+        composition.route_with_model_bank = fake_route_with_bad_doorway
+        try:
+            tolerant = composition.compose(
+                use_core=FakeCore(),
+                query="What is stewardship and why is it important now more than ever?",
+                context_data={
+                    "generation_authority_protected_docs": [
+                        {
+                            "title": "Stewardship Today",
+                            "url": "https://geralddaquila.com/stewardship-today/",
+                            "content": "Stewardship asks what we are responsible for and how we care for what affects more than ourselves.",
+                        }
+                    ]
+                },
+            )
+            assert_true(tolerant is not None, "optional doorway metadata still invalidates composition")
+            assert_true(tolerant["response_shape"] == "explanatory", "tolerant composition shape drifted")
+            assert_true(tolerant["doorway_title"] == "", "unapproved doorway metadata was not neutralized")
+        finally:
+            composition.route_with_model_bank = original_route
     finally:
         composition.route_with_model_bank = original_route
 
@@ -151,7 +179,7 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V488.95 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.01 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
