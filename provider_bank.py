@@ -26,16 +26,16 @@ PRODUCTION_GROQ_MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwe
 # Unknown models are intentionally conservative: discovery never grants
 # specialist eligibility by itself.
 MODEL_CAPABILITIES = {
-    ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # Qwen has structured-output support, but the live bank has observed
     # completion-bound JSON failures on the long HRN composition workload.
     # Keep it eligible for structured/short reasoning work, not composition.
-    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "relational_analysis", "low_latency"}),
-    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
-    ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
-    ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "relational_analysis", "low_latency"}),
+    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
+    ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
 OPERATION_TOKEN_FLOORS = {
@@ -58,6 +58,7 @@ OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery"
 
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
+    "hrn_voice_repair": frozenset({"text_generation", "relational_analysis"}),
     "hrn_perception": frozenset({"json_object", "relational_analysis"}),
     "atlas_finder": frozenset({"json_object"}),
     "atlas_vision": frozenset({"json_object", "vision"}),
@@ -178,11 +179,16 @@ def _json_object(raw):
     if not isinstance(value, dict): raise ValueError("model response was not an object")
     return value
 
+def _text_mode(schema):
+    return isinstance(schema, dict) and schema.get("mode") == "text"
+
 def _groq(use_core, model, messages, max_tokens, schema=None):
     client = getattr(use_core, "groq_client", None)
     if client is None: raise ProviderCallError("Groq client unavailable", "groq", model, category="unavailable")
     kwargs = {"model": model, "messages": messages, "temperature": 0.0,
-              "max_completion_tokens": max_tokens, "response_format": ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})}
+              "max_completion_tokens": max_tokens}
+    if not _text_mode(schema):
+        kwargs["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
     if model.startswith("openai/gpt-oss-"):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
     response = client.chat.completions.create(**kwargs)
@@ -221,9 +227,10 @@ def _gemini(key, model, messages, max_tokens, schema=None):
             contents.append({"role": "user" if message.get("role") != "assistant" else "model", "parts": parts})
     payload = {"contents": contents, "generationConfig": {
         "maxOutputTokens": max_tokens,
-        "responseMimeType": "application/json",
         "thinkingConfig": {"thinkingLevel": "low"},
     }}
+    if not _text_mode(schema):
+        payload["generationConfig"]["responseMimeType"] = "application/json"
     if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
         payload["generationConfig"]["responseSchema"] = schema["schema"]
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
@@ -235,7 +242,9 @@ def _gemini(key, model, messages, max_tokens, schema=None):
 
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
-               "max_tokens": max_tokens, "response_format": ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})}
+               "max_tokens": max_tokens}
+    if not _text_mode(schema):
+        payload["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
     data = _http_json(base_url.rstrip("/") + "/chat/completions",
                       {"Authorization": "Bearer " + key}, payload, provider, model)
     try: return str(data["choices"][0]["message"]["content"] or "").strip()
@@ -245,10 +254,10 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
 def _workers(key, account, model, messages, max_tokens, schema=None):
     payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
                "options": {"rejectIfBusy": True}}
-    if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
-        payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]}
+    if _text_mode(schema):
+        payload["response_format"] = {"type": "text"}
     else:
-        payload["response_format"] = {"type": "json_object"}
+        payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
     url = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/run/" + urllib.parse.quote(model, safe="")
     data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model)
     result = data.get("result") if isinstance(data, dict) else None
@@ -283,6 +292,8 @@ def _capabilities(provider, model):
 
 def _operation_requirements(operation, schema):
     required = set(OPERATION_REQUIREMENTS.get(operation, frozenset()))
+    if isinstance(schema, dict) and schema.get("mode") == "text":
+        return required
     if isinstance(schema, dict):
         required.add("json_schema_strict" if bool(schema.get("strict")) else "json_schema_best_effort")
     return required
