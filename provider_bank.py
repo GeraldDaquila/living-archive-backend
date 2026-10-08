@@ -50,6 +50,25 @@ OPERATION_TOKEN_FLOORS = {
     "stewardship_pathway": 900,
 }
 
+OPERATION_SCHEMAS = {
+    "hrn_relational": {
+        "name": "hrn_relational_composition",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "response": {"type": "string"},
+                "question": {"type": "string"},
+                "rest": {"type": "boolean"},
+                "use_resource": {"type": "boolean"},
+                "resource_intro": {"type": "string"},
+            },
+            "required": ["response", "question", "rest", "use_resource", "resource_intro"],
+        },
+    },
+}
+
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
     "hrn_perception": frozenset({"json_object", "relational_analysis"}),
@@ -378,7 +397,8 @@ def _call(use_core, item, messages, max_tokens, schema=None):
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
-    pool = select(use_core, operation=operation, schema=schema)
+    effective_schema = schema if schema is not None else OPERATION_SCHEMAS.get(operation)
+    pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
@@ -392,7 +412,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            parsed = parse(_call(use_core, item, messages, effective_max_tokens, schema))
+            parsed = parse(_call(use_core, item, messages, effective_max_tokens, effective_schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             parsed = _normalize_operation_result(operation, parsed)
             print(
@@ -424,7 +444,8 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.1",
+        "capability_policy_version": "1.2",
+        "operation_schemas": {key: value["name"] for key, value in OPERATION_SCHEMAS.items()},
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "operation_requirements": {
             operation: sorted(requirements)
