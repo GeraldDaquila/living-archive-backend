@@ -19,7 +19,7 @@ VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
 _INTERNAL_LANGUAGE = re.compile(
-    r"\b(?:USE|canonical evidence|supplied evidence|evidence excerpt|"
+    r"(?:(?<![a-z])USE(?![a-z])|canonical evidence|supplied evidence|evidence excerpt|"
     r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
     r"internal interpretation|retrieval|retrieval layer|synthesis|synthesis layer|"
     r"processing layer|provider|model|route|handoff|machine-facing|"
