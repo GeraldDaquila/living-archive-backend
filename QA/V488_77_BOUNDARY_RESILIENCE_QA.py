@@ -28,6 +28,7 @@ def main():
 
     assert 'APP_VERSION = "v488.77"' in main_source
     assert "boundary_resilience" in main_source
+    assert "GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS" in main_source
     assert "GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS" in main_source
     assert "guide_node_registry_state" in main_source
 
@@ -37,7 +38,7 @@ def main():
     original_time = br.time.time
     br.time.time = lambda: clock["now"]
     try:
-        cache = br.StaleAuthorityCache(max_stale_seconds=60, failure_retry_seconds=10)
+        cache = br.StaleAuthorityCache(fresh_ttl_seconds=20, max_stale_seconds=60, failure_retry_seconds=10)
         calls = {"n": 0}
         def loader():
             calls["n"] += 1
