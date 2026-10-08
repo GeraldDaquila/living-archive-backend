@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.04"' in MAIN_TEXT, "main.py version is not v489.04")
+    assert_true('APP_VERSION = "v489.05"' in MAIN_TEXT, "main.py version is not v489.05")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -42,6 +42,7 @@ def main():
     snapshot = composition.contract_snapshot()
     assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
+    assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
@@ -76,6 +77,19 @@ def main():
         == "First paragraph.\n\nSecond paragraph.",
         "composition sanitizer collapsed meaningful paragraph structure",
     )
+    try:
+        composition._parse_factory([
+            {
+                "title": "Stewardship Today",
+                "url": "https://geralddaquila.com/stewardship-today/",
+                "content": "Grounding material.",
+            }
+        ], "What is stewardship and why is it important now more than ever?")(
+            '{"response":"Definition paragraph.\n\nWhy-now paragraph.","doorway_title":"","response_shape":"explanatory"}'
+        )
+        raise AssertionError("compound explanatory answer with two paragraphs was accepted")
+    except ValueError:
+        pass
 
     # Provider-neutral seam test: simulate the bank rather than calling an external model.
     original_route = composition.route_with_model_bank
@@ -87,7 +101,7 @@ def main():
 
     def fake_route(**kwargs):
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself. You can use that idea to ask what deserves care and what responsibility looks like in practice.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\n\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\n\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
         return {
             "parsed": parsed,
@@ -133,7 +147,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\n\nIt matters because our choices can affect people and systems beyond our immediate reach.\n\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
@@ -200,7 +214,7 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V489.04 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.05 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
