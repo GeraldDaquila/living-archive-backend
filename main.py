@@ -56,16 +56,16 @@ from provider_bank import (
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
 from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, repair_safety_question, safety_intelligence_snapshot
-from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION
+from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION, STREAM_TRANSPORT_VERSION
 
 _BASE_MODULE_NAME = "guide_runtime"
 _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.73"
-DEPLOYMENT_FINGERPRINT = "USE-v488.73-validated-sse-transport"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.73-validated-sse-transport"
+APP_VERSION = "v488.74"
+DEPLOYMENT_FINGERPRINT = "USE-v488.74-validated-sse-request-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.74-validated-sse-request-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -147,7 +147,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.73":
+if str(APP_VERSION) != "v488.74":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4162,7 +4162,7 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
     raise RuntimeError("USE v487.57 invariant failed: relational return route not registered")
 
 # Single authoritative request boundary; all non-specialist requests fall through once.
-if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1":
+if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
     raise RuntimeError("USE streaming transport contract integrity failure.")
 
 app = streaming_entry(_use_request_boundary)
