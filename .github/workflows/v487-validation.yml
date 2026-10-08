@@ -31,5 +31,7 @@ jobs:
         run: PYTHONPATH=. python QA/V488_PIPE_INTEGRITY_QA.py
       - name: v488 sitewide safety boundary QA
         run: PYTHONPATH=. python QA/V488_SAFETY_BOUNDARY_QA.py
+      - name: v488.75 provider-bank structural QA
+        run: PYTHONPATH=. python QA/V488_75_PROVIDER_BANK_QA.py
       - name: v487.89 specialist-pipe regression probes
         run: PYTHONPATH=. python QA/V487_89_SPECIALIST_PIPE_REGRESSION_TESTS.py
