@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.05 — Complete answer/navigation separation + compound explanatory quality
+# USE PRODUCTION VERSION: v489.06 — Stable recommendation envelope + answer/navigation separation
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.05"
-DEPLOYMENT_FINGERPRINT = "USE-v489.05-answer-navigation-quality-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.05-answer-navigation-quality-boundary"
+APP_VERSION = "v489.06"
+DEPLOYMENT_FINGERPRINT = "USE-v489.06-recommendation-envelope-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.06-recommendation-envelope-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.05":
+if str(APP_VERSION) != "v489.06":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2831,17 +2831,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     else:
         explanation = "The available Archive material does not provide enough detail for a reliable answer yet."
 
-    doorway = (
-        f"One relevant place to continue is [{title}]({url})."
-        if title and url else ""
-    )
     closing = (
         f"A useful next movement may be {movement.rstrip('.')}."
         if movement else
         "If you want a fuller explanation, the question can be taken up again when the Guide's composition resources are available."
     )
     return {
-        "response": "\n\n".join(part for part in (opening, explanation, doorway, closing) if part),
+        # Navigation is deliberately omitted from answer prose. The structured
+        # recommendation is attached by the ordinary response boundary.
+        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
@@ -2916,6 +2914,26 @@ def _general_guide_authoritative_doorway(query, context_data):
         return None
 
 
+def _normalize_authoritative_recommendation(doorway):
+    """Return the single public navigation contract, or None if invalid.
+
+    Recommendation authority belongs to the Guide, not the composition provider.
+    This helper makes the response envelope deterministic across provider
+    success, provider exhaustion, and conservative recovery.
+    """
+    if not isinstance(doorway, dict):
+        return None
+    title = str(doorway.get("title") or "").strip()
+    url = str(
+        doorway.get("url")
+        or doorway.get("canonical_url")
+        or ""
+    ).strip()
+    if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
+        return None
+    return {"title": title, "url": url}
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -2923,6 +2941,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     context_data = use_core.fetch_canonical_context(query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+
+    # Navigation authority is resolved once, before composition, and carried
+    # through every ordinary-answer path. It must never depend on which
+    # provider/model happened to compose the prose successfully.
+    authoritative_doorway = _normalize_authoritative_recommendation(
+        _general_guide_authoritative_doorway(query, context_data)
+    )
 
     if context_data.get("frame_neutral_evidence_unavailable"):
         llm_output = use_core._frame_neutral_evidence_unavailable_response(query)
@@ -2945,9 +2970,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if composition_result:
                 llm_output = composition_result.get("response", "")
-                authoritative_doorway = _general_guide_authoritative_doorway(
-                    query, context_data
-                )
                 # Navigation is a separate authoritative presentation surface.
                 # The answer payload must contain answer prose only; the frontend
                 # renders the structured recommendation independently. This prevents
@@ -3002,18 +3024,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "query": query,
         "intent": context_data.get("intent", "TOPICAL_INQUIRY"),
         "response": response,
-        "recommendation": (
-            {
-                "title": str(authoritative_doorway.get("title") or "").strip(),
-                "url": str(
-                    authoritative_doorway.get("url")
-                    or authoritative_doorway.get("canonical_url")
-                    or ""
-                ).strip(),
-            }
-            if "authoritative_doorway" in locals() and authoritative_doorway
-            else None
-        ),
+        # The recommendation is a first-class response field, never
+        # inferred from prose and never dependent on provider metadata.
+        "recommendation": authoritative_doorway,
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
@@ -3916,12 +3929,16 @@ async def _use_request_boundary(scope, receive, send):
             )
             try:
                 context_data = use_core.fetch_canonical_context(query)
+                recovery_context = context_data if isinstance(context_data, dict) else {}
                 recovery = _basic_inquiry_round1_deterministic_response(
                     query,
                     {},
-                    context_data if isinstance(context_data, dict) else {},
+                    recovery_context,
                 )
                 recovery_text = str(recovery.get("response") or "").strip()
+                recovery_recommendation = _normalize_authoritative_recommendation(
+                    _general_guide_authoritative_doorway(query, recovery_context)
+                )
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
                         (query + "|" + _history_text(history)).encode("utf-8")
@@ -3939,6 +3956,7 @@ async def _use_request_boundary(scope, receive, send):
                             else "TOPICAL_INQUIRY"
                         ),
                         "response": recovery_text,
+                        "recommendation": recovery_recommendation,
                         "processing": "basic_inquiry_recovery",
                         "route_source": "guide_basic_inquiry_recovery",
                         "recovery": "deterministic_round1",
