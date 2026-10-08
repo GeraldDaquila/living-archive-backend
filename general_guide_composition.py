@@ -23,15 +23,15 @@ _INTERNAL_LANGUAGE = re.compile(
     r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
     r"internal interpretation|retrieval layer|synthesis layer|processing layer|"
     r"provider bank|provider selection|model selection|route source|handoff|"
-    r"machine-facing|implementation metadata|system instruction|debugging annotation)\\b",
+    r"machine-facing|implementation metadata|system instruction|debugging annotation)\b",
     re.I,
 )
-_INTERNAL_SYSTEM_NAME = re.compile(r"\\bUSE\\b")
+_INTERNAL_SYSTEM_NAME = re.compile(r"\bUSE\b")
 _INTERNAL_BRACKET = re.compile(
-    r"\\s*\\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
+    r"\s*\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
     r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
     r"internal interpretation|retrieval|synthesis|processing layer|provider|model|"
-    r"route|handoff)(?:[^\\]]*)\\]\\s*",
+    r"route|handoff)(?:[^\]]*)\]\s*",
     re.I,
 )
 
