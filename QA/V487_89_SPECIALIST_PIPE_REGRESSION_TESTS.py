@@ -1,4 +1,4 @@
-"""v487.91 specialist-pipe regression probes.
+"""Current specialist-pipe regression probes.
 
 These probes exercise two failure seams that previously could pass structural
 checks while failing in production:
@@ -71,7 +71,7 @@ def test_domain_payload_survives_common_pipe():
     result = invoke_specialist(
         registry,
         request_id="qa-formation-payload-001",
-        guide_version="v487.91",
+        guide_version="qa-current",
         specialist_id="formation",
         original_question="I am carrying a larger responsibility.",
         recognized_territory="stewardship formation",
@@ -138,7 +138,7 @@ def test_relationship_adapter_retries_transient_503():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v487.91"' in source
+    assert 'APP_VERSION = "v488.' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -149,4 +149,4 @@ if __name__ == "__main__":
     test_domain_payload_survives_common_pipe()
     test_relationship_adapter_retries_transient_503()
     test_current_main_contains_domain_payload_consumption_guards()
-    print("v487.91 specialist-pipe regression probes: PASS")
+    print("current specialist-pipe regression probes: PASS")
