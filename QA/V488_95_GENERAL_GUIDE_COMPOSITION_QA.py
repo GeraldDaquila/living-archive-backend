@@ -7,6 +7,7 @@ Live provider/E2E validation remains a deployment-stage responsibility.
 
 from pathlib import Path
 import re
+import json
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,7 +98,7 @@ def main():
                 "content": "Grounding material.",
             }
         ], "What is stewardship and why is it important now more than ever?")(
-            '{"response":"Definition paragraph.\n\nWhy-now paragraph.","doorway_title":"","response_shape":"explanatory"}'
+            json.dumps({"response": "Definition paragraph.\n\nWhy-now paragraph.", "doorway_title": "", "response_shape": "explanatory"})
         )
         raise AssertionError("compound explanatory answer with two paragraphs was accepted")
     except ValueError:
@@ -113,7 +114,7 @@ def main():
 
     def fake_route(**kwargs):
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\n\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\n\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            json.dumps({"response": "Stewardship is about taking responsibility for something that matters beyond yourself.\n\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\n\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.", "doorway_title": "Stewardship Today", "response_shape": "explanatory"})
         )
         return {
             "parsed": parsed,
@@ -150,7 +151,7 @@ def main():
                 "url": "https://geralddaquila.com/stewardship-today/",
                 "content": "Grounding material.",
             }])(
-                '{"response":"Answer. [Explore](https://geralddaquila.com/stewardship-today/)","doorway_title":"","response_shape":"general"}'
+                json.dumps({"response": "Answer. [Explore](https://geralddaquila.com/stewardship-today/)", "doorway_title": "", "response_shape": "general"})
             )
             raise AssertionError("provider-generated doorway URL was accepted into visitor prose")
         except ValueError:
@@ -159,7 +160,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\n\nIt matters because our choices can affect people and systems beyond our immediate reach.\n\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                json.dumps({"response": "Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\n\nIt matters because our choices can affect people and systems beyond our immediate reach.\n\nThe useful question is not only what we control, but what we are responsible for.", "doorway_title": "Provider Invented Doorway", "response_shape": "explanatory"})
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
