@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.83 — Provider Bank HRN extensible structured composition
+# USE PRODUCTION VERSION: v488.84 — Relational boundary natural-language repair
 import asyncio
 import hashlib
 import ipaddress
@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.83"
-DEPLOYMENT_FINGERPRINT = "USE-v488.83-hrn-extensible-composition"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.83-hrn-extensible-composition"
+APP_VERSION = "v488.84"
+DEPLOYMENT_FINGERPRINT = "USE-v488.84-relational-boundary-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.84-relational-boundary-repair"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -524,6 +524,7 @@ _RELATIONAL_INQUIRY_PATTERNS = (
     r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
     r"\b(?:understand|make sense of|figure out|explore|see)\b.{0,100}\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\b",
+    r"\b(?:how|why|what|can|could)\b.{0,100}\b(?:understand|make sense of|figure out)\b.{0,100}\b(?:relationship|distance|dynamic|pattern|cycle|interaction)\b",
     r"\b(?:i|we)\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\b",
 )
 
@@ -649,6 +650,10 @@ if not _relational_boundary_decision(_route_probe_fight_noun).get("open"):
 
 # v487.92 regression guard: relational reciprocity must route to Seeing the
 # Relationship even when the visitor does not use conflict/boundary language.
+_route_probe_natural_distance = "How can I understand why a relationship feels distant lately?"
+if not _relational_boundary_decision(_route_probe_natural_distance).get("open"):
+    raise RuntimeError("USE v488.84 routing invariant failed: natural distance inquiry did not open relationship specialist")
+
 _route_probe_reciprocity = (
     "My friend always asks me for support when they need something, but "
     "whenever I need them, they disappear. I'm starting to wonder whether "
