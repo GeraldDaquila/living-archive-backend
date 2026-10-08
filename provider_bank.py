@@ -13,7 +13,7 @@ from provider_resilience import (
     state_summary,
 )
 
-CONTRACT_VERSION = "v3"
+CONTRACT_VERSION = "v2"
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
 
 class ProviderCallError(RuntimeError):
