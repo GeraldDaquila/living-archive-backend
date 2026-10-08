@@ -375,6 +375,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   ", state=" + str(state.get("state") or "healthy"))
             parsed = parse(_call(use_core, item, messages, effective_max_tokens, schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
+            print(
+                "USE provider contract result: "
+                f"operation={operation}, provider={provider}, model={model}, "
+                f"keys={sorted(str(k) for k in parsed.keys())}, "
+                f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
+            )
             _success(provider, model)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
         except Exception as exc:
