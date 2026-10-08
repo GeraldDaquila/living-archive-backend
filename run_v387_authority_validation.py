@@ -19,7 +19,7 @@ core_source = core_path.read_text(encoding="utf-8")
 main_tree = ast.parse(main_source, filename="main.py")
 core_tree = ast.parse(core_source, filename="use_core.py")
 
-version_match = re.search(r'^APP_VERSION = "(v[0-9]+\\.[0-9]+)"$', main_source, re.MULTILINE)
+version_match = re.search(r'^APP_VERSION = "(v[0-9]+\.[0-9]+)"$', main_source, re.MULTILINE)
 assert version_match, "Current APP_VERSION is missing or malformed."
 version = version_match.group(1)
 
@@ -29,7 +29,7 @@ assert f'CANONICAL_BUILD_ID = "USE-BUILD-{version}-' in main_source, "Canonical 
 expected_match = re.search(r'^EXPECTED_CORE_BLOB_SHA = "([0-9a-f]{40})"$', main_source, re.MULTILINE)
 assert expected_match, "Expected protected-core blob SHA is missing."
 core_bytes = core_path.read_bytes()
-actual_core_sha = hashlib.sha1(f"blob {len(core_bytes)}\\0".encode() + core_bytes).hexdigest()
+actual_core_sha = hashlib.sha1(f"blob {len(core_bytes)}\0".encode() + core_bytes).hexdigest()
 assert actual_core_sha == expected_match.group(1), "Protected use_core.py blob identity changed."
 
 functions = {
@@ -44,7 +44,7 @@ assert "_enforce_recommendation_resource_identity" in attempt_source, "Recommend
 
 assert 'use_core.APP_VERSION = APP_VERSION' in main_source, "Runtime version is not propagated to protected core."
 assert 'use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA' in main_source, "Protected-core identity is not propagated."
-assert "app = _base.app" in main_source or "app= _base.app" in main_source, "FastAPI application ownership changed unexpectedly."
+assert "app = _base.app" in main_source, "FastAPI application ownership changed unexpectedly."
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
