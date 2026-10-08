@@ -78,6 +78,7 @@ def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, 
         max_tokens=max_tokens,
         parse=parse,
         operation=operation,
+        schema=schema,
     )
     if not result:
         return {
