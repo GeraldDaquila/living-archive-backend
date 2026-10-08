@@ -38,11 +38,19 @@ MODEL_CAPABILITIES = {
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
+MODEL_LIMITS = {
+    # Provider/model limits are part of capability, not specialist policy.
+    # Qwen's current Groq lane enforces a 1,000-token output-per-minute ceiling.
+    ("groq", "qwen/qwen3.8-27b"): {"max_completion_tokens": 1000},
+    ("groq", "openai/gpt-oss-20b"): {"max_completion_tokens": 3000},
+    ("groq", "openai/gpt-oss-120b"): {"max_completion_tokens": 3000},
+}
+
 OPERATION_TOKEN_FLOORS = {
     # The bank owns minimum completion budgets for semantic operations. This
     # prevents a specialist's transport envelope from starving a capable model
     # before it can finish its contractual JSON object.
-    "hrn_relational": 1400,
+    "hrn_relational": 1000,
     "hrn_perception": 600,
     "atlas_finder": 500,
     "atlas_vision": 700,
@@ -410,7 +418,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
     max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
-    effective_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
+    requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
+    model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
+    effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
+    if effective_max_tokens < int(OPERATION_TOKEN_FLOORS.get(operation, 0)):
+        print(
+            "USE provider capability ceiling: "
+            f"operation={operation}, provider={item['provider']}, model={item['model']}, "
+            f"requested={requested_max_tokens}, ceiling={model_limit}, floor={OPERATION_TOKEN_FLOORS.get(operation, 0)}"
+        )
     for attempt_index, item in enumerate(pool[:max_attempts], start=1):
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
@@ -461,9 +477,10 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.4",
+        "capability_policy_version": "1.5",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
+        "model_limits": {provider + ":" + model: dict(limits) for (provider, model), limits in MODEL_LIMITS.items()},
         "operation_requirements": {
             operation: sorted(requirements)
             for operation, requirements in OPERATION_REQUIREMENTS.items()
