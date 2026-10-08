@@ -108,7 +108,7 @@ def _http_json(url, headers, payload, provider, model):
         headers={**headers, "Content-Type": "application/json"}, method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=12) as response:
+        with urllib.request.urlopen(req, timeout=6) as response:
             return json.loads(response.read().decode("utf-8", errors="replace"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -287,7 +287,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic"):
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
-    for item in pool:
+    for attempt_index, item in enumerate(pool[:3], start=1):
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
         if not acquire_probe(state):
