@@ -2889,6 +2889,24 @@ def _general_guide_authoritative_doorway(query, context_data):
             url = str(item.get("url") or item.get("canonical_url") or "").strip()
             if title and re.match(r"^https://\S+$", url, re.I):
                 return {"title": title, "url": url}
+
+        # Final canonical-context fallback: the General Guide composition seam
+        # is already constrained to retrieved Archive documents. If the stricter
+        # outward relevance scorer cannot choose a primary doorway, choose the
+        # first valid supplied document rather than losing its URL entirely.
+        try:
+            supplied = general_guide_composition._documents_from_context(
+                use_core, context_data
+            )
+        except Exception:
+            supplied = []
+        for item in supplied:
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title") or "").strip()
+            url = str(item.get("url") or item.get("canonical_url") or "").strip()
+            if title and re.match(r"^https://\S+$", url, re.I):
+                return {"title": title, "url": url}
         return None
     except Exception as exc:
         print(
