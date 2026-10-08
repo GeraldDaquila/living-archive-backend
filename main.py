@@ -187,6 +187,9 @@ use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError("USE protected core integrity failure: protected core mismatch.")
 
+if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE provider gateway contract integrity failure: unsupported provider gateway contract.")
+
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
