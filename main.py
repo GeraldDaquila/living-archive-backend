@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.07 — Canonical doorway authority propagation
+# USE PRODUCTION VERSION: v489.08 — Canonical doorway URL validation repair
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.07"
-DEPLOYMENT_FINGERPRINT = "USE-v489.07-canonical-doorway-authority"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.07-canonical-doorway-authority"
+APP_VERSION = "v489.08"
+DEPLOYMENT_FINGERPRINT = "USE-v489.08-canonical-doorway-url-validation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.08-canonical-doorway-url-validation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.07":
+if str(APP_VERSION) != "v489.08":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2872,7 +2872,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                 or selected.get("canonical_url")
                 or ""
             ).strip()
-            if title and re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            if title and re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
                 return {"title": title, "url": url}
 
         canonical_context = str(
@@ -2916,7 +2916,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         for title, url in canonical_pairs:
             clean_title = str(title or "").strip()
             clean_url = str(url or "").strip()
-            if clean_title and re.match(r"^https://geralddaquila\\.com/\\S+$", clean_url, re.I):
+            if clean_title and re.match(r"^https://geralddaquila\.com/\S+$", clean_url, re.I):
                 return {"title": clean_title, "url": clean_url}
 
         try:
@@ -2930,7 +2930,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                 continue
             title = str(item.get("title") or "").strip()
             url = str(item.get("url") or item.get("canonical_url") or "").strip()
-            if title and re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            if title and re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
                 return {"title": title, "url": url}
         return None
     except Exception as exc:
@@ -2959,6 +2959,20 @@ def _normalize_authoritative_recommendation(doorway):
     if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
         return None
     return {"title": title, "url": url}
+
+
+# v489.08 regression probes: valid Archive URLs must survive every doorway
+# validator, while non-HTTPS and off-domain destinations remain rejected.
+_v48908_probe_url = "https://geralddaquila.com/knowledge-memory-living-codices/"
+_v48908_probe = {"title": "Knowledge, Memory & Living Codices", "url": _v48908_probe_url}
+if not _normalize_authoritative_recommendation(_v48908_probe):
+    raise RuntimeError("USE v489.08 invariant failed: valid canonical recommendation rejected.")
+if not re.match(r"^https://geralddaquila\.com/\S+$", _v48908_probe_url, re.I):
+    raise RuntimeError("USE v489.08 invariant failed: canonical doorway regex rejected valid HTTPS URL.")
+if _normalize_authoritative_recommendation({"title": "Invalid", "url": "http://geralddaquila.com/example/"}):
+    raise RuntimeError("USE v489.08 invariant failed: non-HTTPS recommendation accepted.")
+if _normalize_authoritative_recommendation({"title": "Invalid", "url": "https://example.org/example/"}):
+    raise RuntimeError("USE v489.08 invariant failed: off-domain recommendation accepted.")
 
 
 def _basic_inquiry_response(query, history=None, raw_body=None):
