@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.75 — provider health boundary hardening
+# USE PRODUCTION VERSION: v488.77 — boundary resilience and voice sovereignty
 import asyncio
 import hashlib
 import ipaddress
@@ -10,6 +10,7 @@ from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHA
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
 from urllib.parse import quote
+from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
@@ -63,9 +64,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.76"
-DEPLOYMENT_FINGERPRINT = "USE-v488.76-provider-resilience"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.76-provider-resilience"
+APP_VERSION = "v488.77"
+DEPLOYMENT_FINGERPRINT = "USE-v488.77-boundary-resilience"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.77-boundary-resilience"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -73,45 +74,66 @@ CANONICAL_BUILD_ID = "USE-BUILD-v488.76-provider-resilience"
 SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"
 
 GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
-_GUIDE_NODE_REGISTRY_CACHE = {"nodes": [], "fetched_at": 0.0, "failed_at": 0.0}
-_GUIDE_NODE_REGISTRY_CACHE_TTL = 300.0
-_GUIDE_NODE_REGISTRY_FAILURE_TTL = 30.0
+GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS = 3600.0
+GUIDE_NODE_REGISTRY_RETRY_SECONDS = 30.0
+_GUIDE_NODE_REGISTRY_CACHE = StaleAuthorityCache(
+    max_stale_seconds=GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS,
+    failure_retry_seconds=GUIDE_NODE_REGISTRY_RETRY_SECONDS,
+)
+_GUIDE_NODE_REGISTRY_STATE = {"state": "unavailable"}
+
+
+def _load_guide_node_registry():
+    request = UrlRequest(
+        GUIDE_NODE_REGISTRY_URL,
+        headers={"Accept": "application/json", "User-Agent": "Living-Archive-The-Guide/1.0"},
+        method="GET",
+    )
+    with urlopen(request, timeout=4) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Guide Node Registry response was not an object.")
+    if str(payload.get("registry_version") or "").strip() != GUIDE_NODE_REGISTRY_VERSION:
+        raise ValueError("Guide Node Registry version mismatch.")
+    if str(payload.get("schema_version") or "").strip() != "v2":
+        raise ValueError("Guide Node Registry schema version mismatch.")
+    records = payload.get("nodes")
+    if not isinstance(records, list):
+        raise ValueError("Guide Node Registry nodes were not a list.")
+    nodes = active_nodes(records)
+    if not nodes and records:
+        raise ValueError("Guide Node Registry contained no valid active nodes.")
+    print(
+        "The Guide Node Registry: "
+        f"source=wordpress, nodes={len(nodes)}, registry_version={payload.get('registry_version')}"
+    )
+    return nodes
 
 
 def _guide_node_registry_snapshot():
-    """Read the authoritative WordPress Guide Node Registry with bounded caching."""
-    now = time.time()
-    if _GUIDE_NODE_REGISTRY_CACHE["nodes"] and (
-        now - float(_GUIDE_NODE_REGISTRY_CACHE["fetched_at"]) < _GUIDE_NODE_REGISTRY_CACHE_TTL
-    ):
-        return list(_GUIDE_NODE_REGISTRY_CACHE["nodes"])
-    if float(_GUIDE_NODE_REGISTRY_CACHE["failed_at"]) and (
-        now - float(_GUIDE_NODE_REGISTRY_CACHE["failed_at"]) < _GUIDE_NODE_REGISTRY_FAILURE_TTL
-    ):
-        return []
-    try:
-        request = UrlRequest(
-            GUIDE_NODE_REGISTRY_URL,
-            headers={"Accept": "application/json", "User-Agent": "Living-Archive-The-Guide/1.0"},
-            method="GET",
-        )
-        with urlopen(request, timeout=4) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        records = payload.get("nodes") if isinstance(payload, dict) else []
-        nodes = active_nodes(records if isinstance(records, list) else [])
-        _GUIDE_NODE_REGISTRY_CACHE["nodes"] = nodes
-        _GUIDE_NODE_REGISTRY_CACHE["fetched_at"] = now
-        _GUIDE_NODE_REGISTRY_CACHE["failed_at"] = 0.0
+    """Read WordPress authority with bounded last-known-good continuity."""
+    nodes, state = _GUIDE_NODE_REGISTRY_CACHE.get(_load_guide_node_registry)
+    _GUIDE_NODE_REGISTRY_STATE["state"] = state
+    if state != "fresh":
+        diagnostic = _GUIDE_NODE_REGISTRY_CACHE.snapshot()
         print(
-            "The Guide Node Registry: "
-            f"source=wordpress, nodes={len(nodes)}, registry_version="
-            f"{payload.get('registry_version') if isinstance(payload, dict) else 'unknown'}"
+            "The Guide Node Registry boundary: "
+            f"state={state}, age_seconds={diagnostic.get('age_seconds')}, "
+            f"failures={diagnostic.get('failure_count')}, "
+            f"error={diagnostic.get('last_error') or 'none'}"
         )
-        return list(nodes)
-    except Exception as exc:
-        _GUIDE_NODE_REGISTRY_CACHE["failed_at"] = now
-        print(f"The Guide Node Registry unavailable; continuing without node routing: {exc}")
-        return []
+    return list(nodes or [])
+
+
+def guide_node_registry_state():
+    """Return non-secret registry health for diagnostics and QA."""
+    state = dict(_GUIDE_NODE_REGISTRY_STATE)
+    state.update(_GUIDE_NODE_REGISTRY_CACHE.snapshot())
+    return state
+
+
+def _guide_node_registry_is_fresh():
+    return _GUIDE_NODE_REGISTRY_STATE.get("state") == "fresh"
 
 
 def _guide_node_prompt_context():
@@ -147,7 +169,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.76":
+if str(APP_VERSION) != "v488.77":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -166,6 +188,8 @@ if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
+if BOUNDARY_RESILIENCE_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE boundary resilience contract integrity failure.")
 
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
@@ -2019,6 +2043,10 @@ def _guide_node_semantic_activation(query, interpretation, route):
     """
     route_id = str(route or "guide").strip().casefold()
     if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator"}:
+        return None
+    # Stale registry data may inform context, but authority-sensitive native
+    # doorway activation requires a fresh WordPress registry.
+    if not _guide_node_registry_is_fresh():
         return None
 
     # Case Navigator is a bounded retrieval specialist, but the model can
@@ -4169,7 +4197,7 @@ app = streaming_entry(_use_request_boundary)
 
 
 
-print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, capability_routing=provider_model_bank")
+print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, boundary_resilience={BOUNDARY_RESILIENCE_CONTRACT_VERSION}, guide_node_registry_state={guide_node_registry_state().get("state")}, capability_routing=provider_model_bank")
 print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
