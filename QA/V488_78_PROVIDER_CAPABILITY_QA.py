@@ -21,9 +21,12 @@ def main():
     assert 'def select(use_core, operation="generic", schema=None):' in source
     assert 'effective_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))' in source
 
-    # The known live Qwen structured-output lane must not be eligible for the
-    # long HRN composition operation merely because it supports JSON.
-    assert '"composition"' not in source.split('("groq", "qwen/qwen3.8-27b"):', 1)[1].split('}),', 1)[0]
+    # Qwen 3.8 is explicitly composition-capable; the bank must not exclude it
+    # merely because an earlier run exhausted its completion budget.
+    qwen = source.split('("groq", "qwen/qwen3.8-27b"):', 1)[1].split('}),', 1)[0]
+    assert '"composition"' in qwen
+    assert '"hrn_relational": 1400' in source
+    assert 'reasoning_effort"] = "none"' in source
 
     # Capability policy must remain provider-neutral: operation selection is
     # expressed as required capabilities, not a named default LLM.
