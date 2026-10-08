@@ -54,7 +54,7 @@ OPERATION_TOKEN_FLOORS = {
 # provider-neutral JSON-object contract because its own protected validator
 # owns the semantic envelope. This prevents constrained decoding from starving
 # a long conversational composition before a valid object is emitted.
-OPERATION_SCHEMAS = {}
+OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery","strict":True,"schema":{"type":"object","properties":{"response":{"type":"string"},"question":{"type":"string"},"rest":{"type":"boolean"},"use_resource":{"type":"boolean"},"resource_intro":{"type":"string"}},"required":["response","question","rest","use_resource","resource_intro"],"additionalProperties":False}}}
 
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
@@ -403,7 +403,17 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   ", state=" + str(state.get("state") or "healthy"))
             parsed = parse(_call(use_core, item, messages, effective_max_tokens, effective_schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
-            parsed = _normalize_operation_result(operation, parsed)
+            try:
+                parsed = _normalize_operation_result(operation, parsed)
+            except ValueError:
+                recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
+                if not recovery_schema or "json_schema_strict" not in _capabilities(provider, model):
+                    raise
+                print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=strict_schema")
+                recovered = parse(_call(use_core, item, messages, effective_max_tokens, recovery_schema))
+                if not isinstance(recovered, dict):
+                    raise ValueError("provider contract recovery returned a non-object")
+                parsed = _normalize_operation_result(operation, recovered)
             print(
                 "USE provider contract result: "
                 f"operation={operation}, provider={provider}, model={model}, "
@@ -434,7 +444,7 @@ def snapshot(use_core):
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
         "capability_policy_version": "1.3",
-        "strict_schema_policy": "explicit_request_only",
+        "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "operation_requirements": {
             operation: sorted(requirements)
