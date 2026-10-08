@@ -77,8 +77,10 @@ def main():
 
     # Strict schema is explicitly requested only; HRN composition has no
     # implicit operation schema.
-    assert pb.OPERATION_SCHEMAS == {}
+    assert "hrn_relational_recovery" in pb.OPERATION_SCHEMAS
+    assert pb.OPERATION_SCHEMAS["hrn_relational_recovery"]["strict"] is True
     assert "effective_schema = schema if isinstance(schema, dict) else None" in source
+    assert "provider contract recovery" in source
 
     print("Provider Bank capability-routing structural QA: PASS")
 
