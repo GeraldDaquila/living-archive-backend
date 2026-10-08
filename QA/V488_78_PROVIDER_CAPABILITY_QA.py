@@ -25,7 +25,10 @@ def main():
     # merely because an earlier run exhausted its completion budget.
     qwen = source.split('("groq", "qwen/qwen3.8-27b"):', 1)[1].split('}),', 1)[0]
     assert '"composition"' in qwen
-    assert '"hrn_relational": 1400' in source
+    assert '"hrn_relational": 1000' in source
+    assert 'MODEL_LIMITS' in source
+    assert '("groq", "qwen/qwen3.8-27b"): {"max_completion_tokens": 1000}' in source
+    assert 'model_limit = int(MODEL_LIMITS.get' in source
     assert 'reasoning_effort"] = "none"' in source
 
     # Capability policy must remain provider-neutral: operation selection is
