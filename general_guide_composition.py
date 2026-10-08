@@ -297,7 +297,11 @@ if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Ans
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
     raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
 
-if _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}])(
-    '{"response":"A useful answer.\\n\\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
-):
+try:
+    _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}])(
+        '{"response":"A useful answer.\\n\\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
+    )
+except ValueError:
+    pass
+else:
     raise RuntimeError("General Guide composition invariant failed: provider navigation leaked into visitor prose.")
