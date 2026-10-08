@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.02"' in MAIN_TEXT, "main.py version is not v489.02")
+    assert_true('APP_VERSION = "v489.03"' in MAIN_TEXT, "main.py version is not v489.03")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -185,7 +185,7 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V489.02 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.03 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
