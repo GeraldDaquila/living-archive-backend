@@ -56,7 +56,7 @@ Be concrete rather than literary. Prefer precise listening and useful explanatio
 
 If the question contains a "why now", "why does this matter", "what does this mean", or similar second part, answer that second part rather than silently answering only the first.
 
-A doorway into the Archive is useful when it adds something the answer cannot reasonably contain. Introduce at most two relevant doorways, and only from the supplied material. Never invent a title, URL, quotation, or claim about a source.
+A doorway into the Archive is useful when it adds something the answer cannot reasonably contain. The doorway is presented separately by The Guide after the answer, so do not add doorway prose, Markdown links, URLs, or source-navigation language to the response itself. Never invent a title, URL, quotation, or claim about a source.
 
 Do not manufacture a follow-up question merely to continue the interaction. If a genuine next opening would help, you may end with one natural question. Otherwise end cleanly.
 
@@ -65,7 +65,7 @@ Never expose implementation or processing language. Never mention USE, providers
 Presentation matters. Preserve readable paragraph breaks in the response. For explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
 
 Return ONLY valid JSON:
-{"response":"visitor-facing answer","doorway_title":"exact supplied title if one doorway is especially useful, otherwise empty","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
+{"response":"visitor-facing answer","doorway_title":"","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
 """.strip()
 
 
@@ -181,8 +181,6 @@ def _evidence_payload(documents: List[Dict[str, str]]) -> str:
 
 def _parse_factory(documents: List[Dict[str, str]]):
     titles = {item["title"] for item in documents}
-    urls = {item["url"] for item in documents if item["url"]}
-
     def _parse(raw: str) -> Dict[str, Any]:
         try:
             parsed = json.loads(str(raw or "").strip())
@@ -213,12 +211,13 @@ def _parse_factory(documents: List[Dict[str, str]]):
             # composition contract.
             title = ""
 
-        # If the provider inserted Markdown links, every destination must belong
-        # to the already-supplied evidence set. This keeps composition from
-        # becoming an uncontrolled navigation surface.
-        for linked_url in re.findall(r"\]\((https?://[^)\s]+)\)", response, flags=re.I):
-            if linked_url not in urls:
-                raise ValueError("general composition invented an unsupported doorway URL")
+        # Navigation is a separate authoritative surface. Provider prose must
+        # not carry doorway links or URLs; the Guide attaches the selected
+        # canonical doorway independently after composition succeeds.
+        if re.search(r"\]\((https?://[^)\s]+)\)", response, flags=re.I):
+            raise ValueError("general composition embedded a navigation URL in visitor prose")
+        if re.search(r"\bhttps?://\S+", response, flags=re.I):
+            raise ValueError("general composition exposed a URL in visitor prose")
 
         return {
             "response": response,
@@ -297,3 +296,8 @@ if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Ans
     raise RuntimeError("General Guide composition invariant failed: visitor-language sanitizer.")
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
     raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
+
+if _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}])(
+    '{"response":"A useful answer.\\n\\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
+):
+    raise RuntimeError("General Guide composition invariant failed: provider navigation leaked into visitor prose.")
