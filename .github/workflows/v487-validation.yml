@@ -14,13 +14,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt pytest
       - name: Compile current production modules
-        run: python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py QA/protected_runtime_contract.py
+        run: python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py QA/protected_runtime_contract.py QA/PROTECTED_CORE_COMPATIBILITY_QA.py
       - name: Guide hub contract tests
         run: PYTHONPATH=. python -m pytest -q tests/test_hub_contracts.py
       - name: Doorway adapter contract tests
         run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_TESTS.py
       - name: Protected-core compatibility validation
-        run: python run_v387_authority_validation.py
+        run: python QA/PROTECTED_CORE_COMPATIBILITY_QA.py
       - name: Specialist-pipe integrity QA
         run: PYTHONPATH=. python QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py
       - name: Journey contribution structural QA
