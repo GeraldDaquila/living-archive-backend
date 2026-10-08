@@ -477,7 +477,7 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.5",
+        "capability_policy_version": "1.6",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "model_limits": {provider + ":" + model: dict(limits) for (provider, model), limits in MODEL_LIMITS.items()},
