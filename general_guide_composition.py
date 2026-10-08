@@ -62,7 +62,7 @@ Do not manufacture a follow-up question merely to continue the interaction. If a
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
-Presentation matters. Preserve readable paragraph breaks in the response. For explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
+Presentation matters. Preserve readable paragraph breaks in the response. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
 
 Return ONLY valid JSON:
 {"response":"visitor-facing answer","doorway_title":"","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
@@ -164,6 +164,14 @@ def _question_shape(query: str) -> str:
     return "general"
 
 
+def _requires_compound_explanatory_structure(query: str) -> bool:
+    """Return True when the question explicitly asks for both meaning and significance."""
+    q = _normalize_space(query).casefold()
+    asks_what = bool(re.search(r"^(?:what is|what's|define)\b", q))
+    asks_why = bool(re.search(r"\bwhy\b", q))
+    return asks_what and asks_why
+
+
 def _evidence_payload(documents: List[Dict[str, str]]) -> str:
     return json.dumps(
         [
@@ -179,7 +187,7 @@ def _evidence_payload(documents: List[Dict[str, str]]) -> str:
     )
 
 
-def _parse_factory(documents: List[Dict[str, str]]):
+def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
         try:
@@ -196,6 +204,12 @@ def _parse_factory(documents: List[Dict[str, str]]):
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        if _requires_compound_explanatory_structure(query):
+            paragraph_count = len(re.findall(r"\n\s*\n", response)) + 1
+            if paragraph_count < 3:
+                raise ValueError("compound explanatory composition requires three purposeful paragraphs")
+
         if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
             raise ValueError("general composition exposed internal implementation language")
 
@@ -261,7 +275,7 @@ def compose(
             {"role": "user", "content": user_content[:10000]},
         ],
         max_tokens=900,
-        parse=_parse_factory(documents),
+        parse=_parse_factory(documents, question),
     )
     if not result:
         return None
