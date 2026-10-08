@@ -19,6 +19,34 @@ CONTRACT_VERSION = "v2"
 # current Provider Bank contract may enter the JSON operation pool. Live model
 # discovery remains diagnostic; it never grants runtime eligibility by itself.
 PRODUCTION_GROQ_MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b")
+
+# Capability policy is owned here, at the Provider Bank boundary. A model may
+# only enter an operation pool when the bank knows that it can satisfy that
+# operation's contract. Health/cooldown state remains separate and dynamic.
+# Unknown models are intentionally conservative: discovery never grants
+# specialist eligibility by itself.
+MODEL_CAPABILITIES = {
+    ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    # Qwen has structured-output support, but the live bank has observed
+    # completion-bound JSON failures on the long HRN composition workload.
+    # Keep it eligible for structured/short reasoning work, not composition.
+    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "relational_analysis", "low_latency"}),
+    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
+    ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+}
+
+OPERATION_REQUIREMENTS = {
+    "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
+    "hrn_perception": frozenset({"json_object", "relational_analysis"}),
+    "atlas_finder": frozenset({"json_object"}),
+    "atlas_vision": frozenset({"json_object", "vision"}),
+    "mini_use": frozenset({"json_object"}),
+    "stewardship_pathway": frozenset({"json_object", "long_context", "reasoning"}),
+}
+
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
 
 class ProviderCallError(RuntimeError):
@@ -232,14 +260,43 @@ def _configured(use_core):
         elif not gateway: out["workers_ai"] = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash"]
     return out
 
-def candidates(use_core, operation="generic"):
+def _capabilities(provider, model):
+    return MODEL_CAPABILITIES.get((provider, model), frozenset())
+
+def _operation_requirements(operation, schema):
+    required = set(OPERATION_REQUIREMENTS.get(operation, frozenset()))
+    if isinstance(schema, dict):
+        required.add("json_schema_strict")
+    return required
+
+def _eligible(provider, model, operation, schema=None):
+    required = _operation_requirements(operation, schema)
+    capabilities = _capabilities(provider, model)
+    missing = required.difference(capabilities)
+    if missing:
+        return False, sorted(missing)
+    return True, []
+
+def candidates(use_core, operation="generic", schema=None):
     out = []
     for provider, models in _configured(use_core).items():
-        if operation == "atlas_vision" and provider not in {"groq", "gemini", "mistral"}:
-            continue
         for index, model in enumerate(models):
-            if not _blocked(_state(provider, model)):
-                out.append({"provider": provider, "model": model, "index": index})
+            if _blocked(_state(provider, model)):
+                continue
+            eligible, missing = _eligible(provider, model, operation, schema=schema)
+            if not eligible:
+                print(
+                    "USE provider capability exclusion: "
+                    f"operation={operation}, provider={provider}, model={model}, "
+                    f"missing={','.join(missing)}"
+                )
+                continue
+            out.append({
+                "provider": provider,
+                "model": model,
+                "index": index,
+                "capabilities": sorted(_capabilities(provider, model)),
+            })
     return out
 
 def _rotate(values, cursor):
@@ -247,8 +304,8 @@ def _rotate(values, cursor):
     n = cursor % len(values)
     return values[n:] + values[:n]
 
-def select(use_core, operation="generic"):
-    items = candidates(use_core, operation=operation)
+def select(use_core, operation="generic", schema=None):
+    items = candidates(use_core, operation=operation, schema=schema)
     if not items: return []
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
@@ -294,7 +351,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
-    for attempt_index, item in enumerate(pool[:3], start=1):
+    max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
+    for attempt_index, item in enumerate(pool[:max_attempts], start=1):
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
         if not acquire_probe(state):
@@ -326,7 +384,12 @@ def snapshot(use_core):
     return {
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
-        "selection_policy": "provider_health_aware_self_healing",
+        "selection_policy": "capability_and_provider_health_aware_self_healing",
+        "capability_policy_version": "1.0",
+        "operation_requirements": {
+            operation: sorted(requirements)
+            for operation, requirements in OPERATION_REQUIREMENTS.items()
+        },
         "providers": sorted({x["provider"] for x in all_items}),
         "provider_health": {
             provider: aggregate_provider_health(states)
@@ -338,6 +401,7 @@ def snapshot(use_core):
                 "model": x["model"],
                 "blocked": _blocked(_state(x["provider"], x["model"])),
                 "state": state_summary(_state(x["provider"], x["model"])),
+                "capabilities": sorted(_capabilities(x["provider"], x["model"])),
             }
             for x in all_items
         ],
