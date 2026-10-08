@@ -1,4 +1,4 @@
-"""v488.75 provider-bank structural QA.
+"""v488.76 provider-resilience structural QA.
 
 Guards the provider seams that failed in live traces:
 - retired Gemini defaults cannot return;
@@ -18,9 +18,11 @@ def _source(path):
 
 
 def main():
+    resilience = _source("provider_resilience.py")
     provider = _source("provider_bank.py")
     main_source = _source("main.py")
 
+    ast.parse(resilience, filename="provider_resilience.py")
     ast.parse(provider, filename="provider_bank.py")
     ast.parse(main_source, filename="main.py")
 
