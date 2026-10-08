@@ -201,11 +201,6 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
     elif model == "qwen/qwen3.8-27b":
         kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
-    elif model == "qwen/qwen3.8-27b":
-        # HRN composition already carries its own relational reasoning in the
-        # prompt. Keep Qwen in efficient instruct mode so completion budget is
-        # spent on the contractual response rather than hidden reasoning tokens.
-        kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
     response = client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
@@ -419,15 +414,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     last_error = ""
     max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
-    model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
-    effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
-    if effective_max_tokens < int(OPERATION_TOKEN_FLOORS.get(operation, 0)):
-        print(
-            "USE provider capability ceiling: "
-            f"operation={operation}, provider={item['provider']}, model={item['model']}, "
-            f"requested={requested_max_tokens}, ceiling={model_limit}, floor={OPERATION_TOKEN_FLOORS.get(operation, 0)}"
-        )
     for attempt_index, item in enumerate(pool[:max_attempts], start=1):
+        model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
+        effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
+        if effective_max_tokens < requested_max_tokens:
+            print(
+                "USE provider capability ceiling: "
+                f"operation={operation}, provider={item['provider']}, model={item['model']}, "
+                f"requested={requested_max_tokens}, ceiling={model_limit}, effective={effective_max_tokens}"
+            )
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
         if not acquire_probe(state):
