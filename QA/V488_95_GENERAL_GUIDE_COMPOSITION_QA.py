@@ -70,6 +70,47 @@ def main():
         "stewardship golden case is not classified as explanatory",
     )
 
+    # Provider-neutral seam test: simulate the bank rather than calling an external model.
+    original_route = composition.route_with_model_bank
+
+    class FakeCore:
+        @staticmethod
+        def context_blocks_to_documents(_blocks):
+            return []
+
+    def fake_route(**kwargs):
+        parsed = kwargs["parse"](
+            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself. You can use that idea to ask what deserves care and what responsibility looks like in practice.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+        )
+        return {
+            "parsed": parsed,
+            "provider": "fake_provider",
+            "model": "fake_model",
+            "preference_order": ["fake_provider:fake_model"],
+        }
+
+    composition.route_with_model_bank = fake_route
+    try:
+        composed = composition.compose(
+            use_core=FakeCore(),
+            query="What is stewardship and why is it important now more than ever?",
+            context_data={
+                "generation_authority_protected_docs": [
+                    {
+                        "title": "Stewardship Today",
+                        "url": "https://geralddaquila.com/stewardship-today/",
+                        "content": "Stewardship asks what we are responsible for and how we care for what affects more than ourselves.",
+                    }
+                ]
+            },
+        )
+        assert_true(composed is not None, "provider-neutral composition seam returned no result")
+        assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
+        assert_true("You can use that idea" in composed["response"], "ordinary visitor language was falsely rejected")
+        assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
+    finally:
+        composition.route_with_model_bank = original_route
+
     golden_cases = [
         (
             "What is photosynthesis?",
