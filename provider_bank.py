@@ -169,7 +169,7 @@ def _configured(use_core):
         live_groq = []
     out["groq"] = [str(x).strip() for x in (live_groq or []) if str(x).strip()]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
-        out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-2.5-flash"]
+        out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
     if os.getenv("CLOUDFLARE_API_TOKEN") and os.getenv("CLOUDFLARE_ACCOUNT_ID"):
