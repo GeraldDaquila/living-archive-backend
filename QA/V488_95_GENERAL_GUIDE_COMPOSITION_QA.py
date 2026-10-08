@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.01"' in MAIN_TEXT, "main.py version is not v489.00")
+    assert_true('APP_VERSION = "v489.02"' in MAIN_TEXT, "main.py version is not v489.00")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -40,7 +40,7 @@ def main():
     )
 
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
@@ -68,6 +68,12 @@ def main():
         )
         == "explanatory",
         "stewardship golden case is not classified as explanatory",
+    )
+
+    assert_true(
+        composition._sanitize_candidate("First paragraph.\n\nSecond paragraph.")
+        == "First paragraph.\n\nSecond paragraph.",
+        "composition sanitizer collapsed meaningful paragraph structure",
     )
 
     # Provider-neutral seam test: simulate the bank rather than calling an external model.
@@ -179,7 +185,7 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V489.01 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.02 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
