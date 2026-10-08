@@ -48,14 +48,29 @@ def _failure(exc, provider, model):
         category, s["quarantine_until"] = "quota_or_billing", now + 1800
     elif status == 404:
         category, s["quarantine_until"] = "model_unavailable", now + 3600
-    elif status == 400 and (
-        "json_validate_failed" in low
-        or "failed to validate json" in low
-        or "invalid_request_error" in low
+    elif (
+        status == 400
+        and (
+            "json_validate_failed" in low
+            or "failed to validate json" in low
+            or "invalid_request_error" in low
+        )
+    ) or (
+        status is None
+        and (
+            "response was not an object" in low
+            or "response was empty" in low
+            or "response must contain exactly" in low
+            or "invalid response" in low
+            or "invalid json" in low
+            or "jsondecodeerror" in low
+        )
     ):
-        # A model that repeatedly cannot satisfy USE's structured-output contract
-        # is not a transient visitor failure. Quarantine it so one bad model cannot
-        # consume the visitor's latency budget on every request.
+        # A model that cannot satisfy USE's structured-output contract has
+        # failed the operation contract, even when the provider returned HTTP
+        # 200 and the local parser rejected the payload. Treat that as a model
+        # health failure, not a transient visitor failure, and quarantine the
+        # candidate so repeated turns do not pay the same latency penalty.
         category, s["quarantine_until"] = "structured_output_contract", now + 3600
     elif "request too large" in low or ("context" in low and "length" in low):
         category, s["quarantine_until"] = "request_too_large", now + 1800
@@ -114,7 +129,10 @@ def _gemini(key, model, messages, max_tokens):
     contents = [{"role": "user", "parts": [{"text": str(x.get("content") or "")}]}
                 for x in messages if x.get("role") != "system"]
     payload = {"contents": contents, "generationConfig": {
-        "temperature": 0.0, "maxOutputTokens": max_tokens, "responseMimeType": "application/json"}}
+        "maxOutputTokens": max_tokens,
+        "responseMimeType": "application/json",
+        "thinkingConfig": {"thinkingLevel": "low"},
+    }}
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
     data = _http_json(url, {}, payload, "gemini", model)
