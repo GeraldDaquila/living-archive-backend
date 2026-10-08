@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.90 — Visitor-language boundary hardening
+# USE PRODUCTION VERSION: v488.91 — Final visitor-response boundary
 import asyncio
 import hashlib
 import ipaddress
@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.90"
-DEPLOYMENT_FINGERPRINT = "USE-v488.90-visitor-language-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.90-visitor-language-boundary"
+APP_VERSION = "v488.91"
+DEPLOYMENT_FINGERPRINT = "USE-v488.91-final-visitor-response-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.91-final-visitor-response-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -172,7 +172,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.90":
+if str(APP_VERSION) != "v488.91":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2695,6 +2695,12 @@ _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
 if _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE != "This points to the Archive.":
     raise RuntimeError("USE v488.90 visitor-language invariant failed: internal evidence annotation escaped sanitizer.")
 
+_BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
+    "A useful place to begin is the Archive. [evidence excerpt bounded by USE]"
+)
+if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archive.":
+    raise RuntimeError("USE v488.91 visitor-language invariant failed: final response boundary is not sealed.")
+
 
 def _basic_inquiry_round1_response(query, interpretation, context_data):
     """Compose a true Guide Round 1 response without altering protected core."""
@@ -2876,9 +2882,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 protected_documents=context_data.get("generation_authority_protected_docs", context_data.get("question_authority_protected_docs")),
             )
 
-    response = str(llm_output or "").strip()
+    # Final visitor-language boundary for EVERY ordinary Guide response path.
+    # Round 1 has its own provider seam sanitizer, but factual/direct questions
+    # bypass Round 1 and may fall through to the protected core generator.
+    # No provider-generated prose is allowed to cross the public response
+    # boundary without the same visitor-language normalization.
+    response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
+
+    if re.search(
+        r"\\b(?:evidence excerpt|canonical evidence|internal interpretation|"
+        r"bounded by USE|processing layer|provider|model|retrieval|synthesis|"
+        r"handoff|machine-facing|implementation metadata)\\b",
+        response,
+        re.I,
+    ):
+        raise RuntimeError(
+            "Basic Inquiry visitor-language boundary rejected internal implementation language."
+        )
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     payload = {
