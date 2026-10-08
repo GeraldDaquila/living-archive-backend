@@ -17,6 +17,7 @@ from provider_bank import CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION, ro
 CONTRACT_VERSION = "v1"
 ALLOWED_OPERATIONS = frozenset({
     "hrn_relational",
+    "hrn_voice_repair",
     "hrn_perception",
     "atlas_finder",
     "atlas_vision",
@@ -67,6 +68,11 @@ def validate_request(body: Mapping[str, Any]) -> tuple[str, list[dict[str, str]]
 def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, use_core: Any, schema: Mapping[str, Any] | None = None) -> dict[str, Any]:
     def parse(raw: str) -> dict[str, Any]:
         import json
+        if operation == "hrn_voice_repair":
+            text = str(raw or "").strip()
+            if not text:
+                raise ValueError("Provider Bank text response was empty.")
+            return {"text": text}
         value = json.loads(str(raw or "").strip())
         if not isinstance(value, dict):
             raise ValueError("Provider Bank model response was not an object.")
