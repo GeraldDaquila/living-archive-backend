@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.00":
+if str(APP_VERSION) != "v489.01":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.1":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
