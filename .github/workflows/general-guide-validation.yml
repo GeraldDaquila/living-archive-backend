@@ -22,6 +22,9 @@ on:
       - "provider_bank.py"
       - "general_guide_composition.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
+      - "wordpress/the-guide-frontend.html"
+      - "tests/e2e/the-guide-browser-smoke.cjs"
       - ".github/workflows/general-guide-validation.yml"
 
 jobs:
