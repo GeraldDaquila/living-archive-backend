@@ -196,9 +196,13 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError(provider + " returned no text", provider, model, category="invalid_provider_response") from exc
 
-def _workers(key, account, model, messages, max_tokens):
-    prompt = "\n\n".join(str(x.get("role") or "user").upper() + ": " + str(x.get("content") or "") for x in messages)
-    payload = {"prompt": prompt + "\n\nReturn only one valid JSON object.", "max_tokens": max_tokens, "temperature": 0.0}
+def _workers(key, account, model, messages, max_tokens, schema=None):
+    payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
+               "options": {"rejectIfBusy": True}}
+    if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
+        payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]}
+    else:
+        payload["response_format"] = {"type": "json_object"}
     url = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/run/" + urllib.parse.quote(model, safe="")
     data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model)
     result = data.get("result") if isinstance(data, dict) else None
@@ -225,7 +229,7 @@ def _configured(use_core):
         workers = _csv("USE_WORKERS_AI_MODELS")
         if gateway: out["cloudflare_gateway"] = gateway
         if workers: out["workers_ai"] = workers
-        elif not gateway: out["workers_ai"] = ["@cf/meta/llama-3.3-70b-instruct-fp8-fast"]
+        elif not gateway: out["workers_ai"] = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash"]
     return out
 
 def candidates(use_core, operation="generic"):
@@ -282,7 +286,7 @@ def _call(use_core, item, messages, max_tokens, schema=None):
         token = os.getenv("CLOUDFLARE_API_TOKEN")
         account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
         if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
-        return _workers(token, account, model, messages, max_tokens)
+        return _workers(token, account, model, messages, max_tokens, schema)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
