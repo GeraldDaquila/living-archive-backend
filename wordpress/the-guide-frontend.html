@@ -1,0 +1,2676 @@
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="archive-stage-wrapper">
+  <div class="archive-search-container" id="archive-container-top">
+
+    <div class="query-assembly">
+      <p class="search-subtitle">Ask a question, follow a curiosity, or find what you need.</p>
+
+      <form id="archive-search-form">
+        <div class="search-input-wrapper">
+          <textarea
+            id="archive-query-input"
+            placeholder="Where should I begin with the Living Archive?"
+            aria-label="What are you trying to find, understand, or make sense of?"
+            rows="3"
+            required
+          ></textarea>
+
+          <div class="search-actions">
+            <button type="submit" id="archive-submit-btn">
+              <span class="archive-button-label">Search</span>
+              <span class="archive-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id="archive-response-box" class="response-box" style="display: none;">
+      <div id="archive-response-text"></div>
+
+      <div id="archive-recommendation" class="archive-recommendation" style="display: none;" aria-live="polite"></div>
+
+      <div id="archive-safety-followup" class="safety-followup" style="display: none;">
+        <div id="archive-safety-question" class="safety-question"></div>
+
+        <textarea
+          id="archive-safety-input"
+          rows="3"
+          placeholder="Take your time. Tell me what is true for you right now."
+          aria-label="Your response to the safety question"
+        ></textarea>
+
+        <div class="safety-followup-actions">
+          <button type="button" id="archive-safety-submit-btn">
+            <span class="safety-submit-label">Send</span>
+            <span class="safety-submit-spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="archive-safety-resources"
+        class="safety-resources-after"
+        style="display: none;"
+      ></div>
+
+      <div
+        id="archive-response-controls"
+        class="response-controls"
+        style="display: none;"
+      >
+        <button
+          type="button"
+          class="reset-btn"
+          onclick="handleResponseControl()"
+        >
+          <span id="archive-response-control-icon" aria-hidden="true">↺</span>
+          <span id="archive-response-control-label">Ask Another Question</span>
+        </button>
+      </div>
+    </div>
+
+    <details class="how-it-works-disclosure">
+      <summary>How results are found</summary>
+      <p>
+        The Guide considers your question alongside the Living Archive’s ideas,
+        themes, and pathways to help you find where to begin. From there, you
+        can explore the Archive for yourself.
+      </p>
+    </details>
+
+  </div>
+</div>
+
+<style>
+
+/* ================================================================
+   USE QUERY INTERFACE STANDARD
+   ================================================================ */
+
+html,
+body,
+body.page,
+#page,
+#content,
+#primary,
+#main,
+.site,
+.site-content,
+.entry-content,
+.wp-site-blocks {
+  background: #fff !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+.archive-stage-wrapper {
+  position: relative;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+}
+
+.archive-search-container {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 28px 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  color: #222;
+}
+
+.query-assembly {
+  width: 100% !important;
+  max-width: 650px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+  padding: 28px 30px 30px !important;
+  background: #f1f1f1 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+.search-subtitle {
+  margin-top: 0 !important;
+  margin-bottom: 1.25rem !important;
+  color: #444 !important;
+  font: inherit !important;
+  font-size: 1.18rem !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+}
+
+.search-input-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.search-input-wrapper textarea,
+#archive-query-input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 120px !important;
+  max-height: 300px !important;
+  height: auto !important;
+  resize: vertical !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 1rem 1.1rem !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #222 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  outline: none !important;
+  overflow-y: hidden !important;
+}
+
+.search-input-wrapper textarea::placeholder,
+#archive-query-input::placeholder {
+  color: #777 !important;
+  opacity: 1 !important;
+  font: inherit !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 400 !important;
+}
+
+#archive-query-input.guide-hint-fading::placeholder {
+  opacity: 0 !important;
+  transition: opacity 300ms ease !important;
+}
+
+#archive-query-input.guide-hint-ready::placeholder {
+  opacity: 1 !important;
+  transition: opacity 400ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #archive-query-input.guide-hint-fading::placeholder,
+  #archive-query-input.guide-hint-ready::placeholder {
+    transition: none !important;
+  }
+}
+
+.search-input-wrapper textarea:focus,
+.search-input-wrapper textarea:focus-visible,
+.search-input-wrapper textarea:active,
+#archive-query-input:focus,
+#archive-query-input:focus-visible,
+#archive-query-input:active {
+  border-color: #bdbdbd !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-top: .75rem !important;
+}
+
+.search-actions button,
+#archive-submit-btn {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 126px !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  padding: .75rem 1.2rem !important;
+  background: #000 !important;
+  color: #fff !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.search-actions button:hover,
+.search-actions button:focus,
+.search-actions button:active,
+#archive-submit-btn:hover,
+#archive-submit-btn:focus,
+#archive-submit-btn:active {
+  background: #000 !important;
+  color: #fff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-actions button:disabled,
+#archive-submit-btn:disabled {
+  cursor: wait !important;
+  opacity: .82 !important;
+}
+
+.archive-button-label {
+  display: inline-block;
+}
+
+.archive-spinner {
+  display: none;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: archive-spin .7s linear infinite;
+  margin: 0 auto;
+}
+
+#archive-submit-btn.is-loading .archive-button-label {
+  display: none;
+}
+
+#archive-submit-btn.is-loading .archive-spinner {
+  display: block;
+}
+
+@keyframes archive-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================================================================
+   SAFETY CONVERSATION
+   ================================================================ */
+
+.archive-safety-active #archive-submit-btn,
+.archive-safety-active .search-actions {
+  display: none !important;
+}
+
+.archive-safety-active #archive-query-input {
+  cursor: default !important;
+  opacity: 1 !important;
+}
+
+.archive-safety-active .search-subtitle {
+  color: #444 !important;
+}
+
+.safety-followup {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 18px !important;
+}
+
+.safety-question {
+  margin-bottom: 10px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #222 !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+}
+
+#archive-safety-input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 92px !important;
+  box-sizing: border-box !important;
+  padding: 1rem 1.1rem !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #222 !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.55 !important;
+  resize: vertical !important;
+  outline: none !important;
+}
+
+#archive-safety-input:focus,
+#archive-safety-input:focus-visible {
+  border-color: #bdbdbd !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.safety-followup-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-top: 10px !important;
+}
+
+#archive-safety-submit-btn {
+  min-width: 112px !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  padding: .7rem 1.15rem !important;
+  background: #000 !important;
+  color: #fff !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+}
+
+#archive-safety-submit-btn:disabled {
+  cursor: wait !important;
+  opacity: .82 !important;
+}
+
+.safety-submit-spinner {
+  display: none;
+  width: 17px;
+  height: 17px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: archive-spin .7s linear infinite;
+  margin: 0 auto;
+}
+
+#archive-safety-submit-btn.is-loading .safety-submit-label {
+  display: none;
+}
+
+#archive-safety-submit-btn.is-loading .safety-submit-spinner {
+  display: block;
+}
+
+.safety-resources-after {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 14px !important;
+}
+
+.safety-resources {
+  margin-top: 0 !important;
+}
+
+.safety-resources-title {
+  margin: 0 0 10px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #444 !important;
+}
+
+.safety-resource-card {
+  margin-top: 8px !important;
+  padding: 15px 16px !important;
+  border: 1px solid #d8d8d8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.safety-resource-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: #222 !important;
+}
+
+.safety-resource-phone {
+  display: block !important;
+  margin-top: 7px !important;
+  color: #111 !important;
+  text-decoration: none !important;
+  font-size: 26px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em !important;
+}
+
+.safety-resource-phone .safety-call-label {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  margin-right: 7px !important;
+  vertical-align: .18em !important;
+}
+
+.safety-resource-phone:hover,
+.safety-resource-phone:focus {
+  text-decoration: underline !important;
+}
+
+.safety-note {
+  margin-top: 12px !important;
+  color: #555 !important;
+  font-size: 19px !important;
+  line-height: 1.5 !important;
+}
+
+/* ================================================================
+   RESPONSE
+   ================================================================ */
+
+.response-box {
+  width: 100% !important;
+  max-width: 650px !important;
+  box-sizing: border-box !important;
+  margin: 18px auto 0 !important;
+  padding: 28px 30px 30px !important;
+  background: #f1f1f1 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+  font-size: 19px !important;
+  line-height: 1.6 !important;
+}
+
+#archive-response-text {
+  font-size: 19px !important;
+  line-height: 1.6 !important;
+}
+
+#archive-response-text p {
+  margin-bottom: 1em;
+}
+
+#archive-response-text a {
+  color: #0284c7;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+#archive-response-text a + a {
+  margin-left: 0.35em;
+}
+
+.archive-inline-recommendation {
+  display: block !important;
+  margin-top: 18px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #d6d6d6 !important;
+}
+
+.archive-recommendation {
+  margin-top: 18px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #d6d6d6 !important;
+}
+
+.archive-recommendation-label {
+  margin: 0 0 6px !important;
+  color: #555 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+
+.archive-recommendation-link {
+  color: #222 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  font-size: 17px !important;
+  line-height: 1.5 !important;
+  font-weight: 600 !important;
+}
+
+.archive-recommendation-link:hover,
+.archive-recommendation-link:focus {
+  color: #000 !important;
+}
+
+#archive-response-text table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin: 1.5em 0;
+}
+
+#archive-response-text th {
+  background: rgba(15, 23, 42, 0.08);
+  padding: 10px 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+#archive-response-text td {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.response-controls {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  background: #fff;
+  border: 1px solid #222;
+  color: #222;
+  padding: .65rem .95rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.reset-btn.continue-inquiry {
+  font-weight: 500;
+}
+
+#archive-response-control-icon {
+  margin-right: .35rem;
+}
+
+.how-it-works-disclosure {
+  margin-top: 20px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.how-it-works-disclosure summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.7);
+  margin-bottom: 6px;
+}
+
+.how-it-works-disclosure p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+@media (max-width: 700px) {
+
+  .archive-search-container {
+    padding: 18px 14px;
+  }
+
+  .search-input-wrapper textarea,
+  #archive-query-input {
+    font-size: 19px !important;
+    line-height: 1.55 !important;
+    min-height: 120px !important;
+    max-height: 300px !important;
+    padding: 1rem 1.1rem !important;
+  }
+
+  .search-input-wrapper textarea::placeholder,
+  #archive-query-input::placeholder {
+    font-size: 18px !important;
+    line-height: 1.55 !important;
+  }
+
+  .search-actions {
+    width: 100% !important;
+  }
+
+  .search-actions button,
+  #archive-submit-btn {
+    min-width: 126px !important;
+    min-height: 48px !important;
+  }
+}
+
+</style>
+
+<script data-jetpack-boost="ignore">
+
+/* ================================================================
+   USE FRONTEND v489.08
+   SINGLE CONTROLLER + SAFETY BOUNDARY
+   ================================================================ */
+
+var USE_PRIMARY_ENDPOINT =
+  'https://living-archive-backend.onrender.com/api/query';
+
+var USE_SECONDARY_ENDPOINT =
+  'https://living-archive-backend-mirror.onrender.com/api/query';
+
+/* Backward-compatible alias: primary remains the authoritative endpoint. */
+var USE_API_ENDPOINT = USE_PRIMARY_ENDPOINT;
+
+var USE_TRANSPORT_TIMEOUT_MS = 12000;
+
+var HRN_PAGE_URL =
+  'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
+
+var USE_FRONTEND_BUILD = 'v489.09';
+var USE_FRONTEND_AUTHORITY = 'guide-single-controller';
+var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
+
+var GUIDE_HINT_EXAMPLES = [
+  "Where should I begin with the Living Archive?",
+  "What does stewardship mean here?",
+  "I keep seeing the same pattern in my organization.",
+  "Where can I explore Philippine systems?",
+  "What is this symbol?",
+  "I want to understand what is happening between us."
+];
+
+var guideHintIndex = 0;
+var guideHintTimer = null;
+var guideConversationHistory = [];
+var guideSafetyActive = false;
+var guideSafetyQuestion = '';
+var guideSafetyState = '';
+var guideSafetySubmissionInFlight = false;
+
+/* ================================================================
+   QUERY FIELD PRESENTATION + AUTO-GROW
+   ================================================================
+   This controller owns only the main Guide query field. It reinforces the
+   18px presentation at runtime and grows the field with wrapped content.
+   The field remains bounded so a long question does not consume the page.
+*/
+
+function applyGuideQueryFieldPresentation() {
+
+  var input = document.getElementById('archive-query-input');
+
+  if (!input) return;
+
+  input.style.setProperty('font-size', '19px', 'important');
+  input.style.setProperty('line-height', '1.55', 'important');
+  input.style.setProperty('font-weight', '400', 'important');
+  input.style.setProperty('max-height', '300px', 'important');
+  input.style.setProperty('box-sizing', 'border-box', 'important');
+}
+
+function resizeGuideQueryInput() {
+
+  var input = document.getElementById('archive-query-input');
+
+  if (!input) return;
+
+  var maxHeight = 300;
+
+  input.style.setProperty('height', 'auto', 'important');
+
+  var targetHeight = Math.max(
+    120,
+    Math.min(input.scrollHeight, maxHeight)
+  );
+
+  input.style.setProperty(
+    'height',
+    targetHeight + 'px',
+    'important'
+  );
+
+  input.style.setProperty(
+    'overflow-y',
+    input.scrollHeight > maxHeight ? 'auto' : 'hidden',
+    'important'
+  );
+}
+
+function initializeGuideQueryField() {
+
+  var input = document.getElementById('archive-query-input');
+
+  if (!input || input.dataset.useQueryFieldInitialized === '1') return;
+
+  input.dataset.useQueryFieldInitialized = '1';
+
+  applyGuideQueryFieldPresentation();
+  resizeGuideQueryInput();
+
+  input.addEventListener('input', resizeGuideQueryInput);
+  input.addEventListener('change', resizeGuideQueryInput);
+
+  window.addEventListener('resize', resizeGuideQueryInput);
+}
+
+/* ================================================================
+   HINT ROTATION
+   ================================================================ */
+
+function setGuideHint(index, animate) {
+
+  var input = document.getElementById('archive-query-input');
+
+  if (!input) return;
+  if (input.value.trim()) return;
+
+  guideHintIndex =
+    ((index % GUIDE_HINT_EXAMPLES.length) +
+      GUIDE_HINT_EXAMPLES.length) %
+    GUIDE_HINT_EXAMPLES.length;
+
+  var nextHint = GUIDE_HINT_EXAMPLES[guideHintIndex];
+
+  var reduceMotion =
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!animate || reduceMotion) {
+
+    input.classList.remove('guide-hint-fading');
+    input.classList.add('guide-hint-ready');
+    input.placeholder = nextHint;
+
+    return;
+  }
+
+  input.classList.remove('guide-hint-ready');
+  input.classList.add('guide-hint-fading');
+
+  window.setTimeout(function () {
+
+    var currentInput =
+      document.getElementById('archive-query-input');
+
+    if (!currentInput || currentInput.value.trim()) return;
+
+    currentInput.placeholder = nextHint;
+
+    window.requestAnimationFrame(function () {
+
+      currentInput.classList.remove('guide-hint-fading');
+      currentInput.classList.add('guide-hint-ready');
+
+    });
+
+  }, 320);
+}
+
+function startGuideHintRotation() {
+
+  if (guideHintTimer) {
+    clearInterval(guideHintTimer);
+  }
+
+  setGuideHint(guideHintIndex);
+
+  guideHintTimer = setInterval(function () {
+
+    var input =
+      document.getElementById('archive-query-input');
+
+    if (
+      !input ||
+      input.value.trim() ||
+      document.activeElement === input
+    ) {
+      return;
+    }
+
+    setGuideHint(guideHintIndex + 1, true);
+
+  }, 4500);
+}
+
+function stopGuideHintRotation() {
+
+  if (guideHintTimer) {
+    clearInterval(guideHintTimer);
+    guideHintTimer = null;
+  }
+}
+
+function initializeGuideHints() {
+
+  initializeGuideQueryField();
+
+  var input =
+    document.getElementById('archive-query-input');
+
+  if (!input) return;
+
+  input.placeholder =
+    GUIDE_HINT_EXAMPLES[guideHintIndex];
+
+  input.addEventListener('focus', function () {
+    stopGuideHintRotation();
+  });
+
+  input.addEventListener('blur', function () {
+
+    if (!input.value.trim()) {
+      startGuideHintRotation();
+    }
+
+  });
+
+  startGuideHintRotation();
+}
+
+/* ================================================================
+   ESCAPING
+   ================================================================ */
+
+function escapeHtml(value) {
+
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, ''');
+
+}
+
+/* ================================================================
+   VISITOR-LANGUAGE RESPONSE BOUNDARY
+   ================================================================
+   The backend is authoritative for visitor-language composition.
+   The browser adds defense in depth: known implementation metadata must
+   never be rendered even if a stale/malformed backend response escapes.
+   This is a rejection boundary, not a rewriting layer.
+*/
+
+function hasInternalGuideLanguage(value) {
+
+  var text = String(value || '');
+
+  return /(?:\[\s*(?:evidence excerpt|canonical evidence|supplied evidence|internal interpretation|retrieval|synthesis|processing layer|provider|model|route|handoff)\s*\]|evidence excerpt bounded by USE|canonical evidence|supplied evidence|internal interpretation|bounded by USE|processing layer|retrieval layer|synthesis layer|machine-facing|implementation metadata)/i.test(text);
+
+}
+
+function assertVisitorLanguageBoundary(data) {
+
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid Guide response envelope');
+  }
+
+  var response = String(data.response || '').trim();
+
+  if (response && hasInternalGuideLanguage(response)) {
+    console.error(
+      'The Guide visitor-language boundary rejected internal response metadata.'
+    );
+
+    throw new Error(
+      'Guide response failed visitor-language boundary'
+    );
+  }
+
+  return data;
+
+}
+
+/* ================================================================
+   USE TRANSPORT / FAILOVER
+   Primary remains authoritative. Secondary is used only when the
+   primary transport is unavailable or returns a server-side failure.
+   Valid client/application responses are never silently retried.
+   ================================================================ */
+
+function useTransportRetryableStatus(status) {
+
+  return (
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    status === 522 ||
+    status === 524
+  );
+}
+
+async function fetchUSEEndpoint(endpoint, payload) {
+
+  var controller =
+    typeof AbortController !== 'undefined'
+      ? new AbortController()
+      : null;
+
+  var timeoutId =
+    controller
+      ? setTimeout(function () {
+          controller.abort();
+        }, USE_TRANSPORT_TIMEOUT_MS)
+      : null;
+
+  try {
+
+    return await fetch(
+      endpoint,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: controller
+          ? controller.signal
+          : undefined
+      }
+    );
+
+  } finally {
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+  }
+}
+
+async function fetchUSE(payload, requestLabel) {
+
+  var attempts = [
+    {
+      name: 'primary',
+      endpoint: USE_PRIMARY_ENDPOINT
+    },
+    {
+      name: 'secondary',
+      endpoint: USE_SECONDARY_ENDPOINT
+    }
+  ];
+
+  var failures = [];
+
+  for (var i = 0; i < attempts.length; i++) {
+
+    var attempt = attempts[i];
+
+    try {
+
+      var response =
+        await fetchUSEEndpoint(
+          attempt.endpoint,
+          payload
+        );
+
+      if (response.ok) {
+
+        if (attempt.name === 'secondary') {
+          console.info(
+            'The Guide USE transport: secondary served request',
+            {
+              request: requestLabel || 'query',
+              primary_failures: failures
+            }
+          );
+        }
+
+        return response;
+      }
+
+      if (
+        !useTransportRetryableStatus(
+          response.status
+        )
+      ) {
+
+        return response;
+      }
+
+      failures.push({
+        endpoint: attempt.name,
+        status: response.status
+      });
+
+      console.warn(
+        'The Guide USE transport: server failure; trying next endpoint',
+        {
+          request: requestLabel || 'query',
+          endpoint: attempt.name,
+          status: response.status
+        }
+      );
+
+    } catch (error) {
+
+      failures.push({
+        endpoint: attempt.name,
+        error: error && error.name
+          ? error.name
+          : 'network_error'
+      });
+
+      console.warn(
+        'The Guide USE transport: endpoint unavailable; trying next endpoint',
+        {
+          request: requestLabel || 'query',
+          endpoint: attempt.name,
+          error: error && error.name
+            ? error.name
+            : 'network_error'
+        }
+      );
+
+    }
+  }
+
+  var failure =
+    new Error(
+      'All Living Archive USE endpoints are unavailable.'
+    );
+
+  failure.useTransportFailures = failures;
+  throw failure;
+}
+
+/* ================================================================
+   SAFETY BOUNDARY
+   ================================================================ */
+
+/*
+ * Safety is authoritative if the backend explicitly declares
+ * SAFETY_INTERRUPT OR supplies an authoritative safety payload.
+ *
+ * This is deliberately fail-closed.
+ *
+ * A malformed response containing safety material must never fall
+ * through into ordinary USE rendering.
+ */
+
+function hasAuthoritativeSafetyPayload(data) {
+
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  if (data.intent === 'SAFETY_INTERRUPT') {
+    return true;
+  }
+
+  if (
+    typeof data.safety_message === 'string' &&
+    data.safety_message.trim()
+  ) {
+    return true;
+  }
+
+  if (
+    typeof data.safety_question === 'string' &&
+    data.safety_question.trim()
+  ) {
+    return true;
+  }
+
+  if (
+    Array.isArray(data.safety_resources) &&
+    data.safety_resources.length
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function naturalizeSafetyMessage(message, isInitialTurn) {
+
+  var text =
+    String(message || '').trim();
+
+  if (
+    isInitialTurn &&
+    /taking your [“"]yes[”"] seriously/i.test(text)
+  ) {
+
+    return 'Thank you for telling me. I want to take what you just said seriously.';
+
+  }
+
+  return text;
+}
+
+/* ================================================================
+   SAFETY RESOURCES
+   ================================================================ */
+
+function renderSafetyResources(resources) {
+
+  if (
+    !Array.isArray(resources) ||
+    !resources.length
+  ) {
+    return '';
+  }
+
+  var cards = resources.map(function (resource) {
+
+    if (
+      !resource ||
+      typeof resource !== 'object'
+    ) {
+      return '';
+    }
+
+    var title =
+      String(
+        resource.title ||
+        resource.display_name ||
+        'Emergency or crisis support'
+      ).trim();
+
+    var phone =
+      String(
+        resource.phone ||
+        resource.number ||
+        ''
+      ).trim();
+
+    var url =
+      String(
+        resource.url ||
+        resource.website ||
+        ''
+      ).trim();
+
+    var contact = '';
+
+    if (phone) {
+
+      contact =
+        '<a class="safety-resource-phone" href="tel:' +
+        encodeURIComponent(phone) +
+        '">' +
+        '<span class="safety-call-label">CALL:</span>' +
+        escapeHtml(phone) +
+        '</a>';
+
+    } else if (
+      url &&
+      /^https?:\/\//i.test(url)
+    ) {
+
+      contact =
+        '<a class="safety-resource-phone" href="' +
+        escapeHtml(url) +
+        '" target="_blank" rel="noopener noreferrer">' +
+        'Open support' +
+        '</a>';
+
+    }
+
+    return (
+      '<div class="safety-resource-card">' +
+        '<div class="safety-resource-title">' +
+          escapeHtml(title) +
+        '</div>' +
+        contact +
+      '</div>'
+    );
+
+  }).join('');
+
+  return cards
+    ? '<div class="safety-resources">' +
+        '<div class="safety-resources-title">Immediate help</div>' +
+        cards +
+      '</div>'
+    : '';
+}
+
+/* ================================================================
+   SAFETY FOLLOW-UP
+   ================================================================ */
+
+function setSafetyFollowupVisible(
+  question,
+  enabled
+) {
+
+  var wrapper =
+    document.getElementById(
+      'archive-safety-followup'
+    );
+
+  var questionEl =
+    document.getElementById(
+      'archive-safety-question'
+    );
+
+  var input =
+    document.getElementById(
+      'archive-safety-input'
+    );
+
+  var controls =
+    document.getElementById(
+      'archive-response-controls'
+    );
+
+  var container =
+    document.getElementById(
+      'archive-container-top'
+    );
+
+  if (
+    !wrapper ||
+    !questionEl ||
+    !input
+  ) {
+    return;
+  }
+
+  if (
+    !enabled ||
+    !String(question || '').trim()
+  ) {
+
+    wrapper.style.display = 'none';
+
+    if (container) {
+      container.classList.remove(
+        'archive-safety-active'
+      );
+    }
+
+    if (controls) {
+      controls.style.display = 'none';
+    }
+
+    guideSafetyQuestion = '';
+    guideSafetyState = '';
+
+    return;
+  }
+
+  questionEl.textContent =
+    String(question).trim();
+
+  input.value = '';
+  input.disabled = false;
+
+  wrapper.style.display = 'block';
+
+  if (container) {
+    container.classList.add(
+      'archive-safety-active'
+    );
+  }
+
+  if (controls) {
+    controls.style.display = 'none';
+  }
+
+  window.setTimeout(function () {
+    input.focus();
+  }, 100);
+}
+
+/* ================================================================
+   SAFETY RESPONSE
+   ================================================================ */
+
+function renderSafetyResponse(data) {
+
+  var responseText =
+    document.getElementById(
+      'archive-response-text'
+    );
+
+  var responseBox =
+    document.getElementById(
+      'archive-response-box'
+    );
+
+  var submitBtn =
+    document.getElementById(
+      'archive-submit-btn'
+    );
+
+  var responseControls =
+    document.getElementById(
+      'archive-response-controls'
+    );
+
+  if (!responseText) return;
+
+  var visitorTurnCount =
+    guideConversationHistory.filter(
+      function (item) {
+
+        return (
+          item &&
+          item.role === 'visitor'
+        );
+
+      }
+    ).length;
+
+  var isInitialTurn =
+    visitorTurnCount === 1;
+
+  var message =
+    naturalizeSafetyMessage(
+      data && data.safety_message
+        ? data.safety_message
+        : (
+            data
+              ? data.response
+              : ''
+          ),
+      isInitialTurn
+    );
+
+  var question =
+    String(
+      data &&
+      data.safety_question
+        ? data.safety_question
+        : ''
+    ).trim();
+
+  /*
+   * Fail-closed continuity: an active SAFETY_INTERRUPT is never released
+   * merely because a specialist response omitted its next question. The
+   * backend owns the primary repair, but the browser boundary must provide
+   * the same defense in depth so a transient/malformed specialist response
+   * cannot strand the visitor inside a dead safety card.
+   */
+  var safetyReleaseReady = Boolean(
+    data &&
+    data.safety_release_ready
+  );
+
+  if (
+    hasAuthoritativeSafetyPayload(data) &&
+    !safetyReleaseReady &&
+    !question
+  ) {
+    /*
+     * The backend Safety Intelligence layer is the owner of the next
+     * movement. The browser must never restart the safety sequence with a
+     * generic opening question merely because a malformed envelope omitted
+     * the explicit question. Prefer the server's structured next movement,
+     * then the continuity contract, then the still-active prior question as
+     * the last safe browser-level hold. This keeps the UI from inventing a
+     * second safety state machine.
+     */
+    question = String(
+      data && data.safety && data.safety.next_movement
+        ? data.safety.next_movement
+        : (data && data.next_movement ? data.next_movement : '')
+    ).trim();
+
+    if (!question && guideSafetyQuestion) {
+      question = guideSafetyQuestion;
+    }
+  }
+
+  guideSafetyQuestion = question;
+  guideSafetyState = String(
+    data && data.safety && data.safety.state
+      ? data.safety.state
+      : (data && data.safety_state ? data.safety_state : '')
+  ).trim();
+
+  var note =
+    String(
+      data &&
+      data.safety_note
+        ? data.safety_note
+        : ''
+    ).trim();
+
+  var resources =
+    data &&
+    Array.isArray(data.safety_resources)
+      ? data.safety_resources
+      : [];
+
+  responseText.innerHTML =
+    '<p>' +
+      escapeHtml(message)
+        .replace(/\n/g, '<br>') +
+    '</p>' +
+    (
+      note
+        ? '<div class="safety-note">' +
+            escapeHtml(note) +
+          '</div>'
+        : ''
+    );
+
+  if (responseBox) {
+    responseBox.style.display = 'block';
+  }
+
+  guideSafetyActive =
+    Boolean(
+      hasAuthoritativeSafetyPayload(data) &&
+      !safetyReleaseReady
+    );
+
+  setSafetyFollowupVisible(
+    question,
+    guideSafetyActive
+  );
+
+  var resourceBox =
+    document.getElementById(
+      'archive-safety-resources'
+    );
+
+  if (resourceBox) {
+
+    resourceBox.innerHTML =
+      resources.length
+        ? renderSafetyResources(resources)
+        : '';
+
+    resourceBox.style.display =
+      resources.length
+        ? 'block'
+        : 'none';
+  }
+
+  var mainInput =
+    document.getElementById(
+      'archive-query-input'
+    );
+
+  if (submitBtn) {
+
+    submitBtn.disabled =
+      guideSafetyActive;
+
+    submitBtn.classList.remove(
+      'is-loading'
+    );
+  }
+
+  if (mainInput) {
+
+    mainInput.disabled =
+      guideSafetyActive;
+
+    mainInput.setAttribute(
+      'aria-readonly',
+      guideSafetyActive
+        ? 'true'
+        : 'false'
+    );
+  }
+
+  if (responseControls) {
+    responseControls.style.display = 'none';
+  }
+}
+
+/* ================================================================
+   SAFETY FOLLOW-UP SUBMISSION
+   ================================================================ */
+
+async function submitSafetyFollowup() {
+
+  var input =
+    document.getElementById(
+      'archive-safety-input'
+    );
+
+  var button =
+    document.getElementById(
+      'archive-safety-submit-btn'
+    );
+
+  var responseText =
+    document.getElementById(
+      'archive-response-text'
+    );
+
+  if (!input || !button) return;
+  if (guideSafetySubmissionInFlight) return;
+
+  var answer =
+    input.value.trim();
+
+  if (!answer) {
+    input.focus();
+    return;
+  }
+
+  guideSafetySubmissionInFlight = true;
+  button.disabled = true;
+
+  button.classList.add(
+    'is-loading'
+  );
+
+  guideConversationHistory.push({
+    role: 'visitor',
+    content: answer
+  });
+
+  try {
+
+    var res =
+      await fetchUSE(
+        {
+          query: answer,
+          history:
+            guideConversationHistory,
+          safety_active: true,
+          safety_question: guideSafetyQuestion,
+          safety_state: guideSafetyState
+        },
+        'safety-followup'
+      );
+
+    if (!res.ok) {
+      throw new Error(
+        'HTTP status ' +
+        res.status
+      );
+    }
+
+    var data =
+      await res.json();
+
+    /*
+     * Safety remains authoritative on
+     * every follow-up turn.
+     */
+
+    if (
+      hasAuthoritativeSafetyPayload(data)
+    ) {
+
+      guideConversationHistory.push({
+        role: 'assistant',
+        content:
+          data.safety_message ||
+          data.response ||
+          '',
+        question:
+          data.safety_question ||
+          ''
+      });
+
+      renderSafetyResponse(data);
+
+      return;
+    }
+
+    /*
+     * A follow-up submitted from an active safety lane must never fall into
+     * ordinary Guide processing merely because the response envelope is
+     * malformed. The safety boundary is already active in this browser
+     * session; preserve that state and ask the deterministic opening safety
+     * question again rather than manufacturing an ordinary acknowledgement.
+     */
+    if (guideSafetyActive) {
+      var continuityData = {
+        intent: 'SAFETY_INTERRUPT',
+        safety_message: 'I want to stay with what you just told me.',
+        safety_question: guideSafetyQuestion || '',
+        safety_state: guideSafetyState || 'acute_followthrough',
+        safety_release_ready: false,
+        safety_resources: []
+      };
+      guideConversationHistory.push({
+        role: 'assistant',
+        content: continuityData.safety_message,
+        question: continuityData.safety_question
+      });
+      renderSafetyResponse(continuityData);
+      return;
+    }
+
+    guideSafetyActive = false;
+
+    setSafetyFollowupVisible(
+      '',
+      false
+    );
+
+    if (responseText) {
+
+      responseText.innerHTML =
+        '<p>' +
+        escapeHtml(
+          data && data.response
+            ? data.response
+            : 'Thank you. You can take the next step in your own time.'
+        ) +
+        '</p>';
+    }
+
+  } catch (error) {
+
+    guideConversationHistory.pop();
+
+    if (responseText) {
+
+      responseText.innerHTML =
+        "<p style='color: #b91c1c;'>" +
+        "I couldn't get your response through just now. Please try again." +
+        "</p>";
+    }
+
+  } finally {
+
+    guideSafetySubmissionInFlight = false;
+    button.disabled = false;
+
+    button.classList.remove(
+      'is-loading'
+    );
+
+    if (guideSafetyActive) {
+
+      window.setTimeout(
+        function () {
+
+          var currentInput =
+            document.getElementById(
+              'archive-safety-input'
+            );
+
+          if (currentInput) {
+            currentInput.focus();
+          }
+
+        },
+        50
+      );
+    }
+  }
+}
+
+/* ================================================================
+   SAFETY CONTROLLER
+   ================================================================ */
+
+function installSafetyFollowupController() {
+
+  if (
+    window.__USE_SAFETY_FOLLOWUP_CONTROLLER__ &&
+    window.__USE_SAFETY_FOLLOWUP_CONTROLLER__.build ===
+      USE_FRONTEND_BUILD
+  ) {
+    return;
+  }
+
+  var button =
+    document.getElementById(
+      'archive-safety-submit-btn'
+    );
+
+  var input =
+    document.getElementById(
+      'archive-safety-input'
+    );
+
+  if (!button || !input) return;
+
+  /*
+   * Purge listeners left by an older Woody copy. Cloning the two interactive
+   * nodes preserves their IDs/attributes while removing stale handlers that
+   * cannot otherwise be cancelled from a later script instance.
+   */
+  var cleanButton = button.cloneNode(true);
+  var cleanInput = input.cloneNode(true);
+
+  button.parentNode.replaceChild(
+    cleanButton,
+    button
+  );
+
+  input.parentNode.replaceChild(
+    cleanInput,
+    input
+  );
+
+  button = cleanButton;
+  input = cleanInput;
+
+  button.addEventListener(
+    'click',
+    function (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      submitSafetyFollowup();
+    },
+    true
+  );
+
+  input.addEventListener(
+    'keydown',
+    function (event) {
+
+      if (
+        event.key === 'Enter' &&
+        (
+          event.ctrlKey ||
+          event.metaKey
+        )
+      ) {
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        submitSafetyFollowup();
+      }
+
+    },
+    true
+  );
+
+  window.__USE_SAFETY_FOLLOWUP_CONTROLLER__ = {
+    build: USE_FRONTEND_BUILD,
+    installed: true
+  };
+}
+
+/* ================================================================
+   RESPONSE CONTROL
+   ================================================================ */
+
+function renderAuthoritativeRecommendation(data) {
+  /*
+   * Render the recommendation inside the same visible response surface as
+   * the answer. Do not depend on a separate sibling container being present,
+   * visible, or synchronized with cached page markup.
+   */
+  var responseText = document.getElementById('archive-response-text');
+  var container = document.getElementById('archive-recommendation');
+
+  if (container) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+  }
+
+  if (responseText) {
+    var prior = responseText.querySelector('.archive-inline-recommendation');
+    if (prior) prior.remove();
+  }
+
+  var recommendation =
+    data &&
+    data.recommendation &&
+    typeof data.recommendation === 'object'
+      ? data.recommendation
+      : null;
+
+  var title = recommendation && typeof recommendation.title === 'string'
+    ? recommendation.title.trim()
+    : '';
+
+  title = title
+    .replace(/^[\s\p{Extended_Pictographic}\u{2600}-\u{27BF}]+/u, '')
+    .replace(/&amp;/gi, '&')
+    .trim();
+
+  var url = recommendation && typeof recommendation.url === 'string'
+    ? recommendation.url.trim()
+    : '';
+
+  if (!title || !/^https:\/\/geralddaquila\.com\/\S+$/i.test(url)) {
+    console.warn('The Guide recommendation was not rendered because its title or canonical URL was missing or invalid.', {
+      hasRecommendation: !!recommendation,
+      hasTitle: !!title,
+      hasUrl: !!url
+    });
+    return;
+  }
+
+  var block = document.createElement('div');
+  block.className = 'archive-inline-recommendation';
+  block.setAttribute('aria-live', 'polite');
+
+  var label = document.createElement('p');
+  label.className = 'archive-recommendation-label';
+  label.textContent = 'A useful place to continue:';
+
+  var link = document.createElement('a');
+  link.className = 'archive-recommendation-link';
+  link.href = url;
+  link.textContent = title;
+  link.setAttribute('aria-label', 'Explore ' + title + ' in the Living Archive');
+
+  block.appendChild(label);
+  block.appendChild(link);
+
+  if (responseText) {
+    responseText.appendChild(block);
+    console.info('The Guide recommendation rendered with canonical URL.', { title: title, url: url, build: USE_FRONTEND_BUILD });
+    return;
+  }
+
+  if (container) {
+    container.appendChild(label);
+    container.appendChild(link);
+    container.style.display = 'block';
+    console.info('The Guide recommendation rendered in the legacy recommendation container.', { title: title, url: url, build: USE_FRONTEND_BUILD });
+    return;
+  }
+
+  console.error('The Guide has a valid recommendation but no response surface is available.', { title: title, url: url, build: USE_FRONTEND_BUILD });
+}
+
+function configureResponseControl(
+  responseTextValue
+) {
+
+  var controls =
+    document.getElementById(
+      'archive-response-controls'
+    );
+
+  var button =
+    controls
+      ? controls.querySelector(
+          '.reset-btn'
+        )
+      : null;
+
+  var icon =
+    document.getElementById(
+      'archive-response-control-icon'
+    );
+
+  var label =
+    document.getElementById(
+      'archive-response-control-label'
+    );
+
+  if (
+    !button ||
+    !icon ||
+    !label
+  ) {
+    return;
+  }
+
+  button.classList.remove(
+    'continue-inquiry'
+  );
+
+  button.setAttribute(
+    'data-response-mode',
+    'reset'
+  );
+
+  icon.textContent = '↺';
+
+  label.textContent =
+    'Start another question';
+}
+
+function resetGuideConversationHistory() {
+
+  guideConversationHistory = [];
+
+  guideSafetyActive = false;
+  guideSafetyQuestion = '';
+  guideSafetyState = '';
+  guideSafetySubmissionInFlight = false;
+}
+
+function handleResponseControl() {
+
+  resetArchiveSearch();
+}
+
+/* ================================================================
+   MAIN GUIDE SUBMISSION
+   ================================================================ */
+
+async function useGuideSubmit(event) {
+
+  event.preventDefault();
+
+  var inputEl =
+    document.getElementById(
+      'archive-query-input'
+    );
+
+  var responseBox =
+    document.getElementById(
+      'archive-response-box'
+    );
+
+  var responseText =
+    document.getElementById(
+      'archive-response-text'
+    );
+
+  var responseControls =
+    document.getElementById(
+      'archive-response-controls'
+    );
+
+  var submitBtn =
+    document.getElementById(
+      'archive-submit-btn'
+    );
+
+  var submitLabel =
+    submitBtn
+      ? submitBtn.querySelector(
+          '.archive-button-label'
+        )
+      : null;
+
+  if (!inputEl || !submitBtn) {
+    return;
+  }
+
+  var query =
+    inputEl.value.trim();
+
+  if (!query) {
+    return;
+  }
+
+  if (guideSafetyActive) {
+
+    var safetyInput =
+      document.getElementById(
+        'archive-safety-input'
+      );
+
+    if (safetyInput) {
+      safetyInput.focus();
+    }
+
+    return;
+  }
+
+  resetGuideConversationHistory();
+
+  guideConversationHistory.push({
+    role: 'visitor',
+    content: query
+  });
+
+  /*
+   * Immediate visitor feedback while USE
+   * determines the authoritative route.
+   */
+
+  submitBtn.disabled = true;
+
+  submitBtn.classList.add(
+    'is-loading'
+  );
+
+  submitBtn.setAttribute(
+    'aria-busy',
+    'true'
+  );
+
+  submitBtn.setAttribute(
+    'aria-label',
+    'Searching…'
+  );
+
+  if (submitLabel) {
+    submitLabel.textContent = 'Searching…';
+  }
+
+  /*
+   * Give the browser one paint opportunity before the network request.
+   * This makes the loading state visible even when USE returns or redirects
+   * very quickly, rather than leaving the visitor wondering whether the click
+   * registered.
+   */
+  if (
+    typeof requestAnimationFrame ===
+    'function'
+  ) {
+    await new Promise(function (resolve) {
+      requestAnimationFrame(resolve);
+    });
+  }
+
+  if (responseControls) {
+    responseControls.style.display =
+      'none';
+  }
+
+  if (responseBox) {
+    responseBox.style.display =
+      'block';
+  }
+
+  if (responseText) {
+
+    responseText.innerHTML =
+      '<p><em>Giving this question a little more room...</em></p>';
+  }
+
+  try {
+
+    var res =
+      await fetchUSE(
+        {
+          query: query
+        },
+        'guide-submit'
+      );
+
+    if (!res.ok) {
+
+      throw new Error(
+        'HTTP status ' +
+        res.status
+      );
+    }
+
+    var data =
+      await res.json();
+
+    /* ============================================================
+       SITEWIDE SAFETY BOUNDARY
+       ============================================================ */
+
+    if (
+      hasAuthoritativeSafetyPayload(
+        data
+      )
+    ) {
+
+      guideConversationHistory.push({
+        role: 'assistant',
+        content:
+          data.safety_message ||
+          data.response ||
+          '',
+        question:
+          data.safety_question ||
+          ''
+      });
+
+      renderSafetyResponse(
+        data
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       HRN SPECIALIST HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'RELATIONAL_HANDOFF' &&
+      data.relational_delegation
+    ) {
+
+      var delegation =
+        data.relational_delegation;
+
+      var seed =
+        delegation.seed_message ||
+        query;
+
+      var session =
+        delegation.session_id ||
+        '';
+
+      var destination =
+        HRN_PAGE_URL +
+        '?hrn_seed=' +
+        encodeURIComponent(seed) +
+        '&hrn_session=' +
+        encodeURIComponent(session);
+
+      console.info(
+        'The Guide HRN handoff: contract=' +
+        USE_HRN_HANDOFF_CONTRACT +
+        ', session=' + session
+      );
+
+      window.location.assign(
+        destination
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       GLOSSARY HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'GLOSSARY_HANDOFF' &&
+      data.glossary_url
+    ) {
+
+      window.location.assign(
+        data.glossary_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       CATALOGUE HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'CATALOGUE_HANDOFF' &&
+      data.catalogue_url
+    ) {
+
+      window.location.assign(
+        data.catalogue_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       ATLAS HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'ATLAS_HANDOFF' &&
+      data.atlas_url
+    ) {
+
+      window.location.assign(
+        data.atlas_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       GUIDE NODE HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'GUIDE_NODE_HANDOFF' &&
+      data.guide_node_url
+    ) {
+
+      window.location.assign(
+        data.guide_node_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       NAVIGATOR HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'NAVIGATOR_HANDOFF' &&
+      data.navigator_url
+    ) {
+
+      window.location.assign(
+        data.navigator_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       GLYPH HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'GLYPH_HANDOFF' &&
+      data.glyph_url
+    ) {
+
+      window.location.assign(
+        data.glyph_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       PHILIPPINE SYSTEMS HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'SYSTEMS_PH_HANDOFF' &&
+      data.philippine_systems_url
+    ) {
+
+      window.location.assign(
+        data.philippine_systems_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       FSD HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'FSD_HANDOFF' &&
+      data.fsd_url
+    ) {
+
+      window.location.assign(
+        data.fsd_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       CASE NAVIGATOR HANDOFF
+       ============================================================ */
+
+    if (
+      data &&
+      data.intent ===
+        'CASE_HANDOFF' &&
+      data.case_url
+    ) {
+
+      window.location.assign(
+        data.case_url
+      );
+
+      return;
+    }
+
+    /* ============================================================
+       FINAL SAFETY FAIL-CLOSED BOUNDARY
+       ============================================================ */
+
+    if (
+      hasAuthoritativeSafetyPayload(
+        data
+      )
+    ) {
+
+      throw new Error(
+        'Safety payload reached ordinary response boundary'
+      );
+    }
+
+    /* ============================================================
+       ORDINARY USE RESPONSE
+       ============================================================ */
+
+    if (
+      data &&
+      data.response
+    ) {
+
+      /*
+       * Final browser-side defense in depth. Do not sanitize/rewrite here:
+       * the backend owns the visitor voice. If internal metadata survives
+       * the backend boundary, refuse to render it rather than exposing it.
+       */
+      assertVisitorLanguageBoundary(data);
+
+      responseText.innerHTML =
+        (
+          typeof marked !==
+          'undefined'
+        )
+          ? marked.parse(
+              data.response
+            )
+          : escapeHtml(
+              data.response
+            );
+
+      renderAuthoritativeRecommendation(data);
+
+      configureResponseControl(
+        data.response
+      );
+
+      if (responseControls) {
+
+        responseControls.style.display =
+          'flex';
+      }
+
+    } else {
+
+      responseText.innerHTML =
+        '<p>No matching pathways found.</p>';
+    }
+
+  } catch (error) {
+
+    responseText.innerHTML =
+      "<p style='color: #b91c1c;'>" +
+      "Unable to connect to the Living Archive service. Please try again." +
+      "</p>";
+
+  } finally {
+
+    submitBtn.disabled = false;
+
+    submitBtn.classList.remove(
+      'is-loading'
+    );
+
+    submitBtn.removeAttribute(
+      'aria-busy'
+    );
+
+    submitBtn.setAttribute(
+      'aria-label',
+      'Search'
+    );
+
+    if (submitLabel) {
+      submitLabel.textContent = 'Search';
+    }  }
+}
+
+/* ================================================================
+   SINGLE SUBMISSION OWNER
+   Exactly one document-level capture listener owns Guide submissions.
+   No form-level listener is installed alongside it.
+   ================================================================ */
+
+function installGuideSubmitController() {
+
+  if (
+    window.__USE_GUIDE_DELEGATED_SUBMIT_CONTROLLER__ ===
+    USE_FRONTEND_BUILD
+  ) {
+    return;
+  }
+
+  var form = document.getElementById('archive-search-form');
+
+  if (form) {
+    form.removeAttribute('onsubmit');
+    form.setAttribute('data-use-frontend-build', USE_FRONTEND_BUILD);
+    form.__useGuideControllerInstalled = USE_FRONTEND_BUILD;
+  }
+
+  document.addEventListener(
+    'submit',
+    function (event) {
+
+      var target = event.target;
+
+      if (
+        !target ||
+        target.id !== 'archive-search-form'
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (target.__useGuideDelegatedSubmitInFlight) {
+        return;
+      }
+
+      target.removeAttribute('onsubmit');
+      target.setAttribute('data-use-frontend-build', USE_FRONTEND_BUILD);
+      target.__useGuideDelegatedSubmitInFlight = true;
+
+      Promise.resolve(
+        useGuideSubmit(event)
+      ).finally(function () {
+        target.__useGuideDelegatedSubmitInFlight = false;
+      });
+
+    },
+    true
+  );
+
+  window.__USE_GUIDE_DELEGATED_SUBMIT_CONTROLLER__ =
+    USE_FRONTEND_BUILD;
+
+  window.__USE_GUIDE_FRONTEND_CONTROLLER__ = {
+    build: USE_FRONTEND_BUILD,
+    authority: USE_FRONTEND_AUTHORITY,
+    endpoint: USE_API_ENDPOINT
+  };
+}
+
+function initializeGuideFrontend() {
+
+  initializeGuideQueryField();
+
+  installGuideSubmitController();
+
+  initializeGuideHints();
+
+
+  installSafetyFollowupController();
+}
+
+if (
+  document.readyState ===
+  'loading'
+) {
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    initializeGuideFrontend
+  );
+
+} else {
+
+  initializeGuideFrontend();
+}
+
+/* ================================================================
+   RESET
+   ================================================================ */
+
+function resetArchiveSearch() {
+
+  var input =
+    document.getElementById(
+      'archive-query-input'
+    );
+
+  var safetyInput =
+    document.getElementById(
+      'archive-safety-input'
+    );
+
+  var safetyFollowup =
+    document.getElementById(
+      'archive-safety-followup'
+    );
+
+  var submitBtn =
+    document.getElementById(
+      'archive-submit-btn'
+    );
+
+  resetGuideConversationHistory();
+
+  if (input) {
+
+    input.value = '';
+
+    input.disabled = false;
+  }
+
+  if (submitBtn) {
+
+    submitBtn.disabled = false;
+
+    submitBtn.classList.remove(
+      'is-loading'
+    );
+  }
+
+  if (safetyInput) {
+
+    safetyInput.value = '';
+
+    safetyInput.disabled = false;
+  }
+
+  if (safetyFollowup) {
+
+    safetyFollowup.style.display =
+      'none';
+  }
+
+  var safetyResources =
+    document.getElementById(
+      'archive-safety-resources'
+    );
+
+  if (safetyResources) {
+
+    safetyResources.innerHTML =
+      '';
+
+    safetyResources.style.display =
+      'none';
+  }
+
+  var safetyContainer =
+    document.getElementById(
+      'archive-container-top'
+    );
+
+  if (safetyContainer) {
+
+    safetyContainer.classList.remove(
+      'archive-safety-active'
+    );
+  }
+
+  guideHintIndex = 0;
+
+  startGuideHintRotation();
+
+  var responseBox =
+    document.getElementById(
+      'archive-response-box'
+    );
+
+  if (responseBox) {
+
+    responseBox.style.display =
+      'none';
+  }
+
+  var responseControls =
+    document.getElementById(
+      'archive-response-controls'
+    );
+
+  if (responseControls) {
+
+    responseControls.style.display =
+      'none';
+  }
+
+  var controlButton =
+    document.querySelector(
+      '#archive-response-controls .reset-btn'
+    );
+
+  if (controlButton) {
+
+    controlButton.classList.remove(
+      'continue-inquiry'
+    );
+
+    controlButton.setAttribute(
+      'data-response-mode',
+      'reset'
+    );
+  }
+
+  var controlIcon =
+    document.getElementById(
+      'archive-response-control-icon'
+    );
+
+  var controlLabel =
+    document.getElementById(
+      'archive-response-control-label'
+    );
+
+  if (controlIcon) {
+    controlIcon.textContent = '↺';
+  }
+
+  if (controlLabel) {
+
+    controlLabel.textContent =
+      'Start another question';
+  }
+
+  var responseText =
+    document.getElementById(
+      'archive-response-text'
+    );
+
+  if (responseText) {
+
+    responseText.innerHTML =
+      '';
+  }
+
+  var recommendation =
+    document.getElementById(
+      'archive-recommendation'
+    );
+
+  if (recommendation) {
+
+    recommendation.innerHTML =
+      '';
+
+    recommendation.style.display =
+      'none';
+  }
+}
+
+</script>
