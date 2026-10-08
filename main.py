@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.03 — Canonical doorway URL persistence
+# USE PRODUCTION VERSION: v489.04 — Separate answer prose from canonical doorway navigation
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.03"
-DEPLOYMENT_FINGERPRINT = "USE-v489.03-canonical-doorway-url-persistence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.03-canonical-doorway-url-persistence"
+APP_VERSION = "v489.04"
+DEPLOYMENT_FINGERPRINT = "USE-v489.04-answer-doorway-separation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.04-answer-doorway-separation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.03":
+if str(APP_VERSION) != "v489.04":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
