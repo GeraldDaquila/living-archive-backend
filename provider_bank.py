@@ -14,6 +14,11 @@ from provider_resilience import (
 )
 
 CONTRACT_VERSION = "v2"
+
+# Only production models with the structured-output capability required by the
+# current Provider Bank contract may enter the JSON operation pool. Live model
+# discovery remains diagnostic; it never grants runtime eligibility by itself.
+PRODUCTION_GROQ_MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b")
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
 
 class ProviderCallError(RuntimeError):
@@ -207,7 +212,8 @@ def _configured(use_core):
     except Exception as exc:
         print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
         live_groq = []
-    out["groq"] = [str(x).strip() for x in (live_groq or []) if str(x).strip()]
+    live_set = {str(x).strip() for x in (live_groq or []) if str(x).strip()}
+    out["groq"] = [model for model in PRODUCTION_GROQ_MODELS if model in live_set]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
         out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
     if os.getenv("MISTRAL_API_KEY"):
