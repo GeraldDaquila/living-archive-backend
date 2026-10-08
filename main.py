@@ -3992,11 +3992,13 @@ async def _provider_capability_route(request: Request):
         if not isinstance(body, dict):
             raise ValueError("Provider capability payload must be an object.")
         operation, messages, max_tokens = validate_provider_gateway_request(body)
+        schema = body.get("schema") if isinstance(body.get("schema"), dict) else None
         result = execute_provider_gateway(
             operation=operation,
             messages=messages,
             max_tokens=max_tokens,
             use_core=use_core,
+            schema=schema,
         )
         status = 200 if result.get("ok") else 503
         return JSONResponse(status_code=status, content=result)
