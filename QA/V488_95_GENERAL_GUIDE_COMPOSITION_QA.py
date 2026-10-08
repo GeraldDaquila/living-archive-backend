@@ -40,7 +40,7 @@ def main():
     )
 
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1", "composition contract drift")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
