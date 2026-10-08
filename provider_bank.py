@@ -56,6 +56,7 @@ OPERATION_TOKEN_FLOORS = {
     "atlas_vision": 700,
     "mini_use": 500,
     "stewardship_pathway": 900,
+    "general_guide_composition": 900,
 }
 
 # Strict JSON schemas are opt-in. HRN composition deliberately uses the
@@ -72,6 +73,10 @@ OPERATION_REQUIREMENTS = {
     "atlas_vision": frozenset({"json_object", "vision"}),
     "mini_use": frozenset({"json_object"}),
     "stewardship_pathway": frozenset({"json_object", "long_context", "reasoning"}),
+    # The all-purpose Guide requires composition and enough context to answer
+    # the visitor directly, but does not depend on any provider-specific
+    # reasoning feature. Provider selection remains entirely bank-owned.
+    "general_guide_composition": frozenset({"json_object", "long_context", "composition"}),
 }
 
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
