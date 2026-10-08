@@ -1,0 +1,29 @@
+name: General Guide Composition Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "provider_bank.py"
+      - "general_guide_composition.py"
+      - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - ".github/workflows/general-guide-validation.yml"
+  pull_request:
+    paths:
+      - "main.py"
+      - "provider_bank.py"
+      - "general_guide_composition.py"
+      - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - ".github/workflows/general-guide-validation.yml"
+
+jobs:
+  structural-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run provider-neutral General Guide QA
+        run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
