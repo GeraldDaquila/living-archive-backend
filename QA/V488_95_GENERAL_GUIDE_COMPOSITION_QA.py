@@ -22,7 +22,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v488.96"' in MAIN_TEXT, "main.py version is not v488.95")
+    assert_true('APP_VERSION = "v488.98"' in MAIN_TEXT, "main.py version is not v488.95")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -54,7 +54,7 @@ def main():
 
     assert_true(
         composition._sanitize_candidate(
-            "The Archive material [evidence excerpt bounded by USE]"
+            "The Archive material. [evidence excerpt bounded by USE]"
         )
         == "The Archive material.",
         "visitor-language sanitizer failed its structural probe",
