@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.06 — Stable recommendation envelope + answer/navigation separation
+# USE PRODUCTION VERSION: v489.07 — Canonical doorway authority propagation
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.06"
-DEPLOYMENT_FINGERPRINT = "USE-v489.06-recommendation-envelope-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.06-recommendation-envelope-boundary"
+APP_VERSION = "v489.07"
+DEPLOYMENT_FINGERPRINT = "USE-v489.07-canonical-doorway-authority"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.07-canonical-doorway-authority"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.06":
+if str(APP_VERSION) != "v489.07":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2859,6 +2859,22 @@ def _general_guide_authoritative_doorway(query, context_data):
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
             return None
+
+        # use_core is the canonical selection authority. Prefer the exact
+        # doorway it already selected over reconstructing the decision from
+        # serialized context. The fallback below exists only for older/core
+        # compatibility and is not the primary authority path.
+        selected = context_data.get("authoritative_doorway")
+        if isinstance(selected, dict):
+            title = str(selected.get("title") or "").strip()
+            url = str(
+                selected.get("url")
+                or selected.get("canonical_url")
+                or ""
+            ).strip()
+            if title and re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+                return {"title": title, "url": url}
+
         canonical_context = str(
             context_data.get("canonical_link_context")
             or context_data.get("context_blocks")
@@ -4330,7 +4346,7 @@ def _formation_entrance_error(message, error_type, status_code=400):
 
 # v488.36 startup audit: verify the Basic Inquiry seam against the protected core.
 _v48831_basic_inquiry_seam_self_audit()
-# v489.06 startup audit: verify answer/navigation separation and recommendation envelope.
+# v489.07 startup audit: verify answer/navigation separation and canonical doorway propagation.
 _v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
