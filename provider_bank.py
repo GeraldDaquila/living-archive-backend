@@ -1,8 +1,19 @@
 """Provider-neutral model bank for USE."""
-import json, os, time, urllib.error, urllib.parse, urllib.request
+import json, os, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 
-CONTRACT_VERSION = "v2"
+from provider_resilience import (
+    CONTRACT_VERSION as RESILIENCE_CONTRACT_VERSION,
+    acquire_probe,
+    aggregate_provider_health,
+    blocked,
+    new_state,
+    record_failure,
+    record_success,
+    state_summary,
+)
+
+CONTRACT_VERSION = "v3"
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
 
 class ProviderCallError(RuntimeError):
@@ -19,35 +30,29 @@ def _csv(name):
 
 def _state(provider, model):
     key = provider + ":" + model
-    return _STATE["models"].setdefault(key, {
-        "provider": provider, "model": model, "failures": 0,
-        "cooldown_until": 0.0, "quarantine_until": 0.0,
-        "last_error": "", "last_success": 0.0, "category": ""
-    })
+    return _STATE["models"].setdefault(key, new_state(provider, model))
 
 def _blocked(state):
-    return max(float(state.get("cooldown_until", 0)), float(state.get("quarantine_until", 0))) > time.time()
+    return blocked(state)
 
 def _failure(exc, provider, model):
-    s = _state(provider, model)
-    now = time.time()
+    state = _state(provider, model)
     text = str(exc)
     low = text.casefold()
-    s["failures"] = int(s.get("failures", 0)) + 1
-    s["last_error"] = text[:500]
     status = getattr(exc, "status_code", None)
     retry_after = getattr(exc, "retry_after", None)
     category = getattr(exc, "category", "provider_failure")
+
     if "terms_required" in low or "requires terms acceptance" in low:
-        category, s["quarantine_until"] = "terms_required", now + 3600
+        category = "terms_required"
     elif status in {401, 403} or "unauthorized" in low or "forbidden" in low:
-        category, s["quarantine_until"] = "authentication", now + 900
+        category = "authentication"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
-        category, s["cooldown_until"] = "rate_limited", now + max(30.0, float(retry_after or 60))
+        category = "rate_limited"
     elif status == 402:
-        category, s["quarantine_until"] = "quota_or_billing", now + 1800
+        category = "quota_or_billing"
     elif status == 404:
-        category, s["quarantine_until"] = "model_unavailable", now + 3600
+        category = "model_unavailable"
     elif (
         status == 400
         and (
@@ -66,23 +71,31 @@ def _failure(exc, provider, model):
             or "jsondecodeerror" in low
         )
     ):
-        # A model that cannot satisfy USE's structured-output contract has
-        # failed the operation contract, even when the provider returned HTTP
-        # 200 and the local parser rejected the payload. Treat that as a model
-        # health failure, not a transient visitor failure, and quarantine the
-        # candidate so repeated turns do not pay the same latency penalty.
-        category, s["quarantine_until"] = "structured_output_contract", now + 3600
+        category = "structured_output_contract"
     elif "request too large" in low or ("context" in low and "length" in low):
-        category, s["quarantine_until"] = "request_too_large", now + 1800
-    else:
-        category = category or "provider_failure"
-        s["cooldown_until"] = now + min(300.0, 15.0 * (2 ** min(s["failures"] - 1, 4)))
-    s["category"] = category
+        category = "request_too_large"
+
+    delay = record_failure(
+        state,
+        category,
+        text,
+        retry_after=retry_after,
+    )
+    print(
+        "USE provider resilience: "
+        f"provider={provider}, model={model}, state=open, category={category}, "
+        f"cooldown_seconds={int(delay)}"
+    )
 
 def _success(provider, model):
-    s = _state(provider, model)
-    s.update({"failures": 0, "cooldown_until": 0.0, "quarantine_until": 0.0,
-              "last_error": "", "last_success": time.time(), "category": ""})
+    state = _state(provider, model)
+    was_recovery = str(state.get("state") or "") == "half_open"
+    record_success(state)
+    if was_recovery:
+        print(
+            "USE provider resilience: "
+            f"provider={provider}, model={model}, recovery_probe=success, state=healthy"
+        )
 
 def _http_json(url, headers, payload, provider, model):
     req = urllib.request.Request(
@@ -241,8 +254,12 @@ def route(*, use_core, messages, max_tokens, parse):
     last_error = ""
     for item in pool:
         provider, model = item["provider"], item["model"]
+        state = _state(provider, model)
+        if not acquire_probe(state):
+            continue
         try:
-            print("USE model bank attempt: provider=" + provider + ", model=" + model)
+            print("USE model bank attempt: provider=" + provider + ", model=" + model +
+                  ", state=" + str(state.get("state") or "healthy"))
             parsed = parse(_call(use_core, item, messages, max_tokens))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             _success(provider, model)
@@ -261,16 +278,24 @@ def snapshot(use_core):
         for provider, models in configured.items()
         for model in models
     ]
+    provider_states = {}
+    for item in all_items:
+        provider_states.setdefault(item["provider"], []).append(_state(item["provider"], item["model"]))
     return {
         "contract_version": CONTRACT_VERSION,
-        "selection_policy": "provider_health_aware",
+        "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
+        "selection_policy": "provider_health_aware_self_healing",
         "providers": sorted({x["provider"] for x in all_items}),
+        "provider_health": {
+            provider: aggregate_provider_health(states)
+            for provider, states in provider_states.items()
+        },
         "candidates": [
             {
                 "provider": x["provider"],
                 "model": x["model"],
                 "blocked": _blocked(_state(x["provider"], x["model"])),
-                "state": dict(_state(x["provider"], x["model"])),
+                "state": state_summary(_state(x["provider"], x["model"])),
             }
             for x in all_items
         ],
