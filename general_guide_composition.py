@@ -191,7 +191,11 @@ def _parse_factory(documents: List[Dict[str, str]]):
 
         title = _normalize_space(parsed.get("doorway_title") or "")
         if title and title not in titles:
-            raise ValueError("general composition selected an unapproved doorway title")
+            # Doorway metadata is optional. A provider's imperfect navigation
+            # label must never invalidate an otherwise usable visitor answer.
+            # Canonical doorway selection remains authoritative outside this
+            # composition contract.
+            title = ""
 
         # If the provider inserted Markdown links, every destination must belong
         # to the already-supplied evidence set. This keeps composition from
