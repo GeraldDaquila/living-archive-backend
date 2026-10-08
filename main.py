@@ -2940,7 +2940,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         # Archive page; it does not infer a URL from generated prose or provider
         # output. More specific retrieved doorways always take precedence.
         normalized_query = _normalize_query(query)
-        if re.search(r"\\bstewardship\\b", normalized_query, re.I):
+        if re.search(r"\bstewardship\b", normalized_query, re.I):
             return {
                 "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
                 "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
