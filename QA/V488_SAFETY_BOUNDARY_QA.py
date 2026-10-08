@@ -128,7 +128,7 @@ def main():
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
     assert 'APP_VERSION = "v488.75"' in main_source
-    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.67"' in main_source
+    assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"' in main_source
     assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.75-provider-health-boundary"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
