@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.05"' in MAIN_TEXT, "main.py version is not v489.05")
+    assert_true('APP_VERSION = "v489.06"' in MAIN_TEXT, "main.py version is not v489.06")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -214,7 +214,14 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V489.05 GENERAL GUIDE COMPOSITION QA: PASS")
+    # Recommendation is a first-class Guide response contract, independent of provider success.
+    assert_true("def _normalize_authoritative_recommendation" in main_source, "recommendation normalization helper missing")
+    assert_true('"recommendation": authoritative_doorway' in main_source, "ordinary response recommendation field is not bound to authoritative doorway")
+    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in main_source, "recommendation is not resolved before composition")
+    assert_true("One relevant place to continue is [" not in main_source, "doorway prose still leaks into ordinary answer construction")
+    assert_true('"recommendation": recovery_recommendation' in main_source, "recovery response lost structured recommendation")
+
+    print("V489.06 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
