@@ -140,7 +140,7 @@ def main():
         )
         assert_true(composed is not None, "provider-neutral composition seam returned no result")
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
-        assert_true("You can use that idea" in composed["response"], "ordinary visitor language was falsely rejected")
+        assert_true(composed["response"].startswith("Stewardship is about taking responsibility"), "validated visitor prose was not preserved")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
 
         # Navigation must be supplied structurally by the Guide, never embedded
