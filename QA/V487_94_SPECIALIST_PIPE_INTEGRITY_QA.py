@@ -12,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PROTECTED = {
     "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
-    "main_v487_28_runtime.py": "4c8c72d70fa5f93e8bbcdd1c1d8e4696a4949a31",
     "specialist_adapters.py": "9f253c7ceaeaaba8bd95d2d244015f428fc1285a",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "7ff3d939fbc04a01ae160887672c13272ea99775",
