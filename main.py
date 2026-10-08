@@ -474,26 +474,26 @@ def _explicit_bounded_archive_request(query):
 RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
 
 _RELATIONAL_COUNTERPART_PATTERNS = (
-    r"\\bmy\\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\\b",
-    r"\\b(?:someone|somebody|a person|another person|people|person)\\s+(?:i|we)\\s+(?:care about|love|trust|work with)\\b",
-    r"\\b(?:someone|somebody|a person)\\s+(?:close to|important to)\\s+me\\b",
-    r"\\b(?:between us|between me and|between you and)\\b",
-    r"\\b(?:our|this|the)\\s+relationship\\b",
-    r"\\b(?:with|from)\\s+(?:someone|somebody|my)\\b",
+    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
+    r"\b(?:someone|somebody|a person|another person|people|person)\s+(?:i|we)\s+(?:care about|love|trust|work with)\b",
+    r"\b(?:someone|somebody|a person)\s+(?:close to|important to)\s+me\b",
+    r"\b(?:between us|between me and|between you and)\b",
+    r"\b(?:our|this|the)\s+relationship\b",
+    r"\b(?:with|from)\s+(?:someone|somebody|my)\b",
 )
 
 _RELATIONAL_DYNAMIC_PATTERNS = (
-    r"\\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\\s+down|stop(?:s|ped|ping)?\\s+talking|go(?:es|ing)?\\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\\s+asking|keeps?\\s+doing|same\\s+thing|same\\s+argument|same\\s+fight|same\\s+pattern|cycle|loop)\\b",
-    r"\\b(?:gets?|becomes?|become)\\s+(?:angry|defensive|quiet|distant)\\b",
-    r"\\b(?:i|we)\\s+(?:keep|keeps|kept)\\b",
+    r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop)\b",
+    r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
+    r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
 )
 
 _RELATIONAL_INQUIRY_PATTERNS = (
-    r"\\b(?:i|we)\\s+(?:want|need|wonder|hope|wish)\\s+to\\s+(?:understand|figure out|make sense|see|know)\\b",
-    r"\\b(?:i|we)\\s+(?:don't|do not|can't|cannot|am not|are not)\\s+(?:understand|know|tell|see)\\b",
-    r"\\b(?:what(?:'s| is)|why|how)\\b.{0,120}\\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\\b",
-    r"\\b(?:understand|make sense of|figure out|explore|see)\\b.{0,100}\\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\\b",
-    r"\\b(?:i|we)\\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\\b",
+    r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
+    r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
+    r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
+    r"\b(?:understand|make sense of|figure out|explore|see)\b.{0,100}\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\b",
+    r"\b(?:i|we)\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\b",
 )
 
 
@@ -516,17 +516,17 @@ def _relational_boundary_decision(query):
     # are still relational exploration; they do not ask the Guide to retrieve a
     # bounded resource and therefore must not collapse the specialist boundary.
     bounded = bool(re.search(
-        r"\\b(?:find|show|lookup|look up|link to|url for|where is|where can i find|"
-        r"recommend (?:a|an|the)?\\s*(?:resource|article|essay|page)|"
-        r"suggest (?:a|an|the)?\\s*(?:resource|article|essay|page)|"
+        r"\b(?:find|show|lookup|look up|link to|url for|where is|where can i find|"
+        r"recommend (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"suggest (?:a|an|the)?\s*(?:resource|article|essay|page)|"
         r"which (?:resource|article|essay|page)|"
         r"what (?:resource|article|essay|page)|"
-        r"resource about|article about|essay about|page about)\\b",
+        r"resource about|article about|essay about|page about)\b",
         q,
         re.I,
     ))
     definition = bool(re.search(
-        r"\\b(?:define|definition|meaning of|what does .* mean|what is the meaning of)\\b",
+        r"\b(?:define|definition|meaning of|what does .* mean|what is the meaning of)\b",
         q,
         re.I,
     ))
@@ -537,12 +537,12 @@ def _relational_boundary_decision(query):
             "reason": "bounded_archive_or_definition_request",
         }
 
-    first_person = bool(re.search(r"\\b(?:i|i'm|im|me|my|we|our|us)\\b", q, re.I))
+    first_person = bool(re.search(r"\b(?:i|i'm|im|me|my|we|our|us)\b", q, re.I))
     counterpart = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_COUNTERPART_PATTERNS)
     dynamic = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_DYNAMIC_PATTERNS)
     inquiry = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INQUIRY_PATTERNS)
-    relational_term = bool(re.search(r"\\b(?:relationship|relationships|interpersonal|relational)\\b", q, re.I))
-    explicit_between = bool(re.search(r"\\b(?:between us|between me and|between you and)\\b", q, re.I))
+    relational_term = bool(re.search(r"\b(?:relationship|relationships|interpersonal|relational)\b", q, re.I))
+    explicit_between = bool(re.search(r"\b(?:between us|between me and|between you and)\b", q, re.I))
 
     score = 0
     if counterpart or relational_term or explicit_between:
@@ -566,7 +566,7 @@ def _relational_boundary_decision(query):
     # A compact relational sentence may omit an explicit counterpart while
     # still clearly describing a mutual interaction (e.g. "we keep arguing").
     # Require both first-person plural framing and an interactional dynamic.
-    if not open_boundary and first_person and bool(re.search(r"\\bwe\\b", q)) and dynamic and inquiry:
+    if not open_boundary and first_person and bool(re.search(r"\bwe\b", q)) and dynamic and inquiry:
         open_boundary = True
 
     return {
@@ -587,60 +587,12 @@ def _relational_boundary_decision(query):
     }
 
 
-def _should_open_relationship_specialist(query, interpretation=None):
-    """Compatibility wrapper around the single authoritative boundary contract."""
-    decision = _relational_boundary_decision(query)
-    return bool(decision.get("open"))
-
-
-# v488.72 regression probes: these represent the actual visitor language that
-# previously escaped into Basic Inquiry. They are intentionally phrased without
-# requiring the visitor to know the words "relationship" or "relational".
-_RELATIONAL_BOUNDARY_PROBES = (
-    "My husband and I keep having the same argument about money. We both care about each other, but somehow we end up defensive and stop talking. I want to understand what is happening between us.",
-    "I keep getting angry with someone I care about, and I don't know what to do with that anger. Is there anything in the Living Archive that might help me think about it?",
-    "My colleague and I keep misunderstanding each other. I want to understand why our conversations become tense and then go nowhere.",
-    "Whenever I bring something up, my partner becomes defensive, I get angry, they withdraw, and a few days later the same thing happens again.",
-)
-for _relational_probe in _RELATIONAL_BOUNDARY_PROBES:
-    if not _relational_boundary_decision(_relational_probe).get("open"):
-        raise RuntimeError("USE v488.72 invariant failed: natural relational boundary probe not recognized")
-
-_RELATIONAL_BOUNDARY_NEGATIVE_PROBES = (
-    "What is the meaning of relationship in the Living Archive?",
-    "Find an article about setting boundaries in relationships.",
-    "What is a healthy relationship?",
-)
-for _relational_probe in _RELATIONAL_BOUNDARY_NEGATIVE_PROBES:
-    if _relational_boundary_decision(_relational_probe).get("open"):
-        raise RuntimeError("USE v488.72 invariant failed: bounded/topical relationship request was misrouted")
-
-
-def _should_open_relationship_specialist(query, interpretation=None):
-    """Systemic Guide-side arbitration for lived relational inquiries.
-    
-    The visitor's processing need is determined from the form of the request,
-    not from a potentially over-broad model label. A lived relational inquiry
-    remains relational unless the visitor explicitly asks the Guide to perform
-    a bounded retrieval/definition/lookup operation.
-    """
-    structure = _lived_relational_structure(query)
-    if not structure["lived_relational"]:
-        return False
-    if structure["bounded_lookup"] or _explicit_bounded_archive_request(query):
-        return False
-    return True
-
-
 _route_probe_lived_relational = "I promised my father I'd take care of something for him. At the time it felt natural. Now the responsibility has become much bigger than I expected, and part of me wants to back out. But I gave him my word."
 if not _lived_relational_structure(_route_probe_lived_relational)["lived_relational"]:
     raise RuntimeError("USE v487.88 routing invariant failed: lived relational structure not recognized")
-if not _should_open_relationship_specialist(_route_probe_lived_relational, {"processing_need": "retrieval"}):
+if not _relational_boundary_decision(_route_probe_lived_relational).get("open"):
     raise RuntimeError("USE v487.88 routing invariant failed: model retrieval label suppressed lived relational routing")
-if _should_open_relationship_specialist(
-    "Is there an article in the Living Archive about setting boundaries with a parent?",
-    {"processing_need": "retrieval"},
-):
+if _relational_boundary_decision("Is there an article in the Living Archive about setting boundaries with a parent?").get("open"):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
 
 # v488.71 regression guard: natural-language conflict nouns must count as
@@ -652,7 +604,7 @@ _route_probe_argument_noun = (
 )
 if not _lived_relational_structure(_route_probe_argument_noun)["lived_relational"]:
     raise RuntimeError("USE v488.71 routing invariant failed: argument-noun relational inquiry not recognized")
-if not _should_open_relationship_specialist(_route_probe_argument_noun, {"processing_need": "orientation"}):
+if not _relational_boundary_decision(_route_probe_argument_noun).get("open"):
     raise RuntimeError("USE v488.69 routing invariant failed: argument-noun inquiry did not open relationship specialist")
 
 # v488.69 regression guard: natural-language fight nouns must remain inside
@@ -661,7 +613,7 @@ _route_probe_fight_noun = (
     "I keep having the same fight with my partner, and I can't tell whether "
     "we're actually disagreeing about the issue or reacting to each other."
 )
-if not _should_open_relationship_specialist(_route_probe_fight_noun, {"processing_need": "orientation"}):
+if not _relational_boundary_decision(_route_probe_fight_noun).get("open"):
     raise RuntimeError("USE v488.69 routing invariant failed: fight-noun inquiry did not open relationship specialist")
 
 # v487.92 regression guard: relational reciprocity must route to Seeing the
@@ -673,7 +625,7 @@ _route_probe_reciprocity = (
 )
 if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]:
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity pattern not recognized")
-if not _should_open_relationship_specialist(_route_probe_reciprocity, {"processing_need": "orientation"}):
+if not _relational_boundary_decision(_route_probe_reciprocity).get("open"):
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
 
 # v487.95 regression guard: the observed defensive/anger/withdrawal cycle must
@@ -685,9 +637,7 @@ _route_probe_defensive_cycle = (
 )
 if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
     raise RuntimeError("USE v487.97 routing invariant failed: defensive cycle not recognized")
-if not _should_open_relationship_specialist(
-    _route_probe_defensive_cycle, {"processing_need": "orientation"}
-):
+if not _relational_boundary_decision(_route_probe_defensive_cycle).get("open"):
     raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle did not open relationship specialist")
 
 # v487.97 regression guard: workplace/authority relationships must use the
@@ -702,7 +652,7 @@ _route_probe_authority_relationship = (
 )
 if not _lived_relational_structure(_route_probe_authority_relationship)["lived_relational"]:
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace relational structure not recognized")
-if not _should_open_relationship_specialist(_route_probe_authority_relationship, {"processing_need": "orientation"}):
+if not _relational_boundary_decision(_route_probe_authority_relationship).get("open"):
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
 
 
