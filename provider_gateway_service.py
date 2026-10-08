@@ -64,7 +64,7 @@ def validate_request(body: Mapping[str, Any]) -> tuple[str, list[dict[str, str]]
     max_tokens = max(128, min(3000, int(body.get("max_tokens") or 600)))
     return operation, normalized, max_tokens
 
-def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, use_core: Any) -> dict[str, Any]:
+def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, use_core: Any, schema: Mapping[str, Any] | None = None) -> dict[str, Any]:
     def parse(raw: str) -> dict[str, Any]:
         import json
         value = json.loads(str(raw or "").strip())
