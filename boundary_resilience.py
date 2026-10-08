@@ -49,9 +49,11 @@ class StaleAuthorityCache:
     def __init__(
         self,
         *,
+        fresh_ttl_seconds: float = 300.0,
         max_stale_seconds: float = 3600.0,
         failure_retry_seconds: float = 30.0,
     ) -> None:
+        self.fresh_ttl_seconds = float(fresh_ttl_seconds)
         self.max_stale_seconds = float(max_stale_seconds)
         self.failure_retry_seconds = float(failure_retry_seconds)
         self._snapshot: Optional[BoundarySnapshot] = None
@@ -61,7 +63,7 @@ class StaleAuthorityCache:
 
         if self._snapshot is not None:
             age = now - self._snapshot.fetched_at
-            if self._snapshot.state == FRESH and age < self.max_stale_seconds:
+            if self._snapshot.state == FRESH and age < self.fresh_ttl_seconds:
                 return copy.deepcopy(self._snapshot.value), FRESH
             if (
                 self._snapshot.failure_at
