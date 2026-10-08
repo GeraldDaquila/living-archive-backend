@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.01 — Provider-neutral General Guide composition
+# USE PRODUCTION VERSION: v489.02 — General Guide readability + canonical doorway boundary
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.01"
-DEPLOYMENT_FINGERPRINT = "USE-v489.01-provider-neutral-general-guide-composition"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.01-provider-neutral-general-guide-composition"
+APP_VERSION = "v489.02"
+DEPLOYMENT_FINGERPRINT = "USE-v489.02-general-guide-readability-canonical-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.02-general-guide-readability-canonical-doorway"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.01":
+if str(APP_VERSION) != "v489.02":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.1":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -2653,15 +2653,9 @@ Return ONLY valid JSON with exactly:
 
 
 def _sanitize_basic_inquiry_response(text):
-    """Enforce the visitor-language boundary on provider-composed Guide prose.
-
-    Provider output may contain internal labels even when the composition prompt
-    forbids them. Those labels are implementation metadata, not visitor content.
-    The Guide therefore removes them at the final Basic Inquiry composition seam
-    rather than relying on provider obedience alone.
-    """
-    value = re.sub(r"\s+", " ", str(text or "").strip())
-    if not value:
+    """Enforce the visitor-language boundary while preserving readable structure."""
+    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not raw:
         return ""
 
     internal_bracket_patterns = (
@@ -2673,7 +2667,7 @@ def _sanitize_basic_inquiry_response(text):
         r"retrieval|synthesis|processing layer)\)\s*",
     )
     for pattern in internal_bracket_patterns:
-        value = re.sub(pattern, " ", value, flags=re.I)
+        raw = re.sub(pattern, " ", raw, flags=re.I)
 
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
@@ -2684,13 +2678,22 @@ def _sanitize_basic_inquiry_response(text):
         (r"\b(?:retrieval|synthesis)\s+layer\b", "the material"),
     )
     for pattern, replacement in replacements:
-        value = re.sub(pattern, replacement, value, flags=re.I)
+        raw = re.sub(pattern, replacement, raw, flags=re.I)
 
-    value = re.sub(r"\s+([,.;!?])", r"\1", value)
-    value = re.sub(r"([.!?])\s*\1+", r"\1", value)
-    value = re.sub(r"\.{2,}", ".", value)
-    value = re.sub(r"\s{2,}", " ", value).strip()
-    return value
+    paragraphs = []
+    for block in re.split(r"\n\s*\n+", raw):
+        lines = []
+        for line in block.split("\n"):
+            line = re.sub(r"\s+", " ", line).strip()
+            if not line:
+                continue
+            line = re.sub(r"\s+([,.;!?])", r"\1", line)
+            line = re.sub(r"([.!?])\s*\1+", r"\1", line)
+            lines.append(line)
+        if lines:
+            paragraphs.append(" ".join(lines))
+
+    return "\n\n".join(paragraphs).strip()
 
 
 _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
@@ -2845,6 +2848,36 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     }
 
 
+def _general_guide_authoritative_doorway(query, context_data):
+    """Select one canonical doorway independently of provider composition.
+
+    Provider composition may explain the subject, but it never owns public
+    navigation authority. USE selects a doorway from the already retrieved
+    canonical context and attaches it only after the answer has been accepted.
+    """
+    if not isinstance(context_data, dict):
+        return None
+    try:
+        profile = _base._inquiry_profile(query)
+        if profile.get("risk") or profile.get("action") == "risk":
+            return None
+        canonical_context = str(
+            context_data.get("canonical_link_context")
+            or context_data.get("context_blocks")
+            or ""
+        )
+        docs = _parse_context_documents(canonical_context)
+        if not docs:
+            return None
+        return _canonical_primary_from_docs(docs, query, profile)
+    except Exception as exc:
+        print(
+            "The Guide General Composition doorway selection failed safely: "
+            + str(exc)[:300]
+        )
+        return None
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -2874,12 +2907,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if composition_result:
                 llm_output = composition_result.get("response", "")
+                authoritative_doorway = _general_guide_authoritative_doorway(
+                    query, context_data
+                )
+                if authoritative_doorway:
+                    doorway_title = str(authoritative_doorway.get("title") or "").strip()
+                    doorway_url = str(
+                        authoritative_doorway.get("url")
+                        or authoritative_doorway.get("canonical_url")
+                        or ""
+                    ).strip()
+                    if doorway_title and re.match(r"^https://\S+$", doorway_url, re.I):
+                        if doorway_url not in str(llm_output):
+                            llm_output = (
+                                str(llm_output).rstrip()
+                                + "\n\n"
+                                + f"If you'd like to explore this further, [{doorway_title}]({doorway_url}) is a useful place to begin."
+                            )
                 print(
                     "The Guide General Composition: "
                     f"provider={composition_result.get('provider') or 'unknown'}, "
                     f"model={composition_result.get('model') or 'unknown'}, "
                     f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                    f"doorway={composition_result.get('doorway_title') or 'none'}"
+                    f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
                 )
             else:
                 print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
