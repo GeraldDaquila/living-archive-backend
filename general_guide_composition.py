@@ -14,7 +14,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1"
+CONTRACT_VERSION = "v1.1"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -62,6 +62,8 @@ Do not manufacture a follow-up question merely to continue the interaction. If a
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
+Presentation matters. Preserve readable paragraph breaks in the response. For explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
+
 Return ONLY valid JSON:
 {"response":"visitor-facing answer","doorway_title":"exact supplied title if one doorway is especially useful, otherwise empty","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
 """.strip()
@@ -72,10 +74,12 @@ def _normalize_space(value: Any) -> str:
 
 
 def _sanitize_candidate(text: Any) -> str:
-    value = _normalize_space(text)
-    if not value:
+    """Normalize visitor prose while preserving meaningful Markdown structure."""
+    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not raw:
         return ""
-    value = _INTERNAL_BRACKET.sub(" ", value)
+
+    raw = _INTERNAL_BRACKET.sub(" ", raw)
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
@@ -84,10 +88,22 @@ def _sanitize_candidate(text: Any) -> str:
         (r"\b(?:retrieval|synthesis|processing) layer\b", "the material"),
     )
     for pattern, replacement in replacements:
-        value = re.sub(pattern, replacement, value, flags=re.I)
-    value = re.sub(r"\s+([,.;!?])", r"\1", value)
-    value = re.sub(r"([.!?])\s*\1+", r"\1", value)
-    return re.sub(r"\s{2,}", " ", value).strip()
+        raw = re.sub(pattern, replacement, raw, flags=re.I)
+
+    paragraphs = []
+    for block in re.split(r"\n\s*\n+", raw):
+        lines = []
+        for line in block.split("\n"):
+            line = re.sub(r"\s+", " ", line).strip()
+            if not line:
+                continue
+            line = re.sub(r"\s+([,.;!?])", r"\1", line)
+            line = re.sub(r"([.!?])\s*\1+", r"\1", line)
+            lines.append(line)
+        if lines:
+            paragraphs.append(" ".join(lines))
+
+    return "\n\n".join(paragraphs).strip()
 
 
 def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List[Dict[str, str]]:
