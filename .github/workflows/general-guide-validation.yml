@@ -1,5 +1,9 @@
 name: General Guide Composition Validation
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   push:
     branches: [main]
@@ -10,6 +14,7 @@ on:
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
       - "wordpress/the-guide-frontend.html"
+      - "tests/e2e/the-guide-browser-smoke.cjs"
       - ".github/workflows/general-guide-validation.yml"
   pull_request:
     paths:
@@ -31,3 +36,23 @@ jobs:
         run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
       - name: Verify single-owner WordPress Guide frontend
         run: python QA/WORDPRESS_GUIDE_FRONTEND_QA.py
+      - uses: dorny/paths-filter@v3
+        id: frontend-changes
+        with:
+          filters: |
+            guide_frontend:
+              - 'wordpress/the-guide-frontend.html'
+              - 'tests/e2e/the-guide-browser-smoke.cjs'
+      - uses: actions/setup-node@v4
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        with:
+          node-version: "22"
+      - name: Install pinned Playwright
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: npm install --no-save playwright@1.56.1
+      - name: Install Chromium
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Verify live Guide browser contract
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/the-guide-browser-smoke.cjs
