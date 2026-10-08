@@ -1,4 +1,4 @@
-"""v488.76 provider-resilience structural and behavioral QA."""
+"""v488.77 provider-resilience structural and behavioral QA."""
 from pathlib import Path
 import ast
 
@@ -41,9 +41,9 @@ def main():
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
 
-    assert 'APP_VERSION = "v488.76"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.76-provider-resilience"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v488.76-provider-resilience"' in main_source
+    assert 'APP_VERSION = "v488.77"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.77-boundary-resilience"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v488.77-boundary-resilience"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
