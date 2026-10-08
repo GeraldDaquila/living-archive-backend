@@ -11,7 +11,7 @@ from shared_intelligence_primitives import normalize_claims as _shared_normalize
 from pathlib import Path
 from urllib.parse import quote
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
-from fastapi import Request
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from hub_contracts import (
