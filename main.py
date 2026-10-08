@@ -4330,7 +4330,7 @@ def _formation_entrance_error(message, error_type, status_code=400):
 
 # v488.36 startup audit: verify the Basic Inquiry seam against the protected core.
 _v48831_basic_inquiry_seam_self_audit()
-# v489.05 startup audit: verify answer/navigation separation and provider-neutral quality contract.
+# v489.06 startup audit: verify answer/navigation separation and recommendation envelope.
 _v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
