@@ -47,7 +47,6 @@ def main():
     current_version = version_match.group(1)
     assert f'DEPLOYMENT_FINGERPRINT = "USE-{current_version}-' in main_source
     assert f'CANONICAL_BUILD_ID = "USE-BUILD-{current_version}-' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.77-boundary-resilience"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
