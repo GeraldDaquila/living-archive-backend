@@ -334,6 +334,25 @@ def select(use_core, operation="generic", schema=None):
         selected.extend(models)
     return selected
 
+def _normalize_operation_result(operation, parsed):
+    if operation == "hrn_relational":
+        response = parsed.get("response")
+        question = parsed.get("question")
+        if not isinstance(response, str) or not response.strip():
+            raise ValueError("hrn_relational composition contract requires response")
+        if not isinstance(question, str) or not question.strip():
+            raise ValueError("hrn_relational composition contract requires question")
+        # These are transport/envelope controls, not semantic content. Supplying
+        # their neutral values keeps provider variation from leaking into HRN's
+        # frozen composition validator.
+        if "rest" not in parsed:
+            parsed["rest"] = False
+        if "use_resource" not in parsed:
+            parsed["use_resource"] = False
+        if "resource_intro" not in parsed:
+            parsed["resource_intro"] = ""
+    return parsed
+
 def _call(use_core, item, messages, max_tokens, schema=None):
     provider, model = item["provider"], item["model"]
     if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema)
@@ -375,6 +394,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   ", state=" + str(state.get("state") or "healthy"))
             parsed = parse(_call(use_core, item, messages, effective_max_tokens, schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
+            parsed = _normalize_operation_result(operation, parsed)
             print(
                 "USE provider contract result: "
                 f"operation={operation}, provider={provider}, model={model}, "
