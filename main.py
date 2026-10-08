@@ -2904,10 +2904,21 @@ def _general_guide_authoritative_doorway(query, context_data):
             if title and re.match(r"^https://\S+$", url, re.I):
                 return {"title": title, "url": url}
 
-        # Final canonical-context fallback: the General Guide composition seam
-        # is already constrained to retrieved Archive documents. If the stricter
-        # outward relevance scorer cannot choose a primary doorway, choose the
-        # first valid supplied document rather than losing its URL entirely.
+        # Final canonical-context fallback: consume the same canonical
+        # link pairs already produced by USE. This is deliberately not a
+        # provider-generated navigation decision and does not create a second
+        # retrieval path. If structured document materialization is unavailable,
+        # the canonical link context itself remains authoritative for the URL.
+        try:
+            canonical_pairs = _base._canonical_pairs(canonical_context)
+        except Exception:
+            canonical_pairs = []
+        for title, url in canonical_pairs:
+            clean_title = str(title or "").strip()
+            clean_url = str(url or "").strip()
+            if clean_title and re.match(r"^https://geralddaquila\\.com/\\S+$", clean_url, re.I):
+                return {"title": clean_title, "url": clean_url}
+
         try:
             supplied = general_guide_composition._documents_from_context(
                 use_core, context_data
@@ -2919,7 +2930,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                 continue
             title = str(item.get("title") or "").strip()
             url = str(item.get("url") or item.get("canonical_url") or "").strip()
-            if title and re.match(r"^https://\S+$", url, re.I):
+            if title and re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
                 return {"title": title, "url": url}
         return None
     except Exception as exc:
