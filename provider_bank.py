@@ -225,6 +225,7 @@ def _configured(use_core):
         workers = _csv("USE_WORKERS_AI_MODELS")
         if gateway: out["cloudflare_gateway"] = gateway
         if workers: out["workers_ai"] = workers
+        elif not gateway: out["workers_ai"] = ["@cf/meta/llama-3.3-70b-instruct-fp8-fast"]
     return out
 
 def candidates(use_core, operation="generic"):
