@@ -5,8 +5,11 @@ It does not select a provider itself. All generative work crosses the
 Provider Bank so no individual LLM is an architectural dependency.
 """
 
+import hashlib
 import json
 import re
+import threading
+from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from provider_bank import (
@@ -17,6 +20,26 @@ from provider_bank import (
 CONTRACT_VERSION = "v1.1"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
+
+# Repeated identical Guide questions must not be re-composed by whichever
+# provider happens to be next in the rotating Provider Bank. Cache only the
+# validated visitor-facing composition, keyed by the exact question, recent
+# history, grounding evidence, and current composition instructions. This is
+# bounded process-local memoization; retrieval and canonical doorway selection
+# still run on every request and remain authoritative.
+_COMPOSITION_CACHE_MAX_ENTRIES = 256
+_COMPOSITION_CACHE = OrderedDict()
+_COMPOSITION_CACHE_LOCK = threading.Lock()
+
+
+def _composition_cache_key(user_content: str) -> str:
+    material = "\\0".join((
+        CONTRACT_VERSION,
+        VISITOR_LANGUAGE_BOUNDARY_VERSION,
+        _GENERAL_GUIDE_SYSTEM,
+        user_content,
+    ))
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 _INTERNAL_LANGUAGE = re.compile(
     r"(?:canonical evidence|supplied evidence|evidence excerpt|"
@@ -267,6 +290,13 @@ def compose(
         f"Archive material available to ground the answer:\n{_evidence_payload(documents)}"
     )
 
+    cache_key = _composition_cache_key(user_content[:10000])
+    with _COMPOSITION_CACHE_LOCK:
+        cached = _COMPOSITION_CACHE.get(cache_key)
+        if cached is not None:
+            _COMPOSITION_CACHE.move_to_end(cache_key)
+            return dict(cached)
+
     result = route_with_model_bank(
         use_core=use_core,
         operation=OPERATION,
@@ -281,13 +311,28 @@ def compose(
         return None
 
     parsed = result["parsed"]
-    return {
+    candidate = {
         "response": parsed["response"],
         "doorway_title": parsed["doorway_title"],
         "response_shape": parsed["response_shape"],
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+
+    # If identical requests arrive concurrently, the first validated answer
+    # wins; every concurrent caller returns that same answer. This prevents
+    # response races without serializing unrelated questions.
+    with _COMPOSITION_CACHE_LOCK:
+        cached = _COMPOSITION_CACHE.get(cache_key)
+        if cached is not None:
+            _COMPOSITION_CACHE.move_to_end(cache_key)
+            return dict(cached)
+
+        _COMPOSITION_CACHE[cache_key] = dict(candidate)
+        while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
+            _COMPOSITION_CACHE.popitem(last=False)
+
+    return candidate
 
 
 def contract_snapshot() -> Dict[str, Any]:
