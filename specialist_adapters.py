@@ -19,6 +19,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Protocol, Tuple
 
+from boundary_resilience import preserve_specialist_payload
+
 from specialist_registry import (
     SPECIALIST_PIPE_CONTRACT_VERSION,
     SpecialistContractError,
@@ -169,7 +171,7 @@ def invoke_specialist(
         raw_contribution.get("contract_version") or ""
     ).strip()
     if raw_contract_version != SPECIALIST_PIPE_CONTRACT_VERSION:
-        domain_payload = dict(raw_contribution)
+        domain_payload = preserve_specialist_payload(raw_contribution)
         raw_contribution = {
             "contract_version": SPECIALIST_PIPE_CONTRACT_VERSION,
             "request_id": context.request_id,
@@ -179,6 +181,8 @@ def invoke_specialist(
             "canonical_candidates": domain_payload.get("canonical_candidates"),
             "boundary_notes": domain_payload.get("boundary_notes"),
             "safety_flags": domain_payload.get("safety_flags"),
+            # The complete domain contribution remains intact. The common pipe
+            # only adds ownership metadata; it never rewrites specialist text.
             "payload": domain_payload,
         }
 
