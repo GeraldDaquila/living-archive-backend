@@ -11886,6 +11886,27 @@ def fetch_canonical_context(
     )
     _v292_stage_started = time.perf_counter()
 
+    # First-class navigation authority: canonical doorway selection above is
+    # already the authoritative decision for this request. Carry that exact
+    # selected resource through the context contract so downstream composition
+    # does not re-run a second doorway selector and risk losing the URL.
+    authoritative_doorway = None
+    if retrieved_docs:
+        selected = retrieved_docs[0]
+        selected_title = _canonical_display_title(
+            str(selected.get("title") or selected.get("name") or "").strip()
+        )
+        selected_url = str(
+            selected.get("url")
+            or selected.get("canonical_url")
+            or ""
+        ).strip()
+        if selected_title and re.match(r"^https://geralddaquila\.com/\S+$", selected_url, re.I):
+            authoritative_doorway = {
+                "title": selected_title,
+                "url": selected_url,
+            }
+
     # v137: an explicit publication-family request must survive the final
     # doorway-selection cap once D20 has positively established the requested
     # resource type. Retrieval precision is not sufficient if the requested
@@ -12376,6 +12397,7 @@ def fetch_canonical_context(
         "canonical_link_context": canonical_link_context,
         "question_authority_protected_docs": question_authority_protected_docs,
         "generation_authority_protected_docs": generation_authority_protected_docs,
+        "authoritative_doorway": authoritative_doorway,
     }
 
 
