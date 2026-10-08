@@ -7,11 +7,14 @@ Live provider/E2E validation remains a deployment-stage responsibility.
 
 from pathlib import Path
 import re
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 import general_guide_composition as composition
 import provider_bank
 
-ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "main.py"
 MAIN_TEXT = MAIN.read_text(encoding="utf-8")
 
@@ -22,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.00"' in MAIN_TEXT, "main.py version is not v488.95")
+    assert_true('APP_VERSION = "v489.00"' in MAIN_TEXT, "main.py version is not v489.00")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
