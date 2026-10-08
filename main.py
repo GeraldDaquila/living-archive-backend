@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.77 — boundary resilience and voice sovereignty
+# USE PRODUCTION VERSION: v488.78 — provider capability arbitration and boundary resilience
 import asyncio
 import hashlib
 import ipaddress
@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.77"
-DEPLOYMENT_FINGERPRINT = "USE-v488.77-boundary-resilience"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.77-boundary-resilience"
+APP_VERSION = "v488.78"
+DEPLOYMENT_FINGERPRINT = "USE-v488.78-provider-capability-arbitration"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.78-provider-capability-arbitration"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
