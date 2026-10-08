@@ -26,16 +26,16 @@ PRODUCTION_GROQ_MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwe
 # Unknown models are intentionally conservative: discovery never grants
 # specialist eligibility by itself.
 MODEL_CAPABILITIES = {
-    ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # Qwen has structured-output support, but the live bank has observed
     # completion-bound JSON failures on the long HRN composition workload.
     # Keep it eligible for structured/short reasoning work, not composition.
-    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "relational_analysis", "low_latency"}),
-    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
-    ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
-    ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "relational_analysis", "low_latency"}),
+    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
+    ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
 OPERATION_TOKEN_FLOORS = {
@@ -284,7 +284,7 @@ def _capabilities(provider, model):
 def _operation_requirements(operation, schema):
     required = set(OPERATION_REQUIREMENTS.get(operation, frozenset()))
     if isinstance(schema, dict):
-        required.add("json_schema_strict")
+        required.add("json_schema_strict" if bool(schema.get("strict")) else "json_schema_best_effort")
     return required
 
 def _eligible(provider, model, operation, schema=None):
@@ -407,7 +407,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 parsed = _normalize_operation_result(operation, parsed)
             except ValueError:
                 recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
-                if not recovery_schema or "json_schema_strict" not in _capabilities(provider, model):
+                if not recovery_schema or not _capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}):
                     raise
                 print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=strict_schema")
                 recovered = parse(_call(use_core, item, messages, effective_max_tokens, recovery_schema))
