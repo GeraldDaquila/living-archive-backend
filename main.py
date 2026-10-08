@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.93 — Final visitor-response boundary
+# USE PRODUCTION VERSION: v488.94 — Provider-neutral General Guide composition
 import asyncio
 import hashlib
 import ipaddress
@@ -55,6 +55,8 @@ from provider_bank import (
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
 )
+import general_guide_composition
+from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
 from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, repair_safety_question, safety_intelligence_snapshot
@@ -65,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.93"
-DEPLOYMENT_FINGERPRINT = "USE-v488.93-final-visitor-response-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.93-final-visitor-response-boundary"
+APP_VERSION = "v488.94"
+DEPLOYMENT_FINGERPRINT = "USE-v488.94-provider-neutral-general-guide-composition"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.94-provider-neutral-general-guide-composition"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -172,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.93":
+if str(APP_VERSION) != "v488.94":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -192,6 +194,8 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
 if BOUNDARY_RESILIENCE_CONTRACT_VERSION != "v1":
@@ -2838,55 +2842,41 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     elif context_data.get("evidence_sufficiency_unavailable"):
         llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
     else:
-        round1_result = None
-        round1_gate = _basic_inquiry_round1_requires_discovery(query)
-        print(
-            "The Guide Round 1 gate: "
-            f"activated={round1_gate}, query={_normalize_query(query)[:120]}"
-        )
-        if round1_gate:
+        # All ordinary Guide questions now use the provider-neutral General Guide
+        # composition seam. The old Round 1 composer remains available as a historical
+        # specialist-era contract but is no longer the all-purpose generation path.
+        # Specialist routing has already completed at the request boundary above.
+        composition_result = None
+        try:
+            composition_result = general_guide_composition.compose(
+                use_core=use_core,
+                query=query,
+                context_data=context_data,
+                history_text=_history_text(history),
+            )
+            if composition_result:
+                llm_output = composition_result.get("response", "")
+                print(
+                    "The Guide General Composition: "
+                    f"provider={composition_result.get('provider') or 'unknown'}, "
+                    f"model={composition_result.get('model') or 'unknown'}, "
+                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
+                    f"doorway={composition_result.get('doorway_title') or 'none'}"
+                )
+            else:
+                print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
+                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
+        except Exception as exc:
+            print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
             try:
-                # Basic Inquiry owns this operation once native boundaries have
-                # been cleared. It must not call the capability router as a second,
-                # hidden specialist-classification layer. Round 1 composition receives
-                # the visitor's original question and canonical evidence directly.
-                # Any specialist handoff decision has already been made at the request
-                # boundary above; ordinary inquiry must remain ordinary inquiry.
-                interpretation = {}
-                round1_result = _basic_inquiry_round1_response(query, interpretation, context_data)
-                print("The Guide Basic Inquiry Round 1: discernment_source=direct_composition, capability_router=not_called")
-                if not round1_result:
-                    round1_result = _basic_inquiry_round1_deterministic_response(query, interpretation or {}, context_data)
-            except Exception as exc:
-                print(f"The Guide Round 1 discernment failed safely; using deterministic recovery: {exc}")
-                try:
-                    round1_result = _basic_inquiry_round1_deterministic_response(query, {}, context_data)
-                except Exception:
-                    round1_result = None
-
-        if round1_result:
-            llm_output = round1_result.get("response", "")
-            print(
-                "The Guide Round 1: "
-                f"provider={round1_result.get('provider') or 'unknown'}, "
-                f"model={round1_result.get('model') or 'none'}, "
-                f"doorway={round1_result.get('doorway_title') or 'none'}"
-            )
-        else:
-            llm_output = use_core.generate_llm_response(
-                query,
-                context_data.get("context_blocks", ""),
-                context_data.get("intent", "TOPICAL_INQUIRY"),
-                orientational_frame=context_data.get("orientational_frame", {"primary": "general", "scores": {}}),
-                canonical_link_context=context_data.get("canonical_link_context", context_data.get("context_blocks", "")),
-                protected_documents=context_data.get("generation_authority_protected_docs", context_data.get("question_authority_protected_docs")),
-            )
+                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
+            except Exception:
+                llm_output = ""
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
-    # Round 1 has its own provider seam sanitizer, but factual/direct questions
-    # bypass Round 1 and may fall through to the protected core generator.
+    # General Guide Composition owns the generative path for ordinary questions.
     # No provider-generated prose is allowed to cross the public response
-    # boundary without the same visitor-language normalization.
+    # boundary without the final visitor-language normalization.
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
@@ -2918,6 +2908,26 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     }
     print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query={_normalize_query(query)[:120]}")
     return payload
+
+
+def _v48894_general_guide_composition_self_audit():
+    """Static contract audit for the provider-neutral all-purpose Guide seam."""
+    if not callable(getattr(general_guide_composition, "compose", None)):
+        raise RuntimeError("General Guide composition boundary is missing.")
+    snapshot = general_guide_composition.contract_snapshot()
+    if snapshot.get("contract_version") != "v1":
+        raise RuntimeError("General Guide composition contract version drift.")
+    if snapshot.get("provider_neutral") is not True:
+        raise RuntimeError("General Guide composition lost provider neutrality.")
+    if snapshot.get("operation") != "general_guide_composition":
+        raise RuntimeError("General Guide composition operation identity drift.")
+    import inspect as _inspect
+    source = _inspect.getsource(_basic_inquiry_response)
+    if "use_core.generate_llm_response" in source:
+        raise RuntimeError("General Guide structural isolation failure: legacy single-provider generation remains in the all-purpose path.")
+    if "general_guide_composition.compose" not in source:
+        raise RuntimeError("General Guide structural isolation failure: all-purpose path is not bound to General Composition.")
+    print("USE v488.94 GENERAL GUIDE COMPOSITION AUDIT: PASS; provider_neutral=True; legacy_single_provider_path=absent")
 
 
 def _v48831_basic_inquiry_seam_self_audit():
@@ -4190,6 +4200,8 @@ def _formation_entrance_error(message, error_type, status_code=400):
 
 # v488.36 startup audit: verify the Basic Inquiry seam against the protected core.
 _v48831_basic_inquiry_seam_self_audit()
+# v488.94 startup audit: verify the all-purpose Guide is structurally provider-neutral.
+_v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
 async def _formation_entrance_route(request: Request):
