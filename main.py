@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.97 — Provider-neutral General Guide composition
+# USE PRODUCTION VERSION: v488.98 — Provider-neutral General Guide composition
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.97"
-DEPLOYMENT_FINGERPRINT = "USE-v488.97-provider-neutral-general-guide-composition"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.97-provider-neutral-general-guide-composition"
+APP_VERSION = "v488.98"
+DEPLOYMENT_FINGERPRINT = "USE-v488.98-provider-neutral-general-guide-composition"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.98-provider-neutral-general-guide-composition"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.97":
+if str(APP_VERSION) != "v488.98":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2881,7 +2881,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
-    if re.search(r"\\bUSE\\b", response) or re.search(
+    if re.search(r"\bUSE\b", response) or re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|"
         r"bounded by the Guide|internal interpretation|retrieval layer|"
@@ -2890,7 +2890,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         r"implementation metadata|system instruction|debugging annotation)",
         response,
         re.I,
-    ):        raise RuntimeError(
+    ):
+        raise RuntimeError(
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
 
