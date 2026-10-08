@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.87"
-DEPLOYMENT_FINGERPRINT = "USE-v488.87-bounded-glossary-arbitration"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.87-bounded-glossary-arbitration"
+APP_VERSION = "v488.88"
+DEPLOYMENT_FINGERPRINT = "USE-v488.88-bounded-glossary-arbitration"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.88-bounded-glossary-arbitration"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -172,7 +172,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v488.87":
+if str(APP_VERSION) != "v488.88":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -516,6 +516,7 @@ _RELATIONAL_COUNTERPART_PATTERNS = (
 _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
     r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
+    r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
     r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
 )
 
