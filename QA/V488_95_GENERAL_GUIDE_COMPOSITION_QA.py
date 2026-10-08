@@ -17,6 +17,8 @@ import provider_bank
 
 MAIN = ROOT / "main.py"
 MAIN_TEXT = MAIN.read_text(encoding="utf-8")
+USE_CORE = ROOT / "use_core.py"
+USE_CORE_TEXT = USE_CORE.read_text(encoding="utf-8")
 
 
 def assert_true(condition, message):
@@ -222,7 +224,7 @@ def main():
     assert_true('"recommendation": recovery_recommendation' in main_source, "recovery response lost structured recommendation")
 
     # Canonical doorway authority must propagate directly from use_core into the Guide envelope.
-    assert_true('"authoritative_doorway": authoritative_doorway' in use_core_source, "use_core does not expose canonical doorway authority")
+    assert_true('"authoritative_doorway": authoritative_doorway' in USE_CORE_TEXT, "use_core does not expose canonical doorway authority")
     assert_true('context_data.get("authoritative_doorway")' in main_source, "Guide does not consume canonical doorway authority from use_core")
     assert_true('re-run a second doorway selector' in main_source or 'second doorway selector' in main_source, "recommendation boundary does not document single doorway authority")
 
