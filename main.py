@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.00 — Provider-neutral General Guide composition
+# USE PRODUCTION VERSION: v489.01 — Provider-neutral General Guide composition
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.00"
-DEPLOYMENT_FINGERPRINT = "USE-v489.00-provider-neutral-general-guide-composition"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.00-provider-neutral-general-guide-composition"
+APP_VERSION = "v489.01"
+DEPLOYMENT_FINGERPRINT = "USE-v489.01-provider-neutral-general-guide-composition"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.01-provider-neutral-general-guide-composition"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -2789,40 +2789,58 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
 
 
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):
-    """Safe fallback that preserves the Round 1 movement without provider prose."""
+    """Question-preserving emergency recovery when no composition provider is usable."""
     interpretation = interpretation or {}
+    question = _normalize_query(query)
     underlying = str(interpretation.get("underlying_question") or "").strip()
-    uncertainty = str(interpretation.get("uncertainty") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
-
-    if underlying and uncertainty:
-        opening = f"The question seems to sit between {underlying.rstrip('.')} and not yet knowing {uncertainty.rstrip('.')}."
-    elif underlying:
-        opening = f"The question may be pointing to something slightly deeper than its surface wording: {underlying.rstrip('.')}."
-    else:
-        opening = "There may be a useful distinction beneath the question that is easier to see once the surface question is separated from the explanation we might give it."
-
-    orientation = (
-        f"A useful next movement may be {movement.rstrip('.')}."
-        if movement
-        else "A useful next movement may be to stay with the part of the question that is still genuinely open, rather than deciding too quickly what explains it."
-    )
 
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
         documents = []
+    documents = [d for d in documents if isinstance(d, dict)]
+
     title = str(documents[0].get("title") or "").strip() if documents else ""
     url = str(documents[0].get("url") or documents[0].get("canonical_url") or "").strip() if documents else ""
+    content = str(
+        (documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "")
+        if documents else ""
+    ).strip()
+    content = re.sub(r"\s+", " ", content)
+
+    # Preserve the visitor's semantic request instead of substituting a generic
+    # reflective prompt. This is intentionally conservative: without a provider
+    # we do not invent a definition, but we can orient the visitor to the actual
+    # question and the strongest supplied Archive material.
+    if underlying:
+        opening = f"The question is asking about {underlying.rstrip('.')}."
+    elif question:
+        opening = f"Your question asks: {question.rstrip('?')}."
+    else:
+        opening = "The question is worth answering directly."
+
+    if content:
+        excerpt = content[:360].rstrip()
+        if len(content) > 360:
+            excerpt = excerpt.rsplit(" ", 1)[0] + "…"
+        explanation = f"The strongest Archive material available here begins from this idea: “{excerpt}”"
+    else:
+        explanation = "The available Archive material does not provide enough detail for a reliable answer yet."
+
     doorway = (
-        f"One related Archive lens is [{title}]({url}). It is a possible place to look, not an explanation of your experience."
+        f"One relevant place to continue is [{title}]({url})."
         if title and url else ""
     )
-    final_question = "What part of the question feels most important to understand first?"
+    closing = (
+        f"A useful next movement may be {movement.rstrip('.')}."
+        if movement else
+        "If you want a fuller explanation, the question can be taken up again when the Guide's composition resources are available."
+    )
     return {
-        "response": "\n\n".join(part for part in (opening, orientation, doorway, final_question) if part),
+        "response": "\n\n".join(part for part in (opening, explanation, doorway, closing) if part),
         "doorway_title": title,
-        "provider": "deterministic_round1",
+        "provider": "deterministic_question_preserving_recovery",
         "model": "",
     }
 
