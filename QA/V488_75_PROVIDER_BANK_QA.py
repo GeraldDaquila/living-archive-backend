@@ -31,7 +31,7 @@ def main():
     assert "acquire_probe(" in provider
     assert '"gemini-2.5-flash"' not in provider
     assert '["gemini-3.8-flash"]' in provider
-    assert 'CONTRACT_VERSION = "v3"' in provider
+    assert 'CONTRACT_VERSION = "v2"' in provider
 
     gemini_start = provider.index("def _gemini(")
     gemini_end = provider.index("\ndef _openai_compatible", gemini_start)
