@@ -49,6 +49,7 @@ from guide_node_registry import (
     active_nodes,
     node_handoff_payload,
 )
+from provider_gateway_service import CONTRACT_VERSION as PROVIDER_GATEWAY_CONTRACT_VERSION, authorize as authorize_provider_gateway, validate_request as validate_provider_gateway_request, execute as execute_provider_gateway
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
@@ -3975,6 +3976,36 @@ async def _use_request_boundary(scope, receive, send):
 
     # Exactly one fallback into the original protected application.
     await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
+
+
+PROVIDER_GATEWAY_RUNTIME_VERSION = "v1"
+
+@app.post("/api/provider-capability")
+async def _provider_capability_route(request: Request):
+    token = request.headers.get("X-Living-Archive-Provider-Key")
+    try:
+        authorize_provider_gateway(token)
+        body = await request.json()
+        if not isinstance(body, dict):
+            raise ValueError("Provider capability payload must be an object.")
+        operation, messages, max_tokens = validate_provider_gateway_request(body)
+        result = execute_provider_gateway(
+            operation=operation,
+            messages=messages,
+            max_tokens=max_tokens,
+            use_core=use_core,
+        )
+        status = 200 if result.get("ok") else 503
+        return JSONResponse(status_code=status, content=result)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print(f"USE provider capability gateway failure: {str(exc)[:400]}")
+        return JSONResponse(status_code=503, content={
+            "ok": False,
+            "contract_version": PROVIDER_GATEWAY_CONTRACT_VERSION,
+            "error": "provider_gateway_failure",
+        })
 
 
 FORMATION_ENTRANCE_CONTRACT_VERSION = "v1"
