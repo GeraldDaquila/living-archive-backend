@@ -456,6 +456,20 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             )
             _success(provider, model)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
+        except ValueError as exc:
+            # A semantic/composition contract rejection is not a provider-health
+            # failure. The provider answered; the composition seam rejected the
+            # result. Do not poison provider resilience state for an application-
+            # owned validation decision.
+            last_error = str(exc)
+            print(
+                "USE provider composition contract rejection: "
+                + "operation=" + operation
+                + ", provider=" + provider
+                + ", model=" + model
+                + ", error=" + last_error[:300]
+            )
+            continue
         except Exception as exc:
             last_error = str(exc)
             _failure(exc, provider, model)
