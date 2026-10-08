@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.84 — Relational boundary natural-language repair
+# USE PRODUCTION VERSION: v488.85 — Bounded glossary arbitration
 import asyncio
 import hashlib
 import ipaddress
@@ -65,9 +65,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.84"
-DEPLOYMENT_FINGERPRINT = "USE-v488.84-relational-boundary-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.84-relational-boundary-repair"
+APP_VERSION = "v488.85"
+DEPLOYMENT_FINGERPRINT = "USE-v488.85-bounded-glossary-arbitration"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.85-bounded-glossary-arbitration"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -626,6 +626,14 @@ if not _relational_boundary_decision(_route_probe_lived_relational).get("open"):
     raise RuntimeError("USE v487.88 routing invariant failed: model retrieval label suppressed lived relational routing")
 if _relational_boundary_decision("Is there an article in the Living Archive about setting boundaries with a parent?").get("open"):
     raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
+
+# v488.85 regression guard: compound definition questions remain ordinary Guide inquiries.
+if _is_bounded_glossary_request("What is stewardship?") is not True:
+    raise RuntimeError("USE v488.85 glossary invariant failed: simple definition was not recognized")
+if _is_bounded_glossary_request("What is stewardship and why it matters now more than ever?") is not False:
+    raise RuntimeError("USE v488.85 glossary invariant failed: compound definition question was misrouted to Glossary")
+if _is_bounded_glossary_request("What does stewardship mean here?") is not True:
+    raise RuntimeError("USE v488.85 glossary invariant failed: contextual definition was rejected")
 
 # v488.71 regression guard: natural-language conflict nouns must count as
 # lived relational action. "Argument" is relational structure even when the
@@ -1589,6 +1597,54 @@ def _normalize_glossary_term(query, interpretation=None):
     if embedded:
         return embedded
     return ""
+
+
+def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
+    """Return True only for a bounded vocabulary lookup.
+
+    A definition opening is not sufficient by itself. If the visitor adds a
+    second substantive question, the question remains with Basic Inquiry
+    rather than being reduced to a malformed glossary term.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+    term = str(glossary_term or "").strip()
+    embedded = str(embedded_term or "").strip()
+    if not normalized or not term:
+        return False
+
+    bounded_opening = bool(re.match(
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
+        normalized,
+        re.I,
+    ))
+    if not bounded_opening and not embedded:
+        return False
+
+    remainder = normalized
+    remainder = re.sub(
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\s+",
+        "",
+        remainder,
+        count=1,
+        flags=re.I,
+    )
+
+    # A compound/open question must stay with the general-purpose Guide.
+    # These patterns cover added significance, consequence, application,
+    # comparison, or second-question clauses.
+    compound_patterns = (
+        r"\band\s+(?:why|how|what|whether|when|where|who|can|could|should|does|do)\b",
+        r"\band\s+(?:why|how|what)\b.{0,160}\b(?:matter|matters|important|relevant|mean|means|work|apply|applied|practice|practiced|change|changed|today|now)\b",
+        r"\?\s*(?:why|how|what|whether|when|where|who)\b",
+    )
+    if any(re.search(pattern, remainder, re.I) for pattern in compound_patterns):
+        return False
+
+    # A bare lookup should be a term, not a sentence containing another
+    # proposition. Keep the native Glossary boundary deliberately narrow.
+    if len(re.findall(r"\b\w+\b", term)) > 8:
+        return False
+    return True
 
 
 def _extract_embedded_glossary_term(query):
@@ -3431,13 +3487,10 @@ async def _use_request_boundary(scope, receive, send):
     # allow ordinary Guide retrieval to answer it first.
     glossary_term = _normalize_glossary_term(query)
     embedded_glossary_term = _extract_embedded_glossary_term(query)
-    if glossary_term and (
-        re.match(
-            r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
-            _normalize_query(query),
-            re.I,
-        )
-        or embedded_glossary_term
+    if _is_bounded_glossary_request(
+        query,
+        glossary_term=glossary_term,
+        embedded_term=embedded_glossary_term,
     ):
         glossary_url = (
             "https://geralddaquila.com/glossary/?glossary_term="
