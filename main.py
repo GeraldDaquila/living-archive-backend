@@ -2867,9 +2867,29 @@ def _general_guide_authoritative_doorway(query, context_data):
             or ""
         )
         docs = _parse_context_documents(canonical_context)
-        if not docs:
-            return None
-        return _canonical_primary_from_docs(docs, query, profile)
+        if docs:
+            primary = _canonical_primary_from_docs(docs, query, profile)
+            if primary:
+                return primary
+
+        # For ordinary explanatory questions, canonical relevance scoring can
+        # legitimately be too strict even when USE has already protected a
+        # ranked, visitor-safe doorway for the composition. In that case the
+        # protected document set remains the authoritative fallback; we do not
+        # ask the provider to invent or restore the URL.
+        protected = (
+            context_data.get("generation_authority_protected_docs")
+            or context_data.get("question_authority_protected_docs")
+            or []
+        )
+        for item in protected:
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title") or "").strip()
+            url = str(item.get("url") or item.get("canonical_url") or "").strip()
+            if title and re.match(r"^https://\S+$", url, re.I):
+                return {"title": title, "url": url}
+        return None
     except Exception as exc:
         print(
             "The Guide General Composition doorway selection failed safely: "
@@ -2973,6 +2993,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "query": query,
         "intent": context_data.get("intent", "TOPICAL_INQUIRY"),
         "response": response,
+        "recommendation": (
+            {
+                "title": str(authoritative_doorway.get("title") or "").strip(),
+                "url": str(
+                    authoritative_doorway.get("url")
+                    or authoritative_doorway.get("canonical_url")
+                    or ""
+                ).strip(),
+            }
+            if "authoritative_doorway" in locals() and authoritative_doorway
+            else None
+        ),
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
