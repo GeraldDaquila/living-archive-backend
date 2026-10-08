@@ -21,9 +21,9 @@ OPERATION = "general_guide_composition"
 _INTERNAL_LANGUAGE = re.compile(
     r"(?:(?<![a-z])USE(?![a-z])|canonical evidence|supplied evidence|evidence excerpt|"
     r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
-    r"internal interpretation|retrieval|retrieval layer|synthesis|synthesis layer|"
-    r"processing layer|provider|model|route|handoff|machine-facing|"
-    r"implementation metadata|prompt|system instruction)\b",
+    r"internal interpretation|retrieval layer|synthesis layer|processing layer|"
+    r"provider bank|provider selection|model selection|route source|handoff|"
+    r"machine-facing|implementation metadata|system instruction|debugging annotation)\b",
     re.I,
 )
 _INTERNAL_BRACKET = re.compile(
