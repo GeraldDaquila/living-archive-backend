@@ -2251,7 +2251,7 @@ def _guide_capability_route(query, history=None):
     bank_result = route_with_model_bank(
         use_core=use_core,
         messages=messages,
-        max_tokens=900,
+        max_tokens=2048,
         parse=_parse,
     )
     if not bank_result:
