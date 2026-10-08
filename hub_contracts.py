@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional
+from boundary_resilience import preserve_specialist_payload
 
 
 HUB_CONTRACT_VERSION = "v1"
@@ -84,8 +85,8 @@ def validate_hub_contribution(
         raise HubContractError("Hub contribution must be a mapping.")
 
     contract_version = str(contribution.get("contract_version") or "").strip()
-    if contract_version and contract_version not in {HUB_CONTRACT_VERSION, "v1"}:
-        raise HubContractError("Unsupported hub contract version.")
+    if contract_version != HUB_CONTRACT_VERSION:
+        raise HubContractError("Unsupported or missing hub contract version.")
 
     request_id = str(contribution.get("request_id") or "").strip()
     if request_id != str(expected_request_id):
@@ -118,6 +119,10 @@ def validate_hub_contribution(
         }
     if not isinstance(payload, Mapping):
         raise HubContractError("Hub contribution payload must be a mapping.")
+    try:
+        payload = preserve_specialist_payload(payload)
+    except (TypeError, ValueError) as exc:
+        raise HubContractError(f"Hub contribution payload preservation failed: {exc}") from exc
 
     candidates = contribution.get("canonical_candidates") or []
     if not isinstance(candidates, (list, tuple)):
