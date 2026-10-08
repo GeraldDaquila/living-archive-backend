@@ -50,24 +50,11 @@ OPERATION_TOKEN_FLOORS = {
     "stewardship_pathway": 900,
 }
 
-OPERATION_SCHEMAS = {
-    "hrn_relational": {
-        "name": "hrn_relational_composition",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "additionalProperties": True,
-            "properties": {
-                "response": {"type": "string"},
-                "question": {"type": "string"},
-                "rest": {"type": "boolean"},
-                "use_resource": {"type": "boolean"},
-                "resource_intro": {"type": "string"},
-            },
-            "required": ["response", "question", "rest", "use_resource", "resource_intro"],
-        },
-    },
-}
+# Strict JSON schemas are opt-in. HRN composition deliberately uses the
+# provider-neutral JSON-object contract because its own protected validator
+# owns the semantic envelope. This prevents constrained decoding from starving
+# a long conversational composition before a valid object is emitted.
+OPERATION_SCHEMAS = {}
 
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
@@ -397,7 +384,9 @@ def _call(use_core, item, messages, max_tokens, schema=None):
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
-    effective_schema = schema if schema is not None else OPERATION_SCHEMAS.get(operation)
+    # Do not infer strict schemas from the operation. A specialist must
+    # explicitly request one; otherwise the bank uses JSON-object mode.
+    effective_schema = schema if isinstance(schema, dict) else None
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
@@ -444,8 +433,8 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.2",
-        "operation_schemas": {key: value["name"] for key, value in OPERATION_SCHEMAS.items()},
+        "capability_policy_version": "1.3",
+        "strict_schema_policy": "explicit_request_only",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "operation_requirements": {
             operation: sorted(requirements)
