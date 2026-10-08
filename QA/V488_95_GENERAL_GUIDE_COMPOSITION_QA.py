@@ -25,7 +25,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.03"' in MAIN_TEXT, "main.py version is not v489.03")
+    assert_true('APP_VERSION = "v489.04"' in MAIN_TEXT, "main.py version is not v489.04")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -41,6 +41,7 @@ def main():
 
     snapshot = composition.contract_snapshot()
     assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
+    assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
@@ -115,6 +116,20 @@ def main():
         assert_true("You can use that idea" in composed["response"], "ordinary visitor language was falsely rejected")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
 
+        # Navigation must be supplied structurally by the Guide, never embedded
+        # as provider-generated prose.
+        try:
+            composition._parse_factory([{
+                "title": "Stewardship Today",
+                "url": "https://geralddaquila.com/stewardship-today/",
+                "content": "Grounding material.",
+            }])(
+                '{"response":"Answer. [Explore](https://geralddaquila.com/stewardship-today/)","doorway_title":"","response_shape":"general"}'
+            )
+            raise AssertionError("provider-generated doorway URL was accepted into visitor prose")
+        except ValueError:
+            pass
+
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
@@ -185,7 +200,7 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    print("V489.03 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.04 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
