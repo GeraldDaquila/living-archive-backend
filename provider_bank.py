@@ -132,17 +132,17 @@ def _json_object(raw):
     if not isinstance(value, dict): raise ValueError("model response was not an object")
     return value
 
-def _groq(use_core, model, messages, max_tokens):
+def _groq(use_core, model, messages, max_tokens, schema=None):
     client = getattr(use_core, "groq_client", None)
     if client is None: raise ProviderCallError("Groq client unavailable", "groq", model, category="unavailable")
     kwargs = {"model": model, "messages": messages, "temperature": 0.0,
-              "max_completion_tokens": max_tokens, "response_format": {"type": "json_object"}}
+              "max_completion_tokens": max_tokens, "response_format": ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})}
     if model.startswith("openai/gpt-oss-"):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
     response = client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
-def _gemini(key, model, messages, max_tokens):
+def _gemini(key, model, messages, max_tokens, schema=None):
     system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system" and isinstance(x.get("content"), str)).strip()
     contents = []
     for message in messages:
@@ -178,6 +178,8 @@ def _gemini(key, model, messages, max_tokens):
         "responseMimeType": "application/json",
         "thinkingConfig": {"thinkingLevel": "low"},
     }}
+    if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
+        payload["generationConfig"]["responseSchema"] = schema["schema"]
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
     data = _http_json(url, {}, payload, "gemini", model)
@@ -185,9 +187,9 @@ def _gemini(key, model, messages, max_tokens):
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
 
-def _openai_compatible(base_url, key, provider, model, messages, max_tokens):
+def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
-               "max_tokens": max_tokens, "response_format": {"type": "json_object"}}
+               "max_tokens": max_tokens, "response_format": ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})}
     data = _http_json(base_url.rstrip("/") + "/chat/completions",
                       {"Authorization": "Bearer " + key}, payload, provider, model)
     try: return str(data["choices"][0]["message"]["content"] or "").strip()
@@ -258,23 +260,23 @@ def select(use_core, operation="generic"):
         selected.extend(models)
     return selected
 
-def _call(use_core, item, messages, max_tokens):
+def _call(use_core, item, messages, max_tokens, schema=None):
     provider, model = item["provider"], item["model"]
-    if provider == "groq": return _groq(use_core, model, messages, max_tokens)
+    if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema)
     if provider == "gemini":
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY")
         if not key: raise ProviderCallError("Gemini API key unavailable", provider, model, category="unavailable")
-        return _gemini(key, model, messages, max_tokens)
+        return _gemini(key, model, messages, max_tokens, schema)
     if provider == "mistral":
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens)
+        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
     if provider == "cloudflare_gateway":
         token = os.getenv("CLOUDFLARE_API_TOKEN")
         account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
         base = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/v1"
-        return _openai_compatible(base, token, provider, model, messages, max_tokens)
+        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema)
     if provider == "workers_ai":
         token = os.getenv("CLOUDFLARE_API_TOKEN")
         account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
@@ -282,7 +284,7 @@ def _call(use_core, item, messages, max_tokens):
         return _workers(token, account, model, messages, max_tokens)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
-def route(*, use_core, messages, max_tokens, parse, operation="generic"):
+def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
     pool = select(use_core, operation=operation)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
@@ -295,7 +297,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic"):
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            parsed = parse(_call(use_core, item, messages, max_tokens))
+            parsed = parse(_call(use_core, item, messages, max_tokens, schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             _success(provider, model)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
