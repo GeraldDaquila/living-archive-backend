@@ -30,10 +30,10 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert re.search(r'APP_VERSION = "v487\.91"', main_source)
-assert 'USE-v487.91-hrn-transport-timeout-alignment' in main_source
-assert 'USE-BUILD-v487.91-hrn-transport-timeout-alignment' in main_source
+assert re.search(r'APP_VERSION = "v488\.75"', main_source)
+assert 'USE-v488.75-provider-health-boundary' in main_source
+assert 'USE-BUILD-v488.75-provider-health-boundary' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
-print("USE v487 authority compatibility validation: PASS")
+print("USE current authority compatibility validation: PASS")
