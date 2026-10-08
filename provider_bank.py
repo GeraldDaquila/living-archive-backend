@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import json, os, urllib.error, urllib.parse, urllib.request
+import base64, json, mimetypes, os, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 
 from provider_resilience import (
@@ -138,9 +138,36 @@ def _groq(use_core, model, messages, max_tokens):
     return str(response.choices[0].message.content or "").strip()
 
 def _gemini(key, model, messages, max_tokens):
-    system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system").strip()
-    contents = [{"role": "user", "parts": [{"text": str(x.get("content") or "")}]}
-                for x in messages if x.get("role") != "system"]
+    system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system" and isinstance(x.get("content"), str)).strip()
+    contents = []
+    for message in messages:
+        if message.get("role") == "system":
+            continue
+        content = message.get("content")
+        parts = []
+        if isinstance(content, list):
+            for item in content:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("type") == "text":
+                    parts.append({"text": str(item.get("text") or "")})
+                elif item.get("type") == "image_url":
+                    image_url = item.get("image_url") or {}
+                    url = str(image_url.get("url") or "") if isinstance(image_url, dict) else str(image_url or "")
+                    parsed = urllib.parse.urlparse(url)
+                    if parsed.scheme != "https" or not parsed.hostname or not parsed.hostname.casefold().endswith("geralddaquila.com"):
+                        raise ProviderCallError("Gemini vision URL is not an approved Living Archive asset.", "gemini", model, category="invalid_request")
+                    request = urllib.request.Request(url, headers={"User-Agent": "Living-Archive-Provider-Bank/1.0"})
+                    with urllib.request.urlopen(request, timeout=8) as response:
+                        raw = response.read(8 * 1024 * 1024 + 1)
+                        mime = str(response.headers.get_content_type() or mimetypes.guess_type(url)[0] or "image/jpeg")
+                    if len(raw) > 8 * 1024 * 1024:
+                        raise ProviderCallError("Vision asset exceeds Provider Bank size limit.", "gemini", model, category="request_too_large")
+                    parts.append({"inlineData": {"mimeType": mime, "data": base64.b64encode(raw).decode("ascii")}})
+        else:
+            parts.append({"text": str(content or "")})
+        if parts:
+            contents.append({"role": "user" if message.get("role") != "assistant" else "model", "parts": parts})
     payload = {"contents": contents, "generationConfig": {
         "maxOutputTokens": max_tokens,
         "responseMimeType": "application/json",
@@ -192,9 +219,11 @@ def _configured(use_core):
         if workers: out["workers_ai"] = workers
     return out
 
-def candidates(use_core):
+def candidates(use_core, operation="generic"):
     out = []
     for provider, models in _configured(use_core).items():
+        if operation == "atlas_vision" and provider not in {"groq", "gemini", "mistral"}:
+            continue
         for index, model in enumerate(models):
             if not _blocked(_state(provider, model)):
                 out.append({"provider": provider, "model": model, "index": index})
@@ -205,8 +234,8 @@ def _rotate(values, cursor):
     n = cursor % len(values)
     return values[n:] + values[:n]
 
-def select(use_core):
-    items = candidates(use_core)
+def select(use_core, operation="generic"):
+    items = candidates(use_core, operation=operation)
     if not items: return []
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
@@ -247,8 +276,8 @@ def _call(use_core, item, messages, max_tokens):
         return _workers(token, account, model, messages, max_tokens)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
-def route(*, use_core, messages, max_tokens, parse):
-    pool = select(use_core)
+def route(*, use_core, messages, max_tokens, parse, operation="generic"):
+    pool = select(use_core, operation=operation)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
