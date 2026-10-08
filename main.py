@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v488.71 — relational natural-language boundary calibration
+# USE PRODUCTION VERSION: v488.72 — systemic relational boundary calibration
 import asyncio
 import hashlib
 import ipaddress
@@ -62,9 +62,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v488.71"
-DEPLOYMENT_FINGERPRINT = "USE-v488.71-relational-natural-language-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v488.71-relational-natural-language-boundary"
+APP_VERSION = "v488.72"
+DEPLOYMENT_FINGERPRINT = "USE-v488.72-systemic-relational-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v488.72-systemic-relational-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -458,6 +458,150 @@ def _explicit_bounded_archive_request(query):
         q,
         re.I,
     ))
+
+# v488.72 — SYSTEMIC RELATIONAL BOUNDARY CONTRACT
+#
+# This boundary is intentionally owned by the request seam, not by the
+# provider/model router and not by Basic Inquiry. It answers one structural
+# question only: does the visitor's lived situation centrally involve a
+# relationship that they are trying to understand or navigate?
+#
+# It is not a topic keyword gate. It requires converging evidence from the
+# visitor's form: a lived relational counterpart/context, an interactional
+# dynamic, and an inquiry/uncertainty signal. Explicit bounded retrieval and
+# definition requests remain outside the relational lane. Safety is handled
+# earlier and always retains precedence.
+RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
+
+_RELATIONAL_COUNTERPART_PATTERNS = (
+    r"\\bmy\\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\\b",
+    r"\\b(?:someone|somebody|a person|another person|people|person)\\s+(?:i|we)\\s+(?:care about|love|trust|work with)\\b",
+    r"\\b(?:someone|somebody|a person)\\s+(?:close to|important to)\\s+me\\b",
+    r"\\b(?:between us|between me and|between you and)\\b",
+    r"\\b(?:our|this|the)\\s+relationship\\b",
+    r"\\b(?:with|from)\\s+(?:someone|somebody|my)\\b",
+)
+
+_RELATIONAL_DYNAMIC_PATTERNS = (
+    r"\\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\\s+down|stop(?:s|ped|ping)?\\s+talking|go(?:es|ing)?\\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\\s+asking|keeps?\\s+doing|same\\s+thing|same\\s+argument|same\\s+fight|same\\s+pattern|cycle|loop)\\b",
+    r"\\b(?:gets?|becomes?|become)\\s+(?:angry|defensive|quiet|distant)\\b",
+    r"\\b(?:i|we)\\s+(?:keep|keeps|kept)\\b",
+)
+
+_RELATIONAL_INQUIRY_PATTERNS = (
+    r"\\b(?:i|we)\\s+(?:want|need|wonder|hope|wish)\\s+to\\s+(?:understand|figure out|make sense|see|know)\\b",
+    r"\\b(?:i|we)\\s+(?:don't|do not|can't|cannot|am not|are not)\\s+(?:understand|know|tell|see)\\b",
+    r"\\b(?:what(?:'s| is)|why|how)\\b.{0,120}\\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\\b",
+    r"\\b(?:understand|make sense of|figure out|explore|see)\\b.{0,100}\\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\\b",
+    r"\\b(?:i|we)\\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\\b",
+)
+
+
+def _relational_boundary_decision(query):
+    """Return the authoritative request-boundary decision for lived relationships.
+
+    The decision is deliberately evidence-based rather than a single-word
+    trigger. A relationship lane opens when at least two independent structural
+    dimensions converge, including a lived relational counterpart/context and
+    an interactional or inquiry signal. This prevents ordinary topical mentions
+    of relationships from becoming specialist handoffs while ensuring natural
+    descriptions of recurring relational dynamics do not fall into Basic Inquiry.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return {"open": False, "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION, "reason": "empty"}
+
+    bounded = bool(_explicit_bounded_archive_request(q))
+    definition = bool(re.search(
+        r"\\b(?:define|definition|meaning of|what does .* mean|what is)\\b",
+        q,
+        re.I,
+    ))
+    if bounded or definition:
+        return {
+            "open": False,
+            "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
+            "reason": "bounded_archive_or_definition_request",
+        }
+
+    first_person = bool(re.search(r"\\b(?:i|i'm|im|me|my|we|our|us)\\b", q, re.I))
+    counterpart = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_COUNTERPART_PATTERNS)
+    dynamic = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_DYNAMIC_PATTERNS)
+    inquiry = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INQUIRY_PATTERNS)
+    relational_term = bool(re.search(r"\\b(?:relationship|relationships|interpersonal|relational)\\b", q, re.I))
+    explicit_between = bool(re.search(r"\\b(?:between us|between me and|between you and)\\b", q, re.I))
+
+    score = 0
+    if counterpart or relational_term or explicit_between:
+        score += 2
+    if dynamic:
+        score += 2
+    if inquiry:
+        score += 1
+    if first_person:
+        score += 1
+
+    # Strong lived relational structure: counterpart + dynamic + inquiry/first
+    # person. This is the normal path for natural visitor language.
+    open_boundary = bool(
+        first_person
+        and (counterpart or relational_term or explicit_between)
+        and dynamic
+        and (inquiry or first_person)
+    )
+
+    # A compact relational sentence may omit an explicit counterpart while
+    # still clearly describing a mutual interaction (e.g. "we keep arguing").
+    # Require both first-person plural framing and an interactional dynamic.
+    if not open_boundary and first_person and bool(re.search(r"\\bwe\\b", q)) and dynamic and inquiry:
+        open_boundary = True
+
+    return {
+        "open": open_boundary,
+        "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
+        "reason": "lived_relational_structure" if open_boundary else "insufficient_converging_relational_evidence",
+        "score": score,
+        "signals": {
+            "first_person": first_person,
+            "counterpart": counterpart,
+            "dynamic": dynamic,
+            "inquiry": inquiry,
+            "relational_term": relational_term,
+            "explicit_between": explicit_between,
+            "bounded": bounded,
+            "definition": definition,
+        },
+    }
+
+
+def _should_open_relationship_specialist(query, interpretation=None):
+    """Compatibility wrapper around the single authoritative boundary contract."""
+    decision = _relational_boundary_decision(query)
+    return bool(decision.get("open"))
+
+
+# v488.72 regression probes: these represent the actual visitor language that
+# previously escaped into Basic Inquiry. They are intentionally phrased without
+# requiring the visitor to know the words "relationship" or "relational".
+_RELATIONAL_BOUNDARY_PROBES = (
+    "My husband and I keep having the same argument about money. We both care about each other, but somehow we end up defensive and stop talking. I want to understand what is happening between us.",
+    "I keep getting angry with someone I care about, and I don't know what to do with that anger. Is there anything in the Living Archive that might help me think about it?",
+    "My colleague and I keep misunderstanding each other. I want to understand why our conversations become tense and then go nowhere.",
+    "Whenever I bring something up, my partner becomes defensive, I get angry, they withdraw, and a few days later the same thing happens again.",
+)
+for _relational_probe in _RELATIONAL_BOUNDARY_PROBES:
+    if not _relational_boundary_decision(_relational_probe).get("open"):
+        raise RuntimeError("USE v488.72 invariant failed: natural relational boundary probe not recognized")
+
+_RELATIONAL_BOUNDARY_NEGATIVE_PROBES = (
+    "What is the meaning of relationship in the Living Archive?",
+    "Find an article about setting boundaries in relationships.",
+    "What is a healthy relationship?",
+)
+for _relational_probe in _RELATIONAL_BOUNDARY_NEGATIVE_PROBES:
+    if _relational_boundary_decision(_relational_probe).get("open"):
+        raise RuntimeError("USE v488.72 invariant failed: bounded/topical relationship request was misrouted")
+
 
 def _should_open_relationship_specialist(query, interpretation=None):
     """Systemic Guide-side arbitration for lived relational inquiries.
@@ -2138,7 +2282,7 @@ def _guide_capability_route(query, history=None):
         "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
 
-    if route == "guide" and _should_open_relationship_specialist(query, interpretation):
+    if route == "guide" and _relational_boundary_decision(query).get("open"):
         route = "relationship"
         mode = "delegated_journey"
         reason = (
@@ -3324,7 +3468,12 @@ async def _use_request_boundary(scope, receive, send):
     # question is already sufficient to establish this bounded structural route.
     # The Guide remains authoritative for the handoff; HRN owns the actual
     # interpretation/composition journey after the browser arrives there.
-    if _should_open_relationship_specialist(query):
+    # v488.72 authoritative relational boundary. This executes before Basic Inquiry
+    # and before provider/model routing, so a natural lived relationship inquiry
+    # cannot be consumed by the generic Guide path simply because the model later
+    # labels it TOPICAL_INQUIRY.
+    relational_boundary = _relational_boundary_decision(query)
+    if relational_boundary.get("open"):
         request_id = "relationship-" + hashlib.sha1(
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
@@ -3356,6 +3505,8 @@ async def _use_request_boundary(scope, receive, send):
             },
             "visitor_boundary_version": APP_VERSION,
             "request_id": request_id,
+            "relational_boundary_contract": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
+            "relational_boundary_reason": relational_boundary.get("reason"),
         })
 
     # High-confidence Case Navigator boundary: explicit Case Study requests
