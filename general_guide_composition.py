@@ -9,6 +9,7 @@ import hashlib
 import json
 import re
 import threading
+import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
@@ -28,17 +29,38 @@ OPERATION = "general_guide_composition"
 # bounded process-local memoization; retrieval and canonical doorway selection
 # still run on every request and remain authoritative.
 _COMPOSITION_CACHE_MAX_ENTRIES = 256
+_COMPOSITION_CACHE_TTL_SECONDS = 1800
 _COMPOSITION_CACHE = OrderedDict()
 _COMPOSITION_CACHE_LOCK = threading.Lock()
 
 
-def _composition_cache_key(user_content: str) -> str:
-    material = "\\0".join((
-        CONTRACT_VERSION,
-        VISITOR_LANGUAGE_BOUNDARY_VERSION,
-        _GENERAL_GUIDE_SYSTEM,
-        user_content,
-    ))
+def _composition_cache_key(
+    question: str,
+    history_text: str,
+    shape: str,
+    documents: List[Dict[str, Any]],
+) -> str:
+    # Retrieval excerpts can vary slightly between identical requests. Key on
+    # the stable identities of the selected source documents, not their excerpt
+    # text, so provider rotation and retrieval formatting cannot regenerate
+    # the same visitor answer over and over.
+    source_identity = sorted({
+        (
+            _normalize_space(item.get("title")),
+            _normalize_space(item.get("url") or item.get("canonical_url")),
+        )
+        for item in documents
+        if isinstance(item, dict)
+    })
+    material = json.dumps({
+        "contract": CONTRACT_VERSION,
+        "boundary": VISITOR_LANGUAGE_BOUNDARY_VERSION,
+        "system": _GENERAL_GUIDE_SYSTEM,
+        "question": _normalize_space(question),
+        "history": _normalize_space(history_text)[:1600],
+        "shape": _normalize_space(shape),
+        "sources": source_identity,
+    }, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 _INTERNAL_LANGUAGE = re.compile(
@@ -290,12 +312,21 @@ def compose(
         f"Archive material available to ground the answer:\n{_evidence_payload(documents)}"
     )
 
-    cache_key = _composition_cache_key(user_content[:10000])
+    cache_key = _composition_cache_key(
+        question,
+        history_text,
+        shape,
+        documents,
+    )
+    now = time.monotonic()
     with _COMPOSITION_CACHE_LOCK:
-        cached = _COMPOSITION_CACHE.get(cache_key)
-        if cached is not None:
-            _COMPOSITION_CACHE.move_to_end(cache_key)
-            return dict(cached)
+        cached_entry = _COMPOSITION_CACHE.get(cache_key)
+        if cached_entry is not None:
+            cached_at, cached_value = cached_entry
+            if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                _COMPOSITION_CACHE.move_to_end(cache_key)
+                return dict(cached_value)
+            del _COMPOSITION_CACHE[cache_key]
 
     result = route_with_model_bank(
         use_core=use_core,
@@ -323,12 +354,15 @@ def compose(
     # wins; every concurrent caller returns that same answer. This prevents
     # response races without serializing unrelated questions.
     with _COMPOSITION_CACHE_LOCK:
-        cached = _COMPOSITION_CACHE.get(cache_key)
-        if cached is not None:
-            _COMPOSITION_CACHE.move_to_end(cache_key)
-            return dict(cached)
+        cached_entry = _COMPOSITION_CACHE.get(cache_key)
+        if cached_entry is not None:
+            cached_at, cached_value = cached_entry
+            if time.monotonic() - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                _COMPOSITION_CACHE.move_to_end(cache_key)
+                return dict(cached_value)
+            del _COMPOSITION_CACHE[cache_key]
 
-        _COMPOSITION_CACHE[cache_key] = dict(candidate)
+        _COMPOSITION_CACHE[cache_key] = (time.monotonic(), dict(candidate))
         while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
             _COMPOSITION_CACHE.popitem(last=False)
 
