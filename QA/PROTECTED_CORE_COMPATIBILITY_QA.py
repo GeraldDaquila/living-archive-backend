@@ -10,7 +10,7 @@ import ast
 import hashlib
 import re
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 main_path = ROOT / "main.py"
 core_path = ROOT / "use_core.py"
 main_source = main_path.read_text(encoding="utf-8")
