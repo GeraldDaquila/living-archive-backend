@@ -168,7 +168,7 @@ def main():
         try:
             tolerant = composition.compose(
                 use_core=FakeCore(),
-                query="What is stewardship and why is it important now more than ever?",
+                query="How does stewardship matter today?",
                 context_data={
                     "generation_authority_protected_docs": [
                         {
