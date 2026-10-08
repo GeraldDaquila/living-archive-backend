@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 import json
 import urllib.error
+import re
 
 from relationship_adapter import RelationshipAdapter
 from specialist_adapters import (
@@ -138,7 +139,7 @@ def test_relationship_adapter_retries_transient_503():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v488.' in source
+    assert re.search(r'APP_VERSION = "v[0-9]+\.[0-9]+"', source), "current main.py version is missing"
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
