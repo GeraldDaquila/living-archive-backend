@@ -38,6 +38,18 @@ MODEL_CAPABILITIES = {
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
+OPERATION_TOKEN_FLOORS = {
+    # The bank owns minimum completion budgets for semantic operations. This
+    # prevents a specialist's transport envelope from starving a capable model
+    # before it can finish its contractual JSON object.
+    "hrn_relational": 900,
+    "hrn_perception": 600,
+    "atlas_finder": 500,
+    "atlas_vision": 700,
+    "mini_use": 500,
+    "stewardship_pathway": 900,
+}
+
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
     "hrn_perception": frozenset({"json_object", "relational_analysis"}),
@@ -347,11 +359,12 @@ def _call(use_core, item, messages, max_tokens, schema=None):
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
-    pool = select(use_core, operation=operation)
+    pool = select(use_core, operation=operation, schema=schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
     max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
+    effective_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     for attempt_index, item in enumerate(pool[:max_attempts], start=1):
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
@@ -360,7 +373,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            parsed = parse(_call(use_core, item, messages, max_tokens, schema))
+            parsed = parse(_call(use_core, item, messages, effective_max_tokens, schema))
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             _success(provider, model)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
@@ -385,7 +398,8 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
-        "capability_policy_version": "1.0",
+        "capability_policy_version": "1.1",
+        "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
         "operation_requirements": {
             operation: sorted(requirements)
             for operation, requirements in OPERATION_REQUIREMENTS.items()
