@@ -19,7 +19,8 @@ def main():
     assert 'def _eligible(' in source
     assert 'def candidates(use_core, operation="generic", schema=None):' in source
     assert 'def select(use_core, operation="generic", schema=None):' in source
-    assert 'effective_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))' in source
+    assert 'requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))' in source
+    assert 'effective_max_tokens = min(requested_max_tokens, model_limit)' in source
 
     # Qwen 3.8 is explicitly composition-capable; the bank must not exclude it
     # merely because an earlier run exhausted its completion budget.
