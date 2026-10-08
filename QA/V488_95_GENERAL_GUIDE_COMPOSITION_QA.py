@@ -238,7 +238,7 @@ def main():
     # it must never depend on provider-generated navigation.
     assert_true("_base._canonical_pairs(canonical_context)" in MAIN_TEXT, "Guide does not consume canonical link authority as a final navigation fallback")
     assert_true('context_data.get("authoritative_doorway")' in MAIN_TEXT, "Guide recommendation envelope lacks the canonical-authority seam")
-    assert_true("re-run a second doorway selector" in MAIN_TEXT or "second doorway selector" in MAIN_TEXT, "recommendation boundary does not document single doorway authority")
+    assert_true(MAIN_TEXT.count("authoritative_doorway = _normalize_authoritative_recommendation(") == 1, "ordinary response must resolve one authoritative doorway")
 
     print(f"{current_version} GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
