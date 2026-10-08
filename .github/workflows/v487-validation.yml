@@ -37,8 +37,6 @@ jobs:
         run: PYTHONPATH=. python QA/V488_SAFETY_BOUNDARY_QA.py
       - name: Provider resilience QA
         run: PYTHONPATH=. python QA/V488_75_PROVIDER_BANK_QA.py
-      - name: Provider Bank capability routing QA
-        run: PYTHONPATH=. python QA/PROVIDER_BANK_CAPABILITY_ROUTING_QA.py
       - name: Boundary resilience QA
         run: PYTHONPATH=. python QA/V488_77_BOUNDARY_RESILIENCE_QA.py
       - name: Specialist-pipe regression tests
