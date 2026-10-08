@@ -511,9 +511,22 @@ def _relational_boundary_decision(query):
     if not q:
         return {"open": False, "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION, "reason": "empty"}
 
-    bounded = bool(_explicit_bounded_archive_request(q))
+    # Only explicit retrieval/definition operations suppress relational routing.
+    # General requests such as "anything in the Archive that might help me think"
+    # are still relational exploration; they do not ask the Guide to retrieve a
+    # bounded resource and therefore must not collapse the specialist boundary.
+    bounded = bool(re.search(
+        r"\\b(?:find|show|lookup|look up|link to|url for|where is|where can i find|"
+        r"recommend (?:a|an|the)?\\s*(?:resource|article|essay|page)|"
+        r"suggest (?:a|an|the)?\\s*(?:resource|article|essay|page)|"
+        r"which (?:resource|article|essay|page)|"
+        r"what (?:resource|article|essay|page)|"
+        r"resource about|article about|essay about|page about)\\b",
+        q,
+        re.I,
+    ))
     definition = bool(re.search(
-        r"\\b(?:define|definition|meaning of|what does .* mean|what is)\\b",
+        r"\\b(?:define|definition|meaning of|what does .* mean|what is the meaning of)\\b",
         q,
         re.I,
     ))
