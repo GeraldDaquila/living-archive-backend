@@ -28,10 +28,10 @@ PRODUCTION_GROQ_MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwe
 MODEL_CAPABILITIES = {
     ("groq", "openai/gpt-oss-120b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("groq", "openai/gpt-oss-20b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    # Qwen has structured-output support, but the live bank has observed
-    # completion-bound JSON failures on the long HRN composition workload.
-    # Keep it eligible for structured/short reasoning work, not composition.
-    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "relational_analysis", "low_latency"}),
+    # Qwen 3.8 is composition-capable. Its prior failure was completion
+    # exhaustion, so the bank controls its reasoning mode and budget rather
+    # than excluding the model from the composition capability class.
+    ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
@@ -191,6 +191,8 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
         kwargs["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
     if model.startswith("openai/gpt-oss-"):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
+    elif model == "qwen/qwen3.8-27b":
+        kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
     elif model == "qwen/qwen3.8-27b":
         # HRN composition already carries its own relational reasoning in the
         # prompt. Keep Qwen in efficient instruct mode so completion budget is
