@@ -473,9 +473,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 parsed = _normalize_operation_result(operation, parsed)
             except ValueError as contract_error:
                 recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
-                if not recovery_schema or not _capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}):
+                if not recovery_schema:
                     raise
-                print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=strict_schema")
+                schema_capable = bool(_capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}))
+                recovery_mode_schema = recovery_schema if schema_capable else effective_schema
+                recovery_mode = "strict_schema" if schema_capable else "provider_neutral_json_object"
+                print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=" + recovery_mode)
                 # A schema-only retry repeats the same prompt and gives the model no
                 # information about why its previous object was rejected. Carry the
                 # rejected output forward and ask for a bounded contract correction.
@@ -494,10 +497,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ". Correct the output now. Return only one valid JSON object with "
                         + "a non-empty visitor-facing response string and a non-empty next question string. "
                         + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
+                        + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
                         + "Do not explain the contract or omit response/question. Preserve the visitor's context."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_schema))
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered)
