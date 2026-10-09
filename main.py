@@ -3003,7 +3003,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "authoritative_doorway",
         ):
             composition_context.pop(key, None)
-        authoritative_doorway = None
+        # Navigation and answer synthesis have separate evidence contracts.
+        # Insufficient synthesis evidence must not erase an independently
+        # selected, relevant canonical doorway. The doorway is returned as a
+        # separate field and is not passed into the composition context.
 
     # All ordinary questions use the same provider-neutral composition path,
     # including when no suitable Archive evidence is available. The composer
@@ -3025,7 +3028,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 f"model={composition_result.get('model') or 'unknown'}, "
                 f"shape={composition_result.get('response_shape') or 'unknown'}, "
                 f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
-                f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
             )
         else:
             print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
