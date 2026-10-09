@@ -561,6 +561,29 @@ def _apply_hrn_visitor_contract(messages):
     return result
 
 
+def _apply_hrn_voice_repair_contract(messages):
+    """Keep the existing repair operation plain, grounded, and non-prescriptive."""
+    contract = (
+        "HRN VOICE-REPAIR CONTRACT: Rewrite only the response prose already supplied. "
+        "Use ordinary, concrete language and stay close to what the visitor actually said. "
+        "Remove unsupported explanations of why the relationship changed, hidden needs, "
+        "anxiety, worth, autonomy, unmet needs, mismatched expectations, structural capacity, "
+        "or claims about what either person is feeling unless the visitor explicitly stated it. "
+        "Avoid metaphors and abstract relationship theory. Do not advise, prescribe, diagnose, "
+        "promise an outcome, or tell the visitor what to do. Do not add a question, labels, "
+        "or internal process language. Prefer one modest observation that can be traced to "
+        "the visitor's words over a more impressive explanation. Return only the repair format "
+        "required by the current operation."
+    )
+    result = [dict(item) if isinstance(item, dict) else item for item in messages]
+    for item in result:
+        if isinstance(item, dict) and item.get("role") == "system":
+            item["content"] = str(item.get("content") or "") + "\n\n" + contract
+            return result
+    result.insert(0, {"role": "system", "content": contract})
+    return result
+
+
 def _normalize_operation_result(operation, parsed):
     if operation == "hrn_relational":
         response = parsed.get("response")
@@ -635,6 +658,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     effective_messages = _ensure_json_object_instruction(messages, effective_schema)
     if operation == "hrn_relational":
         effective_messages = _apply_hrn_visitor_contract(effective_messages)
+    elif operation == "hrn_voice_repair":
+        effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]

@@ -148,6 +148,20 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_voice_repair_contract_is_applied_at_provider_boundary():
+    messages = [
+        {"role": "system", "content": "Repair the response prose."},
+        {"role": "user", "content": "Failed draft."},
+    ]
+    contracted = provider_bank._apply_hrn_voice_repair_contract(messages)
+    assert "ordinary, concrete language" in contracted[0]["content"]
+    assert "Avoid metaphors and abstract relationship theory." in contracted[0]["content"]
+    assert "Do not add a question" in contracted[0]["content"]
+    assert contracted[1]["content"] == "Failed draft."
+
+
+
 def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
     messages = [
         {"role": "system", "content": "Original HRN composition rules."},
@@ -326,8 +340,8 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.52 —")
-    assert 'APP_VERSION = "v489.52"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.53 —")
+    assert 'APP_VERSION = "v489.53"' in source
 
 
 
@@ -502,6 +516,7 @@ if __name__ == "__main__":
     test_hrn_perception_has_enough_completion_budget_for_observer_json()
     test_hrn_composition_rejects_internal_process_language()
     test_hrn_composition_rejects_advice_shaped_language()
+    test_hrn_voice_repair_contract_is_applied_at_provider_boundary()
     test_hrn_plain_language_contract_is_applied_at_provider_boundary()
     test_hrn_composition_rejects_abstract_generalizations()
     test_hrn_composition_rejects_action_guidance()
