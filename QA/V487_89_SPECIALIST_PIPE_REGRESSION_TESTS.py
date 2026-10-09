@@ -146,6 +146,20 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_composition_rejects_advice_shaped_language():
+    parsed = {
+        "response": "This opens the possibility of setting clear, flexible boundaries that feel caring.",
+        "question": "What matters most to you here?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "internal-process language" in str(exc)
+    else:
+        raise AssertionError("advice-shaped HRN language must be rejected")
+
+
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert source.startswith("# USE PRODUCTION VERSION: v489.43 —")
@@ -323,6 +337,7 @@ if __name__ == "__main__":
     test_hrn_contract_trims_only_incomplete_trailing_sentence()
     test_hrn_perception_has_enough_completion_budget_for_observer_json()
     test_hrn_composition_rejects_internal_process_language()
+    test_hrn_composition_rejects_advice_shaped_language()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
