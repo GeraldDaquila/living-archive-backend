@@ -30,9 +30,12 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert re.search(r'APP_VERSION = "v489\.17"', main_source)
-assert 'USE-v489.17-evidence-provenance-and-discovery' in main_source
-assert 'USE-BUILD-v489.17-evidence-provenance-and-discovery' in main_source
+version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
+assert version_match, "APP_VERSION missing"
+app_version = version_match.group(1)
+assert f'if str(APP_VERSION) != "{app_version}":' in main_source
+assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in main_source
+assert f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
