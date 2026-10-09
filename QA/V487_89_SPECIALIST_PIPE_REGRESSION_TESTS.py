@@ -145,6 +145,14 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_main_version_header_matches_release_identity():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert source.startswith("# USE PRODUCTION VERSION: v489.43 —")
+    assert 'APP_VERSION = "v489.43"' in source
+
+
+
 def test_hrn_composition_rejects_internal_process_language():
     parsed = {
         "response": "The brief identifies a tension, but it lacks specific facts of the relationship.",
@@ -315,5 +323,6 @@ if __name__ == "__main__":
     test_hrn_contract_trims_only_incomplete_trailing_sentence()
     test_hrn_perception_has_enough_completion_budget_for_observer_json()
     test_hrn_composition_rejects_internal_process_language()
+    test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
