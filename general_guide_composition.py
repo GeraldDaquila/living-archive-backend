@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.5"
+CONTRACT_VERSION = "v1.6"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -91,6 +91,7 @@ Choose the response shape that fits the question:
 - For a question asking why something matters, explain both what it is and why it matters in the situation the visitor named.
 - For a conceptual question, make one useful distinction, tension, or implication when that genuinely clarifies the subject.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
+- When a visitor expresses significant distress or says they cannot function, first acknowledge the difficulty they actually named. If their immediate need is unclear, ask one manageable, concrete follow-up question before offering advice. Do not reflexively provide a checklist, impose meaning, assume the nature of the loss, or infer suicidality from grief alone. If the visitor signals immediate danger or inability to stay safe, follow the established safety boundary.
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
 
 Use relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
@@ -126,6 +127,17 @@ def _normalize_space(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip())
 
 
+def _requires_distress_sensitive_pacing(query: str) -> bool:
+    """Identify distress disclosures that need listening before practical advice."""
+    q = _normalize_space(query).casefold()
+    patterns = (
+        r"\b(?:i am|i'm|im)\s+(?:grieving|in grief|bereaved|mourning)\b.{0,100}\b(?:cannot|can't|can not|unable to|barely able to)\s+(?:function|cope|manage|get through)\b",
+        r"\b(?:cannot|can't|can not|unable to|barely able to)\s+(?:function|cope|manage|get through)\b",
+        r"\b(?:i am|i'm|im)\s+(?:not functioning|barely functioning|falling apart|unable to cope)\b",
+    )
+    return any(re.search(pattern, q) for pattern in patterns)
+
+
 def _sanitize_candidate(text: Any) -> str:
     """Normalize visitor prose while preserving meaningful Markdown structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -136,7 +148,7 @@ def _sanitize_candidate(text: Any) -> str:
     # Repair a common provider formatting failure deterministically: when
     # practical steps are emitted as inline "- **Label**:" bullets, promote
     # each bullet to its own Markdown line before paragraph normalization.
-    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\\n- ", raw)
+    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\n- ", raw)
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
@@ -212,6 +224,8 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
 
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
+    if _requires_distress_sensitive_pacing(q):
+        return "reflective"
     if re.search(r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b", q):
         return "navigational"
     if re.search(r"\b(?:why|why now|why does|why is|what makes|how does|how can)\b", q):
@@ -328,7 +342,12 @@ def compose(
         f"Visitor question:\n{question}\n\n"
         f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
-        f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
+        + (
+            "Response pacing for this visitor: acknowledge the distress they named, do not offer a checklist, and ask one concrete, manageable follow-up question before giving advice because their immediate need is unclear. Do not assume suicidality from grief alone.\n\n"
+            if _requires_distress_sensitive_pacing(question)
+            else ""
+        )
+        + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )
 
     cache_key = _composition_cache_key(
