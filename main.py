@@ -2902,7 +2902,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             ).strip()
             if not title or not content:
                 continue
-            if not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            if not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
                 continue
             key = (title.casefold(), url.casefold())
             if key in seen:
@@ -2918,10 +2918,10 @@ def _general_guide_authoritative_doorway(query, context_data):
         # entities and remove emoji/decorative symbols at the boundary.
         import html
         title = html.unescape(str(primary.get("title") or "")).strip()
-        title = re.sub(r"[\\U0001F000-\\U0001FAFF\\U00002600-\\U000027BF]", "", title)
-        title = re.sub(r"\\s+", " ", title).strip()
+        title = re.sub(r"[\U0001F000-\U0001FAFF\U00002600-\U000027BF]", "", title)
+        title = re.sub(r"\s+", " ", title).strip()
         url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+        if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
             return None
         return {"title": title, "url": url}
     except Exception as exc:
