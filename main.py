@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.23"
-DEPLOYMENT_FINGERPRINT = "USE-v489.23-evidence-gated-canonical-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.23-evidence-gated-canonical-recovery"
+APP_VERSION = "v489.24"
+DEPLOYMENT_FINGERPRINT = "USE-v489.24-grief-sensitive-composition-and-markdown"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.24-grief-sensitive-composition-and-markdown"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.5":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.6":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -3281,7 +3281,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.5":
+    if snapshot.get("contract_version") != "v1.6":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
