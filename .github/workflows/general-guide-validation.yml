@@ -1,5 +1,9 @@
 name: General Guide Composition Validation
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   push:
     branches: [main]
@@ -8,6 +12,12 @@ on:
       - "provider_bank.py"
       - "general_guide_composition.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
+      - "wordpress/the-guide-frontend.html"
+      - "tests/e2e/the-guide-browser-diagnostic.cjs"
+      - "tests/e2e/the-guide-live-api-e2e.cjs"
+      - "tests/e2e/check-guide-source-syntax.cjs"
+      - "tests/e2e/the-guide-browser-locations.cjs"
       - ".github/workflows/general-guide-validation.yml"
   pull_request:
     paths:
@@ -15,6 +25,11 @@ on:
       - "provider_bank.py"
       - "general_guide_composition.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
+      - "wordpress/the-guide-frontend.html"
+      - "tests/e2e/the-guide-browser-diagnostic.cjs"
+      - "tests/e2e/check-guide-source-syntax.cjs"
+      - "tests/e2e/the-guide-browser-locations.cjs"
       - ".github/workflows/general-guide-validation.yml"
 
 jobs:
@@ -27,3 +42,37 @@ jobs:
           python-version: "3.11"
       - name: Run provider-neutral General Guide QA
         run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
+      - name: Verify single-owner WordPress Guide frontend
+        run: python QA/WORDPRESS_GUIDE_FRONTEND_QA.py
+      - uses: dorny/paths-filter@v3
+        id: frontend-changes
+        with:
+          filters: |
+            guide_frontend:
+              - 'wordpress/the-guide-frontend.html'
+              - 'tests/e2e/the-guide-browser-diagnostic.cjs'
+              - 'tests/e2e/the-guide-live-api-e2e.cjs'
+              - 'tests/e2e/check-guide-source-syntax.cjs'
+              - 'tests/e2e/the-guide-browser-locations.cjs'
+      - uses: actions/setup-node@v4
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        with:
+          node-version: "22"
+      - name: Validate external Guide JavaScript syntax
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/check-guide-source-syntax.cjs
+      - name: Install pinned Playwright
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: npm install --no-save playwright@1.56.1
+      - name: Install Chromium
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Inspect live Guide script and controller state
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/the-guide-browser-locations.cjs
+      - name: Verify live Guide browser contract
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/the-guide-browser-diagnostic.cjs
+      - name: Verify live Guide API and recommendation end to end
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/the-guide-live-api-e2e.cjs

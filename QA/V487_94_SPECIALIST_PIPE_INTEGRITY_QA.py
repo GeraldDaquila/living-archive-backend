@@ -6,24 +6,14 @@ post-Oct.1 hub architecture.
 """
 
 from pathlib import Path
-import hashlib
+from protected_runtime_contract import verify_protected_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 
-PROTECTED = {
-    "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
-    "specialist_adapters.py": "9f253c7ceaeaaba8bd95d2d244015f428fc1285a",
-    "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
-    "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
-    "specialist_registry.py": "25964a7ceaa30d7fa9d80524d3e3d5afc7434f0d",
-}
 
-def blob_sha1(data):
-    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 def main():
-    for rel, expected in PROTECTED.items():
-        assert blob_sha1((ROOT / rel).read_bytes()) == expected, rel
+    verify_protected_runtime()
 
     for rel in (
         "formation_adapter.py",

@@ -1,0 +1,652 @@
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="archive-stage-wrapper">
+  <div class="archive-search-container" id="archive-container-top">
+
+    <div class="query-assembly">
+      <p class="search-subtitle">Ask a question, follow a curiosity, or find what you need.</p>
+
+      <form id="archive-search-form">
+        <div class="search-input-wrapper">
+          <textarea
+            id="archive-query-input"
+            placeholder="Where should I begin with the Living Archive?"
+            aria-label="What are you trying to find, understand, or make sense of?"
+            rows="3"
+            required
+          ></textarea>
+
+          <div class="search-actions">
+            <button type="submit" id="archive-submit-btn">
+              <span class="archive-button-label">Search</span>
+              <span class="archive-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id="archive-response-box" class="response-box" style="display: none;">
+      <div id="archive-response-text"></div>
+
+      <div id="archive-recommendation" class="archive-recommendation" style="display: none;" aria-live="polite"></div>
+
+      <div id="archive-safety-followup" class="safety-followup" style="display: none;">
+        <div id="archive-safety-question" class="safety-question"></div>
+
+        <textarea
+          id="archive-safety-input"
+          rows="3"
+          placeholder="Take your time. Tell me what is true for you right now."
+          aria-label="Your response to the safety question"
+        ></textarea>
+
+        <div class="safety-followup-actions">
+          <button type="button" id="archive-safety-submit-btn">
+            <span class="safety-submit-label">Send</span>
+            <span class="safety-submit-spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="archive-safety-resources"
+        class="safety-resources-after"
+        style="display: none;"
+      ></div>
+
+      <div
+        id="archive-response-controls"
+        class="response-controls"
+        style="display: none;"
+      >
+        <button
+          type="button"
+          class="reset-btn"
+          onclick="handleResponseControl()"
+        >
+          <span id="archive-response-control-icon" aria-hidden="true">↺</span>
+          <span id="archive-response-control-label">Ask Another Question</span>
+        </button>
+      </div>
+    </div>
+
+    <details class="how-it-works-disclosure">
+      <summary>How results are found</summary>
+      <p>
+        The Guide considers your question alongside the Living Archive’s ideas,
+        themes, and pathways to help you find where to begin. From there, you
+        can explore the Archive for yourself.
+      </p>
+    </details>
+
+  </div>
+</div>
+
+<style>
+
+/* ================================================================
+   USE QUERY INTERFACE STANDARD
+   ================================================================ */
+
+html,
+body,
+body.page,
+#page,
+#content,
+#primary,
+#main,
+.site,
+.site-content,
+.entry-content,
+.wp-site-blocks {
+  background: #fff !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+.archive-stage-wrapper {
+  position: relative;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+}
+
+.archive-search-container {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 28px 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  color: #222;
+}
+
+.query-assembly {
+  width: 100% !important;
+  max-width: 650px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+  padding: 28px 30px 30px !important;
+  background: #f1f1f1 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+.search-subtitle {
+  margin-top: 0 !important;
+  margin-bottom: 1.25rem !important;
+  color: #444 !important;
+  font: inherit !important;
+  font-size: 1.18rem !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+}
+
+.search-input-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.search-input-wrapper textarea,
+#archive-query-input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 120px !important;
+  max-height: 300px !important;
+  height: auto !important;
+  resize: vertical !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 1rem 1.1rem !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #222 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  outline: none !important;
+  overflow-y: hidden !important;
+}
+
+.search-input-wrapper textarea::placeholder,
+#archive-query-input::placeholder {
+  color: #777 !important;
+  opacity: 1 !important;
+  font: inherit !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 400 !important;
+}
+
+#archive-query-input.guide-hint-fading::placeholder {
+  opacity: 0 !important;
+  transition: opacity 300ms ease !important;
+}
+
+#archive-query-input.guide-hint-ready::placeholder {
+  opacity: 1 !important;
+  transition: opacity 400ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #archive-query-input.guide-hint-fading::placeholder,
+  #archive-query-input.guide-hint-ready::placeholder {
+    transition: none !important;
+  }
+}
+
+.search-input-wrapper textarea:focus,
+.search-input-wrapper textarea:focus-visible,
+.search-input-wrapper textarea:active,
+#archive-query-input:focus,
+#archive-query-input:focus-visible,
+#archive-query-input:active {
+  border-color: #bdbdbd !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-top: .75rem !important;
+}
+
+.search-actions button,
+#archive-submit-btn {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 126px !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  padding: .75rem 1.2rem !important;
+  background: #000 !important;
+  color: #fff !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.search-actions button:hover,
+.search-actions button:focus,
+.search-actions button:active,
+#archive-submit-btn:hover,
+#archive-submit-btn:focus,
+#archive-submit-btn:active {
+  background: #000 !important;
+  color: #fff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-actions button:disabled,
+#archive-submit-btn:disabled {
+  cursor: wait !important;
+  opacity: .82 !important;
+}
+
+.archive-button-label {
+  display: inline-block;
+}
+
+.archive-spinner {
+  display: none;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: archive-spin .7s linear infinite;
+  margin: 0 auto;
+}
+
+#archive-submit-btn.is-loading .archive-button-label {
+  display: none;
+}
+
+#archive-submit-btn.is-loading .archive-spinner {
+  display: block;
+}
+
+@keyframes archive-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================================================================
+   SAFETY CONVERSATION
+   ================================================================ */
+
+.archive-safety-active #archive-submit-btn,
+.archive-safety-active .search-actions {
+  display: none !important;
+}
+
+.archive-safety-active #archive-query-input {
+  cursor: default !important;
+  opacity: 1 !important;
+}
+
+.archive-safety-active .search-subtitle {
+  color: #444 !important;
+}
+
+.safety-followup {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 18px !important;
+}
+
+.safety-question {
+  margin-bottom: 10px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #222 !important;
+  font-size: 19px !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+}
+
+#archive-safety-input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 92px !important;
+  box-sizing: border-box !important;
+  padding: 1rem 1.1rem !important;
+  border: 1px solid #cfcfcf !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #222 !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.55 !important;
+  resize: vertical !important;
+  outline: none !important;
+}
+
+#archive-safety-input:focus,
+#archive-safety-input:focus-visible {
+  border-color: #bdbdbd !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.safety-followup-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-top: 10px !important;
+}
+
+#archive-safety-submit-btn {
+  min-width: 112px !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  padding: .7rem 1.15rem !important;
+  background: #000 !important;
+  color: #fff !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+}
+
+#archive-safety-submit-btn:disabled {
+  cursor: wait !important;
+  opacity: .82 !important;
+}
+
+.safety-submit-spinner {
+  display: none;
+  width: 17px;
+  height: 17px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: archive-spin .7s linear infinite;
+  margin: 0 auto;
+}
+
+#archive-safety-submit-btn.is-loading .safety-submit-label {
+  display: none;
+}
+
+#archive-safety-submit-btn.is-loading .safety-submit-spinner {
+  display: block;
+}
+
+.safety-resources-after {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 14px !important;
+}
+
+.safety-resources {
+  margin-top: 0 !important;
+}
+
+.safety-resources-title {
+  margin: 0 0 10px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #444 !important;
+}
+
+.safety-resource-card {
+  margin-top: 8px !important;
+  padding: 15px 16px !important;
+  border: 1px solid #d8d8d8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.safety-resource-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: #222 !important;
+}
+
+.safety-resource-phone {
+  display: block !important;
+  margin-top: 7px !important;
+  color: #111 !important;
+  text-decoration: none !important;
+  font-size: 26px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em !important;
+}
+
+.safety-resource-phone .safety-call-label {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  margin-right: 7px !important;
+  vertical-align: .18em !important;
+}
+
+.safety-resource-phone:hover,
+.safety-resource-phone:focus {
+  text-decoration: underline !important;
+}
+
+.safety-note {
+  margin-top: 12px !important;
+  color: #555 !important;
+  font-size: 19px !important;
+  line-height: 1.5 !important;
+}
+
+/* ================================================================
+   RESPONSE
+   ================================================================ */
+
+.response-box {
+  width: 100% !important;
+  max-width: 650px !important;
+  box-sizing: border-box !important;
+  margin: 18px auto 0 !important;
+  padding: 28px 30px 30px !important;
+  background: #f1f1f1 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+  font-size: 19px !important;
+  line-height: 1.6 !important;
+}
+
+#archive-response-text {
+  font-size: 19px !important;
+  line-height: 1.6 !important;
+}
+
+#archive-response-text p {
+  margin-bottom: 1em;
+}
+
+#archive-response-text a {
+  color: #0284c7;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+#archive-response-text a + a {
+  margin-left: 0.35em;
+}
+
+.archive-inline-recommendation {
+  display: block !important;
+  margin-top: 18px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #d6d6d6 !important;
+}
+
+.archive-recommendation {
+  margin-top: 18px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #d6d6d6 !important;
+}
+
+.archive-recommendation-label {
+  margin: 0 0 6px !important;
+  color: #555 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+
+.archive-recommendation-link {
+  color: #222 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  font-size: 17px !important;
+  line-height: 1.5 !important;
+  font-weight: 600 !important;
+}
+
+.archive-recommendation-link:hover,
+.archive-recommendation-link:focus {
+  color: #000 !important;
+}
+
+#archive-response-text table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin: 1.5em 0;
+}
+
+#archive-response-text th {
+  background: rgba(15, 23, 42, 0.08);
+  padding: 10px 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+#archive-response-text td {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.response-controls {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  background: #fff;
+  border: 1px solid #222;
+  color: #222;
+  padding: .65rem .95rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.reset-btn.continue-inquiry {
+  font-weight: 500;
+}
+
+#archive-response-control-icon {
+  margin-right: .35rem;
+}
+
+.how-it-works-disclosure {
+  margin-top: 20px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.how-it-works-disclosure summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.7);
+  margin-bottom: 6px;
+}
+
+.how-it-works-disclosure p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+@media (max-width: 700px) {
+
+  .archive-search-container {
+    padding: 18px 14px;
+  }
+
+  .search-input-wrapper textarea,
+  #archive-query-input {
+    font-size: 19px !important;
+    line-height: 1.55 !important;
+    min-height: 120px !important;
+    max-height: 300px !important;
+    padding: 1rem 1.1rem !important;
+  }
+
+  .search-input-wrapper textarea::placeholder,
+  #archive-query-input::placeholder {
+    font-size: 18px !important;
+    line-height: 1.55 !important;
+  }
+
+  .search-actions {
+    width: 100% !important;
+  }
+
+  .search-actions button,
+  #archive-submit-btn {
+    min-width: 126px !important;
+    min-height: 48px !important;
+  }
+}
+
+</style>
+
+<script src="https://geralddaquila.com/wp-content/uploads/2026/08/living-archive-guide-v489.12.js" data-jetpack-boost="ignore" data-no-optimize="1" data-no-defer="1"></script>
+<!-- Guide frontend v489.12: external controller source is wordpress/the-guide-frontend.js -->

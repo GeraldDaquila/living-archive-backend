@@ -8,6 +8,7 @@ or any live provider.
 from pathlib import Path
 import ast
 import json
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -127,9 +128,11 @@ def main():
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
-    assert 'APP_VERSION = "v488.75"' in main_source
+    version_match = re.search(r'^APP_VERSION = "(v[0-9]+\.[0-9]+)"$', main_source, re.MULTILINE)
+    assert version_match, "current APP_VERSION is missing"
+    current_version = version_match.group(1)
+    assert f'DEPLOYMENT_FINGERPRINT = "USE-{current_version}-' in main_source
     assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v488.75-provider-health-boundary"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(

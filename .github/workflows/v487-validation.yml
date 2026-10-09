@@ -1,4 +1,4 @@
-name: v487 production validation
+name: Production architecture validation
 
 on:
   pull_request:
@@ -7,33 +7,37 @@ on:
       - main
 
 jobs:
-  v487-validation:
+  production-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: pip install -r requirements.txt pytest
       - name: Compile current production modules
-        run: python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_QA.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_QA.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py
+        run: python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py QA/protected_runtime_contract.py QA/PROTECTED_CORE_COMPATIBILITY_QA.py
       - name: Guide hub contract tests
-        run: PYTHONPATH=. python -m pytest -q tests/test_hub_contracts.py
-      - name: v487 protected-runtime compatibility validation
-        run: python run_v387_authority_validation.py
-      - name: v487.94 specialist-pipe integrity QA
+        run: PYTHONPATH=. python -m pytest -q
+      - name: Shared primitive compatibility tests
+        run: PYTHONPATH=. python QA/SHARED_PRIMITIVE_PRODUCTION_TESTS.py
+      - name: Doorway adapter contract tests
+        run: PYTHONPATH=. python QA/V487_91_DOORWAY_ADAPTER_TESTS.py
+      - name: Protected-core compatibility validation
+        run: python QA/PROTECTED_CORE_COMPATIBILITY_QA.py
+      - name: Specialist-pipe integrity QA
         run: PYTHONPATH=. python QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py
-      - name: v487.94 journey contribution structural QA
+      - name: Journey contribution structural QA
         run: PYTHONPATH=. python QA/V487_94_JOURNEY_CONTRIBUTION_QA.py
-      - name: v487.92 journey contribution compatibility tests
+      - name: Journey contribution contract tests
         run: PYTHONPATH=. python QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py
-      - name: v487.94 Formation specialist pipe QA
+      - name: Formation specialist pipe QA
         run: PYTHONPATH=. python QA/V487_94_FORMATION_SPECIALIST_QA.py
-      - name: post-Oct.1 pipe integrity QA
+      - name: Hub pipe integrity QA
         run: PYTHONPATH=. python QA/V488_PIPE_INTEGRITY_QA.py
-      - name: v488 sitewide safety boundary QA
+      - name: Sitewide safety boundary QA
         run: PYTHONPATH=. python QA/V488_SAFETY_BOUNDARY_QA.py
-      - name: v488.77 provider-resilience structural QA
+      - name: Provider resilience QA
         run: PYTHONPATH=. python QA/V488_75_PROVIDER_BANK_QA.py
-      - name: v488.77 boundary-resilience structural QA
+      - name: Boundary resilience QA
         run: PYTHONPATH=. python QA/V488_77_BOUNDARY_RESILIENCE_QA.py
-      - name: v487.89 specialist-pipe regression probes
+      - name: Specialist-pipe regression tests
         run: PYTHONPATH=. python QA/V487_89_SPECIALIST_PIPE_REGRESSION_TESTS.py
