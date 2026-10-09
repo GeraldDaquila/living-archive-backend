@@ -226,7 +226,7 @@ def main():
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
     assert_true("_base._canonical_pairs(canonical_context)" in main_source, "Guide does not consume canonical link authority as a final navigation fallback")
-    assert_true("context_data.get("authoritative_doorway")" in main_source, "Guide recommendation envelope lacks the canonical-authority seam")
+    assert_true('context_data.get("authoritative_doorway")' in main_source, "Guide recommendation envelope lacks the canonical-authority seam")
     assert_true("re-run a second doorway selector" in main_source or "second doorway selector" in main_source, "recommendation boundary does not document single doorway authority")
 
     print("V489.07 GENERAL GUIDE COMPOSITION QA: PASS")
