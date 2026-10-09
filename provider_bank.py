@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, json, mimetypes, os, urllib.error, urllib.parse, urllib.request
+import base64, json, mimetypes, os, re, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 
 from provider_resilience import (
