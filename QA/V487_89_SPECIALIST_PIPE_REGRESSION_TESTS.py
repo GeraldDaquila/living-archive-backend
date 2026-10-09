@@ -138,11 +138,15 @@ def test_relationship_adapter_retries_transient_503():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.35"' in source
+    assert 'APP_VERSION = "v489.36"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
     assert "interpretation = dict(domain_payload.get(\"interpretation\") or {})" in source
+    provider_bank_source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
+    assert "raw_output = _call(use_core, item, messages, effective_max_tokens, effective_schema)" in provider_bank_source
+    assert "recovery_messages.append({" in provider_bank_source
+    assert "Correct the output now." in provider_bank_source
 
 
 if __name__ == "__main__":
