@@ -147,6 +147,33 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
+    messages = [
+        {"role": "system", "content": "Original HRN composition rules."},
+        {"role": "user", "content": "Visitor's actual words."},
+    ]
+    contracted = provider_bank._apply_hrn_visitor_contract(messages)
+    assert "plain, concrete, natural language" in contracted[0]["content"]
+    assert "Do not advise, prescribe, coach" in contracted[0]["content"]
+    assert "Original HRN composition rules." in contracted[0]["content"]
+    assert contracted[1]["content"] == "Visitor's actual words."
+
+
+def test_hrn_composition_rejects_abstract_generalizations():
+    parsed = {
+        "response": "In many relational dynamics, space is a necessary condition for connection to re-emerge with clarity.",
+        "question": "What matters to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("abstract relationship generalizations must be rejected")
+
+
+
 def test_hrn_composition_rejects_advice_shaped_language():
     parsed = {
         "response": "This opens the possibility of setting clear, flexible boundaries that feel caring.",
@@ -338,6 +365,8 @@ if __name__ == "__main__":
     test_hrn_perception_has_enough_completion_budget_for_observer_json()
     test_hrn_composition_rejects_internal_process_language()
     test_hrn_composition_rejects_advice_shaped_language()
+    test_hrn_plain_language_contract_is_applied_at_provider_boundary()
+    test_hrn_composition_rejects_abstract_generalizations()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
