@@ -215,6 +215,11 @@ def main():
     refusal_segment = main_source[main_source.index("async def _resolve_request_location"):main_source.index("async def _use_request_boundary")]
     assert 'return {"refused": context.get("refused", True)}' in refusal_segment
     assert "Strip inferred and explicit location fields from the downstream" in refusal_segment
+    # No fallback may geolocate a WordPress/proxy transport IP and present it
+    # as the visitor's country for emergency-resource selection.
+    assert "Do not geolocate the transport peer as if it were the visitor." in main_source
+    resolver_segment = main_source[main_source.index("async def _resolve_request_location"):main_source.index("async def _use_request_boundary")]
+    assert "_ip_geolocation" not in resolver_segment
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
     app_version = version_match.group(1)
