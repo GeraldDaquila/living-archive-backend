@@ -139,6 +139,24 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_json_object_instruction_is_added_at_provider_boundary():
+    messages = [{"role": "user", "content": "Explain the situation plainly."}]
+    effective = provider_bank._ensure_json_object_instruction(messages, None)
+    assert effective[0]["role"] == "system"
+    assert "json object" in effective[0]["content"].casefold()
+    assert messages == [{"role": "user", "content": "Explain the situation plainly."}]
+
+    text_messages = [{"role": "user", "content": "Write a short sentence."}]
+    assert provider_bank._ensure_json_object_instruction(
+        text_messages, {"mode": "text"}
+    ) is text_messages
+
+    existing = [{"role": "system", "content": "Return valid JSON."}]
+    assert provider_bank._ensure_json_object_instruction(existing, None) is existing
+
+
+
 def test_hrn_contract_recovery_corrects_rejected_provider_output():
     original = [{"role": "user", "content": "Someone I love has become distant."}]
     rejected = json.dumps({"question": "What feels hardest?", "rest": False})
@@ -170,7 +188,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     assert result["parsed"]["question"] == "What makes reaching out feel risky right now?"
     assert provider_call.call_count == 2
     recovery_messages = provider_call.call_args_list[1].args[2]
-    assert recovery_messages[0] == original[0]
+    assert any(message.get("role") == "user" and message.get("content") == original[0]["content"] for message in recovery_messages)
     assert recovery_messages[-2] == {"role": "assistant", "content": rejected}
     assert "requires response" in recovery_messages[-1]["content"]
     assert "Correct the output now." in recovery_messages[-1]["content"]
@@ -179,7 +197,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.36"' in source
+    assert 'APP_VERSION = "v489.37"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -194,5 +212,6 @@ if __name__ == "__main__":
     test_domain_payload_survives_common_pipe()
     test_relationship_adapter_retries_transient_503()
     test_hrn_contract_recovery_corrects_rejected_provider_output()
+    test_json_object_instruction_is_added_at_provider_boundary()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
