@@ -41,9 +41,9 @@ def main():
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
 
-    assert 'APP_VERSION = "v489.09"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.09-stewardship-doorway-recovery"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.09-stewardship-doorway-recovery"' in main_source
+    assert 'APP_VERSION = "v489.10"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.10-bounded-glossary-handoff"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.10-bounded-glossary-handoff"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
