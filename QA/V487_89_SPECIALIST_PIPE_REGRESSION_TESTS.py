@@ -169,7 +169,7 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
 def test_hrn_provider_gate_matches_prescriptive_policy():
     examples = [
         "You could reach out and ask whether they need space.",
-        "Try asking them directly what has changed.",
+        "Try to ask them directly what has changed.",
         "You need to talk to them about how you feel.",
         "I recommend you give them space for now.",
     ]
