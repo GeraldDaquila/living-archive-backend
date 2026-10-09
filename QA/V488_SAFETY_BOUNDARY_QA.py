@@ -29,7 +29,9 @@ def main():
     classify = namespace["normalize_safety_state"]
     semantic_candidate = namespace["_semantic_safety_candidate"]
     fast_initial = namespace["_initial_deterministic_safety_response"]
+    normalize_resolution = namespace["normalize_safety_resolution"]
     repair = namespace["repair_safety_question"]
+    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v2.6"
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
     assert classify("I don’t want to live anymore.") in {"current", "acute"}
@@ -61,6 +63,66 @@ def main():
     assert fast["safety_release_ready"] is False
     assert fast["resolver_status"] == "deterministic_initial_fast_path"
     assert "another person" in fast["safety_message"].casefold()
+
+    # Unscoped HRN hotline numbers must never leak into an unknown-location
+    # safety response. The verified emergency registry alone controls numbers.
+    unknown_location = {
+        "location": {
+            "resolution_status": "UNKNOWN",
+            "location": {"country": {"value": None}},
+        },
+        "selection": {"selection_status": "LOCATION_REQUIRED", "primary": []},
+    }
+    hrn_with_us_numbers = {
+        "safety": "acute_connection",
+        "safety_interrupt": True,
+        "safety_message": "Please stay with another person while we make sure you are safe.",
+        "safety_question": "Are you safe from acting on these thoughts right now?",
+        "safety_note": "Stay with another person.",
+        "safety_resources": [
+            {"title": "911 — Emergency assistance", "phone": "911"},
+            {"title": "988 — Suicide & Crisis Lifeline", "phone": "988"},
+        ],
+        "safety_location_required": False,
+        "country": "US",
+        "safety_release_ready": False,
+    }
+    unlocated = normalize_resolution(
+        hrn_with_us_numbers,
+        requested_state="acute",
+        country="",
+        emergency_resolution=unknown_location,
+    )
+    assert unlocated["safety_resources"] == []
+    assert unlocated["safety_location_required"] is True
+    assert unlocated["country"] == ""
+    assert "won't guess" in unlocated["safety_note"]
+
+    verified_ph = {
+        "location": {
+            "resolution_status": "RESOLVED",
+            "location": {"country": {"value": "PH"}},
+        },
+        "selection": {
+            "selection_status": "SELECTED",
+            "primary": {
+                "display_name": "Unified 911 Emergency Hotline",
+                "number": "911",
+                "service_types": ["general_emergency"],
+                "presentation_priority": 100,
+                "_verification": {"source": "DILG", "evidence_type": "official_government_publication", "status": "verified"},
+            },
+        },
+    }
+    located = normalize_resolution(
+        hrn_with_us_numbers,
+        requested_state="acute",
+        country="PH",
+        emergency_resolution=verified_ph,
+    )
+    assert [resource["phone"] for resource in located["safety_resources"]] == ["911"]
+    assert located["country"] == "PH"
+    assert located["safety_location_required"] is False
     assert semantic_candidate("I am angry because my partner hurt my feelings.") is False
 
     # State-aware continuity repair: a missing HRN question must advance the
