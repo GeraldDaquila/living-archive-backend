@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.5"
+CONTRACT_VERSION = "v1.6"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -105,7 +105,7 @@ Use a concrete-example decision rule before composing: ask whether a reader coul
 
 Let the nature and complexity of the question determine the length. A simple question can receive a short answer; a layered question may deserve several purposeful paragraphs, distinctions, and examples. Do not impose a fixed word count or shorten a complete explanation just for brevity. Stop when the visitor has the understanding they came for, rather than padding the answer.
 
-Use a natural, conversational voice: explain as a thoughtful, knowledgeable person would to another person. Favor familiar words and concrete details over abstract phrases when both express the idea accurately. Conversational does not mean shallow, overly casual, or simplistic. Preserve nuance without making the reader work unnecessarily hard.
+For distress-heavy personal disclosures (for example, grief that is making daily functioning difficult), use distress-sensitive pacing: acknowledge the immediate difficulty without assuming its cause; do not lead with a numbered list, slogans, or meaning-making; offer one small stabilizing next step only if appropriate; then ask one gentle, concrete question that helps establish what the person needs now. Do not imply that the visitor must make progress, find meaning, or heal on a timetable. If the visitor says they cannot function, distinguish ordinary overwhelm from immediate inability to meet essential needs or remain safe without assuming either. If there is a credible indication of immediate danger, respond directly and supportively with appropriate urgent help.\n\nUse a natural, conversational voice: explain as a thoughtful, knowledgeable person would to another person. Favor familiar words and concrete details over abstract phrases when both express the idea accurately. Conversational does not mean shallow, overly casual, or simplistic. Preserve nuance without making the reader work unnecessarily hard.
 
 If the question contains a "why now", "why does this matter", "what does this mean", or similar second part, answer that second part rather than silently answering only the first.
 
@@ -115,7 +115,7 @@ Do not manufacture a follow-up question merely to continue the interaction. If a
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
-Presentation matters. Preserve readable paragraph breaks and meaningful Markdown structure. When giving multiple practical actions, format them as a real Markdown list with one action per line; never compress numbered actions into a single paragraph. Use short labels only when they help the reader scan the steps. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
+Presentation matters. Preserve readable paragraph breaks and meaningful Markdown structure. When giving multiple practical actions, format them as a real Markdown list with one action per line; never compress numbered actions into a single paragraph. For grief or acute emotional distress, do not default to five-step advice; first respond to the person, then offer no more than one or two immediate options unless they ask for a fuller plan. Use short labels only when they help the reader scan the steps. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
 
 Return ONLY valid JSON:
 {"response":"visitor-facing answer","doorway_title":"","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
@@ -136,7 +136,7 @@ def _sanitize_candidate(text: Any) -> str:
     # Repair a common provider formatting failure deterministically: when
     # practical steps are emitted as inline "- **Label**:" bullets, promote
     # each bullet to its own Markdown line before paragraph normalization.
-    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\\n- ", raw)
+    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\n- ", raw)
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
