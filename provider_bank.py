@@ -440,8 +440,23 @@ def _hrn_surface_language_violation(response):
         "the friction you are feeling often stems from",
         "a concrete shift in the relationship is the move from",
         "rather than a binary win or loss",
+        "there is a distinct difference between defining a boundary and enforcing it",
+        "defining it is an internal act",
+        "external interaction with the other person",
+        "the immediate dynamics of the conversation",
     )
-    return next((phrase for phrase in forbidden if phrase in text), "")
+    matched = next((phrase for phrase in forbidden if phrase in text), "")
+    if matched:
+        return matched
+    patterns = (
+        ("action-guidance", r"\\b(?:it|this|that)\\s+(?:allows|enables|helps|means)\\s+you\\s+to\\b"),
+        ("action-guidance", r"\\b(?:you can|you could|you might want to)\\s+(?:set|establish|stabilize|enforce|frame|approach|try|consider|focus|decide|reach out|give them space)\\b"),
+        ("action-guidance", r"\\b(?:before|when) engaging with the other (?:person|party)\\b"),
+        ("action-guidance", r"\\b(?:preventing|ensuring|allowing) the (?:decision|choice|response)\\b"),
+        ("action-guidance", r"\\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\\b"),
+        ("abstract-generalization", r"\\b(?:in many|often stems from|a common pattern is|relationships often)\\b"),
+    )
+    return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
 
 def _apply_hrn_visitor_contract(messages):
