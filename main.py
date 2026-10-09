@@ -3314,7 +3314,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.8":
+    if snapshot.get("contract_version") != "v1.9":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
