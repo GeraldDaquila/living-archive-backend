@@ -3301,8 +3301,9 @@ def _is_explicit_guide_destination_request(query):
         return False
     return bool(re.search(
         r"\b(?:where can i find|where do i find|show me|take me to|"
-        r"link me to|open|go to|navigate to|find the|browse|"
-        r"take me directly to|send me to|direct me to|access the page for)",
+        r"link me to|go to|navigate to|find the|browse|"
+        r"take me directly to|send me to|direct me to|access the page for)|"
+        r"^(?:please\s+|could you\s+|can you\s+)?open\b",
         normalized,
         re.I,
     ))
@@ -3315,6 +3316,10 @@ if _is_explicit_guide_destination_request(
     raise RuntimeError("Guide routing invariant failed: explanatory question classified as destination request.")
 if not _is_explicit_guide_destination_request("Please take me to the Steward Readiness Instruments."):
     raise RuntimeError("Guide routing invariant failed: explicit destination request not recognized.")
+if _is_explicit_guide_destination_request("What is open source software?"):
+    raise RuntimeError("Guide routing invariant failed: explanatory open-source question classified as destination request.")
+if not _is_explicit_guide_destination_request("Please open the Steward Readiness Instruments."):
+    raise RuntimeError("Guide routing invariant failed: explicit open command not recognized.")
 
 
 def _request_header(scope, name):
@@ -3947,10 +3952,10 @@ async def _use_request_boundary(scope, receive, send):
     # navigation questions.
     if _is_navigator_orientation_request(query):
         specific_node = (
-        _guide_node_specific_match(query)
-        if _is_explicit_guide_destination_request(query)
-        else None
-    )
+            _guide_node_specific_match(query)
+            if _is_explicit_guide_destination_request(query)
+            else None
+        )
         if specific_node is not None:
             request_id = "guide-node-" + hashlib.sha1(
                 (query + "|" + str(specific_node.get("node_id"))).encode("utf-8")
