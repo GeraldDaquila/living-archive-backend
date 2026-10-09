@@ -42,8 +42,8 @@ def main():
     assert '"temperature": 0.0' not in gemini
 
     assert 'APP_VERSION = "v489.13"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.13-lightweight-general-conversation"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.13-lightweight-general-conversation"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.13-general-answer-recovery"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.13-general-answer-recovery"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
