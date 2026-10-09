@@ -2912,6 +2912,8 @@ def _general_guide_authoritative_doorway(query, context_data):
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
+            # A missing recommendation is preferable to an unrelated doorway.
+            # The caller keeps the answer intact and serializes no recommendation.
             return None
 
         # Titles are plain text in the public JSON contract: decode HTML
