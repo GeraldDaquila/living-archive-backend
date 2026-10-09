@@ -133,6 +133,10 @@ def _sanitize_candidate(text: Any) -> str:
         return ""
 
     raw = _INTERNAL_BRACKET.sub(" ", raw)
+    # Repair a common provider formatting failure deterministically: when
+    # practical steps are emitted as inline "- **Label**:" bullets, promote
+    # each bullet to its own Markdown line before paragraph normalization.
+    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\\n- ", raw)
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
@@ -402,6 +406,8 @@ def contract_snapshot() -> Dict[str, Any]:
 # itself without making an external API call at startup.
 if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Answer this.":
     raise RuntimeError("General Guide composition invariant failed: visitor-language sanitizer.")
+if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two.") != "Steps:\n- **First action**: one.\n- **Second action**: two.":
+    raise RuntimeError("General Guide composition invariant failed: inline practical-list normalization.")
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
     raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
 
