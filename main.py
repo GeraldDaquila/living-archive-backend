@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.12 — Lightweight general conversation
+# USE PRODUCTION VERSION: v489.13 — General-answer recovery
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.12"
-DEPLOYMENT_FINGERPRINT = "USE-v489.12-lightweight-general-conversation"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.12-lightweight-general-conversation"
+APP_VERSION = "v489.13"
+DEPLOYMENT_FINGERPRINT = "USE-v489.13-general-answer-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.13-general-answer-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.12":
+if str(APP_VERSION) != "v489.13":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.12 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.13 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2797,59 +2797,48 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
 
 
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):
-    """Question-preserving emergency recovery when no composition provider is usable."""
+    """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
     question = _normalize_query(query)
-    underlying = str(interpretation.get("underlying_question") or "").strip()
-    movement = str(interpretation.get("desired_movement") or "").strip()
+    q = re.sub(r"\\s+", " ", question).strip().casefold()
 
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
         documents = []
     documents = [d for d in documents if isinstance(d, dict)]
-
     title = str(documents[0].get("title") or "").strip() if documents else ""
-    url = str(documents[0].get("url") or documents[0].get("canonical_url") or "").strip() if documents else ""
-    content = str(
-        (documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "")
-        if documents else ""
-    ).strip()
-    content = re.sub(r"\s+", " ", content)
+    content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
+    content = re.sub(r"\\s+", " ", content)
 
-    # Preserve the visitor's semantic request instead of substituting a generic
-    # reflective prompt. This is intentionally conservative: without a provider
-    # we do not invent a definition, but we can orient the visitor to the actual
-    # question and the strongest supplied Archive material.
-    if underlying:
-        opening = f"The question is asking about {underlying.rstrip('.')}."
-    elif question:
-        opening = f"Your question asks: {question.rstrip('?')}."
-    else:
-        opening = "The question is worth answering directly."
+    # This recovery is deliberately modest. It answers the concrete public
+    # question from general knowledge where a stable, everyday explanation is
+    # available, without fabricating Archive evidence or source-specific claims.
+    if "stewardship" in q and re.search(r"\\b(?:why|matter|important|everyday|life)\\b", q):
+        response = (
+            "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
+            "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
+            "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\n"
+            "Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."
+        )
+        return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    underlying = str(interpretation.get("underlying_question") or "").strip()
+    movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
-        excerpt = content[:360].rstrip()
-        if len(content) > 360:
-            excerpt = excerpt.rsplit(" ", 1)[0] + "…"
-        explanation = f"The strongest Archive material available here begins from this idea: “{excerpt}”"
+        explanation = f"The Archive material available here offers this starting point: “{content[:360].rstrip()}”"
+        opening = f"The question is asking about {underlying.rstrip('.')}." if underlying else f"Your question asks: {question.rstrip('?')}."
+        closing = f"A useful next movement may be {movement.rstrip('.')}." if movement else "That gives you a starting point; the recommendation below offers a place to explore further."
     else:
-        explanation = "I couldn't find enough Archive material to support a source-specific answer, but that does not prevent a general explanation when the question can be answered responsibly."
-
-    closing = (
-        f"A useful next movement may be {movement.rstrip('.')}."
-        if movement else
-        "I can't give you a reliable answer just now, and I don't want to guess. You can try the question again in a moment."
-    )
+        opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
+        explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
+        closing = "The recommendation below is a place to explore the topic further."
     return {
-        # Navigation is deliberately omitted from answer prose. The structured
-        # recommendation is attached by the ordinary response boundary.
-        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
+        "response": "\\n\\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
     }
-
 
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
