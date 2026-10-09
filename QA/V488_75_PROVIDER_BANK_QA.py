@@ -41,8 +41,8 @@ def main():
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
 
-    assert 'APP_VERSION = "v489.16"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.16-evidence-neutral-general-answers"' in main_source
+    assert 'APP_VERSION = "v489.17"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
     assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.16-evidence-neutral-general-answers"' in main_source
 
     # Behavioral self-healing check:
