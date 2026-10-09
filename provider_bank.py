@@ -421,6 +421,16 @@ def _hrn_surface_language_violation(response):
         "to move from a general desire",
         "the observer indicates",
         "the interpretation indicates",
+        "you can frame each interaction",
+        "setting clear, flexible boundaries",
+        "this opens the possibility of",
+        "this small change in framing can help",
+        "it makes sense that you are looking for a way to bridge the gap",
+        "if we look at reaching out not as",
+        "you are offering a choice rather than",
+        "can help you feel less like",
+        "the dynamic shifts",
+        "open door",
     )
     return next((phrase for phrase in forbidden if phrase in text), "")
 
@@ -436,7 +446,7 @@ def _normalize_operation_result(operation, parsed):
         surface_violation = _hrn_surface_language_violation(response)
         if surface_violation:
             raise ValueError(
-                "hrn_relational composition exposes internal-process language: "
+                "hrn_relational visitor-surface contract violation: "
                 + surface_violation
             )
         # Do not let a syntactically valid JSON object conceal a cut-off
