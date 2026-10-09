@@ -61,7 +61,7 @@ jobs:
         if: steps.frontend-changes.outputs.guide_frontend == 'true'
         with:
           node-version: "22"
-      - name: Validate inline JavaScript syntax
+      - name: Validate external Guide JavaScript syntax
         if: steps.frontend-changes.outputs.guide_frontend == 'true'
         run: node tests/e2e/check-guide-source-syntax.cjs
       - name: Install pinned Playwright
