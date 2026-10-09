@@ -203,7 +203,7 @@ def test_current_main_contains_domain_payload_consumption_guards():
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
     assert "interpretation = dict(domain_payload.get(\"interpretation\") or {})" in source
     provider_bank_source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
-    assert "raw_output = _call(use_core, item, messages, effective_max_tokens, effective_schema)" in provider_bank_source
+    assert "raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema)" in provider_bank_source
     assert "recovery_messages.append({" in provider_bank_source
     assert "Correct the output now." in provider_bank_source
 
