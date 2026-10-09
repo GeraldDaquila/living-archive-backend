@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.31 — Location-grounded safety resources
+# USE PRODUCTION VERSION: v489.32 — Respect explicit safety-location refusal
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.31"
-DEPLOYMENT_FINGERPRINT = "USE-v489.31-location-grounded-safety-resources"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.31-location-grounded-safety-resources"
+APP_VERSION = "v489.32"
+DEPLOYMENT_FINGERPRINT = "USE-v489.32-respect-location-refusal"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.32-respect-location-refusal"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.31":
+if str(APP_VERSION) != "v489.32":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3675,6 +3675,11 @@ def _ip_geolocation(client_ip, timeout=0.65):
 
 async def _resolve_request_location(scope, parsed_body):
     context, client_ip = _request_location_context(scope, parsed_body)
+    # A visitor's explicit refusal is authoritative. Do not infer location
+    # from the request IP after refusal; that IP may belong to a proxy or
+    # infrastructure hop rather than the visitor.
+    if str(context.get("refused") or "").strip().casefold() in {"true", "yes", "1", "refused"}:
+        return context
     # First-party/context supplied by the visitor or edge wins. Only use the
     # external IP resolver when no country signal exists yet.
     if any(context.get(key) for key in (
