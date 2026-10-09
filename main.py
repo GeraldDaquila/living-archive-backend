@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.21 — Bounded-latency canonical search recovery
+# USE PRODUCTION VERSION: v489.22 — Concurrent bounded canonical search recovery
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.21"
-DEPLOYMENT_FINGERPRINT = "USE-v489.21-bounded-latency-canonical-search"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.21-bounded-latency-canonical-search"
+APP_VERSION = "v489.22"
+DEPLOYMENT_FINGERPRINT = "USE-v489.22-concurrent-canonical-search"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.22-concurrent-canonical-search"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.21":
+if str(APP_VERSION) != "v489.22":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1667,7 +1667,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.21 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.22 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2911,8 +2911,9 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
         title_hits = sum(bool(_term_forms(term) & title_tokens) for term in terms)
         ranked.append((title_hits, -index, title, url, href))
     ranked.sort(reverse=True)
-    recovered = []
-    for _title_hits, _order, title, url, href in ranked[:limit]:
+
+    def fetch_candidate(entry):
+        _title_hits, _order, title, url, href = entry
         try:
             request = UrlRequest(
                 href,
@@ -2922,7 +2923,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             with urlopen(request, timeout=1.5) as response:
                 resource = json.loads(response.read().decode("utf-8"))
             if not isinstance(resource, dict):
-                continue
+                return None
             resource_url = str(resource.get("link") or url).strip()
             resource_title_obj = resource.get("title")
             resource_title = str(
@@ -2938,10 +2939,19 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             content = re.sub(r"(?s)<[^>]+>", " ", raw_content)
             content = re.sub(r"\s+", " ", html.unescape(content)).strip()
             if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
-                continue
-            recovered.append({"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]})
+                return None
+            return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
         except Exception as exc:
             print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
+            return None
+
+    # Fetch the bounded candidate slice concurrently but preserve ranking order.
+    # The per-request timeout still bounds each outbound operation.
+    from concurrent.futures import ThreadPoolExecutor
+
+    candidate_slice = ranked[:limit]
+    with ThreadPoolExecutor(max_workers=max(1, min(limit, len(candidate_slice)))) as executor:
+        recovered = [item for item in executor.map(fetch_candidate, candidate_slice) if item]
     print(f"The Guide canonical search recovery: search_terms={len(indexed_terms[:2])}, candidates={len(recovered)}.")
     return recovered
 
