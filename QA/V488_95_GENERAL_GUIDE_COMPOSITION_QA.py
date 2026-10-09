@@ -107,7 +107,7 @@ def main():
 
     def fake_route(**kwargs):
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\n\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\n\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\\n\\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\\n\\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
         return {
             "parsed": parsed,
