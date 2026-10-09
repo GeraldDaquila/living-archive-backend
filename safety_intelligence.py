@@ -671,8 +671,22 @@ def _initial_deterministic_safety_response(
             "department now."
         ),
         "safety_resources": resources,
-        "safety_location_required": not bool(emergency_resolution),
-        "country": str(country or "").strip(),
+        "safety_location_required": (
+            not bool(resources)
+            or str(
+                ((emergency_resolution or {}).get("selection") or {}).get("selection_status") or ""
+            ) != "SELECTED"
+        ),
+        "country": str(
+            country
+            or (
+                (((emergency_resolution or {}).get("location") or {}).get("location") or {})
+                .get("country", {}).get("value", "")
+                if str(((emergency_resolution or {}).get("selection") or {}).get("selection_status") or "") == "SELECTED"
+                else ""
+            )
+            or ""
+        ).strip(),
         "safety_release_ready": False,
         "resolver_status": "deterministic_initial_fast_path",
         "safety_continuity_guard": "deterministic_initial_movement",
