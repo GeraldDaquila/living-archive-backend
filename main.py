@@ -3289,6 +3289,33 @@ if _series_analysis_boundary_probe and _series_analysis_boundary_probe.get("node
         "USE v488.30 invariant failed: singular Leadership hint matched plural pattern query."
     )
 
+def _is_explicit_guide_destination_request(query):
+    """Only hand off to a registered node when the visitor asks to navigate.
+
+    Subject overlap alone is not destination intent. Explanatory questions
+    must remain in ordinary Guide composition so the answer and recommendation
+    can both be returned instead of sending the visitor straight to a page.
+    """
+    normalized = _normalize_query(query)
+    if not normalized:
+        return False
+    return bool(re.search(
+        r"\\b(?:where can i find|where do i find|show me|take me to|"
+        r"link me to|open|go to|navigate to|find the|browse|"
+        r"take me directly to|send me to|direct me to|access the page for)\\b",
+        normalized,
+        re.I,
+    ))
+
+# Routing boundary regression probes: compound explanatory questions must
+# never be mistaken for a request to navigate directly to a registry node.
+if _is_explicit_guide_destination_request(
+    "What is stewardship and why does it matter now more than ever?"
+):
+    raise RuntimeError("Guide routing invariant failed: explanatory question classified as destination request.")
+if not _is_explicit_guide_destination_request("Please take me to the Steward Readiness Instruments."):
+    raise RuntimeError("Guide routing invariant failed: explicit destination request not recognized.")
+
 
 def _request_header(scope, name):
     target = str(name or "").strip().lower().encode("latin-1")
@@ -3884,7 +3911,11 @@ async def _use_request_boundary(scope, receive, send):
     # specific Guide Node has already supplied enough destination intent;
     # sending that question to Start Here would discard useful specificity.
     # This is registry-driven, not a question-specific keyword redirect.
-    specific_node = _guide_node_specific_match(query)
+    specific_node = (
+        _guide_node_specific_match(query)
+        if _is_explicit_guide_destination_request(query)
+        else None
+    )
     if specific_node is not None:
         request_id = "guide-node-" + hashlib.sha1(
             (query + "|" + str(specific_node.get("node_id"))).encode("utf-8")
@@ -3915,7 +3946,11 @@ async def _use_request_boundary(scope, receive, send):
     # from losing their destination merely because they are phrased as
     # navigation questions.
     if _is_navigator_orientation_request(query):
-        specific_node = _guide_node_specific_match(query)
+        specific_node = (
+        _guide_node_specific_match(query)
+        if _is_explicit_guide_destination_request(query)
+        else None
+    )
         if specific_node is not None:
             request_id = "guide-node-" + hashlib.sha1(
                 (query + "|" + str(specific_node.get("node_id"))).encode("utf-8")
