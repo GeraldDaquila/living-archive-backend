@@ -155,7 +155,7 @@ def test_hrn_composition_rejects_advice_shaped_language():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "internal-process language" in str(exc)
+        assert "visitor-surface contract violation" in str(exc)
     else:
         raise AssertionError("advice-shaped HRN language must be rejected")
 
@@ -175,7 +175,7 @@ def test_hrn_composition_rejects_internal_process_language():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "internal-process language" in str(exc)
+        assert "visitor-surface contract violation" in str(exc)
     else:
         raise AssertionError("internal-process language must not reach HRN visitors")
 
