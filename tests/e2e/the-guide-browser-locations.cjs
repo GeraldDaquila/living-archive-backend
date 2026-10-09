@@ -46,14 +46,10 @@ const vm = require("node:vm");
     });
     if (navigationResponse) {
       const responseHtml = await navigationResponse.text();
-      const responseLines = responseHtml.split(/\r?\n/);
-      console.log("LIVE_HTML_ERROR_LINE " + JSON.stringify({
-        line1226: responseLines[1225] || null,
-        around: responseLines.slice(1222, 1229).map((text, index) => ({
-          line: 1223 + index,
-          text: text.slice(0, 600)
-        })),
-        nearestScriptOpen: responseLines.slice(0, 1226).map((text, index) => /<script\b/i.test(text) ? index + 1 : null).filter(Boolean).slice(-1)[0] || null
+      console.log("LIVE_HTML_EXTERNAL_SCRIPT " + JSON.stringify({
+        externalAssetReferenced: responseHtml.includes("living-archive-guide-v489.12.js"),
+        inlineControllerInHtml: responseHtml.includes("function installGuideSubmitController("),
+        inlineEntityEscapedOperators: responseHtml.includes("error &#038;&#038; error.name")
       }));
     }
     const form = page.locator("#archive-search-form");
@@ -62,9 +58,7 @@ const vm = require("node:vm");
       buildAttribute: element.getAttribute("data-use-frontend-build"),
       installedController: element.__useGuideControllerInstalled || null,
       globalController: window.__USE_GUIDE_FRONTEND_CONTROLLER__ || null,
-      bodyHasBuildMarker: document.body.innerHTML.includes("v489.10"),
-      bodyHasControllerSource: document.body.innerHTML.includes("installGuideSubmitController"),
-      bodyHasEscapeSource: document.body.innerHTML.includes("function escapeHtml"),
+      externalAssetLoaded: Array.from(document.scripts).some((script) => script.src.includes("living-archive-guide-v489.12.js")),
       formOuterHTML: element.outerHTML.slice(0, 700),
       scripts: Array.from(document.scripts).map((script) => ({
         src: script.src || "",
