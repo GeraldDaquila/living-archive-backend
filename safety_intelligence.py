@@ -591,8 +591,10 @@ def normalize_safety_resolution(
         # safety exchange intact, disclose the missing local-resource context,
         # and let the UI/request boundary collect location before showing a number.
         resources = []
-        if emergency_status in {"", "LOCATION_REQUIRED", "FALLBACK_GENERAL_EMERGENCY"}:
-            safety_note = "I don't yet have a verified local hotline for your location, so I won't guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department. If you tell me what country you're in, I can help identify the appropriate local resource."
+        safety_note = "I don't yet have a verified local hotline for your location, so I won't guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department. If you tell me what country you're in, I can help identify the appropriate local resource."
+        resolved_country = str(country or "").strip()
+    else:
+        resolved_country = str(resolved_country_data.get("value") or country or "").strip()
 
     selection = dict((emergency_resolution or {}).get("selection") or {})
     presentation = dict((emergency_resolution or {}).get("presentation") or {})
@@ -606,6 +608,7 @@ def normalize_safety_resolution(
         "safety_resources": resources,
         "safety_location_required": (
             safety_location_required
+            or not resources_are_location_grounded
             or str(selection.get("selection_status") or "") == "LOCATION_REQUIRED"
         ),
         "country": resolved_country,
