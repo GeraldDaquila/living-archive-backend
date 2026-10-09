@@ -2938,7 +2938,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = re.sub(r"(?s)<[^>]+>", " ", raw_content)
             content = re.sub(r"\s+", " ", html.unescape(content)).strip()
-            if not content or not re.match(r"^https://geralddaquila\.com/\\S+$", resource_url, re.I):
+            if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
                 return None
             return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
         except Exception as exc:
