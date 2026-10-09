@@ -153,7 +153,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\n\nIt matters because our choices can affect people and systems beyond our immediate reach.\n\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\\n\\nIt matters because our choices can affect people and systems beyond our immediate reach.\\n\\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
