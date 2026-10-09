@@ -85,7 +85,7 @@ def main():
     assert_true("natural, conversational voice" in composition._GENERAL_GUIDE_SYSTEM, "conversational voice guidance missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.7", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.8", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
@@ -132,6 +132,11 @@ def main():
             "1. **Map demands** – identify load. 2. **Set boundaries** – protect recovery. 3. **Seek support** – ask for help.",
             "1. **Map demands**",
             "\n2. **Set boundaries**",
+        ),
+        (
+            "1. **Set clear boundaries** – decide when you’ll stop checking email, and communicate those limits to your team. Treat your downtime as non-negotiable. 2. **Delegate and trust** – identify tasks that can be handed off.",
+            "1. **Set clear boundaries**",
+            "\n2. **Delegate and trust**",
         ),
     ]
     for raw_case, first_marker, second_marker in inline_cases:
@@ -338,7 +343,7 @@ def main():
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "preselected doorway is still trusted without relevance validation")
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
-    print("V489.25 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.26 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
