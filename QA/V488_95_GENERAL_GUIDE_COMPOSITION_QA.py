@@ -27,7 +27,12 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.17"' in MAIN_TEXT, "main.py version is not v489.17")
+    version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', MAIN_TEXT)
+    assert_true(version_match is not None, "main.py production version is missing")
+    app_version = version_match.group(1)
+    assert_true(f'if str(APP_VERSION) != "{app_version}":' in MAIN_TEXT, "runtime version invariant does not match APP_VERSION")
+    assert_true(f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in MAIN_TEXT, "deployment fingerprint does not match APP_VERSION")
+    assert_true(f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in MAIN_TEXT, "canonical build ID does not match APP_VERSION")
     assert_true("def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):" in MAIN_TEXT, "question-aware deterministic recovery is missing")
     recovery_start = MAIN_TEXT.find("def _basic_inquiry_round1_deterministic_response(")
     recovery_end = MAIN_TEXT.find("def _general_guide_authoritative_doorway", recovery_start)
@@ -36,6 +41,16 @@ def main():
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
     assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "recommendation relevance guard is missing")
+    assert_true("A title overlap alone is not enough to make a canonical doorway relevant." in MAIN_TEXT, "title-only doorway matches are not rejected")
+    assert_true("score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)" in MAIN_TEXT, "canonical doorway ranking does not prioritize evidence in the resource body")
+    # Navigation selection is independent from answer synthesis sufficiency.
+    evidence_boundary_start = MAIN_TEXT.find("if archive_evidence_unavailable:")
+    evidence_boundary_end = MAIN_TEXT.find("# All ordinary questions use the same provider-neutral composition path", evidence_boundary_start)
+    evidence_boundary = MAIN_TEXT[evidence_boundary_start:evidence_boundary_end]
+    assert_true(evidence_boundary_start >= 0 and evidence_boundary_end > evidence_boundary_start, "evidence sufficiency boundary is missing")
+    assert_true("authoritative_doorway = None" not in evidence_boundary, "synthesis insufficiency still erases an independently selected canonical doorway")
+    assert_true('"canonical_link_context"' in evidence_boundary and '"context_blocks"' in evidence_boundary, "synthesis evidence is not isolated from the composition context")
+
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -46,7 +61,7 @@ def main():
     assert_true('What is stewardship and why does it matter now more than ever?' in MAIN_TEXT, "reported explanatory-query regression probe is missing")
     assert_true("if glossary_term and _is_bounded_glossary_request(" in MAIN_TEXT, "direct Glossary handoff is not guarded by bounded-query validation")
     assert_true("embedded_term=embedded_glossary_term" in MAIN_TEXT, "direct Glossary handoff does not validate the original query shape")
-    assert_true('USE v489.17 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
+    assert_true('USE v489.19 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
 
     basic_start = MAIN_TEXT.find("def _basic_inquiry_response(")
     basic_end = MAIN_TEXT.find("def _v48894_general_guide_composition_self_audit", basic_start)

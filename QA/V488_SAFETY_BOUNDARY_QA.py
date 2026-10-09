@@ -1,3 +1,4 @@
+import re
 """Sitewide Safety Boundary Regression QA v488.67.
 
 Checks deterministic safety normalization, active safety follow-through, and the
@@ -127,9 +128,12 @@ def main():
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
-    assert 'APP_VERSION = "v489.17"' in main_source
+    version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
+    assert version_match, "APP_VERSION missing"
+    app_version = version_match.group(1)
+    assert f'if str(APP_VERSION) != "{app_version}":' in main_source
     assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
+    assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(

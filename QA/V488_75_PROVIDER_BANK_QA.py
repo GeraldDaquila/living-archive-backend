@@ -1,6 +1,7 @@
 """v488.77 provider-resilience structural and behavioral QA."""
 from pathlib import Path
 import ast
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,9 +42,12 @@ def main():
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
 
-    assert 'APP_VERSION = "v489.17"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"' in main_source
+    version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
+    assert version_match, "APP_VERSION missing"
+    app_version = version_match.group(1)
+    assert f'if str(APP_VERSION) != "{app_version}":' in main_source
+    assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in main_source
+    assert f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.

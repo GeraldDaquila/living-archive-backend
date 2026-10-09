@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.17 — Evidence-neutral general answers
+# USE PRODUCTION VERSION: v489.19 — Evidence-correlated canonical doorway ranking
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.17"
-DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"
+APP_VERSION = "v489.19"
+DEPLOYMENT_FINGERPRINT = "USE-v489.19-evidence-correlated-doorway-ranking"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.19-evidence-correlated-doorway-ranking"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.17":
+if str(APP_VERSION) != "v489.19":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -767,6 +767,11 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
         return False
     metrics = _subject_metrics(query, doc)
+    # A title overlap alone is not enough to make a canonical doorway relevant.
+    # Require corroboration in the resource's own body, so generic/title-level
+    # coincidences cannot outrank material that actually addresses the question.
+    if metrics[0] > 0 and metrics[2] == 0 and metrics[3] == 0 and metrics[1] == 0:
+        return False
     if min_relevance is not None and _relevance_level(metrics) < min_relevance:
         # A canonical doorway can be semantically central even when the query's
         # exact wording appears only once in the opening. Preserve that case
@@ -791,7 +796,9 @@ def _canonical_primary_from_docs(docs, query, profile):
             continue
         metrics = _subject_metrics(query, doc)
         context = _contextual_fit(query, doc)
-        score = (metrics[0], metrics[1], metrics[2], context[2], context[1], metrics[3], -index)
+        # Rank by body corroboration first, then title fit. The document's
+        # substantive relevance must outrank incidental title overlap.
+        score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
         eligible.append((score, doc))
     eligible.sort(key=lambda item: item[0], reverse=True)
     return eligible[0][1] if eligible else None
@@ -1660,7 +1667,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.17 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.19 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -3003,7 +3010,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "authoritative_doorway",
         ):
             composition_context.pop(key, None)
-        authoritative_doorway = None
+        # Navigation and answer synthesis have separate evidence contracts.
+        # Insufficient synthesis evidence must not erase an independently
+        # selected, relevant canonical doorway. The doorway is returned as a
+        # separate field and is not passed into the composition context.
 
     # All ordinary questions use the same provider-neutral composition path,
     # including when no suitable Archive evidence is available. The composer
@@ -3025,7 +3035,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 f"model={composition_result.get('model') or 'unknown'}, "
                 f"shape={composition_result.get('response_shape') or 'unknown'}, "
                 f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
-                f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
             )
         else:
             print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")

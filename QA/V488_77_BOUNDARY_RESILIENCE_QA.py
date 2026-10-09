@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import ast
+import re
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,9 +27,12 @@ def main():
     assert "STALE" in resilience
     assert "UNAVAILABLE" in resilience
 
-    assert 'APP_VERSION = "v489.17"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"' in main_source
+    version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
+    assert version_match, "APP_VERSION missing"
+    app_version = version_match.group(1)
+    assert f'if str(APP_VERSION) != "{app_version}":' in main_source
+    assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in main_source
+    assert f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in main_source
     assert "boundary_resilience" in main_source
     assert "GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS" in main_source
     assert "GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS" in main_source
