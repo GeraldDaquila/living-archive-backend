@@ -233,6 +233,34 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
     assert recommendation.get("url") == CANONICAL_URL
     assert recommendation.get("title") == CANONICAL_TITLE
 
+
+def test_model_selected_guide_node_cannot_bypass_explicit_destination_boundary(monkeypatch):
+    """A provider-selected Glossary node must not swallow an explanatory question."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        use_main,
+        "_guide_capability_route",
+        lambda *args, **kwargs: {
+            "route": "guide_node",
+            "mode": "direct",
+            "confidence": 1.0,
+            "round1_interpretation": {"guide_node_id": "living-glossary"},
+        },
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["intent"] == "TOPICAL_INQUIRY"
+    assert payload["processing"] == "basic_inquiry"
+    assert len(payload["response"].strip()) >= 80
+    assert payload.get("handoff") != "guide_node"
+    assert payload["recommendation"] == {
+        "title": CANONICAL_TITLE,
+        "url": CANONICAL_URL,
+    }
+
+
 def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
     status, payload = asyncio.run(_post_query("What is stewardship?"))
 
