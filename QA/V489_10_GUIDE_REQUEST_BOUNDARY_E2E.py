@@ -209,7 +209,7 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
     assert payload.get("processing") == "basic_inquiry"
     response = payload.get("response")
     assert isinstance(response, str) and len(response.strip()) >= 80
-    assert len([p for p in response.split("\\n\\n") if p.strip()]) >= 2
+    assert len([p for p in response.split("\n\n") if p.strip()]) >= 2
     assert "glossary" not in str(payload.get("handoff") or "").casefold()
     recommendation = payload.get("recommendation")
     assert isinstance(recommendation, dict)
