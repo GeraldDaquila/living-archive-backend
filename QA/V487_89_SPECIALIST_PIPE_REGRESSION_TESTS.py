@@ -164,6 +164,34 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
 
 
 
+
+def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
+    parsed = {
+        "response": "The pull toward intimacy is now also felt as a threat to your autonomy, so the same emotional energy can be both a bridge and a boundary.",
+        "question": "What becomes visible when you notice the effort beneath the thing you are trying to do?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("unsupported intimacy/autonomy inference must be rejected")
+
+
+def test_hrn_rejects_formulaic_abstract_followup_question():
+    parsed = {
+        "response": "You are unsure whether reaching out would help or pressure them.",
+        "question": "What becomes visible when you notice the effort beneath the thing you are trying to do?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "question-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("formulaic abstract question must be rejected")
+
+
+
 def test_hrn_composition_rejects_formulaic_connective_and_inferred_state():
     parsed = {
         "response": "If you view your potential outreach as an intrusion, you are operating from a place of guilt. This distinction matters because it shifts the focus from managing your own anxiety about being unwanted to extending a hand without demands.",
@@ -432,6 +460,8 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_rejects_unsupported_intimacy_autonomy_inference()
+    test_hrn_rejects_formulaic_abstract_followup_question()
     test_hrn_composition_rejects_formulaic_connective_and_inferred_state()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
