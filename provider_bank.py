@@ -421,6 +421,16 @@ def _hrn_surface_language_violation(response):
         "to move from a general desire",
         "the observer indicates",
         "the interpretation indicates",
+        "you can frame each interaction",
+        "setting clear, flexible boundaries",
+        "this opens the possibility of",
+        "this small change in framing can help",
+        "it makes sense that you are looking for a way to bridge the gap",
+        "if we look at reaching out not as",
+        "you are offering a choice rather than",
+        "can help you feel less like",
+        "the dynamic shifts",
+        "open door",
     )
     return next((phrase for phrase in forbidden if phrase in text), "")
 
