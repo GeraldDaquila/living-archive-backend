@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.14 — Explanatory discernment
+# USE PRODUCTION VERSION: v489.15 — Selective concreteness
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.14"
-DEPLOYMENT_FINGERPRINT = "USE-v489.14-explanatory-discernment"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.14-explanatory-discernment"
+APP_VERSION = "v489.15"
+DEPLOYMENT_FINGERPRINT = "USE-v489.15-selective-concreteness"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.15-selective-concreteness"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.14":
+if str(APP_VERSION) != "v489.15":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.3":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.4":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.14 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.15 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -3064,7 +3064,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.3":
+    if snapshot.get("contract_version") != "v1.4":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
