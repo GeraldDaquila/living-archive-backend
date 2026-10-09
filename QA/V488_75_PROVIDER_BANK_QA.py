@@ -37,7 +37,7 @@ def main():
     gemini_end = provider.index("\ndef _openai_compatible", gemini_start)
     gemini = provider[gemini_start:gemini_end]
     assert '"maxOutputTokens": max_tokens' in gemini
-    assert '"responseMimeType": "application/json"' in gemini
+    assert 'payload["generationConfig"]["responseMimeType"] = "application/json"' in gemini
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
 
