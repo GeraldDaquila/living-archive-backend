@@ -54,7 +54,7 @@ def main():
     assert_true('What is stewardship and why does it matter now more than ever?' in MAIN_TEXT, "reported explanatory-query regression probe is missing")
     assert_true("if glossary_term and _is_bounded_glossary_request(" in MAIN_TEXT, "direct Glossary handoff is not guarded by bounded-query validation")
     assert_true("embedded_term=embedded_glossary_term" in MAIN_TEXT, "direct Glossary handoff does not validate the original query shape")
-    assert_true('USE v489.17 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
+    assert_true('USE v489.18 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
 
     basic_start = MAIN_TEXT.find("def _basic_inquiry_response(")
     basic_end = MAIN_TEXT.find("def _v48894_general_guide_composition_self_audit", basic_start)
