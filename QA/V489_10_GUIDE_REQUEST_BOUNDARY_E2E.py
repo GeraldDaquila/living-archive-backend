@@ -304,19 +304,19 @@ def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
     assert payload["response"] == ""
 
 def test_source_specific_question_acknowledges_unavailable_archive_source(monkeypatch):
-    """Source-specific requests retain the limitation without inheriting rejected material."""
+    """Specific-source requests preserve the evidence limit without passing rejected material."""
     seen = {}
 
     def source_limited_composition(**kwargs):
         seen["query"] = kwargs["query"]
         seen["context_data"] = kwargs["context_data"]
-        seen["response"] = ""
+        seen["response"] = (
+            "I cannot verify the exact claims of that particular article from the "
+            "material available here. A general explanation would not establish "
+            "what the article itself says."
+        )
         return {
-            "response": (
-                "I can't verify what that particular Archive essay says from the "
-                "material available here. I can explain the general topic, but I "
-                "would not want to attribute that explanation to the essay."
-            ),
+            "response": seen["response"],
             "provider": "controlled_test_provider",
             "model": "controlled_test_model",
             "response_shape": "direct",
@@ -328,17 +328,18 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     monkeypatch.setattr(
         use_main.general_guide_composition, "compose", source_limited_composition
     )
-    query = "What does the Living Archive's specific essay say about burnout?"
+    # This source-boundary test isolates evidence handling from destination routing.
+    monkeypatch.setattr(use_main, "_guide_capability_route", lambda *args, **kwargs: {})
+    query = "What exact claims does the named article make about burnout among managers? I need the article's own claims, not general advice."
     status, payload = asyncio.run(_post_query(query))
 
     assert status == 200
-    assert "can't verify what that particular Archive essay says" in seen["response"]
+    assert "cannot verify the exact claims" in seen["response"]
     assert seen["query"] == query
     assert not seen["context_data"].get("generation_authority_protected_docs")
     assert not seen["context_data"].get("question_authority_protected_docs")
     assert not seen["context_data"].get("context_blocks")
     assert payload.get("recommendation") is None
-
 
 def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypatch):
     """Provider exhaustion retains useful guidance and actual paragraph breaks."""
