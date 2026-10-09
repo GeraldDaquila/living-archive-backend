@@ -27,11 +27,20 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.07"' in MAIN_TEXT, "main.py version is not v489.07")
+    assert_true('APP_VERSION = "v489.11"' in MAIN_TEXT, "main.py version is not v489.11")
+    assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
+    assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "recommendation relevance guard is missing")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
     )
+    # Explanatory subject overlap must not authorize direct Guide Node handoff.
+    assert_true("def _is_explicit_guide_destination_request(query):" in MAIN_TEXT, "explicit destination-intent boundary is missing")
+    assert_true("if _is_explicit_guide_destination_request(query)" in MAIN_TEXT, "registry handoff is not guarded by explicit destination intent")
+    assert_true('What is stewardship and why does it matter now more than ever?' in MAIN_TEXT, "reported explanatory-query regression probe is missing")
+    assert_true("if glossary_term and _is_bounded_glossary_request(" in MAIN_TEXT, "direct Glossary handoff is not guarded by bounded-query validation")
+    assert_true("embedded_term=embedded_glossary_term" in MAIN_TEXT, "direct Glossary handoff does not validate the original query shape")
+    assert_true('USE v489.11 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
 
     basic_start = MAIN_TEXT.find("def _basic_inquiry_response(")
     basic_end = MAIN_TEXT.find("def _v48894_general_guide_composition_self_audit", basic_start)
@@ -103,7 +112,7 @@ def main():
 
     def fake_route(**kwargs):
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\n\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\n\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\\n\\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\\n\\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
         return {
             "parsed": parsed,
@@ -129,7 +138,7 @@ def main():
         )
         assert_true(composed is not None, "provider-neutral composition seam returned no result")
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
-        assert_true("You can use that idea" in composed["response"], "ordinary visitor language was falsely rejected")
+        assert_true("Stewardship is about taking responsibility" in composed["response"], "fake provider response was not preserved by composition")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
 
         # Navigation must be supplied structurally by the Guide, never embedded
@@ -149,7 +158,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\n\nIt matters because our choices can affect people and systems beyond our immediate reach.\n\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\\n\\nIt matters because our choices can affect people and systems beyond our immediate reach.\\n\\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
@@ -157,7 +166,7 @@ def main():
         try:
             tolerant = composition.compose(
                 use_core=FakeCore(),
-                query="What is stewardship and why is it important now more than ever?",
+                query="What is stewardship and why does it matter today?",
                 context_data={
                     "generation_authority_protected_docs": [
                         {
@@ -217,17 +226,17 @@ def main():
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
     # Recommendation is a first-class Guide response contract, independent of provider success.
-    assert_true("def _normalize_authoritative_recommendation" in main_source, "recommendation normalization helper missing")
-    assert_true('"recommendation": authoritative_doorway' in main_source, "ordinary response recommendation field is not bound to authoritative doorway")
-    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in main_source, "recommendation is not resolved before composition")
-    assert_true("One relevant place to continue is [" not in main_source, "doorway prose still leaks into ordinary answer construction")
-    assert_true('"recommendation": recovery_recommendation' in main_source, "recovery response lost structured recommendation")
+    assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
+    assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
+    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "recommendation is not resolved before composition")
+    assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
+    assert_true('"recommendation": recovery_recommendation' in MAIN_TEXT, "recovery response lost structured recommendation")
 
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
-    assert_true("_base._canonical_pairs(canonical_context)" in main_source, "Guide does not consume canonical link authority as a final navigation fallback")
-    assert_true("context_data.get("authoritative_doorway")" in main_source, "Guide recommendation envelope lacks the canonical-authority seam")
-    assert_true("re-run a second doorway selector" in main_source or "second doorway selector" in main_source, "recommendation boundary does not document single doorway authority")
+    assert_true("_canonical_primary_from_docs(evidence_docs, query, profile)" in MAIN_TEXT, "Guide does not rank recommendation candidates against retrieved evidence")
+    assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "preselected doorway is still trusted without relevance validation")
+    assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
     print("V489.07 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")

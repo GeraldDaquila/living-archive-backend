@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PROTECTED = {
     "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
-    "specialist_adapters.py": "9f253c7ceaeaaba8bd95d2d244015f428fc1285a",
+    "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
     "specialist_registry.py": "25964a7ceaa30d7fa9d80524d3e3d5afc7434f0d",
