@@ -145,7 +145,7 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert payload["intent"] == "TOPICAL_INQUIRY"
     assert payload["processing"] == "basic_inquiry"
     assert payload["response"] == ANSWER
-    assert len(payload["response"].split("\\n\\n")) == 3
+    assert len(payload["response"].split("\n\n")) == 3
     assert isinstance(payload.get("recommendation"), dict)
     assert payload["recommendation"] == {
         "title": CANONICAL_TITLE,
@@ -184,7 +184,7 @@ def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks(
     assert "workload and recovery problem" in response
     assert "For example" in response
     assert r"\n\n" not in response
-    assert len(response.split("\n\n")) == 3
+    assert len(payload["response"].split("\n\n")) == 3
 
 
 
