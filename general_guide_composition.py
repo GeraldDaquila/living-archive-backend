@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.6"
+CONTRACT_VERSION = "v1.7"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -145,10 +145,31 @@ def _sanitize_candidate(text: Any) -> str:
         return ""
 
     raw = _INTERNAL_BRACKET.sub(" ", raw)
-    # Repair a common provider formatting failure deterministically: when
-    # practical steps are emitted as inline "- **Label**:" bullets, promote
-    # each bullet to its own Markdown line before paragraph normalization.
-    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\n- ", raw)
+    # Repair common provider formatting failures deterministically. Providers
+    # vary between colon/en-dash/em-dash labels, Unicode dashes, and inline
+    # numbered actions. Normalize those markers before paragraph cleanup.
+    action_label = r"\*\*[^*\n]{2,100}\*\*"
+    action_separator = r"(?:\s*:\s*|\s+[–—−-]\s+)"
+    raw = re.sub(
+        rf"\s+-\s+(?={action_label}{action_separator})",
+        "\n- ",
+        raw,
+    )
+    # Numbered steps are sometimes emitted as "1. **Label** – ... 2. **Label** – ..."
+    # Separate a following item only when the prior sentence has ended and a
+    # new bold action label begins, avoiding arbitrary decimal-number splits.
+    raw = re.sub(
+        rf"(?<=[.!?])\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
+        "\n",
+        raw,
+    )
+    # Handle inline dash bullets whose labels are not bold but still clearly
+    # marked as bullets, while leaving ordinary hyphenated prose untouched.
+    raw = re.sub(
+        r"(?<=[.!?])\s+(?=-\s+\*\*[^*\n]{2,100}\*\*\s*(?::|[–—−-]))",
+        "\n",
+        raw,
+    )
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
