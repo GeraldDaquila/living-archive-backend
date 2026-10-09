@@ -149,6 +149,73 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert composition_calls == ["general_guide_composition"]
 
 
+
+def test_compound_stewardship_question_with_real_provider_bank_when_credentials_exist(monkeypatch):
+    """Run the candidate request boundary against an actual configured Provider Bank.
+
+    Retrieval is static so this test isolates generation/routing from Pinecone.
+    Provider Bank transport is deliberately NOT mocked. It runs only in CI and
+    skips when no supported provider is configured in the runner environment.
+    """
+    import os
+    import provider_bank
+
+    configured_credentials = any([
+        os.getenv("GROQ_API_KEY"),
+        os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"),
+        os.getenv("MISTRAL_API_KEY"),
+        os.getenv("CLOUDFLARE_API_TOKEN") and os.getenv("CLOUDFLARE_ACCOUNT_ID"),
+    ])
+    if not configured_credentials:
+        import pytest
+        pytest.skip("No Provider Bank credentials are configured for isolated live-provider CI.")
+
+    context = {
+        "intent": "TOPICAL_INQUIRY",
+        "authoritative_doorway": {"title": CANONICAL_TITLE, "url": CANONICAL_URL},
+        "generation_authority_protected_docs": [{
+            "title": CANONICAL_TITLE,
+            "url": CANONICAL_URL,
+            "content": (
+                "Stewardship asks what we are responsible for and how we care "
+                "for what affects more than ourselves. It considers the effects "
+                "of our choices on people and systems beyond ourselves."
+            ),
+        }],
+    }
+    monkeypatch.setattr(use_main.use_core, "fetch_canonical_context", lambda query: context)
+    monkeypatch.setattr(use_main._base, "_inquiry_profile", lambda query: {})
+    monkeypatch.setattr(use_main, "classify_safety", lambda query, history="": None)
+    monkeypatch.setattr(use_main, "_basic_inquiry_requires_macro_routing", lambda query: False)
+    monkeypatch.setattr(
+        use_main,
+        "_guide_capability_route",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("ordinary explanatory question was reclassified")
+        ),
+    )
+
+    candidates = provider_bank.candidates(
+        use_main.use_core, operation="general_guide_composition"
+    )
+    if not candidates:
+        import pytest
+        pytest.skip("Provider credentials exist, but no healthy eligible composition provider is available.")
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload.get("intent") == "TOPICAL_INQUIRY"
+    assert payload.get("processing") == "basic_inquiry"
+    response = payload.get("response")
+    assert isinstance(response, str) and len(response.strip()) >= 80
+    assert len([p for p in response.split("\\n\\n") if p.strip()]) >= 2
+    assert "glossary" not in str(payload.get("handoff") or "").casefold()
+    recommendation = payload.get("recommendation")
+    assert isinstance(recommendation, dict)
+    assert recommendation.get("url") == CANONICAL_URL
+    assert recommendation.get("title") == CANONICAL_TITLE
+
 def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
     status, payload = asyncio.run(_post_query("What is stewardship?"))
 
