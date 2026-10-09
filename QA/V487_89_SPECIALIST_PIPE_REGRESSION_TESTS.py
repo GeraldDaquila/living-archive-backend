@@ -141,6 +141,41 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability():
+    original = [{"role": "user", "content": "Someone I love has become distant."}]
+    incomplete = json.dumps({
+        "response": "This begins clearly but stops before the sentence is complete",
+        "question": "What feels hardest?",
+    })
+    corrected = json.dumps({
+        "response": "This is a complete and grounded observation.",
+        "question": "What feels different when you consider that?",
+    })
+    pool = [{"provider": "groq", "model": "qwen-test", "index": 0}]
+
+    with (
+        patch.object(provider_bank, "select", return_value=pool),
+        patch.object(provider_bank, "_call", side_effect=[incomplete, corrected]) as provider_call,
+        patch.object(provider_bank, "_state", return_value={"state": "healthy"}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_capabilities", return_value=frozenset({"json_object"})),
+    ):
+        result = provider_bank.route(
+            use_core=None, messages=original, max_tokens=600,
+            parse=json.loads, operation="hrn_relational",
+        )
+
+    assert result["parsed"]["response"].endswith(".")
+    assert provider_call.call_count == 2
+    assert provider_call.call_args_list[1].args[4] is None
+    recovery_messages = provider_call.call_args_list[1].args[2]
+    assert "complete response" in recovery_messages[-1]["content"]
+    assert "end with sentence-final punctuation" in recovery_messages[-1]["content"]
+
+
+
 def test_hrn_contract_rejects_truncated_response():
     incomplete = {
         "response": "This begins clearly but stops before the sentence is complete",
@@ -219,7 +254,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.38"' in source
+    assert 'APP_VERSION = "v489.39"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -236,5 +271,6 @@ if __name__ == "__main__":
     test_hrn_contract_recovery_corrects_rejected_provider_output()
     test_json_object_instruction_is_added_at_provider_boundary()
     test_hrn_contract_rejects_truncated_response()
+    test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
