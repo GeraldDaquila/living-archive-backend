@@ -2935,10 +2935,10 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             content_html = str(content_obj.get("rendered") or "") if isinstance(content_obj, dict) else str(content_obj or "")
             excerpt_html = str(excerpt_obj.get("rendered") or "") if isinstance(excerpt_obj, dict) else str(excerpt_obj or "")
             raw_content = content_html or excerpt_html
-            raw_content = re.sub(r"(?is)<(script|style)\\b[^>]*>.*?</\\1>", " ", raw_content)
+            raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = re.sub(r"(?s)<[^>]+>", " ", raw_content)
-            content = re.sub(r"\\s+", " ", html.unescape(content)).strip()
-            if not content or not re.match(r"^https://geralddaquila\\.com/\\S+$", resource_url, re.I):
+            content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+            if not content or not re.match(r"^https://geralddaquila\.com/\\S+$", resource_url, re.I):
                 return None
             return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
         except Exception as exc:
