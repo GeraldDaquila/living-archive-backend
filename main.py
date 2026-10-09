@@ -3302,7 +3302,7 @@ def _is_explicit_guide_destination_request(query):
     return bool(re.search(
         r"\b(?:where can i find|where do i find|show me|take me to|"
         r"link me to|open|go to|navigate to|find the|browse|"
-        r"take me directly to|send me to|direct me to|access the page for)\\b",
+        r"take me directly to|send me to|direct me to|access the page for)",
         normalized,
         re.I,
     ))
