@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.19 — Evidence-correlated canonical doorway ranking
+# USE PRODUCTION VERSION: v489.20 — Canonical search recovery for missing doorways
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.19"
-DEPLOYMENT_FINGERPRINT = "USE-v489.19-evidence-correlated-doorway-ranking"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.19-evidence-correlated-doorway-ranking"
+APP_VERSION = "v489.20"
+DEPLOYMENT_FINGERPRINT = "USE-v489.20-canonical-search-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.20-canonical-search-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.19":
+if str(APP_VERSION) != "v489.20":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1667,7 +1667,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.19 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.20 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2855,6 +2855,95 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         "model": "",
     }
 
+
+def _wordpress_search_canonical_candidates(query, *, limit=5):
+    """Recover public canonical candidates when vector retrieval cannot ground a doorway.
+
+    WordPress search is a bounded, provider-independent retrieval supplement, not
+    a source of recommendation authority. Every returned item is re-evaluated by
+    the same local evidence and relevance gates as vector-retrieved candidates.
+    """
+    terms = list(_subject_terms(query))
+    if not terms:
+        return []
+    # Prefer the visitor's more distinctive query terms without introducing
+    # topic-specific keyword families or changing the question's meaning.
+    indexed_terms = list(enumerate(terms))
+    indexed_terms.sort(key=lambda pair: (len(pair[1]), -pair[0]), reverse=True)
+    search_text = " ".join(term for _, term in indexed_terms[:4]).strip()
+    if not search_text:
+        return []
+    endpoint = (
+        "https://geralddaquila.com/wp-json/wp/v2/search"
+        f"?search={quote(search_text, safe='')}&per_page=10"
+    )
+    try:
+        request = UrlRequest(
+            endpoint,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=2.5) as response:
+            search_results = json.loads(response.read().decode("utf-8"))
+        if not isinstance(search_results, list):
+            return []
+    except Exception as exc:
+        print(f"The Guide canonical search recovery: search unavailable ({type(exc).__name__}).")
+        return []
+
+    ranked = []
+    for index, item in enumerate(search_results):
+        if not isinstance(item, dict):
+            continue
+        title_obj = item.get("title")
+        title = str(title_obj.get("rendered") if isinstance(title_obj, dict) else title_obj or "").strip()
+        url = str(item.get("url") or "").strip()
+        links = item.get("_links") if isinstance(item.get("_links"), dict) else {}
+        self_links = links.get("self") if isinstance(links.get("self"), list) else []
+        href = str((self_links[0] or {}).get("href") or "") if self_links and isinstance(self_links[0], dict) else ""
+        if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+            continue
+        if not re.match(r"^https://geralddaquila\.com/wp-json/wp/v2/(?:posts|pages)/[0-9]+(?:\?.*)?$", href, re.I):
+            continue
+        title_tokens = set(re.findall(r"[a-z0-9]+", title.casefold()))
+        title_hits = sum(bool(_term_forms(term) & title_tokens) for term in terms)
+        ranked.append((title_hits, -index, title, url, href))
+    ranked.sort(reverse=True)
+    recovered = []
+    for _title_hits, _order, title, url, href in ranked[:limit]:
+        try:
+            request = UrlRequest(
+                href,
+                headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                method="GET",
+            )
+            with urlopen(request, timeout=2.5) as response:
+                resource = json.loads(response.read().decode("utf-8"))
+            if not isinstance(resource, dict):
+                continue
+            resource_url = str(resource.get("link") or url).strip()
+            resource_title_obj = resource.get("title")
+            resource_title = str(
+                resource_title_obj.get("rendered")
+                if isinstance(resource_title_obj, dict) else resource_title_obj or title
+            ).strip()
+            content_obj = resource.get("content")
+            excerpt_obj = resource.get("excerpt")
+            content_html = str(content_obj.get("rendered") or "") if isinstance(content_obj, dict) else str(content_obj or "")
+            excerpt_html = str(excerpt_obj.get("rendered") or "") if isinstance(excerpt_obj, dict) else str(excerpt_obj or "")
+            raw_content = content_html or excerpt_html
+            raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
+            content = re.sub(r"(?s)<[^>]+>", " ", raw_content)
+            content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+            if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
+                continue
+            recovered.append({"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]})
+        except Exception as exc:
+            print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
+    print(f"The Guide canonical search recovery: search_terms={len(indexed_terms[:4])}, candidates={len(recovered)}.")
+    return recovered
+
+
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
@@ -2917,8 +3006,21 @@ def _general_guide_authoritative_doorway(query, context_data):
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
+            # Retrieval and doorway selection are separate. If vector retrieval
+            # supplies no relevant canonical candidate, recover public candidates
+            # through WordPress search and subject them to the same relevance gate.
+            fallback_docs = _wordpress_search_canonical_candidates(query)
+            fallback_seen = {(item["title"].casefold(), item["url"].casefold()) for item in evidence_docs}
+            for item in fallback_docs:
+                key = (str(item.get("title") or "").casefold(), str(item.get("url") or "").casefold())
+                if key not in fallback_seen:
+                    evidence_docs.append(item)
+                    fallback_seen.add(key)
+            primary = _canonical_primary_from_docs(evidence_docs, query, profile)
+        if not primary:
             # A missing recommendation is preferable to an unrelated doorway.
             # The caller keeps the answer intact and serializes no recommendation.
+            print("The Guide canonical doorway: no candidate passed relevance after bounded search recovery.")
             return None
 
         # Titles are plain text in the public JSON contract: decode HTML
