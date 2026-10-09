@@ -96,6 +96,9 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
     monkeypatch.setattr(
         use_main.use_core, "fetch_canonical_context", lambda query: context
     )
+    # Keep existing request-boundary tests deterministic and offline. Dedicated
+    # recovery tests inject canonical search results explicitly.
+    monkeypatch.setattr(use_main, "_wordpress_search_canonical_candidates", lambda query, limit=5: [])
     monkeypatch.setattr(
         use_main._base, "_inquiry_profile", lambda query: {}
     )
@@ -380,3 +383,28 @@ def test_supported_evidence_preserves_structured_recommendation_title_and_url(mo
         "url": CANONICAL_URL,
     }
 
+
+
+def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
+    context = {"intent": "TOPICAL_INQUIRY", "context_blocks": ""}
+    monkeypatch.setattr(use_main._base, "_inquiry_profile", lambda query: {})
+    monkeypatch.setattr(
+        use_main,
+        "_wordpress_search_canonical_candidates",
+        lambda query, limit=5: [{
+            "title": "Overwhelm & Burnout",
+            "url": "https://geralddaquila.com/overwhelm-burnout/",
+            "text": (
+                "Burnout can follow prolonged strain and overextension. "
+                "Burnout is not a personal failure; it is a signal that capacity "
+                "and demands have become mismatched."
+            ),
+        }],
+    )
+    doorway = use_main._general_guide_authoritative_doorway(
+        "How do I handle burnout as a manager?", context
+    )
+    assert doorway == {
+        "title": "Overwhelm & Burnout",
+        "url": "https://geralddaquila.com/overwhelm-burnout/",
+    }
