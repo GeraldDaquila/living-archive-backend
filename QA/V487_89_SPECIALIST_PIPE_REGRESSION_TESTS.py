@@ -11,6 +11,8 @@ from unittest.mock import patch
 import json
 import urllib.error
 
+import provider_bank
+
 from relationship_adapter import RelationshipAdapter
 from specialist_adapters import (
     SpecialistAdapterContext,
@@ -136,17 +138,61 @@ def test_relationship_adapter_retries_transient_503():
     assert result["voice_policy"] == "preserve_specialist_voice"
 
 
+
+def test_hrn_contract_recovery_corrects_rejected_provider_output():
+    original = [{"role": "user", "content": "Someone I love has become distant."}]
+    rejected = json.dumps({"question": "What feels hardest?", "rest": False})
+    corrected = json.dumps({
+        "response": "You are trying to respect their space without letting the distance speak for you.",
+        "question": "What makes reaching out feel risky right now?",
+    })
+    pool = [{"provider": "groq", "model": "test-model", "index": 0}]
+
+    with (
+        patch.object(provider_bank, "select", return_value=pool),
+        patch.object(provider_bank, "_call", side_effect=[rejected, corrected]) as provider_call,
+        patch.object(provider_bank, "_state", return_value={"state": "healthy"}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_capabilities", return_value=frozenset({"json_schema_best_effort"})),
+    ):
+        result = provider_bank.route(
+            use_core=None,
+            messages=original,
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+
+    assert result["parsed"]["response"] == (
+        "You are trying to respect their space without letting the distance speak for you."
+    )
+    assert result["parsed"]["question"] == "What makes reaching out feel risky right now?"
+    assert provider_call.call_count == 2
+    recovery_messages = provider_call.call_args_list[1].args[2]
+    assert recovery_messages[0] == original[0]
+    assert recovery_messages[-2] == {"role": "assistant", "content": rejected}
+    assert "requires response" in recovery_messages[-1]["content"]
+    assert "Correct the output now." in recovery_messages[-1]["content"]
+    assert original == [{"role": "user", "content": "Someone I love has become distant."}]
+
+
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.35"' in source
+    assert 'APP_VERSION = "v489.36"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
     assert "interpretation = dict(domain_payload.get(\"interpretation\") or {})" in source
+    provider_bank_source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
+    assert "raw_output = _call(use_core, item, messages, effective_max_tokens, effective_schema)" in provider_bank_source
+    assert "recovery_messages.append({" in provider_bank_source
+    assert "Correct the output now." in provider_bank_source
 
 
 if __name__ == "__main__":
     test_domain_payload_survives_common_pipe()
     test_relationship_adapter_retries_transient_503()
+    test_hrn_contract_recovery_corrects_rejected_provider_output()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")

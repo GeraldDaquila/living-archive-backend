@@ -435,16 +435,38 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            parsed = parse(_call(use_core, item, messages, effective_max_tokens, effective_schema))
+            raw_output = _call(use_core, item, messages, effective_max_tokens, effective_schema)
+            parsed = parse(raw_output)
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             try:
                 parsed = _normalize_operation_result(operation, parsed)
-            except ValueError:
+            except ValueError as contract_error:
                 recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
                 if not recovery_schema or not _capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}):
                     raise
                 print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=strict_schema")
-                recovered = parse(_call(use_core, item, messages, effective_max_tokens, recovery_schema))
+                # A schema-only retry repeats the same prompt and gives the model no
+                # information about why its previous object was rejected. Carry the
+                # rejected output forward and ask for a bounded contract correction.
+                # This stays at the Provider Bank boundary; specialist voice methods
+                # and provider selection remain untouched.
+                recovery_messages = list(messages)
+                recovery_messages.append({
+                    "role": "assistant",
+                    "content": str(raw_output or "")[:12000],
+                })
+                recovery_messages.append({
+                    "role": "user",
+                    "content": (
+                        "Your preceding output failed the HRN relational response contract: "
+                        + str(contract_error)[:240]
+                        + ". Correct the output now. Return only one valid JSON object with "
+                        + "a non-empty visitor-facing response string and a non-empty next question string. "
+                        + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
+                        + "Do not explain the contract or omit response/question. Preserve the visitor's context."
+                    ),
+                })
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_schema))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered)
