@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.4"
+CONTRACT_VERSION = "v1.5"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -115,7 +115,7 @@ Do not manufacture a follow-up question merely to continue the interaction. If a
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
-Presentation matters. Preserve readable paragraph breaks in the response. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
+Presentation matters. Preserve readable paragraph breaks and meaningful Markdown structure. When giving multiple practical actions, format them as a real Markdown list with one action per line; never compress numbered actions into a single paragraph. Use short labels only when they help the reader scan the steps. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
 
 Return ONLY valid JSON:
 {"response":"visitor-facing answer","doorway_title":"","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
@@ -154,7 +154,9 @@ def _sanitize_candidate(text: Any) -> str:
             line = re.sub(r"([.!?])\s*\1+", r"\1", line)
             lines.append(line)
         if lines:
-            paragraphs.append(" ".join(lines))
+            # Keep list items and intentional line structure intact. Flattening
+            # every line into a single sentence erased the presentation contract.
+            paragraphs.append("\n".join(lines))
 
     return "\n\n".join(paragraphs).strip()
 
@@ -257,6 +259,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        # Reject compressed numbered advice so the provider bank can retry
+        # rather than silently accepting a visually dense answer.
+        if re.search(r"(?s)\b1[.)]\s+.{8,}?\b2[.)]\s+", response) and not re.search(r"\n\s*2[.)]\s+", response):
+            raise ValueError("multi-step practical advice must use separate Markdown list lines")
 
         if _requires_compound_explanatory_structure(query):
             paragraph_count = len(re.findall(r"\n\s*\n", response)) + 1
