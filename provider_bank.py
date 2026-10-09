@@ -396,6 +396,14 @@ def _normalize_operation_result(operation, parsed):
             raise ValueError("hrn_relational composition contract requires response")
         if not isinstance(question, str) or not question.strip():
             raise ValueError("hrn_relational composition contract requires question")
+        # Do not let a syntactically valid JSON object conceal a cut-off
+        # visitor-facing sentence. Incomplete prose is a contract failure and
+        # must enter the existing bounded corrective-recovery path.
+        completed = response.rstrip()
+        while completed and completed[-1] in ('"', "'", "”", "’", ")", "]", "}"):
+            completed = completed[:-1].rstrip()
+        if not completed or completed[-1] not in ".!?…":
+            raise ValueError("hrn_relational composition contract requires a complete response")
         # These are transport/envelope controls, not semantic content. Supplying
         # their neutral values keeps provider variation from leaking into HRN's
         # frozen composition validator.
