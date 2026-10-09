@@ -476,6 +476,13 @@ def _hrn_surface_language_violation(response):
         "blocks genuine intimacy",
         "blocks intimacy",
         "self-imposed safety",
+        "you are operating from a place of guilt",
+        "you are operating from a place of agency",
+        "managing your own anxiety about being unwanted",
+        "extending a hand without demands",
+        "this distinction matters because",
+        "it shifts the focus from",
+        "an offer of connection that they are free to accept or decline",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
@@ -497,6 +504,8 @@ def _hrn_surface_language_violation(response):
         ("action-guidance", r"\b(?:the|your)\s+(?:best|right|next)\s+(?:thing|step|move|choice|decision)\s+(?:is|would be)\b"),
         ("action-guidance", r"\b(?:a|an)\s+(?:good|helpful|healthy|wise)\s+(?:next|first)\s+(?:step|thing|move|choice)\s+(?:is|would be)\b"),
         ("therapeutic-or-inferred", r"\b(?:they are|he is|she is)\s+(?:toxic|abusive|a narcissist|manipulating you)\b"),
+        ("formulaic-connective", r"\bif you (?:view|see|frame|treat) .{0,160}\b(?:you are|you're|this means)\b"),
+        ("unsupported-internal-state", r"\b(?:you are|you're) operating from a place of\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
@@ -508,8 +517,11 @@ def _apply_hrn_visitor_contract(messages):
         "plain, concrete, natural language. Use the visitor's actual material, not "
         "generic claims about relationships. Be perceptive without pretending to "
         "know another person's motives. Do not advise, prescribe, coach, or tell "
-        "the visitor to take an action or change their framing. Avoid metaphors, "
-        "literary phrasing, and impressive-sounding generalizations unless the "
+        "the visitor to take an action or change their framing. Do not assign feelings, "
+        "motives, guilt, anxiety, or agency that the visitor has not stated. Do not "
+        "use formulaic connective sentences such as 'This distinction matters because' "
+        "or 'It shifts the focus from'. Avoid metaphors, literary phrasing, and "
+        "impressive-sounding generalizations unless the "
         "visitor introduced that exact language. If the evidence is limited, offer "
         "one modest observation grounded in what was said and one relevant question. "
         "Never refer to a brief, prompt, interpretation, internal state, or the "
