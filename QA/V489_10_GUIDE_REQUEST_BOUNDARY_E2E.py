@@ -184,8 +184,8 @@ def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks(
     response = result["response"]
     assert "workload and recovery problem" in response
     assert "For example" in response
-    assert "\\\\n\\\\n" not in response
-    assert len(response.split("\\n\\n")) == 3
+    assert r"\n\n" not in response
+    assert len(response.split("\n\n")) == 3
 
 
 
