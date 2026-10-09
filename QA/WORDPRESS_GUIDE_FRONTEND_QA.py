@@ -17,6 +17,9 @@ def main() -> None:
     build = build_match.group(1)
     assert re.fullmatch(r"v[0-9]+\.[0-9]+", build), "Guide frontend build marker is malformed."
 
+    assert 'data-no-optimize="1" data-no-defer="1"' in SOURCE, (
+        "Guide controller must be excluded from LiteSpeed optimization/defer rewriting."
+    )
     assert SOURCE.count("function installGuideSubmitController(") == 1, (
         "Guide must have exactly one submission controller definition."
     )
