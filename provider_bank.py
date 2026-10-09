@@ -400,7 +400,7 @@ def _normalize_operation_result(operation, parsed):
         # visitor-facing sentence. Incomplete prose is a contract failure and
         # must enter the existing bounded corrective-recovery path.
         completed = response.rstrip()
-        while completed and completed[-1] in "\\"'”’)]}":
+        while completed and completed[-1] in ('"', "'", "”", "’", ")", "]", "}"):
             completed = completed[:-1].rstrip()
         if not completed or completed[-1] not in ".!?…":
             raise ValueError("hrn_relational composition contract requires a complete response")
