@@ -169,12 +169,11 @@ def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
         composition_calls = _install_controlled_provider_and_retrieval(
             monkeypatch, {flag: True}
         )
-        status, payload = asyncio.run(_post_query("How do I handle burnout as a manager?"))
+        status, payload = asyncio.run(_post_query("How do I handle burnout as a manager? " + flag))
         assert status == 200
         assert payload["response"] == ANSWER
         assert composition_calls == ["general_guide_composition"]
         assert payload.get("recommendation") is None
-        monkeypatch.undo()
 
 
 def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks():
