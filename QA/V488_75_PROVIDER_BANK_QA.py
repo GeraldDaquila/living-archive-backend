@@ -42,8 +42,8 @@ def main():
     assert '"temperature": 0.0' not in gemini
 
     assert 'APP_VERSION = "v489.15"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.15-explanatory-discernment"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.15-explanatory-discernment"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.15-selective-concreteness"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.15-selective-concreteness"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
