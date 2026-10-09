@@ -410,6 +410,10 @@ def _complete_response_prefix(response):
 def _hrn_surface_language_violation(response):
     """Reject known internal-process phrases from visitor-facing HRN composition."""
     text = str(response or "").casefold()
+    if text.startswith("what becomes visible when"):
+        return "formulaic-abstract-question"
+    if text.startswith("what does that reveal about the relationship that was harder to see before"):
+        return "formulaic-abstract-question"
     forbidden = (
         "the brief identifies",
         "the movement brief",
@@ -483,6 +487,11 @@ def _hrn_surface_language_violation(response):
         "this distinction matters because",
         "it shifts the focus from",
         "an offer of connection that they are free to accept or decline",
+        "the pull toward intimacy",
+        "threat to your autonomy",
+        "the same emotional energy",
+        "bridge and a boundary",
+        "the effort beneath the thing",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
@@ -544,6 +553,12 @@ def _normalize_operation_result(operation, parsed):
             raise ValueError("hrn_relational composition contract requires response")
         if not isinstance(question, str) or not question.strip():
             raise ValueError("hrn_relational composition contract requires question")
+        question_violation = _hrn_surface_language_violation(question)
+        if question_violation:
+            raise ValueError(
+                "hrn_relational question-surface contract violation: "
+                + question_violation
+            )
         surface_violation = _hrn_surface_language_violation(response)
         if surface_violation:
             raise ValueError(
