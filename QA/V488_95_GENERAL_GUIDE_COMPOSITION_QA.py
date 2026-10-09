@@ -27,7 +27,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.11"' in MAIN_TEXT, "main.py version is not v489.11")
+    assert_true('APP_VERSION = "v489.12"' in MAIN_TEXT, "main.py version is not v489.12")
     assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "recommendation relevance guard is missing")
     assert_true(
@@ -40,7 +40,7 @@ def main():
     assert_true('What is stewardship and why does it matter now more than ever?' in MAIN_TEXT, "reported explanatory-query regression probe is missing")
     assert_true("if glossary_term and _is_bounded_glossary_request(" in MAIN_TEXT, "direct Glossary handoff is not guarded by bounded-query validation")
     assert_true("embedded_term=embedded_glossary_term" in MAIN_TEXT, "direct Glossary handoff does not validate the original query shape")
-    assert_true('USE v489.11 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
+    assert_true('USE v489.12 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
 
     basic_start = MAIN_TEXT.find("def _basic_inquiry_response(")
     basic_end = MAIN_TEXT.find("def _v48894_general_guide_composition_self_audit", basic_start)
@@ -51,7 +51,7 @@ def main():
     )
 
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.1", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.2", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
@@ -110,7 +110,10 @@ def main():
         def context_blocks_to_documents(_blocks):
             return []
 
+    captured_user_messages = []
+
     def fake_route(**kwargs):
+        captured_user_messages.append(kwargs["messages"][-1]["content"])
         parsed = kwargs["parse"](
             '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\\n\\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\\n\\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
@@ -140,6 +143,20 @@ def main():
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
         assert_true("Stewardship is about taking responsibility" in composed["response"], "fake provider response was not preserved by composition")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
+        empty_result = composition.compose(
+            use_core=FakeCore(),
+            query="Why does stewardship matter in everyday life?",
+            context_data={},
+        )
+        assert_true(empty_result is not None, "empty Archive retrieval blocked a general-purpose answer")
+        assert_true(
+            "No relevant Archive material was retrieved" in captured_user_messages[-1],
+            "empty-retrieval prompt did not preserve the general-knowledge lane",
+        )
+        assert_true(
+            "do not invent Archive-specific claims or sources" in captured_user_messages[-1],
+            "empty-retrieval prompt does not protect source integrity",
+        )
 
         # Navigation must be supplied structurally by the Guide, never embedded
         # as provider-generated prose.
@@ -238,7 +255,7 @@ def main():
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "preselected doorway is still trusted without relevance validation")
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
-    print("V489.07 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.12 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
