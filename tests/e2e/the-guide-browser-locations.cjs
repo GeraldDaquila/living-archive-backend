@@ -46,14 +46,14 @@ const vm = require("node:vm");
     });
     if (navigationResponse) {
       const responseHtml = await navigationResponse.text();
-      const responseLines = responseHtml.split(/\\r?\\n/);
+      const responseLines = responseHtml.split(/\r?\n/);
       console.log("LIVE_HTML_ERROR_LINE " + JSON.stringify({
         line1226: responseLines[1225] || null,
         around: responseLines.slice(1222, 1229).map((text, index) => ({
           line: 1223 + index,
           text: text.slice(0, 600)
         })),
-        nearestScriptOpen: responseLines.slice(0, 1226).map((text, index) => /<script\\b/i.test(text) ? index + 1 : null).filter(Boolean).slice(-1)[0] || null
+        nearestScriptOpen: responseLines.slice(0, 1226).map((text, index) => /<script\b/i.test(text) ? index + 1 : null).filter(Boolean).slice(-1)[0] || null
       }));
     }
     const form = page.locator("#archive-search-form");
@@ -89,7 +89,7 @@ const vm = require("node:vm");
         console.log("LIVE_DATA_SCRIPT_SYNTAX " + JSON.stringify({index: index + 1, build, length: source.length, syntax: "PASS"}));
       } catch (error) {
         const line = Number((/:(\\d+)$/.exec(error.stack || "") || [])[1] || 0);
-        const lines = source.split("\\n");
+        const lines = source.split("\n");
         console.log("LIVE_DATA_SCRIPT_SYNTAX " + JSON.stringify({
           index: index + 1, build, length: source.length, syntax: "FAIL",
           message: error.message, line,
