@@ -406,7 +406,7 @@ def contract_snapshot() -> Dict[str, Any]:
 # itself without making an external API call at startup.
 if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Answer this.":
     raise RuntimeError("General Guide composition invariant failed: visitor-language sanitizer.")
-if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two.") != "Steps:\\n- **First action**: one.\\n- **Second action**: two.":
+if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two.") != "Steps:\n- **First action**: one.\n- **Second action**: two.":
     raise RuntimeError("General Guide composition invariant failed: inline practical-list normalization.")
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
     raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
