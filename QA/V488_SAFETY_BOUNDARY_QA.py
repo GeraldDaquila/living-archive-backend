@@ -31,7 +31,7 @@ def main():
     fast_initial = namespace["_initial_deterministic_safety_response"]
     normalize_resolution = namespace["normalize_safety_resolution"]
     repair = namespace["repair_safety_question"]
-    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v2.6"
+    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v2.7"
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
     assert classify("I don’t want to live anymore.") in {"current", "acute"}
@@ -97,6 +97,25 @@ def main():
     assert unlocated["safety_location_required"] is True
     assert unlocated["country"] == ""
     assert "won't guess" in unlocated["safety_note"]
+
+    refused_location = {
+        "location": {
+            "resolution_status": "REFUSED",
+            "location": {"country": {"value": None}},
+        },
+        "selection": {"selection_status": "FALLBACK_GENERAL_EMERGENCY", "primary": []},
+    }
+    refused = normalize_resolution(
+        hrn_with_us_numbers,
+        requested_state="acute",
+        country="",
+        emergency_resolution=refused_location,
+    )
+    assert refused["safety_resources"] == []
+    assert refused["country"] == ""
+    assert refused["safety_location_required"] is True
+    assert "respect your choice" in refused["safety_note"].casefold()
+    assert "tell me what country" not in refused["safety_note"].casefold()
 
     verified_ph = {
         "location": {
