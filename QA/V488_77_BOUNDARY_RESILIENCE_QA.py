@@ -26,7 +26,9 @@ def main():
     assert "STALE" in resilience
     assert "UNAVAILABLE" in resilience
 
-    assert 'APP_VERSION = "v489.16"' in main_source
+    assert 'APP_VERSION = "v489.17"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"' in main_source
     assert "boundary_resilience" in main_source
     assert "GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS" in main_source
     assert "GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS" in main_source

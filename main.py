@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.16 — Evidence-neutral general answers
+# USE PRODUCTION VERSION: v489.17 — Evidence-neutral general answers
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.16"
-DEPLOYMENT_FINGERPRINT = "USE-v489.16-evidence-neutral-general-answers"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.16-evidence-neutral-general-answers"
+APP_VERSION = "v489.17"
+DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.16":
+if str(APP_VERSION) != "v489.17":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.16 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.17 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -3060,6 +3060,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    # Expose a small, deterministic provenance contract for the visitor UI.
+    # This describes the answer's basis; it does not claim that every sentence
+    # is directly quoted from a source. A recommendation is only supplied when
+    # the relevance gate found a canonical doorway for this specific question.
+    if archive_evidence_unavailable:
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": "No suitable Archive evidence was available to ground this answer.",
+        }
+    elif authoritative_doorway:
+        answer_basis = {
+            "kind": "archive_supported",
+            "label": "Informed by the Living Archive",
+            "explanation": "A relevant Archive resource is available to explore the ideas behind this answer.",
+        }
+    else:
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": "No sufficiently relevant Archive resource was identified for this question.",
+        }
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
@@ -3072,6 +3095,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # The recommendation is a first-class response field, never
         # inferred from prose and never dependent on provider metadata.
         "recommendation": authoritative_doorway,
+        "answer_basis": answer_basis,
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,

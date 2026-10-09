@@ -151,6 +151,11 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
         "title": CANONICAL_TITLE,
         "url": CANONICAL_URL,
     }
+    assert payload["answer_basis"] == {
+        "kind": "archive_supported",
+        "label": "Informed by the Living Archive",
+        "explanation": "A relevant Archive resource is available to explore the ideas behind this answer.",
+    }
     assert "🏛️" not in payload["recommendation"]["title"]
     assert "&amp;" not in payload["recommendation"]["title"]
     assert payload.get("handoff") != "glossary"
@@ -174,6 +179,7 @@ def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
         assert payload["response"] == ANSWER
         assert composition_calls == ["general_guide_composition"]
         assert payload.get("recommendation") is None
+        assert payload["answer_basis"]["kind"] == "general_knowledge"
 
 
 def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks():
