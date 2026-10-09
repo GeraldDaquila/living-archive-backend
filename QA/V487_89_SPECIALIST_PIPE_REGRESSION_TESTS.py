@@ -279,8 +279,8 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.43 —")
-    assert 'APP_VERSION = "v489.43"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.50 —")
+    assert 'APP_VERSION = "v489.50"' in source
 
 
 
@@ -433,7 +433,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.40"' in source
+    assert 'APP_VERSION = "v489.50"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
