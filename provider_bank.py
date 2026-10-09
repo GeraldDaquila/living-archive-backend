@@ -515,6 +515,14 @@ def _hrn_surface_language_violation(response):
         ("therapeutic-or-inferred", r"\b(?:they are|he is|she is)\s+(?:toxic|abusive|a narcissist|manipulating you)\b"),
         ("formulaic-connective", r"\bif you (?:view|see|frame|treat) .{0,160}\b(?:you are|you're|this means)\b"),
         ("unsupported-internal-state", r"\b(?:you are|you're) operating from a place of\b"),
+        ("prescriptive-language", r"\byou\s+(?:should|must|need to|have to|ought to|are supposed to)\b"),
+        ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
+        ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
+        ("prescriptive-language", r"\byou\s+(?:try|consider|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\b"),
+        ("prescriptive-language", r"\b(?:i|we)\s+(?:recommend|advise|suggest)\s+(?:you|that you)\b"),
+        ("prescriptive-language", r"(?:^|[.!?]\s+)\s*(?:try|consider|avoid|stop|start|tell|ask|call|contact|leave|stay|go|write|say|set|change|make|invite|forgive)\s+(?:to|doing|the|a|an|your|them|him|her|it|someone|anyone|people|this|that|with)\b"),
+        ("prescriptive-language", r"\b(?:what you should do|what you need to do|what you must do|what you ought to do)\b"),
+        ("prescriptive-language", r"\bdo not\s+(?:stay|leave|contact|call|talk|ask|tell|try|forgive|change|ignore|respond|engage|return|go|make)\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
