@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.4"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.5"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -37,6 +37,9 @@ _SUPPORT_PATTERN = re.compile(
 )
 _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i(?:'m| am)?\s+going\s+to|i(?:'m| am)?\s+about\s+to|i\s+will)\s+(?:kill|end)\s+(?:myself|my\s+life)\b", re.I),
+    # First-person inability to stay safe is urgent even when softened by uncertainty.
+    re.compile(r"\bi\s+(?:do\s+not|don't|dont)\s+(?:think|feel|believe)\s+i\s+(?:can|could|will)\s+(?:keep|keep\s+myself|stay)\s+(?:myself\s+)?safe\b", re.I),
+    re.compile(r"\bi\s+(?:am\s+not\s+sure|am\s+unsure|don't\s+know\s+if|do\s+not\s+know\s+if)\s+i\s+can\s+(?:keep|keep\s+myself|stay)\s+(?:myself\s+)?safe\b", re.I),
     re.compile(r"\b(?:i(?:'m| am)?\s+about\s+to)\s+(?:hurt|harm)\s+myself\b", re.I),
     re.compile(r"\b(?:i\s+am\s+attempting\s+suicide|i\s+am\s+attempting\s+to\s+kill\s+myself)\b", re.I),
     re.compile(r"\b(?:i\s+(?:overdosed|have\s+overdosed|took\s+an\s+overdose)|i\s+(?:have\s+hurt|have\s+harmed)\s+myself)\b", re.I),
@@ -943,6 +946,13 @@ if _semantic_safety_candidate(
     raise RuntimeError("USE v488.67 invariant failed: ordinary relational language opened semantic safety gate.")
 if not _semantic_safety_candidate("I don't want to live anymore."):
     raise RuntimeError("USE v488.67 invariant failed: direct safety disclosure lost semantic gate.")
+if normalize_safety_state("I don't think I can keep myself safe.") != "acute":
+    raise RuntimeError("USE v489.30 invariant failed: uncertain inability to stay safe did not enter the acute safety boundary.")
+if normalize_safety_state("I don't feel I can keep myself safe.") != "acute":
+    raise RuntimeError("USE v489.30 invariant failed: softened inability to stay safe did not enter the acute safety boundary.")
+if normalize_safety_state("What are common signs of grief?") is not None:
+    raise RuntimeError("USE v489.30 invariant failed: ordinary grief inquiry was incorrectly classified as safety.")
+
 if normalize_safety_state("I want to die.") != "acute":
     raise RuntimeError("USE v488.67 invariant failed: direct 'I want to die' disclosure is not deterministic acute.")
 
