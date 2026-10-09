@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.22 — Concurrent bounded canonical search recovery
+# USE PRODUCTION VERSION: v489.23 — Evidence-gated canonical content recovery
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.22"
-DEPLOYMENT_FINGERPRINT = "USE-v489.22-concurrent-canonical-search"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.22-concurrent-canonical-search"
+APP_VERSION = "v489.23"
+DEPLOYMENT_FINGERPRINT = "USE-v489.23-evidence-gated-canonical-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.23-evidence-gated-canonical-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.22":
+if str(APP_VERSION) != "v489.23":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.4":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.5":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -3116,6 +3116,54 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
     )
     if archive_evidence_unavailable:
+        # A navigation-only recovery can find useful canonical content after
+        # the original vector-evidence gates reject their candidate set. Do not
+        # promote that result merely because its title matches: fetch its text,
+        # then re-run the same frame-neutral, substantive-sufficiency, and
+        # question-evidence-fit gates before allowing it into composition.
+        try:
+            recovered_docs = _wordpress_search_canonical_candidates(query)
+            recovered_docs = [
+                {
+                    "title": str(item.get("title") or "").strip(),
+                    "url": str(item.get("url") or "").strip(),
+                    "text": str(item.get("text") or "").strip(),
+                }
+                for item in recovered_docs
+                if isinstance(item, dict)
+                and str(item.get("title") or "").strip()
+                and str(item.get("text") or "").strip()
+            ]
+            recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
+                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
+                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            if not recovery_insufficient and recovered_docs:
+                recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
+                    recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+                if not recovery_question_unavailable and recovered_docs:
+                    composition_context["generation_authority_protected_docs"] = recovered_docs
+                    composition_context.pop("question_authority_protected_docs", None)
+                    for flag in (
+                        "frame_neutral_evidence_unavailable",
+                        "question_structure_evidence_unavailable",
+                        "evidence_sufficiency_unavailable",
+                        "question_evidence_fit_unavailable",
+                    ):
+                        composition_context.pop(flag, None)
+                    archive_evidence_unavailable = False
+                    print(
+                        "The Guide evidence recovery: substantive canonical content passed "
+                        "frame-neutral, sufficiency, and question-fit gates; "
+                        f"documents={len(recovered_docs)}."
+                    )
+        except Exception as exc:
+            print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
+
+    if archive_evidence_unavailable:
         for key in (
             "context_blocks",
             "canonical_link_context",
@@ -3233,7 +3281,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.4":
+    if snapshot.get("contract_version") != "v1.5":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
