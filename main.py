@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.12 — Evidence-ranked canonical recommendation boundary
+# USE PRODUCTION VERSION: v489.12 — Lightweight general conversation
 import asyncio
 import hashlib
 import ipaddress
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.1":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.2":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
