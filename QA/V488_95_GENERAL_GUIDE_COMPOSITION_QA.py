@@ -85,7 +85,7 @@ def main():
     assert_true("natural, conversational voice" in composition._GENERAL_GUIDE_SYSTEM, "conversational voice guidance missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.5", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.6", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
@@ -116,6 +116,19 @@ def main():
         == "explanatory",
         "stewardship golden case is not classified as explanatory",
     )
+
+    inline_steps = composition._sanitize_candidate(
+        "Here are the steps. - **First step**: take a breath. - **Second step**: ask for help."
+    )
+    assert_true(
+        "- **First step**:" in inline_steps and "\n- **Second step**:" in inline_steps,
+        "inline practical bullets were not promoted to separate Markdown lines",
+    )
+    assert_true("\\n" not in inline_steps, "literal backslash-n leaked from Markdown normalization")
+
+    distress_query = "I am grieving and cannot function."
+    assert_true(composition._requires_distress_sensitive_pacing(distress_query), "significant distress query was not recognized")
+    assert_true(composition._question_shape(distress_query) == "reflective", "significant distress query was not prioritized as reflective")
 
     assert_true(
         composition._sanitize_candidate("First paragraph.\n\nSecond paragraph.")
@@ -289,7 +302,7 @@ def main():
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "preselected doorway is still trusted without relevance validation")
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
-    print("V489.14 GENERAL GUIDE COMPOSITION QA: PASS")
+    print("V489.24 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")
