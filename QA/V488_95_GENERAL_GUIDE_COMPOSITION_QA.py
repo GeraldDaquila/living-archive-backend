@@ -28,6 +28,8 @@ def assert_true(condition, message):
 
 def main():
     assert_true('APP_VERSION = "v489.11"' in MAIN_TEXT, "main.py version is not v489.11")
+    assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
+    assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "recommendation relevance guard is missing")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
