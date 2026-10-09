@@ -1,18 +1,30 @@
-"""Request-boundary regression for the compound stewardship question.
+"""Request-boundary end-to-end contract for the compound stewardship question.
 
-This exercises the actual ASGI request boundary while stubbing only the
-provider/composition result. It proves the real routing boundary does not
-turn the compound question into an empty Glossary handoff and preserves the
-structured recommendation URL in serialized JSON.
+Exercises the actual ASGI request boundary, Basic Inquiry assembly, provider-neutral
+composition validation, recommendation authority, and JSON serialization. Only the
+external retrieval result and Provider Bank transport are controlled test seams.
 """
 import asyncio
 import json
 
+import general_guide_composition
 import main as use_main
 
 
 QUERY = "What is stewardship and why does it matter now more than ever?"
-CANONICAL_URL = "https://geralddaquila.com/stewardship-today/"
+CANONICAL_URL = (
+    "https://geralddaquila.com/"
+    "the-living-archive-navigator-volume-iv-stewardship-exchange/"
+)
+CANONICAL_TITLE = (
+    "The Living Archive Navigator: Volume IV – Stewardship & Exchange"
+)
+ANSWER = (
+    "Stewardship is taking responsibility for something that matters beyond oneself.\n\n"
+    "It matters now because our choices affect people and systems beyond our immediate reach.\n\n"
+    "It asks us to consider not only what we control, but what we are responsible for "
+    "and how our choices affect others."
+)
 
 
 async def _post_query(query):
@@ -45,7 +57,10 @@ async def _post_query(query):
         "server": ("testserver", 80),
     }
     await use_main._use_request_boundary(scope, receive, send)
-    start = next(message for message in sent if message["type"] == "http.response.start")
+    start = next(
+        message for message in sent
+        if message["type"] == "http.response.start"
+    )
     response_body = b"".join(
         message.get("body", b"")
         for message in sent
@@ -54,32 +69,62 @@ async def _post_query(query):
     return start["status"], json.loads(response_body.decode("utf-8"))
 
 
-def test_compound_stewardship_question_returns_answer_and_separate_recommendation(monkeypatch):
+def _install_controlled_provider_and_retrieval(monkeypatch):
+    context = {
+        "intent": "TOPICAL_INQUIRY",
+        "authoritative_doorway": {
+            "title": CANONICAL_TITLE,
+            "url": CANONICAL_URL,
+        },
+        "generation_authority_protected_docs": [
+            {
+                "title": CANONICAL_TITLE,
+                "url": CANONICAL_URL,
+                "content": (
+                    "Stewardship asks what we are responsible for and how "
+                    "we care for what affects more than ourselves."
+                ),
+            }
+        ],
+    }
+    monkeypatch.setattr(
+        use_main.use_core, "fetch_canonical_context", lambda query: context
+    )
+    monkeypatch.setattr(
+        use_main._base, "_inquiry_profile", lambda query: {}
+    )
+    monkeypatch.setattr(
+        use_main, "classify_safety", lambda query, history="": None
+    )
+    monkeypatch.setattr(
+        use_main, "_basic_inquiry_requires_macro_routing", lambda query: False
+    )
+
     composition_calls = []
 
-    monkeypatch.setattr(use_main, "classify_safety", lambda query, history="": None)
-    monkeypatch.setattr(use_main._base, "_inquiry_profile", lambda query: {})
-    monkeypatch.setattr(use_main, "_basic_inquiry_requires_macro_routing", lambda query: False)
-
-    def compose(**kwargs):
-        composition_calls.append(kwargs["query"])
+    def controlled_provider_bank(**kwargs):
+        composition_calls.append(kwargs["operation"])
+        candidate = {
+            "response": ANSWER,
+            "doorway_title": CANONICAL_TITLE,
+            "response_shape": "explanatory",
+        }
+        parsed = kwargs["parse"](json.dumps(candidate, ensure_ascii=False))
         return {
-            "ok": True,
-            "version": use_main.APP_VERSION,
-            "query": kwargs["query"],
-            "intent": "TOPICAL_INQUIRY",
-            "response": (
-                "Stewardship is taking responsibility for something that matters "
-                "beyond oneself.\n\nIt matters now because our choices affect "
-                "people and systems beyond our immediate reach."
-            ),
-            "recommendation": {
-                "title": "Stewardship Today",
-                "url": CANONICAL_URL,
-            },
+            "parsed": parsed,
+            "provider": "controlled_test_provider",
+            "model": "controlled_test_model",
+            "preference_order": ["controlled_test_provider:controlled_test_model"],
         }
 
-    monkeypatch.setattr(use_main, "_basic_inquiry_response", compose)
+    monkeypatch.setattr(
+        general_guide_composition, "route_with_model_bank", controlled_provider_bank
+    )
+    return composition_calls
+
+
+def test_compound_stewardship_question_completes_request_composition_and_recommendation(monkeypatch):
+    composition_calls = _install_controlled_provider_and_retrieval(monkeypatch)
     monkeypatch.setattr(
         use_main,
         "_guide_capability_route",
@@ -92,13 +137,16 @@ def test_compound_stewardship_question_returns_answer_and_separate_recommendatio
 
     assert status == 200
     assert payload["intent"] == "TOPICAL_INQUIRY"
-    assert "Stewardship is taking responsibility" in payload["response"]
-    assert "It matters now because" in payload["response"]
+    assert payload["processing"] == "basic_inquiry"
+    assert payload["response"] == ANSWER
+    assert len(payload["response"].split("\n\n")) == 3
     assert isinstance(payload.get("recommendation"), dict)
-    assert payload["recommendation"]["title"] == "Stewardship Today"
-    assert payload["recommendation"]["url"] == CANONICAL_URL
+    assert payload["recommendation"] == {
+        "title": CANONICAL_TITLE,
+        "url": CANONICAL_URL,
+    }
     assert payload.get("handoff") != "glossary"
-    assert composition_calls == [QUERY]
+    assert composition_calls == ["general_guide_composition"]
 
 
 def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
