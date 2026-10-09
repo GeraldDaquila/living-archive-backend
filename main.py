@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.20 — Canonical search recovery for missing doorways
+# USE PRODUCTION VERSION: v489.21 — Bounded-latency canonical search recovery
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.20"
-DEPLOYMENT_FINGERPRINT = "USE-v489.20-canonical-search-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.20-canonical-search-recovery"
+APP_VERSION = "v489.21"
+DEPLOYMENT_FINGERPRINT = "USE-v489.21-bounded-latency-canonical-search"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.21-bounded-latency-canonical-search"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.20":
+if str(APP_VERSION) != "v489.21":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1667,7 +1667,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.20 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.21 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2856,7 +2856,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     }
 
 
-def _wordpress_search_canonical_candidates(query, *, limit=5):
+def _wordpress_search_canonical_candidates(query, *, limit=3):
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
     WordPress search is a bounded, provider-independent retrieval supplement, not
@@ -2885,7 +2885,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=5):
             headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
             method="GET",
         )
-        with urlopen(request, timeout=2.5) as response:
+        with urlopen(request, timeout=2.0) as response:
             search_results = json.loads(response.read().decode("utf-8"))
         if not isinstance(search_results, list):
             return []
@@ -2919,7 +2919,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=5):
                 headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
                 method="GET",
             )
-            with urlopen(request, timeout=2.5) as response:
+            with urlopen(request, timeout=1.5) as response:
                 resource = json.loads(response.read().decode("utf-8"))
             if not isinstance(resource, dict):
                 continue
