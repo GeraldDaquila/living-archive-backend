@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.5"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.6"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -563,43 +563,36 @@ def normalize_safety_resolution(
     if not safety_message:
         raise RuntimeError("HRN safety lane returned no safety_message.")
 
-    # HRN remains the semantic/safety-loop authority. Preserve its full
-    # native safety branch, including crisis-support resources and the next
-    # conversational movement. Emergency Intelligence remains authoritative
-    # for verified emergency-resource selection; its emergency resources are
-    # merged in without replacing HRN's native safety resources.
-    hrn_resources = data.get("safety_resources")
-    hrn_resources = list(hrn_resources) if isinstance(hrn_resources, list) else []
+    # HRN remains authoritative for the safety state, immediate message,
+    # and next conversational movement. Emergency Intelligence is the sole
+    # authority for visitor-facing emergency phone resources because its
+    # selection is grounded in a resolved location and verified registry
+    # evidence. Never merge HRN's unscoped/static hotline list into a visitor
+    # response: those numbers may belong to a different country.
     emergency_resources = _resource_projection(emergency_resolution or {})
-    resources = []
-    seen_resource_keys = set()
-    for resource in hrn_resources + emergency_resources:
-        if not isinstance(resource, Mapping):
-            continue
-        phone = str(resource.get("phone") or "").strip()
-        title = str(resource.get("title") or resource.get("display_name") or "").strip().casefold()
-        key = ("phone", phone) if phone else ("title", title)
-        if key in seen_resource_keys:
-            continue
-        seen_resource_keys.add(key)
-        resources.append(dict(resource))
+    resources = [dict(resource) for resource in emergency_resources if isinstance(resource, Mapping)]
 
-    emergency_status = str((emergency_resolution or {}).get("selection", {}).get("selection_status") or "")
-    if emergency_resolution is not None and not resources and emergency_status in {
-        "",
-        "LOCATION_REQUIRED",
-        "FALLBACK_GENERAL_EMERGENCY",
-    }:
-        safety_message = (
-            "I want to make sure I give you the right local emergency help. "
-            "If you may be in immediate danger, please contact the emergency "
-            "service where you are or go to the nearest emergency department."
-        )
-        safety_question = (
-            "What country are you in right now?"
-            if emergency_status == "LOCATION_REQUIRED"
-            else safety_question
-        )
+    selection = dict((emergency_resolution or {}).get("selection") or {})
+    emergency_status = str(selection.get("selection_status") or "")
+    emergency_location = dict((emergency_resolution or {}).get("location") or {})
+    resolved_location = dict(emergency_location.get("location") or {})
+    resolved_country_data = dict(resolved_location.get("country") or {})
+    verified_resource_country = str(resolved_country_data.get("value") or "").strip().upper()
+    selected_country = str(country or resolved_country_data.get("value") or "").strip().upper()
+    resources_are_location_grounded = bool(
+        emergency_status == "SELECTED"
+        and verified_resource_country
+        and selected_country
+        and verified_resource_country == selected_country
+        and resources
+    )
+    if not resources_are_location_grounded:
+        # A country guess from HRN is not location evidence. Keep the immediate
+        # safety exchange intact, disclose the missing local-resource context,
+        # and let the UI/request boundary collect location before showing a number.
+        resources = []
+        if emergency_status in {"", "LOCATION_REQUIRED", "FALLBACK_GENERAL_EMERGENCY"}:
+            safety_note = "I don't yet have a verified local hotline for your location, so I won't guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department. If you tell me what country you're in, I can help identify the appropriate local resource."
 
     selection = dict((emergency_resolution or {}).get("selection") or {})
     presentation = dict((emergency_resolution or {}).get("presentation") or {})
