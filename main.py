@@ -3565,9 +3565,10 @@ def _first_forwarded_ip(value):
 def _request_location_context(scope, parsed_body):
     """Build the Guide's normalized location context without requiring a prompt.
 
-    Precedence is explicit visitor context, browser/device context, trusted edge
-    country metadata, then bounded IP geolocation. The resolver never invents
-    a country and returns an empty context when no reliable signal is available.
+    Only explicit visitor-provided country data is accepted here. This service may
+    receive requests through a WordPress bridge, so proxy IPs, forwarded-IP
+    headers, and unverified Cloudflare-looking headers are not evidence of the
+    visitor's country. Authenticated edge attestation must be added separately.
     """
     headers = {
         "cf_connecting_ip": _request_header(scope, "cf-connecting-ip"),
@@ -3607,9 +3608,8 @@ def _request_location_context(scope, parsed_body):
     if parsed_body.get("country") not in ("", None) and "explicit_country" not in context:
         context["explicit_country"] = str(parsed_body.get("country")).strip()
 
-    if headers["cf_ipcountry"] and "browser_country" not in context and "explicit_country" not in context:
-        context["ip_country"] = headers["cf_ipcountry"].strip().upper()
-        context["location_source"] = "cloudflare_edge"
+    # Do not trust caller-supplied Cloudflare-looking headers by themselves.
+    # No country is inferred from these headers without authenticated edge proof.
 
     if headers["cf_region"] and "region" not in context:
         context["region"] = headers["cf_region"]
@@ -3621,8 +3621,9 @@ def _request_location_context(scope, parsed_body):
         context["longitude"] = headers["cf_iplongitude"]
     if headers["cf_timezone"] and "timezone" not in context:
         context["timezone"] = headers["cf_timezone"]
+    # Keep this only as transport diagnostics. It is not visitor-location evidence.
     if client_ip:
-        context["client_ip"] = client_ip
+        context["transport_peer_ip"] = client_ip
 
     return context, client_ip
 
