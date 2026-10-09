@@ -133,6 +133,10 @@ def _sanitize_candidate(text: Any) -> str:
         return ""
 
     raw = _INTERNAL_BRACKET.sub(" ", raw)
+    # Repair a common provider formatting failure deterministically: when
+    # practical steps are emitted as inline "- **Label**:" bullets, promote
+    # each bullet to its own Markdown line before paragraph normalization.
+    raw = re.sub(r"\s+-\s+(?=\*\*[^*]{2,100}\*\*\s*:)", "\\n- ", raw)
     replacements = (
         (r"\bevidence excerpt bounded by USE\b", "the material I found"),
         (r"\bcanonical evidence\b", "the Archive material"),
