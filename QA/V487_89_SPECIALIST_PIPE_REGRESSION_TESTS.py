@@ -163,6 +163,21 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
 
 
 
+
+def test_hrn_composition_rejects_formulaic_connective_and_inferred_state():
+    parsed = {
+        "response": "If you view your potential outreach as an intrusion, you are operating from a place of guilt. This distinction matters because it shifts the focus from managing your own anxiety about being unwanted to extending a hand without demands.",
+        "question": "What matters to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("formulaic connective and inferred-state language must be rejected")
+
+
+
 def test_hrn_provider_gate_matches_frozen_humanity_templates():
     for response in (
         "It sounds like the distance has changed what you expect from each other.",
@@ -417,6 +432,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_composition_rejects_formulaic_connective_and_inferred_state()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
