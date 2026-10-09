@@ -319,15 +319,21 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    # Significant distress should not force a topical doorway before the Guide
-    # understands what the visitor needs, including on deterministic recovery.
+    # Significant distress changes conversational pacing, not the availability
+    # of a separately rendered doorway that has already passed relevance/safety
+    # gates. Verify the ordinary and recovery paths do not discard it by default.
     assert_true(
-        MAIN_TEXT.count("general_guide_composition._requires_distress_sensitive_pacing(query)") >= 2,
-        "distress-sensitive doorway deferral is missing from ordinary and recovery paths",
+        "Distress-sensitive pacing governs the prose, not access to a separate" in MAIN_TEXT,
+        "distress-sensitive doorway continuity contract is missing",
     )
     assert_true(
-        "and not _has_archive_help_request(query)" in MAIN_TEXT,
-        "distress-sensitive doorway deferral does not preserve explicit Archive requests",
+        "and not _has_archive_help_request(query)" not in MAIN_TEXT,
+        "distress-sensitive logic still discards qualified doorways unless explicitly requested",
+    )
+    assert_true(
+        '"recommendation": authoritative_doorway' in MAIN_TEXT
+        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
+        "ordinary/recovery recommendation contract is incomplete",
     )
 
     # The final public boundary must preserve Markdown line breaks instead of
