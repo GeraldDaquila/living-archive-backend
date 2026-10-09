@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.13 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.14 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
