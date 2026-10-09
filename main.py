@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.34"
-DEPLOYMENT_FINGERPRINT = "USE-v489.34-respect-location-refusal-in-response"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.34-respect-location-refusal-in-response"
+APP_VERSION = "v489.35"
+DEPLOYMENT_FINGERPRINT = "USE-v489.35-no-proxy-ip-country-inference"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.35-no-proxy-ip-country-inference"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.34":
+if str(APP_VERSION) != "v489.35":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3690,11 +3690,12 @@ async def _resolve_request_location(scope, parsed_body):
         "timezone_country", "locale_country",
     )):
         return context
-    if client_ip:
-        fallback = await asyncio.to_thread(_ip_geolocation, client_ip, 0.65)
-        for key, value in fallback.items():
-            if value not in ("", None) and not context.get(key):
-                context[key] = value
+    # Do not geolocate the transport peer as if it were the visitor. In
+    # this deployment the query may arrive through the WordPress bridge, so
+    # client_ip can identify WordPress or another proxy. Only explicit visitor
+    # context or trusted edge country metadata above may ground emergency
+    # resources. Keep the helper available for a future verified direct-client
+    # deployment, but never use it as an implicit country-selection fallback.
     return context
 
 
