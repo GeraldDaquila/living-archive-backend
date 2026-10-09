@@ -2800,7 +2800,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
     question = _normalize_query(query)
-    q = re.sub(r"\\s+", " ", question).strip().casefold()
+    q = re.sub(r"\s+", " ", question).strip().casefold()
 
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
@@ -2809,12 +2809,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     documents = [d for d in documents if isinstance(d, dict)]
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
-    content = re.sub(r"\\s+", " ", content)
+    content = re.sub(r"\s+", " ", content)
 
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
     # available, without fabricating Archive evidence or source-specific claims.
-    if "stewardship" in q and re.search(r"\\b(?:why|matter|important|everyday|life)\\b", q):
+    if "stewardship" in q and re.search(r"\b(?:why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
             "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
