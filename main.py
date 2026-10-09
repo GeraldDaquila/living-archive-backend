@@ -4081,6 +4081,20 @@ async def _use_request_boundary(scope, receive, send):
     route_id = str(route.get("route") or "guide").strip().casefold()
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
+
+    # Provider/model routing is advisory, not sufficient authority to open a
+    # registered page. Enforce destination intent at the final request boundary
+    # too, so a model-selected Guide Node cannot bypass the registry guard above.
+    # A compound explanatory question misclassified as a page destination returns
+    # to ordinary Guide composition instead of becoming an empty direct handoff.
+    if route_id == "guide_node" and not _is_explicit_guide_destination_request(query):
+        print(
+            "The Guide request boundary: suppressed non-explicit Guide Node handoff; "
+            f"query={_normalize_query(query)[:120]}"
+        )
+        route_id = "guide"
+        mode = "direct"
+
     capability = _registered_available_specialist(route_id)
     should_delegate = capability is not None and route_id in {"relationship", "formation"}
 
