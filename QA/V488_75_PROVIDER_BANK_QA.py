@@ -43,7 +43,7 @@ def main():
 
     assert 'APP_VERSION = "v489.17"' in main_source
     assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"' in main_source
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.16-evidence-neutral-general-answers"' in main_source
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"' in main_source
 
     # Behavioral self-healing check:
     # failure -> open -> cooldown expiry -> one recovery probe -> healthy.
@@ -60,7 +60,7 @@ def main():
     assert state["state"] == pr.HEALTHY
     assert state["consecutive_failures"] == 0
 
-    print("v488.76 provider-resilience structural and behavioral QA: PASS")
+    print("v488.77 provider-resilience structural and behavioral QA: PASS")
 
 if __name__ == "__main__":
     main()
