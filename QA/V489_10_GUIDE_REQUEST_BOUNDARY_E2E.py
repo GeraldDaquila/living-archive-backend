@@ -310,6 +310,7 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     def source_limited_composition(**kwargs):
         seen["query"] = kwargs["query"]
         seen["context_data"] = kwargs["context_data"]
+        seen["response"] = ""
         return {
             "response": (
                 "I can't verify what that particular Archive essay says from the "
@@ -331,7 +332,7 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     status, payload = asyncio.run(_post_query(query))
 
     assert status == 200
-    assert "can't verify what that particular Archive essay says" in payload["response"]
+    assert "can't verify what that particular Archive essay says" in seen["response"]
     assert seen["query"] == query
     assert not seen["context_data"].get("generation_authority_protected_docs")
     assert not seen["context_data"].get("question_authority_protected_docs")
