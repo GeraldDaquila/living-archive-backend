@@ -444,6 +444,13 @@ def _hrn_surface_language_violation(response):
         "defining it is an internal act",
         "external interaction with the other person",
         "the immediate dynamics of the conversation",
+        "opens the possibility of",
+        "pause before reacting",
+        "choosing a stance",
+        "physical or emotional gap",
+        "what once felt like",
+        "the way you interpret each other's actions",
+        "more grounded",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
@@ -455,6 +462,11 @@ def _hrn_surface_language_violation(response):
         ("action-guidance", r"\b(?:preventing|ensuring|allowing) the (?:decision|choice|response)\b"),
         ("action-guidance", r"\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\b"),
         ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
+        ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize)\b"),
+        ("abstract-generalization", r"\bopens the possibility of\b"),
+        ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
+        ("metaphorical-framing", r"\bwhat once felt like\b"),
+        ("action-guidance", r"\bseeing (?:that|this) shift as .{0,100} lets you\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
