@@ -165,6 +165,25 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
 
 
 
+
+def test_hrn_provider_gate_matches_prescriptive_policy():
+    examples = [
+        "You could reach out and ask whether they need space.",
+        "Try asking them directly what has changed.",
+        "You need to talk to them about how you feel.",
+        "I recommend you give them space for now.",
+    ]
+    for response in examples:
+        parsed = {"response": response, "question": "What feels most uncertain here?"}
+        try:
+            provider_bank._normalize_operation_result("hrn_relational", parsed)
+        except ValueError as exc:
+            assert "visitor-surface contract violation" in str(exc)
+        else:
+            raise AssertionError("HRN prescriptive policy must reject: " + response)
+
+
+
 def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
     parsed = {
         "response": "The pull toward intimacy is now also felt as a threat to your autonomy, so the same emotional energy can be both a bridge and a boundary.",
@@ -280,7 +299,7 @@ def test_hrn_composition_rejects_advice_shaped_language():
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert source.startswith("# USE PRODUCTION VERSION: v489.50 —")
-    assert 'APP_VERSION = "v489.50"' in source
+    assert 'APP_VERSION = "v489.51"' in source
 
 
 
@@ -460,6 +479,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_provider_gate_matches_prescriptive_policy()
     test_hrn_rejects_unsupported_intimacy_autonomy_inference()
     test_hrn_rejects_formulaic_abstract_followup_question()
     test_hrn_composition_rejects_formulaic_connective_and_inferred_state()
