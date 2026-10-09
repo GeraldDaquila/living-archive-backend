@@ -2857,7 +2857,8 @@ def _general_guide_authoritative_doorway(query, context_data):
     A syntactically valid URL is not proof of relevance. Provider/core preselection
     is treated as a candidate, never as authority by itself. Rank retrieved
     documents with the Guide's existing relevance gate and emit only a doorway
-    supported by the selected document's title, URL, and content.
+    supported by the selected document's title, URL, and content. v489.11
+    keeps this selection independent of provider-generated text and fallback URLs.
     """
     if not isinstance(context_data, dict):
         return None
