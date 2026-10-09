@@ -221,17 +221,17 @@ def main():
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
     # Recommendation is a first-class Guide response contract, independent of provider success.
-    assert_true("def _normalize_authoritative_recommendation" in main_source, "recommendation normalization helper missing")
-    assert_true('"recommendation": authoritative_doorway' in main_source, "ordinary response recommendation field is not bound to authoritative doorway")
-    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in main_source, "recommendation is not resolved before composition")
-    assert_true("One relevant place to continue is [" not in main_source, "doorway prose still leaks into ordinary answer construction")
-    assert_true('"recommendation": recovery_recommendation' in main_source, "recovery response lost structured recommendation")
+    assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
+    assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
+    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "recommendation is not resolved before composition")
+    assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
+    assert_true('"recommendation": recovery_recommendation' in MAIN_TEXT, "recovery response lost structured recommendation")
 
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
-    assert_true("_base._canonical_pairs(canonical_context)" in main_source, "Guide does not consume canonical link authority as a final navigation fallback")
-    assert_true('context_data.get("authoritative_doorway")' in main_source, "Guide recommendation envelope lacks the canonical-authority seam")
-    assert_true("re-run a second doorway selector" in main_source or "second doorway selector" in main_source, "recommendation boundary does not document single doorway authority")
+    assert_true("_base._canonical_pairs(canonical_context)" in MAIN_TEXT, "Guide does not consume canonical link authority as a final navigation fallback")
+    assert_true('context_data.get("authoritative_doorway")' in MAIN_TEXT, "Guide recommendation envelope lacks the canonical-authority seam")
+    assert_true("re-run a second doorway selector" in MAIN_TEXT or "second doorway selector" in MAIN_TEXT, "recommendation boundary does not document single doorway authority")
 
     print("V489.07 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
