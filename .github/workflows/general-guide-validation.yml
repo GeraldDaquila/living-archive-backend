@@ -14,7 +14,6 @@ on:
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
       - "wordpress/the-guide-frontend.html"
-      - "tests/e2e/the-guide-browser-smoke.cjs"
       - "tests/e2e/the-guide-browser-diagnostic.cjs"
       - "tests/e2e/the-guide-live-api-e2e.cjs"
       - "tests/e2e/check-guide-source-syntax.cjs"
@@ -28,7 +27,6 @@ on:
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - "QA/WORDPRESS_GUIDE_FRONTEND_QA.py"
       - "wordpress/the-guide-frontend.html"
-      - "tests/e2e/the-guide-browser-smoke.cjs"
       - "tests/e2e/the-guide-browser-diagnostic.cjs"
       - "tests/e2e/check-guide-source-syntax.cjs"
       - "tests/e2e/the-guide-browser-locations.cjs"
@@ -52,7 +50,6 @@ jobs:
           filters: |
             guide_frontend:
               - 'wordpress/the-guide-frontend.html'
-              - 'tests/e2e/the-guide-browser-smoke.cjs'
               - 'tests/e2e/the-guide-browser-diagnostic.cjs'
               - 'tests/e2e/the-guide-live-api-e2e.cjs'
               - 'tests/e2e/check-guide-source-syntax.cjs'
