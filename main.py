@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.26 — Complete inline numbered action splitting
+# USE PRODUCTION VERSION: v489.27 — Preserve Markdown structure at final boundary
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.26"
-DEPLOYMENT_FINGERPRINT = "USE-v489.26-complete-inline-numbered-action-splitting"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.26-complete-inline-numbered-action-splitting"
+APP_VERSION = "v489.27"
+DEPLOYMENT_FINGERPRINT = "USE-v489.27-final-boundary-markdown-preservation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.27-final-boundary-markdown-preservation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.26":
+if str(APP_VERSION) != "v489.27":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2692,6 +2692,22 @@ def _sanitize_basic_inquiry_response(text):
     for pattern, replacement in replacements:
         raw = re.sub(pattern, replacement, raw, flags=re.I)
 
+    # The final visitor boundary must not undo Markdown normalization performed
+    # by General Guide Composition. Providers vary in list style and may emit
+    # numbered actions inline, so apply the same bounded structural repair here.
+    action_label = r"\*\*[^*\n]{2,100}\*\*"
+    action_separator = r"(?:\s*:\s*|\s+[–—−-]\s+)"
+    raw = re.sub(
+        rf"\s+-\s+(?={action_label}{action_separator})",
+        "\n- ",
+        raw,
+    )
+    raw = re.sub(
+        rf"(?<=\S)\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
+        "\n",
+        raw,
+    )
+
     paragraphs = []
     for block in re.split(r"\n\s*\n+", raw):
         lines = []
@@ -2703,7 +2719,7 @@ def _sanitize_basic_inquiry_response(text):
             line = re.sub(r"([.!?])\s*\1+", r"\1", line)
             lines.append(line)
         if lines:
-            paragraphs.append(" ".join(lines))
+            paragraphs.append("\n".join(lines))
 
     return "\n\n".join(paragraphs).strip()
 
@@ -2713,6 +2729,18 @@ _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
 )
 if _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE != "This points to the Archive.":
     raise RuntimeError("USE v488.90 visitor-language invariant failed: internal evidence annotation escaped sanitizer.")
+
+# v489.27 final-boundary regression probes: the final public response sanitizer
+# must preserve paragraph and Markdown-list boundaries after generation.
+_BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
+    "Practical steps: 1. **Set clear boundaries** – stop after work. "
+    "Treat downtime as non-negotiable. 2. **Delegate and trust** – hand off tasks. "
+    "3. **Seek support** – ask a peer."
+)
+if "\n2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+    raise RuntimeError("USE v489.27 invariant failed: final boundary flattened numbered Markdown steps.")
+if "\n3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+    raise RuntimeError("USE v489.27 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
 
 _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
     "A useful place to begin is the Archive. [evidence excerpt bounded by USE]"

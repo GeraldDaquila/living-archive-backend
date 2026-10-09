@@ -330,6 +330,18 @@ def main():
         "distress-sensitive doorway deferral does not preserve explicit Archive requests",
     )
 
+    # The final public boundary must preserve Markdown line breaks instead of
+    # re-joining list items into a single paragraph after composition succeeds.
+    assert_true(
+        'paragraphs.append("\\n".join(lines))' in MAIN_TEXT,
+        "final visitor-language sanitizer still flattens Markdown line structure",
+    )
+    assert_true(
+        "_BASIC_INQUIRY_MARKDOWN_PROBE" in MAIN_TEXT
+        and "final boundary flattened numbered Markdown steps" in MAIN_TEXT,
+        "final-boundary numbered-list runtime probes are missing",
+    )
+
     # Recommendation is a first-class Guide response contract, independent of provider success.
     assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
     assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
