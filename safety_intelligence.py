@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.6"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.7"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -591,7 +591,11 @@ def normalize_safety_resolution(
         # safety exchange intact, disclose the missing local-resource context,
         # and let the UI/request boundary collect location before showing a number.
         resources = []
-        safety_note = "I don't yet have a verified local hotline for your location, so I won't guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department. If you tell me what country you're in, I can help identify the appropriate local resource."
+        location_resolution_status = str(emergency_location.get("resolution_status") or "").strip().upper()
+        if location_resolution_status == "REFUSED":
+            safety_note = "I’ll respect your choice not to share your location. I can’t verify a local hotline without it, so I won’t guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department."
+        else:
+            safety_note = "I don't yet have a verified local hotline for your location, so I won't guess. If you may be in immediate danger, contact your local emergency service or go to the nearest emergency department. If you tell me what country you're in, I can help identify the appropriate local resource."
         resolved_country = str(country or "").strip()
     else:
         resolved_country = str(resolved_country_data.get("value") or country or "").strip()
