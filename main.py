@@ -3300,7 +3300,7 @@ def _is_explicit_guide_destination_request(query):
     if not normalized:
         return False
     return bool(re.search(
-        r"\\b(?:where can i find|where do i find|show me|take me to|"
+        r"\b(?:where can i find|where do i find|show me|take me to|"
         r"link me to|open|go to|navigate to|find the|browse|"
         r"take me directly to|send me to|direct me to|access the page for)\\b",
         normalized,
