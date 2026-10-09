@@ -156,9 +156,26 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
     contracted = provider_bank._apply_hrn_visitor_contract(messages)
     assert "plain, concrete, natural language" in contracted[0]["content"]
     assert "Do not advise, prescribe, coach" in contracted[0]["content"]
-    assert "Original HRN composition rules." in contracted[0]["content"]
+    assert contracted[0]["content"].index("Original HRN composition rules.") < contracted[0]["content"].index("plain, concrete, natural language")
     assert contracted[1]["content"] == "Visitor's actual words."
 
+
+
+
+
+def test_hrn_provider_gate_matches_frozen_humanity_templates():
+    for response in (
+        "It sounds like the distance has changed what you expect from each other.",
+        "You should reach out when you feel ready.",
+        "It is important for you to set clear boundaries.",
+    ):
+        parsed = {"response": response, "question": "What matters here?"}
+        try:
+            provider_bank._normalize_operation_result("hrn_relational", parsed)
+        except ValueError as exc:
+            assert "visitor-surface contract violation" in str(exc)
+        else:
+            raise AssertionError("frozen HRN humanity-gate patterns must be rejected upstream")
 
 
 
@@ -399,6 +416,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_abstract_generalizations()
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
+    test_hrn_provider_gate_matches_frozen_humanity_templates()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")

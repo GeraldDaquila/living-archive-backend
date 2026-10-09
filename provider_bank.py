@@ -451,6 +451,31 @@ def _hrn_surface_language_violation(response):
         "what once felt like",
         "the way you interpret each other's actions",
         "more grounded",
+        "it sounds like",
+        "it seems like",
+        "it sounds as though",
+        "it seems as though",
+        "you have noticed",
+        "you are dealing with",
+        "what you are experiencing",
+        "your instinct",
+        "it is important for you",
+        "this is a protective stance",
+        "a protective stance you have learned",
+        "can keep the surface calm",
+        "keeps the deeper feelings",
+        "keeps the deeper needs",
+        "may feel more distant over time",
+        "can feel more distant over time",
+        "hidden defense",
+        "defensive pattern",
+        "coping strategy",
+        "coping mechanism",
+        "protecting the relationship",
+        "protecting your relationship",
+        "blocks genuine intimacy",
+        "blocks intimacy",
+        "self-imposed safety",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
@@ -467,6 +492,11 @@ def _hrn_surface_language_violation(response):
         ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
         ("metaphorical-framing", r"\bwhat once felt like\b"),
         ("action-guidance", r"\bseeing (?:that|this) shift as .{0,100} lets you\b"),
+        ("action-guidance", r"\byou\s+(?:should|must|need to|have to|ought to)\b"),
+        ("action-guidance", r"\byou\s+(?:might|could|can|may)\s+try\b"),
+        ("action-guidance", r"\b(?:the|your)\s+(?:best|right|next)\s+(?:thing|step|move|choice|decision)\s+(?:is|would be)\b"),
+        ("action-guidance", r"\b(?:a|an)\s+(?:good|helpful|healthy|wise)\s+(?:next|first)\s+(?:step|thing|move|choice)\s+(?:is|would be)\b"),
+        ("therapeutic-or-inferred", r"\b(?:they are|he is|she is)\s+(?:toxic|abusive|a narcissist|manipulating you)\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
@@ -488,7 +518,7 @@ def _apply_hrn_visitor_contract(messages):
     result = [dict(item) if isinstance(item, dict) else item for item in messages]
     for item in result:
         if isinstance(item, dict) and item.get("role") == "system":
-            item["content"] = contract + "\n\n" + str(item.get("content") or "")
+            item["content"] = str(item.get("content") or "") + "\n\n" + contract
             return result
     result.insert(0, {"role": "system", "content": contract})
     return result
