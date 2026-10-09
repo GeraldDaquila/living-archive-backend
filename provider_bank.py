@@ -51,7 +51,7 @@ OPERATION_TOKEN_FLOORS = {
     # prevents a specialist's transport envelope from starving a capable model
     # before it can finish its contractual JSON object.
     "hrn_relational": 1000,
-    "hrn_perception": 600,
+    "hrn_perception": 1600,
     "atlas_finder": 500,
     "atlas_vision": 700,
     "mini_use": 500,
