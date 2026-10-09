@@ -26,7 +26,7 @@ def main():
     assert "STALE" in resilience
     assert "UNAVAILABLE" in resilience
 
-    assert 'APP_VERSION = "v488.77"' in main_source
+    assert 'APP_VERSION = "v489.09"' in main_source
     assert "boundary_resilience" in main_source
     assert "GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS" in main_source
     assert "GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS" in main_source
@@ -65,7 +65,7 @@ def main():
 
     # The Hub must require the common contract and preserve domain payload.
     assert 'contract_version = str(contribution.get("contract_version") or "").strip()' in hub
-    assert "payload = contribution.get("payload")" in hub
+    assert 'payload = contribution.get("payload")' in hub
     assert "preserve_specialist_payload" in adapters
 
     print("v488.77 boundary-resilience structural QA: PASS")
