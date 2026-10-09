@@ -24,7 +24,7 @@ const API_HOST = "https://living-archive-backend.onrender.com/api/query";
     await form.waitFor({ state: "visible", timeout: 30000 });
 
     await page.locator("#archive-query-input").fill(
-      "What is stewardship and why does it matter today?"
+      "What is stewardship and why is it important now more than ever?"
     );
 
     const apiResponsePromise = page.waitForResponse(
