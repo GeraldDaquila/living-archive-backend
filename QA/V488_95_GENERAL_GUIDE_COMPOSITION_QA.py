@@ -289,6 +289,17 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
+    # Significant distress should not force a topical doorway before the Guide
+    # understands what the visitor needs, including on deterministic recovery.
+    assert_true(
+        MAIN_TEXT.count("general_guide_composition._requires_distress_sensitive_pacing(query)") >= 2,
+        "distress-sensitive doorway deferral is missing from ordinary and recovery paths",
+    )
+    assert_true(
+        "and not _has_archive_help_request(query)" in MAIN_TEXT,
+        "distress-sensitive doorway deferral does not preserve explicit Archive requests",
+    )
+
     # Recommendation is a first-class Guide response contract, independent of provider success.
     assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
     assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
