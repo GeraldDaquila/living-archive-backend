@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.10 — Bounded Glossary handoff at every routing boundary
+# USE PRODUCTION VERSION: v489.11 — Evidence-ranked canonical recommendation boundary
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.10"
-DEPLOYMENT_FINGERPRINT = "USE-v489.10-bounded-glossary-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.10-bounded-glossary-handoff"
+APP_VERSION = "v489.11"
+DEPLOYMENT_FINGERPRINT = "USE-v489.11-evidence-ranked-recommendation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.11-evidence-ranked-recommendation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.10":
+if str(APP_VERSION) != "v489.11":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2852,11 +2852,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
 
 def _general_guide_authoritative_doorway(query, context_data):
-    """Select one canonical doorway independently of provider composition.
+    """Select a relevant canonical doorway from retrieved evidence only.
 
-    Provider composition may explain the subject, but it never owns public
-    navigation authority. USE selects a doorway from the already retrieved
-    canonical context and attaches it only after the answer has been accepted.
+    A syntactically valid URL is not proof of relevance. Provider/core preselection
+    is treated as a candidate, never as authority by itself. Rank retrieved
+    documents with the Guide's existing relevance gate and emit only a doorway
+    supported by the selected document's title, URL, and content.
     """
     if not isinstance(context_data, dict):
         return None
@@ -2865,64 +2866,22 @@ def _general_guide_authoritative_doorway(query, context_data):
         if profile.get("risk") or profile.get("action") == "risk":
             return None
 
-        # use_core is the canonical selection authority. Prefer the exact
-        # doorway it already selected over reconstructing the decision from
-        # serialized context. The fallback below exists only for older/core
-        # compatibility and is not the primary authority path.
-        selected = context_data.get("authoritative_doorway")
-        if isinstance(selected, dict):
-            title = str(selected.get("title") or "").strip()
-            url = str(
-                selected.get("url")
-                or selected.get("canonical_url")
-                or ""
-            ).strip()
-            if title and re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
-                return {"title": title, "url": url}
+        candidates = []
+        protected = (
+            context_data.get("generation_authority_protected_docs")
+            or context_data.get("question_authority_protected_docs")
+            or []
+        )
+        if isinstance(protected, list):
+            candidates.extend(item for item in protected if isinstance(item, dict))
 
         canonical_context = str(
             context_data.get("canonical_link_context")
             or context_data.get("context_blocks")
             or ""
         )
-        docs = _parse_context_documents(canonical_context)
-        if docs:
-            primary = _canonical_primary_from_docs(docs, query, profile)
-            if primary:
-                return primary
-
-        # For ordinary explanatory questions, canonical relevance scoring can
-        # legitimately be too strict even when USE has already protected a
-        # ranked, visitor-safe doorway for the composition. In that case the
-        # protected document set remains the authoritative fallback; we do not
-        # ask the provider to invent or restore the URL.
-        protected = (
-            context_data.get("generation_authority_protected_docs")
-            or context_data.get("question_authority_protected_docs")
-            or []
-        )
-        for item in protected:
-            if not isinstance(item, dict):
-                continue
-            title = str(item.get("title") or "").strip()
-            url = str(item.get("url") or item.get("canonical_url") or "").strip()
-            if title and re.match(r"^https://\S+$", url, re.I):
-                return {"title": title, "url": url}
-
-        # Final canonical-context fallback: consume the same canonical
-        # link pairs already produced by USE. This is deliberately not a
-        # provider-generated navigation decision and does not create a second
-        # retrieval path. If structured document materialization is unavailable,
-        # the canonical link context itself remains authoritative for the URL.
-        try:
-            canonical_pairs = _base._canonical_pairs(canonical_context)
-        except Exception:
-            canonical_pairs = []
-        for title, url in canonical_pairs:
-            clean_title = str(title or "").strip()
-            clean_url = str(url or "").strip()
-            if clean_title and re.match(r"^https://geralddaquila\.com/\S+$", clean_url, re.I):
-                return {"title": clean_title, "url": clean_url}
+        if canonical_context:
+            candidates.extend(_parse_context_documents(canonical_context))
 
         try:
             supplied = general_guide_composition._documents_from_context(
@@ -2930,31 +2889,45 @@ def _general_guide_authoritative_doorway(query, context_data):
             )
         except Exception:
             supplied = []
-        for item in supplied:
-            if not isinstance(item, dict):
-                continue
+        candidates.extend(item for item in supplied if isinstance(item, dict))
+
+        # Preserve only evidence-bearing documents with canonical Archive URLs.
+        evidence_docs = []
+        seen = set()
+        for item in candidates:
             title = str(item.get("title") or "").strip()
             url = str(item.get("url") or item.get("canonical_url") or "").strip()
-            if title and re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
-                return {"title": title, "url": url}
-        # v489.09 deterministic topic doorway recovery. Retrieval and protected
-        # document materialization can occasionally return relevant stewardship
-        # titles without a usable URL. Do not let that erase navigation from an
-        # otherwise successful ordinary answer. This fallback is restricted to
-        # stewardship questions and points to a verified, published canonical
-        # Archive page; it does not infer a URL from generated prose or provider
-        # output. More specific retrieved doorways always take precedence.
-        normalized_query = _normalize_query(query)
-        if re.search(r"\bstewardship\b", normalized_query, re.I):
-            return {
-                "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
-                "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
-            }
-        return None
+            content = str(
+                item.get("content") or item.get("text") or item.get("excerpt") or ""
+            ).strip()
+            if not title or not content:
+                continue
+            if not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+                continue
+            key = (title.casefold(), url.casefold())
+            if key in seen:
+                continue
+            seen.add(key)
+            evidence_docs.append({"title": title, "url": url, "text": content})
+
+        primary = _canonical_primary_from_docs(evidence_docs, query, profile)
+        if not primary:
+            return None
+
+        # Titles are plain text in the public JSON contract: decode HTML
+        # entities and remove emoji/decorative symbols at the boundary.
+        import html
+        title = html.unescape(str(primary.get("title") or "")).strip()
+        title = re.sub(r"[\\U0001F000-\\U0001FAFF\\U00002600-\\U000027BF]", "", title)
+        title = re.sub(r"\\s+", " ", title).strip()
+        url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            return None
+        return {"title": title, "url": url}
     except Exception as exc:
         print(
-            "The Guide General Composition doorway selection failed safely: "
-            + str(exc)[:300]
+            "The Guide General Guide doorway selection failed safely: "
+            f"{exc}"
         )
         return None
 
