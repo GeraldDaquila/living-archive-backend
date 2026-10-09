@@ -145,7 +145,7 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert payload["intent"] == "TOPICAL_INQUIRY"
     assert payload["processing"] == "basic_inquiry"
     assert payload["response"] == ANSWER
-    assert len(payload["response"].split("\n\n")) == 3
+    assert len(payload["response"].split("\\n\\n")) == 3
     assert isinstance(payload.get("recommendation"), dict)
     assert payload["recommendation"] == {
         "title": CANONICAL_TITLE,
