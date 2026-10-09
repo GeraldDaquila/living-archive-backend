@@ -166,6 +166,34 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
 
 
 
+
+def test_hrn_rejects_unsupported_motive_attribution():
+    parsed = {
+        "response": "There is a difference between wanting to reach out and needing the other person to confirm your worth.",
+        "question": "What feels different when you hold those two sides together?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("unsupported motive attribution must be rejected")
+
+
+def test_hrn_rejects_same_plane_formulaic_question():
+    parsed = {
+        "response": "You are unsure whether reaching out would help or pressure them.",
+        "question": "What feels different when you hold those two sides together?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "question-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("same-plane abstract question must be rejected")
+
+
+
 def test_hrn_provider_gate_matches_prescriptive_policy():
     examples = [
         "You could reach out and ask whether they need space.",
@@ -298,8 +326,8 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.51 —")
-    assert 'APP_VERSION = "v489.51"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.52 —")
+    assert 'APP_VERSION = "v489.52"' in source
 
 
 
@@ -479,6 +507,8 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_rejects_unsupported_motive_attribution()
+    test_hrn_rejects_same_plane_formulaic_question()
     test_hrn_provider_gate_matches_prescriptive_policy()
     test_hrn_rejects_unsupported_intimacy_autonomy_inference()
     test_hrn_rejects_formulaic_abstract_followup_question()
