@@ -5,6 +5,21 @@ const vm = require("node:vm");
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.addInitScript(() => {
+      window.addEventListener("error", (event) => {
+        console.log("WINDOW_ERROR " + JSON.stringify({
+          message: event.message,
+          filename: event.filename,
+          line: event.lineno,
+          column: event.colno,
+          target: event.target && event.target.tagName,
+          targetSrc: event.target && event.target.src,
+        }));
+      }, true);
+      window.addEventListener("unhandledrejection", (event) => {
+        console.log("WINDOW_UNHANDLED_REJECTION " + String(event.reason));
+      });
+    });
     page.on("console", (message) => {
       if (message.type() === "error") {
         console.log("BROWSER_CONSOLE_ERROR " + JSON.stringify({
