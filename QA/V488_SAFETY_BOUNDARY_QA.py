@@ -190,6 +190,10 @@ def main():
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
     assert "if not safety_release_ready and not safety_question:" in main_source
+    # Explicit visitor refusal must stop IP-derived location fallback; a proxy
+    # or server IP must not be presented as the visitor's country.
+    assert 'if str(context.get("refused") or "").strip().casefold() in {"true", "yes", "1", "refused"}:' in main_source
+    assert "return context" in main_source[main_source.index("async def _resolve_request_location"):main_source.index("async def _use_request_boundary")]
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
     app_version = version_match.group(1)
