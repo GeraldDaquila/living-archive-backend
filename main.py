@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.27 — Preserve Markdown structure at final boundary
+# USE PRODUCTION VERSION: v489.28 — Preserve compassionate responses and qualified grief doorway
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.27"
-DEPLOYMENT_FINGERPRINT = "USE-v489.27-final-boundary-markdown-preservation"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.27-final-boundary-markdown-preservation"
+APP_VERSION = "v489.28"
+DEPLOYMENT_FINGERPRINT = "USE-v489.28-compassionate-grief-doorway-continuity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.28-compassionate-grief-doorway-continuity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.27":
+if str(APP_VERSION) != "v489.28":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2730,7 +2730,7 @@ _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
 if _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE != "This points to the Archive.":
     raise RuntimeError("USE v488.90 visitor-language invariant failed: internal evidence annotation escaped sanitizer.")
 
-# v489.27 final-boundary regression probes: the final public response sanitizer
+# v489.28 final-boundary regression probes: the final public response sanitizer
 # must preserve paragraph and Markdown-list boundaries after generation.
 _BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
     "Practical steps: 1. **Set clear boundaries** – stop after work. "
@@ -2738,9 +2738,9 @@ _BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
     "3. **Seek support** – ask a peer."
 )
 if "\n2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
-    raise RuntimeError("USE v489.27 invariant failed: final boundary flattened numbered Markdown steps.")
+    raise RuntimeError("USE v489.28 invariant failed: final boundary flattened numbered Markdown steps.")
 if "\n3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
-    raise RuntimeError("USE v489.27 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
+    raise RuntimeError("USE v489.28 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
 
 _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
     "A useful place to begin is the Archive. [evidence excerpt bounded by USE]"
@@ -3129,14 +3129,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     authoritative_doorway = _normalize_authoritative_recommendation(
         _general_guide_authoritative_doorway(query, context_data)
     )
-    # For a significant distress disclosure, listening comes before a doorway.
-    # Do not attach a potentially premature article unless the visitor asked
-    # for Archive/site guidance explicitly; safety routing remains independent.
-    if (
-        general_guide_composition._requires_distress_sensitive_pacing(query)
-        and not _has_archive_help_request(query)
-    ):
-        authoritative_doorway = None
+    # Distress-sensitive pacing governs the prose, not access to a separate
+    # optional resource. Keep the compassionate response first and preserve a
+    # qualified, independently rendered doorway when the existing relevance
+    # and safety gates approve one. Acute-risk and unrelated resources remain
+    # excluded by the outward-document eligibility boundary.
 
     # Evidence sufficiency governs what may be attributed to the Archive, not
     # whether an ordinary public question may receive a useful general answer.
@@ -4256,11 +4253,6 @@ async def _use_request_boundary(scope, receive, send):
                 recovery_recommendation = _normalize_authoritative_recommendation(
                     _general_guide_authoritative_doorway(query, recovery_context)
                 )
-                if (
-                    general_guide_composition._requires_distress_sensitive_pacing(query)
-                    and not _has_archive_help_request(query)
-                ):
-                    recovery_recommendation = None
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
                         (query + "|" + _history_text(history)).encode("utf-8")
