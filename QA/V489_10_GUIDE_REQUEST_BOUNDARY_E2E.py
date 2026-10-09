@@ -184,9 +184,7 @@ def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks(
     assert "workload and recovery problem" in response
     assert "For example" in response
     assert r"\n\n" not in response
-    assert len(payload["response"].split("\n\n")) == 3
-
-
+    assert len(response.split("\n\n")) == 3
 
 def test_compound_stewardship_question_with_real_provider_bank_when_credentials_exist(monkeypatch):
     """Run the candidate request boundary against an actual configured Provider Bank.
