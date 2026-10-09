@@ -140,6 +140,28 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_contract_rejects_truncated_response():
+    incomplete = {
+        "response": "This begins clearly but stops before the sentence is complete",
+        "question": "What stands out to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", incomplete)
+    except ValueError as exc:
+        assert "complete response" in str(exc)
+    else:
+        raise AssertionError("incomplete HRN response should be rejected")
+
+    complete = {
+        "response": "This is a complete observation. The thought has landed.",
+        "question": "What stands out to you?",
+    }
+    normalized = provider_bank._normalize_operation_result("hrn_relational", complete)
+    assert normalized["response"].endswith(".")
+
+
+
 def test_json_object_instruction_is_added_at_provider_boundary():
     messages = [{"role": "user", "content": "Explain the situation plainly."}]
     effective = provider_bank._ensure_json_object_instruction(messages, None)
@@ -197,7 +219,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.37"' in source
+    assert 'APP_VERSION = "v489.38"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -213,5 +235,6 @@ if __name__ == "__main__":
     test_relationship_adapter_retries_transient_503()
     test_hrn_contract_recovery_corrects_rejected_provider_output()
     test_json_object_instruction_is_added_at_provider_boundary()
+    test_hrn_contract_rejects_truncated_response()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
