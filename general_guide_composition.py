@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.7"
+CONTRACT_VERSION = "v1.8"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -155,11 +155,11 @@ def _sanitize_candidate(text: Any) -> str:
         "\n- ",
         raw,
     )
-    # Numbered steps are sometimes emitted as "1. **Label** – ... 2. **Label** – ..."
-    # Separate a following item only when the prior sentence has ended and a
-    # new bold action label begins, avoiding arbitrary decimal-number splits.
+    # Numbered steps may be emitted inline even when the preceding item has
+    # no terminal punctuation. Split only when a numbered Markdown item is
+    # followed by a new bold action label and a recognized label separator.
     raw = re.sub(
-        rf"(?<=[.!?])\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
+        rf"(?<=\S)\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
         "\n",
         raw,
     )
