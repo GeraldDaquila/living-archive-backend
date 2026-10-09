@@ -195,6 +195,28 @@ def _json_object(raw):
 def _text_mode(schema):
     return isinstance(schema, dict) and schema.get("mode") == "text"
 
+
+def _ensure_json_object_instruction(messages, schema=None):
+    """Make the JSON-object transport requirement explicit for every JSON-mode provider."""
+    if _text_mode(schema):
+        return messages
+    for message in messages:
+        content = message.get("content") if isinstance(message, dict) else None
+        if "json" in str(content or "").casefold():
+            return messages
+
+    instruction = (
+        "Return exactly one valid JSON object. Do not use Markdown fences or "
+        "surrounding prose. Follow the requested output fields and types."
+    )
+    normalized = [dict(message) for message in messages]
+    for index, message in enumerate(normalized):
+        if message.get("role") == "system" and isinstance(message.get("content"), str):
+            message["content"] = message["content"].rstrip() + "\n\n" + instruction
+            return normalized
+    normalized.insert(0, {"role": "system", "content": instruction})
+    return normalized
+
 def _groq(use_core, model, messages, max_tokens, schema=None):
     client = getattr(use_core, "groq_client", None)
     if client is None: raise ProviderCallError("Groq client unavailable", "groq", model, category="unavailable")
@@ -413,6 +435,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # Do not infer strict schemas from the operation. A specialist must
     # explicitly request one; otherwise the bank uses JSON-object mode.
     effective_schema = schema if isinstance(schema, dict) else None
+    effective_messages = _ensure_json_object_instruction(messages, effective_schema)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
@@ -435,7 +458,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, messages, effective_max_tokens, effective_schema)
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema)
             parsed = parse(raw_output)
             if not isinstance(parsed, dict): raise ValueError("route response was not an object")
             try:
@@ -450,7 +473,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # rejected output forward and ask for a bounded contract correction.
                 # This stays at the Provider Bank boundary; specialist voice methods
                 # and provider selection remain untouched.
-                recovery_messages = list(messages)
+                recovery_messages = list(effective_messages)
                 recovery_messages.append({
                     "role": "assistant",
                     "content": str(raw_output or "")[:12000],
