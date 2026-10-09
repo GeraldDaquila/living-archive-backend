@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.15 — Selective concreteness
+# USE PRODUCTION VERSION: v489.16 — Evidence-neutral general answers
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.15"
-DEPLOYMENT_FINGERPRINT = "USE-v489.15-selective-concreteness"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.15-selective-concreteness"
+APP_VERSION = "v489.16"
+DEPLOYMENT_FINGERPRINT = "USE-v489.16-evidence-neutral-general-answers"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.16-evidence-neutral-general-answers"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.15":
+if str(APP_VERSION) != "v489.16":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.15 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.16 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2823,6 +2823,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    if "burnout" in q and re.search(r"\b(manager|manage|leader|supervisor)\b", q):
+        response = (
+            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.\n\n"
+            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.\n\n"
+            "Also protect basic recovery: take real breaks, set a reasonable end to the workday where possible, and speak with your own manager about priorities that cannot all fit. If exhaustion is persistent, affecting your health, or making daily functioning difficult, consider professional support. You do not have to solve a structural workload problem by pushing yourself harder."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
@@ -2834,7 +2842,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
         closing = "The recommendation below is a place to explore the topic further."
     return {
-        "response": "\\n\\n".join(part for part in (opening, explanation, closing) if part),
+        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
