@@ -160,6 +160,21 @@ def test_hrn_plain_language_contract_is_applied_at_provider_boundary():
     assert contracted[1]["content"] == "Visitor's actual words."
 
 
+
+def test_hrn_composition_rejects_action_guidance():
+    parsed = {
+        "response": "Seeing these as two separate steps matters because it allows you to stabilize your own position before engaging with the other party.",
+        "question": "What matters to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("action-guidance language must be rejected")
+
+
+
 def test_hrn_composition_rejects_abstract_generalizations():
     parsed = {
         "response": "In many relational dynamics, space is a necessary condition for connection to re-emerge with clarity.",
@@ -367,6 +382,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_advice_shaped_language()
     test_hrn_plain_language_contract_is_applied_at_provider_boundary()
     test_hrn_composition_rejects_abstract_generalizations()
+    test_hrn_composition_rejects_action_guidance()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
