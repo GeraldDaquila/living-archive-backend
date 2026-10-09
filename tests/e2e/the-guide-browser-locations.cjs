@@ -21,8 +21,13 @@ const vm = require("node:vm");
       });
     });
     page.on("console", (message) => {
-      if (message.type() === "error") {
-        console.log("BROWSER_CONSOLE_ERROR " + JSON.stringify({
+      if (
+        message.type() === "error" ||
+        message.text().startsWith("WINDOW_ERROR ") ||
+        message.text().startsWith("WINDOW_UNHANDLED_REJECTION ")
+      ) {
+        console.log("BROWSER_CONSOLE_EVENT " + JSON.stringify({
+          type: message.type(),
           text: message.text(),
           location: message.location(),
         }));
