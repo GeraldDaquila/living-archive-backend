@@ -2872,7 +2872,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=5):
     # topic-specific keyword families or changing the question's meaning.
     indexed_terms = list(enumerate(terms))
     indexed_terms.sort(key=lambda pair: (len(pair[1]), -pair[0]), reverse=True)
-    search_text = " ".join(term for _, term in indexed_terms[:4]).strip()
+    search_text = " ".join(term for _, term in indexed_terms[:2]).strip()
     if not search_text:
         return []
     endpoint = (
@@ -2942,7 +2942,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=5):
             recovered.append({"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]})
         except Exception as exc:
             print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
-    print(f"The Guide canonical search recovery: search_terms={len(indexed_terms[:4])}, candidates={len(recovered)}.")
+    print(f"The Guide canonical search recovery: search_terms={len(indexed_terms[:2])}, candidates={len(recovered)}.")
     return recovered
 
 
