@@ -446,7 +446,7 @@ def _normalize_operation_result(operation, parsed):
         surface_violation = _hrn_surface_language_violation(response)
         if surface_violation:
             raise ValueError(
-                "hrn_relational composition exposes internal-process language: "
+                "hrn_relational visitor-surface contract violation: "
                 + surface_violation
             )
         # Do not let a syntactically valid JSON object conceal a cut-off
