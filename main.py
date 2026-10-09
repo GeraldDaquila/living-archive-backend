@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.11 — Evidence-ranked canonical recommendation boundary
+# USE PRODUCTION VERSION: v489.12 — Lightweight general conversation
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.11"
-DEPLOYMENT_FINGERPRINT = "USE-v489.11-evidence-ranked-recommendation"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.11-evidence-ranked-recommendation"
+APP_VERSION = "v489.12"
+DEPLOYMENT_FINGERPRINT = "USE-v489.12-lightweight-general-conversation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.12-lightweight-general-conversation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.11":
+if str(APP_VERSION) != "v489.12":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -194,7 +194,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.1":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.2":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.11 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.12 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2834,12 +2834,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             excerpt = excerpt.rsplit(" ", 1)[0] + "…"
         explanation = f"The strongest Archive material available here begins from this idea: “{excerpt}”"
     else:
-        explanation = "The available Archive material does not provide enough detail for a reliable answer yet."
+        explanation = "I couldn't find enough Archive material to support a source-specific answer, but that does not prevent a general explanation when the question can be answered responsibly."
 
     closing = (
         f"A useful next movement may be {movement.rstrip('.')}."
         if movement else
-        "If you want a fuller explanation, the question can be taken up again when the Guide's composition resources are available."
+        "I can't give you a reliable answer just now, and I don't want to guess. You can try the question again in a moment."
     )
     return {
         # Navigation is deliberately omitted from answer prose. The structured
@@ -2857,7 +2857,7 @@ def _general_guide_authoritative_doorway(query, context_data):
     A syntactically valid URL is not proof of relevance. Provider/core preselection
     is treated as a candidate, never as authority by itself. Rank retrieved
     documents with the Guide's existing relevance gate and emit only a doorway
-    supported by the selected document's title, URL, and content. v489.11
+    supported by the selected document's title, URL, and content. v489.12
     keeps this selection independent of provider-generated text and fallback URLs.
     """
     if not isinstance(context_data, dict):
@@ -3075,7 +3075,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.1":
+    if snapshot.get("contract_version") != "v1.2":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")

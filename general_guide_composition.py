@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.1"
+CONTRACT_VERSION = "v1.2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -93,7 +93,7 @@ Choose the response shape that fits the question:
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
 
-Use the supplied Archive material as grounding and enrichment. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor.
+Use relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
 
 Use ordinary language for ordinary public questions. Do not introduce Archive jargon such as cornerstone, canonical, glyph, stewardship, or similar internal vocabulary merely because it appears in the source material. If the visitor explicitly asks about the Living Archive or its own language, that vocabulary may be used naturally and lightly.
 
@@ -301,7 +301,7 @@ def compose(
 
     question = _normalize_space(query)
     documents = _documents_from_context(use_core, context_data)
-    if not question or not documents:
+    if not question:
         return None
 
     shape = _question_shape(question)
@@ -309,7 +309,7 @@ def compose(
         f"Visitor question:\n{question}\n\n"
         f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
-        f"Archive material available to ground the answer:\n{_evidence_payload(documents)}"
+        f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )
 
     cache_key = _composition_cache_key(
