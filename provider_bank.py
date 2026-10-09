@@ -388,6 +388,25 @@ def select(use_core, operation="generic", schema=None):
         selected.extend(models)
     return selected
 
+def _complete_response_prefix(response):
+    """Keep complete prose and trim only an unfinished trailing sentence."""
+    text = str(response or "").rstrip()
+
+    def ends_sentence(value):
+        candidate = value.rstrip()
+        while candidate and candidate[-1] in ('"', "'", "”", "’", ")", "]", "}"):
+            candidate = candidate[:-1].rstrip()
+        return bool(candidate and candidate[-1] in ".!?…")
+
+    if ends_sentence(text):
+        return text
+    boundaries = list(re.finditer(r"[.!?…][\"'”’\)\]\}]*\s+", text))
+    if not boundaries:
+        return ""
+    candidate = text[:boundaries[-1].end()].rstrip()
+    return candidate if ends_sentence(candidate) else ""
+
+
 def _normalize_operation_result(operation, parsed):
     if operation == "hrn_relational":
         response = parsed.get("response")
@@ -397,13 +416,17 @@ def _normalize_operation_result(operation, parsed):
         if not isinstance(question, str) or not question.strip():
             raise ValueError("hrn_relational composition contract requires question")
         # Do not let a syntactically valid JSON object conceal a cut-off
-        # visitor-facing sentence. Incomplete prose is a contract failure and
-        # must enter the existing bounded corrective-recovery path.
-        completed = response.rstrip()
-        while completed and completed[-1] in ('"', "'", "”", "’", ")", "]", "}"):
-            completed = completed[:-1].rstrip()
-        if not completed or completed[-1] not in ".!?…":
+        # visitor-facing sentence. Preserve complete sentences and discard only
+        # the unfinished trailing sentence; never invent replacement prose.
+        completed = _complete_response_prefix(response)
+        if not completed:
             raise ValueError("hrn_relational composition contract requires a complete response")
+        if completed != response.strip():
+            print(
+                "USE provider response tail trimmed: operation=hrn_relational, "
+                f"original_chars={len(response)}, retained_chars={len(completed)}"
+            )
+        parsed["response"] = completed
         # These are transport/envelope controls, not semantic content. Supplying
         # their neutral values keeps provider variation from leaking into HRN's
         # frozen composition validator.
