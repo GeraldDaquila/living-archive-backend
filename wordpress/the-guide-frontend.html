@@ -669,7 +669,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 12000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.09';
+var USE_FRONTEND_BUILD = 'v489.10';
 var USE_FRONTEND_AUTHORITY = 'guide-single-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -877,11 +877,11 @@ function initializeGuideHints() {
 function escapeHtml(value) {
 
   return String(value == null ? '' : value)
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, ''');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 }
 
