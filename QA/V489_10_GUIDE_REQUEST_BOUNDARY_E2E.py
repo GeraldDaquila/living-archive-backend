@@ -358,6 +358,6 @@ def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypat
     assert "workload and recovery problem" in payload["response"]
     assert "For example" in payload["response"]
     assert len(payload["response"].split("\\n\\n")) == 3
-    assert r"\\n\\n" not in payload["response"]
+    assert r"\n\n" not in payload["response"]
     assert "I couldn't verify a reliable answer" not in payload["response"]
     assert payload.get("recommendation") is None
