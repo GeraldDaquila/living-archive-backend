@@ -3101,6 +3101,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     authoritative_doorway = _normalize_authoritative_recommendation(
         _general_guide_authoritative_doorway(query, context_data)
     )
+    # For a significant distress disclosure, listening comes before a doorway.
+    # Do not attach a potentially premature article unless the visitor asked
+    # for Archive/site guidance explicitly; safety routing remains independent.
+    if (
+        general_guide_composition._requires_distress_sensitive_pacing(query)
+        and not _has_archive_help_request(query)
+    ):
+        authoritative_doorway = None
 
     # Evidence sufficiency governs what may be attributed to the Archive, not
     # whether an ordinary public question may receive a useful general answer.
@@ -4220,6 +4228,11 @@ async def _use_request_boundary(scope, receive, send):
                 recovery_recommendation = _normalize_authoritative_recommendation(
                     _general_guide_authoritative_doorway(query, recovery_context)
                 )
+                if (
+                    general_guide_composition._requires_distress_sensitive_pacing(query)
+                    and not _has_archive_help_request(query)
+                ):
+                    recovery_recommendation = None
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
                         (query + "|" + _history_text(history)).encode("utf-8")
