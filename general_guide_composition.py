@@ -309,7 +309,7 @@ def compose(
         f"Visitor question:\n{question}\n\n"
         f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
-        f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else "No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources."}"
+        f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )
 
     cache_key = _composition_cache_key(
