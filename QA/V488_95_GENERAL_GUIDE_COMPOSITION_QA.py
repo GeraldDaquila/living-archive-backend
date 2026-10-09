@@ -27,7 +27,7 @@ def assert_true(condition, message):
 
 
 def main():
-    assert_true('APP_VERSION = "v489.14"' in MAIN_TEXT, "main.py version is not v489.14")
+    assert_true('APP_VERSION = "v489.15"' in MAIN_TEXT, "main.py version is not v489.15")
     assert_true("def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):" in MAIN_TEXT, "question-aware deterministic recovery is missing")
     recovery_start = MAIN_TEXT.find("def _basic_inquiry_round1_deterministic_response(")
     recovery_end = MAIN_TEXT.find("def _general_guide_authoritative_doorway", recovery_start)
@@ -46,7 +46,7 @@ def main():
     assert_true('What is stewardship and why does it matter now more than ever?' in MAIN_TEXT, "reported explanatory-query regression probe is missing")
     assert_true("if glossary_term and _is_bounded_glossary_request(" in MAIN_TEXT, "direct Glossary handoff is not guarded by bounded-query validation")
     assert_true("embedded_term=embedded_glossary_term" in MAIN_TEXT, "direct Glossary handoff does not validate the original query shape")
-    assert_true('USE v489.14 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
+    assert_true('USE v489.15 glossary invariant failed: reported compound stewardship question was misrouted to Glossary' in MAIN_TEXT, "reported compound Glossary regression probe is missing")
 
     basic_start = MAIN_TEXT.find("def _basic_inquiry_response(")
     basic_end = MAIN_TEXT.find("def _v48894_general_guide_composition_self_audit", basic_start)
@@ -57,13 +57,16 @@ def main():
     )
 
     assert_true("Apply explanatory discernment before composing" in composition._GENERAL_GUIDE_SYSTEM, "discernment prompt missing")
-    assert_true("When an abstract idea remains hard to picture" in composition._GENERAL_GUIDE_SYSTEM, "example guidance missing")
+    assert_true("Use a concrete-example decision rule before composing" in composition._GENERAL_GUIDE_SYSTEM, "selective concrete-example decision rule missing")
+    assert_true("Do not insert an example into a simple definition or answer when it adds no understanding" in composition._GENERAL_GUIDE_SYSTEM, "example restraint rule missing")
+    assert_true("Make the example do explanatory work" in composition._GENERAL_GUIDE_SYSTEM, "example mechanism guidance missing")
+    assert_true("Its relevance must be explainable in terms of the visitor's actual question" in composition._GENERAL_GUIDE_SYSTEM, "resource relevance contract missing")
     assert_true("Let the nature and complexity of the question determine the length" in composition._GENERAL_GUIDE_SYSTEM, "adaptive length guidance missing")
     assert_true("Do not impose a fixed word count" in composition._GENERAL_GUIDE_SYSTEM, "fixed length prohibition missing")
     assert_true("natural, conversational voice" in composition._GENERAL_GUIDE_SYSTEM, "conversational voice guidance missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.3", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.4", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
