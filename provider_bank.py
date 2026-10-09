@@ -414,6 +414,8 @@ def _hrn_surface_language_violation(response):
         return "formulaic-abstract-question"
     if text.startswith("what does that reveal about the relationship that was harder to see before"):
         return "formulaic-abstract-question"
+    if re.search(r"\bwhat feels different when you hold (?:those|both|the two) sides together\b", text):
+        return "formulaic-abstract-question"
     forbidden = (
         "the brief identifies",
         "the movement brief",
@@ -492,6 +494,12 @@ def _hrn_surface_language_violation(response):
         "the same emotional energy",
         "bridge and a boundary",
         "the effort beneath the thing",
+        "confirm your worth",
+        "need for reassurance",
+        "the other person's autonomy can feel like a rejection rather than a boundary",
+        "seeing this distinction allows you to",
+        "act from genuine care rather than anxiety",
+        "separate your internal need from their external choice",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
