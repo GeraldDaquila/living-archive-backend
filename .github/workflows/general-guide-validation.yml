@@ -16,6 +16,7 @@ on:
       - "wordpress/the-guide-frontend.html"
       - "tests/e2e/the-guide-browser-smoke.cjs"
       - "tests/e2e/the-guide-browser-diagnostic.cjs"
+      - "tests/e2e/the-guide-live-api-e2e.cjs"
       - "tests/e2e/check-guide-source-syntax.cjs"
       - "tests/e2e/the-guide-browser-locations.cjs"
       - ".github/workflows/general-guide-validation.yml"
@@ -53,6 +54,7 @@ jobs:
               - 'wordpress/the-guide-frontend.html'
               - 'tests/e2e/the-guide-browser-smoke.cjs'
               - 'tests/e2e/the-guide-browser-diagnostic.cjs'
+              - 'tests/e2e/the-guide-live-api-e2e.cjs'
               - 'tests/e2e/check-guide-source-syntax.cjs'
               - 'tests/e2e/the-guide-browser-locations.cjs'
       - uses: actions/setup-node@v4
@@ -74,3 +76,6 @@ jobs:
       - name: Verify live Guide browser contract
         if: steps.frontend-changes.outputs.guide_frontend == 'true'
         run: node tests/e2e/the-guide-browser-diagnostic.cjs
+      - name: Verify live Guide API and recommendation end to end
+        if: steps.frontend-changes.outputs.guide_frontend == 'true'
+        run: node tests/e2e/the-guide-live-api-e2e.cjs
