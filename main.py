@@ -2973,48 +2973,61 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _general_guide_authoritative_doorway(query, context_data)
     )
 
-    if context_data.get("frame_neutral_evidence_unavailable"):
-        llm_output = use_core._frame_neutral_evidence_unavailable_response(query)
-    elif context_data.get("question_structure_evidence_unavailable"):
-        llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
-    elif context_data.get("evidence_sufficiency_unavailable"):
-        llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
-    else:
-        # All ordinary Guide questions now use the provider-neutral General Guide
-        # composition seam. The old Round 1 composer remains available as a historical
-        # specialist-era contract but is no longer the all-purpose generation path.
-        # Specialist routing has already completed at the request boundary above.
-        composition_result = None
-        try:
-            composition_result = general_guide_composition.compose(
-                use_core=use_core,
-                query=query,
-                context_data=context_data,
-                history_text=_history_text(history),
+    # Evidence sufficiency governs what may be attributed to the Archive, not
+    # whether an ordinary public question may receive a useful general answer.
+    # Keep specialist-only evidence out of general composition when the retrieval
+    # boundary says it cannot safely frame the visitor's question.
+    composition_context = dict(context_data)
+    archive_evidence_unavailable = any(
+        composition_context.get(flag)
+        for flag in (
+            "frame_neutral_evidence_unavailable",
+            "question_structure_evidence_unavailable",
+            "evidence_sufficiency_unavailable",
+        )
+    )
+    if archive_evidence_unavailable:
+        for key in (
+            "context_blocks",
+            "canonical_link_context",
+            "generation_authority_protected_docs",
+            "question_authority_protected_docs",
+            "authoritative_doorway",
+        ):
+            composition_context.pop(key, None)
+        authoritative_doorway = None
+
+    # All ordinary questions use the same provider-neutral composition path,
+    # including when no suitable Archive evidence is available. The composer
+    # is explicitly instructed to answer from general knowledge where suitable
+    # and to state source limitations only when the question actually requires it.
+    composition_result = None
+    try:
+        composition_result = general_guide_composition.compose(
+            use_core=use_core,
+            query=query,
+            context_data=composition_context,
+            history_text=_history_text(history),
+        )
+        if composition_result:
+            llm_output = composition_result.get("response", "")
+            print(
+                "The Guide General Composition: "
+                f"provider={composition_result.get('provider') or 'unknown'}, "
+                f"model={composition_result.get('model') or 'unknown'}, "
+                f"shape={composition_result.get('response_shape') or 'unknown'}, "
+                f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+                f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
             )
-            if composition_result:
-                llm_output = composition_result.get("response", "")
-                # Navigation is a separate authoritative presentation surface.
-                # The answer payload must contain answer prose only; the frontend
-                # renders the structured recommendation independently. This prevents
-                # menu-era title decoration (including emoji) from leaking back into
-                # the visitor's prose and keeps navigation out of the composition contract.
-                print(
-                    "The Guide General Composition: "
-                    f"provider={composition_result.get('provider') or 'unknown'}, "
-                    f"model={composition_result.get('model') or 'unknown'}, "
-                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                    f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
-                )
-            else:
-                print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
-                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
-        except Exception as exc:
-            print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
-            try:
-                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
-            except Exception:
-                llm_output = ""
+        else:
+            print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+    except Exception as exc:
+        print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
+        try:
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+        except Exception:
+            llm_output = ""
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
     # General Guide Composition owns the generative path for ordinary questions.
