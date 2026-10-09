@@ -73,10 +73,15 @@ def _install_controlled_provider_and_retrieval(monkeypatch):
     context = {
         "intent": "TOPICAL_INQUIRY",
         "authoritative_doorway": {
-            "title": CANONICAL_TITLE,
-            "url": CANONICAL_URL,
+            "title": "🏛️Workshops &amp; Advisory",
+            "url": "https://geralddaquila.com/workshops-advisory/",
         },
         "generation_authority_protected_docs": [
+            {
+                "title": "🏛️Workshops &amp; Advisory",
+                "url": "https://geralddaquila.com/workshops-advisory/",
+                "content": "Workshop and advisory services for teams and organizations.",
+            },
             {
                 "title": CANONICAL_TITLE,
                 "url": CANONICAL_URL,
@@ -145,6 +150,8 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
         "title": CANONICAL_TITLE,
         "url": CANONICAL_URL,
     }
+    assert "🏛️" not in payload["recommendation"]["title"]
+    assert "&amp;" not in payload["recommendation"]["title"]
     assert payload.get("handoff") != "glossary"
     assert composition_calls == ["general_guide_composition"]
 
@@ -172,16 +179,26 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
 
     context = {
         "intent": "TOPICAL_INQUIRY",
-        "authoritative_doorway": {"title": CANONICAL_TITLE, "url": CANONICAL_URL},
-        "generation_authority_protected_docs": [{
-            "title": CANONICAL_TITLE,
-            "url": CANONICAL_URL,
-            "content": (
-                "Stewardship asks what we are responsible for and how we care "
-                "for what affects more than ourselves. It considers the effects "
-                "of our choices on people and systems beyond ourselves."
-            ),
-        }],
+        "authoritative_doorway": {
+            "title": "🏛️Workshops &amp; Advisory",
+            "url": "https://geralddaquila.com/workshops-advisory/",
+        },
+        "generation_authority_protected_docs": [
+            {
+                "title": "🏛️Workshops &amp; Advisory",
+                "url": "https://geralddaquila.com/workshops-advisory/",
+                "content": "Workshop and advisory services for teams and organizations.",
+            },
+            {
+                "title": CANONICAL_TITLE,
+                "url": CANONICAL_URL,
+                "content": (
+                    "Stewardship asks what we are responsible for and how we care "
+                    "for what affects more than ourselves. It considers the effects "
+                    "of our choices on people and systems beyond ourselves."
+                ),
+            }
+        ],
     }
     monkeypatch.setattr(use_main.use_core, "fetch_canonical_context", lambda query: context)
     monkeypatch.setattr(use_main._base, "_inquiry_profile", lambda query: {})
@@ -215,6 +232,34 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
     assert isinstance(recommendation, dict)
     assert recommendation.get("url") == CANONICAL_URL
     assert recommendation.get("title") == CANONICAL_TITLE
+
+
+def test_model_selected_guide_node_cannot_bypass_explicit_destination_boundary(monkeypatch):
+    """A provider-selected Glossary node must not swallow an explanatory question."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        use_main,
+        "_guide_capability_route",
+        lambda *args, **kwargs: {
+            "route": "guide_node",
+            "mode": "direct",
+            "confidence": 1.0,
+            "round1_interpretation": {"guide_node_id": "living-glossary"},
+        },
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["intent"] == "TOPICAL_INQUIRY"
+    assert payload["processing"] == "basic_inquiry"
+    assert len(payload["response"].strip()) >= 80
+    assert payload.get("handoff") != "guide_node"
+    assert payload["recommendation"] == {
+        "title": CANONICAL_TITLE,
+        "url": CANONICAL_URL,
+    }
+
 
 def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
     status, payload = asyncio.run(_post_query("What is stewardship?"))
