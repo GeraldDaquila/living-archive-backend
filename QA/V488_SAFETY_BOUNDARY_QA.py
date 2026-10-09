@@ -129,7 +129,7 @@ def main():
     assert "if not safety_release_ready and not safety_question:" in main_source
     assert 'APP_VERSION = "v489.15"' in main_source
     assert 'SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"' in main_source
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.15-explanatory-discernment"' in main_source
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.15-selective-concreteness"' in main_source
     assert classify("yes", history=serialized) == "acute_followthrough"
 
     assert classify(
