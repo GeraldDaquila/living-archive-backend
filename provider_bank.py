@@ -449,12 +449,12 @@ def _hrn_surface_language_violation(response):
     if matched:
         return matched
     patterns = (
-        ("action-guidance", r"\\b(?:it|this|that)\\s+(?:allows|enables|helps|means)\\s+you\\s+to\\b"),
-        ("action-guidance", r"\\b(?:you can|you could|you might want to)\\s+(?:set|establish|stabilize|enforce|frame|approach|try|consider|focus|decide|reach out|give them space)\\b"),
-        ("action-guidance", r"\\b(?:before|when) engaging with the other (?:person|party)\\b"),
-        ("action-guidance", r"\\b(?:preventing|ensuring|allowing) the (?:decision|choice|response)\\b"),
-        ("action-guidance", r"\\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\\b"),
-        ("abstract-generalization", r"\\b(?:in many|often stems from|a common pattern is|relationships often)\\b"),
+        ("action-guidance", r"\b(?:it|this|that)\s+(?:allows|enables|helps|means)\s+you\s+to\b"),
+        ("action-guidance", r"\b(?:you can|you could|you might want to)\s+(?:set|establish|stabilize|enforce|frame|approach|try|consider|focus|decide|reach out|give them space)\b"),
+        ("action-guidance", r"\b(?:before|when) engaging with the other (?:person|party)\b"),
+        ("action-guidance", r"\b(?:preventing|ensuring|allowing) the (?:decision|choice|response)\b"),
+        ("action-guidance", r"\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\b"),
+        ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
