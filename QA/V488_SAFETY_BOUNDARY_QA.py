@@ -1,3 +1,4 @@
+import re
 """Sitewide Safety Boundary Regression QA v488.67.
 
 Checks deterministic safety normalization, active safety follow-through, and the
