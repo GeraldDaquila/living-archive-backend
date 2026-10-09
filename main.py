@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.17 — Evidence-neutral general answers
+# USE PRODUCTION VERSION: v489.18 — Navigation and synthesis evidence separation
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.17"
-DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"
+APP_VERSION = "v489.18"
+DEPLOYMENT_FINGERPRINT = "USE-v489.18-navigation-synthesis-separation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.18-navigation-synthesis-separation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.17":
+if str(APP_VERSION) != "v489.18":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.17 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.18 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
