@@ -144,6 +144,28 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_composition_rejects_internal_process_language():
+    parsed = {
+        "response": "The brief identifies a tension, but it lacks specific facts of the relationship.",
+        "question": "What feels important here?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "internal-process language" in str(exc)
+    else:
+        raise AssertionError("internal-process language must not reach HRN visitors")
+
+    natural = {
+        "response": "You are weighing your care for them against the wish not to intrude.",
+        "question": "What does that tension mean to you?",
+    }
+    normalized = provider_bank._normalize_operation_result("hrn_relational", natural)
+    assert normalized["response"].startswith("You are weighing")
+
+
+
 def test_hrn_perception_has_enough_completion_budget_for_observer_json():
     assert provider_bank.OPERATION_TOKEN_FLOORS["hrn_perception"] >= 1600
 
@@ -292,5 +314,6 @@ if __name__ == "__main__":
     test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability()
     test_hrn_contract_trims_only_incomplete_trailing_sentence()
     test_hrn_perception_has_enough_completion_budget_for_observer_json()
+    test_hrn_composition_rejects_internal_process_language()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")

@@ -407,6 +407,24 @@ def _complete_response_prefix(response):
     return candidate if ends_sentence(candidate) else ""
 
 
+def _hrn_surface_language_violation(response):
+    """Reject known internal-process phrases from visitor-facing HRN composition."""
+    text = str(response or "").casefold()
+    forbidden = (
+        "the brief identifies",
+        "the movement brief",
+        "the visitor contribution",
+        "the current understanding",
+        "specific facts of the relationship",
+        "grounded in your actual experience",
+        "the current state of the interaction",
+        "to move from a general desire",
+        "the observer indicates",
+        "the interpretation indicates",
+    )
+    return next((phrase for phrase in forbidden if phrase in text), "")
+
+
 def _normalize_operation_result(operation, parsed):
     if operation == "hrn_relational":
         response = parsed.get("response")
@@ -415,6 +433,12 @@ def _normalize_operation_result(operation, parsed):
             raise ValueError("hrn_relational composition contract requires response")
         if not isinstance(question, str) or not question.strip():
             raise ValueError("hrn_relational composition contract requires question")
+        surface_violation = _hrn_surface_language_violation(response)
+        if surface_violation:
+            raise ValueError(
+                "hrn_relational composition exposes internal-process language: "
+                + surface_violation
+            )
         # Do not let a syntactically valid JSON object conceal a cut-off
         # visitor-facing sentence. Preserve complete sentences and discard only
         # the unfinished trailing sentence; never invent replacement prose.
@@ -521,6 +545,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "a non-empty visitor-facing response string and a non-empty next question string. "
                         + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
                         + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
+                        + "Speak directly to the visitor. Never refer to a brief, prompt, interpretation, internal state, or the visitor contribution as an object being processed. "
                         + "Do not explain the contract or omit response/question. Preserve the visitor's context."
                     ),
                 })
