@@ -331,8 +331,6 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     status, payload = asyncio.run(_post_query(query))
 
     assert status == 200
-    assert status == 200
-    # The source-specific limitation is asserted at the composition seam below.
     assert "can't verify what that particular Archive essay says" in payload["response"]
     assert seen["query"] == query
     assert not seen["context_data"].get("generation_authority_protected_docs")
