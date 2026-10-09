@@ -142,6 +142,18 @@ def test_relationship_adapter_retries_transient_503():
 
 
 
+
+def test_hrn_contract_trims_only_incomplete_trailing_sentence():
+    parsed = {
+        "response": "The first distinction is clear. The next sentence starts but does not finish",
+        "question": "What stands out to you?",
+    }
+    normalized = provider_bank._normalize_operation_result("hrn_relational", parsed)
+    assert normalized["response"] == "The first distinction is clear."
+    assert normalized["response"].endswith(".")
+
+
+
 def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability():
     original = [{"role": "user", "content": "Someone I love has become distant."}]
     incomplete = json.dumps({
@@ -254,7 +266,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.39"' in source
+    assert 'APP_VERSION = "v489.40"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -272,5 +284,6 @@ if __name__ == "__main__":
     test_json_object_instruction_is_added_at_provider_boundary()
     test_hrn_contract_rejects_truncated_response()
     test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability()
+    test_hrn_contract_trims_only_incomplete_trailing_sentence()
     test_current_main_contains_domain_payload_consumption_guards()
     print("current specialist-pipe regression probes: PASS")
