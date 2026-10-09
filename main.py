@@ -2857,14 +2857,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
 
 def _wordpress_search_canonical_candidates(query, *, limit=5):
-    import html
-
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
     WordPress search is a bounded, provider-independent retrieval supplement, not
     a source of recommendation authority. Every returned item is re-evaluated by
     the same local evidence and relevance gates as vector-retrieved candidates.
     """
+    import html
+
     terms = list(_subject_terms(query))
     if not terms:
         return []
