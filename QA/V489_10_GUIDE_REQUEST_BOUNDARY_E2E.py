@@ -340,7 +340,7 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
 
 
 def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypatch):
-    """Exhausting providers must not turn an ordinary question into an evidence disclaimer."""
+    """Provider exhaustion retains useful guidance and actual paragraph breaks."""
     _install_controlled_provider_and_retrieval(
         monkeypatch, {"evidence_sufficiency_unavailable": True}
     )
@@ -355,12 +355,10 @@ def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypat
     assert status == 200
     assert "workload and recovery problem" in payload["response"]
     assert "For example" in payload["response"]
-    assert len(payload["response"].split("\\n\\n")) == 3
+    assert len(payload["response"].split("\n\n")) == 3
     assert r"\n\n" not in payload["response"]
     assert "I couldn't verify a reliable answer" not in payload["response"]
     assert payload.get("recommendation") is None
-
-
 
 def test_supported_evidence_preserves_structured_recommendation_title_and_url(monkeypatch):
     """Evidence-supported answers retain navigation in its separate response field."""
@@ -369,8 +367,9 @@ def test_supported_evidence_preserves_structured_recommendation_title_and_url(mo
 
     assert status == 200
     assert payload["response"] == ANSWER
-    assert len(payload["response"].split("\\n\\n")) == 3
+    assert len(payload["response"].split("\n\n")) == 3
     assert payload["recommendation"] == {
         "title": CANONICAL_TITLE,
         "url": CANONICAL_URL,
     }
+
