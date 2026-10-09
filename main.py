@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.34"
-DEPLOYMENT_FINGERPRINT = "USE-v489.34-respect-location-refusal-in-response"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.34-respect-location-refusal-in-response"
+APP_VERSION = "v489.35"
+DEPLOYMENT_FINGERPRINT = "USE-v489.35-no-proxy-ip-country-inference"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.35-no-proxy-ip-country-inference"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.34":
+if str(APP_VERSION) != "v489.35":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3565,9 +3565,10 @@ def _first_forwarded_ip(value):
 def _request_location_context(scope, parsed_body):
     """Build the Guide's normalized location context without requiring a prompt.
 
-    Precedence is explicit visitor context, browser/device context, trusted edge
-    country metadata, then bounded IP geolocation. The resolver never invents
-    a country and returns an empty context when no reliable signal is available.
+    Only explicit visitor-provided country data is accepted here. This service may
+    receive requests through a WordPress bridge, so proxy IPs, forwarded-IP
+    headers, and unverified Cloudflare-looking headers are not evidence of the
+    visitor's country. Authenticated edge attestation must be added separately.
     """
     headers = {
         "cf_connecting_ip": _request_header(scope, "cf-connecting-ip"),
@@ -3607,9 +3608,8 @@ def _request_location_context(scope, parsed_body):
     if parsed_body.get("country") not in ("", None) and "explicit_country" not in context:
         context["explicit_country"] = str(parsed_body.get("country")).strip()
 
-    if headers["cf_ipcountry"] and "browser_country" not in context and "explicit_country" not in context:
-        context["ip_country"] = headers["cf_ipcountry"].strip().upper()
-        context["location_source"] = "cloudflare_edge"
+    # Do not trust caller-supplied Cloudflare-looking headers by themselves.
+    # No country is inferred from these headers without authenticated edge proof.
 
     if headers["cf_region"] and "region" not in context:
         context["region"] = headers["cf_region"]
@@ -3621,8 +3621,9 @@ def _request_location_context(scope, parsed_body):
         context["longitude"] = headers["cf_iplongitude"]
     if headers["cf_timezone"] and "timezone" not in context:
         context["timezone"] = headers["cf_timezone"]
+    # Keep this only as transport diagnostics. It is not visitor-location evidence.
     if client_ip:
-        context["client_ip"] = client_ip
+        context["transport_peer_ip"] = client_ip
 
     return context, client_ip
 
@@ -3690,11 +3691,12 @@ async def _resolve_request_location(scope, parsed_body):
         "timezone_country", "locale_country",
     )):
         return context
-    if client_ip:
-        fallback = await asyncio.to_thread(_ip_geolocation, client_ip, 0.65)
-        for key, value in fallback.items():
-            if value not in ("", None) and not context.get(key):
-                context[key] = value
+    # Do not geolocate the transport peer as if it were the visitor. In
+    # this deployment the query may arrive through the WordPress bridge, so
+    # client_ip can identify WordPress or another proxy. Only explicit visitor
+    # context or trusted edge country metadata above may ground emergency
+    # resources. Keep the helper available for a future verified direct-client
+    # deployment, but never use it as an implicit country-selection fallback.
     return context
 
 

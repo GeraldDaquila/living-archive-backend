@@ -215,6 +215,48 @@ def main():
     refusal_segment = main_source[main_source.index("async def _resolve_request_location"):main_source.index("async def _use_request_boundary")]
     assert 'return {"refused": context.get("refused", True)}' in refusal_segment
     assert "Strip inferred and explicit location fields from the downstream" in refusal_segment
+    # Behavioral request-location probes: no country by default; refuse and
+    # ignore proxy/edge-looking headers; accept an explicit visitor country.
+    location_start = main_source.index("def _request_location_context")
+    location_end = main_source.index("def _ip_geolocation")
+    location_ast = ast.parse(main_source, filename="main.py")
+    location_function = next(
+        node for node in location_ast.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_request_location_context"
+    )
+    header_function = next(
+        node for node in location_ast.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_request_header"
+    )
+    first_ip_function = next(
+        node for node in location_ast.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_first_forwarded_ip"
+    )
+    location_module = ast.Module(body=[header_function, first_ip_function, location_function], type_ignores=[])
+    ast.fix_missing_locations(location_module)
+    location_namespace = {"ipaddress": __import__("ipaddress")}
+    exec(compile(location_module, "main.py", "exec"), location_namespace, location_namespace)
+    build_location = location_namespace["_request_location_context"]
+
+    no_location, peer = build_location({"headers": [(b"cf-ipcountry", b"US"), (b"x-forwarded-for", b"8.8.8.8")]}, {})
+    assert not any(no_location.get(key) for key in ("explicit_country", "browser_country", "ip_country", "timezone_country", "locale_country"))
+    assert no_location.get("transport_peer_ip") == "8.8.8.8"
+    assert peer == "8.8.8.8"
+
+    explicit_ph, _ = build_location({}, {"country": "PH"})
+    assert explicit_ph.get("explicit_country") == "PH"
+    assert not explicit_ph.get("ip_country")
+
+    refused_with_spoofed_header, _ = build_location(
+        {"headers": [(b"cf-ipcountry", b"US"), (b"x-forwarded-for", b"8.8.8.8")]},
+        {"refused": True},
+    )
+    assert refused_with_spoofed_header.get("refused") is True
+    assert not any(refused_with_spoofed_header.get(key) for key in ("explicit_country", "browser_country", "ip_country", "timezone_country", "locale_country"))
+
+    resolver_segment = main_source[main_source.index("async def _resolve_request_location"):main_source.index("async def _use_request_boundary")]
+    assert "_ip_geolocation" not in resolver_segment
+    assert "Do not trust caller-supplied Cloudflare-looking headers by themselves." in main_source[location_start:location_end]
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
     app_version = version_match.group(1)
