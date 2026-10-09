@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.17 — Evidence-neutral general answers
+# USE PRODUCTION VERSION: v489.18 — General evidence-family recovery
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.17"
-DEPLOYMENT_FINGERPRINT = "USE-v489.17-evidence-provenance-and-discovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.17-evidence-provenance-and-discovery"
+APP_VERSION = "v489.18"
+DEPLOYMENT_FINGERPRINT = "USE-v489.18-general-evidence-family-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.18-general-evidence-family-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.17":
+if str(APP_VERSION) != "v489.18":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -358,6 +358,9 @@ _SUBJECT_FAMILIES = {
     "grief": ("grief", "grieving", "bereavement", "mourning", "loss", "lost", "death"),
     "fear": ("fear", "afraid", "anxiety", "anxious", "worry", "worried"),
     "shame": ("shame", "ashamed", "guilt", "guilty"),
+    # Work-related exhaustion is a first-class subject family so relevant
+    # Archive material can qualify even when a visitor asks in everyday terms.
+    "burnout": ("burnout", "burned out", "burnt out", "exhaustion", "exhausted", "overwhelm", "overwhelmed", "workload", "overwork", "fatigue", "depletion", "depleted", "manager", "management", "work stress", "workplace stress"),
     "relationship": ("relationship", "relationships", "partner", "partners", "interpersonal", "marriage", "married", "friendship", "friends", "communication", "boundaries"),
 }
 _RELATIONAL_PATTERNS = (
