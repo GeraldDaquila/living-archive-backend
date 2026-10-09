@@ -3116,6 +3116,54 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
     )
     if archive_evidence_unavailable:
+        # A navigation-only recovery can find useful canonical content after
+        # the original vector-evidence gates reject their candidate set. Do not
+        # promote that result merely because its title matches: fetch its text,
+        # then re-run the same frame-neutral, substantive-sufficiency, and
+        # question-evidence-fit gates before allowing it into composition.
+        try:
+            recovered_docs = _wordpress_search_canonical_candidates(query)
+            recovered_docs = [
+                {
+                    "title": str(item.get("title") or "").strip(),
+                    "url": str(item.get("url") or "").strip(),
+                    "text": str(item.get("text") or "").strip(),
+                }
+                for item in recovered_docs
+                if isinstance(item, dict)
+                and str(item.get("title") or "").strip()
+                and str(item.get("text") or "").strip()
+            ]
+            recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
+                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
+                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            if not recovery_insufficient and recovered_docs:
+                recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
+                    recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+                if not recovery_question_unavailable and recovered_docs:
+                    composition_context["generation_authority_protected_docs"] = recovered_docs
+                    composition_context.pop("question_authority_protected_docs", None)
+                    for flag in (
+                        "frame_neutral_evidence_unavailable",
+                        "question_structure_evidence_unavailable",
+                        "evidence_sufficiency_unavailable",
+                        "question_evidence_fit_unavailable",
+                    ):
+                        composition_context.pop(flag, None)
+                    archive_evidence_unavailable = False
+                    print(
+                        "The Guide evidence recovery: substantive canonical content passed "
+                        "frame-neutral, sufficiency, and question-fit gates; "
+                        f"documents={len(recovered_docs)}."
+                    )
+        except Exception as exc:
+            print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
+
+    if archive_evidence_unavailable:
         for key in (
             "context_blocks",
             "canonical_link_context",
