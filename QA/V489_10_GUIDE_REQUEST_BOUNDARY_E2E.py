@@ -69,7 +69,7 @@ async def _post_query(query):
     return start["status"], json.loads(response_body.decode("utf-8"))
 
 
-def _install_controlled_provider_and_retrieval(monkeypatch):
+def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
     context = {
         "intent": "TOPICAL_INQUIRY",
         "authoritative_doorway": {
@@ -92,6 +92,7 @@ def _install_controlled_provider_and_retrieval(monkeypatch):
             }
         ],
     }
+    context.update(context_flags or {})
     monkeypatch.setattr(
         use_main.use_core, "fetch_canonical_context", lambda query: context
     )
@@ -156,6 +157,24 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert composition_calls == ["general_guide_composition"]
 
 
+
+
+def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
+    """Evidence flags limit Archive attribution, not general answers to public questions."""
+    for flag in (
+        "frame_neutral_evidence_unavailable",
+        "question_structure_evidence_unavailable",
+        "evidence_sufficiency_unavailable",
+    ):
+        composition_calls = _install_controlled_provider_and_retrieval(
+            monkeypatch, {flag: True}
+        )
+        status, payload = asyncio.run(_post_query("How do I handle burnout as a manager?"))
+        assert status == 200
+        assert payload["response"] == ANSWER
+        assert composition_calls == ["general_guide_composition"]
+        assert payload.get("recommendation") is None
+        monkeypatch.undo()
 
 def test_compound_stewardship_question_with_real_provider_bank_when_credentials_exist(monkeypatch):
     """Run the candidate request boundary against an actual configured Provider Bank.
