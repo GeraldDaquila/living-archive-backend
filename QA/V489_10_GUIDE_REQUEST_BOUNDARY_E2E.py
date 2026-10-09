@@ -328,9 +328,10 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     monkeypatch.setattr(
         use_main.general_guide_composition, "compose", source_limited_composition
     )
-    # This source-boundary test isolates evidence handling from destination routing.
+    # Disable only capability routing for this test; evidence handling and the
+    # ordinary request boundary remain exercised, without a destination handoff.
     monkeypatch.setattr(use_main, "_guide_capability_route", lambda *args, **kwargs: {})
-    query = "What exact claims does the named article make about burnout among managers? I need the article's own claims, not general advice."
+    query = "How should I evaluate whether a specific article's claims about managerial burnout are supported? Please distinguish its own claims from general advice."
     status, payload = asyncio.run(_post_query(query))
 
     assert status == 200
