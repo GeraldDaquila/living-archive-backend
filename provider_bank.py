@@ -431,8 +431,40 @@ def _hrn_surface_language_violation(response):
         "can help you feel less like",
         "the dynamic shifts",
         "open door",
+        "in many relational dynamics",
+        "necessary condition for it to re-emerge",
+        "when you view distance as a pause rather than a rejection",
+        "the act of reaching out shifts from",
+        "invitation to re-engage",
+        "had time to process",
+        "the friction you are feeling often stems from",
+        "a concrete shift in the relationship is the move from",
+        "rather than a binary win or loss",
     )
     return next((phrase for phrase in forbidden if phrase in text), "")
+
+
+def _apply_hrn_visitor_contract(messages):
+    """Apply the same visitor-facing language contract to every eligible provider."""
+    contract = (
+        "HRN VISITOR-FACING LANGUAGE CONTRACT: Speak directly to this visitor in "
+        "plain, concrete, natural language. Use the visitor's actual material, not "
+        "generic claims about relationships. Be perceptive without pretending to "
+        "know another person's motives. Do not advise, prescribe, coach, or tell "
+        "the visitor to take an action or change their framing. Avoid metaphors, "
+        "literary phrasing, and impressive-sounding generalizations unless the "
+        "visitor introduced that exact language. If the evidence is limited, offer "
+        "one modest observation grounded in what was said and one relevant question. "
+        "Never refer to a brief, prompt, interpretation, internal state, or the "
+        "visitor contribution as an object being processed."
+    )
+    result = [dict(item) if isinstance(item, dict) else item for item in messages]
+    for item in result:
+        if isinstance(item, dict) and item.get("role") == "system":
+            item["content"] = contract + "\n\n" + str(item.get("content") or "")
+            return result
+    result.insert(0, {"role": "system", "content": contract})
+    return result
 
 
 def _normalize_operation_result(operation, parsed):
@@ -501,6 +533,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # explicitly request one; otherwise the bank uses JSON-object mode.
     effective_schema = schema if isinstance(schema, dict) else None
     effective_messages = _ensure_json_object_instruction(messages, effective_schema)
+    if operation == "hrn_relational":
+        effective_messages = _apply_hrn_visitor_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
