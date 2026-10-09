@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.15 — Selective concreteness
+# USE PRODUCTION VERSION: v489.16 — Evidence-neutral general answers
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.15"
-DEPLOYMENT_FINGERPRINT = "USE-v489.15-selective-concreteness"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.15-selective-concreteness"
+APP_VERSION = "v489.16"
+DEPLOYMENT_FINGERPRINT = "USE-v489.16-evidence-neutral-general-answers"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.16-evidence-neutral-general-answers"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.15":
+if str(APP_VERSION) != "v489.16":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1660,7 +1660,7 @@ if _is_bounded_glossary_request(
     "What is stewardship and why does it matter now more than ever?",
     glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
 ) is not False:
-    raise RuntimeError("USE v489.15 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+    raise RuntimeError("USE v489.16 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
 if _is_bounded_glossary_request(
     "What does stewardship mean here?",
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
@@ -2823,6 +2823,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    if "burnout" in q and re.search(r"\b(manager|manage|leader|supervisor)\b", q):
+        response = (
+            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.\n\n"
+            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.\n\n"
+            "Also protect basic recovery: take real breaks, set a reasonable end to the workday where possible, and speak with your own manager about priorities that cannot all fit. If exhaustion is persistent, affecting your health, or making daily functioning difficult, consider professional support. You do not have to solve a structural workload problem by pushing yourself harder."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
@@ -2834,7 +2842,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
         closing = "The recommendation below is a place to explore the topic further."
     return {
-        "response": "\\n\\n".join(part for part in (opening, explanation, closing) if part),
+        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
@@ -2973,48 +2981,61 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _general_guide_authoritative_doorway(query, context_data)
     )
 
-    if context_data.get("frame_neutral_evidence_unavailable"):
-        llm_output = use_core._frame_neutral_evidence_unavailable_response(query)
-    elif context_data.get("question_structure_evidence_unavailable"):
-        llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
-    elif context_data.get("evidence_sufficiency_unavailable"):
-        llm_output = use_core._evidence_sufficiency_unavailable_response(query, context_data.get("canonical_link_context", ""))
-    else:
-        # All ordinary Guide questions now use the provider-neutral General Guide
-        # composition seam. The old Round 1 composer remains available as a historical
-        # specialist-era contract but is no longer the all-purpose generation path.
-        # Specialist routing has already completed at the request boundary above.
-        composition_result = None
-        try:
-            composition_result = general_guide_composition.compose(
-                use_core=use_core,
-                query=query,
-                context_data=context_data,
-                history_text=_history_text(history),
+    # Evidence sufficiency governs what may be attributed to the Archive, not
+    # whether an ordinary public question may receive a useful general answer.
+    # Keep specialist-only evidence out of general composition when the retrieval
+    # boundary says it cannot safely frame the visitor's question.
+    composition_context = dict(context_data)
+    archive_evidence_unavailable = any(
+        composition_context.get(flag)
+        for flag in (
+            "frame_neutral_evidence_unavailable",
+            "question_structure_evidence_unavailable",
+            "evidence_sufficiency_unavailable",
+        )
+    )
+    if archive_evidence_unavailable:
+        for key in (
+            "context_blocks",
+            "canonical_link_context",
+            "generation_authority_protected_docs",
+            "question_authority_protected_docs",
+            "authoritative_doorway",
+        ):
+            composition_context.pop(key, None)
+        authoritative_doorway = None
+
+    # All ordinary questions use the same provider-neutral composition path,
+    # including when no suitable Archive evidence is available. The composer
+    # is explicitly instructed to answer from general knowledge where suitable
+    # and to state source limitations only when the question actually requires it.
+    composition_result = None
+    try:
+        composition_result = general_guide_composition.compose(
+            use_core=use_core,
+            query=query,
+            context_data=composition_context,
+            history_text=_history_text(history),
+        )
+        if composition_result:
+            llm_output = composition_result.get("response", "")
+            print(
+                "The Guide General Composition: "
+                f"provider={composition_result.get('provider') or 'unknown'}, "
+                f"model={composition_result.get('model') or 'unknown'}, "
+                f"shape={composition_result.get('response_shape') or 'unknown'}, "
+                f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+                f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
             )
-            if composition_result:
-                llm_output = composition_result.get("response", "")
-                # Navigation is a separate authoritative presentation surface.
-                # The answer payload must contain answer prose only; the frontend
-                # renders the structured recommendation independently. This prevents
-                # menu-era title decoration (including emoji) from leaking back into
-                # the visitor's prose and keeps navigation out of the composition contract.
-                print(
-                    "The Guide General Composition: "
-                    f"provider={composition_result.get('provider') or 'unknown'}, "
-                    f"model={composition_result.get('model') or 'unknown'}, "
-                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                    f"doorway={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
-                )
-            else:
-                print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
-                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
-        except Exception as exc:
-            print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
-            try:
-                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, context_data).get("response", "")
-            except Exception:
-                llm_output = ""
+        else:
+            print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+    except Exception as exc:
+        print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
+        try:
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+        except Exception:
+            llm_output = ""
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
     # General Guide Composition owns the generative path for ordinary questions.

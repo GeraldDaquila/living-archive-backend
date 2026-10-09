@@ -30,9 +30,9 @@ assert any(
     for node in main_tree.body
 ), "_parse_context_documents"
 
-assert re.search(r'APP_VERSION = "v489\.15"', main_source)
-assert 'USE-v489.15-selective-concreteness' in main_source
-assert 'USE-BUILD-v489.15-selective-concreteness' in main_source
+assert re.search(r'APP_VERSION = "v489\.16"', main_source)
+assert 'USE-v489.16-evidence-neutral-general-answers' in main_source
+assert 'USE-BUILD-v489.16-evidence-neutral-general-answers' in main_source
 
 compile(main_tree, filename="main.py", mode="exec")
 compile(core_tree, filename="use_core.py", mode="exec")
