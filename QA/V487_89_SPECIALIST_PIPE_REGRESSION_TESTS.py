@@ -553,7 +553,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     original = [{"role": "user", "content": "Someone I love has become distant."}]
     rejected = json.dumps({"question": "What feels hardest?", "rest": False})
     corrected = json.dumps({
-        "response": "You are trying to respect their space without letting the distance speak for you.",
+        "response": "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended.",
         "question": "What makes reaching out feel risky right now?",
     })
     pool = [{"provider": "groq", "model": "test-model", "index": 0}]
@@ -575,7 +575,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
         )
 
     assert result["parsed"]["response"] == (
-        "You are trying to respect their space without letting the distance speak for you."
+        "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended."
     )
     assert result["parsed"]["question"] == "What makes reaching out feel risky right now?"
     assert provider_call.call_count == 2
