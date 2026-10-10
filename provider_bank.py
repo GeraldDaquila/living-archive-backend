@@ -1161,10 +1161,10 @@ def _repair_leading_hrn_hedge(response):
     """Replace only a leading hedge with a grounded, still-qualified reflection."""
     text = str(response or "").strip()
     patterns = (
-        r"^it sounds like\\s+",
-        r"^it seems like\\s+",
-        r"^it sounds as though\\s+",
-        r"^it seems as though\\s+",
+        r"^it sounds like\s+",
+        r"^it seems like\s+",
+        r"^it sounds as though\s+",
+        r"^it seems as though\s+",
     )
     for pattern in patterns:
         repaired, count = re.subn(pattern, "From what you describe, ", text, count=1, flags=re.IGNORECASE)
