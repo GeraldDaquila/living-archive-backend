@@ -783,7 +783,7 @@ def select(use_core, operation="generic", schema=None):
     if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
         providers = _rotate(providers, int(_STATE["provider_cursor"]))
         _STATE["provider_cursor"] += 1
-    selected = []
+    lanes = []
     for provider in providers:
         models = grouped[provider]
         cursor = int(_STATE["model_cursors"].get(provider, 0))
@@ -792,7 +792,22 @@ def select(use_core, operation="generic", schema=None):
         # visitor-contract history within each provider lane.
         models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
-        selected.extend(models)
+        lanes.append(models)
+
+    # A bounded HRN stage must have a genuinely independent fallback. Flattening
+    # provider lanes lets two models from one provider consume both attempts,
+    # defeating cross-provider recovery. Interleave HRN candidates by lane:
+    # first choice from each eligible provider, then second choices, preserving
+    # stable provider priority and existing health/capability/quality filters.
+    selected = []
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        for depth in range(max((len(lane) for lane in lanes), default=0)):
+            for lane in lanes:
+                if depth < len(lane):
+                    selected.append(lane[depth])
+    else:
+        for lane in lanes:
+            selected.extend(lane)
     return selected
 
 def _complete_response_prefix(response):
