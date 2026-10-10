@@ -100,7 +100,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
     def test_provider_gateway_uses_shared_parser_for_fenced_json(self):
         def fake_route(**kwargs):
-            parsed = kwargs["parse"]('```json\\n{"response":"A complete response."}\\n```')
+            parsed = kwargs["parse"]('```json\n{"response":"A complete response."}\n```')
             return {
                 "parsed": parsed,
                 "provider": "workers_ai",
