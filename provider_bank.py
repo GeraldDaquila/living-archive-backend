@@ -299,10 +299,39 @@ def _failure(exc, provider, model):
     )
     _persist_shared_state()
 
+def _record_quality_rejection(provider, model, reason):
+    """Penalize repeated contract failures without misclassifying transport health."""
+    state = _state(provider, model)
+    now = time.time()
+    last_quality_failure = float(state.get("last_quality_failure", 0) or 0)
+    last_quality_success = float(state.get("last_quality_success", 0) or 0)
+    if last_quality_success >= last_quality_failure:
+        state["quality_failures"] = 0
+    state["quality_failures"] = int(state.get("quality_failures", 0) or 0) + 1
+    state["last_quality_failure"] = now
+    state["quality_error"] = str(reason or "contract_rejection")[:300]
+    if state["quality_failures"] >= 2:
+        state["quality_cooldown_until"] = max(
+            float(state.get("quality_cooldown_until", 0) or 0),
+            now + 300.0,
+        )
+    print(
+        "USE provider quality resilience: "
+        f"provider={provider}, model={model}, quality_failures={state['quality_failures']}, "
+        f"quality_cooldown_seconds={max(0, int(float(state.get('quality_cooldown_until', 0) or 0) - now))}, "
+        "reason=" + str(reason or "contract_rejection")[:180]
+    )
+    _persist_shared_state()
+
+
 def _success(provider, model):
     state = _state(provider, model)
     was_recovery = str(state.get("state") or "") == "half_open"
     record_success(state)
+    state["last_quality_success"] = time.time()
+    state["quality_failures"] = 0
+    state["quality_cooldown_until"] = 0.0
+    state["quality_error"] = ""
     if was_recovery:
         print(
             "USE provider resilience: "
@@ -548,9 +577,19 @@ def _eligible(provider, model, operation, schema=None):
 
 def candidates(use_core, operation="generic", schema=None):
     out = []
+    now = time.time()
     for provider, models in _configured(use_core).items():
         for index, model in enumerate(models):
-            if _blocked(_state(provider, model)):
+            health = _state(provider, model)
+            if _blocked(health):
+                continue
+            quality_until = float(health.get("quality_cooldown_until", 0) or 0)
+            if quality_until > now:
+                print(
+                    "USE provider quality exclusion: "
+                    f"operation={operation}, provider={provider}, model={model}, "
+                    f"reason=contract_rejection, retry_in_seconds={int(quality_until - now)}"
+                )
                 continue
             eligible, missing = _eligible(provider, model, operation, schema=schema)
             if not eligible:
@@ -564,6 +603,7 @@ def candidates(use_core, operation="generic", schema=None):
                 "provider": provider,
                 "model": model,
                 "index": index,
+                "quality_failures": int(health.get("quality_failures", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
@@ -594,6 +634,9 @@ def select(use_core, operation="generic", schema=None):
         models = grouped[provider]
         cursor = int(_STATE["model_cursors"].get(provider, 0))
         models = _rotate(models, cursor)
+        # Keep configured provider priority, but prefer models with better
+        # visitor-contract history within each provider lane.
+        models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
         selected.extend(models)
     return selected
@@ -985,11 +1028,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             _success(provider, model)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
         except ValueError as exc:
-            # A semantic/composition contract rejection is not a provider-health
-            # failure. The provider answered; the composition seam rejected the
-            # result. Do not poison provider resilience state for an application-
-            # owned validation decision.
+            # Preserve transport health, but learn from repeated visitor-contract
+            # failures so poor outputs lose priority and can be cooled down.
             last_error = str(exc)
+            _record_quality_rejection(provider, model, last_error)
             print(
                 "USE provider composition contract rejection: "
                 + "operation=" + operation
