@@ -106,6 +106,20 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(token, "token-value")
         self.assertEqual(account, "account-id")
 
+    def test_workers_ai_model_path_preserves_route_segments(self):
+        url = provider_bank._workers_url("account-id", "@cf/zai-org/glm-4.7-flash")
+        self.assertEqual(
+            url,
+            "https://api.cloudflare.com/client/v4/accounts/account-id/ai/run/@cf/zai-org/glm-4.7-flash",
+        )
+
+    def test_workers_ai_account_id_is_encoded_as_one_path_segment(self):
+        url = provider_bank._workers_url("account/id", "@cf/google/gemma-4-26b-a4b-it")
+        self.assertIn(
+            "/accounts/account%2Fid/ai/run/@cf/google/gemma-4-26b-a4b-it",
+            url,
+        )
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))
