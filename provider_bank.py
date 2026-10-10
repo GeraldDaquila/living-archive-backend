@@ -560,6 +560,13 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
         )
         return request(retry_payload)
 
+def _workers_url(account, model):
+    """Build a Workers AI route while preserving model path separators."""
+    account_path = urllib.parse.quote(str(account), safe="")
+    model_path = urllib.parse.quote(str(model), safe="/@")
+    return "https://api.cloudflare.com/client/v4/accounts/" + account_path + "/ai/run/" + model_path
+
+
 def _workers(key, account, model, messages, max_tokens, schema=None):
     payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
                "options": {"rejectIfBusy": True}}
@@ -567,7 +574,7 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
         payload["response_format"] = {"type": "text"}
     else:
         payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
-    url = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/run/" + urllib.parse.quote(model, safe="")
+    url = _workers_url(account, model)
     data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model)
     result = data.get("result") if isinstance(data, dict) else None
     text = (result.get("response") or result.get("text") or result.get("output")) if isinstance(result, dict) else result
