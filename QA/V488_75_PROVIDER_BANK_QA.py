@@ -232,6 +232,21 @@ def main():
         assert captured["payload"]["chat_template_kwargs"] == {"enable_thinking": False}
         assert captured["timeout"] == 12
 
+    # Normalize only a leading hedge into a grounded but still qualified
+    # reflection. Keep the visitor-language validator active after normalization.
+    for raw, expected in (
+        ("It sounds like you explain your intent because you want them to see you as caring.",
+         "From what you describe, you explain your intent because you want them to see you as caring."),
+        ("It seems as though you feel the argument becomes about whether you care.",
+         "From what you describe, you feel the argument becomes about whether you care."),
+    ):
+        repaired = provider_bank._repair_leading_hrn_hedge(raw)
+        assert repaired == expected
+        assert not provider_bank._hrn_surface_language_violation(repaired)
+    assert provider_bank._hrn_surface_language_violation(
+        "The visitor said it sounds like care is being questioned."
+    ) == "it sounds like"
+
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
     app_version = version_match.group(1)
