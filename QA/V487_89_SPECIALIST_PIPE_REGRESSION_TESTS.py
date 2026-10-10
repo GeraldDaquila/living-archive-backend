@@ -589,7 +589,12 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.71"' in source
+    version_line = next(
+        line for line in source.splitlines()
+        if line.startswith("APP_VERSION = ")
+    )
+    version = version_line.split('"')[1]
+    assert source.startswith(f"# USE PRODUCTION VERSION: {version} —")
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
