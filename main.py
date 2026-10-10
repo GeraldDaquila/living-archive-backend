@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.70 — Add fast Workers AI fallback candidate
+# USE PRODUCTION VERSION: v489.71 — Normalize provider JSON at gateway
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.70"
-DEPLOYMENT_FINGERPRINT = "USE-v489.70-workers-ai-fast-fallback-candidate"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.70-workers-ai-fast-fallback-candidate"
+APP_VERSION = "v489.71"
+DEPLOYMENT_FINGERPRINT = "USE-v489.71-provider-gateway-robust-json-parsing"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.71-provider-gateway-robust-json-parsing"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.70":
+if str(APP_VERSION) != "v489.71":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
