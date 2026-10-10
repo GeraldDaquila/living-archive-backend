@@ -1157,7 +1157,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
                         + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
                         + "Speak directly to the visitor. Never refer to a brief, prompt, interpretation, internal state, or the visitor contribution as an object being processed. "
-                        + "Do not explain the contract or omit response/question. Preserve the visitor's context."
+                        + "Do not explain the contract or omit response/question. Preserve the visitor's context. "
+                        "Do not repeat the rejected wording or any canned explanatory transition, including "
+                        "phrases such as 'this distinction matters because' or 'it shifts the focus from'. "
+                        "Avoid generic relationship theory, abstract labels, and prescriptive advice. "
+                        "Use one concrete observation grounded in the visitor's actual words, then ask a "
+                        "genuinely different, open question. Do not restate the same insight in new words."
                     ),
                 })
                 recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema))

@@ -39,6 +39,20 @@ def main():
     assert '["gemini-3.8-flash"]' in provider
     assert 'CONTRACT_VERSION = "v2"' in provider
 
+    # A rejected HRN visitor-surface response must receive explicit, phrase-aware
+    # correction guidance rather than a schema-only retry that repeats the same voice.
+    recovery_start = provider.index("recovery_messages.append({")
+    recovery_end = provider.index("recovered = parse", recovery_start)
+    recovery_prompt = provider[recovery_start:recovery_end]
+    for phrase in (
+        "Do not repeat the rejected wording",
+        "this distinction matters because",
+        "Avoid generic relationship theory",
+        "Use one concrete observation grounded in the visitor's actual words",
+        "Do not restate the same insight in new words",
+    ):
+        assert phrase in recovery_prompt, f"HRN contract-recovery guidance missing: {phrase}"
+
     gemini_start = provider.index("def _gemini(")
     gemini_end = provider.index("\ndef _openai_compatible", gemini_start)
     gemini = provider[gemini_start:gemini_end]
