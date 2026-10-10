@@ -59,6 +59,23 @@ def main():
         eligible, missing = provider_bank._eligible("openrouter", "openrouter/free", "hrn_relational")
         assert eligible, f"OpenRouter free router lacks HRN capability: {missing}"
 
+    # A configured OpenRouter lane must be selected before the other providers.
+    # This protects it from being starved by the bank's bounded attempt window.
+    with (
+        patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "USE_LLM_PROVIDER_ORDER": ""}, clear=False),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "candidates", return_value=[
+            {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0},
+            {"provider": "groq", "model": "openai/gpt-oss-20b", "index": 1},
+            {"provider": "openrouter", "model": "openrouter/free", "index": 0},
+            {"provider": "openrouter", "model": "nvidia/nemotron-3-ultra-550b-a55b:free", "index": 1},
+            {"provider": "openrouter", "model": "google/gemma-4-31b-it:free", "index": 2},
+            {"provider": "gemini", "model": "gemini-3.8-flash", "index": 0},
+        ]),
+    ):
+        selected = provider_bank.select(None, operation="hrn_relational")
+        assert [item["provider"] for item in selected[:3]] == ["openrouter", "openrouter", "openrouter"]
+
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
     app_version = version_match.group(1)
