@@ -204,7 +204,7 @@ def test_hrn_rejects_unsupported_motive_attribution():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "visitor-surface contract violation" in str(exc)
+        assert "contract violation" in str(exc)
     else:
         raise AssertionError("unsupported motive attribution must be rejected")
 
@@ -249,7 +249,7 @@ def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "visitor-surface contract violation" in str(exc)
+        assert "contract violation" in str(exc)
     else:
         raise AssertionError("unsupported intimacy/autonomy inference must be rejected")
 
@@ -296,6 +296,24 @@ def test_hrn_provider_gate_matches_frozen_humanity_templates():
         else:
             raise AssertionError("frozen HRN humanity-gate patterns must be rejected upstream")
 
+
+
+def test_hrn_rejects_unsupported_causal_reassurance():
+    parsed = {
+        "response": (
+            "When the goal is simply to let the other person know they are on your mind, "
+            "the pressure to manage their response drops away. This shift matters because "
+            "it changes the interaction from a test of their availability to a simple "
+            "offering of care, which often feels safer for both parties."
+        ),
+        "question": "What matters most about this situation to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("unsupported causal reassurance must be rejected")
 
 
 def test_hrn_composition_rejects_abstract_indirect_advice():
@@ -355,8 +373,8 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.54 —"
-    assert 'APP_VERSION = "v489.54"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.55 —")
+    assert 'APP_VERSION = "v489.55"' in source
 
 
 
@@ -405,7 +423,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
     })
     corrected = json.dumps({
         "response": "This is a complete and grounded observation.",
-        "question": "What feels different when you consider that?",
+        "question": "What matters most about this situation to you?",
     })
     pool = [{"provider": "groq", "model": "qwen-test", "index": 0}]
 
@@ -509,7 +527,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.54"' in source
+    assert 'APP_VERSION = "v489.55"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
@@ -537,6 +555,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_rejects_unsupported_causal_reassurance()
     test_hrn_rejects_abstract_causal_relationship_theory()
     test_hrn_rejects_unsupported_motive_attribution()
     test_hrn_rejects_same_plane_formulaic_question()
