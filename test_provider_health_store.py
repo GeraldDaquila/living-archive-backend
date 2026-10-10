@@ -120,6 +120,15 @@ class ProviderHealthStoreTests(unittest.TestCase):
             url,
         )
 
+    def test_workers_ai_uses_bounded_extended_inference_timeout(self):
+        with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
+            result = provider_bank._workers(
+                "token", "account-id", "@cf/zai-org/glm-4.7-flash",
+                [{"role": "user", "content": "Return ok"}], 40,
+            )
+        self.assertEqual(result, "ok")
+        self.assertEqual(request.call_args.kwargs.get("timeout"), 8)
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))

@@ -387,13 +387,13 @@ def _success(provider, model, operation):
         )
     _persist_shared_state()
 
-def _http_json(url, headers, payload, provider, model):
+def _http_json(url, headers, payload, provider, model, timeout=6):
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
         headers={**headers, "Content-Type": "application/json"}, method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=6) as response:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8", errors="replace"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -575,7 +575,7 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
     else:
         payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
     url = _workers_url(account, model)
-    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model)
+    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=8)
     result = data.get("result") if isinstance(data, dict) else None
     text = (result.get("response") or result.get("text") or result.get("output")) if isinstance(result, dict) else result
     if not text: raise ProviderCallError("Workers AI returned no text", "workers_ai", model, category="invalid_provider_response")
