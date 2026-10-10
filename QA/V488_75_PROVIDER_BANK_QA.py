@@ -117,6 +117,23 @@ def main():
         selected_again = provider_bank.select(None, operation="hrn_perception")
         assert [item["provider"] for item in selected_again[:2]] == ["openrouter", "groq"]
 
+    # HRN model arbitration must carry recent success across semantic stages.
+    # A model that just succeeded in perception should outrank a sibling whose
+    # quota health is stale, without disturbing provider-lane interleaving.
+    with (
+        patch.dict(os.environ, {"USE_LLM_PROVIDER_ORDER": "groq,gemini,mistral,workers_ai"}, clear=False),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "candidates", return_value=[
+            {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0, "quality_failures": 0, "last_success": 10.0},
+            {"provider": "groq", "model": "qwen/qwen3.8-27b", "index": 1, "quality_failures": 0, "last_success": 99.0},
+            {"provider": "gemini", "model": "gemini-3.8-flash", "index": 0, "quality_failures": 0, "last_success": 20.0},
+        ]),
+    ):
+        recent = provider_bank.select(None, operation="hrn_relational")
+        assert recent[0]["provider"] == "groq"
+        assert recent[0]["model"] == "qwen/qwen3.8-27b", "HRN should prefer the model that most recently succeeded"
+        assert recent[1]["provider"] == "gemini", "Independent provider fallback remains second"
+
     # Invalid JSON from a provider must be recorded as a transient provider
     # health failure, not upgraded to a permanent structured-output quarantine.
     valid_hrn = json.dumps({
