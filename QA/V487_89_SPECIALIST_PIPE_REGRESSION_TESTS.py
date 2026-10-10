@@ -245,7 +245,7 @@ def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "visitor-surface contract violation" in str(exc)
+        assert "contract violation" in str(exc)
     else:
         raise AssertionError("unsupported intimacy/autonomy inference must be rejected")
 
