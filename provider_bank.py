@@ -837,8 +837,21 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
             raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema)
-            parsed = parse(raw_output)
-            if not isinstance(parsed, dict): raise ValueError("route response was not an object")
+            try:
+                parsed = parse(raw_output)
+            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                # Transport-successful but unparsable output is a provider
+                # response failure, not an application-owned composition
+                # rejection. Record health and move to the next eligible lane.
+                raise ProviderCallError(
+                    provider + "/" + model + " returned invalid JSON",
+                    provider, model, category="invalid_provider_response"
+                ) from exc
+            if not isinstance(parsed, dict):
+                raise ProviderCallError(
+                    provider + "/" + model + " returned a non-object response",
+                    provider, model, category="invalid_provider_response"
+                )
             try:
                 parsed = _normalize_operation_result(operation, parsed)
             except ValueError as contract_error:
