@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.84 — adaptive HRN provider-lane arbitration
+# USE PRODUCTION VERSION: v489.85 — relational projection routing repair
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.84"
-DEPLOYMENT_FINGERPRINT = "USE-v489.84-adaptive-hrn-provider-lane-arbitration"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.84-adaptive-hrn-provider-lane-arbitration"
+APP_VERSION = "v489.85"
+DEPLOYMENT_FINGERPRINT = "USE-v489.85-relational-projection-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.85-relational-projection-routing"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.84":
+if str(APP_VERSION) != "v489.85":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -518,6 +518,9 @@ _RELATIONAL_COUNTERPART_PATTERNS = (
 )
 
 _RELATIONAL_DYNAMIC_PATTERNS = (
+    # v489.85: projection/sensing uncertainty is a lived relational dynamic
+    # when combined with first-person language and explicit relationship context.
+    r"\b(?:projection|projecting|projected|sensing|intuition|perception|perceive|misread|misreading|reading into|over[- ]?read(?:ing)?|interpret(?:ation|ing))\b",
     r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
     r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
     r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
@@ -658,6 +661,14 @@ if not _relational_boundary_decision(_route_probe_fight_noun).get("open"):
 _route_probe_natural_distance = "How can I understand why a relationship feels distant lately?"
 if not _relational_boundary_decision(_route_probe_natural_distance).get("open"):
     raise RuntimeError("USE v488.84 routing invariant failed: natural distance inquiry did not open relationship specialist")
+
+# v489.85 regression guard: lived uncertainty about projection must enter HRN
+# rather than being swallowed by the Guide's generic Basic Inquiry path.
+_route_probe_projection_uncertainty = (
+    "I can't tell whether what I'm sensing in a relationship is real or something I'm projecting."
+)
+if not _relational_boundary_decision(_route_probe_projection_uncertainty).get("open"):
+    raise RuntimeError("USE v489.85 routing invariant failed: relationship projection uncertainty did not open HRN")
 
 _route_probe_reciprocity = (
     "My friend always asks me for support when they need something, but "
