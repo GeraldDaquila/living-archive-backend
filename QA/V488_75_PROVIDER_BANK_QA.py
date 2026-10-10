@@ -1,7 +1,10 @@
 """v488.77 provider-resilience structural and behavioral QA."""
 from pathlib import Path
+from unittest.mock import patch
 import ast
+import os
 import re
+import provider_bank
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,6 +44,16 @@ def main():
     assert 'payload["generationConfig"]["responseMimeType"] = "application/json"' in gemini
     assert '"thinkingConfig": {"thinkingLevel": "low"}' in gemini
     assert '"temperature": 0.0' not in gemini
+
+    # OpenRouter is an optional, zero-cost fallback lane. Verify it is enabled
+    # only by an explicit key and that its router-level capabilities admit HRN.
+    assert '"OPENROUTER_API_KEY"' in provider
+    assert '"openrouter/free"' in provider
+    with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "USE_OPENROUTER_MODELS": ""}, clear=False):
+        configured = provider_bank._configured(None)
+        assert configured.get("openrouter") == ["openrouter/free"]
+        eligible, missing = provider_bank._eligible("openrouter", "openrouter/free", "hrn_relational")
+        assert eligible, f"OpenRouter free router lacks HRN capability: {missing}"
 
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
