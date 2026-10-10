@@ -1295,7 +1295,21 @@ async def _v48755_relational_return(request: Request):
     synthesis_query = synthesis_query[:18000]
 
     try:
-        context_data = _original_fetch_canonical_context(synthesis_query)
+        # Select the doorway from the earned relational perspective first. The full
+        # transcript/ledger query is useful evidence, but it can dilute the visitor's
+        # actual movement with incidental themes. Keep the first retrieval focused.
+        doorway_query = " ".join(
+            value for value in (
+                journey_synthesis,
+                completed_insight,
+                perspective_delta,
+                underlying_need,
+                next_horizon,
+                resource_fit,
+                original_question,
+            ) if value
+        )[:10000]
+        context_data = _original_fetch_canonical_context(doorway_query)
         canonical_context = str(
             context_data.get("canonical_link_context")
             or context_data.get("context_blocks")
@@ -1303,26 +1317,18 @@ async def _v48755_relational_return(request: Request):
         ) if isinstance(context_data, dict) else ""
         docs = _parse_context_documents(canonical_context)
 
-        # The final doorway is still a Guide responsibility. The completed
+        # The final doorway remains a Guide responsibility. The completed
         # perspective, not the visitor's opening wording alone, governs the gift.
-        profile = _base._inquiry_profile(synthesis_query)
+        profile = _base._inquiry_profile(doorway_query)
         profile["action"] = "recommendation"
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
-        outward = _sanitize_outward_context(synthesis_query, docs, profile)
-        primary = _canonical_primary_from_docs(outward, synthesis_query, profile)
+        outward = _sanitize_outward_context(doorway_query, docs, profile)
+        primary = _canonical_primary_from_docs(outward, doorway_query, profile)
 
         if not primary:
-            # One bounded retry against the strongest earned perspective.
-            fallback_query = " ".join(
-                value for value in (
-                    journey_synthesis,
-                    completed_insight,
-                    perspective_delta,
-                    underlying_need,
-                    next_horizon,
-                    original_question,
-                ) if value
-            )[:10000]
+            # Bounded fallback: widen to the full journey only if the focused
+            # earned-perspective query produces no eligible canonical doorway.
+            fallback_query = synthesis_query
             fallback_data = _original_fetch_canonical_context(fallback_query)
             fallback_context = str(
                 fallback_data.get("canonical_link_context")
