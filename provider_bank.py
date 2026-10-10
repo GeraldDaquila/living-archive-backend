@@ -508,6 +508,9 @@ def _hrn_surface_language_violation(response):
         "seeing this distinction allows you to",
         "act from genuine care rather than anxiety",
         "separate your internal need from their external choice",
+        "the pressure to manage their response drops away",
+        "which often feels safer for both parties",
+        "a test of their availability to a simple offering of care",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
