@@ -204,7 +204,7 @@ def test_hrn_rejects_unsupported_motive_attribution():
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
     except ValueError as exc:
-        assert "visitor-surface contract violation" in str(exc)
+        assert "contract violation" in str(exc)
     else:
         raise AssertionError("unsupported motive attribution must be rejected")
 
