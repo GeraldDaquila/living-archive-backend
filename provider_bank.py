@@ -109,14 +109,20 @@ def _failure(exc, provider, model):
     retry_after = getattr(exc, "retry_after", None)
     category = getattr(exc, "category", "provider_failure")
 
-    # Account/credential faults take precedence over retry prose. Some providers
-    # attach a short model-window estimate to account-level daily quota errors;
-    # that estimate must not downgrade an exhausted account into a model-only
-    # cooldown, otherwise sibling models repeatedly hit the same hard limit.
+    # A daily token limit explicitly scoped to a named model is not an
+    # account-wide billing failure. Keep that model on cooldown while allowing
+    # healthy siblings (which can have independent token budgets) to be tried.
+    # Truly account-wide quota/billing messages still quarantine the provider.
+    model_scoped_daily_limit = (
+        ("tokens per day" in low or re.search(r"\btpd\b", low))
+        and re.search(r"\bfor model\b", low)
+    )
     if "terms_required" in low or "requires terms acceptance" in low:
         category = "terms_required"
     elif status in {401, 403} or "unauthorized" in low or "forbidden" in low or "authentication error" in low:
         category = "authentication"
+    elif model_scoped_daily_limit:
+        category = "rate_limited"
     elif (
         status == 402
         or "tokens per day" in low
@@ -134,16 +140,18 @@ def _failure(exc, provider, model):
         category = "model_unavailable"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
-        # Respect provider retry hints only for genuinely model/window-specific
-        # rate limits, not daily/account quota failures.
-        if not retry_after:
-            wait = re.search(
-                r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
-                low,
-            )
-            if wait:
-                hours, minutes, seconds = (float(x or 0) for x in wait.groups())
-                retry_after = hours * 3600 + minutes * 60 + seconds
+
+    # Provider retry prose is useful for both ordinary 429s and model-scoped
+    # daily token limits. Never let that prose override account-wide billing
+    # classification above.
+    if category == "rate_limited" and not retry_after:
+        wait = re.search(
+            r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
+            low,
+        )
+        if wait:
+            hours, minutes, seconds = (float(x or 0) for x in wait.groups())
+            retry_after = hours * 3600 + minutes * 60 + seconds
     elif (
         status == 400
         and (
@@ -462,7 +470,7 @@ def _hrn_surface_language_violation(response):
         return "formulaic-abstract-question"
     if text.startswith("what does that reveal about the relationship that was harder to see before"):
         return "formulaic-abstract-question"
-    if re.search(r"\bwhat feels different when you hold (?:those|both|the two) sides together\b", text):
+    if re.search(r"\bwhat feels different when you hold (?:those(?:\s+two)?|both|the two) sides together\b", text):
         return "formulaic-abstract-question"
     forbidden = (
         "the brief identifies",
@@ -586,7 +594,8 @@ def _hrn_surface_language_violation(response):
         ("prescriptive-language", r"\byou\s+(?:should|must|need to|have to|ought to|are supposed to)\b"),
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
         ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
-        ("prescriptive-language", r"\byou\s+(?:try|consider|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\b"),
+        ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+consider\b"),
+        ("prescriptive-language", r"\byou\s+(?:try|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\b"),
         ("prescriptive-language", r"\b(?:i|we)\s+(?:recommend|advise|suggest)\s+(?:you|that you)\b"),
         ("prescriptive-language", r"(?:^|[.!?]\s+)\s*(?:try|consider|avoid|stop|start|tell|ask|call|contact|leave|stay|go|write|say|set|change|make|invite|forgive)\s+(?:to|doing|the|a|an|your|them|him|her|it|someone|anyone|people|this|that|with)\b"),
         ("prescriptive-language", r"\b(?:what you should do|what you need to do|what you must do|what you ought to do)\b"),
