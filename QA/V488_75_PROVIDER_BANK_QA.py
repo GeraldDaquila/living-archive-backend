@@ -214,21 +214,23 @@ def main():
     assert router_state["quarantine_until"] > time.time() + 7100
     assert sibling_state["quarantine_until"] > time.time() + 7100
 
-    # NVIDIA Nemotron 3.5 must have thinking disabled and receive a bounded
-    # provider-specific transport window so reasoning tokens do not consume the
-    # whole fallback deadline. The ordinary schema contract remains enforced.
-    captured = {}
-    def fake_nvidia_http(url, headers, payload, provider, model, timeout=6):
-        captured.update({"payload": payload, "provider": provider, "model": model, "timeout": timeout})
-        return {"choices": [{"message": {"content": json.dumps({"response": "The pattern is clearer when we separate intent from impact.", "question": "What happens immediately after you explain your intent?"})}}]}
-    with patch.object(provider_bank, "_http_json", side_effect=fake_nvidia_http):
-        provider_bank._openai_compatible(
-            "https://integrate.api.nvidia.com/v1", "test-key", "nvidia",
-            "nvidia/nemotron-3.5-lightning-30b-a3b",
-            [{"role": "system", "content": "Return JSON."}], 128, schema=None,
-        )
-    assert captured["payload"]["chat_template_kwargs"] == {"enable_thinking": False}
-    assert captured["timeout"] == 12
+    # NVIDIA Nemotron 3-series models that can emit reasoning separately
+    # must return visitor-facing content with thinking disabled and bounded IO.
+    for nvidia_model in (
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "nvidia/nemotron-3-super-120b-a12b",
+    ):
+        captured = {}
+        def fake_nvidia_http(url, headers, payload, provider, model, timeout=6):
+            captured.update({"payload": payload, "provider": provider, "model": model, "timeout": timeout})
+            return {"choices": [{"message": {"content": json.dumps({"response": "The pattern is clearer when we separate intent from impact.", "question": "What happens immediately after you explain your intent?"})}}]}
+        with patch.object(provider_bank, "_http_json", side_effect=fake_nvidia_http):
+            provider_bank._openai_compatible(
+                "https://integrate.api.nvidia.com/v1", "test-key", "nvidia",
+                nvidia_model, [{"role": "system", "content": "Return JSON."}], 128, schema=None,
+            )
+        assert captured["payload"]["chat_template_kwargs"] == {"enable_thinking": False}
+        assert captured["timeout"] == 12
 
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
