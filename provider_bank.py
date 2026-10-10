@@ -158,24 +158,29 @@ def _failure(exc, provider, model):
         if wait:
             hours, minutes, seconds = (float(x or 0) for x in wait.groups())
             retry_after = hours * 3600 + minutes * 60 + seconds
-    elif (
-        status == 400
-        and (
-            "json_validate_failed" in low
-            or "failed to validate json" in low
-            or "invalid_request_error" in low
-        )
-    ) or (
-        status is None
-        and (
-            "response was not an object" in low
-            or "response was empty" in low
-            or "response must contain exactly" in low
-            or "invalid response" in low
-            or "invalid json" in low
-            or "jsondecodeerror" in low
+    elif category != "invalid_provider_response" and (
+        (
+            status == 400
+            and (
+                "json_validate_failed" in low
+                or "failed to validate json" in low
+                or "invalid_request_error" in low
+            )
+        ) or (
+            status is None
+            and (
+                "response was not an object" in low
+                or "response was empty" in low
+                or "response must contain exactly" in low
+                or "invalid response" in low
+                or "invalid json" in low
+                or "jsondecodeerror" in low
+            )
         )
     ):
+        # An explicit provider-bank invalid-response classification is
+        # authoritative. Do not upgrade it into a permanent structured-output
+        # contract quarantine merely because the diagnostic mentions JSON.
         category = "structured_output_contract"
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
