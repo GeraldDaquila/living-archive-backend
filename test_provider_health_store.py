@@ -120,6 +120,24 @@ class ProviderHealthStoreTests(unittest.TestCase):
             url,
         )
 
+    def test_workers_ai_extracts_openai_compatible_message_content(self):
+        self.assertEqual(
+            provider_bank._workers_extract_text({"choices": [{"message": {"content": "A useful response."}}]}),
+            "A useful response.",
+        )
+
+    def test_workers_ai_extracts_nested_text_chunks(self):
+        self.assertEqual(
+            provider_bank._workers_extract_text({"response": [{"text": "First"}, {"text": "Second"}]}),
+            "First\\nSecond",
+        )
+
+    def test_workers_ai_empty_response_diagnostic_contains_shape_only(self):
+        diagnostic = provider_bank._workers_response_diagnostic({"result": {"response": "", "metadata": {"x": 1}}})
+        self.assertEqual(diagnostic["response_chars"], 0)
+        self.assertEqual(diagnostic["result_keys"], ["metadata", "response"])
+        self.assertNotIn("A useful response.", str(diagnostic))
+
     def test_workers_ai_disables_gemma_thinking_for_latency(self):
         with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
             result = provider_bank._workers(

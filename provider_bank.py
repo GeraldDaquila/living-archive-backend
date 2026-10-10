@@ -560,6 +560,74 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
         )
         return request(retry_payload)
 
+def _workers_extract_text(result):
+    """Extract text from supported Workers AI response shapes."""
+    if isinstance(result, str):
+        return result.strip()
+    if not isinstance(result, dict):
+        return ""
+    for key in ("response", "text", "output", "generated_text", "content"):
+        value = result.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, dict):
+            for nested_key in ("text", "content", "response"):
+                nested = value.get(nested_key)
+                if isinstance(nested, str) and nested.strip():
+                    return nested.strip()
+        if isinstance(value, list):
+            chunks = []
+            for item in value:
+                if isinstance(item, str) and item.strip():
+                    chunks.append(item.strip())
+                elif isinstance(item, dict):
+                    chunk = item.get("text") or item.get("content")
+                    if isinstance(chunk, str) and chunk.strip():
+                        chunks.append(chunk.strip())
+            if chunks:
+                return "\\n".join(chunks).strip()
+    choices = result.get("choices")
+    if isinstance(choices, list):
+        for choice in choices:
+            if not isinstance(choice, dict):
+                continue
+            message = choice.get("message")
+            if isinstance(message, dict):
+                content = message.get("content")
+                if isinstance(content, str) and content.strip():
+                    return content.strip()
+                if isinstance(content, list):
+                    chunks = [
+                        item.get("text", "").strip()
+                        for item in content
+                        if isinstance(item, dict) and isinstance(item.get("text"), str) and item.get("text").strip()
+                    ]
+                    if chunks:
+                        return "\\n".join(chunks).strip()
+            choice_text = choice.get("text")
+            if isinstance(choice_text, str) and choice_text.strip():
+                return choice_text.strip()
+    return ""
+
+
+def _workers_response_diagnostic(data):
+    """Return response-shape metadata without logging generated content or credentials."""
+    result = data.get("result") if isinstance(data, dict) else None
+    diagnostic = {
+        "result_type": type(result).__name__,
+        "result_keys": sorted(result.keys()) if isinstance(result, dict) else [],
+        "response_type": type(result.get("response")).__name__ if isinstance(result, dict) and "response" in result else "missing",
+        "response_chars": len(result.get("response")) if isinstance(result, dict) and isinstance(result.get("response"), str) else None,
+    }
+    errors = data.get("errors") if isinstance(data, dict) else None
+    if isinstance(errors, list):
+        diagnostic["errors"] = [
+            {"code": item.get("code"), "message": str(item.get("message", ""))[:180]}
+            for item in errors[:3] if isinstance(item, dict)
+        ]
+    return diagnostic
+
+
 def _workers_url(account, model):
     """Build a Workers AI route while preserving model path separators."""
     account_path = urllib.parse.quote(str(account), safe="")
@@ -579,9 +647,16 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
     url = _workers_url(account, model)
     data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=12)
     result = data.get("result") if isinstance(data, dict) else None
-    text = (result.get("response") or result.get("text") or result.get("output")) if isinstance(result, dict) else result
-    if not text: raise ProviderCallError("Workers AI returned no text", "workers_ai", model, category="invalid_provider_response")
-    return str(text).strip()
+    text = _workers_extract_text(result)
+    if not text:
+        diagnostic = _workers_response_diagnostic(data)
+        raise ProviderCallError(
+            "Workers AI returned no text; " + json.dumps(diagnostic, sort_keys=True),
+            "workers_ai",
+            model,
+            category="invalid_provider_response",
+        )
+    return text
 
 def _cloudflare_credentials():
     """Read canonical Cloudflare credentials without pasted whitespace."""
