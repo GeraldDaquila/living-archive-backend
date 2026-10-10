@@ -1,6 +1,7 @@
 """Provider-neutral model bank for USE."""
 import base64, json, mimetypes, os, re, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
+import time
 
 from provider_resilience import (
     CONTRACT_VERSION as RESILIENCE_CONTRACT_VERSION,
@@ -161,10 +162,32 @@ def _failure(exc, provider, model):
         text,
         retry_after=retry_after,
     )
+
+    # Credential/quota failures belong to the provider account, not only the
+    # model that happened to be attempted. Quarantine sibling models so the
+    # bank does not retry the same broken credential against every model.
+    # Model-specific rate limits remain isolated to preserve independent lanes.
+    provider_wide = category in {"authentication", "quota_or_billing", "terms_required"}
+    if provider_wide:
+        until = time.time() + delay
+        for key, sibling in _STATE["models"].items():
+            if key == provider + ":" + model or not key.startswith(provider + ":"):
+                continue
+            sibling["state"] = "open"
+            sibling["category"] = category
+            sibling["last_error"] = text[:500]
+            sibling["last_failure"] = time.time()
+            sibling["probe_in_flight"] = False
+            sibling["cooldown_until"] = 0.0
+            sibling["quarantine_until"] = max(
+                float(sibling.get("quarantine_until", 0) or 0),
+                until,
+            )
+
     print(
         "USE provider resilience: "
         f"provider={provider}, model={model}, state=open, category={category}, "
-        f"cooldown_seconds={int(delay)}"
+        f"cooldown_seconds={int(delay)}, provider_wide={str(provider_wide).lower()}"
     )
 
 def _success(provider, model):
