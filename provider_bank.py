@@ -574,6 +574,13 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
     if not text: raise ProviderCallError("Workers AI returned no text", "workers_ai", model, category="invalid_provider_response")
     return str(text).strip()
 
+def _cloudflare_credentials():
+    """Read canonical Cloudflare credentials without pasted whitespace."""
+    token = str(os.getenv("CLOUDFLARE_API_TOKEN") or "").strip()
+    account = str(os.getenv("CLOUDFLARE_ACCOUNT_ID") or "").strip()
+    return token, account
+
+
 def _configured(use_core):
     out = OrderedDict()
     get_models = getattr(use_core, "get_live_groq_models", None)
@@ -596,7 +603,8 @@ def _configured(use_core):
         out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
-    if os.getenv("CLOUDFLARE_API_TOKEN") and os.getenv("CLOUDFLARE_ACCOUNT_ID"):
+    cloudflare_token, cloudflare_account = _cloudflare_credentials()
+    if cloudflare_token and cloudflare_account:
         gateway = _csv("USE_CLOUDFLARE_GATEWAY_MODELS")
         workers = _csv("USE_WORKERS_AI_MODELS")
         if gateway: out["cloudflare_gateway"] = gateway
@@ -959,14 +967,12 @@ def _call(use_core, item, messages, max_tokens, schema=None):
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
         return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
     if provider == "cloudflare_gateway":
-        token = os.getenv("CLOUDFLARE_API_TOKEN")
-        account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+        token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
         base = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/v1"
         return _openai_compatible(base, token, provider, model, messages, max_tokens, schema)
     if provider == "workers_ai":
-        token = os.getenv("CLOUDFLARE_API_TOKEN")
-        account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+        token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
         return _workers(token, account, model, messages, max_tokens, schema)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")

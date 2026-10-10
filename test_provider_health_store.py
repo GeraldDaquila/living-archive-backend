@@ -70,6 +70,42 @@ class ProviderHealthStoreTests(unittest.TestCase):
             candidates = provider_bank.candidates(None, operation="generic")
         self.assertEqual([item["model"] for item in candidates], ["model-b"])
 
+    def test_groq_model_daily_token_limit_uses_provider_retry_window(self):
+        state = {
+            "models": {
+                "groq:openai/gpt-oss-20b": provider_bank.new_state("groq", "openai/gpt-oss-20b"),
+                "groq:openai/gpt-oss-120b": provider_bank.new_state("groq", "openai/gpt-oss-120b"),
+            },
+            "quality": {},
+            "provider_cursor": 0,
+            "model_cursors": {},
+        }
+        message = (
+            "Error code: 429 - Rate limit reached for model "
+            "`openai/gpt-oss-20b` on tokens per day (TPD). "
+            "Please try again in 9m47.088s."
+        )
+        exc = provider_bank.ProviderCallError(message, "groq", "openai/gpt-oss-20b")
+        with patch.object(provider_bank, "_STATE", state), \
+             patch.object(provider_bank, "_persist_shared_state"), \
+             patch("provider_bank.time.time", return_value=1000.0):
+            provider_bank._failure(exc, "groq", "openai/gpt-oss-20b")
+        limited = state["models"]["groq:openai/gpt-oss-20b"]
+        sibling = state["models"]["groq:openai/gpt-oss-120b"]
+        self.assertEqual(limited["category"], "rate_limited")
+        self.assertAlmostEqual(limited["cooldown_until"], 1587.088, places=3)
+        self.assertEqual(sibling["state"], "healthy")
+        self.assertEqual(sibling["category"], "")
+
+    def test_cloudflare_credentials_trim_whitespace(self):
+        with patch.dict("os.environ", {
+            "CLOUDFLARE_API_TOKEN": "  token-value\n",
+            "CLOUDFLARE_ACCOUNT_ID": " account-id ",
+        }, clear=False):
+            token, account = provider_bank._cloudflare_credentials()
+        self.assertEqual(token, "token-value")
+        self.assertEqual(account, "account-id")
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))

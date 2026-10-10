@@ -430,8 +430,8 @@ def test_openrouter_free_model_cascade_is_registered_for_contract_validation():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.63 —")
-    assert 'APP_VERSION = "v489.63"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.64 —")
+    assert 'APP_VERSION = "v489.64"' in source
 
 
 
@@ -584,7 +584,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.63"' in source
+    assert 'APP_VERSION = "v489.64"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
