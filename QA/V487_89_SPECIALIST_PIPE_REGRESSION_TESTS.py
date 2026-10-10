@@ -430,8 +430,13 @@ def test_openrouter_free_model_cascade_is_registered_for_contract_validation():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.71 —")
-    assert 'APP_VERSION = "v489.71"' in source
+    version_line = next(
+        line for line in source.splitlines()
+        if line.startswith("APP_VERSION = ")
+    )
+    version = version_line.split('"')[1]
+    assert source.startswith(f"# USE PRODUCTION VERSION: {version} —")
+    assert f'APP_VERSION = "{version}"' in source
 
 
 
