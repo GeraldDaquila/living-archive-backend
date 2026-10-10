@@ -123,7 +123,22 @@ def _failure(exc, provider, model):
         ("tokens per day" in low or re.search(r"\btpd\b", low))
         and re.search(r"\bfor model\b", low)
     )
-    if "terms_required" in low or "requires terms acceptance" in low:
+    free_tier_daily_limit = (
+        "free-models-per-day" in low
+        or "free model requests per day" in low
+    )
+    if free_tier_daily_limit:
+        # OpenRouter's free request allowance is account-wide across its free
+        # model IDs. Quarantine the whole OpenRouter lane until the published
+        # reset instead of spending the remaining attempt window on siblings.
+        category = "free_tier_daily_quota"
+        reset_match = re.search(r"x-ratelimit-reset[^0-9]{0,16}(\d{10,13})", low)
+        if reset_match:
+            reset_at = float(reset_match.group(1))
+            if reset_at > 1_000_000_000_000:
+                reset_at /= 1000.0
+            retry_after = max(60.0, reset_at - time.time())
+    elif "terms_required" in low or "requires terms acceptance" in low:
         category = "terms_required"
     elif status in {401, 403} or "unauthorized" in low or "forbidden" in low or "authentication error" in low:
         category = "authentication"
@@ -196,7 +211,7 @@ def _failure(exc, provider, model):
     # model that happened to be attempted. Quarantine sibling models so the
     # bank does not retry the same broken credential against every model.
     # Model-specific rate limits remain isolated to preserve independent lanes.
-    provider_wide = category in {"authentication", "quota_or_billing", "terms_required"}
+    provider_wide = category in {"authentication", "quota_or_billing", "terms_required", "free_tier_daily_quota"}
     if provider_wide:
         until = time.time() + delay
         for key, sibling in _STATE["models"].items():
