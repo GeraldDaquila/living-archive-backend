@@ -1060,7 +1060,7 @@ def snapshot(use_core):
     return {
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
-        "selection_policy": "capability_and_provider_health_aware_self_healing",
+        "selection_policy": "capability_health_and_contract_quality_adaptive",
         "shared_health_state": dict(_SHARED_STATE_DIAGNOSTICS),
         "capability_policy_version": "1.6",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
@@ -1081,6 +1081,11 @@ def snapshot(use_core):
                 "model": x["model"],
                 "blocked": _blocked(_state(x["provider"], x["model"])),
                 "state": state_summary(_state(x["provider"], x["model"])),
+                "quality": {
+                    "failures": int(_state(x["provider"], x["model"]).get("quality_failures", 0) or 0),
+                    "cooldown_until": float(_state(x["provider"], x["model"]).get("quality_cooldown_until", 0) or 0),
+                    "last_error": str(_state(x["provider"], x["model"]).get("quality_error", "") or ""),
+                },
                 "capabilities": sorted(_capabilities(x["provider"], x["model"])),
             }
             for x in all_items
