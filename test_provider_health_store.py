@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from provider_health_store import export_health_states, merge_health_state, save_remote_states
+import provider_bank
 
 
 class ProviderHealthStoreTests(unittest.TestCase):
@@ -45,6 +46,15 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(local["quality_failures"], 0)
         self.assertEqual(local["quality_cooldown_until"], 0)
         self.assertEqual(local["quality_error"], "")
+
+    def test_repeated_contract_rejections_trigger_quality_cooldown(self):
+        state = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+        with patch.object(provider_bank, "_STATE", state), patch.object(provider_bank, "_persist_shared_state"), patch("provider_bank.time.time", side_effect=[100.0, 101.0]):
+            provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
+            provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
+        model_state = state["models"]["test:model"]
+        self.assertEqual(model_state["quality_failures"], 2)
+        self.assertEqual(model_state["quality_cooldown_until"], 401.0)
 
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
