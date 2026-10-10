@@ -244,7 +244,7 @@ def test_hrn_provider_gate_matches_prescriptive_policy():
 def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
     parsed = {
         "response": "The pull toward intimacy is now also felt as a threat to your autonomy, so the same emotional energy can be both a bridge and a boundary.",
-        "question": "What becomes visible when you notice the effort beneath the thing you are trying to do?",
+        "question": "What matters most to you here?",
     }
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
