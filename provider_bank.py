@@ -47,6 +47,12 @@ MODEL_CAPABILITIES = {
     ("openrouter", "google/gemma-4-31b-it:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
+    # NVIDIA-hosted endpoints are admitted only for the three reviewed model IDs.
+    # Capability claims are conservative and every result still passes the same
+    # provider-neutral JSON and visitor-facing contract validators.
+    ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("nvidia", "nvidia/nemotron-3-super-120b-a12b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
+    ("nvidia", "google/gemma-4-31b-it"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # Canary fallback: Cloudflare documents this variant as optimized for faster inference.
@@ -87,6 +93,25 @@ def resolve_model_list(provider, models):
         if candidate and candidate not in resolved:
             resolved.append(candidate)
     return resolved
+
+# NVIDIA catalog display names are accepted for operator convenience, but are
+# deterministically normalized to the exact model IDs published in NVIDIA's
+# hosted API examples. Unknown IDs remain unchanged and fail closed at capability
+# eligibility rather than being sent to a provider by guesswork.
+NVIDIA_MODEL_ALIASES = {
+    "nemotron 3.5 lightning 30b a3b": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "nvidia/nemotron-3.5-lightning-30b-a3b": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "nemotron 3 super 120b a12b": "nvidia/nemotron-3-super-120b-a12b",
+    "nvidia/nemotron-3-super-120b-a12b": "nvidia/nemotron-3-super-120b-a12b",
+    "gemma 4 31b it": "google/gemma-4-31b-it",
+    "google/gemma-4-31b-it": "google/gemma-4-31b-it",
+}
+
+def resolve_nvidia_model_id(model):
+    """Map a known NVIDIA catalog display name to its verified hosted model ID."""
+    raw = str(model or "").strip()
+    normalized = " ".join(raw.casefold().replace("_", " ").split())
+    return NVIDIA_MODEL_ALIASES.get(normalized, raw)
 
 
 MODEL_LIMITS = {
@@ -730,6 +755,12 @@ def _configured(use_core):
         out["gemini"] = resolve_model_list("gemini", _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"])
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
+    nvidia_key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
+    # A deployment placeholder is deliberately not treated as a usable secret.
+    if nvidia_key and not nvidia_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
+        nvidia_models = _csv("USE_NVIDIA_MODELS")
+        if nvidia_models:
+            out["nvidia"] = list(dict.fromkeys(resolve_nvidia_model_id(model) for model in nvidia_models))
     cloudflare_token, cloudflare_account = _cloudflare_credentials()
     if cloudflare_token and cloudflare_account:
         gateway = _csv("USE_CLOUDFLARE_GATEWAY_MODELS")
@@ -1160,6 +1191,11 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
         return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
+    if provider == "nvidia":
+        key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
+        if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
+            raise ProviderCallError("NVIDIA API key unavailable", provider, model, category="unavailable")
+        return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema)
     if provider == "cloudflare_gateway":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
