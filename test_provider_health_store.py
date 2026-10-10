@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from provider_health_store import export_health_states, merge_health_state, save_remote_states
 import provider_bank
+import provider_gateway_service
 
 
 class ProviderHealthStoreTests(unittest.TestCase):
@@ -96,6 +97,26 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertAlmostEqual(limited["cooldown_until"], 1587.088, places=3)
         self.assertEqual(sibling["state"], "healthy")
         self.assertEqual(sibling["category"], "")
+
+    def test_provider_gateway_uses_shared_parser_for_fenced_json(self):
+        def fake_route(**kwargs):
+            parsed = kwargs["parse"]('```json\n{"response":"A complete response."}\n```')
+            return {
+                "parsed": parsed,
+                "provider": "workers_ai",
+                "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+                "preference_order": [],
+            }
+
+        with patch.object(provider_gateway_service, "provider_bank_route", side_effect=fake_route):
+            result = provider_gateway_service.execute(
+                operation="hrn_relational",
+                messages=[{"role": "user", "content": "Return a JSON response."}],
+                max_tokens=300,
+                use_core=object(),
+            )
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["result"]["response"], "A complete response.")
 
     def test_cloudflare_credentials_trim_whitespace(self):
         with patch.dict("os.environ", {
