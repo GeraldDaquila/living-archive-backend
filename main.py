@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.68 — Operation-scoped adaptive provider quality
+# USE PRODUCTION VERSION: v489.69 — Operation-scoped adaptive provider quality
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.68"
-DEPLOYMENT_FINGERPRINT = "USE-v489.68-workers-ai-gemma-thinking-disabled"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.68-workers-ai-gemma-thinking-disabled"
+APP_VERSION = "v489.69"
+DEPLOYMENT_FINGERPRINT = "USE-v489.69-workers-ai-response-shape-diagnostics"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.69-workers-ai-response-shape-diagnostics"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.68":
+if str(APP_VERSION) != "v489.69":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
