@@ -113,6 +113,13 @@ class ProviderHealthStoreTests(unittest.TestCase):
             "https://api.cloudflare.com/client/v4/accounts/account-id/ai/run/@cf/zai-org/glm-4.7-flash",
         )
 
+    def test_workers_ai_account_id_is_encoded_as_one_path_segment(self):
+        url = provider_bank._workers_url("account/id", "@cf/google/gemma-4-26b-a4b-it")
+        self.assertIn(
+            "/accounts/account%2Fid/ai/run/@cf/google/gemma-4-26b-a4b-it",
+            url,
+        )
+
     def test_workers_ai_uses_bounded_extended_inference_timeout(self):
         with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
             result = provider_bank._workers(
@@ -121,26 +128,6 @@ class ProviderHealthStoreTests(unittest.TestCase):
             )
         self.assertEqual(result, "ok")
         self.assertEqual(request.call_args.kwargs.get("timeout"), 8)
-
-        url = provider_bank._workers_url("account/id", "@cf/google/gemma-4-26b-a4b-it")
-        self.assertIn(
-            "/accounts/account%2Fid/ai/run/@cf/google/gemma-4-26b-a4b-it",
-            url,
-        )
-
-    def test_missing_credentials_fails_closed_without_network(self):
-        with patch("provider_health_store._configuration", return_value=("", "")):
-            self.assertFalse(save_remote_states({}))
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-        url = provider_bank._workers_url("account/id", "@cf/google/gemma-4-26b-a4b-it")
-        self.assertIn(
-            "/accounts/account%2Fid/ai/run/@cf/google/gemma-4-26b-a4b-it",
-            url,
-        )
 
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
