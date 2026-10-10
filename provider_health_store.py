@@ -19,7 +19,8 @@ TIMEOUT_SECONDS = 1.2
 STATE_FIELDS = (
     "provider", "model", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
-    "last_failure", "category",
+    "last_failure", "category", "quality_failures", "last_quality_failure",
+    "last_quality_success", "quality_cooldown_until", "quality_error",
 )
 
 
@@ -135,6 +136,28 @@ def merge_health_state(local, remote, now=None):
     local["last_failure"] = latest_failure
     local["last_success"] = latest_success
     local["probe_in_flight"] = False
+
+    local_quality_failure = float(local.get("last_quality_failure", 0) or 0)
+    remote_quality_failure = float(remote.get("last_quality_failure", 0) or 0)
+    local_quality_success = float(local.get("last_quality_success", 0) or 0)
+    remote_quality_success = float(remote.get("last_quality_success", 0) or 0)
+    latest_quality_failure = max(local_quality_failure, remote_quality_failure)
+    latest_quality_success = max(local_quality_success, remote_quality_success)
+    local["last_quality_failure"] = latest_quality_failure
+    local["last_quality_success"] = latest_quality_success
+    if remote_quality_failure > local_quality_failure:
+        for field in ("quality_failures", "quality_cooldown_until", "quality_error"):
+            if field in remote:
+                local[field] = remote[field]
+    elif remote_quality_failure == local_quality_failure and remote_quality_failure > 0:
+        local["quality_failures"] = max(int(local.get("quality_failures", 0) or 0), int(remote.get("quality_failures", 0) or 0))
+        local["quality_cooldown_until"] = max(float(local.get("quality_cooldown_until", 0) or 0), float(remote.get("quality_cooldown_until", 0) or 0))
+        if remote.get("quality_error"):
+            local["quality_error"] = remote["quality_error"]
+    if latest_quality_success >= latest_quality_failure:
+        local["quality_failures"] = 0
+        local["quality_cooldown_until"] = 0.0
+        local["quality_error"] = ""
 
     if latest_success >= latest_failure:
         local.update({
