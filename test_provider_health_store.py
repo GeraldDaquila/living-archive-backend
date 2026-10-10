@@ -26,6 +26,26 @@ class ProviderHealthStoreTests(unittest.TestCase):
         exported = export_health_states(states)
         self.assertFalse(exported["groq:model-a"]["probe_in_flight"])
 
+    def test_quality_cooldown_clears_only_after_newer_valid_success(self):
+        local = {
+            "provider": "groq", "model": "model-c",
+            "state": "healthy", "last_failure": 0, "last_success": 20,
+            "last_quality_failure": 30, "last_quality_success": 10,
+            "quality_failures": 2, "quality_cooldown_until": 330,
+            "quality_error": "prescriptive-language",
+        }
+        remote = {
+            "provider": "groq", "model": "model-c",
+            "state": "healthy", "last_failure": 0, "last_success": 20,
+            "last_quality_failure": 30, "last_quality_success": 40,
+            "quality_failures": 0, "quality_cooldown_until": 0,
+            "quality_error": "",
+        }
+        merge_health_state(local, remote, now=41)
+        self.assertEqual(local["quality_failures"], 0)
+        self.assertEqual(local["quality_cooldown_until"], 0)
+        self.assertEqual(local["quality_error"], "")
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))
