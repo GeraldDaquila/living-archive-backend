@@ -38,11 +38,19 @@ def _request(method, payload=None):
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store",
         "X-Living-Archive-Provider-Key": secret,
         "User-Agent": "Living-Archive-Provider-Health/1.0",
     }
+    request_url = url
+    if method == "GET":
+        # WordPress hosting may cache REST GETs even when the response also
+        # carries no-store. A unique nonce guarantees every arbitration reads
+        # the current shared health snapshot rather than a CDN-cached copy.
+        separator = "&" if "?" in request_url else "?"
+        request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
-    request = Request(url, data=data, headers=headers, method=method)
+    request = Request(request_url, data=data, headers=headers, method=method)
     try:
         with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
             result = json.loads(response.read(512 * 1024 + 1).decode("utf-8", errors="replace"))
