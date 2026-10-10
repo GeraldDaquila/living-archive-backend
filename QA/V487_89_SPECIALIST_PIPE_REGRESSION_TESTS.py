@@ -555,6 +555,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
+    test_hrn_rejects_unsupported_causal_reassurance()
     test_hrn_rejects_abstract_causal_relationship_theory()
     test_hrn_rejects_unsupported_motive_attribution()
     test_hrn_rejects_same_plane_formulaic_question()
