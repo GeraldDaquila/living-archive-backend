@@ -850,6 +850,9 @@ def candidates(use_core, operation="generic", schema=None):
                 "model": model,
                 "index": index,
                 "quality_failures": int(quality.get("quality_failures", 0) or 0),
+                "health_state": str(health.get("state") or "unknown"),
+                "transport_failures": int(health.get("failures", 0) or 0),
+                "consecutive_failures": int(health.get("consecutive_failures", 0) or 0),
                 # Recent success is cross-operation evidence that a model is
                 # currently usable. HRN perception and composition share one
                 # visitor turn, so a model that just succeeded in perception
@@ -898,8 +901,15 @@ def select(use_core, operation="generic", schema=None):
             # Keep HRN's most recently proven model first within each provider
             # lane. A model can succeed at perception, then the next stage must
             # not rotate to a sibling that has exhausted its model-scoped quota.
+            # A transport-unhealthy model must not outrank a currently
+            # healthy model merely because it has fewer recorded visitor-contract
+            # rejections. Half-open candidates are probes, not proven fallbacks.
+            # Within the same health tier, preserve quality history and recent success.
             models.sort(key=lambda item: (
+                0 if item.get("health_state") == "healthy" else 1,
                 int(item.get("quality_failures", 0) or 0),
+                int(item.get("consecutive_failures", 0) or 0),
+                int(item.get("transport_failures", 0) or 0),
                 -float(item.get("last_success", 0) or 0),
             ))
         else:
