@@ -339,13 +339,56 @@ def _gemini(key, model, messages, max_tokens, schema=None):
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
-    if not _text_mode(schema):
+    json_mode = not _text_mode(schema)
+    if json_mode:
         payload["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
-    data = _http_json(base_url.rstrip("/") + "/chat/completions",
-                      {"Authorization": "Bearer " + key}, payload, provider, model)
-    try: return str(data["choices"][0]["message"]["content"] or "").strip()
-    except (KeyError, IndexError, TypeError) as exc:
-        raise ProviderCallError(provider + " returned no text", provider, model, category="invalid_provider_response") from exc
+    url = base_url.rstrip("/") + "/chat/completions"
+    headers = {"Authorization": "Bearer " + key}
+
+    def request(current_payload):
+        try:
+            data = _http_json(url, headers, current_payload, provider, model)
+        except json.JSONDecodeError as exc:
+            raise ProviderCallError(
+                provider + " returned an empty or non-JSON HTTP response",
+                provider, model, category="invalid_provider_response"
+            ) from exc
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ProviderCallError(
+                provider + " returned no text", provider, model,
+                category="invalid_provider_response"
+            ) from exc
+        content = str(content or "").strip()
+        if not content:
+            raise ProviderCallError(
+                provider + " returned empty message content", provider, model,
+                category="invalid_provider_response"
+            )
+        return content
+
+    try:
+        return request(payload)
+    except ProviderCallError as exc:
+        # The OpenRouter free router can select different upstream models, and
+        # not every free endpoint honors OpenAI's response_format extension.
+        # Retry once without that transport hint; the prompt still explicitly
+        # requires one JSON object and the HRN contract validator remains final.
+        if (
+            provider != "openrouter"
+            or not json_mode
+            or "response_format" not in payload
+            or exc.category != "invalid_provider_response"
+        ):
+            raise
+        retry_payload = dict(payload)
+        retry_payload.pop("response_format", None)
+        print(
+            "USE OpenRouter transport recovery: retrying once without "
+            "response_format after empty/non-JSON response"
+        )
+        return request(retry_payload)
 
 def _workers(key, account, model, messages, max_tokens, schema=None):
     payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
