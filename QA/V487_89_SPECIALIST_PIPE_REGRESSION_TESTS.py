@@ -373,10 +373,46 @@ def test_hrn_composition_rejects_advice_shaped_language():
         raise AssertionError("advice-shaped HRN language must be rejected")
 
 
+def test_openrouter_retries_without_response_format_after_non_json_transport_response():
+    valid = {"choices": [{"message": {"content": '{"response":"You are carrying most of the effort.","question":"What have you noticed?"}'}}]}
+    with patch.object(
+        provider_bank,
+        "_http_json",
+        side_effect=[json.JSONDecodeError("Expecting value", "", 0), valid],
+    ) as request:
+        result = provider_bank._openai_compatible(
+            "https://openrouter.ai/api/v1",
+            "test-key",
+            "openrouter",
+            "openrouter/free",
+            [{"role": "system", "content": "Return one JSON object."}],
+            500,
+        )
+    assert result.startswith('{"response"')
+    assert "response_format" in request.call_args_list[0].args[2]
+    assert "response_format" not in request.call_args_list[1].args[2]
+
+
+def test_openrouter_retries_without_response_format_after_empty_message():
+    valid = {"choices": [{"message": {"content": '{"response":"You are carrying most of the effort.","question":"What have you noticed?"}'}}]}
+    empty = {"choices": [{"message": {"content": ""}}]}
+    with patch.object(provider_bank, "_http_json", side_effect=[empty, valid]) as request:
+        result = provider_bank._openai_compatible(
+            "https://openrouter.ai/api/v1",
+            "test-key",
+            "openrouter",
+            "openrouter/free",
+            [{"role": "system", "content": "Return one JSON object."}],
+            500,
+        )
+    assert result.startswith('{"response"')
+    assert "response_format" not in request.call_args_list[1].args[2]
+
+
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.55 —")
-    assert 'APP_VERSION = "v489.55"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.56 —")
+    assert 'APP_VERSION = "v489.56"' in source
 
 
 
@@ -529,7 +565,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
 
 def test_current_main_contains_domain_payload_consumption_guards():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'APP_VERSION = "v489.55"' in source
+    assert 'APP_VERSION = "v489.56"' in source
     assert "domain_payload = dict(hub_contribution.payload or {})" in source
     assert "interpretation_data = dict(domain_payload.get(\"interpretation\") or {})" in source
     assert "domain_payload = dict(contribution.get(\"payload\") or {})" in source
