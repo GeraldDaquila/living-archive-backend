@@ -164,7 +164,7 @@ def main():
     # Invalid JSON from a provider must be recorded as a transient provider
     # health failure, not upgraded to a permanent structured-output quarantine.
     valid_hrn = json.dumps({
-        "response": "You describe doing most of the repair work, while the other person's intentions remain unknown.",
+        "response": "You describe doing most of the repair work, while the other person's intentions remain unknown. That gap can make the effort feel one-sided without proving what the other person means to do.",
         "question": "What part of the effort has felt most one-sided to you?",
     })
     pool = [
@@ -223,7 +223,7 @@ def main():
         captured = {}
         def fake_nvidia_http(url, headers, payload, provider, model, timeout=6):
             captured.update({"payload": payload, "provider": provider, "model": model, "timeout": timeout})
-            return {"choices": [{"message": {"content": json.dumps({"response": "The pattern is clearer when we separate intent from impact.", "question": "What happens immediately after you explain your intent?"})}}]}
+            return {"choices": [{"message": {"content": json.dumps({"response": "The interaction becomes easier to read when intent and impact are kept distinct. Your account shows the effect of the exchange, but it does not establish what the other person intended.", "question": "What happens immediately after you explain your intent?"})}}]}
         with patch.object(provider_bank, "_http_json", side_effect=fake_nvidia_http):
             provider_bank._openai_compatible(
                 "https://integrate.api.nvidia.com/v1", "test-key", "nvidia",

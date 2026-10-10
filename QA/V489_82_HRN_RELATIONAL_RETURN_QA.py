@@ -9,6 +9,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
+BANK = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
 
 
 def require(condition, message):
@@ -17,13 +18,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.82 — Focused HRN relational doorway selection"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.83 — HRN response-shape contract"),
             "production version header drift")
-    require('APP_VERSION = "v489.82"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.82":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.82-focused-hrn-relational-doorway"' in SOURCE,
+    require('APP_VERSION = "v489.83"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.83":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.83-hrn-response-shape-contract"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.82-focused-hrn-relational-doorway"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.83-hrn-response-shape-contract"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -47,7 +48,13 @@ def main():
             "no-fit outcome must remain available instead of forcing an unrelated gift")
     require("def _canonical_primary_from_docs" in SOURCE,
             "canonical evidence-ranked selection function is missing")
-    print("V489.82 HRN RELATIONAL RETURN QA: PASS")
+    require('re.split(r"(?<=[.!?])\\s+", completed)' in BANK,
+            "Provider Bank sentence counter must split on whitespace correctly")
+    require("response shape requires at least two complete sentences and 180 characters" in BANK,
+            "Provider Bank does not enforce HRN's downstream response-shape floor")
+    require("The response must contain at least two complete sentences and 180 characters." in BANK,
+            "Provider Bank recovery prompt does not explain the response-shape failure")
+    print("V489.83 HRN RELATIONAL RETURN QA: PASS")
     print("focused_first_retrieval=True")
     print("bounded_earned_perspective_fallback=True")
     print("unrelated_doorway_forcing=absent")

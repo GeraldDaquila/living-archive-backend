@@ -1204,6 +1204,14 @@ def _normalize_operation_result(operation, parsed):
         completed = _complete_response_prefix(response)
         if not completed:
             raise ValueError("hrn_relational composition contract requires a complete response")
+        # Match HRN's downstream ordinary_response_shape_valid contract here,
+        # so a short provider draft is repaired/fails over inside the bank rather
+        # than reaching HRN as a transport-successful bad shape.
+        sentence_parts = [part for part in re.split(r"(?<=[.!?])\s+", completed) if part.strip()]
+        if len(completed) < 180 or len(sentence_parts) < 2:
+            raise ValueError(
+                "hrn_relational response shape requires at least two complete sentences and 180 characters"
+            )
         if completed != response.strip():
             print(
                 "USE provider response tail trimmed: operation=hrn_relational, "
@@ -1353,6 +1361,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + str(contract_error)[:240]
                         + ". Correct the output now. Return only one valid JSON object with "
                         + "a non-empty visitor-facing response string and a non-empty next question string. "
+                        + "The response must contain at least two complete sentences and 180 characters. "
                         + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
                         + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
                         + "Speak directly to the visitor. Never refer to a brief, prompt, interpretation, internal state, or the visitor contribution as an object being processed. "
