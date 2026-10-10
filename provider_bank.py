@@ -92,7 +92,7 @@ OPERATION_REQUIREMENTS = {
     "general_guide_composition": frozenset({"json_object", "long_context", "composition"}),
 }
 
-_STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+_STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
 _SHARED_STATE_DIAGNOSTICS = {
     "mode": "shared_wordpress_database",
     "available": None,
@@ -116,6 +116,25 @@ def _sync_shared_state():
     for key, incoming in remote.items():
         if not isinstance(incoming, dict):
             continue
+        if key.startswith("quality:"):
+            provider = str(incoming.get("provider") or "")
+            model = str(incoming.get("model") or "")
+            operation = str(incoming.get("operation") or "")
+            local = _STATE["quality"].get(key)
+            if local is None:
+                local = {
+                    "provider": provider,
+                    "model": model,
+                    "operation": operation,
+                    "quality_failures": 0,
+                    "last_quality_failure": 0.0,
+                    "last_quality_success": 0.0,
+                    "quality_cooldown_until": 0.0,
+                    "quality_error": "",
+                }
+                _STATE["quality"][key] = local
+            merge_health_state(local, incoming, now=now)
+            continue
         provider = str(incoming.get("provider") or key.split(":", 1)[0])
         model = str(incoming.get("model") or key.split(":", 1)[-1])
         local = _STATE["models"].get(key)
@@ -134,7 +153,9 @@ def _sync_shared_state():
 def _persist_shared_state():
     """Persist the bounded health snapshot; failure never fabricates a provider answer."""
     global _LAST_SHARED_STATE_WARNING
-    ok = save_remote_states(export_health_states(_STATE["models"]))
+    combined_state = dict(_STATE["models"])
+    combined_state.update(_STATE["quality"])
+    ok = save_remote_states(export_health_states(combined_state))
     if ok:
         _SHARED_STATE_DIAGNOSTICS.update({
             "mode": "shared_wordpress_database",
@@ -167,6 +188,28 @@ def _csv(name):
 def _state(provider, model):
     key = provider + ":" + model
     return _STATE["models"].setdefault(key, new_state(provider, model))
+
+
+def _quality_key(operation, provider, model):
+    return "quality:" + str(operation) + ":" + provider + ":" + model
+
+
+def _quality_state(operation, provider, model, create=False):
+    key = _quality_key(operation, provider, model)
+    if key in _STATE["quality"]:
+        return _STATE["quality"][key]
+    if not create:
+        return {}
+    return _STATE["quality"].setdefault(key, {
+        "provider": provider,
+        "model": model,
+        "operation": str(operation),
+        "quality_failures": 0,
+        "last_quality_failure": 0.0,
+        "last_quality_success": 0.0,
+        "quality_cooldown_until": 0.0,
+        "quality_error": "",
+    })
 
 def _blocked(state):
     return blocked(state)
@@ -299,9 +342,9 @@ def _failure(exc, provider, model):
     )
     _persist_shared_state()
 
-def _record_quality_rejection(provider, model, reason):
-    """Penalize repeated contract failures without misclassifying transport health."""
-    state = _state(provider, model)
+def _record_quality_rejection(provider, model, operation, reason):
+    """Penalize repeated contract failures for this operation/model pair."""
+    state = _quality_state(operation, provider, model, create=True)
     now = time.time()
     last_quality_failure = float(state.get("last_quality_failure", 0) or 0)
     last_quality_success = float(state.get("last_quality_success", 0) or 0)
@@ -317,21 +360,24 @@ def _record_quality_rejection(provider, model, reason):
         )
     print(
         "USE provider quality resilience: "
-        f"provider={provider}, model={model}, quality_failures={state['quality_failures']}, "
+        f"operation={operation}, provider={provider}, model={model}, "
+        f"quality_failures={state['quality_failures']}, "
         f"quality_cooldown_seconds={max(0, int(float(state.get('quality_cooldown_until', 0) or 0) - now))}, "
         "reason=" + str(reason or "contract_rejection")[:180]
     )
     _persist_shared_state()
 
 
-def _success(provider, model):
+def _success(provider, model, operation):
     state = _state(provider, model)
     was_recovery = str(state.get("state") or "") == "half_open"
     record_success(state)
-    state["last_quality_success"] = time.time()
-    state["quality_failures"] = 0
-    state["quality_cooldown_until"] = 0.0
-    state["quality_error"] = ""
+    quality = _quality_state(operation, provider, model, create=False)
+    if quality:
+        quality["last_quality_success"] = time.time()
+        quality["quality_failures"] = 0
+        quality["quality_cooldown_until"] = 0.0
+        quality["quality_error"] = ""
     if was_recovery:
         print(
             "USE provider resilience: "
@@ -583,7 +629,8 @@ def candidates(use_core, operation="generic", schema=None):
             health = _state(provider, model)
             if _blocked(health):
                 continue
-            quality_until = float(health.get("quality_cooldown_until", 0) or 0)
+            quality = _quality_state(operation, provider, model, create=False)
+            quality_until = float(quality.get("quality_cooldown_until", 0) or 0)
             if quality_until > now:
                 print(
                     "USE provider quality exclusion: "
@@ -603,7 +650,7 @@ def candidates(use_core, operation="generic", schema=None):
                 "provider": provider,
                 "model": model,
                 "index": index,
-                "quality_failures": int(health.get("quality_failures", 0) or 0),
+                "quality_failures": int(quality.get("quality_failures", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
@@ -1025,13 +1072,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"keys={sorted(str(k) for k in parsed.keys())}, "
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
-            _success(provider, model)
+            _success(provider, model, operation)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
         except ValueError as exc:
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
             last_error = str(exc)
-            _record_quality_rejection(provider, model, last_error)
+            _record_quality_rejection(provider, model, operation, last_error)
             print(
                 "USE provider composition contract rejection: "
                 + "operation=" + operation
@@ -1075,6 +1122,17 @@ def snapshot(use_core):
             provider: aggregate_provider_health(states)
             for provider, states in provider_states.items()
         },
+        "provider_quality": {
+            key: {
+                "operation": value.get("operation", ""),
+                "provider": value.get("provider", ""),
+                "model": value.get("model", ""),
+                "failures": int(value.get("quality_failures", 0) or 0),
+                "cooldown_until": float(value.get("quality_cooldown_until", 0) or 0),
+                "last_error": str(value.get("quality_error", "") or ""),
+            }
+            for key, value in _STATE["quality"].items()
+        },
         "candidates": [
             {
                 "provider": x["provider"],
@@ -1082,9 +1140,11 @@ def snapshot(use_core):
                 "blocked": _blocked(_state(x["provider"], x["model"])),
                 "state": state_summary(_state(x["provider"], x["model"])),
                 "quality": {
-                    "failures": int(_state(x["provider"], x["model"]).get("quality_failures", 0) or 0),
-                    "cooldown_until": float(_state(x["provider"], x["model"]).get("quality_cooldown_until", 0) or 0),
-                    "last_error": str(_state(x["provider"], x["model"]).get("quality_error", "") or ""),
+                    "by_operation": {
+                        key: int(value.get("quality_failures", 0) or 0)
+                        for key, value in _STATE["quality"].items()
+                        if value.get("provider") == x["provider"] and value.get("model") == x["model"]
+                    },
                 },
                 "capabilities": sorted(_capabilities(x["provider"], x["model"])),
             }
