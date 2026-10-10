@@ -12,7 +12,11 @@ import os
 from typing import Any, Mapping
 
 from fastapi import HTTPException
-from provider_bank import CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION, route as provider_bank_route
+from provider_bank import (
+    CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
+    _json_object as parse_provider_json_object,
+    route as provider_bank_route,
+)
 
 CONTRACT_VERSION = "v1"
 ALLOWED_OPERATIONS = frozenset({
@@ -73,10 +77,9 @@ def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, 
             if not text:
                 raise ValueError("Provider Bank text response was empty.")
             return {"text": text}
-        value = json.loads(str(raw or "").strip())
-        if not isinstance(value, dict):
-            raise ValueError("Provider Bank model response was not an object.")
-        return value
+        # Use the Provider Bank's shared parser so fenced/prefixed JSON from a
+        # model is normalized consistently instead of being treated as provider outage.
+        return parse_provider_json_object(str(raw or "").strip())
 
     result = provider_bank_route(
         use_core=use_core,
