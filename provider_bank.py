@@ -774,8 +774,15 @@ def select(use_core, operation="generic", schema=None):
     if "openrouter" in grouped and "openrouter" not in configured:
         configured = ["openrouter"] + configured
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
-    providers = _rotate(providers, int(_STATE["provider_cursor"]))
-    _STATE["provider_cursor"] += 1
+    # HRN invokes several semantic operations within one visitor turn. Rotating
+    # the provider lane on every stage makes a healthy primary disappear behind
+    # transient providers before the bounded two-candidate window can reach it.
+    # Keep the configured provider priority stable for HRN; health/capability
+    # filtering still removes unusable candidates, and the normal fallback lane
+    # remains available. Other USE operations retain round-robin arbitration.
+    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        providers = _rotate(providers, int(_STATE["provider_cursor"]))
+        _STATE["provider_cursor"] += 1
     selected = []
     for provider in providers:
         models = grouped[provider]
