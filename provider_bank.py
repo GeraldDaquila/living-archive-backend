@@ -1081,7 +1081,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     if not pool: return None
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
-    max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
+    configured_attempts = max(1, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5)))
+    # HRN runs several semantic stages inside one WordPress turn. Allowing every
+    # stage to fan out across five providers multiplies the outer turn budget and
+    # leaves the visitor staring at the first page. Keep each HRN operation to
+    # two candidates: one primary and one independent fallback. The existing
+    # same-candidate contract correction remains bounded to one additional call.
+    hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
+    operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts
+    max_attempts = min(len(pool), operation_attempt_cap)
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     for attempt_index, item in enumerate(pool[:max_attempts], start=1):
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
