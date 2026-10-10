@@ -737,3 +737,12 @@ def test_unknown_model_is_not_autonomously_replaced():
     # Unknown deprecations remain untouched until explicitly verified and tested.
     unknown = "gemini-9.9-flash-preview"
     assert provider_bank.resolve_model_alias("gemini", unknown) == unknown
+
+
+# These lifecycle regression probes are defined after the legacy script entry
+# point, so invoke them explicitly when this file is run by the production QA
+# workflow. Without these calls, the CI job would silently skip the new tests.
+if __name__ == "__main__":
+    test_verified_model_deprecation_alias_resolves_to_current_gemini_successor()
+    test_unknown_model_is_not_autonomously_replaced()
+    print("verified model deprecation recovery probes: PASS")
