@@ -48,9 +48,9 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(local["quality_error"], "")
 
     def test_repeated_contract_rejections_trigger_quality_cooldown(self):
-        state = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+        state = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
         with patch.object(provider_bank, "_STATE", state), patch.object(provider_bank, "_persist_shared_state"), patch("provider_bank.time.time", side_effect=[100.0, 101.0]):
-            provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
+            provider_bank._record_quality_rejection("test", "model", "hrn_relational", "prescriptive-language")
             provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
         model_state = state["models"]["test:model"]
         self.assertEqual(model_state["quality_failures"], 2)
@@ -62,6 +62,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
         blocked_model["quality_failures"] = 2
         blocked_model["quality_cooldown_until"] = provider_bank.time.time() + 300
         state["models"]["groq:model-a"] = blocked_model
+        state["quality"]["quality:generic:groq:model-a"] = {"provider": "groq", "model": "model-a", "operation": "generic", "quality_failures": 2, "last_quality_failure": 1, "last_quality_success": 0, "quality_cooldown_until": blocked_model["quality_cooldown_until"], "quality_error": "prescriptive-language"}
         with patch.object(provider_bank, "_STATE", state), \
              patch.object(provider_bank, "_configured", return_value={"groq": ["model-a", "model-b"]}), \
              patch.object(provider_bank, "_eligible", return_value=(True, [])), \
