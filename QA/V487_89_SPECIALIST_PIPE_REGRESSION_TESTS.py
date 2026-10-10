@@ -355,7 +355,7 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.54 —"
+    assert source.startswith("# USE PRODUCTION VERSION: v489.54 —")
     assert 'APP_VERSION = "v489.54"' in source
 
 
