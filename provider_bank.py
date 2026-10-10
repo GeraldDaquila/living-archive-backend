@@ -574,6 +574,8 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
         payload["response_format"] = {"type": "text"}
     else:
         payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
+    if model == "@cf/google/gemma-4-26b-a4b-it":
+        payload["chat_template_kwargs"] = {"enable_thinking": False}
     url = _workers_url(account, model)
     data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=12)
     result = data.get("result") if isinstance(data, dict) else None

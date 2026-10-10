@@ -120,6 +120,15 @@ class ProviderHealthStoreTests(unittest.TestCase):
             url,
         )
 
+    def test_workers_ai_disables_gemma_thinking_for_latency(self):
+        with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
+            result = provider_bank._workers(
+                "token", "account-id", "@cf/google/gemma-4-26b-a4b-it",
+                [{"role": "user", "content": "Return ok"}], 40,
+            )
+        self.assertEqual(result, "ok")
+        self.assertEqual(request.call_args.args[2]["chat_template_kwargs"], {"enable_thinking": False})
+
     def test_workers_ai_uses_bounded_extended_inference_timeout(self):
         with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
             result = provider_bank._workers(
