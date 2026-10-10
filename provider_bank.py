@@ -774,9 +774,16 @@ def select(use_core, operation="generic", schema=None):
     if "openrouter" in grouped and "openrouter" not in configured:
         configured = ["openrouter"] + configured
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
-    providers = _rotate(providers, int(_STATE["provider_cursor"]))
-    _STATE["provider_cursor"] += 1
-    selected = []
+    # HRN invokes several semantic operations within one visitor turn. Rotating
+    # the provider lane on every stage makes a healthy primary disappear behind
+    # transient providers before the bounded two-candidate window can reach it.
+    # Keep the configured provider priority stable for HRN; health/capability
+    # filtering still removes unusable candidates, and the normal fallback lane
+    # remains available. Other USE operations retain round-robin arbitration.
+    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        providers = _rotate(providers, int(_STATE["provider_cursor"]))
+        _STATE["provider_cursor"] += 1
+    lanes = []
     for provider in providers:
         models = grouped[provider]
         cursor = int(_STATE["model_cursors"].get(provider, 0))
@@ -785,7 +792,22 @@ def select(use_core, operation="generic", schema=None):
         # visitor-contract history within each provider lane.
         models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
-        selected.extend(models)
+        lanes.append(models)
+
+    # A bounded HRN stage must have a genuinely independent fallback. Flattening
+    # provider lanes lets two models from one provider consume both attempts,
+    # defeating cross-provider recovery. Interleave HRN candidates by lane:
+    # first choice from each eligible provider, then second choices, preserving
+    # stable provider priority and existing health/capability/quality filters.
+    selected = []
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        for depth in range(max((len(lane) for lane in lanes), default=0)):
+            for lane in lanes:
+                if depth < len(lane):
+                    selected.append(lane[depth])
+    else:
+        for lane in lanes:
+            selected.extend(lane)
     return selected
 
 def _complete_response_prefix(response):

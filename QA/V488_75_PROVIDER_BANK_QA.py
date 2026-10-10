@@ -45,6 +45,10 @@ def main():
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts" in provider
     assert "max_attempts = min(len(pool), operation_attempt_cap)" in provider
+    # HRN stages share one visitor turn: provider priority must not rotate between
+    # perception and composition, or the bounded window can skip a healthy primary.
+    assert 'if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:' in provider
+    assert 'providers = _rotate(providers, int(_STATE["provider_cursor"]))' in provider
     # Bound latency-heavy visitor-facing prose stages without truncating the
     # richer perception/Observer schema needed to form the relational fractal.
     assert '"hrn_relational": 600' in provider
@@ -106,7 +110,12 @@ def main():
         ]),
     ):
         selected = provider_bank.select(None, operation="hrn_relational")
-        assert [item["provider"] for item in selected[:3]] == ["openrouter", "openrouter", "openrouter"]
+        selected_providers = [item["provider"] for item in selected]
+        assert selected_providers[0] == "openrouter"
+        assert selected_providers[1] == "groq", "HRN's second bounded attempt must be an independent provider"
+        # Stable lane priority must persist across semantic stages.
+        selected_again = provider_bank.select(None, operation="hrn_perception")
+        assert [item["provider"] for item in selected_again[:2]] == ["openrouter", "groq"]
 
     # Invalid JSON from a provider must be recorded as a transient provider
     # health failure, not upgraded to a permanent structured-output quarantine.
