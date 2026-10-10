@@ -719,3 +719,21 @@ if __name__ == "__main__":
     test_model_scoped_daily_tpd_does_not_quarantine_provider_siblings()
     test_account_wide_quota_still_quarantines_provider_siblings()
     print("current specialist-pipe regression probes: PASS")
+
+
+def test_verified_model_deprecation_alias_resolves_to_current_gemini_successor():
+    # Simulate an operator environment that still names the deprecated model.
+    # Runtime resolution must be deterministic, bounded, and idempotent.
+    assert provider_bank.resolve_model_alias("gemini", "gemini-3.7-flash") == "gemini-3.8-flash"
+    assert provider_bank.resolve_model_alias("gemini", "gemini-3.8-flash") == "gemini-3.8-flash"
+    assert provider_bank.resolve_model_alias("groq", "gemini-3.7-flash") == "gemini-3.7-flash"
+    assert provider_bank.resolve_model_list(
+        "gemini", ["gemini-3.7-flash", "gemini-3.8-flash", "gemini-3.7-flash"]
+    ) == ["gemini-3.8-flash"]
+
+
+def test_unknown_model_is_not_autonomously_replaced():
+    # A model/LLM suggestion is not sufficient evidence to change production.
+    # Unknown deprecations remain untouched until explicitly verified and tested.
+    unknown = "gemini-9.9-flash-preview"
+    assert provider_bank.resolve_model_alias("gemini", unknown) == unknown
