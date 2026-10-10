@@ -17,7 +17,7 @@ CONTRACT_VERSION = "v1"
 DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
 TIMEOUT_SECONDS = 1.2
 STATE_FIELDS = (
-    "provider", "model", "state", "failures", "consecutive_failures",
+    "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
     "last_failure", "category", "quality_failures", "last_quality_failure",
     "last_quality_success", "quality_cooldown_until", "quality_error",
