@@ -284,7 +284,7 @@ def test_hrn_composition_rejects_formulaic_connective_and_inferred_state():
 
 def test_reflective_followup_is_not_misclassified_as_advice():
     reflective = {
-        "response": "The distance is real, but its meaning is still unclear.",
+        "response": "The distance is real, but its meaning is still unclear. The same action can be experienced differently by two people, and the information here does not settle which meaning the other person intended.",
         "question": "What feels different when you consider that?",
     }
     normalized = provider_bank._normalize_operation_result("hrn_relational", reflective)
@@ -453,7 +453,7 @@ def test_hrn_composition_rejects_internal_process_language():
         raise AssertionError("internal-process language must not reach HRN visitors")
 
     natural = {
-        "response": "You are weighing your care for them against the wish not to intrude.",
+        "response": "You are weighing your care for them against the wish not to intrude, while the reason for their distance remains uncertain. Those are separate parts of the situation, and neither establishes what the other person intends.",
         "question": "What does that tension mean to you?",
     }
     normalized = provider_bank._normalize_operation_result("hrn_relational", natural)
@@ -468,11 +468,11 @@ def test_hrn_perception_has_enough_completion_budget_for_observer_json():
 
 def test_hrn_contract_trims_only_incomplete_trailing_sentence():
     parsed = {
-        "response": "The first distinction is clear. The next sentence starts but does not finish",
+        "response": "The first distinction is clear when you keep the person's intention separate from the impact you observed. That difference preserves what is known without treating an uncertain explanation as a fact. The next sentence starts but does not finish",
         "question": "What stands out to you?",
     }
     normalized = provider_bank._normalize_operation_result("hrn_relational", parsed)
-    assert normalized["response"] == "The first distinction is clear."
+    assert normalized["response"] == "The first distinction is clear when you keep the person's intention separate from the impact you observed. That difference preserves what is known without treating an uncertain explanation as a fact."
     assert normalized["response"].endswith(".")
 
 
@@ -484,7 +484,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
         "question": "What feels hardest?",
     })
     corrected = json.dumps({
-        "response": "This is a complete and grounded observation.",
+        "response": "This is a complete and grounded observation of the distance you described, while the reason for it remains uncertain. That distinction keeps the response with what is known without assigning an intention to the other person.",
         "question": "What feels different when you consider that?",
     })
     pool = [{"provider": "groq", "model": "qwen-test", "index": 0}]
