@@ -138,6 +138,29 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(diagnostic["result_keys"], ["metadata", "response"])
         self.assertNotIn("A useful response.", str(diagnostic))
 
+    def test_workers_ai_fast_fallback_has_json_composition_capabilities(self):
+        capabilities = provider_bank._capabilities(
+            "workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        )
+        self.assertTrue({
+            "json_object", "json_schema_best_effort", "text_generation",
+            "long_context", "composition", "relational_analysis", "low_latency",
+        }.issubset(capabilities))
+
+    def test_workers_ai_fast_fallback_is_retained_with_explicit_model_list(self):
+        from types import SimpleNamespace
+        with patch.dict("os.environ", {
+            "CLOUDFLARE_API_TOKEN": "token",
+            "CLOUDFLARE_ACCOUNT_ID": "account",
+            "USE_WORKERS_AI_MODELS": "@cf/google/gemma-4-26b-a4b-it,@cf/zai-org/glm-4.7-flash",
+        }, clear=True):
+            configured = provider_bank._configured(SimpleNamespace(get_live_groq_models=lambda: []))
+        self.assertEqual(configured["workers_ai"], [
+            "@cf/google/gemma-4-26b-a4b-it",
+            "@cf/zai-org/glm-4.7-flash",
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        ])
+
     def test_workers_ai_disables_gemma_thinking_for_latency(self):
         with patch.object(provider_bank, "_http_json", return_value={"result": {"response": "ok"}}) as request:
             result = provider_bank._workers(
