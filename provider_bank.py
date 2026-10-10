@@ -1207,7 +1207,7 @@ def _normalize_operation_result(operation, parsed):
         # Match HRN's downstream ordinary_response_shape_valid contract here,
         # so a short provider draft is repaired/fails over inside the bank rather
         # than reaching HRN as a transport-successful bad shape.
-        sentence_parts = [part for part in re.split(r"(?<=[.!?])\\s+", completed) if part.strip()]
+        sentence_parts = [part for part in re.split(r"(?<=[.!?])\s+", completed) if part.strip()]
         if len(completed) < 180 or len(sentence_parts) < 2:
             raise ValueError(
                 "hrn_relational response shape requires at least two complete sentences and 180 characters"
