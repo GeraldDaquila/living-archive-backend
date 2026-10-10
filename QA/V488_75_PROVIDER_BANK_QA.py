@@ -237,8 +237,8 @@ def main():
     for raw, expected in (
         ("It sounds like you explain your intent because you want them to see you as caring.",
          "From what you describe, you explain your intent because you want them to see you as caring."),
-        ("It seems as though the argument becomes about whether you care.",
-         "From what you describe, the argument becomes about whether you care."),
+        ("It seems as though you feel the argument becomes about whether you care.",
+         "From what you describe, you feel the argument becomes about whether you care."),
     ):
         repaired = provider_bank._repair_leading_hrn_hedge(raw)
         assert repaired == expected
