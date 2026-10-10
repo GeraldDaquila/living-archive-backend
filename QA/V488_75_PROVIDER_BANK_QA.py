@@ -50,6 +50,10 @@ def main():
     assert '"hrn_relational": 600' in provider
     assert 'requested_max_tokens = min(requested_max_tokens, 600)' in provider
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
+    # Slow Workers AI models must not consume the full generic timeout on every
+    # HRN stage or on the bounded contract-correction call.
+    assert 'timeout_override=8 if operation in hrn_operations else None' in provider
+    assert 'timeout=timeout_override or 12' in provider
 
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
