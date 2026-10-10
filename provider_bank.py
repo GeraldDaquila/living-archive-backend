@@ -573,6 +573,12 @@ def _gemini(key, model, messages, max_tokens, schema=None):
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
+    # Nemotron 3.5 defaults to reasoning/thinking output, which can consume the
+    # bounded provider deadline before a usable visitor-facing JSON response.
+    # Disable thinking only for this documented NVIDIA model; all outputs still
+    # pass the existing provider-bank schema and visitor-surface contracts.
+    if provider == "nvidia" and model == "nvidia/nemotron-3.5-lightning-30b-a3b":
+        payload["chat_template_kwargs"] = {"enable_thinking": False}
     json_mode = not _text_mode(schema)
     # OpenRouter may dynamically route to free models that reject the OpenAI
     # response_format extension or return an empty transport envelope. Keep the
@@ -585,7 +591,13 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
 
     def request(current_payload):
         try:
-            data = _http_json(url, headers, current_payload, provider, model)
+            # NVIDIA hosted inference has previously exceeded the generic 6s
+            # transport budget. Give the bounded NVIDIA attempt 12s while keeping
+            # every other provider at the existing default timeout.
+            if provider == "nvidia":
+                data = _http_json(url, headers, current_payload, provider, model, timeout=12)
+            else:
+                data = _http_json(url, headers, current_payload, provider, model)
         except json.JSONDecodeError as exc:
             raise ProviderCallError(
                 provider + " returned an empty or non-JSON HTTP response",
