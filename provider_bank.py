@@ -59,7 +59,8 @@ MODEL_CAPABILITIES = {
 # deterministic registry and still passes normal capability/health/contract gates.
 MODEL_DEPRECATION_ALIASES = {
     ("gemini", "gemini-3.7-flash"): "gemini-3.8-flash",
-    ("gemini", "gemini-3.5-flash"): "gemini-3.6-flash",
+    # Gemini 3.5 is intentionally not aliased until its successor is
+    # registered in MODEL_CAPABILITIES and validated against the bank contract.
 }
 
 
