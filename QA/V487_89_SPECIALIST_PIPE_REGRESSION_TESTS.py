@@ -282,6 +282,26 @@ def test_hrn_composition_rejects_formulaic_connective_and_inferred_state():
 
 
 
+def test_reflective_followup_is_not_misclassified_as_advice():
+    reflective = {
+        "response": "The distance is real, but its meaning is still unclear.",
+        "question": "What feels different when you consider that?",
+    }
+    normalized = provider_bank._normalize_operation_result("hrn_relational", reflective)
+    assert normalized["question"] == "What feels different when you consider that?"
+
+    prescriptive = {
+        "response": "You should consider reaching out.",
+        "question": "What matters here?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", prescriptive)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("explicit advice must still be rejected")
+
+
 def test_hrn_provider_gate_matches_frozen_humanity_templates():
     for response in (
         "It sounds like the distance has changed what you expect from each other.",
@@ -620,6 +640,7 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_abstract_generalizations()
     test_hrn_composition_rejects_action_guidance()
     test_hrn_composition_rejects_abstract_indirect_advice()
+    test_reflective_followup_is_not_misclassified_as_advice()
     test_hrn_provider_gate_matches_frozen_humanity_templates()
     test_hrn_rejects_abstract_causal_relationship_theory()
     test_hrn_rejects_unsupported_motive_attribution()
