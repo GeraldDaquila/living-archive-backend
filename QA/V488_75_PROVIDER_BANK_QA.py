@@ -2,6 +2,7 @@
 from pathlib import Path
 from unittest.mock import patch
 import ast
+import json
 import os
 import re
 import provider_bank
@@ -75,6 +76,38 @@ def main():
     ):
         selected = provider_bank.select(None, operation="hrn_relational")
         assert [item["provider"] for item in selected[:3]] == ["openrouter", "openrouter", "openrouter"]
+
+    # Invalid JSON from a provider must be recorded as provider health failure,
+    # not misclassified as a semantic composition rejection.
+    valid_hrn = json.dumps({
+        "response": "You describe doing most of the repair work, while the other person's intentions remain unknown.",
+        "question": "What part of the effort has felt most one-sided to you?",
+    })
+    pool = [
+        {"provider": "openrouter", "model": "openrouter/free", "index": 0},
+        {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0},
+    ]
+    with (
+        patch.object(provider_bank, "select", return_value=pool),
+        patch.object(provider_bank, "_call", side_effect=["not-json", valid_hrn]),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "_state", return_value={"state": "healthy"}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_failure") as failures,
+    ):
+        routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I am doing most of the repair work."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert routed["provider"] == "groq"
+    assert failures.call_count == 1
+    failed_exception = failures.call_args.args[0]
+    assert isinstance(failed_exception, provider_bank.ProviderCallError)
+    assert failed_exception.category == "invalid_provider_response"
 
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
