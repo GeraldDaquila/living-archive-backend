@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.62 — Quarantine exhausted OpenRouter free-tier quota
+# USE PRODUCTION VERSION: v489.62 — Durable shared provider health state
 import asyncio
 import hashlib
 import ipaddress
