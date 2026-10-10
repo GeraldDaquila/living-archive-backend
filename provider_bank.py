@@ -131,6 +131,7 @@ OPERATION_REQUIREMENTS = {
 }
 
 _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
+_LAST_PROVIDER_INVENTORY_DIAGNOSTIC = None
 _SHARED_STATE_DIAGNOSTICS = {
     "mode": "shared_wordpress_database",
     "available": None,
@@ -761,12 +762,40 @@ def _eligible(provider, model, operation, schema=None):
     return True, []
 
 def candidates(use_core, operation="generic", schema=None):
+    global _LAST_PROVIDER_INVENTORY_DIAGNOSTIC
     out = []
     now = time.time()
-    for provider, models in _configured(use_core).items():
+    configured_models = _configured(use_core)
+    inventory_signature = (
+        bool(str(os.getenv("OPENROUTER_API_KEY") or "").strip()),
+        tuple(sorted((provider, tuple(models)) for provider, models in configured_models.items())),
+    )
+    if inventory_signature != _LAST_PROVIDER_INVENTORY_DIAGNOSTIC:
+        providers = ",".join(
+            provider + ":" + str(len(models))
+            for provider, models in configured_models.items()
+        ) or "none"
+        print(
+            "USE provider bank inventory: "
+            f"openrouter_key_configured={str(inventory_signature[0]).lower()}, "
+            f"configured_lanes={providers}"
+        )
+        _LAST_PROVIDER_INVENTORY_DIAGNOSTIC = inventory_signature
+    for provider, models in configured_models.items():
         for index, model in enumerate(models):
             health = _state(provider, model)
             if _blocked(health):
+                blocked_until = max(
+                    float(health.get("cooldown_until", 0) or 0),
+                    float(health.get("quarantine_until", 0) or 0),
+                )
+                print(
+                    "USE provider bank exclusion: "
+                    f"operation={operation}, provider={provider}, model={model}, "
+                    f"state={health.get('state') or 'unknown'}, "
+                    f"category={health.get('category') or 'unknown'}, "
+                    f"retry_in_seconds={max(0, int(blocked_until - now))}"
+                )
                 continue
             quality = _quality_state(operation, provider, model, create=False)
             quality_until = float(quality.get("quality_cooldown_until", 0) or 0)
