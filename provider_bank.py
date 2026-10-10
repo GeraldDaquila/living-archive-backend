@@ -49,6 +49,9 @@ MODEL_CAPABILITIES = {
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    # Canary fallback: Cloudflare documents this variant as optimized for faster inference.
+    # It remains behind the same runtime contract and health/quality arbitration as all lanes.
+    ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
 MODEL_LIMITS = {
@@ -692,8 +695,11 @@ def _configured(use_core):
         gateway = _csv("USE_CLOUDFLARE_GATEWAY_MODELS")
         workers = _csv("USE_WORKERS_AI_MODELS")
         if gateway: out["cloudflare_gateway"] = gateway
-        if workers: out["workers_ai"] = workers
-        elif not gateway: out["workers_ai"] = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash"]
+        # Keep operator-selected Workers AI models first, but retain one documented
+        # fast fallback lane so an unavailable/slow model does not exhaust the bank.
+        fast_fallback = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        if workers: out["workers_ai"] = list(dict.fromkeys(workers + [fast_fallback]))
+        elif not gateway: out["workers_ai"] = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash", fast_fallback]
     return out
 
 def _capabilities(provider, model):
