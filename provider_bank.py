@@ -116,15 +116,14 @@ def _failure(exc, provider, model):
         "exceeded your current quota" in low
         or "quota exceeded" in low
         or "billing hard limit" in low
-    ) and not re.search(r"try again in\\s+(?:(?:\\d+(?:\\.\\d+)?)h)?\\s*(?:(?:\\d+(?:\\.\\d+)?)m)?\\s*(?:(?:\\d+(?:\\.\\d+)?)s)?", low):
+    ) and not re.search(r"try again in\s+(?:(?:\d+(?:\.\d+)?)h)?\s*(?:(?:\d+(?:\.\d+)?)m)?\s*(?:(?:\d+(?:\.\d+)?)s)?", low):
         category = "quota_or_billing"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
-        # Honor retry windows embedded in provider response bodies (e.g. Groq
-        # "Please try again in 8m29.76s") when no Retry-After header exists.
+        # Honor retry windows embedded in provider response bodies when no Retry-After header exists.
         if not retry_after:
             wait = re.search(
-                r"try again in\\s+(?:(\\d+(?:\\.\\d+)?)h)?\\s*(?:(\\d+(?:\\.\\d+)?)m)?\\s*(?:(\\d+(?:\\.\\d+)?)s)?",
+                r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
                 low,
             )
             if wait:
@@ -664,3 +663,156 @@ def _call(use_core, item, messages, max_tokens, schema=None):
         return _gemini(key, model, messages, max_tokens, schema)
     if provider == "mistral":
         key = os.getenv("MISTRAL_API_KEY")
+        if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
+        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
+    if provider == "cloudflare_gateway":
+        token = os.getenv("CLOUDFLARE_API_TOKEN")
+        account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+        if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
+        base = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/v1"
+        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema)
+    if provider == "workers_ai":
+        token = os.getenv("CLOUDFLARE_API_TOKEN")
+        account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+        if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
+        return _workers(token, account, model, messages, max_tokens, schema)
+    raise ProviderCallError("unknown provider", provider, model, category="unavailable")
+
+def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
+    # Do not infer strict schemas from the operation. A specialist must
+    # explicitly request one; otherwise the bank uses JSON-object mode.
+    effective_schema = schema if isinstance(schema, dict) else None
+    effective_messages = _ensure_json_object_instruction(messages, effective_schema)
+    if operation == "hrn_relational":
+        effective_messages = _apply_hrn_visitor_contract(effective_messages)
+    elif operation == "hrn_voice_repair":
+        effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
+    pool = select(use_core, operation=operation, schema=effective_schema)
+    if not pool: return None
+    order = [x["provider"] + ":" + x["model"] for x in pool]
+    last_error = ""
+    max_attempts = min(len(pool), max(3, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5))))
+    requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
+    for attempt_index, item in enumerate(pool[:max_attempts], start=1):
+        model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
+        effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
+        if effective_max_tokens < requested_max_tokens:
+            print(
+                "USE provider capability ceiling: "
+                f"operation={operation}, provider={item['provider']}, model={item['model']}, "
+                f"requested={requested_max_tokens}, ceiling={model_limit}, effective={effective_max_tokens}"
+            )
+        provider, model = item["provider"], item["model"]
+        state = _state(provider, model)
+        if not acquire_probe(state):
+            continue
+        try:
+            print("USE model bank attempt: provider=" + provider + ", model=" + model +
+                  ", state=" + str(state.get("state") or "healthy"))
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema)
+            parsed = parse(raw_output)
+            if not isinstance(parsed, dict): raise ValueError("route response was not an object")
+            try:
+                parsed = _normalize_operation_result(operation, parsed)
+            except ValueError as contract_error:
+                recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
+                if not recovery_schema:
+                    raise
+                schema_capable = bool(_capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}))
+                recovery_mode_schema = recovery_schema if schema_capable else effective_schema
+                recovery_mode = "strict_schema" if schema_capable else "provider_neutral_json_object"
+                print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=" + recovery_mode)
+                # A schema-only retry repeats the same prompt and gives the model no
+                # information about why its previous object was rejected. Carry the
+                # rejected output forward and ask for a bounded contract correction.
+                # This stays at the Provider Bank boundary; specialist voice methods
+                # and provider selection remain untouched.
+                recovery_messages = list(effective_messages)
+                recovery_messages.append({
+                    "role": "assistant",
+                    "content": str(raw_output or "")[:12000],
+                })
+                recovery_messages.append({
+                    "role": "user",
+                    "content": (
+                        "Your preceding output failed the HRN relational response contract: "
+                        + str(contract_error)[:240]
+                        + ". Correct the output now. Return only one valid JSON object with "
+                        + "a non-empty visitor-facing response string and a non-empty next question string. "
+                        + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
+                        + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
+                        + "Speak directly to the visitor. Never refer to a brief, prompt, interpretation, internal state, or the visitor contribution as an object being processed. "
+                        + "Do not explain the contract or omit response/question. Preserve the visitor's context."
+                    ),
+                })
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema))
+                if not isinstance(recovered, dict):
+                    raise ValueError("provider contract recovery returned a non-object")
+                parsed = _normalize_operation_result(operation, recovered)
+            print(
+                "USE provider contract result: "
+                f"operation={operation}, provider={provider}, model={model}, "
+                f"keys={sorted(str(k) for k in parsed.keys())}, "
+                f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
+            )
+            _success(provider, model)
+            return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
+        except ValueError as exc:
+            # A semantic/composition contract rejection is not a provider-health
+            # failure. The provider answered; the composition seam rejected the
+            # result. Do not poison provider resilience state for an application-
+            # owned validation decision.
+            last_error = str(exc)
+            print(
+                "USE provider composition contract rejection: "
+                + "operation=" + operation
+                + ", provider=" + provider
+                + ", model=" + model
+                + ", error=" + last_error[:300]
+            )
+            continue
+        except Exception as exc:
+            last_error = str(exc)
+            _failure(exc, provider, model)
+            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
+    print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
+    return None
+
+def snapshot(use_core):
+    configured = _configured(use_core)
+    all_items = [
+        {"provider": provider, "model": model}
+        for provider, models in configured.items()
+        for model in models
+    ]
+    provider_states = {}
+    for item in all_items:
+        provider_states.setdefault(item["provider"], []).append(_state(item["provider"], item["model"]))
+    return {
+        "contract_version": CONTRACT_VERSION,
+        "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
+        "selection_policy": "capability_and_provider_health_aware_self_healing",
+        "capability_policy_version": "1.6",
+        "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
+        "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
+        "model_limits": {provider + ":" + model: dict(limits) for (provider, model), limits in MODEL_LIMITS.items()},
+        "operation_requirements": {
+            operation: sorted(requirements)
+            for operation, requirements in OPERATION_REQUIREMENTS.items()
+        },
+        "providers": sorted({x["provider"] for x in all_items}),
+        "provider_health": {
+            provider: aggregate_provider_health(states)
+            for provider, states in provider_states.items()
+        },
+        "candidates": [
+            {
+                "provider": x["provider"],
+                "model": x["model"],
+                "blocked": _blocked(_state(x["provider"], x["model"])),
+                "state": state_summary(_state(x["provider"], x["model"])),
+                "capabilities": sorted(_capabilities(x["provider"], x["model"])),
+            }
+            for x in all_items
+        ],
+    }
