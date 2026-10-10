@@ -27,6 +27,7 @@ PERMANENT_COOLDOWN = {
     "model_unavailable": 3600.0,
     "terms_required": 3600.0,
     "structured_output_contract": 3600.0,
+    "free_tier_daily_quota": 86400.0,
 }
 
 def new_state(provider, model):
@@ -81,6 +82,8 @@ def record_failure(state, category, message, *, now=None, retry_after=None):
 
     if category == "rate_limited":
         delay = max(30.0, float(retry_after or 60.0))
+    elif category == "free_tier_daily_quota":
+        delay = min(86400.0, max(60.0, float(retry_after or PERMANENT_COOLDOWN[category])))
     elif category in PERMANENT_COOLDOWN:
         delay = PERMANENT_COOLDOWN[category]
     else:
