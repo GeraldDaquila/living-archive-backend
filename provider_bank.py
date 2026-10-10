@@ -573,11 +573,14 @@ def _gemini(key, model, messages, max_tokens, schema=None):
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
-    # Nemotron 3.5 defaults to reasoning/thinking output, which can consume the
-    # bounded provider deadline before a usable visitor-facing JSON response.
-    # Disable thinking only for this documented NVIDIA model; all outputs still
-    # pass the existing provider-bank schema and visitor-surface contracts.
-    if provider == "nvidia" and model == "nvidia/nemotron-3.5-lightning-30b-a3b":
+    # NVIDIA Nemotron 3-series models can emit reasoning separately from the
+    # visitor-facing content field. Disable thinking for the reviewed 3.5
+    # Lightning and 3 Super models so the bounded contract receives actual text.
+    # The normal schema and visitor-surface validators remain authoritative.
+    if provider == "nvidia" and model in {
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "nvidia/nemotron-3-super-120b-a12b",
+    }:
         payload["chat_template_kwargs"] = {"enable_thinking": False}
     json_mode = not _text_mode(schema)
     # OpenRouter may dynamically route to free models that reject the OpenAI
