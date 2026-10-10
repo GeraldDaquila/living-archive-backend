@@ -35,7 +35,10 @@ MODEL_CAPABILITIES = {
     ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     # OpenRouter free router dynamically selects a currently available free model;
     # eligibility is based on router-level capabilities, not a fixed underlying model.
-    ("openrouter", "openrouter/free"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    # Named free-model candidates give the bank independent fallback lanes when the router returns an empty upstream response. JSON is enforced by the bank contract validator, not provider-specific response_format hints.
+    ("openrouter", "openrouter/free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    ("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
+    ("openrouter", "google/gemma-4-31b-it:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
@@ -340,7 +343,11 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
     json_mode = not _text_mode(schema)
-    if json_mode:
+    # OpenRouter may dynamically route to free models that reject the OpenAI
+    # response_format extension or return an empty transport envelope. Keep the
+    # JSON-object instruction in the messages and let the Provider Bank contract
+    # validator enforce the actual visitor-facing schema.
+    if json_mode and provider != "openrouter":
         payload["response_format"] = ({"type": "json_schema", "json_schema": schema} if isinstance(schema, dict) else {"type": "json_object"})
     url = base_url.rstrip("/") + "/chat/completions"
     headers = {"Authorization": "Bearer " + key}
@@ -417,7 +424,11 @@ def _configured(use_core):
     # Optional zero-cost fallback lane. It is dormant unless a key is configured;
     # OpenRouter routes openrouter/free across currently available free models.
     if os.getenv("OPENROUTER_API_KEY"):
-        out["openrouter"] = _csv("USE_OPENROUTER_MODELS") or ["openrouter/free"]
+        out["openrouter"] = _csv("USE_OPENROUTER_MODELS") or [
+            "openrouter/free",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "google/gemma-4-31b-it:free",
+        ]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
         out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
     if os.getenv("MISTRAL_API_KEY"):
