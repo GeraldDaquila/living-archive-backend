@@ -39,6 +39,13 @@ def main():
     assert '["gemini-3.8-flash"]' in provider
     assert 'CONTRACT_VERSION = "v2"' in provider
 
+    # HRN's multiple semantic stages must not each fan out across the entire bank.
+    # Two candidate attempts per HRN stage preserve an independent fallback while
+    # bounding nested latency; non-HRN operations retain the configured cap.
+    assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
+    assert "operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts" in provider
+    assert "max_attempts = min(len(pool), operation_attempt_cap)" in provider
+
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
     recovery_start = provider.index("recovery_messages.append({")
