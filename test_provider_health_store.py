@@ -127,7 +127,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 [{"role": "user", "content": "Return ok"}], 40,
             )
         self.assertEqual(result, "ok")
-        self.assertEqual(request.call_args.kwargs.get("timeout"), 8)
+        self.assertEqual(request.call_args.kwargs.get("timeout"), 12)
 
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):

@@ -575,7 +575,7 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
     else:
         payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
     url = _workers_url(account, model)
-    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=8)
+    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=12)
     result = data.get("result") if isinstance(data, dict) else None
     text = (result.get("response") or result.get("text") or result.get("output")) if isinstance(result, dict) else result
     if not text: raise ProviderCallError("Workers AI returned no text", "workers_ai", model, category="invalid_provider_response")
