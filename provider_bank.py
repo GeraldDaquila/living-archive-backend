@@ -54,6 +54,40 @@ MODEL_CAPABILITIES = {
     ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
 }
 
+# Verified provider-published model lifecycle aliases. An LLM may suggest a
+# candidate migration, but runtime promotion is restricted to this reviewed,
+# deterministic registry and still passes normal capability/health/contract gates.
+MODEL_DEPRECATION_ALIASES = {
+    ("gemini", "gemini-3.7-flash"): "gemini-3.8-flash",
+    ("gemini", "gemini-3.5-flash"): "gemini-3.6-flash",
+}
+
+
+def resolve_model_alias(provider, model):
+    """Resolve only explicitly verified provider/model deprecations."""
+    provider = str(provider or "").strip().lower()
+    model = str(model or "").strip()
+    replacement = MODEL_DEPRECATION_ALIASES.get((provider, model))
+    if not replacement:
+        return model
+    print(
+        "USE model lifecycle: "
+        f"provider={provider}, obsolete_model={model}, replacement={replacement}, "
+        "source=verified_registry"
+    )
+    return replacement
+
+
+def resolve_model_list(provider, models):
+    """Resolve known aliases and preserve first-seen order without duplicates."""
+    resolved = []
+    for model in models:
+        candidate = resolve_model_alias(provider, model)
+        if candidate and candidate not in resolved:
+            resolved.append(candidate)
+    return resolved
+
+
 MODEL_LIMITS = {
     # Provider/model limits are part of capability, not specialist policy.
     # Qwen's current Groq lane enforces a 1,000-token output-per-minute ceiling.
@@ -687,7 +721,7 @@ def _configured(use_core):
             "google/gemma-4-31b-it:free",
         ]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
-        out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
+        out["gemini"] = resolve_model_list("gemini", _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"])
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
     cloudflare_token, cloudflare_account = _cloudflare_credentials()
