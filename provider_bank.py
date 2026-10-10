@@ -66,7 +66,7 @@ OPERATION_TOKEN_FLOORS = {
     # The bank owns minimum completion budgets for semantic operations. This
     # prevents a specialist's transport envelope from starving a capable model
     # before it can finish its contractual JSON object.
-    "hrn_relational": 1000,
+    "hrn_relational": 600,
     "hrn_perception": 1600,
     "atlas_finder": 500,
     "atlas_vision": 700,
@@ -1091,6 +1091,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts
     max_attempts = min(len(pool), operation_attempt_cap)
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
+    # HRN relational prose needs a complete answer and a distinct question, not a
+    # thousand-token draft. Bound these visitor-facing stages so multiple semantic
+    # stages can finish inside one WordPress turn; keep perception's richer schema uncapped.
+    if operation in {"hrn_relational", "hrn_voice_repair"}:
+        requested_max_tokens = min(requested_max_tokens, 600)
     for attempt_index, item in enumerate(pool[:max_attempts], start=1):
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
         effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
