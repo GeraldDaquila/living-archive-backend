@@ -524,7 +524,7 @@ def test_hrn_contract_rejects_truncated_response():
         raise AssertionError("incomplete HRN response should be rejected")
 
     complete = {
-        "response": "This is a complete observation. The thought has landed.",
+        "response": "This is a complete observation about the distance you described, while the other person's intention remains uncertain. The distinction lets the account stay with what happened without turning it into a judgment about either person.",
         "question": "What stands out to you?",
     }
     normalized = provider_bank._normalize_operation_result("hrn_relational", complete)
