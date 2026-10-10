@@ -932,6 +932,25 @@ def select(use_core, operation="generic", schema=None):
         _STATE["model_cursors"][provider] = cursor + 1
         lanes.append(models)
 
+    # HRN's two-attempt ceiling makes provider-lane order operationally
+    # significant. Rank eligible lanes by observed health and operation-specific
+    # contract history before using operator order as a tie-breaker. This keeps
+    # a stale configured priority from starving a healthier, better-performing
+    # independent provider while preserving deterministic arbitration.
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        configured_priority = {name: index for index, name in enumerate(providers)}
+        def _hrn_lane_priority(lane):
+            best = lane[0] if lane else {}
+            health_rank = 0 if any(item.get("health_state") == "healthy" for item in lane) else 1
+            quality_rank = min((int(item.get("quality_failures", 0) or 0) for item in lane), default=10**9)
+            consecutive_rank = min((int(item.get("consecutive_failures", 0) or 0) for item in lane), default=10**9)
+            transport_rank = min((int(item.get("transport_failures", 0) or 0) for item in lane), default=10**9)
+            recent_success_rank = -max((float(item.get("last_success", 0) or 0) for item in lane), default=0.0)
+            provider = str(best.get("provider") or "")
+            return (health_rank, quality_rank, consecutive_rank, transport_rank,
+                    recent_success_rank, configured_priority.get(provider, len(configured_priority)))
+        lanes.sort(key=_hrn_lane_priority)
+
     # A bounded HRN stage must have a genuinely independent fallback. Flattening
     # provider lanes lets two models from one provider consume both attempts,
     # defeating cross-provider recovery. Interleave HRN candidates by lane:
