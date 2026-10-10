@@ -298,6 +298,24 @@ def test_hrn_provider_gate_matches_frozen_humanity_templates():
 
 
 
+def test_hrn_rejects_unsupported_causal_reassurance():
+    parsed = {
+        "response": (
+            "When the goal is simply to let the other person know they are on your mind, "
+            "the pressure to manage their response drops away. This shift matters because "
+            "it changes the interaction from a test of their availability to a simple "
+            "offering of care, which often feels safer for both parties."
+        ),
+        "question": "What matters most about this situation to you?",
+    }
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "visitor-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("unsupported causal reassurance must be rejected")
+
+
 def test_hrn_composition_rejects_abstract_indirect_advice():
     parsed = {
         "response": "Seeing that shift as a change in interpretation rather than intent lets you pause before reacting and opens the possibility of choosing a stance that feels more grounded.",
@@ -355,8 +373,8 @@ def test_hrn_composition_rejects_advice_shaped_language():
 
 def test_main_version_header_matches_release_identity():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert source.startswith("# USE PRODUCTION VERSION: v489.54 —")
-    assert 'APP_VERSION = "v489.54"' in source
+    assert source.startswith("# USE PRODUCTION VERSION: v489.55 —")
+    assert 'APP_VERSION = "v489.55"' in source
 
 
 
