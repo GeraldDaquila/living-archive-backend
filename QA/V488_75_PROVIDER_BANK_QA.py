@@ -134,6 +134,33 @@ def main():
         assert recent[0]["model"] == "qwen/qwen3.8-27b", "HRN should prefer the model that most recently succeeded"
         assert recent[1]["provider"] == "gemini", "Independent provider fallback remains second"
 
+    # Health-aware HRN arbitration: a currently healthy model with prior
+    # successful contract completions must outrank half-open models whose
+    # transport history is stale, even if those models have fewer quality rejections.
+    with (
+        patch.dict(os.environ, {"USE_LLM_PROVIDER_ORDER": "workers_ai,groq,gemini,mistral"}, clear=False),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "candidates", return_value=[
+            {"provider": "workers_ai", "model": "@cf/google/gemma-4-26b-a4b-it", "index": 0,
+             "health_state": "healthy", "quality_failures": 2, "transport_failures": 0,
+             "consecutive_failures": 0, "last_success": 80.0},
+            {"provider": "workers_ai", "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast", "index": 1,
+             "health_state": "open", "quality_failures": 0, "transport_failures": 3,
+             "consecutive_failures": 2, "last_success": 0.0},
+            {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0,
+             "health_state": "healthy", "quality_failures": 0, "transport_failures": 0,
+             "consecutive_failures": 0, "last_success": 90.0},
+        ]),
+    ):
+        health_selected = provider_bank.select(None, operation="hrn_relational")
+        assert health_selected[0]["provider"] == "workers_ai"
+        assert health_selected[0]["model"] == "@cf/google/gemma-4-26b-a4b-it", (
+            "Healthy, previously successful model must outrank half-open transport failures"
+        )
+        assert health_selected[1]["provider"] == "groq", (
+            "Bounded HRN fallback must remain an independent provider"
+        )
+
     # Invalid JSON from a provider must be recorded as a transient provider
     # health failure, not upgraded to a permanent structured-output quarantine.
     valid_hrn = json.dumps({
