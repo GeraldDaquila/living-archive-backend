@@ -48,6 +48,8 @@ def main():
             "no-fit outcome must remain available instead of forcing an unrelated gift")
     require("def _canonical_primary_from_docs" in SOURCE,
             "canonical evidence-ranked selection function is missing")
+    require('re.split(r"(?<=[.!?])\\s+", completed)' in BANK,
+            "Provider Bank sentence counter must split on whitespace correctly")
     require("response shape requires at least two complete sentences and 180 characters" in BANK,
             "Provider Bank does not enforce HRN's downstream response-shape floor")
     require("The response must contain at least two complete sentences and 180 characters." in BANK,
