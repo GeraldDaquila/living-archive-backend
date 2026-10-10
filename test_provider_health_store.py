@@ -51,13 +51,13 @@ class ProviderHealthStoreTests(unittest.TestCase):
         state = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
         with patch.object(provider_bank, "_STATE", state), patch.object(provider_bank, "_persist_shared_state"), patch("provider_bank.time.time", side_effect=[100.0, 101.0]):
             provider_bank._record_quality_rejection("test", "model", "hrn_relational", "prescriptive-language")
-            provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
+            provider_bank._record_quality_rejection("test", "model", "hrn_relational", "prescriptive-language")
         model_state = state["quality"]["quality:hrn_relational:test:model"]
         self.assertEqual(model_state["quality_failures"], 2)
         self.assertEqual(model_state["quality_cooldown_until"], 401.0)
 
     def test_quality_cooldown_excludes_candidate(self):
-        state = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+        state = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
         blocked_model = provider_bank.new_state("groq", "model-a")
         blocked_model["quality_failures"] = 2
         blocked_model["quality_cooldown_until"] = provider_bank.time.time() + 300
