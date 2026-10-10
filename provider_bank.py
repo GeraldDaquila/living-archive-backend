@@ -940,15 +940,22 @@ def select(use_core, operation="generic", schema=None):
     if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
         configured_priority = {name: index for index, name in enumerate(providers)}
         def _hrn_lane_priority(lane):
+            # Each lane has already sorted its own models by health and quality;
+            # use that first eligible model as the lane's evidence. Do not let a
+            # weak sibling's stale counters make an otherwise healthy lane look
+            # better, or let another provider's recent success override a
+            # configured tie-break between equally healthy independent lanes.
             best = lane[0] if lane else {}
-            health_rank = 0 if any(item.get("health_state") == "healthy" for item in lane) else 1
-            quality_rank = min((int(item.get("quality_failures", 0) or 0) for item in lane), default=10**9)
-            consecutive_rank = min((int(item.get("consecutive_failures", 0) or 0) for item in lane), default=10**9)
-            transport_rank = min((int(item.get("transport_failures", 0) or 0) for item in lane), default=10**9)
-            recent_success_rank = -max((float(item.get("last_success", 0) or 0) for item in lane), default=0.0)
+            health_rank = 0 if best.get("health_state") == "healthy" else 1
             provider = str(best.get("provider") or "")
-            return (health_rank, quality_rank, consecutive_rank, transport_rank,
-                    recent_success_rank, configured_priority.get(provider, len(configured_priority)))
+            return (
+                health_rank,
+                configured_priority.get(provider, len(configured_priority)),
+                int(best.get("quality_failures", 0) or 0),
+                int(best.get("consecutive_failures", 0) or 0),
+                int(best.get("transport_failures", 0) or 0),
+                -float(best.get("last_success", 0) or 0),
+            )
         lanes.sort(key=_hrn_lane_priority)
 
     # A bounded HRN stage must have a genuinely independent fallback. Flattening
