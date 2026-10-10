@@ -45,6 +45,11 @@ def main():
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts" in provider
     assert "max_attempts = min(len(pool), operation_attempt_cap)" in provider
+    # Bound latency-heavy visitor-facing prose stages without truncating the
+    # richer perception/Observer schema needed to form the relational fractal.
+    assert '"hrn_relational": 600' in provider
+    assert 'requested_max_tokens = min(requested_max_tokens, 600)' in provider
+    assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
 
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
