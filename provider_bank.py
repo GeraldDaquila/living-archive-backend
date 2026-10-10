@@ -638,7 +638,7 @@ def _workers_url(account, model):
     return "https://api.cloudflare.com/client/v4/accounts/" + account_path + "/ai/run/" + model_path
 
 
-def _workers(key, account, model, messages, max_tokens, schema=None):
+def _workers(key, account, model, messages, max_tokens, schema=None, timeout=12):
     payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
                "options": {"rejectIfBusy": True}}
     if _text_mode(schema):
@@ -648,7 +648,7 @@ def _workers(key, account, model, messages, max_tokens, schema=None):
     if model == "@cf/google/gemma-4-26b-a4b-it":
         payload["chat_template_kwargs"] = {"enable_thinking": False}
     url = _workers_url(account, model)
-    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=12)
+    data = _http_json(url, {"Authorization": "Bearer " + key}, payload, "workers_ai", model, timeout=timeout)
     result = data.get("result") if isinstance(data, dict) else None
     text = _workers_extract_text(result)
     if not text:
@@ -1040,7 +1040,7 @@ def _normalize_operation_result(operation, parsed):
             parsed["resource_intro"] = ""
     return parsed
 
-def _call(use_core, item, messages, max_tokens, schema=None):
+def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
     provider, model = item["provider"], item["model"]
     if provider == "openrouter":
         key = os.getenv("OPENROUTER_API_KEY")
@@ -1064,7 +1064,7 @@ def _call(use_core, item, messages, max_tokens, schema=None):
     if provider == "workers_ai":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
-        return _workers(token, account, model, messages, max_tokens, schema)
+        return _workers(token, account, model, messages, max_tokens, schema, timeout=timeout_override or 12)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
@@ -1124,7 +1124,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema)
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=8 if operation in hrn_operations else None)
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -1178,7 +1178,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "genuinely different, open question. Do not restate the same insight in new words."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema))
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=8 if operation in hrn_operations else None))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered)
