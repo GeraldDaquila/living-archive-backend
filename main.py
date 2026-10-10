@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.63 — Durable shared provider health state
+# USE PRODUCTION VERSION: v489.63 — Operation-scoped adaptive provider quality
 import asyncio
 import hashlib
 import ipaddress
