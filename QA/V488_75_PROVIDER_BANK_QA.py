@@ -62,7 +62,7 @@ def main():
     # A configured OpenRouter lane must be selected before the other providers.
     # This protects it from being starved by the bank's bounded attempt window.
     with (
-        patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "USE_LLM_PROVIDER_ORDER": ""}, clear=False),
+        patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "USE_LLM_PROVIDER_ORDER": "groq,gemini,mistral,workers_ai"}, clear=False),
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
         patch.object(provider_bank, "candidates", return_value=[
             {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0},
