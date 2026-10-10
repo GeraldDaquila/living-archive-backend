@@ -33,6 +33,9 @@ MODEL_CAPABILITIES = {
     # exhaustion, so the bank controls its reasoning mode and budget rather
     # than excluding the model from the composition capability class.
     ("groq", "qwen/qwen3.8-27b"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    # OpenRouter free router dynamically selects a currently available free model;
+    # eligibility is based on router-level capabilities, not a fixed underlying model.
+    ("openrouter", "openrouter/free"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
@@ -368,6 +371,10 @@ def _configured(use_core):
         live_groq = []
     live_set = {str(x).strip() for x in (live_groq or []) if str(x).strip()}
     out["groq"] = [model for model in PRODUCTION_GROQ_MODELS if model in live_set]
+    # Optional zero-cost fallback lane. It is dormant unless a key is configured;
+    # OpenRouter routes openrouter/free across currently available free models.
+    if os.getenv("OPENROUTER_API_KEY"):
+        out["openrouter"] = _csv("USE_OPENROUTER_MODELS") or ["openrouter/free"]
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY"):
         out["gemini"] = _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"]
     if os.getenv("MISTRAL_API_KEY"):
@@ -698,6 +705,11 @@ def _normalize_operation_result(operation, parsed):
 
 def _call(use_core, item, messages, max_tokens, schema=None):
     provider, model = item["provider"], item["model"]
+    if provider == "openrouter":
+        key = os.getenv("OPENROUTER_API_KEY")
+        if not key:
+            raise ProviderCallError("OpenRouter API key unavailable", provider, model, category="unavailable")
+        return _openai_compatible("https://openrouter.ai/api/v1", key, provider, model, messages, max_tokens, schema)
     if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema)
     if provider == "gemini":
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY")
