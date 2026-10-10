@@ -393,7 +393,11 @@ def _record_quality_rejection(provider, model, operation, reason):
     state["quality_failures"] = int(state.get("quality_failures", 0) or 0) + 1
     state["last_quality_failure"] = now
     state["quality_error"] = str(reason or "contract_rejection")[:300]
-    if state["quality_failures"] >= 2:
+    # A visitor-facing contract rejection is already decisive evidence that this
+    # operation/model pairing is unsuitable. Cool it down on the first rejection
+    # so each new visitor turn does not repeatedly spend its bounded fallback slot
+    # on the same known-bad voice. A later successful, validated result clears it.
+    if state["quality_failures"] >= 1:
         state["quality_cooldown_until"] = max(
             float(state.get("quality_cooldown_until", 0) or 0),
             now + 300.0,
