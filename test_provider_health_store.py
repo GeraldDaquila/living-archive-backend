@@ -99,7 +99,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
     def test_cloudflare_credentials_trim_whitespace(self):
         with patch.dict("os.environ", {
-            "CLOUDFLARE_API_TOKEN": "  token-value\\n",
+            "CLOUDFLARE_API_TOKEN": "  token-value\n",
             "CLOUDFLARE_ACCOUNT_ID": " account-id ",
         }, clear=False):
             token, account = provider_bank._cloudflare_credentials()
