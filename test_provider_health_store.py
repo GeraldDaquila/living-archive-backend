@@ -52,7 +52,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
         with patch.object(provider_bank, "_STATE", state), patch.object(provider_bank, "_persist_shared_state"), patch("provider_bank.time.time", side_effect=[100.0, 101.0]):
             provider_bank._record_quality_rejection("test", "model", "hrn_relational", "prescriptive-language")
             provider_bank._record_quality_rejection("test", "model", "prescriptive-language")
-        model_state = state["models"]["test:model"]
+        model_state = state["quality"]["quality:hrn_relational:test:model"]
         self.assertEqual(model_state["quality_failures"], 2)
         self.assertEqual(model_state["quality_cooldown_until"], 401.0)
 
