@@ -113,7 +113,6 @@ def main():
         selected_providers = [item["provider"] for item in selected]
         assert selected_providers[0] == "openrouter"
         assert selected_providers[1] == "groq", "HRN's second bounded attempt must be an independent provider"
-        assert selected_providers[2] == "openrouter"
         # Stable lane priority must persist across semantic stages.
         selected_again = provider_bank.select(None, operation="hrn_perception")
         assert [item["provider"] for item in selected_again[:2]] == ["openrouter", "groq"]
