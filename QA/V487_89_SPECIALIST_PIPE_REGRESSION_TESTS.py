@@ -199,7 +199,7 @@ def test_hrn_rejects_abstract_causal_relationship_theory():
 def test_hrn_rejects_unsupported_motive_attribution():
     parsed = {
         "response": "There is a difference between wanting to reach out and needing the other person to confirm your worth.",
-        "question": "What feels different when you hold those two sides together?",
+        "question": "What matters most to you here?",
     }
     try:
         provider_bank._normalize_operation_result("hrn_relational", parsed)
