@@ -51,7 +51,11 @@ def main():
     assert '"openrouter/free"' in provider
     with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "USE_OPENROUTER_MODELS": ""}, clear=False):
         configured = provider_bank._configured(None)
-        assert configured.get("openrouter") == ["openrouter/free"]
+        assert configured.get("openrouter") == [
+            "openrouter/free",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "google/gemma-4-31b-it:free",
+        ]
         eligible, missing = provider_bank._eligible("openrouter", "openrouter/free", "hrn_relational")
         assert eligible, f"OpenRouter free router lacks HRN capability: {missing}"
 
