@@ -405,7 +405,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
     })
     corrected = json.dumps({
         "response": "This is a complete and grounded observation.",
-        "question": "What feels different when you consider that?",
+        "question": "What matters most about this situation to you?",
     })
     pool = [{"provider": "groq", "model": "qwen-test", "index": 0}]
 
