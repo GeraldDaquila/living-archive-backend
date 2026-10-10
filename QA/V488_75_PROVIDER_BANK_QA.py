@@ -153,6 +153,15 @@ def main():
     assert state["state"] == pr.HEALTHY
     assert state["consecutive_failures"] == 0
 
+    # P0 durable shared-state regression suite is part of the existing release gate.
+    import unittest
+    import test_provider_health_store
+    store_source = _source("provider_health_store.py")
+    ast.parse(store_source, filename="provider_health_store.py")
+    suite = unittest.defaultTestLoader.loadTestsFromModule(test_provider_health_store)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    assert result.wasSuccessful(), "shared provider health-state tests failed"
+
     print("v488.77 provider-resilience structural and behavioral QA: PASS")
 
 if __name__ == "__main__":
