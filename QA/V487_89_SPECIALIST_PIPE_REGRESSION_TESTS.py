@@ -520,6 +520,90 @@ def test_current_main_contains_domain_payload_consumption_guards():
     assert "Correct the output now." in provider_bank_source
 
 
+def test_model_scoped_daily_tpd_does_not_quarantine_provider_siblings():
+    model = "openai/gpt-oss-20b"
+    sibling = "openai/gpt-oss-120b"
+    states = {
+        "groq:" + model: {"state": "healthy", "category": None, "quarantine_until": 0.0},
+        "groq:" + sibling: {"state": "healthy", "category": None, "quarantine_until": 0.0},
+    }
+
+    def get_state(provider, selected_model):
+        return states.setdefault(
+            provider + ":" + selected_model,
+            {"state": "healthy", "category": None, "quarantine_until": 0.0},
+        )
+
+    def record_failure(state, category, text, retry_after=None):
+        state["state"] = "open"
+        state["category"] = category
+        return retry_after or 60.0
+
+    message = (
+        "Rate limit reached for model `openai/gpt-oss-20b` in organization `org` "
+        "on tokens per day (TPD): Limit 200000, Used 198653, Requested 2295. "
+        "Please try again in 6m49.536s."
+    )
+    error = provider_bank.ProviderCallError(
+        message, "groq", model, 429, None, "http_error"
+    )
+    with (
+        patch.object(provider_bank, "_STATE", {"models": states, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "_state", side_effect=get_state),
+        patch.object(provider_bank, "record_failure", side_effect=record_failure),
+        patch("builtins.print") as printed,
+    ):
+        provider_bank._failure(error, "groq", model)
+
+    assert states["groq:" + model]["category"] == "rate_limited"
+    assert states["groq:" + sibling]["state"] == "healthy"
+    assert states["groq:" + sibling]["category"] is None
+    assert any(
+        "category=rate_limited" in str(call.args[0]) and "provider_wide=false" in str(call.args[0])
+        for call in printed.call_args_list
+    )
+
+
+def test_account_wide_quota_still_quarantines_provider_siblings():
+    model = "openai/gpt-oss-20b"
+    sibling = "openai/gpt-oss-120b"
+    states = {
+        "groq:" + model: {"state": "healthy", "category": None, "quarantine_until": 0.0},
+        "groq:" + sibling: {"state": "healthy", "category": None, "quarantine_until": 0.0},
+    }
+
+    def get_state(provider, selected_model):
+        return states.setdefault(
+            provider + ":" + selected_model,
+            {"state": "healthy", "category": None, "quarantine_until": 0.0},
+        )
+
+    def record_failure(state, category, text, retry_after=None):
+        state["state"] = "open"
+        state["category"] = category
+        return retry_after or 1800.0
+
+    error = provider_bank.ProviderCallError(
+        "You exceeded your current quota; please check your plan and billing details.",
+        "groq", model, 429, None, "http_error"
+    )
+    with (
+        patch.object(provider_bank, "_STATE", {"models": states, "provider_cursor": 0, "model_cursors": {}}),
+        patch.object(provider_bank, "_state", side_effect=get_state),
+        patch.object(provider_bank, "record_failure", side_effect=record_failure),
+        patch("builtins.print") as printed,
+    ):
+        provider_bank._failure(error, "groq", model)
+
+    assert states["groq:" + model]["category"] == "quota_or_billing"
+    assert states["groq:" + sibling]["state"] == "open"
+    assert states["groq:" + sibling]["category"] == "quota_or_billing"
+    assert any(
+        "category=quota_or_billing" in str(call.args[0]) and "provider_wide=true" in str(call.args[0])
+        for call in printed.call_args_list
+    )
+
+
 if __name__ == "__main__":
     test_domain_payload_survives_common_pipe()
     test_relationship_adapter_retries_transient_503()
@@ -546,4 +630,6 @@ if __name__ == "__main__":
     test_hrn_composition_rejects_formulaic_connective_and_inferred_state()
     test_main_version_header_matches_release_identity()
     test_current_main_contains_domain_payload_consumption_guards()
+    test_model_scoped_daily_tpd_does_not_quarantine_provider_siblings()
+    test_account_wide_quota_still_quarantines_provider_siblings()
     print("current specialist-pipe regression probes: PASS")
