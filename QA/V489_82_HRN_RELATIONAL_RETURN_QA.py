@@ -18,7 +18,7 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.83 — Focused HRN relational doorway selection"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.83 — HRN response-shape contract"),
             "production version header drift")
     require('APP_VERSION = "v489.83"' in SOURCE, "APP_VERSION did not advance sequentially")
     require('if str(APP_VERSION) != "v489.83":' in SOURCE, "runtime version invariant drift")
