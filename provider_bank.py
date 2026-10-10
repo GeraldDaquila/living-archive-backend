@@ -493,6 +493,12 @@ def select(use_core, operation="generic", schema=None):
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
     configured = _csv("USE_LLM_PROVIDER_ORDER")
+    # OpenRouter is the preferred free lane when explicitly configured. Keep
+    # provider-order overrides authoritative, but do not leave OpenRouter behind
+    # every Groq/Gemini/Mistral candidate by default: the bounded attempt window
+    # could otherwise exhaust before OpenRouter is ever reached.
+    if not configured and "openrouter" in grouped:
+        configured = ["openrouter", "groq", "gemini", "mistral", "workers_ai", "cloudflare_gateway"]
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
     providers = _rotate(providers, int(_STATE["provider_cursor"]))
     _STATE["provider_cursor"] += 1
