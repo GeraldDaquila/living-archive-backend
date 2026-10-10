@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from provider_health_store import export_health_states, merge_health_state, save_remote_states
 
@@ -23,11 +24,11 @@ class ProviderHealthStoreTests(unittest.TestCase):
     def test_export_never_persists_probe_ownership(self):
         states = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "half_open", "probe_in_flight": True, "last_failure": 10}}
         exported = export_health_states(states)
-        self.assertFalse(exported["groq:model-a"]["probe_in_flight"])
         self.assertNotIn("probe_in_flight", exported["groq:model-a"])
 
     def test_missing_credentials_fails_closed_without_network(self):
-        self.assertFalse(save_remote_states({}))
+        with patch("provider_health_store._configuration", return_value=("", "")):
+            self.assertFalse(save_remote_states({}))
 
 
 if __name__ == "__main__":
