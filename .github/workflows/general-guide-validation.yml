@@ -8,6 +8,7 @@ on:
       - "provider_bank.py"
       - "general_guide_composition.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - "QA/V489_82_HRN_RELATIONAL_RETURN_QA.py"
       - ".github/workflows/general-guide-validation.yml"
   pull_request:
     paths:
@@ -27,3 +28,5 @@ jobs:
           python-version: "3.11"
       - name: Run provider-neutral General Guide QA
         run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
+      - name: Run bounded HRN relational-return QA
+        run: python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py

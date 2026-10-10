@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.81 — Bounded HRN hedge normalization
+# USE PRODUCTION VERSION: v489.82 — Focused HRN relational doorway selection
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.81"
-DEPLOYMENT_FINGERPRINT = "USE-v489.81-bounded-hrn-hedge-normalization"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.81-bounded-hrn-hedge-normalization"
+APP_VERSION = "v489.82"
+DEPLOYMENT_FINGERPRINT = "USE-v489.82-focused-hrn-relational-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.82-focused-hrn-relational-doorway"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.81":
+if str(APP_VERSION) != "v489.82":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1326,9 +1326,19 @@ async def _v48755_relational_return(request: Request):
         primary = _canonical_primary_from_docs(outward, doorway_query, profile)
 
         if not primary:
-            # Bounded fallback: widen to the full journey only if the focused
-            # earned-perspective query produces no eligible canonical doorway.
-            fallback_query = synthesis_query
+            # A second bounded attempt may use only the earned perspective.
+            # Never reintroduce the full transcript/ledger here: if neither focused
+            # query supports a canonical resource, return no doorway rather than a
+            # plausible-looking but unrelated gift.
+            fallback_query = " ".join(
+                value for value in (
+                    journey_synthesis,
+                    completed_insight,
+                    perspective_delta,
+                    resource_fit,
+                    next_horizon,
+                ) if value
+            )[:6000]
             fallback_data = _original_fetch_canonical_context(fallback_query)
             fallback_context = str(
                 fallback_data.get("canonical_link_context")
