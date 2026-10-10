@@ -120,7 +120,8 @@ def _sync_shared_state():
             provider = str(incoming.get("provider") or "")
             model = str(incoming.get("model") or "")
             operation = str(incoming.get("operation") or "")
-            local = _STATE["quality"].get(key)
+            quality_states = _STATE.setdefault("quality", {})
+            local = quality_states.get(key)
             if local is None:
                 local = {
                     "provider": provider,
@@ -132,7 +133,7 @@ def _sync_shared_state():
                     "quality_cooldown_until": 0.0,
                     "quality_error": "",
                 }
-                _STATE["quality"][key] = local
+                quality_states[key] = local
             merge_health_state(local, incoming, now=now)
             continue
         provider = str(incoming.get("provider") or key.split(":", 1)[0])
@@ -154,7 +155,7 @@ def _persist_shared_state():
     """Persist the bounded health snapshot; failure never fabricates a provider answer."""
     global _LAST_SHARED_STATE_WARNING
     combined_state = dict(_STATE["models"])
-    combined_state.update(_STATE["quality"])
+    combined_state.update(_STATE.setdefault("quality", {}))
     ok = save_remote_states(export_health_states(combined_state))
     if ok:
         _SHARED_STATE_DIAGNOSTICS.update({
@@ -196,11 +197,12 @@ def _quality_key(operation, provider, model):
 
 def _quality_state(operation, provider, model, create=False):
     key = _quality_key(operation, provider, model)
-    if key in _STATE["quality"]:
-        return _STATE["quality"][key]
+    quality_states = _STATE.setdefault("quality", {})
+    if key in quality_states:
+        return quality_states[key]
     if not create:
         return {}
-    return _STATE["quality"].setdefault(key, {
+    return quality_states.setdefault(key, {
         "provider": provider,
         "model": model,
         "operation": str(operation),
@@ -1131,7 +1133,7 @@ def snapshot(use_core):
                 "cooldown_until": float(value.get("quality_cooldown_until", 0) or 0),
                 "last_error": str(value.get("quality_error", "") or ""),
             }
-            for key, value in _STATE["quality"].items()
+            for key, value in _STATE.setdefault("quality", {}).items()
         },
         "candidates": [
             {
