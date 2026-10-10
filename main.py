@@ -1295,19 +1295,9 @@ async def _v48755_relational_return(request: Request):
     synthesis_query = synthesis_query[:18000]
 
     try:
-        context_data = _original_fetch_canonical_context(synthesis_query)
-        canonical_context = str(
-            context_data.get("canonical_link_context")
-            or context_data.get("context_blocks")
-            or ""
-        ) if isinstance(context_data, dict) else ""
-        docs = _parse_context_documents(canonical_context)
-
-        # The final doorway is still a Guide responsibility. The completed
-        # perspective, not the visitor's opening wording alone, governs the gift.
         # Select the doorway from the earned relational perspective first. The full
-        # transcript/ledger query is useful evidence, but it can dilute the visitor’s
-        # actual movement with incidental themes and should only be a bounded retry.
+        # transcript/ledger query is useful evidence, but it can dilute the visitor's
+        # actual movement with incidental themes. Keep the first retrieval focused.
         doorway_query = " ".join(
             value for value in (
                 journey_synthesis,
@@ -1319,6 +1309,16 @@ async def _v48755_relational_return(request: Request):
                 original_question,
             ) if value
         )[:10000]
+        context_data = _original_fetch_canonical_context(doorway_query)
+        canonical_context = str(
+            context_data.get("canonical_link_context")
+            or context_data.get("context_blocks")
+            or ""
+        ) if isinstance(context_data, dict) else ""
+        docs = _parse_context_documents(canonical_context)
+
+        # The final doorway remains a Guide responsibility. The completed
+        # perspective, not the visitor's opening wording alone, governs the gift.
         profile = _base._inquiry_profile(doorway_query)
         profile["action"] = "recommendation"
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
