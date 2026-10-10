@@ -56,6 +56,19 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(model_state["quality_failures"], 2)
         self.assertEqual(model_state["quality_cooldown_until"], 401.0)
 
+    def test_quality_cooldown_excludes_candidate(self):
+        state = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+        blocked_model = provider_bank.new_state("groq", "model-a")
+        blocked_model["quality_failures"] = 2
+        blocked_model["quality_cooldown_until"] = provider_bank.time.time() + 300
+        state["models"]["groq:model-a"] = blocked_model
+        with patch.object(provider_bank, "_STATE", state), \
+             patch.object(provider_bank, "_configured", return_value={"groq": ["model-a", "model-b"]}), \
+             patch.object(provider_bank, "_eligible", return_value=(True, [])), \
+             patch.object(provider_bank, "_capabilities", return_value=frozenset({"json_object"})):
+            candidates = provider_bank.candidates(None, operation="generic")
+        self.assertEqual([item["model"] for item in candidates], ["model-b"])
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))
