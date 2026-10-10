@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 import ast
 import json
+import time
 import os
 import re
 import provider_bank
@@ -106,6 +107,29 @@ def main():
     assert failed_state["category"] == "invalid_provider_response"
     assert failed_state["quarantine_until"] == 0.0
     assert failed_state["cooldown_until"] > 0.0
+
+    # OpenRouter's free daily allowance is shared across model IDs. A 429
+    # for free-models-per-day must quarantine the whole OpenRouter lane until
+    # the provider-supplied reset timestamp, rather than retrying siblings.
+    reset_ms = int((time.time() + 7200) * 1000)
+    with patch.object(provider_bank, "_STATE", {"models": {
+        "openrouter:openrouter/free": provider_bank.new_state("openrouter", "openrouter/free"),
+        "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free": provider_bank.new_state(
+            "openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"
+        ),
+    }, "provider_cursor": 0, "model_cursors": {}}):
+        daily_quota_error = provider_bank.ProviderCallError(
+            "HTTP 429: Rate limit exceeded: free-models-per-day. "
+            + '"X-RateLimit-Reset":"' + str(reset_ms) + '"',
+            "openrouter", "openrouter/free", status_code=429,
+        )
+        provider_bank._failure(daily_quota_error, "openrouter", "openrouter/free")
+        router_state = provider_bank._STATE["models"]["openrouter:openrouter/free"]
+        sibling_state = provider_bank._STATE["models"]["openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"]
+    assert router_state["category"] == "free_tier_daily_quota"
+    assert sibling_state["category"] == "free_tier_daily_quota"
+    assert router_state["quarantine_until"] > time.time() + 7100
+    assert sibling_state["quarantine_until"] > time.time() + 7100
 
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', main_source)
     assert version_match, "APP_VERSION missing"
