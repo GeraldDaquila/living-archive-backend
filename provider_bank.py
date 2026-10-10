@@ -751,6 +751,11 @@ def candidates(use_core, operation="generic", schema=None):
                 "model": model,
                 "index": index,
                 "quality_failures": int(quality.get("quality_failures", 0) or 0),
+                # Recent success is cross-operation evidence that a model is
+                # currently usable. HRN perception and composition share one
+                # visitor turn, so a model that just succeeded in perception
+                # should outrank a sibling model with stale quota health.
+                "last_success": float(health.get("last_success", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
@@ -790,7 +795,16 @@ def select(use_core, operation="generic", schema=None):
         models = _rotate(models, cursor)
         # Keep configured provider priority, but prefer models with better
         # visitor-contract history within each provider lane.
-        models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
+        if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+            # Keep HRN's most recently proven model first within each provider
+            # lane. A model can succeed at perception, then the next stage must
+            # not rotate to a sibling that has exhausted its model-scoped quota.
+            models.sort(key=lambda item: (
+                int(item.get("quality_failures", 0) or 0),
+                -float(item.get("last_success", 0) or 0),
+            ))
+        else:
+            models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
         lanes.append(models)
 
