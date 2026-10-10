@@ -414,7 +414,7 @@ def _hrn_surface_language_violation(response):
         return "formulaic-abstract-question"
     if text.startswith("what does that reveal about the relationship that was harder to see before"):
         return "formulaic-abstract-question"
-    if re.search(r"\bwhat feels different when you hold (?:those|both|the two) sides together\b", text):
+    if "what feels different when you hold those two sides together" in text:
         return "formulaic-abstract-question"
     forbidden = (
         "the brief identifies",
