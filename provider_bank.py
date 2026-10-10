@@ -13,6 +13,12 @@ from provider_resilience import (
     record_success,
     state_summary,
 )
+from provider_health_store import (
+    export_health_states,
+    load_remote_states,
+    merge_health_state,
+    save_remote_states,
+)
 
 CONTRACT_VERSION = "v2"
 
@@ -87,6 +93,64 @@ OPERATION_REQUIREMENTS = {
 }
 
 _STATE = {"models": {}, "provider_cursor": 0, "model_cursors": {}}
+_SHARED_STATE_DIAGNOSTICS = {
+    "mode": "shared_wordpress_database",
+    "available": None,
+    "last_sync": 0.0,
+    "last_persist": 0.0,
+    "last_error": "",
+}
+_LAST_SHARED_STATE_WARNING = 0.0
+
+
+def _sync_shared_state():
+    """Merge durable cross-service health state before choosing provider lanes."""
+    global _LAST_SHARED_STATE_WARNING
+    remote = load_remote_states()
+    if remote is None:
+        _SHARED_STATE_DIAGNOSTICS["available"] = False
+        _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
+        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health store unavailable or not configured"
+        return
+    now = time.time()
+    for key, incoming in remote.items():
+        if not isinstance(incoming, dict):
+            continue
+        provider = str(incoming.get("provider") or key.split(":", 1)[0])
+        model = str(incoming.get("model") or key.split(":", 1)[-1])
+        local = _STATE["models"].get(key)
+        if local is None:
+            local = new_state(provider, model)
+            _STATE["models"][key] = local
+        merge_health_state(local, incoming, now=now)
+    _SHARED_STATE_DIAGNOSTICS.update({
+        "mode": "shared_wordpress_database",
+        "available": True,
+        "last_sync": now,
+        "last_error": "",
+    })
+
+
+def _persist_shared_state():
+    """Persist the bounded health snapshot; failure never fabricates a provider answer."""
+    global _LAST_SHARED_STATE_WARNING
+    ok = save_remote_states(export_health_states(_STATE["models"]))
+    if ok:
+        _SHARED_STATE_DIAGNOSTICS.update({
+            "mode": "shared_wordpress_database",
+            "available": True,
+            "last_persist": time.time(),
+            "last_error": "",
+        })
+        return True
+    _SHARED_STATE_DIAGNOSTICS["available"] = False
+    _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
+    _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
+    now = time.time()
+    if now - _LAST_SHARED_STATE_WARNING >= 60:
+        print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
+        _LAST_SHARED_STATE_WARNING = now
+    return False
 
 class ProviderCallError(RuntimeError):
     def __init__(self, message, provider, model, status_code=None, retry_after=None, category="provider_failure"):
@@ -233,6 +297,7 @@ def _failure(exc, provider, model):
         f"provider={provider}, model={model}, state=open, category={category}, "
         f"cooldown_seconds={int(delay)}, provider_wide={str(provider_wide).lower()}"
     )
+    _persist_shared_state()
 
 def _success(provider, model):
     state = _state(provider, model)
@@ -243,6 +308,7 @@ def _success(provider, model):
             "USE provider resilience: "
             f"provider={provider}, model={model}, recovery_probe=success, state=healthy"
         )
+    _persist_shared_state()
 
 def _http_json(url, headers, payload, provider, model):
     req = urllib.request.Request(
@@ -814,6 +880,7 @@ def _call(use_core, item, messages, max_tokens, schema=None):
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
+    _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
     # explicitly request one; otherwise the bank uses JSON-object mode.
     effective_schema = schema if isinstance(schema, dict) else None
@@ -952,6 +1019,7 @@ def snapshot(use_core):
         "contract_version": CONTRACT_VERSION,
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_and_provider_health_aware_self_healing",
+        "shared_health_state": dict(_SHARED_STATE_DIAGNOSTICS),
         "capability_policy_version": "1.6",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
