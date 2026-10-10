@@ -737,6 +737,18 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             )
         provider, model = item["provider"], item["model"]
         state = _state(provider, model)
+        # The candidate pool is a snapshot created before this attempt loop.
+        # A preceding candidate can open a provider-wide circuit after the pool
+        # was built (for example, daily quota exhaustion). Re-check current state
+        # immediately before every call so stale sibling candidates are not sent
+        # to an account that has just been quarantined.
+        if _blocked(state):
+            print(
+                "USE model bank skip newly blocked candidate: "
+                f"provider={provider}, model={model}, "
+                f"category={state.get('category') or 'unknown'}"
+            )
+            continue
         if not acquire_probe(state):
             continue
         try:
