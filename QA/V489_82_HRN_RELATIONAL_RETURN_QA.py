@@ -18,13 +18,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.83 — HRN response-shape contract"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.84 — adaptive HRN provider-lane arbitration"),
             "production version header drift")
-    require('APP_VERSION = "v489.83"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.83":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.83-hrn-response-shape-contract"' in SOURCE,
+    require('APP_VERSION = "v489.84"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.84":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.84-adaptive-hrn-provider-lane-arbitration"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.83-hrn-response-shape-contract"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.84-adaptive-hrn-provider-lane-arbitration"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -54,7 +54,9 @@ def main():
             "Provider Bank does not enforce HRN's downstream response-shape floor")
     require("The response must contain at least two complete sentences and 180 characters." in BANK,
             "Provider Bank recovery prompt does not explain the response-shape failure")
-    print("V489.83 HRN RELATIONAL RETURN QA: PASS")
+    require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
+    require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
+    print("V489.84 HRN RELATIONAL RETURN QA: PASS")
     print("focused_first_retrieval=True")
     print("bounded_earned_perspective_fallback=True")
     print("unrelated_doorway_forcing=absent")
