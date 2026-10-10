@@ -214,8 +214,12 @@ def test_hrn_rejects_same_plane_formulaic_question():
         "response": "You are unsure whether reaching out would help or pressure them.",
         "question": "What feels different when you hold those two sides together?",
     }
-    normalized = provider_bank._normalize_operation_result("hrn_relational", parsed)
-    assert normalized["question"] == parsed["question"]
+    try:
+        provider_bank._normalize_operation_result("hrn_relational", parsed)
+    except ValueError as exc:
+        assert "question-surface contract violation" in str(exc)
+    else:
+        raise AssertionError("same-plane abstract question must be rejected")
 
 
 
