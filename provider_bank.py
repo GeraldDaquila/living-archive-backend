@@ -109,19 +109,33 @@ def _failure(exc, provider, model):
     retry_after = getattr(exc, "retry_after", None)
     category = getattr(exc, "category", "provider_failure")
 
+    # Account/credential faults take precedence over retry prose. Some providers
+    # attach a short model-window estimate to account-level daily quota errors;
+    # that estimate must not downgrade an exhausted account into a model-only
+    # cooldown, otherwise sibling models repeatedly hit the same hard limit.
     if "terms_required" in low or "requires terms acceptance" in low:
         category = "terms_required"
-    elif status in {401, 403} or "unauthorized" in low or "forbidden" in low:
+    elif status in {401, 403} or "unauthorized" in low or "forbidden" in low or "authentication error" in low:
         category = "authentication"
     elif (
-        "exceeded your current quota" in low
-        or "quota exceeded" in low
+        status == 402
+        or "tokens per day" in low
+        or re.search(r"\btpd\b", low)
+        or "daily quota" in low
+        or "daily limit" in low
         or "billing hard limit" in low
-    ) and not re.search(r"try again in\s+(?:(?:\d+(?:\.\d+)?)h)?\s*(?:(?:\d+(?:\.\d+)?)m)?\s*(?:(?:\d+(?:\.\d+)?)s)?", low):
+        or "exceeded your current quota" in low
+        or "quota exceeded" in low
+        or "insufficient quota" in low
+        or "billing details" in low
+    ):
         category = "quota_or_billing"
+    elif status == 404:
+        category = "model_unavailable"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
-        # Honor retry windows embedded in provider response bodies when no Retry-After header exists.
+        # Respect provider retry hints only for genuinely model/window-specific
+        # rate limits, not daily/account quota failures.
         if not retry_after:
             wait = re.search(
                 r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
@@ -130,10 +144,6 @@ def _failure(exc, provider, model):
             if wait:
                 hours, minutes, seconds = (float(x or 0) for x in wait.groups())
                 retry_after = hours * 3600 + minutes * 60 + seconds
-    elif status == 402:
-        category = "quota_or_billing"
-    elif status == 404:
-        category = "model_unavailable"
     elif (
         status == 400
         and (
