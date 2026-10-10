@@ -109,14 +109,20 @@ def _failure(exc, provider, model):
     retry_after = getattr(exc, "retry_after", None)
     category = getattr(exc, "category", "provider_failure")
 
-    # Account/credential faults take precedence over retry prose. Some providers
-    # attach a short model-window estimate to account-level daily quota errors;
-    # that estimate must not downgrade an exhausted account into a model-only
-    # cooldown, otherwise sibling models repeatedly hit the same hard limit.
+    # A daily token limit explicitly scoped to a named model is not an
+    # account-wide billing failure. Keep that model on cooldown while allowing
+    # healthy siblings (which can have independent token budgets) to be tried.
+    # Truly account-wide quota/billing messages still quarantine the provider.
+    model_scoped_daily_limit = (
+        ("tokens per day" in low or re.search(r"\btpd\b", low))
+        and re.search(r"\bfor model\b", low)
+    )
     if "terms_required" in low or "requires terms acceptance" in low:
         category = "terms_required"
     elif status in {401, 403} or "unauthorized" in low or "forbidden" in low or "authentication error" in low:
         category = "authentication"
+    elif model_scoped_daily_limit:
+        category = "rate_limited"
     elif (
         status == 402
         or "tokens per day" in low
@@ -134,16 +140,18 @@ def _failure(exc, provider, model):
         category = "model_unavailable"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
-        # Respect provider retry hints only for genuinely model/window-specific
-        # rate limits, not daily/account quota failures.
-        if not retry_after:
-            wait = re.search(
-                r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
-                low,
-            )
-            if wait:
-                hours, minutes, seconds = (float(x or 0) for x in wait.groups())
-                retry_after = hours * 3600 + minutes * 60 + seconds
+
+    # Provider retry prose is useful for both ordinary 429s and model-scoped
+    # daily token limits. Never let that prose override account-wide billing
+    # classification above.
+    if category == "rate_limited" and not retry_after:
+        wait = re.search(
+            r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
+            low,
+        )
+        if wait:
+            hours, minutes, seconds = (float(x or 0) for x in wait.groups())
+            retry_after = hours * 3600 + minutes * 60 + seconds
     elif (
         status == 400
         and (
