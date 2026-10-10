@@ -1157,6 +1157,22 @@ def _apply_hrn_voice_repair_contract(messages):
     return result
 
 
+def _repair_leading_hrn_hedge(response):
+    """Replace only a leading hedge with a grounded, still-qualified reflection."""
+    text = str(response or "").strip()
+    patterns = (
+        r"^it sounds like\\s+",
+        r"^it seems like\\s+",
+        r"^it sounds as though\\s+",
+        r"^it seems as though\\s+",
+    )
+    for pattern in patterns:
+        repaired, count = re.subn(pattern, "From what you describe, ", text, count=1, flags=re.IGNORECASE)
+        if count:
+            return repaired
+    return text
+
+
 def _normalize_operation_result(operation, parsed):
     if operation == "hrn_relational":
         response = parsed.get("response")
@@ -1171,6 +1187,11 @@ def _normalize_operation_result(operation, parsed):
                 "hrn_relational question-surface contract violation: "
                 + question_violation
             )
+        repaired_response = _repair_leading_hrn_hedge(response)
+        if repaired_response != response.strip():
+            print("USE provider response hedge normalized: operation=hrn_relational")
+        response = repaired_response
+        parsed["response"] = response
         surface_violation = _hrn_surface_language_violation(response)
         if surface_violation:
             raise ValueError(
