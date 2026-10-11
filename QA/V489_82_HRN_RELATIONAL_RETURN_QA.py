@@ -13,7 +13,7 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.89 — require earned-topic evidence for relational gifts"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts"),
             "production version header drift")
     require('APP_VERSION = "v489.89"' in SOURCE, "APP_VERSION did not advance sequentially")
     require('if str(APP_VERSION) != "v489.89":' in SOURCE, "runtime version invariant drift")
@@ -66,7 +66,7 @@ def main():
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
-    print("V489.88 HRN RELATIONAL RETURN QA: PASS")
+    print("V489.89 HRN RELATIONAL RETURN QA: PASS")
     print("direct-fit-filter_before_ranking=True")
     print("unrelated_doorway_forcing=absent")
 
