@@ -1,6 +1,8 @@
 """Static regression QA for relevance-safe HRN-to-USE canonical doorway selection."""
 from pathlib import Path
 
+import main
+
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
 BANK = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
@@ -30,11 +32,11 @@ def main():
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
-    require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
+    require('def main._relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
-    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
+    require('outward = [doc for doc in outward if main._relational_return_direct_topic_fit(doorway_query, doc)]' in route,
             "first candidate set is ranked before topic-fit filtering")
-    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
+    require('fallback_outward = [doc for doc in fallback_outward if main._relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
     # General relational closures must reject broad thematic but off-topic gifts.
     relational_query = (
@@ -51,13 +53,13 @@ def main():
         "title": "Everyone Against Everyone",
         "text": "A broad essay about group conflict and social disagreement.",
     }
-    require(_relational_return_direct_topic_fit(relational_query, relevant_resource),
+    require(main._relational_return_direct_topic_fit(relational_query, relevant_resource),
             "directly relevant relational resource was rejected")
-    require(not _relational_return_direct_topic_fit(relational_query, unrelated_resource),
+    require(not main._relational_return_direct_topic_fit(relational_query, unrelated_resource),
             "broad but unrelated relational resource passed the evidence gate")
-    require(not _relational_return_direct_topic_fit("", relevant_resource),
+    require(not main._relational_return_direct_topic_fit("", relevant_resource),
             "empty evidence was allowed to select a canonical resource")
-    require(_relational_return_direct_topic_fit(
+    require(main._relational_return_direct_topic_fit(
                 "How can I plan a community meeting?",
                 {
                     "title": "Meeting Facilitation",
