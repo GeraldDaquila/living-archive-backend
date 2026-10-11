@@ -23,6 +23,14 @@ from specialist_adapters import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+QUESTION_REPAIR_RESPONSE = (
+    "You described feeling unheard when disagreements happen with your friend. "
+    "You also said you want to understand the relationship more clearly without "
+    "assuming what your friend means or feels. That keeps the focus on what actually "
+    "happens between you during disagreement, rather than assigning intentions "
+    "that you cannot yet know."
+)
+
 
 class _FakeFormationAdapter:
     specialist_id = "formation"
@@ -209,17 +217,14 @@ def test_hrn_rejects_unsupported_motive_attribution():
         raise AssertionError("unsupported motive attribution must be rejected")
 
 
-def test_hrn_rejects_same_plane_formulaic_question():
+def test_hrn_defers_same_plane_formulaic_question_to_structural_repair():
     parsed = {
-        "response": "You are unsure whether reaching out would help or pressure them.",
+        "response": QUESTION_REPAIR_RESPONSE,
         "question": "What feels different when you hold those two sides together?",
     }
-    try:
-        provider_bank._normalize_operation_result("hrn_relational", parsed)
-    except ValueError as exc:
-        assert "question-surface contract violation" in str(exc)
-    else:
-        raise AssertionError("same-plane abstract question must be rejected")
+    normalized = provider_bank._normalize_operation_result("hrn_relational", parsed)
+    assert normalized["response"] == QUESTION_REPAIR_RESPONSE
+    assert normalized["question"] == "", "HRN owns bounded repair of an invalid question."
 
 
 
@@ -254,17 +259,14 @@ def test_hrn_rejects_unsupported_intimacy_autonomy_inference():
         raise AssertionError("unsupported intimacy/autonomy inference must be rejected")
 
 
-def test_hrn_rejects_formulaic_abstract_followup_question():
+def test_hrn_defers_formulaic_abstract_followup_to_structural_repair():
     parsed = {
-        "response": "You are unsure whether reaching out would help or pressure them.",
+        "response": QUESTION_REPAIR_RESPONSE,
         "question": "What becomes visible when you notice the effort beneath the thing you are trying to do?",
     }
-    try:
-        provider_bank._normalize_operation_result("hrn_relational", parsed)
-    except ValueError as exc:
-        assert "question-surface contract violation" in str(exc)
-    else:
-        raise AssertionError("formulaic abstract question must be rejected")
+    normalized = provider_bank._normalize_operation_result("hrn_relational", parsed)
+    assert normalized["response"] == QUESTION_REPAIR_RESPONSE
+    assert normalized["question"] == "", "HRN owns bounded repair of an invalid question."
 
 
 
