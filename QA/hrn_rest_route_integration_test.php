@@ -69,12 +69,21 @@ $request->set_param('session_id',$session);
 $request->set_param('unit_turns',3);
 $request->set_param('safety_stage','green');
 
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
 $response = rest_do_request($request);
+restore_error_handler();
 $status = $response instanceof WP_REST_Response ? $response->get_status() : 500;
 $data = $response instanceof WP_REST_Response ? $response->get_data() : array('error'=>$response instanceof WP_Error ? $response->get_error_message() : 'unknown');
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
+$assert(($data['version'] ?? '') === '0.5.280', 'isolated route executes the v0.5.280 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
