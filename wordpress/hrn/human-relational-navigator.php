@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.278
+ * Version: 0.5.279
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.278';
+    const VERSION = '0.5.279';
+    // RELEASE v0.5.279: recover provider-failed natural junction landings through the existing policy-gated local composition; frozen voice methods unchanged.
     // RELEASE v0.5.278: require terminal Archive propositions to overlap the actual journey before using them; frozen voice methods unchanged.
     // RELEASE v0.5.276: reject title fragments as Archive grounding propositions in the terminal fallback; frozen voice methods unchanged.
     // RELEASE v0.5.275: reject clipped provider closure prose at the terminal shape gate; frozen voice methods unchanged.
@@ -1686,7 +1687,36 @@ Visitor response: " . $message;
                 }
             }
             if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
-                // Roll back pre-composition reckoning/banking writes; preserve the completed fractal.
+                // Structural recovery: the Observer has already authorized a natural
+                // landing. If the provider writer is unavailable, use the existing
+                // bounded Archive-grounded local composition before returning a 503.
+                // This does not invent a new movement or bypass any safety/evidence gate.
+                $landing_state = $validated;
+                $landing_state['conversation'] = $conversation;
+                $landing_state['thread_summary'] = (string)($ledger['journey_purpose'] ?? $validated['thread_summary'] ?? '');
+                $landing_state['completed_insight'] = (string)($ledger['last_nugget'] ?? $validated['completed_insight'] ?? '');
+                $landing_state['perspective_delta'] = (string)($ledger['perspective_delta'] ?? $validated['perspective_delta'] ?? '');
+                $landing_state['emerging_delta'] = (string)($ledger['last_delta'] ?? $validated['emerging_delta'] ?? '');
+                $landing_state['last_fractal_summary'] = (string)($ledger['last_fractal_summary'] ?? $validated['last_fractal_summary'] ?? '');
+                $local_landing = $this->local_grounded_closure_synthesis($landing_state);
+                if (is_string($local_landing) && trim($local_landing) !== '') {
+                    $local_landing = $this->humanity_gate($local_landing, $landing_state);
+                    if (trim((string)$local_landing) !== ''
+                        && $this->closure_synthesis_is_bounded($local_landing)
+                        && $this->closure_synthesis_carries_journey_evidence($local_landing, $landing_state)) {
+                        $response = array(
+                            'response' => trim((string)$local_landing),
+                            'question' => '',
+                            'rest' => true,
+                            'use_resource' => false,
+                            'resource_intro' => '',
+                        );
+                    }
+                }
+            }
+            if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
+                // Only roll back and fail after the provider and policy-gated local
+                // landing have both failed. Preserve the completed fractal for retry.
                 $this->store_journey_ledger($session_id, $committed_ledger_before_turn);
                 return rest_ensure_response($this->retryable_operation_failure(
                     'spiral_landing',
