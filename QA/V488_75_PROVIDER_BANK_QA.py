@@ -175,6 +175,7 @@ def main():
         {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0},
     ]
     with (
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2"}, clear=False),
         patch.object(provider_bank, "select", return_value=pool),
         patch.object(provider_bank, "_call", side_effect=["not-json", valid_hrn]),
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
