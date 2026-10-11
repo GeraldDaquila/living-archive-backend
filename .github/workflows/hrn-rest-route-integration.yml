@@ -52,19 +52,14 @@ jobs:
           php /tmp/wp-cli.phar core install --allow-root --url=http://localhost --title="HRN Candidate Integration" --admin_user=hrnqa --admin_password=hrnqa-test-password --admin_email=hrnqa@example.invalid --skip-email
           mkdir -p wp-content/plugins/hrn-candidate/includes
           cp "$GITHUB_WORKSPACE/wordpress/hrn/human-relational-navigator.php" wp-content/plugins/hrn-candidate/human-relational-navigator.php
-          # The canonical retriever/data bundle is supplied by the production plugin
-          # package, not tracked in this backend repository. For this isolated route
-          # test, use a test-only empty retriever so we exercise REST dispatch and the
-          # provider-failure landing path without fabricating Archive search results.
-          cat > wp-content/plugins/hrn-candidate/includes/class-hrn-canonical-retriever.php <<'PHP'
-          <?php
-          class HRN_Canonical_Retriever {
-              public function __construct($data_dir = '') {}
-              public function retrieve($query, $limit = 5, $interpretation = array(), $include_protected = false) { return array(); }
-              public function grounding_seed($territories, $limit = 2, $include_protected = false) { return array(); }
-              public function protected_horizon($query, $limit = 3, $interpretation = array()) { return array(); }
-          }
-          PHP
+          cp "$GITHUB_WORKSPACE/wordpress/hrn/includes/class-hrn-canonical-retriever.php" wp-content/plugins/hrn-candidate/includes/class-hrn-canonical-retriever.php
+          # Use empty synthetic corpus fixtures only; never copy protected T4 data
+          # into CI. This exercises the real retriever's empty-index behavior and the
+          # real REST recovery path without inventing canonical Archive resources.
+          mkdir -p wp-content/plugins/hrn-candidate/data
+          printf '%s\n' '{"schema_version":"qa-empty-v1","tier_counts":{},"resources":[]}' > wp-content/plugins/hrn-candidate/data/corpus-runtime.json
+          printf '%s\n' '{"document_count":0,"postings":{}}' > wp-content/plugins/hrn-candidate/data/retrieval-index.json
+          printf '%s\n' '{"basis":"isolated-qa-empty-corpus","territories":[],"resources":{}}' > wp-content/plugins/hrn-candidate/data/archive-cartography.json
           php /tmp/wp-cli.phar plugin activate hrn-candidate/human-relational-navigator.php --allow-root
           php /tmp/wp-cli.phar option update lah_rn_settings '{"groq_api_key":"isolated-qa-key","mistral_api_key":"","cloudflare_api_token":"","cloudflare_account_id":"","gemini_api_key":"","enabled":true}' --format=json --allow-root
       - name: Execute actual WordPress REST route with deterministic provider stub
