@@ -524,6 +524,19 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
     response = client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
+def _gemini_compatible_response_schema(value):
+    """Remove JSON Schema keywords that Gemini's responseSchema rejects."""
+    if isinstance(value, dict):
+        return {
+            key: _gemini_compatible_response_schema(item)
+            for key, item in value.items()
+            if key != "additionalProperties"
+        }
+    if isinstance(value, list):
+        return [_gemini_compatible_response_schema(item) for item in value]
+    return value
+
+
 def _gemini(key, model, messages, max_tokens, schema=None):
     system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system" and isinstance(x.get("content"), str)).strip()
     contents = []
@@ -562,7 +575,8 @@ def _gemini(key, model, messages, max_tokens, schema=None):
     if not _text_mode(schema):
         payload["generationConfig"]["responseMimeType"] = "application/json"
     if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
-        payload["generationConfig"]["responseSchema"] = schema["schema"]
+        _gemini_schema = _gemini_compatible_response_schema(schema["schema"])
+        payload["generationConfig"]["responseSchema"] = _gemini_schema
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
     data = _http_json(url, {}, payload, "gemini", model)
