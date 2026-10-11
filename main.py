@@ -1728,6 +1728,36 @@ if _is_comparative_explanatory_request("What does stewardship mean?"):
     raise RuntimeError("USE comparative-intent invariant failed: simple glossary lookup misclassified")
 
 
+def _is_lived_experience_explanatory_request(query):
+    """Keep existential/lived-experience inquiries in General Guide composition.
+
+    These questions ask how to understand or inhabit a human condition, not
+    for a dictionary-style definition of a bounded canonical term.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what does it mean to live with\b",
+        r"^what does it mean to live through\b",
+        r"^what does it mean to live in\b",
+        r"^what is it like to live with\b",
+        r"^how (?:can|do|does|should) (?:i|we|you|someone|a person) live with\b",
+        r"^how to live with\b",
+        r"^what does it mean to face\b",
+        r"^what does it mean to experience\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# The lived-experience guard must distinguish existential inquiry from a
+# bounded term lookup before any direct Glossary handoff can occur.
+if not _is_lived_experience_explanatory_request("What does it mean to live with uncertainty?"):
+    raise RuntimeError("USE v489.90 lived-experience routing invariant failed")
+if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
+    raise RuntimeError("USE v489.90 glossary distinction invariant failed")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -1741,6 +1771,14 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if not normalized or not term:
         return False
     if _is_comparative_explanatory_request(query):
+        return False
+
+    # v489.90 structural boundary: lived-experience/existential questions are
+    # explanatory inquiries, not bounded vocabulary lookups. Phrases such as
+    # "what does it mean to live with uncertainty?" ask for orientation and
+    # synthesis; sending them to the Glossary mistakes a grammatical "mean"
+    # for a request to define a canonical term.
+    if _is_lived_experience_explanatory_request(query):
         return False
 
     bounded_opening = bool(re.match(
