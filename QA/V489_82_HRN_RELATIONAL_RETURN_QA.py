@@ -1,5 +1,6 @@
 """Static regression QA for relevance-safe HRN-to-USE canonical doorway selection."""
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,7 +55,7 @@ def main():
     fallback_block = route[fallback:route.find("fallback_data =", fallback)]
     for required in ("underlying_need", "completed_insight", "perspective_delta", "current_terrain", "unresolved"):
         require(required in fallback_block, f"bounded fallback omits focused perspective field: {required}")
-    for forbidden in ("conversation", "thread_summary", "body_of_thought", "journey_ledger", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "resource_fit", "next_horizon"):
+    for forbidden in ("conversation", "thread_summary", "body_of_thought", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "resource_fit", "next_horizon"):
         require(forbidden not in fallback_block, f"fallback reintroduces noisy field: {forbidden}")
     require("def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):" in SOURCE,
             "earned relational topic anchor is missing")
@@ -64,6 +65,7 @@ def main():
             "HRN return route does not preserve its relational specialist boundary")
     require("direct_topic_query = " in route and "underlying_need, perspective_delta, completed_insight" in route,
             "canonical ranking does not use the earned perspective")
+    require("json.dumps(journey_ledger" not in fallback_block, "fallback serializes the entire journey ledger")
     require("canonical_doorway" in route and '"canonical_doorway": None' in route,
             "no-fit outcome must remain available instead of forcing an unrelated gift")
     require('re.split(r"(?<=[.!?])\\s+", completed)' in BANK,
@@ -81,3 +83,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    runpy.run_path(str(ROOT / "QA/V489_92_HRN_EARNED_FOCUS_QA.py"), run_name="__main__")
