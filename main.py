@@ -1286,7 +1286,7 @@ def _relational_return_direct_topic_fit(query, doc):
     # a broad family/couple doorway from passing merely because the essay mentions
     # silence, rejection, and intention in unrelated passages.
     sentence_specific_hits = 0
-    for sentence in re.split(r"(?<=[.!?])\\s+|\\n+", body_text):
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body_text):
         sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
         sentence_hits = {
             term for term in specific_terms
