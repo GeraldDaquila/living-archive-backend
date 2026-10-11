@@ -33,6 +33,12 @@ def main():
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
+    require('query_terms = set(_subject_terms(q))' in SOURCE,
+            "general relational topic evidence terms are missing")
+    require('material_tokens = set(re.findall(r"[a-z0-9]+", body_text))' in SOURCE,
+            "body corroboration is not separated from title overlap")
+    require('specific_body_hits' in SOURCE and 'len(specific_body_hits) >= 3' in SOURCE,
+            "general relational return lacks a substantive body-evidence threshold")
     require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
             "first candidate set is ranked before topic-fit filtering")
     require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
