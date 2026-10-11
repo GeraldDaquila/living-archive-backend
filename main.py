@@ -3113,15 +3113,15 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
 
 def _comparative_subject_terms(query):
     """Extract the two subject concepts from common comparison formulations."""
-    normalized = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     patterns = (
-        r"\\bdifference between (.+?) and (.+?)[?.!]*$",
-        r"\\brelationship between (.+?) and (.+?)[?.!]*$",
-        r"\\bcompare (.+?) (?:and|with|to) (.+?)[?.!]*$",
-        r"\\bcomparison of (.+?) and (.+?)[?.!]*$",
-        r"\\bhow does (.+?) differ from (.+?)[?.!]*$",
-        r"\\bhow do (.+?) differ from (.+?)[?.!]*$",
-        r"\\bhow are (.+?) different from (.+?)[?.!]*$",
+        r"\bdifference between (.+?) and (.+?)[?.!]*$",
+        r"\brelationship between (.+?) and (.+?)[?.!]*$",
+        r"\bcompare (.+?) (?:and|with|to) (.+?)[?.!]*$",
+        r"\bcomparison of (.+?) and (.+?)[?.!]*$",
+        r"\bhow does (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow do (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow are (.+?) different from (.+?)[?.!]*$",
     )
     for pattern in patterns:
         match = re.search(pattern, normalized)
