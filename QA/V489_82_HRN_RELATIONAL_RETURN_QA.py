@@ -13,13 +13,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.91 — require lived-context fit for uncertainty doorways"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.92 — HRN earned-perspective doorway return"),
             "production version header drift")
-    require('APP_VERSION = "v489.91"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.91":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.91-lived-context-uncertainty-doorway-fit"' in SOURCE,
+    require('APP_VERSION = "v489.92"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.92":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.92-hrn-earned-perspective-doorway-fit"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.91-lived-context-uncertainty-doorway-fit"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.92-hrn-earned-perspective-doorway-fit"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -43,7 +43,7 @@ def main():
             "distinctive title evidence must be corroborated by body evidence")
     require('len(specific_terms) == 1' in SOURCE and 'specific_title_hits and specific_body_hits' in SOURCE,
             "single-topic queries require title and body agreement")
-    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
+    require('or _relational_return_earned_focus_fit(direct_topic_query, doc)' in route,
             "first candidate set is ranked before topic-fit filtering")
     require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
@@ -52,10 +52,18 @@ def main():
     fallback = route.find("fallback_query = \" \".join(")
     require(fallback > focused, "bounded fallback is missing")
     fallback_block = route[fallback:route.find("fallback_data =", fallback)]
-    for required in ("topic_anchor", "completed_insight", "perspective_delta", "journey_synthesis"):
+    for required in ("underlying_need", "completed_insight", "perspective_delta", "current_terrain", "unresolved"):
         require(required in fallback_block, f"bounded fallback omits focused perspective field: {required}")
-    for forbidden in ("conversation", "thread_summary", "body_of_thought", "journey_ledger", "fractal_records", "round_synthesis_history", "original_question", "resource_fit", "next_horizon"):
+    for forbidden in ("conversation", "thread_summary", "body_of_thought", "journey_ledger", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "resource_fit", "next_horizon"):
         require(forbidden not in fallback_block, f"fallback reintroduces noisy field: {forbidden}")
+    require("def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):" in SOURCE,
+            "earned relational topic anchor is missing")
+    require("def _relational_return_earned_focus_fit(query, doc):" in SOURCE,
+            "earned-focus evidence gate is missing")
+    require('profile["primary"] = "relational"' in route and 'profile["relational"] = True' in route,
+            "HRN return route does not preserve its relational specialist boundary")
+    require("direct_topic_query = " in route and "underlying_need, perspective_delta, completed_insight" in route,
+            "canonical ranking does not use the earned perspective")
     require("canonical_doorway" in route and '"canonical_doorway": None' in route,
             "no-fit outcome must remain available instead of forcing an unrelated gift")
     require('re.split(r"(?<=[.!?])\\s+", completed)' in BANK,
@@ -66,7 +74,7 @@ def main():
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
-    print("V489.89 HRN RELATIONAL RETURN QA: PASS")
+    print("V489.92 HRN RELATIONAL RETURN QA: PASS")
     print("direct-fit-filter_before_ranking=True")
     print("unrelated_doorway_forcing=absent")
 
