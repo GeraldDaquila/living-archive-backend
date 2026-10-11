@@ -30,7 +30,7 @@ def test_exact_passive_friendship_query_opens_hrn_boundary():
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
-    assert decision["signals"]["relational_term"] is True
+    assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["inquiry"] is True
 
 
