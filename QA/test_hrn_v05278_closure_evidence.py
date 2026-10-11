@@ -13,9 +13,9 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertRegex(SOURCE[:500], r"Version: 0\\.5\\.278")
+        self.assertIn("Version: 0.5.278", SOURCE[:500])
         self.assertIn("const VERSION = '0.5.278';", SOURCE)
-        self.assertEqual(len(re.findall(r"0\\.5\\.277", SOURCE)), 0)
+        self.assertNotIn("0.5.277", SOURCE)
 
     def test_closure_message_is_considered_as_a_distinct_evidence_source(self):
         self.assertIn("$state['closure_message']", SOURCE)
@@ -25,8 +25,8 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         start = SOURCE.index("function closure_synthesis_carries_journey_evidence(")
         end = SOURCE.index("private function closure_synthesis_is_bounded(", start)
         method = SOURCE[start:end]
-        self.assertIn("please\\\\s+synthesize", method)
-        self.assertIn("I\\\\s+have\\\\s+reached\\\\s+enough\\\\s+for\\\\s+now", method)
+        self.assertIn("closure_parts = preg_split", method)
+        self.assertIn("closure_evidence", method)
         self.assertIn("mb_strlen($closure_evidence) >= 30", method)
         self.assertIn("strpos($closure_evidence, '?') === false", method)
 
