@@ -455,7 +455,23 @@ def _success(provider, model, operation):
         )
     _persist_shared_state()
 
-def _http_json(url, headers, payload, provider, model, timeout=6):
+def _provider_http_timeout():
+    """Bound model HTTP waits while allowing slow free-tier inference to finish."""
+    try:
+        configured = float(os.getenv("USE_PROVIDER_HTTP_TIMEOUT_SECONDS", "8") or 8)
+    except (TypeError, ValueError):
+        configured = 8.0
+    return max(5.0, min(10.0, configured))
+
+
+def _http_json(url, headers, payload, provider, model, timeout=None):
+    if timeout is None:
+        timeout = _provider_http_timeout()
+    else:
+        try:
+            timeout = max(5.0, min(10.0, float(timeout)))
+        except (TypeError, ValueError):
+            timeout = _provider_http_timeout()
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
         headers={**headers, "Content-Type": "application/json"}, method="POST"
