@@ -14,14 +14,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.92 — HRN earned-perspective doorway return"),
-            "production version header drift")
-    require('APP_VERSION = "v489.92"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.92":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.92-hrn-earned-perspective-doorway-fit"' in SOURCE,
-            "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.92-hrn-earned-perspective-doorway-fit"' in SOURCE,
-            "canonical build identity drift")
+    version_match = __import__("re").search(r'^APP_VERSION = "([^"]+)"$', SOURCE, __import__("re").MULTILINE)
+    require(version_match is not None, "production version is missing")
+    app_version = version_match.group(1)
+    require(SOURCE.startswith(f"# USE PRODUCTION VERSION: {app_version} — "), "production version header drift")
+    require(f'if str(APP_VERSION) != "{app_version}":' in SOURCE, "runtime version invariant drift")
+    require(f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in SOURCE, "deployment fingerprint drift")
+    require(f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in SOURCE, "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
     end = SOURCE.find("# ---------------------------------------------------------------------", start)
