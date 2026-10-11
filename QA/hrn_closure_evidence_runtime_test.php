@@ -36,11 +36,14 @@ $assert = function ($expected, $text, $state, $label) use ($harness, $reflection
     }
     echo "PASS: " . $label . "\n";
 };
-$earned = "I think the distinction is that I can acknowledge my friend's experience without denying my own feelings. Please synthesize what we discussed.";
-$aligned = "You can acknowledge your friend's experience without denying your own feelings. Both experiences can be recognized without deciding what the other person intended.";
+// Exact closure message that reproduced the live v0.5.277 spiral_landing 503.
+$earned = "I can see that I may be treating being understood and protecting myself as opposites, when both can matter. Please synthesize what we have learned and close the conversation.";
+$aligned = "Being understood and protecting yourself do not have to be opposites. Both can matter, and one does not establish the other person's intentions.";
 $generic = "The conversation has clarified a distinction in the experience, while leaving its uncertain parts unclaimed.";
-$assert(true, $aligned, array('closure_message' => $earned), 'visitor-authored insight survives closure command stripping');
+$bareCommand = "Please synthesize what we have learned and close the conversation.";
+$assert(true, $aligned, array('closure_message' => $earned), 'production-reproduced visitor insight survives closure command stripping');
 $assert(false, $generic, array('closure_message' => $earned), 'generic synthesis cannot pass on the visitor statement alone');
+$assert(false, $generic, array('closure_message' => $bareCommand), 'bare production-shaped closure command is not journey evidence');
 $assert(false, $generic, array('closure_message' => 'Please synthesize what we discussed.'), 'bare synthesis request is not journey evidence');
 $assert(false, $generic, array('closure_message' => 'I have reached enough for now.'), 'bare stop command is not journey evidence');
 $assert(true, 'The silence does not establish rejection; that feeling does not prove the other person’s intention.', array('perspective_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.'), 'existing ledger evidence path remains intact');
