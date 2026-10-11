@@ -1,0 +1,61 @@
+name: HRN Isolated WordPress REST Route Integration
+
+on:
+  pull_request:
+    paths:
+      - "wordpress/hrn/**"
+      - "QA/hrn_rest_route_integration_test.php"
+      - ".github/workflows/hrn-rest-route-integration.yml"
+  push:
+    branches:
+      - "fix/hrn-natural-landing-local-recovery-v05279"
+    paths:
+      - "wordpress/hrn/**"
+      - "QA/hrn_rest_route_integration_test.php"
+      - ".github/workflows/hrn-rest-route-integration.yml"
+
+jobs:
+  isolated-wordpress-rest-route:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, curl, mbstring, xml, zip
+          coverage: none
+      - name: Download WP-CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /tmp/wp-cli.phar
+          php /tmp/wp-cli.phar --info
+      - name: Install isolated WordPress core and candidate plugin
+        run: |
+          mkdir -p /tmp/hrn-wp
+          cd /tmp/hrn-wp
+          php /tmp/wp-cli.phar core download --allow-root
+          php /tmp/wp-cli.phar config create --allow-root --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --dbprefix=wp_
+          php /tmp/wp-cli.phar core install --allow-root --url=http://localhost --title="HRN Candidate Integration" --admin_user=hrnqa --admin_password=hrnqa-test-password --admin_email=hrnqa@example.invalid --skip-email
+          mkdir -p wp-content/plugins/hrn-candidate/includes
+          cp "$GITHUB_WORKSPACE/wordpress/hrn/human-relational-navigator.php" wp-content/plugins/hrn-candidate/human-relational-navigator.php
+          cp "$GITHUB_WORKSPACE/wordpress/hrn/includes/class-hrn-canonical-retriever.php" wp-content/plugins/hrn-candidate/includes/class-hrn-canonical-retriever.php
+          php /tmp/wp-cli.phar plugin activate hrn-candidate/human-relational-navigator.php --allow-root
+          php /tmp/wp-cli.phar option update lah_rn_settings '{"groq_api_key":"isolated-qa-key","mistral_api_key":"","cloudflare_api_token":"","cloudflare_account_id":"","gemini_api_key":"","enabled":true}' --format=json --allow-root
+      - name: Execute actual WordPress REST route with deterministic provider stub
+        run: |
+          cd /tmp/hrn-wp
+          php /tmp/wp-cli.phar eval-file "$GITHUB_WORKSPACE/QA/hrn_rest_route_integration_test.php" --allow-root
