@@ -1,9 +1,12 @@
 """Static regression QA for relevance-safe HRN-to-USE canonical doorway selection."""
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 import main
 
-ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
 BANK = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
 
