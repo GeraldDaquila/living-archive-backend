@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.85"
-DEPLOYMENT_FINGERPRINT = "USE-v489.85-relational-projection-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.85-relational-projection-routing"
+APP_VERSION = "v489.86"
+DEPLOYMENT_FINGERPRINT = "USE-v489.86-relational-return-topic-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.86-relational-return-topic-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -1236,6 +1236,29 @@ def _build_journey_contribution_for_use(body):
     return _normalize_shared_journey(payload)
 
 
+def _relational_return_direct_topic_fit(query, doc):
+    """Require direct evidence for the lived relational concern before gifting a doorway."""
+    if not isinstance(doc, dict):
+        return False
+    q = _normalize_query(query)
+    material = " ".join((
+        str(doc.get("title") or ""),
+        str(doc.get("text") or doc.get("content") or doc.get("excerpt") or ""),
+    )).casefold()
+    projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
+    if projection_query:
+        direct_projection = bool(re.search(r"\b(?:projection|projecting|projected)\b", material))
+        observed_inferred = (
+            bool(re.search(r"\b(?:observed|observation|notice|noticing)\b", material))
+            and bool(re.search(r"\b(?:infer|inference|interpretation|assumption)\b", material))
+        )
+        if not (direct_projection or observed_inferred):
+            return False
+        if not re.search(r"\b(?:relationship|relational|between people|other person|communication|silence|withdrawal)\b", material):
+            return False
+    return True
+
+
 async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
@@ -1309,17 +1332,17 @@ async def _v48755_relational_return(request: Request):
         # Select the doorway from the earned relational perspective first. The full
         # transcript/ledger query is useful evidence, but it can dilute the visitor's
         # actual movement with incidental themes. Keep the first retrieval focused.
+        topic_anchor = original_question
+        if re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", _normalize_query(original_question)):
+            topic_anchor += " Relational projection: distinguish what is observed from what is inferred in the relationship."
         doorway_query = " ".join(
             value for value in (
-                journey_synthesis,
+                topic_anchor,
                 completed_insight,
                 perspective_delta,
-                underlying_need,
-                next_horizon,
-                resource_fit,
-                original_question,
+                journey_synthesis,
             ) if value
-        )[:10000]
+        )[:6000]
         context_data = _original_fetch_canonical_context(doorway_query)
         canonical_context = str(
             context_data.get("canonical_link_context")
@@ -1335,6 +1358,8 @@ async def _v48755_relational_return(request: Request):
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
         outward = _sanitize_outward_context(doorway_query, docs, profile)
         primary = _canonical_primary_from_docs(outward, doorway_query, profile)
+        if primary and not _relational_return_direct_topic_fit(original_question, primary):
+            primary = None
 
         if not primary:
             # A second bounded attempt may use only the earned perspective.
@@ -1343,11 +1368,10 @@ async def _v48755_relational_return(request: Request):
             # plausible-looking but unrelated gift.
             fallback_query = " ".join(
                 value for value in (
-                    journey_synthesis,
+                    topic_anchor,
                     completed_insight,
                     perspective_delta,
-                    resource_fit,
-                    next_horizon,
+                    journey_synthesis,
                 ) if value
             )[:6000]
             fallback_data = _original_fetch_canonical_context(fallback_query)
@@ -1359,6 +1383,8 @@ async def _v48755_relational_return(request: Request):
             fallback_docs = _parse_context_documents(fallback_context)
             fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
+            if primary and not _relational_return_direct_topic_fit(original_question, primary):
+                primary = None
             if primary:
                 outward = fallback_outward
 
