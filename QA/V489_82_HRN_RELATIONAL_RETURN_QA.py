@@ -12,13 +12,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.87 — rank only direct-fit relational gifts"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.88 — require earned-topic evidence for relational gifts"),
             "production version header drift")
-    require('APP_VERSION = "v489.87"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.87":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
+    require('APP_VERSION = "v489.88"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.88":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.88-relational-return-earned-topic-evidence"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.88-relational-return-earned-topic-evidence"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -32,9 +32,9 @@ def main():
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
-    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
             "first candidate set is ranked before topic-fit filtering")
-    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
     require('fallback_query = synthesis_query' not in route,
             "fallback reintroduces the entire transcript/ledger and query dilution")
@@ -55,7 +55,7 @@ def main():
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
-    print("V489.87 HRN RELATIONAL RETURN QA: PASS")
+    print("V489.88 HRN RELATIONAL RETURN QA: PASS")
     print("direct-fit-filter_before_ranking=True")
     print("unrelated_doorway_forcing=absent")
 
