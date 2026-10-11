@@ -1188,8 +1188,10 @@ def _apply_hrn_visitor_contract(messages):
         "or 'It shifts the focus from'. Avoid metaphors, literary phrasing, and "
         "impressive-sounding generalizations unless the "
         "visitor introduced that exact language. The response field must contain at least "
-        "two complete sentences and 180 characters; aim for two or three concrete sentences "
-        "grounded in the visitor's actual words. Do not open with hedges such as 'It sounds like' "
+        "two or three complete sentences and at least 240 characters; aim for about 40-55 words "
+        "grounded in the visitor's actual words. If the first draft is short, add one more "
+        "concrete sentence using only material the visitor explicitly gave you. Do not open "
+        "with hedges such as 'It sounds like' "
         "or 'It seems like'. If the evidence is limited, offer one modest observation "
         "grounded in what was said and one relevant question. "
         "Never refer to a brief, prompt, interpretation, internal state, or the "
@@ -1295,11 +1297,11 @@ def _normalize_operation_result(operation, parsed):
         # These are transport/envelope controls, not semantic content. Supplying
         # their neutral values keeps provider variation from leaking into HRN's
         # frozen composition validator.
-        if "rest" not in parsed:
+        if not isinstance(parsed.get("rest"), bool):
             parsed["rest"] = False
-        if "use_resource" not in parsed:
+        if not isinstance(parsed.get("use_resource"), bool):
             parsed["use_resource"] = False
-        if "resource_intro" not in parsed:
+        if not isinstance(parsed.get("resource_intro"), str):
             parsed["resource_intro"] = ""
     return parsed
 

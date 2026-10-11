@@ -1,4 +1,4 @@
-"""Regression contract for passive friendship routing and isolated HRN sessions in v489.98.
+"""Regression contract for passive friendship routing and isolated HRN sessions in v489.99.
 
 Exercises both the authoritative boundary decision and the real ASGI /api/query
 request boundary. Definition-only and explicit Archive-search requests remain bounded.
@@ -121,6 +121,6 @@ def test_bounded_archive_and_definition_exclusions_remain():
 
 
 def test_version_integrity_is_sequential():
-    assert 'APP_VERSION = "v489.98"' in TEXT
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.98-hrn-relational-provider-contract-alignment"' in TEXT
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.98-hrn-relational-provider-contract-alignment"' in TEXT
+    assert 'APP_VERSION = "v489.99"' in TEXT
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.99-hrn-contract-completion-envelope"' in TEXT
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.99-hrn-contract-completion-envelope"' in TEXT

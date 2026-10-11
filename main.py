@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.98 — HRN relational provider contract alignment
+# USE PRODUCTION VERSION: v489.99 — HRN contract completion and envelope normalization
 import asyncio
 import hashlib
 import ipaddress
@@ -68,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.98"
-DEPLOYMENT_FINGERPRINT = "USE-v489.98-hrn-relational-provider-contract-alignment"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.98-hrn-relational-provider-contract-alignment"
+APP_VERSION = "v489.99"
+DEPLOYMENT_FINGERPRINT = "USE-v489.99-hrn-contract-completion-envelope"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.99-hrn-contract-completion-envelope"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -175,7 +175,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.98":
+if str(APP_VERSION) != "v489.99":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -688,7 +688,7 @@ _route_probe_passive_friendship_boundary = (
     "I am struggling with a friendship where I want to be understood but also need boundaries."
 )
 if not _relational_boundary_decision(_route_probe_passive_friendship_boundary).get("open"):
-    raise RuntimeError("USE v489.98 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
+    raise RuntimeError("USE v489.99 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
 
 # The shared boundary must remain conservative for topic-only mentions and explicit retrieval.
 if _relational_boundary_decision("What is friendship and why do boundaries matter?").get("open"):
