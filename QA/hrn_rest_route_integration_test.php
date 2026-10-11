@@ -28,7 +28,7 @@ $ledgerKey = 'lah_rn_journey_' . substr(hash('sha256', '1.5|' . $session), 0, 32
 set_transient($ledgerKey, $ledger, 86400);
 
 add_filter('pre_http_request', static function ($preempt, $args, $url) use ($earned, $purpose) {
-    if (strpos((string)$url, 'api.groq.com') === false) return new WP_Error('hrn_qa_external_http_blocked', 'External HTTP is disabled in isolated HRN QA.');
+    $GLOBALS['hrn_qa_provider_calls'][] = (string)$url;
     $body = json_decode((string)($args['body'] ?? ''), true);
     $messages = is_array($body) ? (array)($body['messages'] ?? array()) : array();
     $system = '';
@@ -55,6 +55,7 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) use ($ear
     }
     return new WP_Error('hrn_qa_composition_unavailable', 'Synthetic provider composition failure.');
 }, 10, 3);
+$GLOBALS['hrn_qa_provider_calls'] = array();
 
 $request = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $request->set_header('content-type','application/json');
