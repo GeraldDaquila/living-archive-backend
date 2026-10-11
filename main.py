@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.92 — HRN earned-perspective doorway return
+# USE PRODUCTION VERSION: v489.93 — passive friendship/boundary HRN routing
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.92"
-DEPLOYMENT_FINGERPRINT = "USE-v489.92-hrn-earned-perspective-doorway-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.92-hrn-earned-perspective-doorway-fit"
+APP_VERSION = "v489.93"
+DEPLOYMENT_FINGERPRINT = "USE-v489.93-relational-passive-voice-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.93-relational-passive-voice-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.92":
+if str(APP_VERSION) != "v489.93":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -510,6 +510,7 @@ RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
 
 _RELATIONAL_COUNTERPART_PATTERNS = (
     r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
+    r"\b(?:a|this|our|my)\s+friendship\b",
     r"\b(?:someone|somebody|a person|another person|people|person)\s+(?:i|we)\s+(?:care about|love|trust|work with)\b",
     r"\b(?:someone|somebody|a person)\s+(?:close to|important to)\s+me\b",
     r"\b(?:between us|between me and|between you and)\b",
@@ -533,6 +534,7 @@ _RELATIONAL_INQUIRY_PATTERNS = (
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
     r"\b(?:understand|make sense of|figure out|explore|see)\b.{0,100}\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\b",
     r"\b(?:how|why|what|can|could)\b.{0,100}\b(?:understand|make sense of|figure out)\b.{0,100}\b(?:relationship|distance|dynamic|pattern|cycle|interaction)\b",
+    r"\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b",
     r"\b(?:i|we)\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\b",
 )
 
@@ -679,6 +681,19 @@ if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity pattern not recognized")
 if not _relational_boundary_decision(_route_probe_reciprocity).get("open"):
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
+
+# v489.93 regression guard: passive lived-relational language must not fall into Basic Inquiry.
+_route_probe_passive_friendship_boundary = (
+    "I am struggling with a friendship where I want to be understood but also need boundaries."
+)
+if not _relational_boundary_decision(_route_probe_passive_friendship_boundary).get("open"):
+    raise RuntimeError("USE v489.93 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
+
+# The shared boundary must remain conservative for topic-only mentions and explicit retrieval.
+if _relational_boundary_decision("What is friendship and why do boundaries matter?").get("open"):
+    raise RuntimeError("USE v489.93 routing invariant failed: generic explanatory relationship question was captured by HRN")
+if _relational_boundary_decision("Find an article about friendship and boundaries in the Living Archive.").get("open"):
+    raise RuntimeError("USE v489.93 routing invariant failed: explicit Archive retrieval was captured by HRN")
 
 # v487.95 regression guard: the observed defensive/anger/withdrawal cycle must
 # bypass the Guide routing-model call and open HRN immediately.
