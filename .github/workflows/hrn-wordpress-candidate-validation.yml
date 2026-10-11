@@ -5,6 +5,7 @@ on:
     paths:
       - "wordpress/hrn/**"
       - "QA/test_hrn_v05278_closure_evidence.py"
+      - "QA/hrn_closure_evidence_runtime_test.php"
       - ".github/workflows/hrn-wordpress-candidate-validation.yml"
   push:
     branches:
@@ -30,3 +31,5 @@ jobs:
         run: php -l wordpress/hrn/human-relational-navigator.php
       - name: HRN closure evidence contract tests
         run: python -m unittest QA.test_hrn_v05278_closure_evidence -v
+      - name: Execute HRN closure evidence behavior tests
+        run: php QA/hrn_closure_evidence_runtime_test.php
