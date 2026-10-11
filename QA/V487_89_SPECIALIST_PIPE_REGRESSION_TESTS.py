@@ -303,10 +303,14 @@ def test_reflective_followup_is_not_misclassified_as_advice():
 
 
 def test_hrn_provider_gate_matches_frozen_humanity_templates():
+    evidence_tail = (
+        " The details provided do not establish what the other person intended, so "
+        "the reflection should stay close to the visitor's own words rather than "
+        "assign a motive or prescribe a next step."
+    )
     for response in (
-        "It sounds like the distance has changed what you expect from each other.",
-        "You should reach out when you feel ready.",
-        "It is important for you to set clear boundaries.",
+        "You should reach out when you feel ready." + evidence_tail,
+        "It is important for you to set clear boundaries." + evidence_tail,
     ):
         parsed = {"response": response, "question": "What matters here?"}
         try:
