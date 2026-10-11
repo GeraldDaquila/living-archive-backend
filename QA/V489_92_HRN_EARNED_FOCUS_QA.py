@@ -38,7 +38,7 @@ discernment_resource = {
 institutional_decoy = {
     "title": "A Simple Story About Separation, Sharing, and the Way We Built the World",
     "url": "https://geralddaquila.com/example-separation-sharing/",
-    "text": "This essay discusses separation, sharing, civilization, and how society was built. It does not address relational effort imbalance, overgiving, or feeling valued.",
+    "text": "This essay discusses separation, sharing, civilization, and how society was built.",
 }
 assert "Relational effort imbalance" in focus
 assert "Relational discernment" in focus
