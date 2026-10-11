@@ -1,9 +1,9 @@
 <?php
 /**
  * Isolated WordPress REST-dispatch integration test for HRN natural landing.
- * Boots the candidate plugin and invokes its registered REST route. Provider HTTP
- * is deterministic: the observer returns an earned STOP; composition fails so the
- * candidate must use its real policy-gated local landing recovery.
+ * The candidate plugin and actual registered REST route execute in WordPress.
+ * Only the shared Provider Bank Bridge is stubbed: perception returns an earned
+ * STOP and relational composition fails, forcing the real local recovery path.
  */
 if (!defined('ABSPATH') || !class_exists('WP_REST_Request')) {
     fwrite(STDERR, "WordPress runtime is not loaded.\n");
@@ -16,6 +16,38 @@ $assert = static function ($condition, $label) {
 $session = 'hrn-isolated-natural-landing-v05279';
 $earned = 'Wanting to be understood and keeping personal boundaries can both matter, even while the other person’s intention remains unknown.';
 $purpose = 'a friendship where understanding and personal boundaries both matter';
+$GLOBALS['hrn_qa_earned'] = $earned;
+$GLOBALS['hrn_qa_purpose'] = $purpose;
+$GLOBALS['hrn_qa_operations'] = array();
+$GLOBALS['hrn_qa_observer'] = array(
+    'observer_intention'=>'friendship and boundaries','observer_contrast'=>$earned,'observer_so_what'=>$earned,
+    'observer_delta'=>$earned,'observer_horizon'=>'','observer_decision'=>'STOP','observer_next_intention'=>'',
+    'situation'=>'a friendship with uncertainty about being understood','parties'=>'the visitor and a friend',
+    'experience'=>$earned,'tension'=>'being understood and maintaining boundaries',
+    'pattern'=>'the meaning of the other person’s response remains uncertain','underlying_need'=>'understanding',
+    'desired_condition'=>'clarity without a forced verdict','emerging_delta'=>$earned,'perspective_delta'=>$earned,
+    'unresolved'=>'the other person’s intention remains unknown','body_of_thought'=>$earned,'current_fractal'=>$purpose,
+    'next_horizon'=>'','conversation_purpose'=>$purpose,'working_hypothesis'=>$earned,'movement_state'=>'consolidating',
+    'conversation_phase'=>'integration','service_orientation'=>'unclear','fractal_stage'=>'rest','fractal_maturity'=>'complete',
+    'fractal_complete'=>true,'fractal_summary'=>$earned,'last_nugget'=>$earned,'closure_signal'=>'invite_close',
+    'leadership_need'=>'integrate_and_land'
+);
+
+// In the isolated WordPress runtime the production Provider Bank Bridge plugin is
+// intentionally absent. Stub only its public function contract, not HRN internals.
+if (!function_exists('la_provider_bank_request')) {
+    function la_provider_bank_request($operation, $messages, $max_tokens, $schema) {
+        $GLOBALS['hrn_qa_operations'][] = (string)$operation;
+        if ($operation === 'hrn_perception') {
+            return array(
+                'provider'=>'isolated-qa','model'=>'observer-fixture','gateway_contract'=>'qa-v1',
+                'provider_bank_contract'=>'qa-v1','result'=>(array)$GLOBALS['hrn_qa_observer']
+            );
+        }
+        return new WP_Error('hrn_qa_composition_unavailable', 'Synthetic provider composition failure.');
+    }
+}
+
 $ledger = array(
     'state_version'=>'1.5','session_id'=>$session,'turn'=>3,'journey_purpose'=>$purpose,'current_terrain'=>$purpose,
     'movement_status'=>'integrating','fractal_stage'=>'rest','fractal_maturity'=>'complete','leadership_need'=>'integrate_and_land',
@@ -26,39 +58,6 @@ $ledger = array(
 );
 $ledgerKey = 'lah_rn_journey_' . substr(hash('sha256', '1.5|' . $session), 0, 32);
 set_transient($ledgerKey, $ledger, 86400);
-
-add_filter('pre_http_request', static function ($preempt, $args, $url) use ($earned, $purpose) {
-    $GLOBALS['hrn_qa_provider_calls'][] = (string)$url;
-    $body = json_decode((string)($args['body'] ?? ''), true);
-    $messages = is_array($body) ? (array)($body['messages'] ?? array()) : array();
-    $system = '';
-    foreach ($messages as $message) {
-        if (is_array($message) && ($message['role'] ?? '') === 'system') { $system = (string)($message['content'] ?? ''); break; }
-    }
-    // The route's first outbound provider request is its interpretation call.
-    // Return the deterministic STOP for that call, regardless of provider endpoint
-    // selected by Provider Bank; fail every later request to force local composition.
-    if (count((array)($GLOBALS['hrn_qa_provider_calls'] ?? array())) === 1) {
-        $observer = array(
-            'observer_intention'=>'friendship and boundaries','observer_contrast'=>$earned,'observer_so_what'=>$earned,
-            'observer_delta'=>$earned,'observer_horizon'=>'','observer_decision'=>'STOP','observer_next_intention'=>'',
-            'situation'=>'a friendship with uncertainty about being understood','parties'=>'the visitor and a friend',
-            'experience'=>$earned,'tension'=>'being understood and maintaining boundaries',
-            'pattern'=>'the meaning of the other person’s response remains uncertain','underlying_need'=>'understanding',
-            'desired_condition'=>'clarity without a forced verdict','emerging_delta'=>$earned,'perspective_delta'=>$earned,
-            'unresolved'=>'the other person’s intention remains unknown','body_of_thought'=>$earned,'current_fractal'=>$purpose,
-            'next_horizon'=>'','conversation_purpose'=>$purpose,'working_hypothesis'=>$earned,'movement_state'=>'consolidating',
-            'conversation_phase'=>'integration','service_orientation'=>'unclear','fractal_stage'=>'rest','fractal_maturity'=>'complete',
-            'fractal_complete'=>true,'fractal_summary'=>$earned,'last_nugget'=>$earned,'closure_signal'=>'invite_close',
-            'leadership_need'=>'integrate_and_land'
-        );
-        $responseBody = array('choices'=>array(array('message'=>array('content'=>wp_json_encode($observer)))));
-        return array('headers'=>array('content-type'=>'application/json'),'body'=>wp_json_encode($responseBody),
-            'response'=>array('code'=>200,'message'=>'OK'),'cookies'=>array(),'filename'=>null);
-    }
-    return new WP_Error('hrn_qa_composition_unavailable', 'Synthetic provider composition failure.');
-}, 10, 3);
-$GLOBALS['hrn_qa_provider_calls'] = array();
 
 $request = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $request->set_header('content-type','application/json');
@@ -73,7 +72,9 @@ $request->set_param('safety_stage','green');
 $response = rest_do_request($request);
 $status = $response instanceof WP_REST_Response ? $response->get_status() : 500;
 $data = $response instanceof WP_REST_Response ? $response->get_data() : array('error'=>$response instanceof WP_Error ? $response->get_error_message() : 'unknown');
-$assert($status === 200, 'registered REST route returns HTTP 200 after provider composition failure; got '.$status.' '.wp_json_encode($data));
+$assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
+$assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
+$assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
