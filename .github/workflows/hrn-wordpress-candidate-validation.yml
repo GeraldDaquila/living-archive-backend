@@ -13,6 +13,7 @@ on:
     paths:
       - "wordpress/hrn/**"
       - "QA/test_hrn_v05278_closure_evidence.py"
+      - "QA/hrn_closure_evidence_runtime_test.php"
       - ".github/workflows/hrn-wordpress-candidate-validation.yml"
 
 jobs:
