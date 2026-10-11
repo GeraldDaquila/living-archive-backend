@@ -1699,6 +1699,35 @@ def _normalize_glossary_term(query, interpretation=None):
     return ""
 
 
+def _is_comparative_explanatory_request(query):
+    """Identify comparison questions that require Guide synthesis, not term lookup."""
+    normalized = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"\\b(?:what is|what's|explain) the difference between\\b",
+        r"\\bdifference between\\b",
+        r"\\bhow does .{1,100} differ from .{1,100}",
+        r"\\bhow do .{1,100} differ from .{1,100}",
+        r"\\bcompare .{1,100} (?:and|with|to) .{1,100}",
+        r"\\bcomparison of .{1,100} and .{1,100}",
+        r"\\brelationship between .{1,100} and .{1,100}",
+        r"\\bhow .{1,100} relates to .{1,100}",
+        r"\\bhow are .{1,100} different from .{1,100}",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Comparative questions are explanatory inquiries, not requests to look up
+# the whole comparison phrase as a single glossary term.
+if not _is_comparative_explanatory_request(
+    "What is the difference between responsibility and stewardship?"
+):
+    raise RuntimeError("USE comparative-intent invariant failed: responsibility/stewardship comparison not recognized")
+if _is_comparative_explanatory_request("What does stewardship mean?"):
+    raise RuntimeError("USE comparative-intent invariant failed: simple glossary lookup misclassified")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -1710,6 +1739,8 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     term = str(glossary_term or "").strip()
     embedded = str(embedded_term or "").strip()
     if not normalized or not term:
+        return False
+    if _is_comparative_explanatory_request(query):
         return False
 
     bounded_opening = bool(re.match(
@@ -4402,6 +4433,17 @@ async def _use_request_boundary(scope, receive, send):
     route_id = str(route.get("route") or "guide").strip().casefold()
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
+
+    # Final-boundary arbitration: comparative explanatory intent outranks a
+    # model's generic Glossary classification. Do not hand off the whole phrase
+    # as a term; retain the visitor's complete question for Guide composition.
+    if route_id == "glossary" and _is_comparative_explanatory_request(query):
+        print(
+            "The Guide request boundary: kept comparative inquiry in Guide composition; "
+            f"query={_normalize_query(query)[:120]}"
+        )
+        route_id = "guide"
+        mode = "direct"
 
     # Provider/model routing is advisory, not sufficient authority to open a
     # registered page. Enforce destination intent at the final request boundary
