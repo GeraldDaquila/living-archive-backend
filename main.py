@@ -9,7 +9,7 @@ from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import urlparse, quote
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -3183,6 +3183,27 @@ def _general_guide_authoritative_doorway(query, context_data):
                 if key not in fallback_seen:
                     evidence_docs.append(item)
                     fallback_seen.add(key)
+            # Reapply all direct-fit constraints after recovery. Search recovery
+            # is an untrusted candidate source and must never bypass the same
+            # eligibility boundary enforced on vector-retrieved documents.
+            if comparative_subjects:
+                evidence_docs = [
+                    item for item in evidence_docs
+                    if _comparative_candidate_has_direct_fit(query, item)
+                ]
+            # The site root is a generic entrance, not a topic-specific
+            # recommendation. It is eligible only when the visitor explicitly
+            # asks for the homepage/site entrance.
+            asks_for_homepage = bool(re.search(
+                r"\\b(?:homepage|home page|main page|site home|website home)\\b",
+                str(query or ""),
+                re.I,
+            ))
+            if not asks_for_homepage:
+                evidence_docs = [
+                    item for item in evidence_docs
+                    if urlparse(str(item.get("url") or item.get("canonical_url") or "")).path.strip("/")
+                ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
             # A missing recommendation is preferable to an unrelated doorway.
