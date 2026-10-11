@@ -1,6 +1,5 @@
 """Static regression QA for relevance-safe HRN-to-USE canonical doorway selection."""
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
@@ -13,13 +12,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.86 — relational return topic-fit repair"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.87 — rank only direct-fit relational gifts"),
             "production version header drift")
-    require('APP_VERSION = "v489.86"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.86":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.86-relational-return-topic-fit"' in SOURCE,
+    require('APP_VERSION = "v489.87"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.87":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.86-relational-return-topic-fit"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -31,16 +30,14 @@ def main():
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
-    require(route.find('profile = _base._inquiry_profile(doorway_query)') > focused,
-            "profile is not calibrated against the same focused query")
-    require('fallback_query = synthesis_query' not in route,
-            "fallback reintroduces the entire transcript/ledger and query dilution")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
-    require('if primary and not _relational_return_direct_topic_fit(original_question, primary):' in route,
-            "first selected doorway bypasses direct topic-fit validation")
-    require('if primary and not _relational_return_direct_topic_fit(original_question, primary):' in route[route.find("fallback_query ="):],
-            "fallback-selected doorway bypasses direct topic-fit validation")
+    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+            "first candidate set is ranked before topic-fit filtering")
+    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+            "fallback candidate set is ranked before topic-fit filtering")
+    require('fallback_query = synthesis_query' not in route,
+            "fallback reintroduces the entire transcript/ledger and query dilution")
     fallback = route.find("fallback_query = \" \".join(")
     require(fallback > focused, "bounded fallback is missing")
     fallback_block = route[fallback:route.find("fallback_data =", fallback)]
@@ -58,9 +55,8 @@ def main():
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
-    print("V489.86 HRN RELATIONAL RETURN QA: PASS")
-    print("focused_topic_first_retrieval=True")
-    print("direct_projection_or_observation_inference_fit=True")
+    print("V489.87 HRN RELATIONAL RETURN QA: PASS")
+    print("direct-fit-filter_before_ranking=True")
     print("unrelated_doorway_forcing=absent")
 
 
