@@ -35,7 +35,10 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) use ($ear
     foreach ($messages as $message) {
         if (is_array($message) && ($message['role'] ?? '') === 'system') { $system = (string)($message['content'] ?? ''); break; }
     }
-    if (strpos($system, 'observer_intention, observer_contrast, observer_so_what, observer_delta, observer_horizon, observer_decision, observer_next_intention') !== false) {
+    // The route's first outbound provider request is its interpretation call.
+    // Return the deterministic STOP for that call, regardless of provider endpoint
+    // selected by Provider Bank; fail every later request to force local composition.
+    if (count((array)($GLOBALS['hrn_qa_provider_calls'] ?? array())) === 1) {
         $observer = array(
             'observer_intention'=>'friendship and boundaries','observer_contrast'=>$earned,'observer_so_what'=>$earned,
             'observer_delta'=>$earned,'observer_horizon'=>'','observer_decision'=>'STOP','observer_next_intention'=>'',
