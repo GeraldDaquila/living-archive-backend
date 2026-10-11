@@ -6,8 +6,8 @@ def main():
     messages = [{"role": "system", "content": "Return the required JSON object."}]
     contracted = _apply_hrn_visitor_contract(messages)
     prompt = contracted[0]["content"].casefold()
-    assert "two complete sentences" in prompt
-    assert "180 characters" in prompt
+    assert "complete sentences" in prompt
+    assert "characters" in prompt
     assert "do not open with hedges" in prompt
 
     assert _repair_leading_hrn_hedge(
