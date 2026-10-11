@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.279", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.279';", SOURCE)
+        self.assertIn("Version: 0.5.280", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.280';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
     def test_closure_message_is_considered_as_a_distinct_evidence_source(self):
