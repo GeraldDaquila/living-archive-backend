@@ -80,6 +80,7 @@ $response = rest_do_request($request);
 restore_error_handler();
 $status = $response instanceof WP_REST_Response ? $response->get_status() : 500;
 $data = $response instanceof WP_REST_Response ? $response->get_data() : array('error'=>$response instanceof WP_Error ? $response->get_error_message() : 'unknown');
+$assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever class is loaded in isolated WordPress');
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
