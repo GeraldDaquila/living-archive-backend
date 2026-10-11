@@ -1135,6 +1135,16 @@ def _hrn_surface_language_violation(response):
         "seeing this distinction allows you to",
         "act from genuine care rather than anxiety",
         "separate your internal need from their external choice",
+        "you may be holding both needs as mutually exclusive",
+        "you might be holding both needs as mutually exclusive",
+        "the relationship might hold space for both simultaneously",
+        "the relationship may hold space for both simultaneously",
+        "the conversation has clarified one part of the situation without resolving every uncertainty",
+        "the other person's intentions remain unestablished",
+        "the other person’s intentions remain unestablished",
+        "the exchange can end with the distinction intact",
+        "without turning uncertainty into a verdict",
+        "is a specific, observable pattern",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
