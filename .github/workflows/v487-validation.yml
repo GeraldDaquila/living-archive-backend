@@ -38,6 +38,8 @@ jobs:
         run: PYTHONPATH=. python QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py
       - name: v489.96 Gemini response-schema compatibility regression
         run: PYTHONPATH=. python QA/V489_96_GEMINI_SCHEMA_COMPATIBILITY_QA.py
+      - name: v489.97 bounded provider HTTP timeout regression
+        run: PYTHONPATH=. python QA/V489_97_PROVIDER_HTTP_TIMEOUT_QA.py
       - name: v489.89 clustered HRN relational-return structural QA
         run: PYTHONPATH=. python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: v487 protected-runtime compatibility validation
