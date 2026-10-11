@@ -33,7 +33,7 @@ jobs:
           USE_LLM_PROVIDER_ORDER: ${{ vars.USE_LLM_PROVIDER_ORDER }}
         run: PYTHONPATH=. python -m pytest -q QA/V489_10_GUIDE_REQUEST_BOUNDARY_E2E.py
       - name: v489.84 HRN provider-lane arbitration regression
-        run: python QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py
+        run: PYTHONPATH=. python QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py
       - name: v489.88 HRN relational-return structural QA
         run: PYTHONPATH=. python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: v487 protected-runtime compatibility validation
