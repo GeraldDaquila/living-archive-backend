@@ -36,6 +36,35 @@ def main():
             "first candidate set is ranked before topic-fit filtering")
     require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
+    # General relational closures must reject broad thematic but off-topic gifts.
+    relational_query = (
+        "My partner is quiet and I feel rejection; silence is not proof of intention."
+    )
+    relevant_resource = {
+        "title": "Silence and Rejection After Conflict",
+        "text": (
+            "In relationships, silence can trigger rejection; distinguish observation "
+            "from assumption about the other person's intention."
+        ),
+    }
+    unrelated_resource = {
+        "title": "Everyone Against Everyone",
+        "text": "A broad essay about group conflict and social disagreement.",
+    }
+    require(_relational_return_direct_topic_fit(relational_query, relevant_resource),
+            "directly relevant relational resource was rejected")
+    require(not _relational_return_direct_topic_fit(relational_query, unrelated_resource),
+            "broad but unrelated relational resource passed the evidence gate")
+    require(not _relational_return_direct_topic_fit("", relevant_resource),
+            "empty evidence was allowed to select a canonical resource")
+    require(_relational_return_direct_topic_fit(
+                "How can I plan a community meeting?",
+                {
+                    "title": "Meeting Facilitation",
+                    "text": "A practical guide to planning and facilitating a community meeting.",
+                },
+            ),
+            "general direct-topic evidence gate broke valid non-relational topic matching")
     require('fallback_query = synthesis_query' not in route,
             "fallback reintroduces the entire transcript/ledger and query dilution")
     fallback = route.find("fallback_query = \" \".join(")
