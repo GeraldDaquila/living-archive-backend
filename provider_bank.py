@@ -882,6 +882,16 @@ def _rotate(values, cursor):
     n = cursor % len(values)
     return values[n:] + values[:n]
 
+
+def _hrn_attempt_cap():
+    """Bound each HRN gateway request so WordPress can safely use its mirror fallback."""
+    try:
+        configured = int(os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1") or 1)
+    except (TypeError, ValueError):
+        configured = 1
+    return max(1, min(2, configured))
+
+
 def select(use_core, operation="generic", schema=None):
     items = candidates(use_core, operation=operation, schema=schema)
     if not items: return []
@@ -923,6 +933,7 @@ def select(use_core, operation="generic", schema=None):
             models.sort(key=lambda item: (
                 0 if item.get("health_state") == "healthy" else 1,
                 int(item.get("quality_failures", 0) or 0),
+                0 if "low_latency" in (item.get("capabilities") or []) else 1,
                 int(item.get("consecutive_failures", 0) or 0),
                 int(item.get("transport_failures", 0) or 0),
                 -float(item.get("last_success", 0) or 0),
@@ -1302,13 +1313,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
     configured_attempts = max(1, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5)))
-    # HRN runs several semantic stages inside one WordPress turn. Allowing every
-    # stage to fan out across five providers multiplies the outer turn budget and
-    # leaves the visitor staring at the first page. Keep each HRN operation to
-    # two candidates: one primary and one independent fallback. The existing
-    # same-candidate contract correction remains bounded to one additional call.
+    # HRN runs several semantic stages inside one WordPress turn. A primary
+    # gateway request must finish inside the WordPress transport timeout; the
+    # WordPress bridge owns one bounded mirror replay when the primary fails.
+    # Therefore each HRN gateway request gets one model attempt by default, with
+    # an explicit 1..2 override for controlled diagnostics. Shared health state
+    # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
-    operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts
+    operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts
     max_attempts = min(len(pool), operation_attempt_cap)
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a

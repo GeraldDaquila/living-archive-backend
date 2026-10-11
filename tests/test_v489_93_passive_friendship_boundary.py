@@ -1,4 +1,4 @@
-"""Regression contract for USE v489.93 passive friendship routing.
+"""Regression contract for the passive friendship routing boundary, retained across v489.94.
 
 Exercises both the authoritative boundary decision and the real ASGI /api/query
 request boundary. Definition-only and explicit Archive-search requests remain bounded.
@@ -102,6 +102,6 @@ def test_bounded_archive_and_definition_exclusions_remain():
 
 
 def test_version_integrity_is_sequential():
-    assert 'APP_VERSION = "v489.93"' in TEXT
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.93-relational-passive-voice-boundary"' in TEXT
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.93-relational-passive-voice-boundary"' in TEXT
+    assert 'APP_VERSION = "v489.94"' in TEXT
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.94-bounded-hrn-provider-failover"' in TEXT
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.94-bounded-hrn-provider-failover"' in TEXT

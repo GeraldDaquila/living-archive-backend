@@ -40,11 +40,14 @@ def main():
     assert 'CONTRACT_VERSION = "v2"' in provider
 
     # HRN's multiple semantic stages must not each fan out across the entire bank.
-    # Two candidate attempts per HRN stage preserve an independent fallback while
-    # bounding nested latency; non-HRN operations retain the configured cap.
+    # One candidate per primary gateway request leaves the WordPress bridge's
+    # bounded mirror replay as the independent fallback; diagnostics may opt into two.
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
-    assert "operation_attempt_cap = 2 if operation in hrn_operations else configured_attempts" in provider
+    assert "def _hrn_attempt_cap():" in provider
+    assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
+    assert "operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts" in provider
     assert "max_attempts = min(len(pool), operation_attempt_cap)" in provider
+    assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
     # HRN stages share one visitor turn: provider priority must not rotate between
     # perception and composition, or the bounded window can skip a healthy primary.
     assert 'if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:' in provider
@@ -172,6 +175,7 @@ def main():
         {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0},
     ]
     with (
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2"}, clear=False),
         patch.object(provider_bank, "select", return_value=pool),
         patch.object(provider_bank, "_call", side_effect=["not-json", valid_hrn]),
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}}),
