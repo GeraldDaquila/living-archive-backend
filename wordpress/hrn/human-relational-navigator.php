@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.279
+ * Version: 0.5.280
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.279';
+    const VERSION = '0.5.280';
+    // RELEASE v0.5.280: initialize natural landing response before provider call to remove undefined-state warning; v0.5.279 recovery retained.
     // RELEASE v0.5.279: recover provider-failed natural junction landings through the existing policy-gated local composition; frozen voice methods unchanged.
     // RELEASE v0.5.278: require terminal Archive propositions to overlap the actual journey before using them; frozen voice methods unchanged.
     // RELEASE v0.5.276: reject title fragments as Archive grounding propositions in the terminal fallback; frozen voice methods unchanged.
@@ -1679,6 +1680,8 @@ Visitor response: " . $message;
             // A landed junction is still a substantive conversational act. It must
             // pass through the same frozen writer with the Archive grounding packet
             // present, rather than returning the Observer's raw summary directly.
+            // Initialize before the provider call: the provider can fail before assigning a response.
+            $response = array();
             $landing_draft = $this->groq_compose($conversation, $validated, $composer_resources, $unit_position, true, $settings['groq_api_key']);
             if (!is_wp_error($landing_draft)) {
                 $landing_response = $this->normalize_composition($landing_draft, $validated, $message, $composer_resources, true);
