@@ -1242,10 +1242,8 @@ def _relational_return_direct_topic_fit(query, doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
-    material = " ".join((
-        title,
-        str(doc.get("text") or doc.get("content") or doc.get("excerpt") or ""),
-    )).casefold()
+    body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body_text)).casefold()
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
@@ -1269,7 +1267,7 @@ def _relational_return_direct_topic_fit(query, doc):
     if not query_terms:
         return False
     title_tokens = set(re.findall(r"[a-z0-9]+", title))
-    material_tokens = set(re.findall(r"[a-z0-9]+", material))
+    material_tokens = set(re.findall(r"[a-z0-9]+", body_text))
     generic_terms = {
         "relationship", "relational", "partner", "person", "people", "other",
         "conversation", "situation", "feeling", "feel", "think", "know",
