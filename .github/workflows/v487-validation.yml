@@ -46,6 +46,8 @@ jobs:
         run: PYTHONPATH=. python QA/V489_99_HRN_CONTRACT_COMPLETION_QA.py
       - name: v489.100 HRN question repair boundary regression
         run: PYTHONPATH=. python QA/V489_100_HRN_QUESTION_REPAIR_BOUNDARY_QA.py
+      - name: v489.101 HRN surface-policy bank alignment QA
+        run: PYTHONPATH=. python QA/V489_101_HRN_SURFACE_POLICY_BANK_ALIGNMENT_QA.py
       - name: v489.89 clustered HRN relational-return structural QA
         run: PYTHONPATH=. python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: v487 protected-runtime compatibility validation
