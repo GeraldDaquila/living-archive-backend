@@ -31,11 +31,11 @@ def main():
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
-    require('def main._relational_return_direct_topic_fit(query, doc):' in SOURCE,
+    require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
-    require('outward = [doc for doc in outward if main._relational_return_direct_topic_fit(doorway_query, doc)]' in route,
+    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
             "first candidate set is ranked before topic-fit filtering")
-    require('fallback_outward = [doc for doc in fallback_outward if main._relational_return_direct_topic_fit(fallback_query, doc)]' in route,
+    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
     require('fallback_query = synthesis_query' not in route,
             "fallback reintroduces the entire transcript/ledger and query dilution")
