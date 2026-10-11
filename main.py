@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.91 — require lived-context fit for uncertainty doorways
+# USE PRODUCTION VERSION: v489.92 — HRN earned-perspective doorway return
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.91"
-DEPLOYMENT_FINGERPRINT = "USE-v489.91-lived-context-uncertainty-doorway-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.91-lived-context-uncertainty-doorway-fit"
+APP_VERSION = "v489.92"
+DEPLOYMENT_FINGERPRINT = "USE-v489.92-hrn-earned-perspective-doorway-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.92-hrn-earned-perspective-doorway-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.91":
+if str(APP_VERSION) != "v489.92":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1271,6 +1271,69 @@ def _build_journey_contribution_for_use(body):
     return _normalize_shared_journey(payload)
 
 
+def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):
+    """Add bounded, earned semantic anchors without replacing the visitor's own question."""
+    q = _normalize_query(" ".join(str(value or "") for value in (
+        original_question, underlying_need, perspective_delta
+    )))
+    additions = []
+    effort_imbalance = bool(re.search(
+        r"\b(?:always the one|making an effort|more effort|reaching out|initiating contact|"
+        r"feel unseen|feeling unseen|not reciprocated|giving more|doing all the work)\b", q
+    ))
+    if effort_imbalance:
+        additions.append(
+            "Relational effort imbalance: overgiving, giving more than receiving, mutuality, "
+            "feeling valued, care without self-erasure."
+        )
+    discernment = bool(re.search(
+        r"\b(?:observable|observed|inferred|inference|interpretation|assumption|"
+        r"intentions?|what is real|what i sense)\b", q
+    ))
+    if discernment:
+        additions.append(
+            "Relational discernment: distinguish observable behavior from inference and "
+            "assumptions about another person's intentions."
+        )
+    boundary = bool(re.search(r"\b(?:boundaries|taking over|responsibility|self-erasure)\b", q))
+    if boundary:
+        additions.append("Relational boundaries: care, mutuality, agency, and what remains yours to carry.")
+    return " ".join(additions)
+
+
+def _relational_return_earned_focus_fit(query, doc):
+    """Accept only a canonical resource that supports an earned relational focus."""
+    if not isinstance(doc, dict):
+        return False
+    q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body))
+    relationship_evidence = bool(re.search(
+        r"\b(?:relationship|relationships|relational|friendship|friends|connection|"
+        r"love|care|communication|between people)\b", material
+    ))
+    if not relationship_evidence:
+        return False
+    effort_focus = bool(re.search(
+        r"\b(?:effort imbalance|making an effort|more effort|overgiving|giving more|"
+        r"feel unseen|feeling unseen|feeling valued|mutuality|reciproc|unfairly|self-erasure)\b", q
+    ))
+    effort_evidence = bool(re.search(
+        r"\b(?:imbalance|overgiving|self-sacrifice|giving more|receiving more|"
+        r"mutual support|mutuality|reciproc|valued|effort|boundaries|self-erasure)\b", material
+    ))
+    discernment_focus = bool(re.search(
+        r"\b(?:observable|observed|inferred|inference|interpretation|assumption|"
+        r"intentions?|distinguish|what is real)\b", q
+    ))
+    discernment_evidence = bool(re.search(
+        r"\b(?:perception|behavior|behaviour|interpret|interpretation|assumption|"
+        r"inference|intention|projection|observation|observed|communication|silence)\b", material
+    ))
+    return bool((effort_focus and effort_evidence) or (discernment_focus and discernment_evidence))
+
+
 def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
     if not isinstance(doc, dict):
@@ -1413,16 +1476,25 @@ async def _v48755_relational_return(request: Request):
         # transcript/ledger query is useful evidence, but it can dilute the visitor's
         # actual movement with incidental themes. Keep the first retrieval focused.
         topic_anchor = original_question
+        topic_anchor += " " + _relational_return_topic_anchor(
+            original_question, underlying_need, perspective_delta
+        )
         if re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", _normalize_query(original_question)):
             topic_anchor += " Relational projection: distinguish what is observed from what is inferred in the relationship."
+        # Retrieval uses the visitor's opening plus the earned need/perspective,
+        # not the full closure synthesis, which can dilute the actual concern.
         doorway_query = " ".join(
             value for value in (
                 topic_anchor,
+                underlying_need,
                 completed_insight,
                 perspective_delta,
-                journey_synthesis,
             ) if value
         )[:6000]
+        direct_topic_query = " ".join(
+            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight)
+            if value
+        )[:5000] or topic_anchor
         context_data = _original_fetch_canonical_context(doorway_query)
         canonical_context = str(
             context_data.get("canonical_link_context")
@@ -1436,9 +1508,17 @@ async def _v48755_relational_return(request: Request):
         profile = _base._inquiry_profile(doorway_query)
         profile["action"] = "recommendation"
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
+        # This endpoint is entered only after HRN closes a relational journey.
+        # Preserve that specialist boundary even if generic lexical cues lean elsewhere.
+        profile["primary"] = "relational"
+        profile["relational"] = True
         outward = _sanitize_outward_context(doorway_query, docs, profile)
-        outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]
-        primary = _canonical_primary_from_docs(outward, doorway_query, profile)
+        outward = [
+            doc for doc in outward
+            if _relational_return_direct_topic_fit(direct_topic_query, doc)
+            or _relational_return_earned_focus_fit(direct_topic_query, doc)
+        ]
+        primary = _canonical_primary_from_docs(outward, direct_topic_query, profile)
 
         if not primary:
             # A second bounded attempt may use only the earned perspective.
@@ -1447,12 +1527,13 @@ async def _v48755_relational_return(request: Request):
             # plausible-looking but unrelated gift.
             fallback_query = " ".join(
                 value for value in (
-                    topic_anchor,
-                    completed_insight,
+                    underlying_need,
                     perspective_delta,
-                    journey_synthesis,
+                    completed_insight,
+                    str(journey_ledger.get("current_terrain") or ""),
+                    str(journey_ledger.get("unresolved") or ""),
                 ) if value
-            )[:6000]
+            )[:4000]
             fallback_data = _original_fetch_canonical_context(fallback_query)
             fallback_context = str(
                 fallback_data.get("canonical_link_context")
@@ -1461,7 +1542,11 @@ async def _v48755_relational_return(request: Request):
             ) if isinstance(fallback_data, dict) else ""
             fallback_docs = _parse_context_documents(fallback_context)
             fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
-            fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]
+            fallback_outward = [
+                doc for doc in fallback_outward
+                if _relational_return_direct_topic_fit(fallback_query, doc)
+                or _relational_return_earned_focus_fit(fallback_query, doc)
+            ]
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
             if primary:
                 outward = fallback_outward
@@ -5140,7 +5225,7 @@ app = streaming_entry(_use_request_boundary)
 
 
 
-print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, boundary_resilience={BOUNDARY_RESILIENCE_CONTRACT_VERSION}, guide_node_registry_state={guide_node_registry_state().get("state")}, capability_routing=provider_model_bank")
+print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, boundary_resilience={BOUNDARY_RESILIENCE_CONTRACT_VERSION}, guide_node_registry_state={guide_node_registry_state().get('state')}, capability_routing=provider_model_bank")
 print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
