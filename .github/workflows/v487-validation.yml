@@ -42,6 +42,8 @@ jobs:
         run: PYTHONPATH=. python QA/V489_97_PROVIDER_HTTP_TIMEOUT_QA.py
       - name: v489.98 HRN relational provider contract alignment regression
         run: PYTHONPATH=. python QA/V489_98_HRN_RELATIONAL_CONTRACT_ALIGNMENT_QA.py
+      - name: v489.99 HRN contract completion and envelope regression
+        run: PYTHONPATH=. python QA/V489_99_HRN_CONTRACT_COMPLETION_QA.py
       - name: v489.89 clustered HRN relational-return structural QA
         run: PYTHONPATH=. python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: v487 protected-runtime compatibility validation
