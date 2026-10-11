@@ -37,3 +37,13 @@ def test_unrelated_query_does_not_receive_projection_specific_filter():
         "url": "https://geralddaquila.com/example/meeting-facilitation/",
     }
     assert main._relational_return_direct_topic_fit(query, doc) is True
+
+
+def test_projection_title_is_direct_evidence_even_if_body_uses_broader_language():
+    query = "I can't tell whether what I'm sensing in a relationship is real or something I'm projecting."
+    doc = {
+        "title": "Projection: The Mirror of Our Inner Shadows",
+        "text": "A reflective essay about how people make sense of their inner experience.",
+        "url": "https://geralddaquila.com/2025/06/04/projection-the-mirror-of-our-inner-shadows/",
+    }
+    assert main._relational_return_direct_topic_fit(query, doc) is True

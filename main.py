@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.86 — relational return topic-fit repair
+# USE PRODUCTION VERSION: v489.87 — rank only direct-fit relational gifts
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.86"
-DEPLOYMENT_FINGERPRINT = "USE-v489.86-relational-return-topic-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.86-relational-return-topic-fit"
+APP_VERSION = "v489.87"
+DEPLOYMENT_FINGERPRINT = "USE-v489.87-relational-return-direct-fit-ranking"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.87-relational-return-direct-fit-ranking"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.86":
+if str(APP_VERSION) != "v489.87":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -668,7 +668,7 @@ _route_probe_projection_uncertainty = (
     "I can't tell whether what I'm sensing in a relationship is real or something I'm projecting."
 )
 if not _relational_boundary_decision(_route_probe_projection_uncertainty).get("open"):
-    raise RuntimeError("USE v489.86 routing invariant failed: relationship projection uncertainty did not open HRN")
+    raise RuntimeError("USE v489.87 routing invariant failed: relationship projection uncertainty did not open HRN")
 
 _route_probe_reciprocity = (
     "My friend always asks me for support when they need something, but "
@@ -1241,12 +1241,17 @@ def _relational_return_direct_topic_fit(query, doc):
     if not isinstance(doc, dict):
         return False
     q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
     material = " ".join((
-        str(doc.get("title") or ""),
+        title,
         str(doc.get("text") or doc.get("content") or doc.get("excerpt") or ""),
     )).casefold()
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
+        # A canonical title explicitly about projection is direct topical evidence
+        # even when its body uses broader language and does not repeat "relationship".
+        if re.search(r"\b(?:projection|projecting|projected)\b", title):
+            return True
         direct_projection = bool(re.search(r"\b(?:projection|projecting|projected)\b", material))
         observed_inferred = (
             bool(re.search(r"\b(?:observed|observation|notice|noticing)\b", material))
@@ -1357,9 +1362,8 @@ async def _v48755_relational_return(request: Request):
         profile["action"] = "recommendation"
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
         outward = _sanitize_outward_context(doorway_query, docs, profile)
+        outward = [doc for doc in outward if _relational_return_direct_topic_fit(original_question, doc)]
         primary = _canonical_primary_from_docs(outward, doorway_query, profile)
-        if primary and not _relational_return_direct_topic_fit(original_question, primary):
-            primary = None
 
         if not primary:
             # A second bounded attempt may use only the earned perspective.
@@ -1382,9 +1386,8 @@ async def _v48755_relational_return(request: Request):
             ) if isinstance(fallback_data, dict) else ""
             fallback_docs = _parse_context_documents(fallback_context)
             fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
+            fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(original_question, doc)]
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
-            if primary and not _relational_return_direct_topic_fit(original_question, primary):
-                primary = None
             if primary:
                 outward = fallback_outward
 
