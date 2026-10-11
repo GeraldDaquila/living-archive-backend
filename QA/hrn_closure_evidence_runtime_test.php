@@ -95,7 +95,7 @@ $assert(true, invoke_hrn_private($harness, 'closure_synthesis_carries_journey_ev
 
 // Exercise the natural-junction recovery helper itself, not only its source contract.
 $naturalLandingState = array(
-    'conversation' => json_encode(array(array('role' => 'assistant', 'content' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.'))),
+    'conversation' => '',
     'completed_insight' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
     'perspective_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
     'emerging_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
