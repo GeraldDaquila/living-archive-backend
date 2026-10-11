@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.92 — HRN earned-perspective doorway return
+# USE PRODUCTION VERSION: v489.93 — passive friendship/boundary HRN routing
 import asyncio
 import hashlib
 import ipaddress
