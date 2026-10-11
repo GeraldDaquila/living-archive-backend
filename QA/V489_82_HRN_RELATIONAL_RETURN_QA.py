@@ -2,6 +2,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
 BANK = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
 
@@ -12,13 +13,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.87 — rank only direct-fit relational gifts"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts"),
             "production version header drift")
-    require('APP_VERSION = "v489.87"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.87":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
+    require('APP_VERSION = "v489.89"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.89":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.89-relational-return-clustered-topic-evidence"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.87-relational-return-direct-fit-ranking"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.89-relational-return-clustered-topic-evidence"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
@@ -32,9 +33,19 @@ def main():
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
             "direct topic-fit boundary is missing")
-    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+    require('query_terms = set(_subject_terms(q))' in SOURCE,
+            "general relational topic evidence terms are missing")
+    require('material_tokens = set(re.findall(r"[a-z0-9]+", body_text))' in SOURCE,
+            "body corroboration is not separated from title overlap")
+    require('sentence_specific_hits >= 2' in SOURCE,
+            "general relational return must cluster substantive query terms within a sentence")
+    require('(specific_title_hits and len(body_hits) >= 2)' in SOURCE,
+            "distinctive title evidence must be corroborated by body evidence")
+    require('len(specific_terms) == 1' in SOURCE and 'specific_title_hits and specific_body_hits' in SOURCE,
+            "single-topic queries require title and body agreement")
+    require('outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]' in route,
             "first candidate set is ranked before topic-fit filtering")
-    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(original_question, doc)]' in route,
+    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
             "fallback candidate set is ranked before topic-fit filtering")
     require('fallback_query = synthesis_query' not in route,
             "fallback reintroduces the entire transcript/ledger and query dilution")
@@ -55,7 +66,7 @@ def main():
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")
-    print("V489.87 HRN RELATIONAL RETURN QA: PASS")
+    print("V489.89 HRN RELATIONAL RETURN QA: PASS")
     print("direct-fit-filter_before_ranking=True")
     print("unrelated_doorway_forcing=absent")
 

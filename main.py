@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.87 — rank only direct-fit relational gifts
+# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.87"
-DEPLOYMENT_FINGERPRINT = "USE-v489.87-relational-return-direct-fit-ranking"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.87-relational-return-direct-fit-ranking"
+APP_VERSION = "v489.89"
+DEPLOYMENT_FINGERPRINT = "USE-v489.89-relational-return-clustered-topic-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.89-relational-return-clustered-topic-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.87":
+if str(APP_VERSION) != "v489.89":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1237,15 +1237,13 @@ def _build_journey_contribution_for_use(body):
 
 
 def _relational_return_direct_topic_fit(query, doc):
-    """Require direct evidence for the lived relational concern before gifting a doorway."""
+    """Require evidence for the visitor's earned relational topic, not just a plausible title."""
     if not isinstance(doc, dict):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
-    material = " ".join((
-        title,
-        str(doc.get("text") or doc.get("content") or doc.get("excerpt") or ""),
-    )).casefold()
+    body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body_text)).casefold()
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
@@ -1261,7 +1259,49 @@ def _relational_return_direct_topic_fit(query, doc):
             return False
         if not re.search(r"\b(?:relationship|relational|between people|other person|communication|silence|withdrawal)\b", material):
             return False
-    return True
+        return True
+
+    # General relational closures must also demonstrate topic fit. A document
+    # that merely shares the broad relational atmosphere is not a valid gift.
+    query_terms = set(_subject_terms(q))
+    if not query_terms:
+        return False
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    material_tokens = set(re.findall(r"[a-z0-9]+", body_text))
+    generic_terms = {
+        "relationship", "relational", "partner", "person", "people", "other",
+        "conversation", "situation", "feeling", "feel", "think", "know",
+        "meaning", "understand", "something", "someone", "change", "experience",
+        "life", "human", "interaction", "dynamic",
+    }
+    specific_terms = query_terms - generic_terms
+    title_hits = {term for term in query_terms if _term_forms(term) & title_tokens}
+    body_hits = {term for term in query_terms if _term_forms(term) & material_tokens}
+    specific_title_hits = {term for term in specific_terms if _term_forms(term) & title_tokens}
+    specific_body_hits = {term for term in specific_terms if _term_forms(term) & material_tokens}
+
+    # Scattered mentions across a broad essay are not direct topic fit.
+    # Require either a distinctive title anchor with corroborating body evidence,
+    # or at least two substantive query terms in the same sentence. This prevents
+    # a broad family/couple doorway from passing merely because the essay mentions
+    # silence, rejection, and intention in unrelated passages.
+    sentence_specific_hits = 0
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body_text):
+        sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        sentence_hits = {
+            term for term in specific_terms
+            if _term_forms(term) & sentence_tokens
+        }
+        sentence_specific_hits = max(sentence_specific_hits, len(sentence_hits))
+
+    if len(specific_terms) == 1:
+        # Single-topic queries need the topic named in both title and body.
+        return bool(specific_title_hits and specific_body_hits)
+
+    return bool(
+        (specific_title_hits and len(body_hits) >= 2)
+        or sentence_specific_hits >= 2
+    )
 
 
 async def _v48755_relational_return(request: Request):
@@ -1362,7 +1402,7 @@ async def _v48755_relational_return(request: Request):
         profile["action"] = "recommendation"
         profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
         outward = _sanitize_outward_context(doorway_query, docs, profile)
-        outward = [doc for doc in outward if _relational_return_direct_topic_fit(original_question, doc)]
+        outward = [doc for doc in outward if _relational_return_direct_topic_fit(doorway_query, doc)]
         primary = _canonical_primary_from_docs(outward, doorway_query, profile)
 
         if not primary:
@@ -1386,7 +1426,7 @@ async def _v48755_relational_return(request: Request):
             ) if isinstance(fallback_data, dict) else ""
             fallback_docs = _parse_context_documents(fallback_context)
             fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
-            fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(original_question, doc)]
+            fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
             if primary:
                 outward = fallback_outward
