@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.88 — require earned-topic evidence for relational gifts
+# USE PRODUCTION VERSION: v489.89 — require earned-topic evidence for relational gifts
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.88"
-DEPLOYMENT_FINGERPRINT = "USE-v489.88-relational-return-earned-topic-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.88-relational-return-earned-topic-evidence"
+APP_VERSION = "v489.89"
+DEPLOYMENT_FINGERPRINT = "USE-v489.89-relational-return-clustered-topic-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.89-relational-return-clustered-topic-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.88":
+if str(APP_VERSION) != "v489.89":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1280,12 +1280,27 @@ def _relational_return_direct_topic_fit(query, doc):
     specific_title_hits = {term for term in specific_terms if _term_forms(term) & title_tokens}
     specific_body_hits = {term for term in specific_terms if _term_forms(term) & material_tokens}
 
-    # Require a distinctive title match with corroborating body evidence, or
-    # several independent substantive matches in the resource itself.
+    # Scattered mentions across a broad essay are not direct topic fit.
+    # Require either a distinctive title anchor with corroborating body evidence,
+    # or at least two substantive query terms in the same sentence. This prevents
+    # a broad family/couple doorway from passing merely because the essay mentions
+    # silence, rejection, and intention in unrelated passages.
+    sentence_specific_hits = 0
+    for sentence in re.split(r"(?<=[.!?])\\s+|\\n+", body_text):
+        sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        sentence_hits = {
+            term for term in specific_terms
+            if _term_forms(term) & sentence_tokens
+        }
+        sentence_specific_hits = max(sentence_specific_hits, len(sentence_hits))
+
+    if len(specific_terms) == 1:
+        # Single-topic queries need the topic named in both title and body.
+        return bool(specific_title_hits and specific_body_hits)
+
     return bool(
         (specific_title_hits and len(body_hits) >= 2)
-        or len(specific_body_hits) >= 3
-        or (len(title_hits) >= 2 and len(body_hits) >= 3)
+        or sentence_specific_hits >= 2
     )
 
 
