@@ -46,7 +46,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         branch = SOURCE[start:end]
         self.assertIn("$this->recover_natural_landing_response($landing_state)", branch)
         helper_start = SOURCE.index("private function recover_natural_landing_response(")
-        helper_end = SOURCE.index("\\n    private function ", helper_start + 30)
+        helper_end = SOURCE.index("\n    private function ", helper_start + 30)
         helper = SOURCE[helper_start:helper_end]
         self.assertIn("$this->local_grounded_closure_synthesis($state)", helper)
         self.assertIn("$this->humanity_gate($local_landing, $state)", helper)
