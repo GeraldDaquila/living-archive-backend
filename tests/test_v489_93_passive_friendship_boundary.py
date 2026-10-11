@@ -1,8 +1,10 @@
 """Regression contract for USE v489.93 passive friendship routing.
 
-Checks the production decision function for the exact missed lived-experience query
-and verifies that definition-only and explicit Archive-search requests remain bounded.
+Exercises both the authoritative boundary decision and the real ASGI /api/query
+request boundary. Definition-only and explicit Archive-search requests remain bounded.
 """
+import asyncio
+import json
 import re
 from pathlib import Path
 
@@ -20,6 +22,43 @@ def _function_body(name: str, next_marker: str) -> str:
     return TEXT[start:end]
 
 
+async def _post_query(query: str):
+    body = json.dumps({"query": query}).encode("utf-8")
+    sent = []
+    consumed = False
+
+    async def receive():
+        nonlocal consumed
+        if not consumed:
+            consumed = True
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.disconnect"}
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {
+        "type": "http",
+        "asgi": {"version": "3.0", "spec_version": "2.3"},
+        "http_version": "1.1",
+        "method": "POST",
+        "scheme": "http",
+        "path": "/api/query",
+        "raw_path": b"/api/query",
+        "query_string": b"",
+        "root_path": "",
+        "headers": [(b"content-type", b"application/json")],
+        "client": ("127.0.0.1", 43123),
+        "server": ("testserver", 80),
+    }
+    await use_main._use_request_boundary(scope, receive, send)
+    start = next(m for m in sent if m["type"] == "http.response.start")
+    response_body = b"".join(
+        m.get("body", b"") for m in sent if m["type"] == "http.response.body"
+    )
+    return start["status"], json.loads(response_body.decode("utf-8"))
+
+
 def test_passive_friendship_boundary_cues_are_present():
     assert r'\b(?:a|this|our|my)\s+friendship\b' in TEXT
     assert r'\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b' in TEXT
@@ -32,6 +71,16 @@ def test_exact_passive_friendship_query_opens_hrn_boundary():
     assert decision["signals"]["first_person"] is True
     assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["inquiry"] is True
+
+
+def test_real_query_request_boundary_hands_off_to_hrn():
+    status, payload = asyncio.run(_post_query(TARGET))
+    assert status == 200
+    assert payload["intent"] == "RELATIONAL_HANDOFF"
+    assert payload["handoff"] == "relationship"
+    assert payload["handoff_mode"] == "immediate"
+    assert payload["handoff_pending"] is True
+    assert payload["relational_delegation"]["specialist_id"] == "relationship"
 
 
 def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
