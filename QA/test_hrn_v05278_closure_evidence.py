@@ -44,11 +44,15 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         error_pos = SOURCE.index("'spiral_landing_composition_unavailable'", start)
         end = SOURCE.index("\n        } else {", error_pos)
         branch = SOURCE[start:end]
-        self.assertIn("$this->local_grounded_closure_synthesis($landing_state)", branch)
-        self.assertIn("$this->humanity_gate($local_landing, $landing_state)", branch)
-        self.assertIn("$this->closure_synthesis_is_bounded($local_landing)", branch)
-        self.assertIn("$this->closure_synthesis_carries_journey_evidence($local_landing, $landing_state)", branch)
-        self.assertLess(branch.index("$this->local_grounded_closure_synthesis($landing_state)"), branch.index("'spiral_landing_composition_unavailable'"))
+        self.assertIn("$this->recover_natural_landing_response($landing_state)", branch)
+        helper_start = SOURCE.index("private function recover_natural_landing_response(")
+        helper_end = SOURCE.index("\\n    private function ", helper_start + 30)
+        helper = SOURCE[helper_start:helper_end]
+        self.assertIn("$this->local_grounded_closure_synthesis($state)", helper)
+        self.assertIn("$this->humanity_gate($local_landing, $state)", helper)
+        self.assertIn("$this->closure_synthesis_is_bounded($local_landing)", helper)
+        self.assertIn("$this->closure_synthesis_carries_journey_evidence($local_landing, $state)", helper)
+        self.assertLess(branch.index("$this->recover_natural_landing_response($landing_state)"), branch.index("'spiral_landing_composition_unavailable'"))
 
     def test_live_writer_and_safety_methods_remain_present(self):
         for signature in (
