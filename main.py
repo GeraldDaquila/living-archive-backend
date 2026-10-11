@@ -9,7 +9,7 @@ from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -3111,6 +3111,42 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     return recovered
 
 
+def _comparative_subject_terms(query):
+    """Extract compared concepts from common comparison questions."""
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    patterns = (
+        r"\bdifference between (.+?) and (.+?)[?.!]*$",
+        r"\brelationship between (.+?) and (.+?)[?.!]*$",
+        r"\bcompare (.+?) (?:and|with|to) (.+?)[?.!]*$",
+        r"\bcomparison of (.+?) and (.+?)[?.!]*$",
+        r"\bhow does (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow do (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow are (.+?) different from (.+?)[?.!]*$",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, normalized)
+        if match:
+            terms = []
+            for value in match.groups():
+                words = [w for w in re.findall(r"[a-z0-9]+", value)
+                         if w not in {"the", "a", "an", "is", "are", "does", "do", "how", "what"}]
+                if words:
+                    terms.append(" ".join(words[-4:]))
+            if len(terms) == 2:
+                return terms
+    return []
+
+
+def _comparative_candidate_has_direct_fit(query, document):
+    """Require evidence about both compared concepts and a topic-signalling title."""
+    subjects = _comparative_subject_terms(query)
+    if len(subjects) != 2:
+        return True
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    return any(subject in title for subject in subjects) and all(subject in body for subject in subjects)
+
+
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
@@ -3171,6 +3207,10 @@ def _general_guide_authoritative_doorway(query, context_data):
             seen.add(key)
             evidence_docs.append({"title": title, "url": url, "text": content})
 
+        comparative_subjects = _comparative_subject_terms(query)
+        if comparative_subjects:
+            evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
+
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
             # Retrieval and doorway selection are separate. If vector retrieval
@@ -3183,6 +3223,20 @@ def _general_guide_authoritative_doorway(query, context_data):
                 if key not in fallback_seen:
                     evidence_docs.append(item)
                     fallback_seen.add(key)
+            # Recovery is a candidate source, not an authority: reapply the
+            # same comparative fit gate after it has contributed candidates.
+            if comparative_subjects:
+                evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
+            asks_for_homepage = bool(re.search(
+                r"\b(?:homepage|home page|main page|site home|website home)\b",
+                str(query or ""),
+                re.I,
+            ))
+            if not asks_for_homepage:
+                evidence_docs = [
+                    item for item in evidence_docs
+                    if urlparse(str(item.get("url") or item.get("canonical_url") or "")).path.strip("/")
+                ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
             # A missing recommendation is preferable to an unrelated doorway.
