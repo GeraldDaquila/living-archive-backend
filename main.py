@@ -3111,6 +3111,47 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     return recovered
 
 
+def _comparative_subject_terms(query):
+    """Extract the two subject concepts from common comparison formulations."""
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    patterns = (
+        r"\bdifference between (.+?) and (.+?)[?.!]*$",
+        r"\brelationship between (.+?) and (.+?)[?.!]*$",
+        r"\bcompare (.+?) (?:and|with|to) (.+?)[?.!]*$",
+        r"\bcomparison of (.+?) and (.+?)[?.!]*$",
+        r"\bhow does (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow do (.+?) differ from (.+?)[?.!]*$",
+        r"\bhow are (.+?) different from (.+?)[?.!]*$",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, normalized)
+        if not match:
+            continue
+        terms = []
+        for value in match.groups():
+            words = re.findall(r"[a-z0-9]+", value)
+            words = [word for word in words if word not in {"the", "a", "an", "is", "are", "does", "do", "how", "what"}]
+            if words:
+                terms.append(" ".join(words[-4:]))
+        if len(terms) == 2:
+            return terms
+    return []
+
+
+def _comparative_candidate_has_direct_fit(query, document):
+    """A comparison doorway must visibly fit the compared concepts, not just the archive broadly."""
+    subjects = _comparative_subject_terms(query)
+    if len(subjects) != 2:
+        return True
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    # Titles must signal at least one subject; the body must substantively mention both.
+    # This blocks generic landing pages such as Core Structure from winning on incidental overlap.
+    title_signal = any(subject in title for subject in subjects)
+    body_signals = all(subject in body for subject in subjects)
+    return title_signal and body_signals
+
+
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
@@ -3171,6 +3212,20 @@ def _general_guide_authoritative_doorway(query, context_data):
             seen.add(key)
             evidence_docs.append({"title": title, "url": url, "text": content})
 
+        # Comparative questions require a direct topical fit at the doorway
+        # boundary as well as generic relevance. Never offer a broad structural
+        # landing page merely because its content shares incidental vocabulary.
+        comparative_subjects = _comparative_subject_terms(query)
+        if comparative_subjects:
+            evidence_docs = [
+                item for item in evidence_docs
+                if _comparative_candidate_has_direct_fit(query, item)
+            ]
+            print(
+                "The Guide comparative doorway gate: "
+                f"subjects={comparative_subjects}, eligible={len(evidence_docs)}."
+            )
+
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
             # Retrieval and doorway selection are separate. If vector retrieval
@@ -3226,6 +3281,19 @@ def _normalize_authoritative_recommendation(doorway):
     if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
         return None
     return {"title": title, "url": url}
+
+
+# Comparative doorway regression probes: broad landing pages cannot pass on generic overlap.
+if not _comparative_candidate_has_direct_fit(
+    "What is the difference between responsibility and stewardship?",
+    {"title": "Core Structure", "url": "https://geralddaquila.com/core-structure/", "text": "The core structure of the Archive helps organize information."},
+):
+    raise RuntimeError("USE comparative doorway invariant failed: generic landing page passed.")
+if not _comparative_candidate_has_direct_fit(
+    "What is the difference between responsibility and stewardship?",
+    {"title": "Knowledge Stewardship", "url": "https://geralddaquila.com/knowledge-stewardship/", "text": "Stewardship and responsibility are related but distinct concepts."},
+):
+    raise RuntimeError("USE comparative doorway invariant failed: direct-fit concept page rejected.")
 
 
 # v489.09 regression probes: valid Archive URLs survive validation and stewardship questions retain a canonical doorway
