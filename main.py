@@ -1,10 +1,11 @@
-# USE PRODUCTION VERSION: v489.94 — bounded HRN provider failover
+# USE PRODUCTION VERSION: v489.95 — isolated HRN session identity
 import asyncio
 import hashlib
 import ipaddress
 import re
 import json
 import time
+import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
@@ -67,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.94"
-DEPLOYMENT_FINGERPRINT = "USE-v489.94-bounded-hrn-provider-failover"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.94-bounded-hrn-provider-failover"
+APP_VERSION = "v489.95"
+DEPLOYMENT_FINGERPRINT = "USE-v489.95-isolated-hrn-session-identity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.95-isolated-hrn-session-identity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +175,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.94":
+if str(APP_VERSION) != "v489.95":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -682,12 +683,12 @@ if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]
 if not _relational_boundary_decision(_route_probe_reciprocity).get("open"):
     raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
 
-# v489.93 regression guard: passive lived-relational language must not fall into Basic Inquiry. (Preserved under v489.94.)
+# v489.93 regression guard: passive lived-relational language must not fall into Basic Inquiry. (Preserved under v489.95.)
 _route_probe_passive_friendship_boundary = (
     "I am struggling with a friendship where I want to be understood but also need boundaries."
 )
 if not _relational_boundary_decision(_route_probe_passive_friendship_boundary).get("open"):
-    raise RuntimeError("USE v489.94 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
+    raise RuntimeError("USE v489.95 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
 
 # The shared boundary must remain conservative for topic-only mentions and explicit retrieval.
 if _relational_boundary_decision("What is friendship and why do boundaries matter?").get("open"):
@@ -4054,6 +4055,21 @@ async def _resolve_request_location(scope, parsed_body):
     return context
 
 
+def _relational_handoff_session_id(parsed_body):
+    """Return an isolated opaque HRN session key; never derive it from visitor prose."""
+    body = parsed_body if isinstance(parsed_body, dict) else {}
+    supplied = str(body.get("session_id") or "").strip()
+    # A returned session key can be echoed by the client on retries/continuations.
+    if re.fullmatch(r"relationship-[0-9a-f]{24}", supplied):
+        return supplied
+    # Accept a client-generated opaque token only; do not key stored journey state
+    # by arbitrary prose, email addresses, or unbounded caller-controlled strings.
+    if re.fullmatch(r"[A-Za-z0-9_-]{16,128}", supplied):
+        return "relationship-" + hashlib.sha256(supplied.encode("utf-8")).hexdigest()[:24]
+    # Identical opening questions from different visitors must never share a ledger.
+    return "relationship-" + uuid.uuid4().hex[:24]
+
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -4432,9 +4448,7 @@ async def _use_request_boundary(scope, receive, send):
     # labels it TOPICAL_INQUIRY.
     relational_boundary = _relational_boundary_decision(query)
     if relational_boundary.get("open"):
-        request_id = "relationship-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
+        request_id = _relational_handoff_session_id(parsed_body)
         print(
             "The Guide immediate HRN handoff: "
             f"request_id={request_id}, query={_normalize_query(query)[:120]}"

@@ -22,7 +22,7 @@ jobs:
         run: PYTHONPATH=. python -m pytest -q tests/test_v489_85_relational_projection_routing.py
       - name: v489.89 clustered relational topic-evidence regression tests
         run: PYTHONPATH=. python -m pytest -q tests/test_v489_89_relational_return_clustered_topic_evidence.py
-      - name: v489.93 passive friendship boundary regression tests
+      - name: v489.95 HRN session isolation and passive friendship boundary regression tests
         run: PYTHONPATH=. python -m pytest -q tests/test_v489_93_passive_friendship_boundary.py
       - name: v489.10 Guide request-boundary E2E regression
         env:
