@@ -1,4 +1,4 @@
-"""Regression contract for the passive friendship routing boundary, retained across v489.94.
+"""Regression contract for passive friendship routing and isolated HRN sessions in v489.95.
 
 Exercises both the authoritative boundary decision and the real ASGI /api/query
 request boundary. Definition-only and explicit Archive-search requests remain bounded.
@@ -22,8 +22,11 @@ def _function_body(name: str, next_marker: str) -> str:
     return TEXT[start:end]
 
 
-async def _post_query(query: str):
-    body = json.dumps({"query": query}).encode("utf-8")
+async def _post_query(query: str, session_id: str | None = None):
+    body_payload = {"query": query}
+    if session_id is not None:
+        body_payload["session_id"] = session_id
+    body = json.dumps(body_payload).encode("utf-8")
     sent = []
     consumed = False
 
@@ -81,6 +84,22 @@ def test_real_query_request_boundary_hands_off_to_hrn():
     assert payload["handoff_mode"] == "immediate"
     assert payload["handoff_pending"] is True
     assert payload["relational_delegation"]["specialist_id"] == "relationship"
+    assert re.fullmatch(r"relationship-[0-9a-f]{24}", payload["relational_delegation"]["session_id"])
+
+
+def test_identical_opening_queries_receive_distinct_hrn_sessions():
+    _, first = asyncio.run(_post_query(TARGET))
+    _, second = asyncio.run(_post_query(TARGET))
+    first_id = first["relational_delegation"]["session_id"]
+    second_id = second["relational_delegation"]["session_id"]
+    assert first_id != second_id, "Identical visitor questions must not share a persisted HRN ledger."
+
+
+def test_explicit_client_session_token_is_stable_across_retries():
+    token = "browser-session-token-1234567890"
+    _, first = asyncio.run(_post_query(TARGET, session_id=token))
+    _, second = asyncio.run(_post_query(TARGET, session_id=token))
+    assert first["relational_delegation"]["session_id"] == second["relational_delegation"]["session_id"]
 
 
 def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
@@ -102,6 +121,6 @@ def test_bounded_archive_and_definition_exclusions_remain():
 
 
 def test_version_integrity_is_sequential():
-    assert 'APP_VERSION = "v489.94"' in TEXT
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.94-bounded-hrn-provider-failover"' in TEXT
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.94-bounded-hrn-provider-failover"' in TEXT
+    assert 'APP_VERSION = "v489.95"' in TEXT
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.95-isolated-hrn-session-identity"' in TEXT
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.95-isolated-hrn-session-identity"' in TEXT
