@@ -13,7 +13,7 @@ if found != required:
     raise AssertionError(f"Missing earned-focus contract functions: {sorted(required - found)}")
 
 def normalize_query(value):
-    return re.sub(r"\\s+", " ", str(value or "").strip().casefold())
+    return re.sub(r"\s+", " ", str(value or "").strip().casefold())
 
 namespace = {"re": re, "_normalize_query": normalize_query}
 exec(compile(ast.Module(body=[node for node in nodes if node.name != "_normalize_query"], type_ignores=[]), str(SOURCE), "exec"), namespace)
