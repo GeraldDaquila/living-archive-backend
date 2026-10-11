@@ -1,0 +1,32 @@
+name: HRN WordPress Candidate Validation
+
+on:
+  pull_request:
+    paths:
+      - "wordpress/hrn/**"
+      - "QA/test_hrn_v05278_closure_evidence.py"
+      - ".github/workflows/hrn-wordpress-candidate-validation.yml"
+  push:
+    branches:
+      - "fix/hrn-v05278-closure-evidence"
+    paths:
+      - "wordpress/hrn/**"
+      - "QA/test_hrn_v05278_closure_evidence.py"
+      - ".github/workflows/hrn-wordpress-candidate-validation.yml"
+
+jobs:
+  validate-hrn-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: PHP syntax validation
+        run: php -l wordpress/hrn/human-relational-navigator.php
+      - name: HRN closure evidence contract tests
+        run: python -m unittest QA.test_hrn_v05278_closure_evidence -v
