@@ -89,4 +89,33 @@ $assert(empty($data['question']), 'natural landing does not reopen with a questi
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
 $assert(stripos((string)$data['response'],'understood') !== false || stripos((string)$data['response'],'boundar') !== false, 'landing retains earned journey evidence');
 $assert(strpos((string)$data['response'],'spiral_landing_composition_unavailable') === false, 'route does not leak internal failure reason');
+
+// Continue the same visitor journey through explicit closure with every composition
+// provider unavailable. This exercises the actual REST closure branch as well.
+$closureMessage = 'I can see that I may be treating being understood and protecting myself as opposites, when both can matter. Please synthesize what we have learned and close the conversation.';
+$closureRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$closureRequest->set_header('content-type','application/json');
+$closureRequest->set_param('message',$closureMessage);
+$closureRequest->set_param('original_question','I want to understand a difficult friendship without losing my boundaries.');
+$closureRequest->set_param('conversation','Assistant: '.(string)$data['response']."\\nVisitor: ".$closureMessage);
+$closureRequest->set_param('full_conversation','Assistant: '.(string)$data['response']."\\nVisitor: ".$closureMessage);
+$closureRequest->set_param('session_id',$session);
+$closureRequest->set_param('journey_action','end');
+$closureRequest->set_param('unit_turns',4);
+$closureRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$closureResponse = rest_do_request($closureRequest);
+restore_error_handler();
+$closureStatus = $closureResponse instanceof WP_REST_Response ? $closureResponse->get_status() : 500;
+$closureData = $closureResponse instanceof WP_REST_Response ? $closureResponse->get_data() : array('error'=>$closureResponse instanceof WP_Error ? $closureResponse->get_error_message() : 'unknown');
+$assert($closureStatus === 200 && !empty($closureData['ok']), 'explicit closure REST route succeeds with composition provider unavailable; got HTTP '.$closureStatus.' '.wp_json_encode($closureData));
+$assert(trim((string)($closureData['response'] ?? '')) !== '', 'explicit closure returns a non-empty synthesis');
+$assert(empty($closureData['question']), 'explicit closure does not reopen with a question');
+$assert(stripos((string)$closureData['response'],'understood') !== false || stripos((string)$closureData['response'],'boundar') !== false, 'explicit closure retains visitor-authored evidence');
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";
