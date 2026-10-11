@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts
+# USE PRODUCTION VERSION: v489.91 — require lived-context fit for uncertainty doorways
 import asyncio
 import hashlib
 import ipaddress
@@ -67,9 +67,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.89"
-DEPLOYMENT_FINGERPRINT = "USE-v489.89-relational-return-clustered-topic-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.89-relational-return-clustered-topic-evidence"
+APP_VERSION = "v489.91"
+DEPLOYMENT_FINGERPRINT = "USE-v489.91-lived-context-uncertainty-doorway-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.91-lived-context-uncertainty-doorway-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.89":
+if str(APP_VERSION) != "v489.91":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -762,12 +762,36 @@ def _relevance_level(metrics, *, allow_full_content=False):
     return 0
 
 
+def _is_lived_uncertainty_inquiry(query):
+    """Identify uncertainty questions framed as a lived human experience."""
+    q = _normalize_query(query)
+    uncertainty = bool(re.search(r"\b(?:uncertaint(?:y|ies)|uncertain|ambiguity|ambiguous|the unknown|not knowing)\b", q, re.I))
+    lived_frame = bool(re.search(r"\b(?:live|living|deal|dealing|cope|coping|sit|sitting|tolerate|tolerating|handle|handling|navigate|navigating|accept|accepting|face|facing|move forward|make decisions?|decide|deciding)\b", q, re.I))
+    institutional_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|politic(?:al|s)|government|public trust|philippine|philippines|organization|organizational|institutional|policy|policies)\b", q, re.I))
+    return uncertainty and lived_frame and not institutional_frame
+
+
+def _uncertainty_resource_direct_fit(query, doc):
+    """Prevent shared-word overlap from promoting a mismatched uncertainty asset."""
+    if not _is_lived_uncertainty_inquiry(query):
+        return True
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    combined = f"{title} {body}"
+    if re.search(r"\b(?:institutions?|systems?|governance|politic(?:al|s)|government|philippine|philippines|public trust|institutional|policy|policies)\b", title, re.I):
+        return False
+    uncertainty_support = bool(re.search(r"\b(?:uncertaint(?:y|ies)|uncertain|ambiguity|ambiguous|the unknown|not knowing)\b", combined, re.I))
+    lived_support = bool(re.search(r"\b(?:personal|personally|everyday|daily life|decision|decisions|deciding|cope|coping|tolerat(?:e|ing)|accept(?:ance|ing)?|adapt(?:ation|ing)?|uncertain future|living with|live with|make choices|moving forward|what you can control|control what|emotional|anxiety|fear|patience)\b", body, re.I))
+    return uncertainty_support and lived_support
+
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
+        return False
+    if not _uncertainty_resource_direct_fit(query, doc):
         return False
     role = _role_evidence(doc)
     q = _normalize_query(query)
@@ -794,6 +818,17 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
             return False
     return True
 
+
+# v489.91 regression guard: lived uncertainty must not inherit a keyword-overlapping institutional resource.
+_uncertainty_probe_query = "What does it mean to live with uncertainty?"
+_uncertainty_institutional_decoy = {"title": "Why Trust Breaks Down in Philippine Systems: Institutions, Uncertainty, and Survival", "url": "https://geralddaquila.com/example-institutional-uncertainty/", "text": "Institutional trust, governance, and uncertainty shape public systems and survival."}
+_uncertainty_personal_candidate = {"title": "Living with Uncertainty: Making Decisions Without All the Answers", "url": "https://geralddaquila.com/example-lived-uncertainty/", "text": "Living with uncertainty means making decisions without all the answers, learning to tolerate ambiguity, and adapting as everyday life changes."}
+if not _is_lived_uncertainty_inquiry(_uncertainty_probe_query):
+    raise RuntimeError("USE v489.91 invariant failed: lived uncertainty inquiry not recognized.")
+if _uncertainty_resource_direct_fit(_uncertainty_probe_query, _uncertainty_institutional_decoy):
+    raise RuntimeError("USE v489.91 invariant failed: institutional uncertainty decoy passed lived-context fit.")
+if not _uncertainty_resource_direct_fit(_uncertainty_probe_query, _uncertainty_personal_candidate):
+    raise RuntimeError("USE v489.91 invariant failed: directly relevant lived-uncertainty resource rejected.")
 
 def _build_doorway_candidates_for_use(docs):
     """Normalize pre-selected doorway mappings without changing selection authority."""

@@ -13,13 +13,13 @@ def require(condition, message):
 
 
 def main():
-    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts"),
+    require(SOURCE.startswith("# USE PRODUCTION VERSION: v489.91 — require lived-context fit for uncertainty doorways"),
             "production version header drift")
-    require('APP_VERSION = "v489.89"' in SOURCE, "APP_VERSION did not advance sequentially")
-    require('if str(APP_VERSION) != "v489.89":' in SOURCE, "runtime version invariant drift")
-    require('DEPLOYMENT_FINGERPRINT = "USE-v489.89-relational-return-clustered-topic-evidence"' in SOURCE,
+    require('APP_VERSION = "v489.91"' in SOURCE, "APP_VERSION did not advance sequentially")
+    require('if str(APP_VERSION) != "v489.91":' in SOURCE, "runtime version invariant drift")
+    require('DEPLOYMENT_FINGERPRINT = "USE-v489.91-lived-context-uncertainty-doorway-fit"' in SOURCE,
             "deployment fingerprint drift")
-    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.89-relational-return-clustered-topic-evidence"' in SOURCE,
+    require('CANONICAL_BUILD_ID = "USE-BUILD-v489.91-lived-context-uncertainty-doorway-fit"' in SOURCE,
             "canonical build identity drift")
 
     start = SOURCE.find("async def _v48755_relational_return")
