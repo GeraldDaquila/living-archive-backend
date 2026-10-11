@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.89 — require earned-topic evidence for relational gifts
+# USE PRODUCTION VERSION: v489.89 — require clustered-topic evidence for relational gifts
 import asyncio
 import hashlib
 import ipaddress
