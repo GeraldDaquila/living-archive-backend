@@ -1492,9 +1492,9 @@ async def _v48755_relational_return(request: Request):
             ) if value
         )[:6000]
         direct_topic_query = " ".join(
-            value for value in (underlying_need, perspective_delta, completed_insight)
+            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight)
             if value
-        )[:4000] or topic_anchor
+        )[:5000] or topic_anchor
         context_data = _original_fetch_canonical_context(doorway_query)
         canonical_context = str(
             context_data.get("canonical_link_context")
