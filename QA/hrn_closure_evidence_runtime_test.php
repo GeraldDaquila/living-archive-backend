@@ -32,6 +32,7 @@ $requiredMethods = array(
     'closure_synthesis_carries_journey_evidence',
     'closure_synthesis_is_bounded',
     'humanity_gate',
+    'recover_natural_landing_response',
 );
 $methods = array();
 foreach ($requiredMethods as $name) {
@@ -91,6 +92,28 @@ $assert(true, invoke_hrn_private($harness, 'closure_synthesis_carries_journey_ev
     'The silence does not establish rejection; that feeling does not prove the other person’s intention.',
     array('perspective_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.')
 )), 'existing ledger evidence path remains intact');
+
+// Exercise the natural-junction recovery helper itself, not only its source contract.
+$naturalLandingState = array(
+    'conversation' => json_encode(array(array('role' => 'assistant', 'content' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.'))),
+    'completed_insight' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
+    'perspective_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
+    'emerging_delta' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
+    'thread_summary' => 'friendship and boundaries',
+    'grounding_anchor' => array(
+        'title' => 'Silence and Rejection After Conflict',
+        'proposition' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.',
+    ),
+);
+$naturalResponse = invoke_hrn_private($harness, 'recover_natural_landing_response', array($naturalLandingState));
+$assert(true, is_array($naturalResponse) && trim((string)($naturalResponse['response'] ?? '')) !== '', 'natural junction recovers with a grounded local response');
+$assert('', (string)($naturalResponse['question'] ?? ''), 'natural junction recovery does not reopen with another question');
+$assert(true, !empty($naturalResponse['rest']) && empty($naturalResponse['use_resource']), 'natural junction recovery preserves rest and does not force a resource handoff');
+$emptyEvidenceResponse = invoke_hrn_private($harness, 'recover_natural_landing_response', array(array(
+    'conversation' => '',
+    'grounding_anchor' => array('title' => 'Silence and Rejection', 'proposition' => 'Silence alone does not establish rejection, even when uncertainty feels uncomfortable.'),
+)));
+$assert(true, $emptyEvidenceResponse === null, 'natural junction recovery rejects a landing without earned journey evidence');
 
 // Exercise the actual local fallback + actual boundedness + actual evidence gate
 // as one connected operation, using the exact visitor closure that failed live.
