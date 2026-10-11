@@ -10,6 +10,7 @@ on:
   push:
     branches:
       - "fix/hrn-v05278-closure-evidence"
+      - "fix/hrn-natural-landing-local-recovery-v05279"
     paths:
       - "wordpress/hrn/**"
       - "QA/test_hrn_v05278_closure_evidence.py"
