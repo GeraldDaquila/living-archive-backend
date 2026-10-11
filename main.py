@@ -1701,19 +1701,19 @@ def _normalize_glossary_term(query, interpretation=None):
 
 def _is_comparative_explanatory_request(query):
     """Identify comparison questions that require Guide synthesis, not term lookup."""
-    normalized = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not normalized:
         return False
     patterns = (
-        r"\\b(?:what is|what's|explain) the difference between\\b",
-        r"\\bdifference between\\b",
-        r"\\bhow does .{1,100} differ from .{1,100}",
-        r"\\bhow do .{1,100} differ from .{1,100}",
-        r"\\bcompare .{1,100} (?:and|with|to) .{1,100}",
-        r"\\bcomparison of .{1,100} and .{1,100}",
-        r"\\brelationship between .{1,100} and .{1,100}",
-        r"\\bhow .{1,100} relates to .{1,100}",
-        r"\\bhow are .{1,100} different from .{1,100}",
+        r"\b(?:what is|what's|explain) the difference between\b",
+        r"\bdifference between\b",
+        r"\bhow does .{1,100} differ from .{1,100}",
+        r"\bhow do .{1,100} differ from .{1,100}",
+        r"\bcompare .{1,100} (?:and|with|to) .{1,100}",
+        r"\bcomparison of .{1,100} and .{1,100}",
+        r"\brelationship between .{1,100} and .{1,100}",
+        r"\bhow .{1,100} relates to .{1,100}",
+        r"\bhow are .{1,100} different from .{1,100}",
     )
     return any(re.search(pattern, normalized) for pattern in patterns)
 
