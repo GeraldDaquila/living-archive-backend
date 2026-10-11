@@ -1187,8 +1187,11 @@ def _apply_hrn_visitor_contract(messages):
         "use formulaic connective sentences such as 'This distinction matters because' "
         "or 'It shifts the focus from'. Avoid metaphors, literary phrasing, and "
         "impressive-sounding generalizations unless the "
-        "visitor introduced that exact language. If the evidence is limited, offer "
-        "one modest observation grounded in what was said and one relevant question. "
+        "visitor introduced that exact language. The response field must contain at least "
+        "two complete sentences and 180 characters; aim for two or three concrete sentences "
+        "grounded in the visitor's actual words. Do not open with hedges such as 'It sounds like' "
+        "or 'It seems like'. If the evidence is limited, offer one modest observation "
+        "grounded in what was said and one relevant question. "
         "Never refer to a brief, prompt, interpretation, internal state, or the "
         "visitor contribution as an object being processed."
     )
@@ -1225,16 +1228,20 @@ def _apply_hrn_voice_repair_contract(messages):
 
 
 def _repair_leading_hrn_hedge(response):
-    """Replace only a leading hedge with a grounded, still-qualified reflection."""
+    """Remove a leading stock hedge without changing the subject or claim."""
     text = str(response or "").strip()
     patterns = (
-        r"^it sounds like\s+you\s+",
-        r"^it seems like\s+you\s+",
-        r"^it sounds as though\s+you\s+",
-        r"^it seems as though\s+you\s+",
+        (r"^it sounds like\s+you\s+", "From what you describe, you "),
+        (r"^it seems like\s+you\s+", "From what you describe, you "),
+        (r"^it sounds as though\s+you\s+", "From what you describe, you "),
+        (r"^it seems as though\s+you\s+", "From what you describe, you "),
+        (r"^it sounds like\s+", "From what you describe, "),
+        (r"^it seems like\s+", "From what you describe, "),
+        (r"^it sounds as though\s+", "From what you describe, "),
+        (r"^it seems as though\s+", "From what you describe, "),
     )
-    for pattern in patterns:
-        repaired, count = re.subn(pattern, "From what you describe, you ", text, count=1, flags=re.IGNORECASE)
+    for pattern, replacement in patterns:
+        repaired, count = re.subn(pattern, replacement, text, count=1, flags=re.IGNORECASE)
         if count:
             return repaired
     return text
