@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.85 — relational projection routing repair
+# USE PRODUCTION VERSION: v489.86 — relational return topic-fit repair
 import asyncio
 import hashlib
 import ipaddress
@@ -174,7 +174,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.85":
+if str(APP_VERSION) != "v489.86":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -668,7 +668,7 @@ _route_probe_projection_uncertainty = (
     "I can't tell whether what I'm sensing in a relationship is real or something I'm projecting."
 )
 if not _relational_boundary_decision(_route_probe_projection_uncertainty).get("open"):
-    raise RuntimeError("USE v489.85 routing invariant failed: relationship projection uncertainty did not open HRN")
+    raise RuntimeError("USE v489.86 routing invariant failed: relationship projection uncertainty did not open HRN")
 
 _route_probe_reciprocity = (
     "My friend always asks me for support when they need something, but "
