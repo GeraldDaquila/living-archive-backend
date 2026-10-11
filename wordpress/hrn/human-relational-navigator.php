@@ -1698,20 +1698,9 @@ Visitor response: " . $message;
                 $landing_state['perspective_delta'] = (string)($ledger['perspective_delta'] ?? $validated['perspective_delta'] ?? '');
                 $landing_state['emerging_delta'] = (string)($ledger['last_delta'] ?? $validated['emerging_delta'] ?? '');
                 $landing_state['last_fractal_summary'] = (string)($ledger['last_fractal_summary'] ?? $validated['last_fractal_summary'] ?? '');
-                $local_landing = $this->local_grounded_closure_synthesis($landing_state);
-                if (is_string($local_landing) && trim($local_landing) !== '') {
-                    $local_landing = $this->humanity_gate($local_landing, $landing_state);
-                    if (trim((string)$local_landing) !== ''
-                        && $this->closure_synthesis_is_bounded($local_landing)
-                        && $this->closure_synthesis_carries_journey_evidence($local_landing, $landing_state)) {
-                        $response = array(
-                            'response' => trim((string)$local_landing),
-                            'question' => '',
-                            'rest' => true,
-                            'use_resource' => false,
-                            'resource_intro' => '',
-                        );
-                    }
+                $local_landing_response = $this->recover_natural_landing_response($landing_state);
+                if (is_array($local_landing_response)) {
+                    $response = $local_landing_response;
                 }
             }
             if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
@@ -3725,6 +3714,29 @@ HRN_INTERPRET;
             return '';
         }
         return $archive_synthesis;
+    }
+
+    /**
+     * Recover an already-authorized natural junction after provider composition
+     * fails. Return the exact response shape only when existing policy, boundedness,
+     * and earned-journey evidence gates all pass; otherwise leave the caller to fail
+     * safely and preserve the completed ledger for retry.
+     */
+    private function recover_natural_landing_response($state) {
+        $state = is_array($state) ? $state : array();
+        $local_landing = $this->local_grounded_closure_synthesis($state);
+        if (!is_string($local_landing) || trim($local_landing) === '') return null;
+        $local_landing = $this->humanity_gate($local_landing, $state);
+        if (trim((string)$local_landing) === '') return null;
+        if (!$this->closure_synthesis_is_bounded($local_landing)) return null;
+        if (!$this->closure_synthesis_carries_journey_evidence($local_landing, $state)) return null;
+        return array(
+            'response' => trim((string)$local_landing),
+            'question' => '',
+            'rest' => true,
+            'use_resource' => false,
+            'resource_intro' => '',
+        );
     }
 
     /**
