@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.278", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.278';", SOURCE)
+        self.assertIn("Version: 0.5.279", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.279';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
     def test_closure_message_is_considered_as_a_distinct_evidence_source(self):
@@ -36,6 +36,19 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         method = SOURCE[start:end]
         self.assertIn("if ($overlap >= 2) return true;", method)
         self.assertIn("if ($text === '' || empty($sources)) return false;", method)
+
+
+    def test_natural_landing_has_policy_gated_local_recovery_before_503(self):
+        marker = "if ($junction_land && $banked_summary !== '') {"
+        start = SOURCE.index(marker)
+        error_pos = SOURCE.index("'spiral_landing_composition_unavailable'", start)
+        end = SOURCE.index("\n        } else {", error_pos)
+        branch = SOURCE[start:end]
+        self.assertIn("$this->local_grounded_closure_synthesis($landing_state)", branch)
+        self.assertIn("$this->humanity_gate($local_landing, $landing_state)", branch)
+        self.assertIn("$this->closure_synthesis_is_bounded($local_landing)", branch)
+        self.assertIn("$this->closure_synthesis_carries_journey_evidence($local_landing, $landing_state)", branch)
+        self.assertLess(branch.index("$this->local_grounded_closure_synthesis($landing_state)"), branch.index("'spiral_landing_composition_unavailable'"))
 
     def test_live_writer_and_safety_methods_remain_present(self):
         for signature in (
