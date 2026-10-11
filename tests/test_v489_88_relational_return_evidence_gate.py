@@ -2,8 +2,8 @@ import main
 
 
 def test_relational_return_requires_topic_fit():
-    query = "My partner is quiet and I feel rejected; silence is not proof of intention."
-    relevant = {"title": "Silence After Conflict", "text": "In relationships, silence can trigger rejection; distinguish observation from assumption."}
+    query = "My partner is quiet and I feel rejection; silence is not proof of intention."
+    relevant = {"title": "Silence and Rejection After Conflict", "text": "In relationships, silence can trigger rejection; distinguish observation from assumption."}
     unrelated = {"title": "Everyone Against Everyone", "text": "A broad essay about group conflict and social disagreement."}
     assert main._relational_return_direct_topic_fit(query, relevant)
     assert not main._relational_return_direct_topic_fit(query, unrelated)
