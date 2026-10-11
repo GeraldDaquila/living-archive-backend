@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.99 — HRN contract completion and envelope normalization
+# USE PRODUCTION VERSION: v489.100 — HRN question repair boundary
 import asyncio
 import hashlib
 import ipaddress
