@@ -45,7 +45,7 @@ def main():
             "single-topic queries require title and body agreement")
     require('or _relational_return_earned_focus_fit(direct_topic_query, doc)' in route,
             "first candidate set is ranked before topic-fit filtering")
-    require('fallback_outward = [doc for doc in fallback_outward if _relational_return_direct_topic_fit(fallback_query, doc)]' in route,
+    require('or _relational_return_earned_focus_fit(fallback_query, doc)' in route,
             "fallback candidate set is ranked before topic-fit filtering")
     require('fallback_query = synthesis_query' not in route,
             "fallback reintroduces the entire transcript/ledger and query dilution")
