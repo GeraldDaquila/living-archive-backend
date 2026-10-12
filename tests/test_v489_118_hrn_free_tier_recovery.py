@@ -204,12 +204,13 @@ def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch
         {"ping": True},
         "test_provider",
         "test_model",
-        timeout=2.5,
+        timeout=1.0,
     )
 
     assert result == {"ok": True}
-    assert observed["timeout"] == 2.5
+    assert observed["timeout"] == 1.0
 
 
 def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.0
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS < provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
