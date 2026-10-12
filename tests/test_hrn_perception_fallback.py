@@ -501,3 +501,49 @@ def test_provider_rate_limit_cooldown_is_not_shortened_by_timeout_policy(monkeyp
     }
     assert provider_bank._blocked(rate_limited) is True
     assert rate_limited["cooldown_until"] == 1090.0
+
+
+def test_hrn_relational_uses_small_completion_budget_for_second_stage(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "Both partners say they want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning.",
+        "observer_so_what": "The stated wish to improve has not changed the repeated argument.",
+        "observer_delta": "One partner feels blamed when something from the past is raised.",
+        "observer_horizon": "The moment the past is brought up.",
+        "observer_next_intention": "What is said just before the past is raised.",
+    }
+    response = (
+        "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+        "When something from the past is raised, one of you feels blamed. "
+        "The wish to improve is present, but the exchange still returns to that point; "
+        "what either of you intends remains unknown."
+    )
+    output = {
+        "response": response,
+        "question": "What usually happens just before one of you brings up something from the past?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    token_limits = []
+
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        token_limits.append(max_tokens)
+        return json.dumps(output)
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief),
+        }],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert token_limits == [250]
+    assert provider_bank.HRN_RELATIONAL_MAX_COMPLETION_TOKENS == 250
