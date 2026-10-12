@@ -1902,6 +1902,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # would consume the bounded stage budget and often reproduce the
                 # same disallowed voice. Quarantine this operation/model and move
                 # directly to the independently ranked provider lane.
+                targeted_question_recovery = (
+                    operation == "hrn_relational"
+                    and "question-surface contract violation: prescriptive-language"
+                    in str(contract_error)
+                )
                 hrn_quality_failure = operation == "hrn_relational" and any(
                     marker in str(contract_error)
                     for marker in (
@@ -1912,7 +1917,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "composition contract requires a complete response",
                     )
                 )
-                if hrn_quality_failure:
+                # A prescriptive follow-up question is a field-specific defect.
+                # Give the same candidate one bounded, targeted correction before
+                # penalizing its voice. All corrected output still passes the full
+                # grounding, visitor-surface, and response-shape validators.
+                if hrn_quality_failure and not targeted_question_recovery:
                     last_error = str(contract_error)
                     _record_quality_rejection(provider, model, operation, last_error)
                     print(
@@ -1937,12 +1946,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     "role": "assistant",
                     "content": str(raw_output or "")[:12000],
                 })
+                if targeted_question_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON failed specifically because its separate follow-up question used prescriptive language. "
+                        "Correct that field-level defect only: replace the question with one natural, non-prescriptive question grounded in a concrete detail from the structured movement brief. "
+                        "Do not tell the visitor what to do; do not use should, must, need to, ought to, might/could try, or consider. "
+                        "Preserve the original response and all valid flags unless a field independently violates the stated contract. "
+                        "Do not invent facts or add advice. "
+                    )
+                else:
+                    correction_prompt = (
+                        "Your preceding output failed the operation response contract: "
+                        + str(contract_error)[:240]
+                        + ". Correct the output now. "
+                    )
                 recovery_messages.append({
                     "role": "user",
                     "content": (
-                        "Your preceding output failed the operation response contract: "
-                        + str(contract_error)[:240]
-                        + ". Correct the output now. Return only one valid JSON object matching the supplied response fields. "
+                        correction_prompt
+                        + "Return only one valid JSON object matching the supplied response fields. "
                         + "The response must contain at least two complete sentences and 180 characters. "
                         + "Include the non-empty response and question fields required by this operation. "
                         + "Each visitor-facing sentence must end with sentence-final punctuation. "
