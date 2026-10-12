@@ -1042,11 +1042,15 @@ def select(use_core, operation="generic", schema=None):
                 # A provider that has repeatedly failed this operation's
                 # visitor-facing contract must not win merely because another
                 # operation recently marked its transport lane healthy.
+                # Current transport health must precede historical semantic
+                # rejection counts. A half-open lane recovering from 503/429 or
+                # timeout must not outrank a healthy independent model merely
+                # because its older visitor-contract history is cleaner.
                 return (
-                    quality_failures,
+                    health_rank,
                     consecutive_failures,
                     transport_failures,
-                    health_rank,
+                    quality_failures,
                     provider_rank,
                     last_success,
                 )
