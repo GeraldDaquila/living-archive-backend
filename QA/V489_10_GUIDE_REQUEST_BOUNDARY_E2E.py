@@ -262,10 +262,28 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
     # release workflow indefinitely; deterministic provider and boundary tests
     # below remain strict and offline.
     import pytest
-    try:
-        status, payload = asyncio.run(asyncio.wait_for(_post_query(QUERY), timeout=45))
-    except asyncio.TimeoutError:
+    import threading
+    completed = threading.Event()
+    result = {}
+    error = {}
+
+    def _run_live_provider_smoke():
+        try:
+            result["value"] = asyncio.run(_post_query(QUERY))
+        except BaseException as exc:
+            error["value"] = exc
+        finally:
+            completed.set()
+
+    # The provider transport is synchronous inside the ASGI test boundary, so
+    # asyncio.wait_for cannot interrupt a blocked socket. Use a daemon thread
+    # to enforce a real wall-clock bound without holding the CI process open.
+    threading.Thread(target=_run_live_provider_smoke, daemon=True).start()
+    if not completed.wait(45):
         pytest.skip("Live provider smoke test exceeded 45 seconds; upstream availability is transient.")
+    if "value" in error:
+        raise error["value"]
+    status, payload = result["value"]
 
     if status == 503 and (
         payload.get("error_type") == "retryable_operation_failure"
