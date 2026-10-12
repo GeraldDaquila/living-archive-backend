@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.125 — shared provider health readiness diagnostics
+# USE PRODUCTION VERSION: v489.126 — expose provider health readiness
 import asyncio
 import hashlib
 import ipaddress
@@ -55,6 +55,7 @@ from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
+    refresh_shared_health_state,
 )
 import general_guide_composition
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
@@ -68,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.125"
-DEPLOYMENT_FINGERPRINT = "USE-v489.125-shared-provider-health-readiness"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.125-shared-provider-health-readiness"
+APP_VERSION = "v489.126"
+DEPLOYMENT_FINGERPRINT = "USE-v489.126-provider-health-readiness-endpoint"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.126-provider-health-readiness-endpoint"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -175,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.125":
+if str(APP_VERSION) != "v489.126":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5298,6 +5299,56 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 # This reports the distinction between declared capabilities, runtime adapters,
 # and known direct visitor-facing handoffs. It does not claim that a route has
 # passed a live visitor journey; those require separate E2E checks.
+@_FASTAPI_APP.get("/api/provider-health-readiness")
+def provider_health_readiness():
+    """Return bounded, non-secret provider shared-health readiness diagnostics."""
+    try:
+        refresh_shared_health_state()
+        snapshot = provider_bank_snapshot(use_core)
+        config = snapshot.get("shared_health_configuration", {})
+        state = snapshot.get("shared_health_state", {})
+        config = config if isinstance(config, dict) else {}
+        state = state if isinstance(state, dict) else {}
+        configured = bool(config.get("configured"))
+        available = bool(state.get("available"))
+        return {
+            "ok": configured and available,
+            "contract": "provider-health-readiness-v1",
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "shared_health": {
+                "configured": configured,
+                "available": available,
+                "mode": str(state.get("mode") or "unknown"),
+                "url_configured": bool(config.get("url_configured")),
+                "url_source": str(config.get("url_source") or "unknown"),
+                "https_valid": bool(config.get("https_valid")),
+                "shared_secret_configured": bool(config.get("shared_secret_configured")),
+            },
+            "limitations": [
+                "Configuration readiness is distinct from successful shared-store reads and writes.",
+                "This endpoint never returns the endpoint URL or shared secret.",
+            ],
+        }
+    except Exception:
+        return {
+            "ok": False,
+            "contract": "provider-health-readiness-v1",
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "shared_health": {
+                "configured": False,
+                "available": False,
+                "mode": "diagnostic_failure",
+                "url_configured": False,
+                "url_source": "unknown",
+                "https_valid": False,
+                "shared_secret_configured": False,
+            },
+            "limitations": ["Provider health diagnostics could not be completed."],
+        }
+
+
 @_FASTAPI_APP.get("/api/integration-audit")
 def ecosystem_integration_audit():
     capabilities = []

@@ -1648,6 +1648,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
     return None
 
+def refresh_shared_health_state():
+    """Refresh shared health once for an explicit operational diagnostic."""
+    _sync_shared_state()
+
+
 def snapshot(use_core):
     configured = _configured(use_core)
     all_items = [
