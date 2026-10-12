@@ -1306,6 +1306,7 @@ def _hrn_surface_language_violation(response):
         "it sounds as though",
         "it seems as though",
         "you have noticed",
+        "you say",
         "you are dealing with",
         "what you are experiencing",
         "your instinct",
@@ -2231,6 +2232,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         marker in str(contract_error)
                         for marker in (
                             "visitor-surface contract violation: action-guidance",
+                            "visitor-surface contract violation: you say",
                             "visitor-surface contract violation: prescriptive-language",
                             "visitor-surface contract violation: a useful distinction is that",
                             "visitor-surface contract violation: specific friction",
@@ -2318,6 +2320,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ". Rewrite only the response field to remove the disallowed wording or framing. "
                         "Use two or three complete, natural, concrete sentences about what the visitor actually described and what remains unknown. "
                         "Do not use abstract connective phrases, literary metaphors, relationship theory, action-guidance, or formulaic explanations. "
+                        "Avoid the construction 'you say'; use past-tense reported speech or describe the shared intention directly. "
                         "Do not tell the visitor what to do, suggest reallocating or renegotiating, infer hidden motives, or introduce new facts. "
                         "Do not repeat the rejected phrase. Preserve the original question and all valid flags. "
                     )
