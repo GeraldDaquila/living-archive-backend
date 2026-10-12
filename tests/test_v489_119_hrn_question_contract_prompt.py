@@ -1,4 +1,5 @@
 """Deterministic tests for the HRN JSON question-field contract."""
+import json
 import pytest
 
 import provider_bank
@@ -76,16 +77,16 @@ def test_hrn_provider_bank_rejects_solution_framing_in_response():
 
 
 def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
+    brief = {
+    "working_hypothesis": "deadline disagreement",
+    "thread_summary": "two colleagues disagree about the agreed date",
+    "underlying_need": "shared clarity about the date and added work",
+    "emerging_delta": "the project scope changed after the original agreement",
+    "body_of_thought": "deadline and changed scope remain in tension"
+}
     messages = [
         {"role": "system", "content": "Write one response and one question."},
-        {
-            "role": "user",
-            "content": (
-                "STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\\n"
-                '{"working_hypothesis":"deadline disagreement","thread_summary":"two colleagues disagree about the agreed date","underlying_need":"shared clarity about the date and added work","emerging_delta":"the project scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}'
-                "\\n\\nSHARED RELATIONAL UNDERSTANDING"
-            ),
-        },
+        {"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps(brief) + "\\n\\nSHARED RELATIONAL UNDERSTANDING"},
     ]
     generic = "What does that reveal about the relationship?"
     grounded = "What happens when the agreed date is raised alongside the changed scope?"
@@ -94,7 +95,13 @@ def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
 
 
 def test_hrn_question_grounding_rejects_abstract_distinction_only():
-    messages = [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\\n{\\"working_hypothesis\\":\\"deadline distinction\\",\\"underlying_need\\":\\"clarity about the date and changed scope\\"}"}]
+    messages = [{
+        "role": "user",
+        "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+            "working_hypothesis": "deadline distinction",
+            "underlying_need": "clarity about the date and changed scope",
+        }),
+    }]
     violation = provider_bank._hrn_question_grounding_violation("What changes when you look through that distinction?", messages)
     assert violation.startswith("question-grounding contract violation")
 
@@ -102,14 +109,13 @@ def test_hrn_question_grounding_rejects_abstract_distinction_only():
 def test_hrn_question_grounding_finds_brief_in_system_message():
     messages = [{
         "role": "system",
-        "content": (
-            "STRUCTURED MOVEMENT BRIEF\\n"
-            '{"working_hypothesis":"deadline disagreement",'
-            '"thread_summary":"two colleagues disagree about the agreed date",'
-            '"underlying_need":"shared clarity about the date and added work",'
-            '"emerging_delta":"the project scope changed after the original agreement",'
-            '"body_of_thought":"deadline and changed scope remain in tension"}'
-        ),
+        "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+    "working_hypothesis": "deadline disagreement",
+    "thread_summary": "two colleagues disagree about the agreed date",
+    "underlying_need": "shared clarity about the date and added work",
+    "emerging_delta": "the project scope changed after the original agreement",
+    "body_of_thought": "deadline and changed scope remain in tension"
+}),
     }]
     generic = "Where do you notice that distinction most clearly in the relationship?"
     grounded = "What happens in their conversation when the deadline is raised alongside the changed scope?"
