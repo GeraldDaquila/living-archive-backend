@@ -199,7 +199,7 @@ def main():
     # Do not spend a second call on the same rejected model; advance to the next
     # independently ranked provider while retaining the quality cooldown.
     valid_hrn = json.dumps({
-        "response": "You described trying to explain your view and feeling unheard when disagreement starts. The impact on you is clear, even though your friend's reasons for responding that way are not yet known.",
+        "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
         "question": "What happens just before you begin to feel unheard?",
     })
     selected_pool = [
@@ -211,7 +211,7 @@ def main():
         calls.append((item["provider"], item["model"]))
         if item["provider"] == "nvidia":
             return json.dumps({
-                "response": "You described trying to explain your view and feeling unheard when disagreement starts. The impact on you is clear, even though your friend's reasons for responding that way are not yet known.",
+                "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
                 "question": "What happens just before you begin to feel unheard?",
             })
         return valid_hrn
