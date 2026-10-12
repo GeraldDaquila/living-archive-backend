@@ -211,7 +211,7 @@ def main():
         calls.append((item["provider"], item["model"]))
         if item["provider"] == "nvidia":
             return json.dumps({
-                "response": The friction you are feeling often stems from the disagreement being about whether you were heard, rather than the point you were making. That does not establish your friend's intention, but it describes the effect the exchange has on you.,
+                "response": "The disagreement is where you feel unheard, while the reasons for your friend's response remain unknown. That leaves a difference between the effect on you and what your friend intended.",
                 "question": "What happens just before you begin to feel unheard?",
             })
         return valid_hrn
