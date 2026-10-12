@@ -1495,6 +1495,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ". Correct the output now. Return only one valid JSON object matching the supplied response fields. "
                         + "The response must contain at least two complete sentences and 180 characters. "
                         + "Include the non-empty response and question fields required by this operation. "
+                        + "Each visitor-facing sentence must end with sentence-final punctuation. "
                         + "Do not repeat the rejected wording. Preserve the actual request context. "
                         + "Avoid generic relationship theory. Use one concrete observation grounded in the visitor's actual words. "
                         + "Do not repeat the rejected wording, including phrases like 'this distinction matters because' or 'it shifts the focus from'. "
