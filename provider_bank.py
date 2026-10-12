@@ -18,6 +18,7 @@ from provider_health_store import (
     load_remote_states,
     merge_health_state,
     save_remote_states,
+    configuration_status as shared_health_configuration_status,
 )
 
 CONTRACT_VERSION = "v2"
@@ -1662,6 +1663,7 @@ def snapshot(use_core):
         "resilience_contract_version": RESILIENCE_CONTRACT_VERSION,
         "selection_policy": "capability_health_and_contract_quality_adaptive",
         "shared_health_state": dict(_SHARED_STATE_DIAGNOSTICS),
+        "shared_health_configuration": shared_health_configuration_status(),
         "capability_policy_version": "1.6",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
