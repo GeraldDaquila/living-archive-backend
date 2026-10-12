@@ -127,7 +127,18 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
     monkeypatch.setattr(provider_bank, "_call", two_fast_failures_then_success)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": "Return JSON only."}],
+        messages=[{
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\\n"
+                '{"working_hypothesis":"friend disagreement leaves the visitor feeling unheard",'
+                '"thread_summary":"the visitor feels unheard during disagreement with a friend",'
+                '"underlying_need":"understand what happens when disagreement begins",'
+                '"emerging_delta":"feeling unheard during the conversation differs from disagreeing about the topic",'
+                '"body_of_thought":"the disagreement and feeling unheard are related but not identical"}'
+                "\\nReturn JSON only."
+            ),
+        }],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
