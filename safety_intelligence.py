@@ -260,6 +260,21 @@ def classify_safety(query: str, *, history: str = "") -> str | None:
     if deterministic:
         return deterministic
 
+    # A clearly hypothetical/calibration question containing the generic phrase
+    # "immediate danger" is not a personal crisis disclosure. Stop before semantic
+    # recall can re-escalate that same third-person scenario. Explicit first-person
+    # self-harm/current-risk patterns have already returned above.
+    normalized_query = " ".join(str(query or "").strip().casefold().split())
+    if (
+        _GENERIC_IMMEDIATE_DANGER_PATTERN.search(normalized_query)
+        and _is_hypothetical_safety_discussion(normalized_query)
+        and not any(
+            pattern.search(normalized_query)
+            for pattern in (*_ACUTE_PATTERNS, *_PLAN_PATTERNS, *_IMMEDIACY_PATTERNS, *_CURRENT_PATTERNS)
+        )
+    ):
+        return None
+
     # Ordinary Guide traffic must never pay the semantic-safety latency tax.
     # More importantly, the LLM must not be allowed to convert ordinary human
     # conflict/relationship language into an emergency interruption merely
