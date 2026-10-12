@@ -232,6 +232,7 @@ def main():
         )
         quality_key = provider_bank._quality_key("hrn_relational", "nvidia", "nvidia/nemotron-test")
         rejected_quality = provider_bank._STATE["quality"].get(quality_key, {})
+    # Test state is isolated above; quality records may live in a separate shared state store.
     assert calls == [("nvidia", "nvidia/nemotron-test"), ("mistral", "mistral-small-test")], (
         "Visitor-surface rejection must skip same-model correction and advance to the independent fallback."
     )
