@@ -265,7 +265,18 @@ def main():
     ):
         routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I am doing most of the repair work."}],
+            messages=[{
+                "role": "user",
+                "content": (
+                    "STRUCTURED MOVEMENT BRIEF\\n"
+                    + json.dumps({
+                        "working_hypothesis": "visitor is doing most of the repair work",
+                        "thread_summary": "the repair effort feels one-sided",
+                        "underlying_need": "understand which part of the repair effort feels one-sided",
+                        "body_of_thought": "most of the repair work falls to the visitor",
+                    })
+                ),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
