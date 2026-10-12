@@ -76,10 +76,6 @@ class ProviderQuotaAdmissionTests(unittest.TestCase):
         self.assertLessEqual(len(admitted), cap)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
     def test_settle_output_refunds_unused_completion_reservation(self):
         with patch.dict(
             "os.environ",
@@ -99,3 +95,54 @@ if __name__ == "__main__":
             self.assertEqual(quota._BUCKETS["test:tpm"]["tokens"], before_tpm + 3500)
             self.assertEqual(quota._BUCKETS["test:tpd"]["tokens"], before_tpd + 3500)
             reservation.release()
+
+    def test_hrn_grounding_accepts_observer_owned_movement_fields(self):
+        import json
+        import provider_bank as bank
+
+        brief = {
+            "observer_intention": "You both want the recurring argument to change.",
+            "observer_contrast": "The argument keeps returning despite that shared intention.",
+            "observer_so_what": "The wish to improve and the repeated exchange are not yet aligned.",
+            "observer_delta": "The focus moves from stated intention to the recurring exchange.",
+            "observer_horizon": "The moment the argument begins to repeat.",
+            "observer_next_intention": "Notice the point where the familiar exchange returns.",
+        }
+        messages = [{
+            "role": "user",
+            "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief),
+        }]
+        self.assertEqual(
+            bank._hrn_question_grounding_violation(
+                "What usually happens just before the argument starts again?",
+                messages,
+            ),
+            "",
+        )
+
+    def test_hrn_grounding_remains_fail_closed_without_concrete_anchors(self):
+        import json
+        import provider_bank as bank
+
+        brief = {
+            "observer_intention": "",
+            "observer_contrast": "",
+            "observer_so_what": "",
+            "observer_delta": "",
+            "observer_horizon": "",
+            "observer_next_intention": "",
+        }
+        messages = [{
+            "role": "user",
+            "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief),
+        }]
+        reason = bank._hrn_question_grounding_violation(
+            "What happens next?",
+            messages,
+        )
+        self.assertIn("movement brief has no concrete question anchors", reason)
+
+
+
+if __name__ == "__main__":
+    unittest.main()

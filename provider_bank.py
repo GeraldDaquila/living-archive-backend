@@ -1471,6 +1471,8 @@ def _hrn_question_grounding_violation(question, messages):
     # Select only a decoded object carrying the declared movement-state fields.
     marker = "STRUCTURED MOVEMENT BRIEF"
     semantic_keys = {
+        "observer_intention", "observer_contrast", "observer_so_what",
+        "observer_delta", "observer_horizon", "observer_next_intention",
         "conversation_purpose", "thread_summary", "working_hypothesis",
         "underlying_need", "desired_condition", "emerging_delta",
         "perspective_delta", "body_of_thought", "unresolved",
@@ -1608,6 +1610,8 @@ def _hrn_question_grounding_violation(question, messages):
     # declared semantic fields; exclude metadata, history, resource payloads,
     # and control flags from the lexical grounding source.
     anchor_fields = (
+        "observer_intention", "observer_contrast", "observer_so_what",
+        "observer_delta", "observer_horizon", "observer_next_intention",
         "conversation_purpose", "thread_summary", "working_hypothesis",
         "underlying_need", "desired_condition", "emerging_delta",
         "perspective_delta", "body_of_thought", "unresolved",
@@ -1690,7 +1694,7 @@ def _apply_hrn_visitor_contract(messages):
         "mark. The question field MUST NEVER be empty. Do not put the follow-up question "
         "only inside response, and do not return an empty string for question. Keep the "
         "question grounded in the structured movement brief's actual declared fields, "
-        "including working_hypothesis, thread_summary, underlying_need, desired_condition, "
+        "including observer_intention, observer_contrast, observer_so_what, observer_delta, observer_horizon, observer_next_intention, working_hypothesis, thread_summary, underlying_need, desired_condition, "
         "emerging_delta, perspective_delta, body_of_thought, unresolved, movement_direction, "
         "next_movement, new_terrain, completed_insight, next_horizon, current_fractal, "
         "fractal_transition, pivot_signal, leadership_need, plane_shift, and relational_understanding. "
