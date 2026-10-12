@@ -1,13 +1,14 @@
 """Contract tests for the non-secret ecosystem integration audit endpoint."""
 
+import main
 from main import ecosystem_integration_audit
 
 
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.164"
-    assert report["fingerprint"] == "USE-v489.164-relational-return-heard-polysemy"
+    assert report["version"] == "v489.165"
+    assert report["fingerprint"] == "USE-v489.165-guide-node-level-two-tuple-index"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -49,3 +50,23 @@ def test_explicit_unheard_concern_still_adds_a_listening_topic_anchor():
         "Listening and acknowledgment matter here.",
     )
     assert "Relational communication during disagreement" in anchor
+
+
+def test_explicit_level_two_guide_node_returns_node_record_not_score(monkeypatch):
+    node = {
+        "node_id": "systems-stewardship",
+        "title": "Systems Stewardship",
+        "purpose": "A territory for systems stewardship and responsibility.",
+        "semantic_hints": ["systems stewardship", "organizational patterns"],
+        "discovery_level": 2,
+    }
+    monkeypatch.setattr(main, "_guide_node_registry_is_fresh", lambda: True)
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [node])
+
+    activated = main._guide_node_semantic_activation(
+        "Systems Stewardship",
+        {},
+        "guide",
+    )
+
+    assert activated == node

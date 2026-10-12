@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.164 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.165 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.164"
-DEPLOYMENT_FINGERPRINT = "USE-v489.164-relational-return-heard-polysemy"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.164-relational-return-heard-polysemy"
+APP_VERSION = "v489.165"
+DEPLOYMENT_FINGERPRINT = "USE-v489.165-guide-node-level-two-tuple-index"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.165-guide-node-level-two-tuple-index"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.164":
+if str(APP_VERSION) != "v489.165":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2626,11 +2626,11 @@ def _guide_node_semantic_activation(query, interpretation, route):
         # visitor clearly names the territory itself.
         explicit_level_two = [
             item for item in level_two
-            if _normalize_query(str(item[3].get("title") or "")) in raw_query
+            if _normalize_query(str(item[4].get("title") or "")) in raw_query
         ]
         if explicit_level_two:
             explicit_level_two.sort(key=lambda item: (item[0], item[1]), reverse=True)
-            return explicit_level_two[0][3]
+            return explicit_level_two[0][4]
         return None
 
     if not level_two:
