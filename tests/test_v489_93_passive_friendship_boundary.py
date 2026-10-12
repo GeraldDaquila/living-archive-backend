@@ -123,25 +123,15 @@ def test_bounded_archive_and_definition_exclusions_remain():
 def test_version_integrity_is_sequential():
     # Validate the current release identity as a coherent set without pinning
     # this regression test to a retired version number or fingerprint.
-    version_match = re.search(r'^APP_VERSION = "(v[0-9]+(?:\\.[0-9]+)*)", TEXT, re.MULTILINE)
-    assert version_match is not None, "APP_VERSION is missing or malformed"
-    app_version = version_match.group(1)
-    escaped_version = re.escape(app_version)
-    assert re.search(
-        rf'^# USE PRODUCTION VERSION: {escaped_version} — ',
-        TEXT,
-        re.MULTILINE,
-    ), "production version header drift"
-    assert re.search(
-        rf'^DEPLOYMENT_FINGERPRINT = "USE-{escaped_version}-[^"]+",
-        TEXT,
-        re.MULTILINE,
-    ), "deployment fingerprint does not match APP_VERSION"
-    assert re.search(
-        rf'^CANONICAL_BUILD_ID = "USE-BUILD-{escaped_version}-[^"]+",
-        TEXT,
-        re.MULTILINE,
-    ), "canonical build ID does not match APP_VERSION"
+    version_line = next(
+        (line for line in TEXT.splitlines() if line.startswith('APP_VERSION = "')),
+        None,
+    )
+    assert version_line is not None, "APP_VERSION is missing"
+    app_version = version_line.split('"')[1]
+    assert TEXT.startswith(f"# USE PRODUCTION VERSION: {app_version} — "), "production version header drift"
+    assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in TEXT
+    assert f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in TEXT
     assert f'if str(APP_VERSION) != "{app_version}":' in TEXT
     assert 'if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):' in TEXT
     assert 'if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):' in TEXT
