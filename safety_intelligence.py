@@ -578,7 +578,7 @@ def normalize_safety_resolution(
     resolved_location = dict(emergency_location.get("location") or {})
     resolved_country_data = dict(resolved_location.get("country") or {})
     verified_resource_country = str(resolved_country_data.get("value") or "").strip().upper()
-    selected_country = str(country or resolved_country_data.get("value") or "").strip().upper()
+    selected_country = str(resolved_country_data.get("value") or country or "").strip().upper()
     resources_are_location_grounded = bool(
         emergency_status == "SELECTED"
         and verified_resource_country
