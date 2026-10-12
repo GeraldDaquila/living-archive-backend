@@ -1403,6 +1403,12 @@ def _normalize_operation_result(operation, parsed):
         # visitor-facing sentence. Preserve complete sentences and discard only
         # the unfinished trailing sentence; never invent replacement prose.
         completed = _complete_response_prefix(response)
+        # HRN's frozen writer extracts a trailing question from the response field
+        # before applying its 180-character/two-sentence shape gate. Reject that
+        # malformed dual-channel draft here so the bank can fail over before the
+        # downstream writer silently shortens an otherwise valid-looking response.
+        if re.search(r"\\?\\s*$", completed):
+            raise ValueError("hrn_relational response field must not end with an embedded question")
         if not completed:
             raise ValueError("hrn_relational composition contract requires a complete response")
         # Match HRN's downstream ordinary_response_shape_valid contract here,
