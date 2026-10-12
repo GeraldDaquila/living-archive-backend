@@ -6,8 +6,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.144"
-    assert report["fingerprint"] == "USE-v489.144-hrn-movement-brief-control-character-repair"
+    assert report["version"] == "v489.145"
+    assert report["fingerprint"] == "USE-v489.145-hrn-movement-brief-escape-recovery"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
