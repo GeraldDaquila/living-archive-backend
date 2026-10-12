@@ -3430,7 +3430,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             if not asks_for_homepage:
                 evidence_docs = [
                     item for item in evidence_docs
-                    if urlparse(str(item.get("url") or item.get("canonical_url") or "")).path.strip("/")
+                    if "/" in str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1] and str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1].split("/", 1)[1].strip("/")
                 ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
