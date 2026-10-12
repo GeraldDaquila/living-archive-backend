@@ -147,12 +147,12 @@ def test_hrn_provider_bank_rejects_observed_reallocation_and_negotiation_guidanc
 
 def test_hrn_question_grounding_parses_raw_line_breaks_inside_visitor_brief():
     raw_brief = (
-        'STRUCTURED MOVEMENT BRIEF\\n'
+        "STRUCTURED MOVEMENT BRIEF\n"
         '{"working_hypothesis":"deadline disagreement",'
-        '"thread_summary":"colleague A holds the agreed deadline\\ncolleague B cites changed scope",'
+        '"thread_summary":"colleague A holds the agreed deadline\n'
+        'colleague B cites changed scope",'
         '"underlying_need":"clarity about the deadline and scope"}'
     )
-    raw_brief = raw_brief.replace("\\\\n", "\\n")
     messages = [{"role": "user", "content": raw_brief}]
     assert provider_bank._hrn_question_grounding_violation(
         "What happens when the agreed deadline is raised alongside the changed scope?", messages
