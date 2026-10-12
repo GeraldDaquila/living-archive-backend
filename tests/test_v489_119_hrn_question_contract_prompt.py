@@ -157,3 +157,16 @@ def test_hrn_question_grounding_parses_raw_line_breaks_inside_visitor_brief():
     assert provider_bank._hrn_question_grounding_violation(
         "What happens when the agreed deadline is raised alongside the changed scope?", messages
     ) == ""
+
+
+def test_hrn_question_grounding_recovers_double_escaped_brief():
+    brief = {
+        "working_hypothesis": "deadline disagreement",
+        "thread_summary": "two colleagues disagree about the agreed date",
+        "underlying_need": "clarity about the date and changed scope",
+    }
+    double_encoded = json.dumps(json.dumps(brief))
+    messages = [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\\n" + double_encoded}]
+    assert provider_bank._hrn_question_grounding_violation(
+        "What happens when the agreed date is raised alongside the changed scope?", messages
+    ) == ""
