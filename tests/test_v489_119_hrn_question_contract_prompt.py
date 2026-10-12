@@ -95,3 +95,9 @@ def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
         "question-grounding contract violation"
     )
     assert provider_bank._hrn_question_grounding_violation(grounded, messages) == ""
+
+
+def test_hrn_question_grounding_rejects_abstract_distinction_only():
+    messages = [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\n{\"situation\":\"deadline distinction\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"project scope changed\"}"}]
+    violation = provider_bank._hrn_question_grounding_violation("What changes when you look through that distinction?", messages)
+    assert violation.startswith("question-grounding contract violation")
