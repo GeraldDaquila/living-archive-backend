@@ -10,7 +10,7 @@ from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
