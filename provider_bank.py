@@ -1377,18 +1377,59 @@ def _hrn_question_grounding_violation(question, messages):
     perspective_delta, next_horizon, and relational_understanding. It does not
     use the unrelated situation/tension/parties/experience schema.
     """
+    # Search all candidate messages and all marker occurrences. The HRN writer
+    # instructions may mention "STRUCTURED MOVEMENT BRIEF" before a different
+    # JSON object (notably SOURCE CONTRACT). Selecting the first marker and then
+    # the next opening brace silently binds grounding to that unrelated object.
+    # Select only a decoded object carrying the declared movement-state fields.
+    marker = "STRUCTURED MOVEMENT BRIEF"
+    semantic_keys = {
+        "conversation_purpose", "thread_summary", "working_hypothesis",
+        "underlying_need", "desired_condition", "emerging_delta",
+        "perspective_delta", "body_of_thought", "unresolved",
+        "movement_direction", "next_movement", "new_terrain",
+        "completed_insight", "next_horizon", "current_fractal",
+        "fractal_transition", "pivot_signal", "leadership_need",
+        "plane_shift", "relational_understanding", "archive_grounded_understanding",
+    }
     brief_content = ""
+    brace_index = -1
     for item in reversed(list(messages or [])):
-        if isinstance(item, dict):
-            candidate = str(item.get("content") or "")
-            if "STRUCTURED MOVEMENT BRIEF" in candidate:
-                brief_content = candidate
+        if not isinstance(item, dict):
+            continue
+        candidate = str(item.get("content") or "")
+        search_end = len(candidate)
+        while True:
+            marker_index = candidate.rfind(marker, 0, search_end)
+            if marker_index < 0:
                 break
+            candidate_brace = candidate.find("{", marker_index + len(marker))
+            if candidate_brace < 0:
+                search_end = marker_index
+                continue
+            candidate_json = candidate[candidate_brace:]
+            candidate_json = _escape_json_string_control_characters(candidate_json)
+            decoded_brief = None
+            for normalized in (
+                candidate_json,
+                candidate_json.replace(chr(92) + chr(34), chr(34)),
+            ):
+                try:
+                    parsed, _ = json.JSONDecoder().raw_decode(normalized)
+                    if isinstance(parsed, dict) and semantic_keys.intersection(parsed):
+                        decoded_brief = parsed
+                        break
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    pass
+            if decoded_brief is not None:
+                brief_content = candidate
+                brace_index = candidate_brace
+                break
+            search_end = marker_index
+        if brace_index >= 0:
+            break
     if not brief_content:
         return "question-grounding contract violation: structured movement brief is missing"
-
-    marker_index = brief_content.find("STRUCTURED MOVEMENT BRIEF")
-    brace_index = brief_content.find("{", marker_index)
     if brace_index < 0:
         return "question-grounding contract violation: structured movement brief is malformed"
     serialized_brief = brief_content[brace_index:]
