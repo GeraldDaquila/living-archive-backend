@@ -27,3 +27,25 @@ def test_integration_audit_discloses_registry_adapter_gaps():
     assert "adapters_without_capabilities" in report
     # A green registration report is not a substitute for visitor E2E.
     assert any("end-to-end" in item.lower() for item in report["limitations"])
+
+
+def test_disagreement_does_not_invent_a_listening_topic_anchor():
+    from main import _relational_return_topic_anchor
+
+    anchor = _relational_return_topic_anchor(
+        "One colleague holds to an agreed deadline while another points to changed scope.",
+        "Clear communication of changes",
+        "The original estimate did not include the added work.",
+    )
+    assert anchor == ""
+
+
+def test_explicit_unheard_concern_still_adds_a_listening_topic_anchor():
+    from main import _relational_return_topic_anchor
+
+    anchor = _relational_return_topic_anchor(
+        "I feel unheard when we disagree.",
+        "Understand what happens in the conversation",
+        "Listening and acknowledgment matter here.",
+    )
+    assert "Relational communication during disagreement" in anchor
