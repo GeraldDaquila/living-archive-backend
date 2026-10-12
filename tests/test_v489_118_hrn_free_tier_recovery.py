@@ -58,7 +58,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         return state
 
     monkeypatch.setattr(provider_bank, "_state", fake_state)
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You said you feel unheard when you disagree. When you try to explain what you meant, the other person starts responding before you have finished, and then you stop talking. That leaves the disagreement unresolved and your point unfinished.","question":"What happened the last time you tried to finish explaining?"}')
+    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?","rest":false,"use_resource":false,"resource_intro":""}')
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
@@ -83,9 +83,9 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     attempts = []
     monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: (
         attempts.append(item["provider"]) or (
-            '{"response":"The dynamic shifts when you view this as a different plane of interaction and can help create a useful path forward. Another general distinction may help you reflect on the situation more broadly.","question":"What happens next?"}'
+            '{"response":"When a disagreement leaves you feeling unheard, the friction is rarely just about the topic being debated. It often reveals a gap between reaching an agreement and simply acknowledging what the other person actually experienced. Noticing whether the struggle is about winning a point or making room for two distinct viewpoints allows you to see where the conversation stops being a shared dialogue.","question":"What feels different when you hold both sides together?","rest":false,"use_resource":false,"resource_intro":""}'
             if item["provider"] == "nvidia" else
-            '{"response":"You said you feel unheard when you disagree. When you try to explain what you meant, the other person starts responding before you have finished, and then you stop talking. That leaves the disagreement unresolved and your point unfinished.","question":"What happened the last time you tried to finish explaining?"}'
+            '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?","rest":false,"use_resource":false,"resource_intro":""}'
         )
     ))
     original_sync = provider_bank._sync_shared_state
