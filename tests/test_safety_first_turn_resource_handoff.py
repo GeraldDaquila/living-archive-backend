@@ -98,3 +98,43 @@ def test_safety_utility_preserves_empty_opening_question(monkeypatch):
     )
 
     assert captured["safety_question"] == ""
+
+
+def test_followthrough_keeps_resource_when_country_name_resolves_to_iso_code():
+    emergency_resolution = {
+        "selection": {
+            "selection_status": "SELECTED",
+            "primary": {
+                "display_name": "Unified 911 Emergency Hotline",
+                "number": "911",
+                "service_types": ["general_emergency"],
+                "presentation_priority": 100,
+                "_verification": {
+                    "status": "verified",
+                    "source": "DILG",
+                    "evidence_type": "official_government_publication",
+                },
+            },
+        },
+        "location": {
+            "location": {"country": {"value": "PH"}},
+        },
+    }
+    normalized = safety_intelligence.normalize_safety_resolution(
+        {
+            "safety_interrupt": True,
+            "safety_message": "Please stay connected with someone who can help.",
+            "safety_question": "Are you safe from acting on these thoughts right now?",
+            "safety_note": "",
+            "safety_location_required": False,
+            "safety_release_ready": False,
+            "safety": "acute_contact",
+        },
+        requested_state="acute_followthrough",
+        country="Philippines",
+        emergency_resolution=emergency_resolution,
+    )
+
+    assert normalized["safety_resources"]
+    assert normalized["safety_resources"][0]["phone"] == "911"
+    assert normalized["safety_location_required"] is False
