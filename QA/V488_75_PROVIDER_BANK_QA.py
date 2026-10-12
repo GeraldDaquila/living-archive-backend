@@ -194,7 +194,7 @@ def main():
              "consecutive_failures": 0, "last_success": 90.0},
         ]),
     ):
-        health_selected = provider_bank.select(None, operation="hrn_relational")
+        health_selected = provider_bank.select(None, operation="hrn_perception")
         assert health_selected[0]["provider"] == "workers_ai"
         assert health_selected[0]["model"] == "@cf/google/gemma-4-26b-a4b-it", (
             "Healthy, previously successful model must outrank half-open transport failures"
