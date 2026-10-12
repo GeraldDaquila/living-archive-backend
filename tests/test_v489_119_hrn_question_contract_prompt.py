@@ -205,3 +205,21 @@ def test_hrn_grounding_recovers_valid_prefix_before_malformed_long_context():
     assert provider_bank._hrn_question_grounding_violation(
         "What happens when the agreed date is raised alongside the changed scope?", messages
     ) == ""
+
+
+
+def test_hrn_question_grounding_recovers_prefix_before_malformed_perspective_delta():
+    content = (
+        "STRUCTURED MOVEMENT BRIEF\n"
+        '{"working_hypothesis":"deadline disagreement",'
+        '"thread_summary":"two colleagues disagree about the agreed date",'
+        '"underlying_need":"clarity about the date and added work",'
+        '"emerging_delta":"the project scope changed after the original agreement",'
+        '"perspective_delta":"The visitor said "we agreed on the date" before the extra work was added",'
+        '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+        'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}'
+    )
+    messages = [{"role": "system", "content": content}]
+    assert provider_bank._hrn_question_grounding_violation(
+        "What happened when the agreed date was discussed alongside the added work?", messages
+    ) == ""
