@@ -214,3 +214,128 @@ def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch
 def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.0
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS < provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
+
+
+
+def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
+    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    response = (
+        "The original estimate covered the work that had been described at the time. "
+        "The additional work changed the scope after the date had already been discussed. "
+        "Those are different baselines, which helps explain why the same deadline now carries a different expectation."
+    )
+    valid = (
+        '{"response":' + __import__("json").dumps(response)
+        + ',"question":"What happened in the conversation when the agreed date was raised alongside the added work?",'
+        + '"rest":false,"use_resource":false,"resource_intro":""}'
+    )
+    rejected = (
+        '{"response":' + __import__("json").dumps(response)
+        + ',"question":"What should you tell your colleague about the changed scope?",'
+        + '"rest":false,"use_resource":false,"resource_intro":""}'
+    )
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return rejected if len(attempts) == 1 else valid
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=300,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is not None
+    assert result["parsed"]["question"] == "What happened in the conversation when the agreed date was raised alongside the added work?"
+    assert attempts == ["nvidia", "nvidia"]
+
+
+def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
+    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    response = (
+        "The original estimate covered the work that had been described at the time. "
+        "The additional work changed the scope after the date had already been discussed. "
+        "Those are different baselines, which helps explain why the same deadline now carries a different expectation."
+    )
+    rejected = (
+        '{"response":' + __import__("json").dumps(response)
+        + ',"question":"What should you tell your colleague about the changed scope?",'
+        + '"rest":false,"use_resource":false,"resource_intro":""}'
+    )
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return rejected
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=300,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is None
+    assert attempts == ["nvidia", "nvidia"]
