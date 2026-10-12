@@ -45,20 +45,20 @@ class ProviderOutput(str):
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
 # Permit up to three short local candidates within a five-second fast-failure window;
 # this allows a third candidate when two transport failures consume ~3-4 seconds.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 6.0
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 # Perception is the first inference stage. Permit up to four independent
 # fallbacks after fast failures within the same three-second admission window.
 # This lets the bank reach additional eligible free lanes when quotas and
 # transient transport failures cluster; strict schema validation and per-call
 # timeouts remain unchanged, and slow failures still stop fallback.
-HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 6.0
+HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 7.0
 HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 2.5
 HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
-# The HRN stages must allow a viable independent free provider to complete
-# structured output; one second was shorter than the observed 1.0–2.3s provider
-# latency and converted recoverable lanes into false transport failures.
-HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5
+# HRN uses free provider lanes whose structured-output latency can exceed 1.5s.
+# Keep each call bounded, but do not quarantine a viable lane before its normal
+# response latency has elapsed.
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
@@ -335,6 +335,29 @@ def _quality_state(operation, provider, model, create=False):
     })
 
 def _blocked(state):
+    # Older provider-bank builds escalated repeated short client timeouts to a
+    # five-minute open circuit. When the failure is specifically a read/HTTP
+    # timeout (not quota, authentication, or rate limiting), cap that legacy
+    # cooldown at 20 seconds so the lane can recover after its latency budget is
+    # corrected. Explicit provider retry-after and daily-quota cooldowns are untouched.
+    if str(state.get("category") or "") == "provider_failure":
+        error_text = str(state.get("last_error") or "").casefold()
+        if any(term in error_text for term in (
+            "read operation timed out",
+            "request timed out",
+            "timed out",
+            "timeout",
+        )):
+            try:
+                last_failure = float(state.get("last_failure", 0) or 0)
+                if last_failure > 0:
+                    bounded_until = last_failure + 20.0
+                    current_until = float(state.get("cooldown_until", 0) or 0)
+                    if current_until > bounded_until:
+                        state["cooldown_until"] = bounded_until
+                        state["quarantine_until"] = 0.0
+            except (TypeError, ValueError):
+                pass
     return blocked(state)
 
 def _failure(exc, provider, model):
