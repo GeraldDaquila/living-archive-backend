@@ -175,8 +175,8 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         operation="hrn_relational",
     )
 
-    assert result and result["provider"] == "workers_ai"
-    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
+    assert result is None
+    assert attempts == ["groq", "gemini", "mistral"]
 
 
 
