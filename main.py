@@ -69,8 +69,8 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.141"
-DEPLOYMENT_FINGERPRINT = "USE-v489.141-hrn-action-guidance-boundary"
+APP_VERSION = "v489.142"
+DEPLOYMENT_FINGERPRINT = "USE-v489.142-hrn-movement-brief-schema-alignment"
 CANONICAL_BUILD_ID = "USE-BUILD-v489.141-hrn-action-guidance-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
