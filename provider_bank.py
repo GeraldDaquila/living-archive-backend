@@ -1278,6 +1278,7 @@ def _hrn_surface_language_violation(response):
         ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
         ("action-guidance", r"\b(?:noticing|recognizing|seeing|understanding|separating|distinguishing|considering)\b.{0,180}\ballows you to\b"),
         ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize|re-?allocate|negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
+        ("action-guidance", r"\bopens space to\s+(?:re-?allocate|negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
         ("abstract-generalization", r"\bopens the possibility of\b"),
         ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
         ("metaphorical-framing", r"\bwhat once felt like\b"),
