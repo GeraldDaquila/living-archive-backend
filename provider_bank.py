@@ -1721,7 +1721,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=5 if operation in hrn_operations else None))
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered, messages=effective_messages)
