@@ -1318,11 +1318,13 @@ def _apply_hrn_visitor_contract(messages):
         "when one useful observation has already been made, and do not repeat the "
         "opening question unless the current message directly calls for it. "
         "The follow-up must explore the interaction between the people, not merely ask "
-        "for factual reasons, justifications, or each person's stated position. Avoid "
-        "questions such as 'What reasons does each person give?' or 'Why is the deadline "
-        "important to them?' Instead, ask one concrete question about what happens between "
-        "them when their stated priorities conflict, grounded in the visitor's latest turn. "
-        "The response and question must describe the same specific interaction."
+        "for factual reasons, justifications, or each person's stated position. The question "
+        "must name at least one concrete issue, action, or phrase from the visitor's latest "
+        "turn and ask about the interpersonal exchange around that specific detail. Avoid "
+        "broad templates such as 'what happens between them' unless the actual issue is named. "
+        "Do not ask for reasons or importance in the abstract. The response and question must "
+        "describe the same specific interaction, and the question must remain useful if read "
+        "without the original opening question."
     )
     result = [dict(item) if isinstance(item, dict) else item for item in messages]
     for item in result:
