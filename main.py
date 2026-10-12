@@ -2760,6 +2760,10 @@ def _guide_capability_route(query, history=None):
     except Exception:
         pass
 
+    route, mode, reason = _guard_hypothetical_safety_route(
+        query, route, mode, reason
+    )
+
     result = {
         "route": route,
         "mode": mode,
@@ -4109,6 +4113,21 @@ def _should_honor_protected_risk_profile(query, risk_profile):
     ):
         return False
     return True
+
+
+def _guard_hypothetical_safety_route(query, route, mode, reason):
+    """Keep an explicit third-person safety calibration in informational Guide routing."""
+    if (
+        str(route or "").casefold() == "safety"
+        and is_hypothetical_safety_discussion(query)
+        and normalize_safety_state(query) is None
+    ):
+        return (
+            "guide",
+            "direct",
+            "hypothetical safety calibration is informational, not a personal-risk disclosure",
+        )
+    return route, mode, reason
 
 
 async def _use_request_boundary(scope, receive, send):
