@@ -242,6 +242,40 @@ def main():
         "Independent fallback must satisfy the unchanged visitor language policy."
     )
 
+    # A structurally short HRN response is also a model-quality failure, not
+    # a reason to spend the bounded turn on same-model correction.
+    short_hrn = json.dumps({
+        "response": "You feel unheard when disagreement starts.",
+        "question": "What happens just before you feel unheard?",
+    })
+    shape_pool = [
+        {"provider": "nvidia", "model": "nvidia/nemotron-shape-test", "index": 0},
+        {"provider": "mistral", "model": "mistral-small-shape-test", "index": 0},
+    ]
+    with (
+        patch.dict(os.environ, {
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+        }, clear=False),
+        patch.object(provider_bank, "select", return_value=shape_pool),
+        patch.object(provider_bank, "_call", side_effect=[short_hrn, independent_hrn]) as shape_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+    ):
+        shape_routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert shape_routed["provider"] == "mistral", (
+        "A rejected short HRN response must advance to an independent provider."
+    )
+    assert shape_call.call_count == 2, (
+        "A short HRN response must not receive a same-model correction request."
+    )
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until
