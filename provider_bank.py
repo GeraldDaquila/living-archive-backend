@@ -1351,19 +1351,19 @@ def _hrn_deterministic_nonprescriptive_question(question):
     raw = str(question or "").strip()
     if _hrn_surface_language_violation(raw) != "prescriptive-language":
         return ""
-    text = re.sub(r"^\\s*(?:what|how|where|when)\\s+", "", raw, flags=re.IGNORECASE)
+    text = re.sub(r"^\s*(?:what|how|where|when)\s+", "", raw, flags=re.IGNORECASE)
     # Retain only a concrete object phrase explicitly present in the rejected
     # question. Never invent a topic when the question has no usable anchor.
-    about = list(re.finditer(r"\\babout\\s+", text, flags=re.IGNORECASE))
+    about = list(re.finditer(r"\babout\s+", text, flags=re.IGNORECASE))
     if about:
         focus = text[about[-1].end():]
-        focus = re.sub(r"[?!.]+\\s*$", "", focus).strip(" \\t,;:")
+        focus = re.sub(r"[?!.]+\s*$", "", focus).strip(" \t,;:")
         if len(re.findall(r"[a-zA-Z]{4,}", focus)) >= 1:
             return "What stands out to you about " + focus + "?"
-    when = list(re.finditer(r"\\bwhen\\s+", text, flags=re.IGNORECASE))
+    when = list(re.finditer(r"\bwhen\s+", text, flags=re.IGNORECASE))
     if when:
         focus = text[when[-1].end():]
-        focus = re.sub(r"[?!.]+\\s*$", "", focus).strip(" \\t,;:")
+        focus = re.sub(r"[?!.]+\s*$", "", focus).strip(" \t,;:")
         if len(re.findall(r"[a-zA-Z]{4,}", focus)) >= 2:
             return "What stands out to you when " + focus + "?"
     return ""
