@@ -41,25 +41,34 @@ class ProviderQuotaAdmissionTests(unittest.TestCase):
         admitted = []
         lock = threading.Lock()
         held = threading.Event()
+        all_attempted = threading.Event()
         release = threading.Event()
+        attempts = [0]
 
         def worker():
             barrier.wait()
+            item = None
             try:
                 item = quota.reserve("parallel", "same-model", "short", 1)
             except quota.QuotaAdmissionDenied:
-                return
+                pass
             with lock:
-                admitted.append(item)
-            held.set()
-            release.wait(timeout=1)
-            item.release()
+                if item is not None:
+                    admitted.append(item)
+                attempts[0] += 1
+                if attempts[0] == 8:
+                    all_attempted.set()
+            if item is not None:
+                held.set()
+                release.wait(timeout=1)
+                item.release()
 
         with patch.dict("os.environ", {"USE_QUOTA_MAX_INFLIGHT_PROVIDER": str(cap), "USE_QUOTA_MAX_INFLIGHT_MODEL": str(cap)}, clear=False):
             threads = [threading.Thread(target=worker) for _ in range(8)]
             for thread in threads:
                 thread.start()
             held.wait(timeout=1)
+            self.assertTrue(all_attempted.wait(timeout=1))
             self.assertLessEqual(quota.snapshot()["active_provider_calls"].get("parallel", 0), cap)
             release.set()
             for thread in threads:
