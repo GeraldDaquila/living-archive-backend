@@ -50,6 +50,8 @@ jobs:
         run: PYTHONPATH=. python QA/V489_101_HRN_SURFACE_POLICY_BANK_ALIGNMENT_QA.py
       - name: v489.102 HRN action-guidance surface-policy QA
         run: PYTHONPATH=. python QA/V489_102_HRN_ACTION_GUIDANCE_SURFACE_POLICY_QA.py
+      - name: v489.103 HRN internal-observer language regression QA
+        run: PYTHONPATH=. python QA/V489_103_HRN_INTERNAL_OBSERVER_LANGUAGE_QA.py
       - name: v489.89 clustered HRN relational-return structural QA
         run: PYTHONPATH=. python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: v487 protected-runtime compatibility validation
