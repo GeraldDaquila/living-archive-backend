@@ -1048,9 +1048,9 @@ def select(use_core, operation="generic", schema=None):
                 # because its older visitor-contract history is cleaner.
                 return (
                     health_rank,
+                    quality_failures,
                     consecutive_failures,
                     transport_failures,
-                    quality_failures,
                     provider_rank,
                     last_success,
                 )
