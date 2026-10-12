@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.119 — enforce explicit HRN question-field contract
+# USE PRODUCTION VERSION: v489.120 — expose ecosystem integration audit contract
 import asyncio
 import hashlib
 import ipaddress
@@ -68,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.119"
-DEPLOYMENT_FINGERPRINT = "USE-v489.119-hrn-question-field-contract"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.119-hrn-question-field-contract"
+APP_VERSION = "v489.120"
+DEPLOYMENT_FINGERPRINT = "USE-v489.120-ecosystem-integration-audit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.120-ecosystem-integration-audit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -175,7 +175,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.119":
+if str(APP_VERSION) != "v489.120":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5293,3 +5293,55 @@ if "normalize_journey_contribution as _normalize_shared_journey" not in open(_MA
     raise RuntimeError("USE v487.92 invariant failed: journey contribution seam wiring missing.")
 if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding="utf-8").read():
     raise RuntimeError("USE v487.92 invariant failed: journey contribution adapter consumption missing.")
+
+# Ecosystem integration diagnostics (non-secret, read-only).
+# This reports the distinction between declared capabilities, runtime adapters,
+# and known direct visitor-facing handoffs. It does not claim that a route has
+# passed a live visitor journey; those require separate E2E checks.
+@_FASTAPI_APP.get("/api/integration-audit")
+def ecosystem_integration_audit():
+    capabilities = []
+    for item in SPECIALIST_CAPABILITY_REGISTRY:
+        capabilities.append({
+            "specialist_id": str(getattr(item, "specialist_id", "")),
+            "public_name": str(getattr(item, "public_name", "")),
+            "status": str(getattr(item, "status", "")),
+            "entry_point": str(getattr(item, "entry_point", "")),
+            "access_class": str(getattr(item, "access_class", "")),
+        })
+
+    adapter_ids = sorted(str(item) for item in SPECIALIST_ADAPTER_REGISTRY.ids())
+    adapter_set = set(adapter_ids)
+    capability_ids = {item["specialist_id"] for item in capabilities}
+    declared_available = {
+        item["specialist_id"] for item in capabilities
+        if item["status"] == "available"
+    }
+    missing_adapters = sorted(declared_available - adapter_set)
+    unregistered_adapters = sorted(adapter_set - capability_ids)
+
+    # These routes hand the visitor to a native surface; they are not runtime
+    # retrieval spokes and must not be misreported as adapter-backed.
+    direct_handoffs = {
+        "catalogue": "native_catalogue_search",
+        "navigator": "native_navigator",
+        "fsd": "native_fsd_landing",
+        "guide_node": "canonical_guide_node",
+    }
+
+    return {
+        "ok": not missing_adapters and not unregistered_adapters,
+        "audit_contract": "ecosystem-integration-audit-v1",
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "capability_registry": capabilities,
+        "runtime_adapters": adapter_ids,
+        "direct_handoffs": direct_handoffs,
+        "available_capabilities_missing_adapters": missing_adapters,
+        "adapters_without_capabilities": unregistered_adapters,
+        "catalogue_mode": "direct_handoff_not_adapter",
+        "limitations": [
+            "This endpoint reports registration and declared routing mode only.",
+            "It does not assert live provider health or end-to-end visitor journey success.",
+        ],
+    }
