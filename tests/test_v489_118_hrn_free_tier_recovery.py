@@ -38,34 +38,37 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         _item("groq", "openai/gpt-oss-120b"),
         _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
     ])
-    original_state = provider_bank._state
-    original_states = provider_bank._STATE["models"].copy()
-    original_quality = provider_bank._STATE["quality"].copy()
-    provider_bank._STATE["models"].clear()
-    provider_bank._STATE["quality"].clear()
+    original_state_fn = provider_bank._state
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
     calls = []
+
     def fake_state(provider, model):
-        state = original_state(provider, model)
+        key = provider + ":" + model
+        state = provider_bank.new_state(provider, model)
         if provider == "groq":
-            state.update({"state":"open", "cooldown_until":time.time()+120, "quarantine_until":0, "category":"rate_limited"})
+            state.update({"state": "open", "cooldown_until": time.time() + 120, "quarantine_until": 0, "category": "rate_limited"})
         else:
-            state.update({"state":"healthy", "cooldown_until":0, "quarantine_until":0, "category":""})
+            state.update({"state": "healthy", "cooldown_until": 0, "quarantine_until": 0, "category": ""})
+        original_models[key] = state
         return state
+
     monkeypatch.setattr(provider_bank, "_state", fake_state)
     monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You said you feel unheard when you disagree. When you try to explain what you meant, the other person starts responding before you have finished, and then you stop talking. That leaves the disagreement unresolved and your point unfinished.","question":"What happened the last time you tried to finish explaining?"}')
-    original_sync = provider_bank._sync_shared_state
-    original_persist = provider_bank._persist_shared_state
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":"Return JSON only."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": "Return JSON only."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
-        monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
-        monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
-        provider_bank._STATE["models"].clear()
-        provider_bank._STATE["models"].update(original_states)
-        provider_bank._STATE["quality"].clear()
-        provider_bank._STATE["quality"].update(original_quality)
+        monkeypatch.setattr(provider_bank, "_state", original_state_fn)
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
     assert result and result["provider"] == "nvidia"
     assert calls == ["nvidia"]
 
