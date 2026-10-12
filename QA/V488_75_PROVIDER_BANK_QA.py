@@ -139,6 +139,26 @@ def main():
         selected_again = provider_bank.select(None, operation="hrn_perception")
         assert [item["provider"] for item in selected_again[:2]] == ["openrouter", "groq"]
 
+    # For relational composition, operation-specific contract history outranks
+    # general transport health from another specialist stage.
+    with (
+        patch.dict(os.environ, {"OPENROUTER_API_KEY": "", "USE_LLM_PROVIDER_ORDER": "nvidia,groq"}, clear=False),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "candidates", return_value=[
+            {"provider": "nvidia", "model": "nvidia/nemotron-3-super-120b-a12b", "index": 0, "health_state": "healthy", "quality_failures": 3, "consecutive_failures": 0, "transport_failures": 0, "last_success": 999},
+            {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0, "health_state": "unknown", "quality_failures": 0, "consecutive_failures": 0, "transport_failures": 0, "last_success": 0},
+        ]),
+    ):
+        relational_order = provider_bank.select(None, operation="hrn_relational")
+        assert relational_order[0]["provider"] == "groq", (
+            "A relational model with repeated contract rejections must not outrank "
+            "a clean independent lane just because another operation marked it healthy."
+        )
+        perception_order = provider_bank.select(None, operation="hrn_perception")
+        assert perception_order[0]["provider"] == "nvidia", (
+            "The relational quality override must remain scoped to relational composition."
+        )
+
     # HRN model arbitration must carry recent success across semantic stages.
     # A model that just succeeded in perception should outrank a sibling whose
     # quota health is stale, without disturbing provider-lane interleaving.
