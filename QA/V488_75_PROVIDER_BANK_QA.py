@@ -82,7 +82,7 @@ def main():
     assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -400,7 +400,7 @@ def main():
     )
 
     # Fast provider failures may traverse multiple independent relational lanes,
-    # but only while the existing three-second aggregate window remains open.
+    # but only while the existing five-second aggregate window remains open.
     fast_fallback_pool = [
         {"provider": "openrouter", "model": "openrouter/free", "index": 0},
         {"provider": "mistral", "model": "mistral-small-latest", "index": 0},
@@ -430,7 +430,7 @@ def main():
     )
     assert fast_call.call_count == 3, "Fast failures should advance through bounded independent lanes."
 
-    # A 4.27s first failure exceeds the new three-second fast-failure window.
+    # A 5.27s first failure exceeds the five-second fast-failure window.
     # It must return control to the WordPress mirror boundary instead of spending
     # another provider timeout inside the same primary request.
     with (
@@ -440,7 +440,7 @@ def main():
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
         patch.object(provider_bank, "acquire_probe", return_value=True),
         patch.object(provider_bank, "_success"),
-        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 4.27]),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 5.27]),
     ):
         measured_routed = provider_bank.route(
             use_core=None,
@@ -452,7 +452,7 @@ def main():
     assert measured_routed is None
     assert measured_call.call_count == 1, "A slow first failure must yield to the mirror."
 
-    # Once the three-second fast-failure window is exceeded, the extra provider must not run.
+    # Once the five-second fast-failure window is exceeded, the extra provider must not run.
     with (
         patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
         patch.object(provider_bank, "select", return_value=fast_fallback_pool),

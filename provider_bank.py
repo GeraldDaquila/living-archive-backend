@@ -23,8 +23,10 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
-# A second independent relational candidate is permitted only after one fast failure.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
+# HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
+# Permit up to three short local candidates within a five-second fast-failure window;
+# this allows a third candidate when two transport failures consume ~3-4 seconds.
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
