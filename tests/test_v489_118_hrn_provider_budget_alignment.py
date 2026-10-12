@@ -122,7 +122,14 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
     monkeypatch.setattr(provider_bank, "_call", two_fast_failures_then_success)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": "Return JSON only."}],
+        messages=[{"role": "system", "content": (
+            "STRUCTURED MOVEMENT BRIEF\n"
+            '{"working_hypothesis":"deadline disagreement",'
+            '"underlying_need":"shared clarity about the date and added work",'
+            '"emerging_delta":"the scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return JSON only."
+        )}],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
