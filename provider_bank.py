@@ -2240,16 +2240,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     or targeted_response_shape_recovery
                     or targeted_response_voice_recovery
                 )
-                hrn_quality_failure = operation == "hrn_relational" and any(
-                    marker in str(contract_error)
-                    for marker in (
-                        "visitor-surface contract violation",
-                        "question-surface contract violation",
-                        "requires a non-empty question",
-                        "response shape requires",
-                        "composition contract requires a complete response",
-                    )
-                )
+                # Every ValueError from _normalize_operation_result is a content,
+                # grounding, or response-shape contract failure. Do not let an
+                # unlisted defect fall through to same-model strict-schema retry:
+                # it consumes the same scarce lane without changing the defect.
+                hrn_quality_failure = operation == "hrn_relational"
                 # Known field-level defects receive one bounded correction of
                 # the offending field. Every corrected object still passes the
                 # full grounding, visitor-surface, and response-shape validators.
