@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, json, mimetypes, os, re, urllib.error, urllib.parse, urllib.request
+import base64, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 import time
 
@@ -781,11 +781,38 @@ def _cloudflare_credentials():
 def _configured(use_core):
     out = OrderedDict()
     get_models = getattr(use_core, "get_live_groq_models", None)
-    try:
-        live_groq = get_models() if callable(get_models) else []
-    except Exception as exc:
-        print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
-        live_groq = []
+    live_groq = []
+    if callable(get_models):
+        try:
+            inventory_timeout = max(
+                0.1,
+                min(5.0, float(os.getenv("USE_GROQ_INVENTORY_TIMEOUT_SECONDS", "2.5"))),
+            )
+        except (TypeError, ValueError):
+            inventory_timeout = 2.5
+        completed = threading.Event()
+        result = {}
+
+        def _load_groq_inventory():
+            try:
+                result["models"] = get_models() or []
+            except Exception as exc:
+                result["error"] = exc
+            finally:
+                completed.set()
+
+        worker = threading.Thread(target=_load_groq_inventory, daemon=True)
+        worker.start()
+        if completed.wait(inventory_timeout):
+            live_groq = result.get("models") or []
+            if result.get("error") is not None:
+                exc = result["error"]
+                print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
+        else:
+            print(
+                "USE provider bank: Groq live inventory discovery exceeded "
+                f"{inventory_timeout:.1f}s; using bounded catalog fallback when credentials exist"
+            )
     live_set = {str(x).strip() for x in (live_groq or []) if str(x).strip()}
     if live_set:
         out["groq"] = [model for model in PRODUCTION_GROQ_MODELS if model in live_set]
@@ -1002,13 +1029,30 @@ def select(use_core, operation="generic", schema=None):
             best = lane[0] if lane else {}
             health_rank = 0 if best.get("health_state") == "healthy" else 1
             provider = str(best.get("provider") or "")
+            quality_failures = int(best.get("quality_failures", 0) or 0)
+            consecutive_failures = int(best.get("consecutive_failures", 0) or 0)
+            transport_failures = int(best.get("transport_failures", 0) or 0)
+            provider_rank = configured_priority.get(provider, len(configured_priority))
+            last_success = -float(best.get("last_success", 0) or 0)
+            if operation == "hrn_relational":
+                # A provider that has repeatedly failed this operation's
+                # visitor-facing contract must not win merely because another
+                # operation recently marked its transport lane healthy.
+                return (
+                    quality_failures,
+                    consecutive_failures,
+                    transport_failures,
+                    health_rank,
+                    provider_rank,
+                    last_success,
+                )
             return (
                 health_rank,
-                configured_priority.get(provider, len(configured_priority)),
-                int(best.get("quality_failures", 0) or 0),
-                int(best.get("consecutive_failures", 0) or 0),
-                int(best.get("transport_failures", 0) or 0),
-                -float(best.get("last_success", 0) or 0),
+                provider_rank,
+                quality_failures,
+                consecutive_failures,
+                transport_failures,
+                last_success,
             )
         lanes.sort(key=_hrn_lane_priority)
 

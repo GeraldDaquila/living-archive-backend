@@ -50,6 +50,25 @@ def main():
         configured = provider_bank._configured(fake_groq_core)
         assert configured.get("groq") == ["openai/gpt-oss-120b"]
 
+    # A hung inventory endpoint must not block the provider-bank request path.
+    slow_groq_core = type(
+        "SlowGroqCore",
+        (),
+        {"get_live_groq_models": lambda self: (provider_bank.time.sleep(0.5), [])[1]},
+    )()
+    with (
+        patch.dict(os.environ, {
+            "GROQ_API_KEY": "test-key",
+            "USE_GROQ_INVENTORY_TIMEOUT_SECONDS": "0.1",
+        }, clear=False),
+        patch.object(provider_bank, "PRODUCTION_GROQ_MODELS", ["openai/gpt-oss-120b"]),
+    ):
+        started = provider_bank.time.monotonic()
+        configured = provider_bank._configured(slow_groq_core)
+        elapsed = provider_bank.time.monotonic() - started
+        assert elapsed < 0.4, f"Groq inventory discovery blocked the request path for {elapsed:.2f}s"
+        assert configured.get("groq") == ["openai/gpt-oss-120b"]
+
     # HRN's multiple semantic stages must not each fan out across the entire bank.
     # One candidate per primary gateway request leaves the WordPress bridge's
     # bounded mirror replay as the independent fallback; diagnostics may opt into two.
@@ -139,6 +158,26 @@ def main():
         selected_again = provider_bank.select(None, operation="hrn_perception")
         assert [item["provider"] for item in selected_again[:2]] == ["openrouter", "groq"]
 
+    # For relational composition, operation-specific contract history outranks
+    # general transport health from another specialist stage.
+    with (
+        patch.dict(os.environ, {"OPENROUTER_API_KEY": "", "USE_LLM_PROVIDER_ORDER": "nvidia,groq"}, clear=False),
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "candidates", return_value=[
+            {"provider": "nvidia", "model": "nvidia/nemotron-3-super-120b-a12b", "index": 0, "health_state": "healthy", "quality_failures": 3, "consecutive_failures": 0, "transport_failures": 0, "last_success": 999},
+            {"provider": "groq", "model": "openai/gpt-oss-120b", "index": 0, "health_state": "unknown", "quality_failures": 0, "consecutive_failures": 0, "transport_failures": 0, "last_success": 0},
+        ]),
+    ):
+        relational_order = provider_bank.select(None, operation="hrn_relational")
+        assert relational_order[0]["provider"] == "groq", (
+            "A relational model with repeated contract rejections must not outrank "
+            "a clean independent lane just because another operation marked it healthy."
+        )
+        perception_order = provider_bank.select(None, operation="hrn_perception")
+        assert perception_order[0]["provider"] == "nvidia", (
+            "The relational quality override must remain scoped to relational composition."
+        )
+
     # HRN model arbitration must carry recent success across semantic stages.
     # A model that just succeeded in perception should outrank a sibling whose
     # quota health is stale, without disturbing provider-lane interleaving.
@@ -174,7 +213,7 @@ def main():
              "consecutive_failures": 0, "last_success": 90.0},
         ]),
     ):
-        health_selected = provider_bank.select(None, operation="hrn_relational")
+        health_selected = provider_bank.select(None, operation="hrn_perception")
         assert health_selected[0]["provider"] == "workers_ai"
         assert health_selected[0]["model"] == "@cf/google/gemma-4-26b-a4b-it", (
             "Healthy, previously successful model must outrank half-open transport failures"
