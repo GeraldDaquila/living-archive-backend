@@ -71,13 +71,13 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
         messages=[{
             "role": "user",
             "content": (
-                "STRUCTURED MOVEMENT BRIEF\\n"
+                "STRUCTURED MOVEMENT BRIEF\n"
                 '{"working_hypothesis":"friend disagreement leaves the visitor feeling unheard",'
                 '"thread_summary":"the visitor feels unheard during disagreement with a friend",'
                 '"underlying_need":"understand what happens when disagreement begins",'
                 '"emerging_delta":"feeling unheard during the conversation differs from disagreeing about the topic",'
                 '"body_of_thought":"the disagreement and feeling unheard are related but not identical"}'
-                "\\nReturn JSON only."
+                "\nReturn JSON only."
             ),
         }],
         max_tokens=300,
