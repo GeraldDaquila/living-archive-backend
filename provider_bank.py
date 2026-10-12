@@ -1433,7 +1433,7 @@ def _hrn_surface_language_violation(response):
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
         ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+consider\b"),
-        ("prescriptive-language", r"\byou\s+(?:try|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\b"),
+        ("prescriptive-language", r"\byou\s+(?:try|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|write|set|change|make|invite|confront)\b"),
         ("prescriptive-language", r"\b(?:i|we)\s+(?:recommend|advise|suggest)\s+(?:you|that you)\b"),
         ("prescriptive-language", r"(?:^|[.!?]\s+)\s*(?:try|consider|avoid|stop|start|tell|ask|call|contact|leave|stay|go|write|say|set|change|make|invite|forgive)\s+(?:to|doing|the|a|an|your|them|him|her|it|someone|anyone|people|this|that|with)\b"),
         ("prescriptive-language", r"\b(?:what you should do|what you need to do|what you must do|what you ought to do)\b"),
