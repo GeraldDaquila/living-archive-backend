@@ -536,7 +536,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
 def test_hrn_contract_rejects_truncated_response():
     incomplete = {
         "response": "This begins clearly but stops before the sentence is complete",
-        "question": "What stands out to you?",
+        "question": "What begins clearly in this account?",
     }
     try:
         provider_bank._normalize_operation_result("hrn_relational", incomplete)
@@ -547,7 +547,7 @@ def test_hrn_contract_rejects_truncated_response():
 
     complete = {
         "response": "This is a complete observation about the distance you described, while the other person's intention remains uncertain. The distinction lets the account stay with what happened without turning it into a judgment about either person.",
-        "question": "What stands out to you?",
+        "question": "What remains uncertain about the other person's intention?",
     }
     normalized = provider_bank._normalize_operation_result("hrn_relational", complete)
     assert normalized["response"].endswith(".")

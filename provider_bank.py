@@ -1306,6 +1306,7 @@ def _hrn_surface_language_violation(response):
         "it sounds as though",
         "it seems as though",
         "you have noticed",
+        "you say",
         "you are dealing with",
         "what you are experiencing",
         "your instinct",
@@ -1496,6 +1497,29 @@ def _escape_json_string_control_characters(raw):
             if char == '"':
                 in_string = True
     return "".join(output)
+
+
+def _hrn_question_response_alignment_violation(question, response):
+    """Reject follow-up questions that are grounded in the brief but not this answer."""
+    stopwords = {
+        "about", "after", "again", "also", "and", "are", "before", "being",
+        "both", "can", "could", "does", "doing", "each", "either", "feel",
+        "feels", "for", "from", "have", "how", "into", "just", "like", "most",
+        "one", "other", "our", "same", "that", "the", "their", "them", "then",
+        "there", "these", "they", "this", "those", "through", "what", "when",
+        "where", "which", "while", "who", "with", "would", "you", "your",
+    }
+    question_terms = {
+        token for token in re.findall(r"[a-z][a-z'-]{3,}", str(question or "").casefold())
+        if token not in stopwords
+    }
+    response_terms = {
+        token for token in re.findall(r"[a-z][a-z'-]{3,}", str(response or "").casefold())
+        if token not in stopwords
+    }
+    if not question_terms or not (question_terms & response_terms):
+        return "question does not align with the response"
+    return ""
 
 
 def _hrn_question_grounding_violation(question, messages):
@@ -1931,6 +1955,15 @@ def _normalize_operation_result(operation, parsed, messages=None):
                 "hrn_relational visitor-surface contract violation: "
                 + surface_violation
             )
+        # Validate the follow-up against the actual answer only after checking
+        # the response's safety/voice contract. A misaligned question must not
+        # mask a higher-priority response defect and turn it into a same-model retry.
+        question_alignment_violation = _hrn_question_response_alignment_violation(question, response)
+        if question_alignment_violation:
+            raise ValueError(
+                "hrn_relational question-surface contract violation: "
+                + question_alignment_violation
+            )
         # Do not let a syntactically valid JSON object conceal a cut-off
         # visitor-facing sentence. Preserve complete sentences and discard only
         # the unfinished trailing sentence; never invent replacement prose.
@@ -2207,12 +2240,21 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # directly to the independently ranked provider lane.
                 targeted_question_recovery = (
                     operation == "hrn_relational"
-                    and "question-surface contract violation: prescriptive-language"
-                    in str(contract_error)
+                    and any(
+                        marker in str(contract_error)
+                        for marker in (
+                            "question-surface contract violation: prescriptive-language",
+                        )
+                    )
                 )
                 targeted_question_grounding_recovery = (
                     operation == "hrn_relational"
                     and "question-grounding contract violation: question does not name a concrete detail from the movement brief"
+                    in str(contract_error)
+                )
+                targeted_question_alignment_recovery = (
+                    operation == "hrn_relational"
+                    and "question-surface contract violation: question does not align with the response"
                     in str(contract_error)
                 )
                 targeted_response_shape_recovery = (
@@ -2231,6 +2273,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         marker in str(contract_error)
                         for marker in (
                             "visitor-surface contract violation: action-guidance",
+                            "visitor-surface contract violation: you say",
                             "visitor-surface contract violation: prescriptive-language",
                             "visitor-surface contract violation: a useful distinction is that",
                             "visitor-surface contract violation: specific friction",
@@ -2258,6 +2301,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 targeted_field_recovery = (
                     targeted_question_recovery
                     or targeted_question_grounding_recovery
+                    or targeted_question_alignment_recovery
                     or targeted_response_shape_recovery
                     or targeted_response_voice_recovery
                 )
@@ -2304,6 +2348,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Do not ask about an abstract distinction or the relationship in general. Do not invent facts. "
                         "Preserve the original response and all valid flags. "
                     )
+                elif targeted_question_alignment_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON failed because its follow-up question was not anchored in the response itself. "
+                        "Correct only the question field: ask about one concrete detail that appears in both the response and the structured movement brief. "
+                        "Use natural, non-prescriptive wording. Do not invent facts or add advice. "
+                        "Preserve the original response and all valid flags. "
+                    )
                 elif targeted_response_shape_recovery:
                     correction_prompt = (
                         "Your preceding HRN JSON failed because the response field was missing, too short, or did not contain enough complete sentences. "
@@ -2318,6 +2369,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ". Rewrite only the response field to remove the disallowed wording or framing. "
                         "Use two or three complete, natural, concrete sentences about what the visitor actually described and what remains unknown. "
                         "Do not use abstract connective phrases, literary metaphors, relationship theory, action-guidance, or formulaic explanations. "
+                        "Avoid the construction 'you say'; use past-tense reported speech or describe the shared intention directly. "
                         "Do not tell the visitor what to do, suggest reallocating or renegotiating, infer hidden motives, or introduce new facts. "
                         "Do not repeat the rejected phrase. Preserve the original question and all valid flags. "
                     )
