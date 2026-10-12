@@ -60,3 +60,15 @@ def test_hrn_visitor_contract_requires_interaction_grounded_questions():
     assert "name at least one concrete issue, action, or phrase" in contract
     assert "unless the actual issue is named" in contract
     assert "visitor's latest turn" in contract
+
+
+def test_hrn_provider_bank_rejects_generic_distinction_question():
+    assert provider_bank._hrn_surface_language_violation(
+        "What changes when you look at the situation through that distinction?"
+    ) == "formulaic-abstract-question"
+
+
+def test_hrn_provider_bank_rejects_solution_framing_in_response():
+    assert provider_bank._hrn_surface_language_violation(
+        "This is opening the possibility to negotiate which element should be the negotiable anchor."
+    ) == "action-solution-frame"
