@@ -27,6 +27,9 @@ CONTRACT_VERSION = "v2"
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -1574,7 +1577,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # an explicit 1..2 override for controlled diagnostics. Shared health state
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
-    operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts
+    bounded_guide_operation = operation == "general_guide_composition"
+    if operation in hrn_operations:
+        operation_attempt_cap = _hrn_attempt_cap()
+    elif bounded_guide_operation:
+        operation_attempt_cap = 1
+    else:
+        operation_attempt_cap = configured_attempts
     # Keep each HRN provider-gateway request inside the WordPress transport
     # contract. Start with one model attempt; the independent second candidate is
     # admitted only when the first failure completes within the short fast-failure
@@ -1583,12 +1592,17 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # provider inside the same request.
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
-    if operation == "hrn_relational" and len(pool) > base_max_attempts:
-        # Prepare several independent lanes, not just one. The loop below admits
-        # these fallbacks only while total elapsed time remains inside the existing
-        # fast-failure window; a slow provider still stops the chain immediately.
+    if operation in {"hrn_relational", "general_guide_composition"} and len(pool) > base_max_attempts:
+        # Specialist and Guide fallbacks are admitted only inside their own bounded
+        # fast-failure windows. Never let an exhausted free-tier bank turn one query
+        # into a serial walk across every configured model.
         used_providers = {str(item.get("provider") or "") for item in attempt_pool}
         fallback_count = 0
+        fallback_limit = (
+            HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES
+            if operation == "hrn_relational"
+            else GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES
+        )
         for item in pool[base_max_attempts:]:
             candidate_provider = str(item.get("provider") or "")
             if not candidate_provider or candidate_provider in used_providers:
@@ -1596,7 +1610,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             attempt_pool.append(item)
             used_providers.add(candidate_provider)
             fallback_count += 1
-            if fallback_count >= HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES:
+            if fallback_count >= fallback_limit:
                 break
     route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
@@ -1605,20 +1619,27 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # stages can finish inside one WordPress turn; keep perception's richer schema uncapped.
     if operation in {"hrn_relational", "hrn_voice_repair"}:
         requested_max_tokens = min(requested_max_tokens, 600)
+    elif operation == "general_guide_composition":
+        requested_max_tokens = min(requested_max_tokens, 900)
     for attempt_index, item in enumerate(attempt_pool, start=1):
         if attempt_index > base_max_attempts:
             elapsed = time.monotonic() - route_started
-            if elapsed > HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:
+            fast_failure_window = (
+                HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
+                if operation == "hrn_relational"
+                else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+            )
+            if elapsed > fast_failure_window:
                 print(
-                    "USE provider bank fast-failure fallback: operation=hrn_relational, "
-                    f"action=skip_extra_candidate, elapsed_seconds={elapsed:.2f}, "
-                    f"budget_seconds={HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:.1f}"
+                    "USE provider bank fast-failure fallback: "
+                    f"operation={operation}, action=skip_extra_candidate, "
+                    f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
                 )
                 break
             print(
-                "USE provider bank fast-failure fallback: operation=hrn_relational, "
-                f"action=try_independent_candidate, elapsed_seconds={elapsed:.2f}, "
-                f"budget_seconds={HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:.1f}"
+                "USE provider bank fast-failure fallback: "
+                f"operation={operation}, action=try_independent_candidate, "
+                f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
             )
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
         effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
@@ -1647,7 +1668,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None)
+            raw_output = _call(
+                use_core, item, effective_messages, effective_max_tokens, effective_schema,
+                timeout_override=(
+                    HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
+                    else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
+                    else None
+                )
+            )
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -1722,7 +1750,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None))
+                recovered = parse(_call(
+                    use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema,
+                    timeout_override=(
+                        HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
+                        else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
+                        else None
+                    )
+                ))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered, messages=effective_messages)
