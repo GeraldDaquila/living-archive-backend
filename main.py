@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.147 — recover grounded brief before malformed context
+# USE PRODUCTION VERSION: v489.148 — tighten relational doorway topic fit
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.147"
-DEPLOYMENT_FINGERPRINT = "USE-v489.147-hrn-grounded-brief-prefix-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.147-hrn-grounded-brief-prefix-recovery"
+APP_VERSION = "v489.148"
+DEPLOYMENT_FINGERPRINT = "USE-v489.148-hrn-return-topic-fit-tightening"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.148-hrn-return-topic-fit-tightening"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.147":
+if str(APP_VERSION) != "v489.148":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1357,9 +1357,11 @@ def _relational_return_earned_focus_fit(query, doc):
         r"\b(?:perception|behavior|behaviour|interpret|interpretation|assumption|"
         r"inference|intention|projection|observation|observed|communication|silence)\b", material
     ))
+    # Disagreement alone does not establish that the visitor's central concern
+    # is listening or being heard. Keep this exception narrow so a broad
+    # relationship essay cannot qualify solely because it mentions dialogue.
     communication_focus = bool(re.search(
-        r"\b(?:unheard|being heard|heard|hearing|listen|listening|disagree|disagreement|"
-        r"counterpoint|counter-argument|counterargument|ignored|dismissed)\b", q
+        r"\b(?:unheard|being heard|heard|hearing|listen|listening|ignored|dismissed)\b", q
     ))
     communication_evidence = bool(re.search(
         r"\b(?:listen|listening|heard|hearing|acknowledge|acknowledgment|acknowledgement|"
