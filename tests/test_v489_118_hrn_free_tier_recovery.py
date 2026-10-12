@@ -93,8 +93,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
 
 
 def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failure(monkeypatch):
-    # A syntactically valid response that fails the human-surface contract
-    # must not trigger a same-model correction/retry.
+    # A semantic action-solution rejection must advance directly to an independent provider.
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [
         _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _item("groq", "openai/gpt-oss-120b"),
