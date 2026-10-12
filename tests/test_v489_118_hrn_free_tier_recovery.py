@@ -26,6 +26,8 @@ def test_hrn_relational_selection_prefers_quality_success_when_health_is_equal(m
     monkeypatch.setattr(provider_bank, "_csv", lambda name: ["nvidia", "groq", "openrouter"])
     provider_bank._STATE["provider_cursor"] = 0
     provider_bank._STATE["model_cursors"] = {}
+    provider_bank._STATE["models"].clear()
+    provider_bank._STATE["quality"].clear()
     selected = provider_bank.select(None, operation="hrn_relational")
     assert [x["provider"] for x in selected[:3]] == ["groq", "openrouter", "nvidia"]
 
@@ -37,6 +39,10 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
     ])
     original_state = provider_bank._state
+    original_states = provider_bank._STATE["models"].copy()
+    original_quality = provider_bank._STATE["quality"].copy()
+    provider_bank._STATE["models"].clear()
+    provider_bank._STATE["quality"].clear()
     calls = []
     def fake_state(provider, model):
         state = original_state(provider, model)
@@ -46,8 +52,20 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
             state.update({"state":"healthy", "cooldown_until":0, "quarantine_until":0, "category":""})
         return state
     monkeypatch.setattr(provider_bank, "_state", fake_state)
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"Grounded opening. A second concrete sentence explains it.","question":"What happened next?"}')
-    result = provider_bank.route(use_core=None, messages=[{"role":"system","content":"Return JSON only."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You said you feel unheard when you disagree. When you try to explain what you meant, the other person starts responding before you have finished, and then you stop talking. That leaves the disagreement unresolved and your point unfinished.","question":"What happened the last time you tried to finish explaining?"}')
+    original_sync = provider_bank._sync_shared_state
+    original_persist = provider_bank._persist_shared_state
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    try:
+        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":"Return JSON only."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+    finally:
+        monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
+        monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
+        provider_bank._STATE["models"].clear()
+        provider_bank._STATE["models"].update(original_states)
+        provider_bank._STATE["quality"].clear()
+        provider_bank._STATE["quality"].update(original_quality)
     assert result and result["provider"] == "nvidia"
     assert calls == ["nvidia"]
 
@@ -62,9 +80,9 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     attempts = []
     monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: (
         attempts.append(item["provider"]) or (
-            '{"response":"The dynamic shifts when you view this as a different plane of interaction and can help create a useful path forward.","question":"What happens next?"}'
+            '{"response":"The dynamic shifts when you view this as a different plane of interaction and can help create a useful path forward. Another general distinction may help you reflect on the situation more broadly.","question":"What happens next?"}'
             if item["provider"] == "nvidia" else
-            '{"response":"You said you feel unheard when you disagree. The way the conversation unfolds leaves little room to finish what you meant, even when you both want to be understood.","question":"What happened the last time you tried to finish explaining?"}'
+            '{"response":"You said you feel unheard when you disagree. When you try to explain what you meant, the other person starts responding before you have finished, and then you stop talking. That leaves the disagreement unresolved and your point unfinished.","question":"What happened the last time you tried to finish explaining?"}'
         )
     ))
     original_sync = provider_bank._sync_shared_state
