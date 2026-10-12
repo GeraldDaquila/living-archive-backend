@@ -672,3 +672,139 @@ def test_hrn_action_guidance_gets_one_bounded_response_recovery(monkeypatch):
     assert "reallocating resources" not in result["parsed"]["response"].casefold()
     assert "renegotiating the timeline" not in result["parsed"]["response"].casefold()
     assert attempts == ["groq", "groq"]
+
+
+
+def test_hrn_ungrounded_question_gets_one_bounded_grounding_recovery(monkeypatch):
+    import json
+    candidate = _item("groq", "openai/gpt-oss-20b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    response = (
+        "The original estimate reflected the work that had been described at the time. "
+        "The added work changed that scope after the date had already been discussed. "
+        "The deadline is now being judged against a larger set of expectations than the original estimate contained."
+    )
+    ungrounded = {
+        "response": response,
+        "question": "Where does that leave things for you?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    grounded = {
+        "response": response,
+        "question": "What happened when the agreed date was discussed alongside the added work?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return json.dumps(ungrounded if len(attempts) == 1 else grounded)
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=3000,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is not None
+    assert result["parsed"]["question"] == grounded["question"]
+    assert provider_bank._hrn_question_grounding_violation(
+        result["parsed"]["question"], messages
+    ) == ""
+    assert attempts == ["groq", "groq"]
+
+
+def test_hrn_grounding_recovery_remains_fail_closed_without_concrete_question(monkeypatch):
+    import json
+    candidate = _item("groq", "openai/gpt-oss-20b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    response = (
+        "The original estimate reflected the work that had been described at the time. "
+        "The added work changed that scope after the date had already been discussed. "
+        "The deadline is now being judged against a larger set of expectations than the original estimate contained."
+    )
+    ungrounded = {
+        "response": response,
+        "question": "Where does that leave things for you?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return json.dumps(ungrounded)
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=3000,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is None
+    assert attempts == ["groq", "groq"]
