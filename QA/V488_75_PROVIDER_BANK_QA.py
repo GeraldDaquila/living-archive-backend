@@ -211,7 +211,7 @@ def main():
         calls.append((item["provider"], item["model"]))
         if item["provider"] == "nvidia":
             return json.dumps({
-                "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
+                "response": "You described trying to explain your view and feeling unheard when disagreement starts. The impact on you is clear, even though your friend's reasons for responding that way are not yet known.",
                 "question": "What happens just before you begin to feel unheard?",
             })
         return valid_hrn
