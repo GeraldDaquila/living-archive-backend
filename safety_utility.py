@@ -28,7 +28,7 @@ def build_safety_contribution(
         history=history,
         safety_state=state,
         country=country,
-        safety_question=safety_question or query,
+        safety_question=safety_question,
         unit_turns=unit_turns,
         location=location,
     )
