@@ -183,7 +183,7 @@ def test_relational_composition_recovers_forbidden_formulaic_connective(monkeypa
     rejected = {
         "response": (
             "You both say you want the argument to change, yet the same exchange keeps returning. "
-            "This distinction matters because the past issue can quickly become a question of blame. "
+            "This opens the possibility of changing the conversation into a question of blame. "
             "The words that start this shift are clear in your description, though their meaning to each of you remains unknown."
         ),
         "question": "What is usually said just before one of you brings up something from the past?",
@@ -219,7 +219,7 @@ def test_relational_composition_recovers_forbidden_formulaic_connective(monkeypa
     assert result is not None
     assert len(calls) == 2
     assert result["parsed"]["response"] == repaired["response"]
-    assert "this distinction matters because" not in result["parsed"]["response"].casefold()
+    assert "opens the possibility of" not in result["parsed"]["response"].casefold()
 
 
 def test_relational_composition_still_fails_closed_when_voice_repair_fails(monkeypatch):
@@ -228,7 +228,7 @@ def test_relational_composition_still_fails_closed_when_voice_repair_fails(monke
     rejected = {
         "response": (
             "You both say you want the argument to change, yet the same exchange keeps returning. "
-            "This distinction matters because the past issue can quickly become a question of blame. "
+            "This opens the possibility of changing the conversation into a question of blame. "
             "The words that start this shift are clear in your description, though their meaning to each of you remains unknown."
         ),
         "question": "What is usually said just before one of you brings up something from the past?",
