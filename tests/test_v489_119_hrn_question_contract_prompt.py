@@ -170,3 +170,24 @@ def test_hrn_question_grounding_recovers_double_escaped_brief():
     assert provider_bank._hrn_question_grounding_violation(
         "What happens when the agreed date is raised alongside the changed scope?", messages
     ) == ""
+
+
+def test_hrn_upstream_brief_failure_does_not_penalize_provider_quality():
+    original_state = provider_bank._STATE
+    provider_bank._STATE = {
+        "models": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+        "quality": {},
+    }
+    try:
+        reason = (
+            "hrn_relational question-surface contract violation: "
+            "question-grounding contract violation: structured movement brief is malformed"
+        )
+        provider_bank._record_quality_rejection("groq", "test-model", "hrn_relational", reason)
+        assert provider_bank._quality_state("hrn_relational", "groq", "test-model") == {}
+        assert provider_bank._is_movement_brief_input_failure("hrn_relational", reason)
+        assert not provider_bank._is_movement_brief_input_failure("generic", reason)
+    finally:
+        provider_bank._STATE = original_state
