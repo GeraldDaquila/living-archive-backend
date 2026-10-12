@@ -1328,6 +1328,7 @@ def _hrn_surface_language_violation(response):
         ("unsupported-relationship-causal-theory", r"\b(?:unmet needs|mismatched expectations|structural capacity)\b"),
         ("unsupported-relationship-causal-theory", r"\b(?:the relationship|a relationship) (?:hits|has reached|reaches) a limit\b"),
         ("unsupported-relationship-causal-theory", r"\bthe distance often appears as\b"),
+        ("prescriptive-language", r"\b(?:what|how|where|when)\s+(?:should|must|need to|have to|ought to)\s+you\b"),
         ("prescriptive-language", r"\byou\s+(?:should|must|need to|have to|ought to|are supposed to)\b"),
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
         ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
@@ -1339,6 +1340,34 @@ def _hrn_surface_language_violation(response):
         ("prescriptive-language", r"\bdo not\s+(?:stay|leave|contact|call|talk|ask|tell|try|forgive|change|ignore|respond|engage|return|go|make)\b"),
     )
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
+
+
+def _hrn_deterministic_nonprescriptive_question(question):
+    """Rephrase a prescriptive question only when it contains an explicit topic anchor.
+
+    This is a last-resort lexical repair, not an answer generator. The final
+    question is still checked against the structured movement brief and all
+    visitor-surface policies before it can leave the Provider Bank.
+    """
+    raw = str(question or "").strip()
+    if _hrn_surface_language_violation(raw) != "prescriptive-language":
+        return ""
+    text = re.sub(r"^\s*(?:what|how|where|when)\s+", "", raw, flags=re.IGNORECASE)
+    # Retain only a concrete object phrase explicitly present in the rejected
+    # question. Never invent a topic when the question has no usable anchor.
+    about = list(re.finditer(r"\babout\s+", text, flags=re.IGNORECASE))
+    if about:
+        focus = text[about[-1].end():]
+        focus = re.sub(r"[?!.]+\s*$", "", focus).strip(" \t,;:")
+        if len(re.findall(r"[a-zA-Z]{4,}", focus)) >= 1:
+            return "What stands out to you about " + focus + "?"
+    when = list(re.finditer(r"\bwhen\s+", text, flags=re.IGNORECASE))
+    if when:
+        focus = text[when[-1].end():]
+        focus = re.sub(r"[?!.]+\s*$", "", focus).strip(" \t,;:")
+        if len(re.findall(r"[a-zA-Z]{4,}", focus)) >= 2:
+            return "What stands out to you when " + focus + "?"
+    return ""
 
 
 def _escape_json_string_control_characters(raw):
@@ -1999,6 +2028,21 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 ))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
+                if (
+                    targeted_question_recovery
+                    and _hrn_surface_language_violation(recovered.get("question", ""))
+                    == "prescriptive-language"
+                ):
+                    safe_question = _hrn_deterministic_nonprescriptive_question(
+                        parsed.get("question", "")
+                    )
+                    if safe_question:
+                        recovered = dict(recovered)
+                        recovered["question"] = safe_question
+                        print(
+                            "USE provider question repair: operation=hrn_relational, "
+                            "mode=grounded_template_fallback"
+                        )
                 parsed = _normalize_operation_result(operation, recovered, messages=effective_messages)
             print(
                 "USE provider contract result: "
