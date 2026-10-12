@@ -1401,10 +1401,28 @@ def _hrn_question_grounding_violation(question, messages):
     # Some WordPress/provider-boundary paths double-escape JSON object quotes.
     # First parse the faithful normalized payload; only if that fails, retry a
     # quote-unescaped view. If neither parses as an object, fail closed.
-    parse_candidates = (
+    normalized_candidates = (
         serialized_brief,
         serialized_brief.replace(chr(92) + chr(34), chr(34)),
     )
+    parse_candidates = []
+    # The visitor-supplied current_fractal and long-form reflection fields can
+    # contain unescaped quotes introduced by the WordPress context boundary.
+    # Preserve the earlier declared semantic fields by retrying a valid object
+    # prefix before those nonessential long-form fields; grounding still fails
+    # closed if the retained prefix has no concrete anchors.
+    for normalized in normalized_candidates:
+        parse_candidates.append(normalized)
+        for field in (
+            "current_fractal",
+            "fractal_transition",
+            "archive_grounded_understanding",
+            "relational_understanding",
+            "source_contract",
+        ):
+            boundary = normalized.find(',"' + field + '"')
+            if boundary > 0:
+                parse_candidates.append(normalized[:boundary] + "}")
     for parse_candidate in parse_candidates:
         try:
             candidate_brief, _ = json.JSONDecoder().raw_decode(parse_candidate)
