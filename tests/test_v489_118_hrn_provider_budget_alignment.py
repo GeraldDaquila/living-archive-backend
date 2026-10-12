@@ -75,7 +75,7 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     )
 
     assert result is None
-    assert calls == [("groq", 5)]
+    assert calls == [("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS)]
 
 
 def test_hrn_fast_failure_can_use_one_independent_provider(monkeypatch):
@@ -123,4 +123,4 @@ def test_hrn_fast_failure_can_use_one_independent_provider(monkeypatch):
 
     assert result is not None
     assert result["provider"] == "workers_ai"
-    assert calls == [("groq", 5), ("workers_ai", 5)]
+    assert calls == [("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS), ("workers_ai", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS)]

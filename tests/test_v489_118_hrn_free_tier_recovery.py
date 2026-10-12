@@ -177,3 +177,39 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
 
     assert result and result["provider"] == "workers_ai"
     assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
+
+
+
+def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch):
+    observed = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake_urlopen(request, timeout=None):
+        observed["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr(provider_bank.urllib.request, "urlopen", fake_urlopen)
+    result = provider_bank._http_json(
+        "https://provider.example.test/endpoint",
+        {},
+        {"ping": True},
+        "test_provider",
+        "test_model",
+        timeout=2.5,
+    )
+
+    assert result == {"ok": True}
+    assert observed["timeout"] == 2.5
+
+
+def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS < provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS

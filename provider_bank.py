@@ -26,6 +26,7 @@ CONTRACT_VERSION = "v2"
 # A second independent relational candidate is permitted only after one fast failure.
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -474,7 +475,7 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
         timeout = _provider_http_timeout()
     else:
         try:
-            timeout = max(5.0, min(10.0, float(timeout)))
+            timeout = max(1.0, min(10.0, float(timeout)))
         except (TypeError, ValueError):
             timeout = _provider_http_timeout()
     req = urllib.request.Request(
@@ -531,7 +532,7 @@ def _ensure_json_object_instruction(messages, schema=None):
     normalized.insert(0, {"role": "system", "content": instruction})
     return normalized
 
-def _groq(use_core, model, messages, max_tokens, schema=None):
+def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
     client = getattr(use_core, "groq_client", None)
     if client is None: raise ProviderCallError("Groq client unavailable", "groq", model, category="unavailable")
     kwargs = {"model": model, "messages": messages, "temperature": 0.0,
@@ -542,7 +543,10 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
     elif model == "qwen/qwen3.8-27b":
         kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
-    response = client.chat.completions.create(**kwargs)
+    request_client = client
+    if timeout is not None and callable(getattr(client, "with_options", None)):
+        request_client = client.with_options(timeout=max(1.0, min(10.0, float(timeout))))
+    response = request_client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
 def _gemini_compatible_response_schema(value):
@@ -558,7 +562,7 @@ def _gemini_compatible_response_schema(value):
     return value
 
 
-def _gemini(key, model, messages, max_tokens, schema=None):
+def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
     system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system" and isinstance(x.get("content"), str)).strip()
     contents = []
     for message in messages:
@@ -600,12 +604,12 @@ def _gemini(key, model, messages, max_tokens, schema=None):
         payload["generationConfig"]["responseSchema"] = _gemini_schema
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
-    data = _http_json(url, {}, payload, "gemini", model)
+    data = _http_json(url, {}, payload, "gemini", model, timeout=timeout)
     try: return str(data["candidates"][0]["content"]["parts"][0]["text"]).strip()
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
 
-def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
+def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
     # NVIDIA Nemotron 3-series models can emit reasoning separately from the
@@ -632,7 +636,9 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
             # NVIDIA hosted inference has previously exceeded the generic 6s
             # transport budget. Give the bounded NVIDIA attempt 12s while keeping
             # every other provider at the existing default timeout.
-            if provider == "nvidia":
+            if timeout is not None:
+                data = _http_json(url, headers, current_payload, provider, model, timeout=timeout)
+            elif provider == "nvidia":
                 data = _http_json(url, headers, current_payload, provider, model, timeout=12)
             else:
                 data = _http_json(url, headers, current_payload, provider, model)
@@ -665,6 +671,7 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
         # requires one JSON object and the HRN contract validator remains final.
         if (
             provider != "openrouter"
+            or timeout is not None
             or not json_mode
             or "response_format" not in payload
             or exc.category != "invalid_provider_response"
@@ -1519,26 +1526,26 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         key = os.getenv("OPENROUTER_API_KEY")
         if not key:
             raise ProviderCallError("OpenRouter API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://openrouter.ai/api/v1", key, provider, model, messages, max_tokens, schema)
-    if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema)
+        return _openai_compatible("https://openrouter.ai/api/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
+    if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "gemini":
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY")
         if not key: raise ProviderCallError("Gemini API key unavailable", provider, model, category="unavailable")
-        return _gemini(key, model, messages, max_tokens, schema)
+        return _gemini(key, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "mistral":
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
+        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "nvidia":
         key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
         if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
             raise ProviderCallError("NVIDIA API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema)
+        return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "cloudflare_gateway":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
         base = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/v1"
-        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema)
+        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "workers_ai":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
@@ -1640,7 +1647,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=5 if operation in hrn_operations else None)
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None)
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -1715,7 +1722,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=5 if operation in hrn_operations else None))
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered, messages=effective_messages)
