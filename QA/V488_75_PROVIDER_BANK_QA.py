@@ -216,7 +216,7 @@ def main():
         return original_record_quality(provider, model, operation, reason)
     with (
         patch.dict(os.environ, {
-            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1",
             "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
         }, clear=False),
         patch.object(provider_bank, "select", return_value=pool),
@@ -254,7 +254,7 @@ def main():
     ]
     with (
         patch.dict(os.environ, {
-            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1",
             "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
         }, clear=False),
         patch.object(provider_bank, "select", return_value=shape_pool),

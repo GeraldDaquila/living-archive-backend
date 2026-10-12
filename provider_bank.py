@@ -1403,6 +1403,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
     operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts
+    # Relational composition must have one independent provider available after
+    # a semantic/shape rejection; otherwise a configured cap of 1 makes the
+    # quality fast-fail terminate the stage before the fallback can run.
+    # This remains bounded to two candidates and only adds latency on failure.
+    if operation == "hrn_relational":
+        operation_attempt_cap = max(2, operation_attempt_cap)
     max_attempts = min(len(pool), operation_attempt_cap)
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
