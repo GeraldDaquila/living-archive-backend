@@ -932,12 +932,11 @@ def select(use_core, operation="generic", schema=None):
     for item in items: grouped.setdefault(item["provider"], []).append(item)
     configured = _csv("USE_LLM_PROVIDER_ORDER")
     # OpenRouter is the preferred free lane whenever its credential enables it.
-    # Preserve an explicit provider order if it names OpenRouter; otherwise
-    # prepend OpenRouter even when an older environment order lists only the
-    # legacy providers. This prevents the bounded attempt window from starving
-    # the configured lane before it can be reached.
-    if "openrouter" in grouped and "openrouter" not in configured:
-        configured = ["openrouter"] + configured
+    # Promote it to the front even when a legacy explicit order lists it later;
+    # otherwise the two-candidate HRN window can repeatedly spend its fallback
+    # on rate-limited lanes before reaching the configured free router.
+    if "openrouter" in grouped:
+        configured = ["openrouter"] + [name for name in configured if name != "openrouter"]
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
     # HRN invokes several semantic operations within one visitor turn. Rotating
     # the provider lane on every stage makes a healthy primary disappear behind
