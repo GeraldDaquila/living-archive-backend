@@ -59,6 +59,9 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # Keep each call bounded, but do not quarantine a viable lane before its normal
 # response latency has elapsed.
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
+# HRN needs a short observation and one question; reserve only a bounded output
+# allowance so the second stage can fit within shared free-tier OTPM/TPM budgets.
+HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 250
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
@@ -2099,7 +2102,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # thousand-token draft. Bound these visitor-facing stages so multiple semantic
     # stages can finish inside one WordPress turn; keep perception's richer schema uncapped.
     if operation in {"hrn_relational", "hrn_voice_repair"}:
-        requested_max_tokens = min(requested_max_tokens, 600)
+        requested_max_tokens = min(requested_max_tokens, HRN_RELATIONAL_MAX_COMPLETION_TOKENS)
     elif operation == "general_guide_composition":
         requested_max_tokens = min(requested_max_tokens, 900)
     _PERSIST_CONTEXT.defer = True
