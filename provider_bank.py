@@ -1328,6 +1328,7 @@ def _hrn_surface_language_violation(response):
         ("unsupported-relationship-causal-theory", r"\b(?:unmet needs|mismatched expectations|structural capacity)\b"),
         ("unsupported-relationship-causal-theory", r"\b(?:the relationship|a relationship) (?:hits|has reached|reaches) a limit\b"),
         ("unsupported-relationship-causal-theory", r"\bthe distance often appears as\b"),
+        ("prescriptive-language", r"\b(?:what|how|where|when)\s+(?:should|must|need to|have to|ought to)\s+you\b"),
         ("prescriptive-language", r"\byou\s+(?:should|must|need to|have to|ought to|are supposed to)\b"),
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
         ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
