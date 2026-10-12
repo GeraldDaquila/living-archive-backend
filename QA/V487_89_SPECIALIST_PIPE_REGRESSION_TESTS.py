@@ -513,7 +513,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
     assert provider_call.call_count == 2
     assert provider_call.call_args_list[1].args[4] is None
     recovery_messages = provider_call.call_args_list[1].args[2]
-    assert "complete response" in recovery_messages[-1]["content"]
+    assert "Include the non-empty response and question fields" in recovery_messages[-1]["content"]
     assert "end with sentence-final punctuation" in recovery_messages[-1]["content"]
 
 
