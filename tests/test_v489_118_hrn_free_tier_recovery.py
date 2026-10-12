@@ -242,7 +242,7 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
     )
     rejected = (
         '{"response":' + __import__("json").dumps(response)
-        + ',"question":"What should you tell your colleague about the changed scope?",'
+        + ',"question":"What should you do next?",'
         + '"rest":false,"use_resource":false,"resource_intro":""}'
     )
 
@@ -302,7 +302,7 @@ def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
     )
     rejected = (
         '{"response":' + __import__("json").dumps(response)
-        + ',"question":"What should you tell your colleague about the changed scope?",'
+        + ',"question":"What should you do next?",'
         + '"rest":false,"use_resource":false,"resource_intro":""}'
     )
 
@@ -465,4 +465,71 @@ def test_hrn_short_response_recovery_still_fails_closed(monkeypatch):
         original_quality.update(saved_quality)
 
     assert result is None
+    assert attempts == ["nvidia", "nvidia"]
+
+
+
+def test_hrn_repeated_prescriptive_question_uses_grounded_lexical_fallback(monkeypatch):
+    import json
+    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    response = (
+        "The original estimate covered the work that had been described at the time. "
+        "The added work changed that scope after the date had already been discussed. "
+        "The deadline is now being judged against a larger set of expectations than the original estimate contained."
+    )
+    prescriptive = {
+        "response": response,
+        "question": "What should you tell your colleague about the changed scope?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return json.dumps(prescriptive)
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=300,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is not None
+    assert result["parsed"]["question"] == "What stands out to you about the changed scope?"
+    assert provider_bank._hrn_question_grounding_violation(
+        result["parsed"]["question"], messages
+    ) == ""
     assert attempts == ["nvidia", "nvidia"]
