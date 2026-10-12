@@ -133,6 +133,15 @@ MODEL_LIMITS = {
     ("groq", "openai/gpt-oss-120b"): {"max_completion_tokens": 3000},
 }
 
+# HRN perception and relational composition run sequentially in one visitor
+# turn and can share Groq's 8k TPM allowance. Keep relational completions bounded
+# to the small visitor-facing envelope so earlier perception calls do not make
+# the final composition exceed the remaining provider budget.
+OPERATION_MODEL_LIMITS = {
+    ("hrn_relational", "groq", "openai/gpt-oss-20b"): 1200,
+    ("hrn_relational", "groq", "openai/gpt-oss-120b"): 1200,
+}
+
 OPERATION_TOKEN_FLOORS = {
     # The bank owns minimum completion budgets for semantic operations. This
     # prevents a specialist's transport envelope from starving a capable model
@@ -1874,6 +1883,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
             )
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
+        operation_limit = int(OPERATION_MODEL_LIMITS.get(
+            (operation, item["provider"], item["model"]), 0
+        ) or 0)
+        if operation_limit > 0:
+            model_limit = min(model_limit, operation_limit) if model_limit > 0 else operation_limit
         effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
         if effective_max_tokens < requested_max_tokens:
             print(
