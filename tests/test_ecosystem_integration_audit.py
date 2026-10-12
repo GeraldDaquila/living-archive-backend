@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.169"
-    assert report["fingerprint"] == "USE-v489.169-relational-discernment-focus-precision"
+    assert report["version"] == "v489.170"
+    assert report["fingerprint"] == "USE-v489.170-relational-blame-transition-evidence"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -170,3 +170,46 @@ def test_generic_communication_evidence_cannot_qualify_a_discernment_resource():
         ),
     }
     assert not _relational_return_earned_focus_fit(query, broad_relationship_article)
+
+
+def test_blame_transition_requires_topic_cluster_not_generic_relationship_overlap():
+    from main import (
+        _relational_blame_transition_evidence,
+        _relational_return_direct_topic_fit,
+        _relational_return_earned_focus_fit,
+    )
+
+    query = (
+        "My partner and I keep having the same argument, even though we both say we want things to improve. "
+        "Understand how raising an earlier hurt becomes a dispute about blame, without assuming either partner "
+        "intends to hurt or dismiss the other. The argument changes direction when explaining an earlier hurt "
+        "is heard as assigning blame."
+    )
+    self_sacrifice_article = {
+        "title": "When Love Has Been Built on Your Self-Sacrifice",
+        "text": (
+            "You may think: “If I stop over-giving, they’ll feel hurt.” "
+            "“If I set boundaries, I’ll seem selfish.” "
+            "“If I change, I’ll damage the relationship.” "
+            "You are responsible for changing with honesty and care—not with blame, not with punishment, but with truth. "
+            "There is a difference between attacking someone for the past and no longer participating in a pattern that harms you. "
+            "Generic relationship metadata mentions communication, perception, and intention."
+        ),
+    }
+    assert not _relational_blame_transition_evidence(query, self_sacrifice_article)
+    assert not _relational_return_direct_topic_fit(query, self_sacrifice_article)
+    assert not _relational_return_earned_focus_fit(query, self_sacrifice_article)
+
+
+def test_direct_blame_transition_resource_with_specific_topic_cluster_is_accepted():
+    from main import _relational_blame_transition_evidence, _relational_return_direct_topic_fit
+
+    query = "My partner and I keep having the same argument. Raising an earlier hurt turns into blame."
+    focused_resource = {
+        "title": "When an Earlier Hurt Becomes a Fight About Blame",
+        "text": (
+            "In a relationship, an earlier hurt can become an argument about blame before the original issue is addressed."
+        ),
+    }
+    assert _relational_blame_transition_evidence(query, focused_resource)
+    assert _relational_return_direct_topic_fit(query, focused_resource)
