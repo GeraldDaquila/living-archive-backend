@@ -1307,6 +1307,34 @@ def _hrn_surface_language_violation(response):
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
 
+def _escape_json_string_control_characters(raw):
+    """Repair raw control characters inside serialized JSON strings only."""
+    output = []
+    in_string = False
+    escaped = False
+    for char in str(raw or ""):
+        code = ord(char)
+        if in_string:
+            if escaped:
+                output.append(char)
+                escaped = False
+            elif char == "\\":
+                output.append(char)
+                escaped = True
+            elif char == '"':
+                output.append(char)
+                in_string = False
+            elif code < 0x20:
+                output.append("\\u%04x" % code)
+            else:
+                output.append(char)
+        else:
+            output.append(char)
+            if char == '"':
+                in_string = True
+    return "".join(output)
+
+
 def _hrn_question_grounding_violation(question, messages):
     """Require HRN follow-up questions to name details in the real movement brief.
 
@@ -1329,8 +1357,13 @@ def _hrn_question_grounding_violation(question, messages):
     brace_index = brief_content.find("{", marker_index)
     if brace_index < 0:
         return "question-grounding contract violation: structured movement brief is malformed"
+    serialized_brief = brief_content[brace_index:]
+    # Visitor-authored material can contain literal line breaks that survive
+    # the WordPress-to-provider prompt boundary. Escape only control characters
+    # inside JSON strings; preserve structure and all grounding evidence.
+    serialized_brief = _escape_json_string_control_characters(serialized_brief)
     try:
-        brief, _ = json.JSONDecoder().raw_decode(brief_content[brace_index:])
+        brief, _ = json.JSONDecoder().raw_decode(serialized_brief)
     except (json.JSONDecodeError, TypeError, ValueError) as exc:
         # Keep the visitor payload out of logs. The error position and a short
         # structural preview are enough to distinguish empty serialization,
