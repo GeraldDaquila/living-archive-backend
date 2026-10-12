@@ -442,9 +442,9 @@ def test_hrn_contract_recovery_compacts_context_without_losing_movement_brief():
     }
     source = (
         "Repeated long history. " * 900
-        + "\\nSTRUCTURED MOVEMENT BRIEF — "
+        + "\nSTRUCTURED MOVEMENT BRIEF — "
         + json.dumps(brief)
-        + "\\nHRN VISITOR-FACING LANGUAGE CONTRACT: Be concrete, non-prescriptive, and do not infer motives."
+        + "\nHRN VISITOR-FACING LANGUAGE CONTRACT: Be concrete, non-prescriptive, and do not infer motives."
     )
     recovery = provider_bank._compact_hrn_contract_recovery_messages(
         [{"role": "user", "content": source}],
