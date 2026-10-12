@@ -104,7 +104,7 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
         if item["provider"] == "nvidia":
-            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happened next?"}'
+            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
         return '{"response":"The deadline and the changed scope are both part of the disagreement, but they refer to different things: one is the date agreed earlier and the other is the work added later.","question":"What happened in the conversation when the agreed date was raised alongside the changed scope?"}'
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     original_sync = provider_bank._sync_shared_state
@@ -175,8 +175,8 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         operation="hrn_relational",
     )
 
-    assert result is None
-    assert attempts == ["groq", "gemini", "mistral"]
+    assert result and result["provider"] == "workers_ai"
+    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
 
 
 
