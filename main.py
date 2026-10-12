@@ -1306,7 +1306,8 @@ def _relational_discernment_focus(query):
         r"\b(?:projection|projecting|projected|what i(?:'|’)m sensing|what i sense|"
         r"what i infer|what i am inferring|what is real|am i misreading|am i assuming|"
         r"am i projecting|could i be misreading|could i be assuming|could i be projecting|"
-        r"reading too much into|misreading|distinguish what i observed from what i inferred)\b",
+        r"reading too much into|misreading|judge(?: them)? unfairly|misjudge|"
+        r"am i being unfair|could i be unfair|distinguish what i observed from what i inferred)\b",
         q,
     ))
 
