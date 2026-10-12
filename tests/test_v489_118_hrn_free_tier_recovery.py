@@ -81,7 +81,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": "STRUCTURED MOVEMENT BRIEF\n{\\"situation\\":\\"recent conversation about a deadline\\",\\"tension\\":\\"feeling unheard during disagreement\\",\\"parties\\":\\"two colleagues\\",\\"experience\\":\\"the conversation ends before the point is acknowledged\\"}\nReturn JSON only."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\\n{"situation":"recent conversation about a deadline","tension":"feeling unheard during disagreement","parties":"two colleagues","experience":"the conversation ends before the point is acknowledged"}\\nReturn JSON only.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_state", original_state_fn)
         original_models.clear()
@@ -112,7 +112,7 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     original_persist = provider_bank._persist_shared_state
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":"STRUCTURED MOVEMENT BRIEF\n{\\"situation\\":\\"friendship disagreement\\",\\"tension\\":\\"feeling unheard during disagreement\\",\\"parties\\":\\"you and your friend\\",\\"experience\\":\\"you feel unheard when you disagree\\"}\nReturn a JSON object."}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":'STRUCTURED MOVEMENT BRIEF\\n{"situation":"friendship disagreement","tension":"feeling unheard during disagreement","parties":"you and your friend","experience":"you feel unheard when you disagree"}\\nReturn a JSON object.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
         monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
@@ -169,7 +169,7 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": "STRUCTURED MOVEMENT BRIEF\n{\\"situation\\":\\"deadline disagreement\\",\\"tension\\":\\"agreed date versus changed scope\\",\\"parties\\":\\"two colleagues\\",\\"experience\\":\\"the project scope changed\\"}\nReturn one JSON object."}],
+        messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\\nReturn one JSON object.'}],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
