@@ -91,6 +91,18 @@ def main():
     # HRN stage or on the bounded contract-correction call.
     assert 'timeout_override=8 if operation in hrn_operations else None' in provider
     assert 'timeout=timeout_override or 12' in provider
+    # The visitor contract must explicitly block inferred blame and motive attribution,
+    # not merely generic relationship theory or advice.
+    visitor_contract_start = provider.index("def _apply_hrn_visitor_contract")
+    visitor_contract_end = provider.index("def _apply_hrn_voice_repair_contract", visitor_contract_start)
+    visitor_contract = provider[visitor_contract_start:visitor_contract_end]
+    for phrase in (
+        "not turn the visitor's feeling of being",
+        "a verdict about the other person's character or intent",
+        "avoiding accountability, refusing to listen",
+        "without inferring motive",
+    ):
+        assert phrase in visitor_contract, f"HRN inferred-intent guard missing: {phrase}"
 
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
