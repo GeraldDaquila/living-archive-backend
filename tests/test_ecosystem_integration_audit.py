@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.165"
-    assert report["fingerprint"] == "USE-v489.165-guide-node-level-two-tuple-index"
+    assert report["version"] == "v489.166"
+    assert report["fingerprint"] == "USE-v489.166-relational-communication-focus"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -70,3 +70,25 @@ def test_explicit_level_two_guide_node_returns_node_record_not_score(monkeypatch
     )
 
     assert activated == node
+
+
+def test_heard_as_blame_does_not_add_listening_topic_anchor():
+    from main import _relational_return_topic_anchor
+
+    anchor = _relational_return_topic_anchor(
+        "My partner and I keep having the same argument, even though we both want things to improve.",
+        "Understand how raising an earlier hurt becomes a dispute about blame, without assuming either partner intends to hurt or dismiss the other.",
+        "The argument changes direction when explaining an earlier hurt is heard as assigning blame.",
+    )
+    assert anchor == ""
+
+
+def test_heard_as_blame_is_not_classified_as_a_listening_complaint():
+    from main import _relational_communication_focus
+
+    assert not _relational_communication_focus(
+        "The argument changes direction when explaining an earlier hurt is heard as assigning blame."
+    )
+    assert _relational_communication_focus(
+        "I feel unheard when my partner goes silent after an argument."
+    )

@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "main.py"
 tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
-required = {"_normalize_query", "_relational_return_topic_anchor", "_relational_return_earned_focus_fit"}
+required = {"_normalize_query", "_relational_communication_focus", "_relational_return_topic_anchor", "_relational_return_earned_focus_fit"}
 nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in required]
 found = {node.name for node in nodes}
 if found != required:
