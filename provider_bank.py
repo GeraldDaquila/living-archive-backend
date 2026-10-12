@@ -22,6 +22,9 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
+# A third independent relational candidate is permitted only after two fast failures.
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
+
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
 # discovery remains diagnostic; it never grants runtime eligibility by itself.
@@ -1465,20 +1468,47 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
     operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts
-    # Relational composition must have one independent provider available after
-    # a semantic/shape rejection; otherwise a configured cap of 1 makes the
-    # quality fast-fail terminate the stage before the fallback can run.
-    # This remains bounded to two candidates and only adds latency on failure.
+    # Relational composition always gets two independent baseline candidates.
+    # If both fail quickly (for example, empty JSON followed by an immediate 429),
+    # permit one additional independent provider while the request is still inside
+    # a strict wall-clock budget. Slow failures never trigger this extra attempt.
     if operation == "hrn_relational":
         operation_attempt_cap = max(2, operation_attempt_cap)
-    max_attempts = min(len(pool), operation_attempt_cap)
+    base_max_attempts = min(len(pool), operation_attempt_cap)
+    attempt_pool = list(pool[:base_max_attempts])
+    if operation == "hrn_relational" and len(pool) > base_max_attempts:
+        used_providers = {str(item.get("provider") or "") for item in attempt_pool}
+        fast_fallback = next(
+            (
+                item for item in pool[base_max_attempts:]
+                if str(item.get("provider") or "") not in used_providers
+            ),
+            None,
+        )
+        if fast_fallback is not None:
+            attempt_pool.append(fast_fallback)
+    route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
     # thousand-token draft. Bound these visitor-facing stages so multiple semantic
     # stages can finish inside one WordPress turn; keep perception's richer schema uncapped.
     if operation in {"hrn_relational", "hrn_voice_repair"}:
         requested_max_tokens = min(requested_max_tokens, 600)
-    for attempt_index, item in enumerate(pool[:max_attempts], start=1):
+    for attempt_index, item in enumerate(attempt_pool, start=1):
+        if attempt_index > base_max_attempts:
+            elapsed = time.monotonic() - route_started
+            if elapsed > HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:
+                print(
+                    "USE provider bank fast-failure fallback: operation=hrn_relational, "
+                    f"action=skip_extra_candidate, elapsed_seconds={elapsed:.2f}, "
+                    f"budget_seconds={HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:.1f}"
+                )
+                break
+            print(
+                "USE provider bank fast-failure fallback: operation=hrn_relational, "
+                f"action=try_independent_candidate, elapsed_seconds={elapsed:.2f}, "
+                f"budget_seconds={HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS:.1f}"
+            )
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
         effective_max_tokens = min(requested_max_tokens, model_limit) if model_limit > 0 else requested_max_tokens
         if effective_max_tokens < requested_max_tokens:
