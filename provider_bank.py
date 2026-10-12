@@ -2217,8 +2217,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 )
                 targeted_response_shape_recovery = (
                     operation == "hrn_relational"
-                    and "response shape requires at least two complete sentences and 180 characters"
-                    in str(contract_error)
+                    and any(
+                        marker in str(contract_error)
+                        for marker in (
+                            "response shape requires at least two complete sentences and 180 characters",
+                            "hrn_relational composition contract requires response",
+                        )
+                    )
                 )
                 targeted_response_voice_recovery = (
                     operation == "hrn_relational"
@@ -2301,8 +2306,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                 elif targeted_response_shape_recovery:
                     correction_prompt = (
-                        "Your preceding HRN JSON failed specifically because the response field was too short or did not contain enough complete sentences. "
-                        "Correct that field-level defect only: rewrite the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
+                        "Your preceding HRN JSON failed because the response field was missing, too short, or did not contain enough complete sentences. "
+                        "Correct that field-level defect only: supply the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
                         "Do not add advice, prescribe action, infer hidden motives, or introduce new facts. "
                         "Preserve the original question and all valid flags. "
                     )
