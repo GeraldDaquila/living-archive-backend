@@ -196,3 +196,25 @@ def test_followthrough_does_not_assert_another_person_is_present_without_evidenc
     assert result["safety_question"] == "Is there someone you trust who can stay with you right now?"
     assert result["loop_guard"] == "unsupported_presence_claim_repaired"
     assert result["safety_resources"][0]["phone"] == "911"
+
+
+
+def test_hypothetical_immediate_danger_calibration_does_not_trigger_personal_crisis(monkeypatch):
+    query = (
+        "Calibration test only: if a visitor says they may be in immediate danger, "
+        "where should The Guide direct them?"
+    )
+    assert safety_intelligence.normalize_safety_state(query) is None
+    assert safety_intelligence.classify_safety(query) is None
+
+
+def test_direct_first_person_immediate_danger_still_triggers_safety():
+    assert safety_intelligence.normalize_safety_state(
+        "I am in immediate danger."
+    ) == "acute"
+
+
+def test_calibration_framing_does_not_override_explicit_first_person_self_harm():
+    assert safety_intelligence.normalize_safety_state(
+        "Calibration test only: I am about to hurt myself."
+    ) == "acute"
