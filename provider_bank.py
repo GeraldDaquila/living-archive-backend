@@ -1362,9 +1362,25 @@ def _hrn_question_grounding_violation(question, messages):
     # the WordPress-to-provider prompt boundary. Escape only control characters
     # inside JSON strings; preserve structure and all grounding evidence.
     serialized_brief = _escape_json_string_control_characters(serialized_brief)
-    try:
-        brief, _ = json.JSONDecoder().raw_decode(serialized_brief)
-    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+    brief = None
+    parse_error = None
+    # Some WordPress/provider-boundary paths double-escape JSON object quotes.
+    # First parse the faithful normalized payload; only if that fails, retry a
+    # quote-unescaped view. If neither parses as an object, fail closed.
+    parse_candidates = (
+        serialized_brief,
+        serialized_brief.replace(chr(92) + chr(34), chr(34)),
+    )
+    for parse_candidate in parse_candidates:
+        try:
+            candidate_brief, _ = json.JSONDecoder().raw_decode(parse_candidate)
+            if isinstance(candidate_brief, dict):
+                brief = candidate_brief
+                break
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            parse_error = exc
+    if brief is None:
+        exc = parse_error or ValueError("movement brief did not decode to an object")
         # Keep the visitor payload out of logs. The error position and a short
         # structural preview are enough to distinguish empty serialization,
         # invalid JSON, and a marker followed by the wrong object.
