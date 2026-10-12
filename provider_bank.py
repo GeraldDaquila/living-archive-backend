@@ -419,8 +419,26 @@ def _failure(exc, provider, model):
     )
     _persist_shared_state()
 
+def _is_movement_brief_input_failure(operation, reason):
+    """Recognize upstream brief failures that must not poison provider quality."""
+    if str(operation or "") != "hrn_relational":
+        return False
+    text = str(reason or "").casefold()
+    return (
+        "structured movement brief is malformed" in text
+        or "structured movement brief is missing" in text
+    )
+
+
 def _record_quality_rejection(provider, model, operation, reason):
-    """Penalize repeated contract failures for this operation/model pair."""
+    """Penalize provider output, not malformed upstream grounding input."""
+    if _is_movement_brief_input_failure(operation, reason):
+        print(
+            "USE provider quality bypass: "
+            f"operation={operation}, provider={provider}, model={model}, "
+            "reason=upstream_movement_brief_input_failure"
+        )
+        return
     state = _quality_state(operation, provider, model, create=True)
     now = time.time()
     last_quality_failure = float(state.get("last_quality_failure", 0) or 0)
@@ -933,6 +951,22 @@ def candidates(use_core, operation="generic", schema=None):
                 continue
             quality = _quality_state(operation, provider, model, create=False)
             quality_until = float(quality.get("quality_cooldown_until", 0) or 0)
+            # Clear legacy cooldowns created when upstream movement-brief
+            # serialization was malformed. Those failures are not model-quality
+            # evidence and must not strand all otherwise usable providers.
+            if quality_until > now and _is_movement_brief_input_failure(
+                operation, quality.get("quality_error", "")
+            ):
+                quality["quality_failures"] = 0
+                quality["quality_cooldown_until"] = 0.0
+                quality["quality_error"] = ""
+                quality_until = 0.0
+                print(
+                    "USE provider quality recovery: "
+                    f"operation={operation}, provider={provider}, model={model}, "
+                    "action=clear_upstream_movement_brief_cooldown"
+                )
+                _persist_shared_state()
             if quality_until > now:
                 print(
                     "USE provider quality exclusion: "
