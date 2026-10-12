@@ -1355,22 +1355,18 @@ def _normalize_operation_result(operation, parsed):
         question = parsed.get("question")
         if not isinstance(response, str) or not response.strip():
             raise ValueError("hrn_relational composition contract requires response")
-        # The HRN boundary owns question repair. A missing or prescriptive question
-        # must not discard an otherwise valid relational response or quarantine the
-        # model; blank the question and let HRN's bounded structural completion run.
+        # The live HRN bridge rejects a missing question rather than completing it.
+        # Treat missing or disallowed questions as model-quality failures here, so the
+        # bounded provider bank can try an independent candidate before the bridge.
         if not isinstance(question, str) or not question.strip():
-            parsed["question"] = ""
-            print("USE provider question deferred to HRN structural completion: reason=missing_question")
-        else:
-            question_violation = _hrn_surface_language_violation(question)
-            if question_violation:
-                parsed["question"] = ""
-                print(
-                    "USE provider question deferred to HRN structural completion: "
-                    "reason=" + str(question_violation)[:120]
-                )
-            else:
-                parsed["question"] = question.strip()
+            raise ValueError("hrn_relational composition contract requires a non-empty question")
+        question_violation = _hrn_surface_language_violation(question)
+        if question_violation:
+            raise ValueError(
+                "hrn_relational question-surface contract violation: "
+                + question_violation
+            )
+        parsed["question"] = question.strip()
         repaired_response = _repair_leading_hrn_hedge(response)
         if repaired_response != response.strip():
             print("USE provider response hedge normalized: operation=hrn_relational")
@@ -1564,6 +1560,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     marker in str(contract_error)
                     for marker in (
                         "visitor-surface contract violation",
+                        "question-surface contract violation",
+                        "requires a non-empty question",
                         "response shape requires",
                         "composition contract requires a complete response",
                     )

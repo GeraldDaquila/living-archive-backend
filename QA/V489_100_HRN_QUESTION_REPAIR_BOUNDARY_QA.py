@@ -1,4 +1,4 @@
-"""Regression QA for HRN question-repair ownership at the Provider Bank boundary."""
+"""Regression QA for HRN question quality at the Provider Bank boundary."""
 from provider_bank import _hrn_surface_language_violation, _normalize_operation_result
 
 
@@ -25,20 +25,30 @@ def main():
     prescriptive = "What could you try to change about how you respond?"
     assert _hrn_surface_language_violation(prescriptive)
 
-    normalized = _normalize_operation_result("hrn_relational", _parsed(prescriptive))
-    assert normalized["response"] == VALID_RESPONSE
-    assert normalized["question"] == "", "HRN must receive the valid response and repair the question locally."
-    assert normalized["rest"] is False
-    assert normalized["use_resource"] is False
-    assert normalized["resource_intro"] == ""
+    try:
+        _normalize_operation_result("hrn_relational", _parsed(prescriptive))
+    except ValueError as exc:
+        assert "question-surface contract violation" in str(exc)
+    else:
+        raise AssertionError(
+            "A prescriptive HRN question must be rejected before the bridge."
+        )
 
-    missing = _normalize_operation_result("hrn_relational", _parsed(None))
-    assert missing["response"] == VALID_RESPONSE
-    assert missing["question"] == "", "Missing questions must defer to HRN structural completion."
+    try:
+        _normalize_operation_result("hrn_relational", _parsed(None))
+    except ValueError as exc:
+        assert "non-empty question" in str(exc)
+    else:
+        raise AssertionError(
+            "A missing question must be rejected and routed to an independent provider."
+        )
 
     valid_question = "What happens just before you begin to feel unheard?"
     preserved = _normalize_operation_result("hrn_relational", _parsed(valid_question))
     assert preserved["question"] == valid_question
+    assert preserved["rest"] is False
+    assert preserved["use_resource"] is False
+    assert preserved["resource_intro"] == ""
 
     short = _parsed(valid_question)
     short["response"] = "You feel unheard. That is difficult."
@@ -49,7 +59,7 @@ def main():
     else:
         raise AssertionError("Invalid response prose must still be rejected by the Provider Bank.")
 
-    print("V489.100 HRN QUESTION REPAIR BOUNDARY QA: PASS")
+    print("V489.117 HRN QUESTION QUALITY BOUNDARY QA: PASS")
 
 
 if __name__ == "__main__":
