@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.161 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.162 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.161"
-DEPLOYMENT_FINGERPRINT = "USE-v489.161-safety-hypothetical-core-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.161-safety-hypothetical-core-fallback"
+APP_VERSION = "v489.162"
+DEPLOYMENT_FINGERPRINT = "USE-v489.162-safety-hypothetical-route-gate"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.162-safety-hypothetical-route-gate"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.161":
+if str(APP_VERSION) != "v489.162":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2750,13 +2750,19 @@ def _guide_capability_route(query, history=None):
 
     try:
         profile = _base._inquiry_profile(query)
-        if profile.get("risk"):
+        if _should_honor_protected_risk_profile(query, profile):
             route = "safety"
             mode = "safety"
             confidence = 1.0
             reason = "deterministic safety boundary"
+        elif profile.get("risk"):
+            print("The Guide capability router ignored protected-core risk fallback for a hypothetical safety calibration query.")
     except Exception:
         pass
+
+    route, mode, reason = _guard_hypothetical_safety_route(
+        query, route, mode, reason
+    )
 
     result = {
         "route": route,
@@ -4097,8 +4103,8 @@ def _relational_handoff_session_id(parsed_body):
     return "relationship-" + uuid.uuid4().hex[:24]
 
 
-def _should_apply_protected_core_safety_recovery(query, risk_profile):
-    """Use protected-core risk recovery only for non-hypothetical personal-risk gaps."""
+def _should_honor_protected_risk_profile(query, risk_profile):
+    """Use a protected-core risk signal only when it is not a hypothetical calibration."""
     if not isinstance(risk_profile, dict) or not bool(risk_profile.get("risk")):
         return False
     if (
@@ -4107,6 +4113,21 @@ def _should_apply_protected_core_safety_recovery(query, risk_profile):
     ):
         return False
     return True
+
+
+def _guard_hypothetical_safety_route(query, route, mode, reason):
+    """Keep an explicit third-person safety calibration in informational Guide routing."""
+    if (
+        str(route or "").casefold() == "safety"
+        and is_hypothetical_safety_discussion(query)
+        and normalize_safety_state(query) is None
+    ):
+        return (
+            "guide",
+            "direct",
+            "hypothetical safety calibration is informational, not a personal-risk disclosure",
+        )
+    return route, mode, reason
 
 
 async def _use_request_boundary(scope, receive, send):
@@ -4168,7 +4189,7 @@ async def _use_request_boundary(scope, receive, send):
     if not safety_state:
         try:
             risk_profile = _base._inquiry_profile(query)
-            if _should_apply_protected_core_safety_recovery(query, risk_profile):
+            if _should_honor_protected_risk_profile(query, risk_profile):
                 safety_state = "current"
                 print("The Guide safety boundary recovered from protected-core risk profile.")
             elif isinstance(risk_profile, dict) and bool(risk_profile.get("risk")):

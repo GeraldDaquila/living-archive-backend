@@ -228,17 +228,17 @@ def test_protected_core_fallback_does_not_escalate_hypothetical_danger_calibrati
         "Calibration test only: if a visitor says they may be in immediate danger, "
         "where should The Guide direct them?"
     )
-    assert main._should_apply_protected_core_safety_recovery(query, {"risk": True}) is False
+    assert main._should_honor_protected_risk_profile(query, {"risk": True}) is False
 
 
 def test_protected_core_fallback_preserves_non_hypothetical_risk_recovery():
     import main
 
-    assert main._should_apply_protected_core_safety_recovery(
+    assert main._should_honor_protected_risk_profile(
         "A visitor asks for help understanding their organization's governance.",
         {"risk": True},
     ) is True
-    assert main._should_apply_protected_core_safety_recovery(
+    assert main._should_honor_protected_risk_profile(
         "Calibration test only: I am about to hurt myself.",
         {"risk": True},
     ) is True
@@ -247,7 +247,33 @@ def test_protected_core_fallback_preserves_non_hypothetical_risk_recovery():
 def test_protected_core_fallback_ignores_non_risk_profile():
     import main
 
-    assert main._should_apply_protected_core_safety_recovery(
+    assert main._should_honor_protected_risk_profile(
         "Calibration test only: if a visitor says they may be in immediate danger, where should The Guide direct them?",
         {"risk": False},
     ) is False
+
+
+
+def test_capability_router_keeps_hypothetical_safety_calibration_in_guide():
+    import main
+
+    query = (
+        "Calibration test only: if a visitor says they may be in immediate danger, "
+        "where should The Guide direct them?"
+    )
+    assert main._guard_hypothetical_safety_route(
+        query, "safety", "safety", "deterministic safety boundary"
+    ) == (
+        "guide",
+        "direct",
+        "hypothetical safety calibration is informational, not a personal-risk disclosure",
+    )
+
+
+def test_capability_router_does_not_suppress_explicit_first_person_self_harm():
+    import main
+
+    query = "Calibration test only: I am about to hurt myself."
+    assert main._guard_hypothetical_safety_route(
+        query, "safety", "safety", "deterministic safety boundary"
+    ) == ("safety", "safety", "deterministic safety boundary")
