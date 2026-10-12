@@ -3,6 +3,12 @@ import base64, json, mimetypes, os, re, threading, urllib.error, urllib.parse, u
 from collections import OrderedDict
 import time
 
+from provider_quota_control import (
+    QuotaAdmissionDenied,
+    reserve as reserve_provider_call,
+    snapshot as quota_control_snapshot,
+)
+
 from provider_resilience import (
     CONTRACT_VERSION as RESILIENCE_CONTRACT_VERSION,
     acquire_probe,
@@ -1810,6 +1816,20 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         return _workers(token, account, model, messages, max_tokens, schema, timeout=timeout_override or 12)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
+def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+    """Apply bounded quota admission to every inference attempt, including correction calls."""
+    provider = str(item.get("provider") or "")
+    model = str(item.get("model") or "")
+    reservation = reserve_provider_call(provider, model, messages, max_tokens)
+    try:
+        return _call(
+            use_core, item, messages, max_tokens, schema,
+            timeout_override=timeout_override,
+        )
+    finally:
+        reservation.release()
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
     _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
@@ -1928,7 +1948,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(
+            raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
                 timeout_override=(
                     HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
@@ -2073,7 +2093,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
-                recovered = parse(_call(
+                recovered = parse(_quota_guarded_call(
                     use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema,
                     timeout_override=(
                         HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
@@ -2107,6 +2127,19 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             )
             _success(provider, model, operation)
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
+        except QuotaAdmissionDenied as exc:
+            # Local admission pressure is not evidence that the upstream provider
+            # is unhealthy. Skip this lane and allow independent candidates to run.
+            last_error = str(exc)
+            print(
+                "USE provider quota admission: "
+                + "operation=" + operation
+                + ", provider=" + provider
+                + ", model=" + model
+                + ", reason=" + str(exc.reason)
+                + ", retry_after_seconds=" + str(round(exc.retry_after, 2))
+            )
+            continue
         except ValueError as exc:
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
@@ -2148,6 +2181,7 @@ def snapshot(use_core):
         "selection_policy": "capability_health_and_contract_quality_adaptive",
         "shared_health_state": dict(_SHARED_STATE_DIAGNOSTICS),
         "shared_health_configuration": shared_health_configuration_status(),
+        "quota_control": quota_control_snapshot(),
         "capability_policy_version": "1.6",
         "strict_schema_policy": "explicit_request_only_with_operation_contract_recovery",
         "operation_token_floors": dict(OPERATION_TOKEN_FLOORS),
