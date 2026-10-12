@@ -1997,7 +1997,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         if not acquire_probe(state):
             continue
-        attempt_started = time.monotonic()
+        attempt_started = time.monotonic() if operation == "hrn_perception" else None
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
