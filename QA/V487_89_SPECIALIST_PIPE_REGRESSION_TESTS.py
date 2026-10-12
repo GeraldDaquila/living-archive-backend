@@ -485,8 +485,9 @@ def test_hrn_contract_trims_only_incomplete_trailing_sentence():
 
 def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability():
     original = [{"role": "user", "content": "Someone I love has become distant."}]
+    # Missing the required response field is an operation-envelope failure,
+    # so the Provider Bank must retain bounded same-model contract recovery.
     incomplete = json.dumps({
-        "response": "This begins clearly but stops before the sentence is complete",
         "question": "What feels hardest?",
     })
     corrected = json.dumps({
@@ -512,7 +513,7 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
     assert provider_call.call_count == 2
     assert provider_call.call_args_list[1].args[4] is None
     recovery_messages = provider_call.call_args_list[1].args[2]
-    assert "complete response" in recovery_messages[-1]["content"]
+    assert "Include the non-empty response and question fields" in recovery_messages[-1]["content"]
     assert "end with sentence-final punctuation" in recovery_messages[-1]["content"]
 
 
