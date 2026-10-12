@@ -97,6 +97,14 @@ def main():
         ]
         eligible, missing = provider_bank._eligible("openrouter", "openrouter/free", "hrn_relational")
         assert eligible, f"OpenRouter free router lacks HRN capability: {missing}"
+        strict_schema = {"strict": True, "schema": {"type": "object", "properties": {"response": {"type": "string"}}}}
+        eligible, missing = provider_bank._eligible(
+            "openrouter", "openrouter/free", "hrn_relational", schema=strict_schema
+        )
+        assert eligible, (
+            "HRN relational must retain JSON-object-capable providers when strict-schema "
+            f"format is unavailable and provider-neutral fallback is supported: {missing}"
+        )
 
     # A configured OpenRouter lane must be selected before the other providers.
     # This protects it from being starved by the bank's bounded attempt window.
