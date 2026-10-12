@@ -277,3 +277,38 @@ def test_capability_router_does_not_suppress_explicit_first_person_self_harm():
     assert main._guard_hypothetical_safety_route(
         query, "safety", "safety", "deterministic safety boundary"
     ) == ("safety", "safety", "deterministic safety boundary")
+
+
+
+def test_hypothetical_immediate_danger_question_returns_informational_calibration_payload():
+    import main
+
+    query = (
+        "Calibration test only: if a visitor says they may be in immediate danger, "
+        "where should The Guide direct them?"
+    )
+    payload = main._hypothetical_safety_calibration_payload(query)
+    assert payload is not None
+    assert payload["intent"] == "SAFETY_CALIBRATION_INFORMATION"
+    assert payload["handoff"] is None
+    assert payload["handoff_pending"] is False
+    assert payload["safety_calibration"]["personal_crisis_detected"] is False
+    assert payload["safety_calibration"]["resource_owner"] == "Emergency Intelligence"
+    assert "local emergency service" in payload["response"]
+    assert "must not invent a hotline or number" in payload["response"]
+
+
+def test_hypothetical_calibration_does_not_override_explicit_personal_risk():
+    import main
+
+    assert main._hypothetical_safety_calibration_payload(
+        "Calibration test only: I am about to hurt myself."
+    ) is None
+
+
+def test_hypothetical_calibration_helper_ignores_unrelated_queries():
+    import main
+
+    assert main._hypothetical_safety_calibration_payload(
+        "What is stewardship and why does it matter now more than ever?"
+    ) is None
