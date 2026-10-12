@@ -615,7 +615,9 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     assert recovery_messages[-2] == {"role": "assistant", "content": rejected}
     assert "requires response" in recovery_messages[-1]["content"]
     assert "Correct the output now." in recovery_messages[-1]["content"]
-    assert original == [{"role": "user", "content": "Someone I love has become distant."}]
+    assert len(original) == 1 and original[0]["role"] == "user"
+    assert original[0]["content"].startswith("STRUCTURED MOVEMENT BRIEF")
+    assert "Someone I love has become distant." in original[0]["content"]
 
 
 def test_current_main_contains_domain_payload_consumption_guards():
