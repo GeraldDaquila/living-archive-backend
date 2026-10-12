@@ -39,6 +39,17 @@ def main():
     assert '["gemini-3.8-flash"]' in provider
     assert 'CONTRACT_VERSION = "v2"' in provider
 
+    # If Groq inference credentials exist but model inventory discovery is
+    # temporarily empty, retain the documented catalog for normal health-gated
+    # attempts instead of silently removing the entire provider lane.
+    fake_groq_core = type("FakeGroqCore", (), {"get_live_groq_models": lambda self: []})()
+    with (
+        patch.dict(os.environ, {"GROQ_API_KEY": "test-key"}, clear=False),
+        patch.object(provider_bank, "PRODUCTION_GROQ_MODELS", ["openai/gpt-oss-120b"]),
+    ):
+        configured = provider_bank._configured(fake_groq_core)
+        assert configured.get("groq") == ["openai/gpt-oss-120b"]
+
     # HRN's multiple semantic stages must not each fan out across the entire bank.
     # One candidate per primary gateway request leaves the WordPress bridge's
     # bounded mirror replay as the independent fallback; diagnostics may opt into two.
