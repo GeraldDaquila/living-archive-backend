@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.168 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.169 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.168"
-DEPLOYMENT_FINGERPRINT = "USE-v489.168-explicit-formation-entry"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.168-explicit-formation-entry"
+APP_VERSION = "v489.169"
+DEPLOYMENT_FINGERPRINT = "USE-v489.169-relational-discernment-focus-precision"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.169-relational-discernment-focus-precision"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.168":
+if str(APP_VERSION) != "v489.169":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1299,6 +1299,19 @@ def _relational_communication_focus(query):
     ))
 
 
+def _relational_discernment_focus(query):
+    """Recognize explicit uncertainty about perception/inference, not schema boilerplate."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:projection|projecting|projected|what i(?:'|’)m sensing|what i sense|"
+        r"what i infer|what i am inferring|what is real|am i misreading|am i assuming|"
+        r"am i projecting|could i be misreading|could i be assuming|could i be projecting|"
+        r"reading too much into|misreading|judge(?: them)? unfairly|misjudge|"
+        r"am i being unfair|could i be unfair|distinguish what i observed from what i inferred)\b",
+        q,
+    ))
+
+
 def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):
     """Add bounded, earned semantic anchors without replacing the visitor's own question."""
     q = _normalize_query(" ".join(str(value or "") for value in (
@@ -1314,10 +1327,14 @@ def _relational_return_topic_anchor(original_question, underlying_need, perspect
             "Relational effort imbalance: overgiving, giving more than receiving, mutuality, "
             "feeling valued, care without self-erasure."
         )
-    discernment = bool(re.search(
-        r"\b(?:observable|observed|inferred|inference|interpretation|assumption|"
-        r"intentions?|what is real|what i sense)\b", q
-    ))
+    # HRN's standard synthesis often says a sequence is "observable" and
+    # another person's "intention" is unknown. Those phrases alone do not mean
+    # the visitor's central question is discernment; classify from the opening
+    # question and underlying need, not the generated perspective boilerplate.
+    discernment_query = _normalize_query(
+        " ".join(str(value or "") for value in (original_question, underlying_need))
+    )
+    discernment = _relational_discernment_focus(discernment_query)
     if discernment:
         additions.append(
             "Relational discernment: distinguish observable behavior from inference and "
@@ -1361,14 +1378,15 @@ def _relational_return_earned_focus_fit(query, doc):
         r"\b(?:imbalance|overgiving|self-sacrifice|giving more|receiving more|"
         r"mutual support|mutuality|reciproc|valued|effort|boundaries|self-erasure)\b", material
     ))
-    discernment_focus = bool(re.search(
-        r"\b(?:observable|observed|inferred|inference|interpretation|assumption|"
-        r"intentions?|distinguish|what is real)\b", q
+    discernment_focus = _relational_discernment_focus(q)
+    discernment_evidence_terms = set(re.findall(
+        r"\b(?:perception|behavior|behaviour|interpret(?:ation|ed|ing)?|"
+        r"assumption|inference|intentions?|projection|observation|observed)\b",
+        material,
     ))
-    discernment_evidence = bool(re.search(
-        r"\b(?:perception|behavior|behaviour|interpret|interpretation|assumption|"
-        r"inference|intention|projection|observation|observed|communication|silence)\b", material
-    ))
+    # A single generic mention of communication or silence is not evidence for
+    # a perception/inference resource. Require a cluster of distinct cues.
+    discernment_evidence = len(discernment_evidence_terms) >= 2
     # Disagreement alone does not establish that the visitor's central concern
     # is listening or being heard. Keep this exception narrow so a broad
     # relationship essay cannot qualify solely because it mentions dialogue.
