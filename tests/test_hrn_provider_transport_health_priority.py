@@ -33,6 +33,36 @@ def test_hrn_relational_prefers_healthy_transport_over_half_open_with_cleaner_qu
     assert selected[0]["health_state"] == "healthy"
 
 
+def test_hrn_relational_prefers_healthy_transport_over_degraded_lane_even_with_cleaner_quality_history(monkeypatch):
+    candidates = [
+        _candidate("groq", "openai/gpt-oss-120b", health="degraded", quality=0, consecutive=2, failures=5, last_success=100),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b", health="healthy", quality=1, consecutive=0, failures=1, last_success=90),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: [dict(item) for item in candidates])
+    monkeypatch.setattr(provider_bank, "_csv", lambda name: ["groq", "nvidia"])
+    monkeypatch.setattr(provider_bank, "_STATE", {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}})
+
+    selected = provider_bank.select(object(), operation="hrn_relational")
+
+    assert selected[0]["provider"] == "nvidia"
+    assert selected[0]["health_state"] == "healthy"
+
+
+def test_hrn_relational_keeps_quality_history_as_tiebreaker_within_same_health_tier(monkeypatch):
+    candidates = [
+        _candidate("groq", "openai/gpt-oss-120b", health="healthy", quality=2, consecutive=0, failures=3, last_success=200),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b", health="healthy", quality=0, consecutive=0, failures=1, last_success=150),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: [dict(item) for item in candidates])
+    monkeypatch.setattr(provider_bank, "_csv", lambda name: ["groq", "nvidia"])
+    monkeypatch.setattr(provider_bank, "_STATE", {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}})
+
+    selected = provider_bank.select(object(), operation="hrn_relational")
+
+    assert selected[0]["provider"] == "nvidia"
+    assert selected[0]["quality_failures"] == 0
+
+
 def test_hrn_relational_keeps_quality_history_as_tiebreaker_within_same_health_tier(monkeypatch):
     candidates = [
         _candidate("groq", "openai/gpt-oss-120b", health="healthy", quality=2, consecutive=0, failures=3, last_success=200),
