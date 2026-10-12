@@ -36,6 +36,8 @@ jobs:
         run: PYTHONPATH=. python -m pytest -q QA/V489_10_GUIDE_REQUEST_BOUNDARY_E2E.py
       - name: v489.94 bounded HRN provider budget and arbitration regression
         run: PYTHONPATH=. python QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py
+      - name: v489.118 HRN free-tier provider recovery regression
+        run: PYTHONPATH=. python -m pytest -q tests/test_v489_118_hrn_free_tier_recovery.py
       - name: v489.96 Gemini response-schema compatibility regression
         run: PYTHONPATH=. python QA/V489_96_GEMINI_SCHEMA_COMPATIBILITY_QA.py
       - name: v489.97 bounded provider HTTP timeout regression
