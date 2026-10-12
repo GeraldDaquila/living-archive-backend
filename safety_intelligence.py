@@ -57,7 +57,7 @@ _HYPOTHETICAL_SAFETY_DISCUSSION_PATTERNS = (
     re.compile(r"\bif\s+(?:someone|a person|a visitor)\s+(?:says|reports|mentions)\b", re.I),
 )
 
-def _is_hypothetical_safety_discussion(query: str) -> bool:
+def is_hypothetical_safety_discussion(query: str) -> bool:
     """Keep explicit calibration/third-person scenarios out of personal crisis triage.
 
     This exception applies only to the generic phrase "immediate danger".
@@ -126,7 +126,7 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
         return "acute"
     if (
         _GENERIC_IMMEDIATE_DANGER_PATTERN.search(text)
-        and not _is_hypothetical_safety_discussion(text)
+        and not is_hypothetical_safety_discussion(text)
     ):
         return "acute"
     if any(pattern.search(text) for pattern in _PLAN_PATTERNS):
@@ -267,7 +267,7 @@ def classify_safety(query: str, *, history: str = "") -> str | None:
     normalized_query = " ".join(str(query or "").strip().casefold().split())
     if (
         _GENERIC_IMMEDIATE_DANGER_PATTERN.search(normalized_query)
-        and _is_hypothetical_safety_discussion(normalized_query)
+        and is_hypothetical_safety_discussion(normalized_query)
         and not any(
             pattern.search(normalized_query)
             for pattern in (*_ACUTE_PATTERNS, *_PLAN_PATTERNS, *_IMMEDIACY_PATTERNS, *_CURRENT_PATTERNS)
