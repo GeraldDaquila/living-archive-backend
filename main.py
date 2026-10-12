@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.148"
-DEPLOYMENT_FINGERPRINT = "USE-v489.148-hrn-return-topic-fit-tightening"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.148-hrn-return-topic-fit-tightening"
+APP_VERSION = "v489.149"
+DEPLOYMENT_FINGERPRINT = "USE-v489.149-hrn-topic-anchor-specificity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.149-hrn-topic-anchor-specificity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.148":
+if str(APP_VERSION) != "v489.149":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1315,9 +1315,12 @@ def _relational_return_topic_anchor(original_question, underlying_need, perspect
     boundary = bool(re.search(r"\b(?:boundaries|taking over|responsibility|self-erasure)\b", q))
     if boundary:
         additions.append("Relational boundaries: care, mutuality, agency, and what remains yours to carry.")
+    # A disagreement is not automatically a listening problem. Only add this
+    # semantic expansion when the visitor actually describes not being heard,
+    # listening, or dismissal; otherwise it contaminates retrieval with unrelated
+    # communication-themed Archive pages.
     communication = bool(re.search(
-        r"\b(?:unheard|being heard|heard|hearing|listen|listening|disagree|disagreement|"
-        r"counterpoint|counter-argument|counterargument|ignored|dismissed)\b", q
+        r"\b(?:unheard|being heard|heard|hearing|listen|listening|ignored|dismissed)\b", q
     ))
     if communication:
         additions.append(
