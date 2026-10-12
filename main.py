@@ -5299,7 +5299,7 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 # This reports the distinction between declared capabilities, runtime adapters,
 # and known direct visitor-facing handoffs. It does not claim that a route has
 # passed a live visitor journey; those require separate E2E checks.
-@app.get("/api/provider-health-readiness")
+@_FASTAPI_APP.get("/api/provider-health-readiness")
 def provider_health_readiness():
     """Return bounded, non-secret provider shared-health readiness diagnostics."""
     try:
