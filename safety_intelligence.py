@@ -43,12 +43,31 @@ _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i(?:'m| am)?\s+about\s+to)\s+(?:hurt|harm)\s+myself\b", re.I),
     re.compile(r"\b(?:i\s+am\s+attempting\s+suicide|i\s+am\s+attempting\s+to\s+kill\s+myself)\b", re.I),
     re.compile(r"\b(?:i\s+(?:overdosed|have\s+overdosed|took\s+an\s+overdose)|i\s+(?:have\s+hurt|have\s+harmed)\s+myself)\b", re.I),
-    re.compile(r"\b(?:i\s+(?:can't|cannot)\s+(?:keep|stay)\s+myself\s+safe|immediate\s+danger)\b", re.I),
+    re.compile(r"\bi\s+(?:can't|cannot)\s+(?:keep|stay)\s+myself\s+safe\b", re.I),
     re.compile(r"\bi\s+want\s+to\s+die\b", re.I),
     # Plain first-person suicidal intent belongs to the native acute HRN safety loop.
     # Do not downgrade this boundary to the generic current-risk branch.
     re.compile(r"\b(?:i(?:'m| am)?\s+want(?:ing)?\s+to)\s+(?:kill\s+myself|end\s+my\s+life)\b", re.I),
 )
+_GENERIC_IMMEDIATE_DANGER_PATTERN = re.compile(r"\bimmediate\s+danger\b", re.I)
+_HYPOTHETICAL_SAFETY_DISCUSSION_PATTERNS = (
+    re.compile(r"\b(?:calibration|test case|testing|training|hypothetical|scenario)\b", re.I),
+    re.compile(r"\bif\s+(?:a|the)\s+visitor\b", re.I),
+    re.compile(r"\b(?:what|where|how)\s+(?:should|would|could)\s+the\s+guide\b", re.I),
+    re.compile(r"\bif\s+(?:someone|a person|a visitor)\s+(?:says|reports|mentions)\b", re.I),
+)
+
+def _is_hypothetical_safety_discussion(query: str) -> bool:
+    """Keep explicit calibration/third-person scenarios out of personal crisis triage.
+
+    This exception applies only to the generic phrase "immediate danger".
+    Direct first-person self-harm disclosures and inability-to-stay-safe signals
+    remain authoritative even when the surrounding message discusses testing.
+    """
+    text = " ".join(str(query or "").strip().casefold().split())
+    return any(pattern.search(text) for pattern in _HYPOTHETICAL_SAFETY_DISCUSSION_PATTERNS)
+
+
 _PLAN_PATTERNS = (
     re.compile(r"\b(?:i\s+(?:have|made)\s+a\s+plan)\b", re.I),
     re.compile(r"\b(?:my\s+plan\s+is\s+to)\b", re.I),
@@ -104,6 +123,11 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     if _SUPPORT_PATTERN.search(text):
         return "support"
     if any(pattern.search(text) for pattern in _ACUTE_PATTERNS):
+        return "acute"
+    if (
+        _GENERIC_IMMEDIATE_DANGER_PATTERN.search(text)
+        and not _is_hypothetical_safety_discussion(text)
+    ):
         return "acute"
     if any(pattern.search(text) for pattern in _PLAN_PATTERNS):
         return "plan"
