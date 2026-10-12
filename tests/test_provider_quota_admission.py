@@ -144,5 +144,50 @@ class ProviderQuotaAdmissionTests(unittest.TestCase):
 
 
 
+
+    def test_hrn_grounding_skips_later_source_contract_marker(self):
+        import json
+        import provider_bank as bank
+
+        brief = {
+            "observer_intention": "You both want the recurring argument to change.",
+            "observer_contrast": "The argument keeps returning despite that shared intention.",
+            "observer_so_what": "The wish to improve and the repeated exchange are not yet aligned.",
+            "observer_delta": "The focus moves from stated intention to the recurring exchange.",
+            "observer_horizon": "The moment the argument begins to repeat.",
+            "observer_next_intention": "Notice the point where the familiar exchange returns.",
+        }
+        content = (
+            "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief)
+            + "\n\nThe writer instructions mention STRUCTURED MOVEMENT BRIEF again. "
+            + "SOURCE CONTRACT FOR THIS RESPONSE:\n"
+            + "{\\\"mode\\\":\\\"answer\\\",\\\"required_fields\\\":[\\\"working_hypothesis\\\"]}"
+            + "\nThe instructions also mention body_of_thought and observer_intention."
+        )
+        self.assertEqual(
+            bank._hrn_question_grounding_violation(
+                "What usually happens just before the argument starts again?",
+                [{"role": "user", "content": content}],
+            ),
+            "",
+        )
+
+    def test_hrn_grounding_recovers_valid_prefix_before_malformed_observer_field(self):
+        import provider_bank as bank
+
+        malformed_brief = (
+            '{"observer_intention":"You both want the recurring argument to change.",'
+            '"observer_contrast":"The argument keeps returning despite that shared intention.",'
+            '"observer_so_what":"The phrase "same argument" keeps returning",'
+            '"observer_delta":"The focus moves to the recurring exchange."}'
+        )
+        self.assertEqual(
+            bank._hrn_question_grounding_violation(
+                "What usually happens just before the argument starts again?",
+                [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF — " + malformed_brief}],
+            ),
+            "",
+        )
+
 if __name__ == "__main__":
     unittest.main()
