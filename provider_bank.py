@@ -1497,6 +1497,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Include the non-empty response and question fields required by this operation. "
                         + "Do not repeat the rejected wording. Preserve the actual request context. "
                         + "Avoid generic relationship theory. Use one concrete observation grounded in the visitor's actual words. "
+                        + "Do not repeat the rejected wording, including phrases like 'this distinction matters because' or 'it shifts the focus from'. "
                         + "Do not restate the same insight in new words. "
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
