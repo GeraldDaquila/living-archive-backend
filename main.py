@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.162 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.163 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.162"
-DEPLOYMENT_FINGERPRINT = "USE-v489.162-safety-hypothetical-route-gate"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.162-safety-hypothetical-route-gate"
+APP_VERSION = "v489.163"
+DEPLOYMENT_FINGERPRINT = "USE-v489.163-safety-calibration-informational-answer"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.163-safety-calibration-informational-answer"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.162":
+if str(APP_VERSION) != "v489.163":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4130,6 +4130,51 @@ def _guard_hypothetical_safety_route(query, route, mode, reason):
     return route, mode, reason
 
 
+def _hypothetical_safety_calibration_payload(query):
+    """Return a deterministic, non-interrupting answer for explicit safety-routing tests."""
+    normalized = " ".join(str(query or "").strip().casefold().split())
+    if (
+        not is_hypothetical_safety_discussion(normalized)
+        or normalize_safety_state(normalized) is not None
+        or "immediate danger" not in normalized
+    ):
+        return None
+    request_id = "safety-calibration-" + hashlib.sha1(
+        normalized.encode("utf-8")
+    ).hexdigest()[:16]
+    return {
+        "ok": True,
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "source_sha256": RUNTIME_SOURCE_SHA256,
+        "request_id": request_id,
+        "query": str(query or "").strip(),
+        "intent": "SAFETY_CALIBRATION_INFORMATION",
+        "response": (
+            "In an actual immediate-danger situation, The Guide should pause ordinary "
+            "Archive exploration and direct the visitor to their local emergency service "
+            "or nearest emergency department. Emergency Intelligence should provide "
+            "country-specific contacts once the visitor's location is known; without a "
+            "location, the system must not invent a hotline or number. This question is "
+            "a routing calibration, not a personal crisis disclosure."
+        ),
+        "processing": "safety_calibration_boundary",
+        "route_source": "guide_hypothetical_safety_calibration",
+        "handoff": None,
+        "handoff_mode": "informational",
+        "handoff_pending": False,
+        "safety_calibration": {
+            "contract_version": "safety-calibration-information-v1",
+            "personal_crisis_detected": False,
+            "expected_live_route": "sitewide_safety_boundary_for_actual_danger",
+            "resource_owner": "Emergency Intelligence",
+            "resource_contract": "living-archive/emergency/v1/resolve",
+            "location_required_for_local_contacts": True,
+            "resources_resolved": False,
+        },
+    }
+
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -4196,6 +4241,16 @@ async def _use_request_boundary(scope, receive, send):
                 print("The Guide ignored protected-core risk fallback for a hypothetical safety calibration query.")
         except Exception as exc:
             print(f"The Guide protected-core safety recovery was unavailable: {exc}")
+
+    if not safety_state:
+        calibration_payload = _hypothetical_safety_calibration_payload(query)
+        if calibration_payload is not None:
+            print(
+                "The Guide safety calibration: "
+                "hypothetical route question answered without personal-crisis interruption, "
+                "ordinary retrieval, or provider inference."
+            )
+            return await _use_send_json(send, calibration_payload)
 
     if safety_state:
         request_id = "safety-" + hashlib.sha1(
