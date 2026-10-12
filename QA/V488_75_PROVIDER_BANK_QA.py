@@ -391,8 +391,8 @@ def main():
         "A short HRN response must not receive a same-model correction request."
     )
 
-    # Fast provider failures may use one extra independent relational lane,
-    # but the request must not run a third candidate inside the same gateway call.
+    # Fast provider failures may traverse multiple independent relational lanes,
+    # but only while the existing three-second aggregate window remains open.
     fast_fallback_pool = [
         {"provider": "openrouter", "model": "openrouter/free", "index": 0},
         {"provider": "mistral", "model": "mistral-small-latest", "index": 0},
@@ -417,8 +417,10 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-    assert fast_routed is None, "One baseline plus one fast independent fallback must remain bounded."
-    assert fast_call.call_count == 2, "A third provider must be left for the WordPress mirror boundary."
+    assert fast_routed and fast_routed["provider"] == "nvidia", (
+        "A third independent provider should be tried when earlier failures are fast."
+    )
+    assert fast_call.call_count == 3, "Fast failures should advance through bounded independent lanes."
 
     # A 4.27s first failure exceeds the new three-second fast-failure window.
     # It must return control to the WordPress mirror boundary instead of spending
