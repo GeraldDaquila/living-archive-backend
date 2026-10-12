@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.118 — align HRN provider calls with bounded mirror recovery
+# USE PRODUCTION VERSION: v489.119 — enforce explicit HRN question-field contract
 import asyncio
 import hashlib
 import ipaddress
