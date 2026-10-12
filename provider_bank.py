@@ -2230,6 +2230,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                             "visitor-surface contract violation: both of you are trying to address the same underlying concern",
                             "visitor-surface contract violation: opens the possibility of",
                             "visitor-surface contract violation: this opens the possibility of",
+                            "visitor-surface contract violation: opens the possibility of",
+                            "visitor-surface contract violation: this opens the possibility of",
                             "visitor-surface contract violation: this distinction matters because",
                             "visitor-surface contract violation: it shifts the focus from",
                             "visitor-surface contract violation: formulaic-connective",
