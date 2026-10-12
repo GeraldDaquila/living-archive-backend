@@ -572,7 +572,16 @@ def test_json_object_instruction_is_added_at_provider_boundary():
 
 
 def test_hrn_contract_recovery_corrects_rejected_provider_output():
-    original = [{"role": "user", "content": "Someone I love has become distant."}]
+    original = [{
+        "role": "user",
+        "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+            "working_hypothesis": "someone I love has become distant",
+            "thread_summary": "the reason for the distance remains uncertain",
+            "underlying_need": "understand the distance without assuming intent",
+            "emerging_delta": "the distance is observable but its reason remains unknown",
+            "body_of_thought": "reaching out feels risky while the reason for the distance is unknown",
+        }) + "\\nSomeone I love has become distant.",
+    }]
     rejected = json.dumps({"question": "What feels hardest?", "rest": False})
     corrected = json.dumps({
         "response": "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended.",
