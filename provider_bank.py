@@ -825,7 +825,10 @@ def _operation_requirements(operation, schema):
     required = set(OPERATION_REQUIREMENTS.get(operation, frozenset()))
     if isinstance(schema, dict) and schema.get("mode") == "text":
         return required
-    if isinstance(schema, dict):
+    if isinstance(schema, dict) and operation != "hrn_relational":
+        # HRN relational composition has a provider-neutral JSON-object fallback.
+        # Do not exclude otherwise eligible free lanes just because they cannot
+        # enforce the optional schema format; route() handles that fallback.
         required.add("json_schema_strict" if bool(schema.get("strict")) else "json_schema_best_effort")
     return required
 
