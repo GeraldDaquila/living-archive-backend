@@ -138,8 +138,8 @@ MODEL_LIMITS = {
 # to the small visitor-facing envelope so earlier perception calls do not make
 # the final composition exceed the remaining provider budget.
 OPERATION_MODEL_LIMITS = {
-    ("hrn_relational", "groq", "openai/gpt-oss-20b"): 1200,
-    ("hrn_relational", "groq", "openai/gpt-oss-120b"): 1200,
+    ("hrn_relational", "groq", "openai/gpt-oss-20b"): 250,
+    ("hrn_relational", "groq", "openai/gpt-oss-120b"): 250,
 }
 
 OPERATION_TOKEN_FLOORS = {
