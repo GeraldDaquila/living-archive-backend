@@ -101,3 +101,45 @@ def test_hrn_question_grounding_rejects_abstract_distinction_only():
     messages = [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\n{\"situation\":\"deadline distinction\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"project scope changed\"}"}]
     violation = provider_bank._hrn_question_grounding_violation("What changes when you look through that distinction?", messages)
     assert violation.startswith("question-grounding contract violation")
+
+
+
+def test_hrn_question_grounding_finds_brief_in_system_message():
+    messages = [{
+        "role": "system",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\n"
+            '{"situation":"deadline disagreement",'
+            '"tension":"agreed date versus changed scope",'
+            '"parties":"two colleagues",'
+            '"experience":"the project scope changed"}'
+        ),
+    }]
+    generic = "Where do you notice that distinction most clearly in the relationship?"
+    grounded = "What happens in their conversation when the deadline is raised alongside the changed scope?"
+    assert provider_bank._hrn_question_grounding_violation(generic, messages).startswith(
+        "question-grounding contract violation"
+    )
+    assert provider_bank._hrn_question_grounding_violation(grounded, messages) == ""
+
+
+def test_hrn_question_grounding_fails_closed_when_brief_is_missing_or_malformed():
+    missing = [{"role": "system", "content": "Return a separate response and question."}]
+    malformed = [{"role": "system", "content": "STRUCTURED MOVEMENT BRIEF: no structured object"}]
+    question = "What happens in their conversation when the agreed date is raised?"
+    assert provider_bank._hrn_question_grounding_violation(question, missing).startswith(
+        "question-grounding contract violation"
+    )
+    assert provider_bank._hrn_question_grounding_violation(question, malformed).startswith(
+        "question-grounding contract violation"
+    )
+
+
+def test_hrn_provider_bank_rejects_observed_reallocation_and_negotiation_guidance():
+    response = (
+        "One colleague is anchoring to the original deadline, while the other is pulling the goalpost "
+        "by emphasizing a changed scope of work. Seeing the clash as a shift in what each person regards "
+        "as the agreed task, rather than just a timing dispute, opens space to renegotiate expectations "
+        "and align on what truly needs to be delivered."
+    )
+    assert provider_bank._hrn_surface_language_violation(response) == "action-guidance"
