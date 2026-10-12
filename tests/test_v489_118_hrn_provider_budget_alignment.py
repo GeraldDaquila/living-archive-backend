@@ -62,8 +62,8 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
 
     def slow_failure(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        clock.value += 4.0
-        raise RuntimeError("simulated bounded provider timeout")
+        clock.value += 6.0
+        raise RuntimeError("simulated slow provider timeout beyond the fast-failure window")
 
     monkeypatch.setattr(provider_bank, "_call", slow_failure)
     result = provider_bank.route(
