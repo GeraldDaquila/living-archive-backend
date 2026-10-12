@@ -245,6 +245,19 @@ def main():
             "Bounded HRN fallback must remain an independent provider"
         )
 
+    hrn_messages = [
+        {
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n"
+                '{"working_hypothesis":"repair work feels one-sided",'
+                '"underlying_need":"shared effort and clear acknowledgement",'
+                '"emerging_delta":"one person reports doing most of the repair work",'
+                '"body_of_thought":"reported effort is uneven while the other person’s intention remains unknown"}\n'
+                "SHARED RELATIONAL UNDERSTANDING"
+            ),
+        }
+    ]
     # Invalid JSON from a provider must be recorded as a transient provider
     # health failure, not upgraded to a permanent structured-output quarantine.
     valid_hrn = json.dumps({
@@ -265,7 +278,7 @@ def main():
     ):
         routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I am doing most of the repair work."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -309,7 +322,7 @@ def main():
     ):
         routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -353,7 +366,7 @@ def main():
     ):
         question_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -387,7 +400,7 @@ def main():
     ):
         shape_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -420,7 +433,7 @@ def main():
     ):
         fast_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -444,7 +457,7 @@ def main():
     ):
         measured_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -464,7 +477,7 @@ def main():
     ):
         over_budget_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=hrn_messages,
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
