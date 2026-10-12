@@ -65,7 +65,7 @@ def estimate_tokens(messages: Any, max_tokens: int) -> int:
     return input_estimate + max(1, int(max_tokens or 1))
 
 
-def _bucket_take(key: str, limit: int, cost: float, period: float, now: float) -> tuple[bool, float]:
+def _bucket_check(key: str, limit: int, cost: float, period: float, now: float) -> tuple[bool, float]:
     bucket = _BUCKETS.get(key)
     if bucket is None:
         bucket = {"tokens": float(limit), "updated": now}
@@ -78,8 +78,11 @@ def _bucket_take(key: str, limit: int, cost: float, period: float, now: float) -
     if bucket["tokens"] + 1e-9 < cost:
         wait = (cost - bucket["tokens"]) * period / float(limit)
         return False, max(0.1, wait)
-    bucket["tokens"] -= cost
     return True, 0.0
+
+
+def _bucket_consume(key: str, cost: float) -> None:
+    _BUCKETS[key]["tokens"] = max(0.0, float(_BUCKETS[key]["tokens"]) - float(cost))
 
 
 class Reservation:
@@ -139,6 +142,7 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
             ("tpm", f"USE_QUOTA_{provider_slug}_TPM", 60.0, float(estimate)),
             ("tpd", f"USE_QUOTA_{provider_slug}_TPD", 86400.0, float(estimate)),
         )
+        planned_buckets = []
         for kind, env_name, period, cost in budgets:
             raw = str(os.getenv(env_name) or "").strip()
             if not raw:
@@ -149,11 +153,13 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
                 continue
             if limit <= 0:
                 continue
-            ok, retry_after = _bucket_take(provider_key + ":" + kind, limit, cost, period, now)
+            bucket_key = provider_key + ":" + kind
+            ok, retry_after = _bucket_check(bucket_key, limit, cost, period, now)
             if not ok:
                 counter = "rejected_" + kind
                 _COUNTERS[counter] += 1
                 raise QuotaAdmissionDenied(provider, model, kind + "_budget_exhausted", retry_after)
+            planned_buckets.append((bucket_key, cost))
 
         model_tpm_name = f"USE_QUOTA_{provider_slug}_{model_slug}_TPM"
         raw_model_tpm = str(os.getenv(model_tpm_name) or "").strip()
@@ -163,10 +169,16 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
             except ValueError:
                 model_tpm = 0
             if model_tpm > 0:
-                ok, retry_after = _bucket_take(model_key + ":tpm", model_tpm, float(estimate), 60.0, now)
+                model_bucket_key = model_key + ":tpm"
+                ok, retry_after = _bucket_check(model_bucket_key, model_tpm, float(estimate), 60.0, now)
                 if not ok:
                     _COUNTERS["rejected_tpm"] += 1
                     raise QuotaAdmissionDenied(provider, model, "model_tpm_budget_exhausted", retry_after)
+                planned_buckets.append((model_bucket_key, float(estimate)))
+
+        # Commit all token-bucket deductions only after every budget check passes.
+        for bucket_key, cost in planned_buckets:
+            _bucket_consume(bucket_key, cost)
 
         _ACTIVE_PROVIDER[provider_key] = _ACTIVE_PROVIDER.get(provider_key, 0) + 1
         _ACTIVE_MODEL[model_key] = _ACTIVE_MODEL.get(model_key, 0) + 1
