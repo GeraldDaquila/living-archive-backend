@@ -260,3 +260,97 @@ def test_relational_composition_still_fails_closed_when_voice_repair_fails(monke
     )
     assert result is None
     assert len(calls) == 2
+
+
+def test_relational_composition_recovers_prescriptive_response_language(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "You both want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning after something from the past is raised.",
+        "observer_so_what": "Both want improvement, but the repeated exchange continues.",
+        "observer_delta": "The conversation moves from the past issue to one partner feeling blamed.",
+        "observer_horizon": "The moment something from the past is brought up.",
+        "observer_next_intention": "Notice what is said just before blame enters the exchange.",
+    }
+    rejected = {
+        "response": (
+            "You both say you want the argument to change, yet the same exchange keeps returning. "
+            "You should focus on the moment the past is raised and try to keep the conversation from becoming about blame. "
+            "The words that start this shift are clear in your description, though their meaning to each of you remains unknown."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    repaired = {
+        "response": (
+            "You both say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed, and the conversation moves away from the wish to improve. "
+            "That sequence is clear in what you described, though it does not establish what either of you intends."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    calls = []
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(call_messages)
+        return json.dumps(rejected if len(calls) == 1 else repaired)
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role":"user","content":"STRUCTURED MOVEMENT BRIEF — "+json.dumps(brief)}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert len(calls) == 2
+    assert "you should" not in result["parsed"]["response"].casefold()
+    assert "try to keep" not in result["parsed"]["response"].casefold()
+
+
+def test_relational_composition_recovers_observed_generic_metaphor(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "You both want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning after something from the past is raised.",
+        "observer_so_what": "Both want improvement, but the repeated exchange continues.",
+        "observer_delta": "The conversation moves from the past issue to one partner feeling blamed.",
+        "observer_horizon": "The moment something from the past is brought up.",
+        "observer_next_intention": "Notice what is said just before blame enters the exchange.",
+    }
+    rejected = {
+        "response": (
+            "A useful distinction is that the repeated argument is a shared signal. "
+            "You are speaking different languages, and this can become a win-lose fight. "
+            "That sequence is clear in what you described, though it does not establish what either of you intends."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    repaired = {
+        "response": (
+            "You both say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed, and the conversation moves away from the wish to improve. "
+            "That sequence is clear in what you described, though it does not establish what either of you intends."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    calls = []
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(call_messages)
+        return json.dumps(rejected if len(calls) == 1 else repaired)
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role":"user","content":"STRUCTURED MOVEMENT BRIEF — "+json.dumps(brief)}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert len(calls) == 2
+    assert "shared signal" not in result["parsed"]["response"].casefold()
+    assert "speaking different languages" not in result["parsed"]["response"].casefold()
