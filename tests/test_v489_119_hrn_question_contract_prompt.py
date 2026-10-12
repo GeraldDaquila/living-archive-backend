@@ -48,3 +48,14 @@ def test_hrn_provider_bank_rejects_a_trailing_question_embedded_in_response():
 
     with pytest.raises(ValueError, match="embedded question"):
         provider_bank._normalize_operation_result("hrn_relational", partial)
+
+
+def test_hrn_visitor_contract_requires_interaction_grounded_questions():
+    messages = [{"role": "system", "content": "Return the required JSON fields."}]
+    updated = provider_bank._apply_hrn_visitor_contract(messages)
+    contract = updated[0]["content"].lower()
+
+    assert "interaction between the people" in contract
+    assert "not merely ask for factual reasons" in contract
+    assert "what happens between them" in contract
+    assert "visitor's latest turn" in contract
