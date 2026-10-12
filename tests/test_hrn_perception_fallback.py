@@ -115,3 +115,42 @@ def test_empty_movement_brief_is_input_failure_not_provider_quality_failure():
         "general_guide_composition",
         reason,
     )
+
+
+
+def test_groq_bounded_call_disables_sdk_retries(monkeypatch):
+    from types import SimpleNamespace
+
+    options = []
+    call_kwargs = {}
+
+    class FakeClient:
+        def with_options(self, **kwargs):
+            options.append(kwargs)
+            return self
+
+        class _Completions:
+            @staticmethod
+            def create(**kwargs):
+                call_kwargs.update(kwargs)
+                message = SimpleNamespace(content='{"perception":"bounded result"}')
+                return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+        class _Chat:
+            completions = _Completions()
+
+        chat = _Chat()
+
+    use_core = SimpleNamespace(groq_client=FakeClient())
+    result = provider_bank._groq(
+        use_core,
+        "openai/gpt-oss-120b",
+        [{"role": "user", "content": "synthetic calibration input"}],
+        100,
+        schema=None,
+        timeout=1.0,
+    )
+
+    assert result == '{"perception":"bounded result"}'
+    assert options == [{"timeout": 1.0, "max_retries": 0}]
+    assert call_kwargs["max_completion_tokens"] == 100
