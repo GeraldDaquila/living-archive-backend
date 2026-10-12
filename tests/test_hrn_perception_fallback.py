@@ -27,8 +27,12 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
 
 
-def test_perception_fast_failure_uses_one_independent_provider(monkeypatch):
-    candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
+def test_perception_fast_failures_can_reach_third_independent_provider(monkeypatch):
+    candidates = [
+        _candidate("groq", "model-a"),
+        _candidate("nvidia", "model-b"),
+        _candidate("mistral", "model-c"),
+    ]
     _isolate(monkeypatch, candidates)
 
     class Clock:
@@ -43,6 +47,9 @@ def test_perception_fast_failure_uses_one_independent_provider(monkeypatch):
         if item["provider"] == "groq":
             clock.value += 0.25
             raise provider_bank.ProviderCallError("simulated 429", "groq", "model-a", 429, category="rate_limited")
+        if item["provider"] == "nvidia":
+            clock.value += 0.25
+            raise provider_bank.ProviderCallError("simulated 503", "nvidia", "model-b", 503, category="http_error")
         return json.dumps({"perception": "bounded synthetic result"})
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
@@ -55,10 +62,10 @@ def test_perception_fast_failure_uses_one_independent_provider(monkeypatch):
     )
 
     assert result is not None
-    assert result["provider"] == "nvidia"
-    assert [provider for provider, _ in calls] == ["groq", "nvidia"]
+    assert result["provider"] == "mistral"
+    assert [provider for provider, _ in calls] == ["groq", "nvidia", "mistral"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 1
+    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
 
 
@@ -89,3 +96,17 @@ def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(mo
 
     assert result is None
     assert calls == ["groq"]
+
+
+
+def test_empty_movement_brief_is_input_failure_not_provider_quality_failure():
+    reason = "hrn_relational question-surface contract violation: question-grounding contract violation: movement brief has no concrete question anchors"
+    assert provider_bank._is_movement_brief_input_failure("hrn_relational", reason)
+    assert not provider_bank._is_movement_brief_input_failure(
+        "hrn_relational",
+        "question-grounding contract violation: question does not name a concrete detail from the movement brief",
+    )
+    assert not provider_bank._is_movement_brief_input_failure(
+        "general_guide_composition",
+        reason,
+    )
