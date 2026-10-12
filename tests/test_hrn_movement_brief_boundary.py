@@ -3,18 +3,13 @@
 from provider_bank import _hrn_question_grounding_violation
 
 
-def test_grounding_validator_skips_source_contract_after_instruction_marker():
+def test_grounding_validator_uses_actual_brief_not_source_contract_object():
     messages = [
-        {
-            "role": "system",
-            "content": (
-                'The structured movement brief is the only representation available. '
-                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}'
-            ),
-        },
         {
             "role": "user",
             "content": (
+                'The STRUCTURED MOVEMENT BRIEF is the only representation available. '
+                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\n'
                 'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n'
                 '{"thread_summary":"The original estimate did not include the added work.",'
                 '"working_hypothesis":"The deadline expectation rested on an incomplete estimate.",'
@@ -32,8 +27,11 @@ def test_grounding_validator_skips_source_contract_after_instruction_marker():
 def test_grounding_validator_fails_closed_when_no_semantic_brief_exists():
     messages = [
         {
-            "role": "system",
-            "content": 'STRUCTURED MOVEMENT BRIEF then SOURCE CONTRACT: {"mode":"answer","schema":"v1"}',
+            "role": "user",
+            "content": (
+                'STRUCTURED MOVEMENT BRIEF then SOURCE CONTRACT: '
+                '{"mode":"answer","schema":"v1"}'
+            ),
         },
     ]
     violation = _hrn_question_grounding_violation("What changed?", messages)
