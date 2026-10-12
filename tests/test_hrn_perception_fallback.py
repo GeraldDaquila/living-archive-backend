@@ -515,7 +515,7 @@ def test_hrn_relational_uses_small_completion_budget_for_second_stage(monkeypatc
         "observer_next_intention": "What is said just before the past is raised.",
     }
     response = (
-        "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+        "You both want the argument to change, yet the same exchange keeps returning. "
         "When something from the past is raised, one of you feels blamed. "
         "The wish to improve is present, but the exchange still returns to that point; "
         "what either of you intends remains unknown."
@@ -565,7 +565,7 @@ def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retr
     }
     rejected = {
         "response": (
-            "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+            "You both want the argument to change, yet the same exchange keeps returning. "
             "When something from the past is raised, one of you feels blamed. "
             "What usually happens just before one of you brings up the past?"
         ),
@@ -576,7 +576,7 @@ def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retr
     }
     repaired = {
         "response": (
-            "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+            "You both want the argument to change, yet the same exchange keeps returning. "
             "When something from the past is raised, one of you feels blamed. "
             "The wish to improve is present, but what either of you intends remains unknown."
         ),
