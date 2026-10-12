@@ -26,6 +26,8 @@ jobs:
         run: PYTHONPATH=. python -m pytest -q tests/test_provider_quota_admission.py
       - name: HRN provider transport-health arbitration regression
         run: PYTHONPATH=. python -m pytest -q tests/test_hrn_provider_transport_health_priority.py
+      - name: HRN perception independent fallback regression
+        run: PYTHONPATH=. python -m pytest -q tests/test_hrn_perception_fallback.py
       - name: HRN explicit provider timeout regression
         run: PYTHONPATH=. python -m pytest -q tests/test_v489_118_hrn_free_tier_recovery.py
       - name: HRN bounded candidate fallback regression
