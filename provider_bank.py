@@ -59,6 +59,9 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # Keep each call bounded, but do not quarantine a viable lane before its normal
 # response latency has elapsed.
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
+# The perception object has many short fields; cap it below Groq's 1,000 OTPM
+# ceiling so it can coexist with a bounded relational stage in the same turn.
+HRN_PERCEPTION_MAX_COMPLETION_TOKENS = 600
 # HRN needs a short observation and one question; reserve only a bounded output
 # allowance so the second stage can fit within shared free-tier OTPM/TPM budgets.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 250
@@ -415,20 +418,32 @@ def _failure(exc, provider, model):
         category = "quota_or_billing"
     elif status == 404:
         category = "model_unavailable"
+    elif status == 429 and any(
+        marker in low for marker in (
+            "tokens per minute", "otpm", "tpm", "requests per minute", "rpm"
+        )
+    ):
+        # Minute-scoped token/request windows recover quickly; do not quarantine
+        # the model for hours because an upstream retry message uses milliseconds.
+        category = "transient_rate_limited"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
 
     # Provider retry prose is useful for both ordinary 429s and model-scoped
     # daily token limits. Never let that prose override account-wide billing
     # classification above.
-    if category == "rate_limited" and not retry_after:
-        wait = re.search(
-            r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
-            low,
-        )
-        if wait:
-            hours, minutes, seconds = (float(x or 0) for x in wait.groups())
-            retry_after = hours * 3600 + minutes * 60 + seconds
+    if category in {"rate_limited", "transient_rate_limited"} and not retry_after:
+        wait_ms = re.search(r"try again in\s+(\d+(?:\.\d+)?)\s*ms\b", low)
+        if wait_ms:
+            retry_after = float(wait_ms.group(1)) / 1000.0
+        else:
+            wait = re.search(
+                r"try again in\s+(?:(\d+(?:\.\d+)?)h)?\s*(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
+                low,
+            )
+            if wait:
+                hours, minutes, seconds = (float(x or 0) for x in wait.groups())
+                retry_after = hours * 3600 + minutes * 60 + seconds
     elif category != "invalid_provider_response" and (
         (
             status == 400
@@ -2101,7 +2116,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # HRN relational prose needs a complete answer and a distinct question, not a
     # thousand-token draft. Bound these visitor-facing stages so multiple semantic
     # stages can finish inside one WordPress turn; keep perception's richer schema uncapped.
-    if operation in {"hrn_relational", "hrn_voice_repair"}:
+    if operation == "hrn_perception":
+        requested_max_tokens = min(requested_max_tokens, HRN_PERCEPTION_MAX_COMPLETION_TOKENS)
+    elif operation in {"hrn_relational", "hrn_voice_repair"}:
         requested_max_tokens = min(requested_max_tokens, HRN_RELATIONAL_MAX_COMPLETION_TOKENS)
     elif operation == "general_guide_composition":
         requested_max_tokens = min(requested_max_tokens, 900)
