@@ -1334,13 +1334,13 @@ def _hrn_question_grounding_violation(question, messages):
     stopwords = {
         "about", "after", "again", "along", "already", "among", "around", "because",
         "before", "being", "between", "both", "change", "changes", "changed", "could",
-        "different", "disagreement", "dispute", "during", "each", "either", "enough",
+        "different", "disagreement", "dispute", "distinction", "during", "each", "either", "enough",
         "every", "experience", "from", "have", "having", "into", "issue", "itself",
-        "just", "matter", "matters", "maybe", "might", "more", "other", "parties",
-        "pattern", "people", "person", "points", "rather", "really", "relationship",
-        "relationships", "reported", "reports", "situation", "someone", "something",
+        "just", "look", "looking", "meaning", "matter", "matters", "maybe", "might", "more", "other", "parties",
+        "pattern", "people", "person", "perspective", "points", "rather", "really", "relationship",
+        "relationships", "reveal", "reveals", "reported", "reports", "situation", "someone", "something",
         "stated", "their", "there", "these", "thing", "things", "those", "through",
-        "tension", "they", "this", "under", "visitor", "were", "what", "when", "where",
+        "tension", "they", "this", "under", "understanding", "visitor", "visible", "were", "what", "when", "where",
         "which", "while", "with", "would",
     }
     anchors = {
@@ -1349,7 +1349,7 @@ def _hrn_question_grounding_violation(question, messages):
         if token not in stopwords
     }
     if not anchors:
-        return ""
+        return "question-grounding contract violation: structured movement brief has no concrete question anchors"
     lowered_question = str(question or "").casefold()
     if any(re.search(r"\b" + re.escape(token) + r"\b", lowered_question) for token in anchors):
         return ""
