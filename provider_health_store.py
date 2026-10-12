@@ -32,6 +32,21 @@ def _configuration():
     return url, secret
 
 
+
+def configuration_status():
+    """Expose shared-state configuration readiness without revealing secrets."""
+    raw_url = str(os.getenv("USE_PROVIDER_HEALTH_STATE_URL") or "").strip()
+    url = raw_url or DEFAULT_URL
+    secret_configured = bool(str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip())
+    https_valid = url.startswith("https://")
+    return {
+        "configured": bool(https_valid and secret_configured),
+        "url_configured": bool(raw_url),
+        "url_source": "environment" if raw_url else "default",
+        "https_valid": https_valid,
+        "shared_secret_configured": secret_configured,
+    }
+
 def _request(method, payload=None):
     url, secret = _configuration()
     if not url:
