@@ -23,7 +23,7 @@ from provider_health_store import (
 CONTRACT_VERSION = "v2"
 
 # A third independent relational candidate is permitted only after two fast failures.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
