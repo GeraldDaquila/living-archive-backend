@@ -40,6 +40,7 @@ HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 # transient transport failures cluster; strict schema validation and per-call
 # timeouts remain unchanged, and slow failures still stop fallback.
 HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 4.5
+HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 1.25
 HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
@@ -1996,6 +1997,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         if not acquire_probe(state):
             continue
+        attempt_started = time.monotonic()
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
@@ -2205,11 +2207,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", model=" + model
                 + ", error=" + last_error[:300]
             )
+            candidate_elapsed = time.monotonic() - attempt_started
+            if operation == "hrn_perception" and candidate_elapsed > HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS:
+                print(
+                    "USE provider bank fast-failure fallback: operation=hrn_perception, "
+                    + "action=stop_after_slow_candidate, elapsed_seconds="
+                    + str(round(candidate_elapsed, 2))
+                    + ", stop_seconds=" + str(HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS)
+                )
+                break
             continue
         except Exception as exc:
             last_error = str(exc)
             _failure(exc, provider, model)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
+            candidate_elapsed = time.monotonic() - attempt_started
+            if operation == "hrn_perception" and candidate_elapsed > HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS:
+                print(
+                    "USE provider bank fast-failure fallback: operation=hrn_perception, "
+                    + "action=stop_after_slow_candidate, elapsed_seconds="
+                    + str(round(candidate_elapsed, 2))
+                    + ", stop_seconds=" + str(HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS)
+                )
+                break
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
     return _route_result(None)
 
