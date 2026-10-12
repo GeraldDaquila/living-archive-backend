@@ -608,7 +608,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     assert result["parsed"]["response"] == (
         "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended."
     )
-    assert result["parsed"]["question"] == "What makes reaching out feel risky right now?"
+    assert result["parsed"]["question"] == "What makes reaching out feel risky while the reason for the distance remains uncertain?"
     assert provider_call.call_count == 2
     recovery_messages = provider_call.call_args_list[1].args[2]
     assert any(message.get("role") == "user" and message.get("content") == original[0]["content"] for message in recovery_messages)
