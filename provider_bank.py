@@ -34,6 +34,11 @@ CONTRACT_VERSION = "v2"
 # this allows a third candidate when two transport failures consume ~3-4 seconds.
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
+# Perception is the first inference stage. Give it one independent fallback on
+# fast failure so a single transient 429/transport error does not abort the
+# entire HRN turn, while preserving most of the whole-turn budget for composition.
+HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 3.0
+HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 1
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
@@ -1867,14 +1872,16 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # provider inside the same request.
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
-    if operation in {"hrn_relational", "general_guide_composition"} and len(pool) > base_max_attempts:
+    if operation in {"hrn_perception", "hrn_relational", "general_guide_composition"} and len(pool) > base_max_attempts:
         # Specialist and Guide fallbacks are admitted only inside their own bounded
         # fast-failure windows. Never let an exhausted free-tier bank turn one query
         # into a serial walk across every configured model.
         used_providers = {str(item.get("provider") or "") for item in attempt_pool}
         fallback_count = 0
         fallback_limit = (
-            HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES
+            HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES
+            if operation == "hrn_perception"
+            else HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES
             if operation == "hrn_relational"
             else GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES
         )
@@ -1900,7 +1907,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         if attempt_index > base_max_attempts:
             elapsed = time.monotonic() - route_started
             fast_failure_window = (
-                HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
+                HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS
+                if operation == "hrn_perception"
+                else HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
                 if operation == "hrn_relational"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
