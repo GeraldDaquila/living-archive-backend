@@ -1031,7 +1031,11 @@ def select(use_core, operation="generic", schema=None):
             # better, or let another provider's recent success override a
             # configured tie-break between equally healthy independent lanes.
             best = lane[0] if lane else {}
-            health_rank = 0 if best.get("health_state") == "healthy" else 1
+            health_state = str(best.get("health_state") or "unknown")
+            health_rank = 0 if health_state == "healthy" else 1
+            # Open/half-open candidates are recovery probes. They must not outrank
+            # a non-recovering lane, even when their historical quality score is cleaner.
+            recovery_probe_rank = 1 if health_state in {"open", "half_open"} else 0
             provider = str(best.get("provider") or "")
             quality_failures = int(best.get("quality_failures", 0) or 0)
             consecutive_failures = int(best.get("consecutive_failures", 0) or 0)
@@ -1046,9 +1050,13 @@ def select(use_core, operation="generic", schema=None):
                 # rejection counts. A half-open lane recovering from 503/429 or
                 # timeout must not outrank a healthy independent model merely
                 # because its older visitor-contract history is cleaner.
+                # Among non-probing lanes, keep HRN contract history first;
+                # this prevents a historically rejected model from winning solely
+                # because another stage marked its transport healthy.
                 return (
-                    health_rank,
+                    recovery_probe_rank,
                     quality_failures,
+                    health_rank,
                     consecutive_failures,
                     transport_failures,
                     provider_rank,
