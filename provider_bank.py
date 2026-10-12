@@ -1275,7 +1275,7 @@ def _hrn_surface_language_violation(response):
         ("action-guidance", r"\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\b"),
         ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
         ("action-guidance", r"\b(?:noticing|recognizing|seeing|understanding|separating|distinguishing|considering)\b.{0,180}\ballows you to\b"),
-        ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize)\b"),
+        ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize|re-?allocate|negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
         ("abstract-generalization", r"\bopens the possibility of\b"),
         ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
         ("metaphorical-framing", r"\bwhat once felt like\b"),
@@ -1307,25 +1307,28 @@ def _hrn_surface_language_violation(response):
 def _hrn_question_grounding_violation(question, messages):
     """Require an HRN question to name a concrete detail from the structured current-turn brief."""
     user_content = ""
+    # The structured movement brief may be carried in a system or user message
+    # depending on the bridge adapter. Search every message role; checking only
+    # role=user silently disabled grounding when the bridge placed it in system.
     for item in reversed(list(messages or [])):
-        if isinstance(item, dict) and item.get("role") == "user":
+        if isinstance(item, dict):
             candidate = str(item.get("content") or "")
             if "STRUCTURED MOVEMENT BRIEF" in candidate:
                 user_content = candidate
                 break
     if not user_content:
-        return ""
+        return "question-grounding contract violation: structured movement brief is missing"
 
     marker_index = user_content.find("STRUCTURED MOVEMENT BRIEF")
     brace_index = user_content.find("{", marker_index)
     if brace_index < 0:
-        return ""
+        return "question-grounding contract violation: structured movement brief is malformed"
     try:
         brief, _ = json.JSONDecoder().raw_decode(user_content[brace_index:])
     except (json.JSONDecodeError, TypeError, ValueError):
-        return ""
+        return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
-        return ""
+        return "question-grounding contract violation: structured movement brief is not an object"
 
     source_parts = []
     for field in ("situation", "tension", "parties", "experience"):

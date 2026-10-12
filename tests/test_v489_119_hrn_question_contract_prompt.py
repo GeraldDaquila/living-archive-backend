@@ -101,3 +101,35 @@ def test_hrn_question_grounding_rejects_abstract_distinction_only():
     messages = [{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF\n{\"situation\":\"deadline distinction\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"project scope changed\"}"}]
     violation = provider_bank._hrn_question_grounding_violation("What changes when you look through that distinction?", messages)
     assert violation.startswith("question-grounding contract violation")
+
+
+def test_hrn_question_grounding_finds_brief_in_system_message():
+    messages = [{
+        "role": "system",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            "{\\"situation\\":\\"deadline disagreement\\","
+            "\\"tension\\":\\"agreed date versus changed scope\\","
+            "\\"parties\\":\\"two colleagues\\","
+            "\\"experience\\":\\"the project scope changed\\"}"
+        ),
+    }]
+    generic = "Where do you notice that distinction most clearly in the relationship?"
+    assert provider_bank._hrn_question_grounding_violation(generic, messages).startswith(
+        "question-grounding contract violation"
+    )
+
+
+def test_hrn_question_grounding_fails_closed_when_brief_is_missing():
+    messages = [{"role": "system", "content": "Return a separate response and question."}]
+    assert provider_bank._hrn_question_grounding_violation(
+        "Where do you notice that distinction most clearly in the relationship?", messages
+    ).startswith("question-grounding contract violation")
+
+
+def test_hrn_provider_bank_rejects_reallocation_and_negotiation_guidance():
+    text = (
+        "Seeing the deadline as a flexible boundary rather than a fixed point "
+        "lets you re-allocate resources, negotiate realistic milestones, and keep the project on track."
+    )
+    assert provider_bank._hrn_surface_language_violation(text) == "action-guidance"
