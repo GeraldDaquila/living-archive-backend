@@ -77,7 +77,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         return state
 
     monkeypatch.setattr(provider_bank, "_state", fake_state)
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You described feeling unheard during disagreements. The conversation seems to end before your point has been fully acknowledged, leaving both the disagreement and your experience unresolved. There is a difference between disagreeing about a topic and feeling unheard while the conversation is happening.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}')
+    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"The deadline remains part of the original agreement, while the changed scope introduces work that was not present when the date was set. Those are two different facts within the same disagreement.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}')
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
@@ -159,11 +159,11 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         provider = item["provider"]
         attempts.append(provider)
         if provider == "groq":
-            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+            return '{"response":"The initial agreement concerned the deadline, while the scope changed when additional work was introduced. Those details create the current disagreement without settling which expectation should control.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
         if provider == "gemini":
             raise provider_bank.ProviderCallError("temporary 503", provider, item["model"], category="http_error")
         if provider == "mistral":
-            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+            return '{"response":"The initial agreement concerned the deadline, while the scope changed when additional work was introduced. Those details create the current disagreement without settling which expectation should control.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
         return '{"response":"One colleague is treating the agreed date as a commitment, while the other is pointing to the changed scope as a change in the work itself. The disagreement therefore concerns whether the original date still describes the project now on the table.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}'
 
     monkeypatch.setattr(provider_bank, "_call", fake_call)
