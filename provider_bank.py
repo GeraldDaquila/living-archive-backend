@@ -45,17 +45,20 @@ class ProviderOutput(str):
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
 # Permit up to three short local candidates within a five-second fast-failure window;
 # this allows a third candidate when two transport failures consume ~3-4 seconds.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 6.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 # Perception is the first inference stage. Permit up to four independent
 # fallbacks after fast failures within the same three-second admission window.
 # This lets the bank reach additional eligible free lanes when quotas and
 # transient transport failures cluster; strict schema validation and per-call
 # timeouts remain unchanged, and slow failures still stop fallback.
-HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 4.5
-HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 1.25
+HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 6.0
+HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 2.5
 HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
-HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
+# The HRN stages must allow a viable independent free provider to complete
+# structured output; one second was shorter than the observed 1.0–2.3s provider
+# latency and converted recoverable lanes into false transport failures.
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
