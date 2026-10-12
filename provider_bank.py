@@ -1295,7 +1295,15 @@ def _apply_hrn_visitor_contract(messages):
         "or 'It seems like'. If the evidence is limited, offer one modest observation "
         "grounded in what was said and one relevant question. "
         "Never refer to a brief, prompt, interpretation, internal state, or the "
-        "visitor contribution as an object being processed."
+        "visitor contribution as an object being processed. "
+        "STRICT JSON FIELD CONTRACT: Return the required fields separately. The "
+        "response field contains only the visitor-facing observation; the question "
+        "field contains exactly one relevant, natural question ending in a question "
+        "mark. The question field MUST NEVER be empty. Do not put the follow-up question "
+        "only inside response, and do not return an empty string for question. Keep the "
+        "question grounded in the visitor's current message, move to a different plane "
+        "when one useful observation has already been made, and do not repeat the "
+        "opening question unless the current message directly calls for it."
     )
     result = [dict(item) if isinstance(item, dict) else item for item in messages]
     for item in result:
