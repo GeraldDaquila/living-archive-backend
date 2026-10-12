@@ -92,9 +92,8 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
     assert calls == ["nvidia"]
 
 
-def test_hrn_relational_contract_rejection_gets_one_bounded_correction(monkeypatch):
-    # A syntactically valid response that fails the human-surface contract gets
-    # one same-model correction; a second failure moves to an independent lane.
+def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failure(monkeypatch):
+    # A semantic action-solution rejection must advance directly to an independent provider.
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [
         _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _item("groq", "openai/gpt-oss-120b"),
@@ -117,7 +116,7 @@ def test_hrn_relational_contract_rejection_gets_one_bounded_correction(monkeypat
         monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
         monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
     assert result and result["provider"] == "groq"
-    assert attempts == ["nvidia", "nvidia", "groq"]
+    assert attempts == ["nvidia", "groq"]
 
 
 def test_hrn_free_attempt_cap_is_bounded():
