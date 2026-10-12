@@ -597,3 +597,78 @@ def test_hrn_relational_groq_completion_budget_respects_tpm_headroom(monkeypatch
     assert provider_bank.OPERATION_MODEL_LIMITS[
         ("hrn_relational", "groq", "openai/gpt-oss-20b")
     ] == 1200
+
+
+
+def test_hrn_action_guidance_gets_one_bounded_response_recovery(monkeypatch):
+    import json
+    candidate = _item("groq", "openai/gpt-oss-20b")
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+
+    action_guidance = {
+        "response": (
+            "The added work was not part of the original estimate, and the deadline was discussed before that work was added. "
+            "Seeing the change as a scope expansion lets you focus on reallocating resources or renegotiating the timeline rather than blaming time constraints alone. "
+            "The disagreement now includes both the date and what work the date was meant to cover."
+        ),
+        "question": "What happened when the agreed date was discussed alongside the added work?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    neutral = {
+        "response": (
+            "The original estimate covered the work described at the time, and the date was discussed against that scope. "
+            "The added work arrived later, but the deadline is now being judged as though the original estimate included it. "
+            "That leaves a difference between what was first agreed and what is now expected."
+        ),
+        "question": "What happened when the agreed date was discussed alongside the added work?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        return json.dumps(action_guidance if len(attempts) == 1 else neutral)
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\n'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"thread_summary":"two colleagues disagree about the agreed date",'
+            '"underlying_need":"clarity about the date and added work",'
+            '"emerging_delta":"the project scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=3000,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is not None
+    assert "reallocating resources" not in result["parsed"]["response"].casefold()
+    assert "renegotiating the timeline" not in result["parsed"]["response"].casefold()
+    assert attempts == ["groq", "groq"]
