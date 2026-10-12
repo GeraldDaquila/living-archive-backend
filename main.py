@@ -55,6 +55,7 @@ from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
+    refresh_shared_health_state,
 )
 import general_guide_composition
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
@@ -5302,6 +5303,7 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 def provider_health_readiness():
     """Return bounded, non-secret provider shared-health readiness diagnostics."""
     try:
+        refresh_shared_health_state()
         snapshot = provider_bank_snapshot(use_core)
         config = snapshot.get("shared_health_configuration", {})
         state = snapshot.get("shared_health_state", {})
