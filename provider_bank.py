@@ -1493,6 +1493,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Your preceding output failed the operation response contract: "
                         + str(contract_error)[:240]
                         + ". Correct the output now. Return only one valid JSON object matching the supplied response fields. "
+                        + "The response must contain at least two complete sentences and 180 characters. "
+                        + "Include the non-empty response and question fields required by this operation. "
                         + "Preserve the actual request context. Return complete values in the required schema and no extra commentary."
                     ),
                 })
