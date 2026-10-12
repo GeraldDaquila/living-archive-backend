@@ -1851,8 +1851,8 @@ def _compact_hrn_contract_recovery_messages(messages, raw_output, correction_con
         role.upper() + " SOURCE CONTEXT:\n" + fragment
         for role, fragment in fragments
     )
-    if len(context) > 8500:
-        context = context[:3500] + "\n[bounded recovery context omitted]\n" + context[-4800:]
+    if len(context) > 6000:
+        context = context[:2800] + "\n[bounded recovery context omitted]\n" + context[-3000:]
     system_prompt = (
         "Return exactly one JSON object matching the supplied operation response schema. "
         "You are composing for Seeing the Relationship. Use plain, concrete, natural language. "
@@ -1864,9 +1864,9 @@ def _compact_hrn_contract_recovery_messages(messages, raw_output, correction_con
     user_prompt = (
         "BOUNDED ORIGINAL SOURCE CONTEXT:\n" + context
         + "\n\nPREVIOUS PROVIDER OUTPUT (correct the contract defect; do not repeat rejected wording):\n"
-        + str(raw_output or "")[:5000]
+        + str(raw_output or "")[:3000]
         + "\n\nCORRECTION REQUIREMENT:\n"
-        + str(correction_content or "")[:1800]
+        + str(correction_content or "")[:1200]
     )
     return [
         {"role": "system", "content": system_prompt},
