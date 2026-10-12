@@ -671,6 +671,7 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
         # requires one JSON object and the HRN contract validator remains final.
         if (
             provider != "openrouter"
+            or timeout is not None
             or not json_mode
             or "response_format" not in payload
             or exc.category != "invalid_provider_response"
