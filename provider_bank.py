@@ -1938,8 +1938,6 @@ def _normalize_operation_result(operation, parsed, messages=None):
         question_violation = _hrn_surface_language_violation(question)
         if not question_violation and messages is not None:
             question_violation = _hrn_question_grounding_violation(question, messages)
-        if not question_violation:
-            question_violation = _hrn_question_response_alignment_violation(question, response)
         if question_violation:
             raise ValueError(
                 "hrn_relational question-surface contract violation: "
@@ -1956,6 +1954,15 @@ def _normalize_operation_result(operation, parsed, messages=None):
             raise ValueError(
                 "hrn_relational visitor-surface contract violation: "
                 + surface_violation
+            )
+        # Validate the follow-up against the actual answer only after checking
+        # the response's safety/voice contract. A misaligned question must not
+        # mask a higher-priority response defect and turn it into a same-model retry.
+        question_alignment_violation = _hrn_question_response_alignment_violation(question, response)
+        if question_alignment_violation:
+            raise ValueError(
+                "hrn_relational question-surface contract violation: "
+                + question_alignment_violation
             )
         # Do not let a syntactically valid JSON object conceal a cut-off
         # visitor-facing sentence. Preserve complete sentences and discard only
