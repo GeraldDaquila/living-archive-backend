@@ -81,7 +81,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn JSON only.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","thread_summary":"two colleagues disagree about the agreed date","underlying_need":"shared clarity about the date and added work","emerging_delta":"the project scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn JSON only.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_state", original_state_fn)
         original_models.clear()
@@ -112,7 +112,7 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     original_persist = provider_bank._persist_shared_state
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn a JSON object.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","thread_summary":"two colleagues disagree about the agreed date","underlying_need":"shared clarity about the date and added work","emerging_delta":"the project scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn a JSON object.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
         monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
@@ -169,7 +169,7 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn one JSON object.'}],
+        messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","thread_summary":"two colleagues disagree about the agreed date","underlying_need":"shared clarity about the date and added work","emerging_delta":"the project scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn one JSON object.'}],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
