@@ -5293,3 +5293,55 @@ if "normalize_journey_contribution as _normalize_shared_journey" not in open(_MA
     raise RuntimeError("USE v487.92 invariant failed: journey contribution seam wiring missing.")
 if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding="utf-8").read():
     raise RuntimeError("USE v487.92 invariant failed: journey contribution adapter consumption missing.")
+
+# Ecosystem integration diagnostics (non-secret, read-only).
+# This reports the distinction between declared capabilities, runtime adapters,
+# and known direct visitor-facing handoffs. It does not claim that a route has
+# passed a live visitor journey; those require separate E2E checks.
+@app.get("/api/integration-audit")
+async def ecosystem_integration_audit():
+    capabilities = []
+    for item in SPECIALIST_CAPABILITY_REGISTRY:
+        capabilities.append({
+            "specialist_id": str(getattr(item, "specialist_id", "")),
+            "public_name": str(getattr(item, "public_name", "")),
+            "status": str(getattr(item, "status", "")),
+            "entry_point": str(getattr(item, "entry_point", "")),
+            "access_class": str(getattr(item, "access_class", "")),
+        })
+
+    adapter_ids = sorted(str(item) for item in SPECIALIST_ADAPTER_REGISTRY.ids())
+    adapter_set = set(adapter_ids)
+    capability_ids = {item["specialist_id"] for item in capabilities}
+    declared_available = {
+        item["specialist_id"] for item in capabilities
+        if item["status"] == "available"
+    }
+    missing_adapters = sorted(declared_available - adapter_set)
+    unregistered_adapters = sorted(adapter_set - capability_ids)
+
+    # These routes hand the visitor to a native surface; they are not runtime
+    # retrieval spokes and must not be misreported as adapter-backed.
+    direct_handoffs = {
+        "catalogue": "native_catalogue_search",
+        "navigator": "native_navigator",
+        "fsd": "native_fsd_landing",
+        "guide_node": "canonical_guide_node",
+    }
+
+    return {
+        "ok": not missing_adapters and not unregistered_adapters,
+        "audit_contract": "ecosystem-integration-audit-v1",
+        "version": APP_VERSION,
+        "fingerprint": DEPLOYMENT_FINGERPRINT,
+        "capability_registry": capabilities,
+        "runtime_adapters": adapter_ids,
+        "direct_handoffs": direct_handoffs,
+        "available_capabilities_missing_adapters": missing_adapters,
+        "adapters_without_capabilities": unregistered_adapters,
+        "catalogue_mode": "direct_handoff_not_adapter",
+        "limitations": [
+            "This endpoint reports registration and declared routing mode only.",
+            "It does not assert live provider health or end-to-end visitor journey success.",
+        ],
+    }
