@@ -1002,13 +1002,30 @@ def select(use_core, operation="generic", schema=None):
             best = lane[0] if lane else {}
             health_rank = 0 if best.get("health_state") == "healthy" else 1
             provider = str(best.get("provider") or "")
+            quality_failures = int(best.get("quality_failures", 0) or 0)
+            consecutive_failures = int(best.get("consecutive_failures", 0) or 0)
+            transport_failures = int(best.get("transport_failures", 0) or 0)
+            provider_rank = configured_priority.get(provider, len(configured_priority))
+            last_success = -float(best.get("last_success", 0) or 0)
+            if operation == "hrn_relational":
+                # A provider that has repeatedly failed this operation's
+                # visitor-facing contract must not win merely because another
+                # operation recently marked its transport lane healthy.
+                return (
+                    quality_failures,
+                    consecutive_failures,
+                    transport_failures,
+                    health_rank,
+                    provider_rank,
+                    last_success,
+                )
             return (
                 health_rank,
-                configured_priority.get(provider, len(configured_priority)),
-                int(best.get("quality_failures", 0) or 0),
-                int(best.get("consecutive_failures", 0) or 0),
-                int(best.get("transport_failures", 0) or 0),
-                -float(best.get("last_success", 0) or 0),
+                provider_rank,
+                quality_failures,
+                consecutive_failures,
+                transport_failures,
+                last_success,
             )
         lanes.sort(key=_hrn_lane_priority)
 
