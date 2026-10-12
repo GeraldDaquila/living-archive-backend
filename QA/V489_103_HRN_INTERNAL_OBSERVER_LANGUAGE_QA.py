@@ -7,6 +7,7 @@ BAD_RESPONSES = (
     "you distinguishes between wanting to win and wanting to be heard. The conversation can end here without forcing a verdict.",
     "The conversation centered on understanding the experience of feeling unheard in friendship disagreement. The details described do not establish every part of what they mean.",
     "The visitor is protecting the friendship's capacity for mutual witnessing. Witness protection is the core of the relationship's mutual validity.",
+    "New: the counter is a distinct relational move, not just a failure to listen. That is part of what was described, not proof of every possible meaning. A change can be noticed without treating an explanation for it as established fact. The other person's intention remains unconfirmed by the information here.",
 )
 
 GROUNDED_RESPONSE = (
