@@ -432,3 +432,29 @@ def test_relational_composition_recovers_observed_rhythm_and_landing_metaphors(m
     assert len(calls) == 2
     for phrase in ("specific friction","rhythm of the argument","keeps landing in the same place","desire is not translating","different way of meeting each other"):
         assert phrase not in result["parsed"]["response"].casefold()
+
+
+def test_hrn_contract_recovery_compacts_context_without_losing_movement_brief():
+    brief = {
+        "observer_intention": "Both partners say they want the argument to change.",
+        "observer_contrast": "The same argument keeps returning.",
+        "observer_so_what": "The stated wish to improve has not changed the recurring exchange.",
+    }
+    source = (
+        "Repeated long history. " * 900
+        + "\\nSTRUCTURED MOVEMENT BRIEF — "
+        + json.dumps(brief)
+        + "\\nHRN VISITOR-FACING LANGUAGE CONTRACT: Be concrete, non-prescriptive, and do not infer motives."
+    )
+    recovery = provider_bank._compact_hrn_contract_recovery_messages(
+        [{"role": "user", "content": source}],
+        '{"response":"Rejected draft.","question":"What usually happens first?"}',
+        "Correct the missing required response field and preserve the visitor's context.",
+    )
+    assert len(recovery) == 2
+    assert len(recovery[1]["content"]) < len(source)
+    assert "STRUCTURED MOVEMENT BRIEF" in recovery[1]["content"]
+    assert '"observer_intention"' in recovery[1]["content"]
+    assert "HRN VISITOR-FACING LANGUAGE CONTRACT" in recovery[1]["content"]
+    assert "Rejected draft" in recovery[1]["content"]
+    assert "missing required response field" in recovery[1]["content"]
