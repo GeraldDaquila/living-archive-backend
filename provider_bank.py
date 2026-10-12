@@ -1421,7 +1421,15 @@ def _hrn_question_grounding_violation(question, messages):
                         break
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
-            if decoded_brief is not None:
+            # Some legacy WordPress payloads contain a malformed long-form field
+            # after valid semantic anchors. Recognize declared semantic keys in the
+            # candidate text as well, then let the downstream prefix-recovery parser
+            # retain its established fail-closed behavior for concrete anchors.
+            semantic_key_present = any(
+                re.search(r'["\\']' + re.escape(key) + r'["\\']\\s*:', candidate_json)
+                for key in semantic_keys
+            )
+            if decoded_brief is not None or semantic_key_present:
                 brief_content = candidate
                 brace_index = candidate_brace
                 break
