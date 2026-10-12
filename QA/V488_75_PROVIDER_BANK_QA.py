@@ -315,6 +315,47 @@ def main():
         "Independent fallback must satisfy the unchanged visitor language policy."
     )
 
+    # Missing or prescriptive questions are model-quality failures too.
+    # The live HRN bridge rejects an empty question, so it must never receive a
+    # transport-successful response that relies on a repair path it does not run.
+    missing_question_hrn = json.dumps({
+        "response": json.loads(valid_hrn)["response"],
+        "question": "",
+    })
+    question_pool = [
+        {"provider": "nvidia", "model": "nvidia/nemotron-missing-question-test", "index": 0},
+        {"provider": "mistral", "model": "mistral-question-fallback-test", "index": 0},
+    ]
+    missing_question_events = []
+    original_quality_recorder = provider_bank._record_quality_rejection
+    def capture_missing_question_quality(provider, model, operation, reason):
+        missing_question_events.append((provider, model, operation, reason))
+        return original_quality_recorder(provider, model, operation, reason)
+    with (
+        patch.dict(os.environ, {
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1",
+            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+        }, clear=False),
+        patch.object(provider_bank, "select", return_value=question_pool),
+        patch.object(provider_bank, "_call", side_effect=[missing_question_hrn, valid_hrn]) as question_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_record_quality_rejection", side_effect=capture_missing_question_quality),
+    ):
+        question_routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert question_routed["provider"] == "mistral", (
+        "A missing HRN question must advance to an independent provider before reaching the bridge."
+    )
+    assert question_call.call_count == 2, "Missing-question quality failure must not trigger same-model recovery."
+    assert missing_question_events and "non-empty question" in missing_question_events[0][3]
+
     # A structurally short HRN response is also a model-quality failure, not
     # a reason to spend the bounded turn on same-model correction.
     short_hrn = json.dumps({
