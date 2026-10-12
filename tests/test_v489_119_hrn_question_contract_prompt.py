@@ -191,3 +191,17 @@ def test_hrn_upstream_brief_failure_does_not_penalize_provider_quality():
         assert not provider_bank._is_movement_brief_input_failure("generic", reason)
     finally:
         provider_bank._STATE = original_state
+
+
+def test_hrn_grounding_recovers_valid_prefix_before_malformed_long_context():
+    content = (
+        "STRUCTURED MOVEMENT BRIEF\\n"
+        '{"working_hypothesis":"deadline disagreement",'
+        '"thread_summary":"two colleagues disagree about the agreed date",'
+        '"underlying_need":"clarity about the date and changed scope",'
+        '"current_fractal":"visitor says "the date" is unclear"}'
+    )
+    messages = [{"role": "user", "content": content}]
+    assert provider_bank._hrn_question_grounding_violation(
+        "What happens when the agreed date is raised alongside the changed scope?", messages
+    ) == ""
