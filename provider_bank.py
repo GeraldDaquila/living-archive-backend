@@ -2117,17 +2117,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_relational"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
-            if elapsed > fast_failure_window:
+            candidate_timeout = (
+                HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
+                else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
+                else 0.0
+            )
+            # Admit a fallback only when its full bounded call can fit inside the
+            # remaining WordPress/mirror budget. Checking elapsed time alone can
+            # start a 2-second call with less than 1 second remaining.
+            if elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
                     f"operation={operation}, action=skip_extra_candidate, "
-                    f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
+                    f"elapsed_seconds={elapsed:.2f}, "
+                    f"candidate_timeout_seconds={candidate_timeout:.1f}, "
+                    f"budget_seconds={fast_failure_window:.1f}"
                 )
                 break
             print(
                 "USE provider bank fast-failure fallback: "
                 f"operation={operation}, action=try_independent_candidate, "
-                f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
+                f"elapsed_seconds={elapsed:.2f}, "
+                f"candidate_timeout_seconds={candidate_timeout:.1f}, "
+                f"budget_seconds={fast_failure_window:.1f}"
             )
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
         operation_limit = int(OPERATION_MODEL_LIMITS.get(
