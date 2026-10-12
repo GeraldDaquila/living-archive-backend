@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import os
 import threading
-import time
+from time import monotonic as _monotonic
 from typing import Any
 
 CONTRACT_VERSION = "v1"
@@ -122,7 +122,7 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
     model_key = provider + ":" + model
     provider_slug = _slug(provider)
     model_slug = _slug(model)
-    now = time.monotonic()
+    now = _monotonic()
 
     with _LOCK:
         max_provider = _int_env("USE_QUOTA_MAX_INFLIGHT_PROVIDER", 3)
