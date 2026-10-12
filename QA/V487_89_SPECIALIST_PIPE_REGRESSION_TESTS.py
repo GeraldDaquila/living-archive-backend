@@ -490,7 +490,19 @@ def test_hrn_contract_trims_only_incomplete_trailing_sentence():
 
 
 def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capability():
-    original = [{"role": "user", "content": "Someone I love has become distant."}]
+    original = [
+        {
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\\n"
+                '{"working_hypothesis":"someone I love has become distant",'
+                '"underlying_need":"understand the distance without assuming intent",'
+                '"emerging_delta":"the distance is observable but its reason remains uncertain",'
+                '"body_of_thought":"reaching out feels risky while the reason for the distance is unknown"}'
+                "\\nSomeone I love has become distant."
+            ),
+        }
+    ]
     # Missing the required response field is an operation-envelope failure,
     # so the Provider Bank must retain bounded same-model contract recovery.
     incomplete = json.dumps({
@@ -567,7 +579,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     rejected = json.dumps({"question": "What feels hardest?", "rest": False})
     corrected = json.dumps({
         "response": "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended.",
-        "question": "What makes reaching out feel risky right now?",
+        "question": "What makes reaching out feel risky while the reason for the distance remains uncertain?",
     })
     pool = [{"provider": "groq", "model": "test-model", "index": 0}]
 
@@ -590,7 +602,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     assert result["parsed"]["response"] == (
         "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended."
     )
-    assert result["parsed"]["question"] == "What makes reaching out feel risky right now?"
+    assert result["parsed"]["question"] == "What makes reaching out feel risky while the reason for the distance remains uncertain?"
     assert provider_call.call_count == 2
     recovery_messages = provider_call.call_args_list[1].args[2]
     assert any(message.get("role") == "user" and message.get("content") == original[0]["content"] for message in recovery_messages)

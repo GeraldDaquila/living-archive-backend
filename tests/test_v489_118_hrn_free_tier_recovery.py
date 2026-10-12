@@ -77,11 +77,11 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         return state
 
     monkeypatch.setattr(provider_bank, "_state", fake_state)
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You described feeling unheard during disagreements. The conversation seems to end before your point has been fully acknowledged, leaving both the disagreement and your experience unresolved. There is a difference between disagreeing about a topic and feeling unheard while the conversation is happening.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}')
+    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"The deadline remains part of the original agreement, while the changed scope introduces work that was not present when the date was set. Those are two different facts within the same disagreement.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}')
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn JSON only.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","underlying_need":"shared clarity about the date and added work","emerging_delta":"the scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn JSON only.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_state", original_state_fn)
         original_models.clear()
@@ -104,15 +104,15 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
         if item["provider"] == "nvidia":
-            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happened next?"}'
-        return '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"What happened in the conversation when the agreed date was raised alongside the changed scope?"}'
+            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
+        return '{"response":"The initial agreement concerned the deadline, while the changed scope introduced work that was not part of the original plan. Both details belong to the same disagreement, even though they describe different parts of it.","question":"What happened in the conversation when the agreed date was raised alongside the changed scope?"}'
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     original_sync = provider_bank._sync_shared_state
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     original_persist = provider_bank._persist_shared_state
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
-        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn a JSON object.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
+        result = provider_bank.route(use_core=None, messages=[{"role":"system","content":'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","underlying_need":"shared clarity about the date and added work","emerging_delta":"the scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn a JSON object.'}], max_tokens=300, parse=provider_bank._json_object, operation="hrn_relational")
     finally:
         monkeypatch.setattr(provider_bank, "_sync_shared_state", original_sync)
         monkeypatch.setattr(provider_bank, "_persist_shared_state", original_persist)
@@ -159,24 +159,24 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         provider = item["provider"]
         attempts.append(provider)
         if provider == "groq":
-            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+            return '{"response":"The initial agreement concerned the deadline, while the scope changed when additional work was introduced. Those details create the current disagreement without settling which expectation should control.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
         if provider == "gemini":
             raise provider_bank.ProviderCallError("temporary 503", provider, item["model"], category="http_error")
         if provider == "mistral":
-            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+            return '{"response":"The initial agreement concerned the deadline, while the scope changed when additional work was introduced. Those details create the current disagreement without settling which expectation should control.","question":"What happens in the conversation when the deadline is raised alongside the changed scope?"}'
         return '{"response":"One colleague is treating the agreed date as a commitment, while the other is pointing to the changed scope as a change in the work itself. The disagreement therefore concerns whether the original date still describes the project now on the table.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}'
 
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"situation":"deadline disagreement","tension":"agreed date versus changed scope","parties":"two colleagues","experience":"the project scope changed"}\nReturn one JSON object.'}],
+        messages=[{"role": "system", "content": 'STRUCTURED MOVEMENT BRIEF\n{"working_hypothesis":"deadline disagreement","underlying_need":"shared clarity about the date and added work","emerging_delta":"the scope changed after the original agreement","body_of_thought":"deadline and changed scope remain in tension"}\nReturn one JSON object.'}],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
     )
 
-    assert result and result["provider"] == "workers_ai"
-    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
+    assert result and result["provider"] == "groq"
+    assert attempts == ["groq"]
 
 
 

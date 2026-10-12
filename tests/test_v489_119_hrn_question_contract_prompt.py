@@ -82,7 +82,7 @@ def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
             "role": "user",
             "content": (
                 "STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n"
-                "{\"situation\":\"deadline disagreement\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"the project scope changed\"}"
+                "{\"working_hypothesis\":\"deadline disagreement\",\"underlying_need\":\"shared clarity about the date and added work\",\"emerging_delta\":\"the scope changed after the original agreement\",\"body_of_thought\":\"deadline and changed scope remain in tension\"}"
                 "\n\nSHARED RELATIONAL UNDERSTANDING"
             ),
         },
@@ -109,10 +109,10 @@ def test_hrn_question_grounding_finds_brief_in_system_message():
         "role": "system",
         "content": (
             "STRUCTURED MOVEMENT BRIEF\n"
-            '{"situation":"deadline disagreement",'
-            '"tension":"agreed date versus changed scope",'
-            '"parties":"two colleagues",'
-            '"experience":"the project scope changed"}'
+            '{"working_hypothesis":"deadline disagreement",'
+            '"underlying_need":"shared clarity about the date and added work",'
+            '"emerging_delta":"the scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}'
         ),
     }]
     generic = "Where do you notice that distinction most clearly in the relationship?"
