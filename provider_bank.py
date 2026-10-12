@@ -1410,22 +1410,26 @@ def _hrn_question_grounding_violation(question, messages):
             candidate_json = candidate[candidate_brace:]
             candidate_json = _escape_json_string_control_characters(candidate_json)
             decoded_brief = None
+            decoded_any_object = False
             for normalized in (
                 candidate_json,
                 candidate_json.replace(chr(92) + chr(34), chr(34)),
             ):
                 try:
                     parsed, _ = json.JSONDecoder().raw_decode(normalized)
-                    if isinstance(parsed, dict) and semantic_keys.intersection(parsed):
-                        decoded_brief = parsed
-                        break
+                    if isinstance(parsed, dict):
+                        decoded_any_object = True
+                        if semantic_keys.intersection(parsed):
+                            decoded_brief = parsed
+                            break
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
-            # Some legacy WordPress payloads contain a malformed long-form field
-            # after valid semantic anchors. Recognize declared semantic keys in the
-            # candidate text as well, then let the downstream prefix-recovery parser
-            # retain its established fail-closed behavior for concrete anchors.
-            semantic_key_present = any(
+            # Only use textual semantic-key detection when the candidate JSON
+            # itself is malformed. A valid SOURCE CONTRACT object must never be
+            # accepted because semantic field names appear later in the prompt.
+            # The downstream prefix-recovery parser still requires concrete
+            # anchors and remains fail-closed.
+            semantic_key_present = (not decoded_any_object) and any(
                 f'"{key}"' in candidate_json or f"'{key}'" in candidate_json
                 for key in semantic_keys
             )
