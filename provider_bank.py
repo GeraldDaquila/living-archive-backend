@@ -1833,7 +1833,7 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
     reservation = reserve_provider_call(provider, model, messages, max_tokens)
-    started = time.monotonic()
+    started = time.perf_counter()
     outcome = "error"
     try:
         result = _call(
@@ -1843,7 +1843,7 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
         outcome = "ok"
         return result
     finally:
-        elapsed = time.monotonic() - started
+        elapsed = time.perf_counter() - started
         print(
             "USE provider inference timing: "
             f"provider={provider}, model={model}, outcome={outcome}, "
