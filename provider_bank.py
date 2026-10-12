@@ -1505,6 +1505,20 @@ def _hrn_question_grounding_violation(question, messages):
     for normalized in normalized_candidates:
         parse_candidates.append(normalized)
         for field in (
+            # Any observer-owned long-form string may contain an unescaped quote
+            # from the WordPress context boundary. Retry the valid semantic prefix
+            # before each such field, not only the final metadata fields.
+            "perspective_delta",
+            "body_of_thought",
+            "next_horizon",
+            "unresolved",
+            "movement_direction",
+            "next_movement",
+            "new_terrain",
+            "completed_insight",
+            "pivot_signal",
+            "leadership_need",
+            "plane_shift",
             "current_fractal",
             "fractal_transition",
             "archive_grounded_understanding",
