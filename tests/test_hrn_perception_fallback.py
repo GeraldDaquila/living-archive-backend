@@ -46,8 +46,14 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
 
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if item["provider"] != "groq":
-            clock.value += 0.20
+        if item["provider"] != "groq" or item["model"] != "model-e":
+            durations = {
+                "gemini": 0.27,
+                "mistral": 1.025,
+                "workers_ai": 1.030,
+                "nvidia": 1.005,
+            }
+            clock.value += durations.get(item["provider"], 0.25)
             raise provider_bank.ProviderCallError(
                 "simulated fast provider failure",
                 item["provider"],
@@ -71,7 +77,7 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
     assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai", "nvidia", "groq"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
-    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
+    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 4.5
 
 
 def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(monkeypatch):
