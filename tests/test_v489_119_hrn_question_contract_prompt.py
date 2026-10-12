@@ -116,7 +116,7 @@ def test_hrn_question_grounding_finds_brief_in_system_message():
         ),
     }]
     generic = "Where do you notice that distinction most clearly in the relationship?"
-    grounded = "What happens in their conversation when the agreed date is raised alongside the changed scope?"
+    grounded = "What happens in their conversation when the deadline is raised alongside the changed scope?"
     assert provider_bank._hrn_question_grounding_violation(generic, messages).startswith(
         "question-grounding contract violation"
     )
