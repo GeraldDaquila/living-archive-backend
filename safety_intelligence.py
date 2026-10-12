@@ -881,10 +881,10 @@ def resolve_safety(
         # when the current turn explicitly establishes human presence.
         message = str(normalized.get("safety_message") or "")
         unsupported_presence_claim = re.search(
-            r"\\b(?:it helps (?:that|to have)|you have|there is)\\b.{0,55}"
-            r"\\b(?:someone|somebody|another person|them)\\b.{0,45}"
-            r"\\b(?:with you|with them|stay together)\\b|"
-            r"\\b(?:someone|somebody|another person)\\s+is\\s+with\\s+you\\b",
+            r"\b(?:it helps (?:that|to have)|you have|there is)\b.{0,55}"
+            r"\b(?:someone|somebody|another person|them)\b.{0,45}"
+            r"\b(?:with you|with them|stay together)\b|"
+            r"\b(?:someone|somebody|another person)\s+is\s+with\s+you\b",
             message,
             re.I,
         )
