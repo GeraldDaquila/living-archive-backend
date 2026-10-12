@@ -92,7 +92,9 @@ def main():
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Slow Workers AI models must not consume the full generic timeout on every
     # HRN stage or on the bounded contract-correction call.
-    assert 'timeout_override=5 if operation in hrn_operations else None' in provider
+    assert 'timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None' in provider
+    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
+    assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
     # The visitor contract must explicitly block inferred blame and motive attribution,
     # not merely generic relationship theory or advice.
