@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.169 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.170 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.169"
-DEPLOYMENT_FINGERPRINT = "USE-v489.169-relational-discernment-focus-precision"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.169-relational-discernment-focus-precision"
+APP_VERSION = "v489.170"
+DEPLOYMENT_FINGERPRINT = "USE-v489.170-relational-blame-transition-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.170-relational-blame-transition-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.169":
+if str(APP_VERSION) != "v489.170":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1356,9 +1356,54 @@ def _relational_return_topic_anchor(original_question, underlying_need, perspect
     return " ".join(additions)
 
 
+def _relational_blame_transition_focus(query):
+    """Identify a blame-transition topic that needs direct evidence, not broad relational overlap."""
+    q = _normalize_query(query)
+    has_blame = bool(re.search(
+        r"\b(?:blame|blaming|accusation|accusing|fault|being blamed)\b", q
+    ))
+    has_conflict_context = bool(re.search(
+        r"\b(?:hurt|past|argument|conflict|disagreement|issue|repeated|recurring)\b", q
+    ))
+    return has_blame and has_conflict_context
+
+
+def _relational_blame_transition_evidence(query, doc):
+    """Require a candidate to connect blame with the actual conflict topic."""
+    if not _relational_blame_transition_focus(query):
+        return True
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    title_anchor = bool(re.search(
+        r"\b(?:blame|accusation|accusing|argument|conflict|disagreement|repair|"
+        r"misunderstanding|hurt|past)\b", title
+    ))
+    body_context = bool(re.search(
+        r"\b(?:relationship|relationships|partner|conversation|argument|conflict|hurt|blame|past)\b",
+        body,
+    ))
+    if title_anchor and body_context:
+        return True
+    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\]]+)?\s+|\n+", body):
+        has_blame_evidence = bool(re.search(
+            r"\b(?:blame|blaming|accusation|accusing|fault|being blamed)\b", sentence
+        ))
+        has_conflict_evidence = bool(re.search(
+            r"\b(?:hurt|past|argument|conflict|disagreement|issue|repeated|recurring)\b",
+            sentence,
+        ))
+        if has_blame_evidence and has_conflict_evidence:
+            return True
+    return False
+
+
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
     if not isinstance(doc, dict):
+        return False
+    if not _relational_blame_transition_evidence(query, doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
@@ -1408,6 +1453,8 @@ def _relational_return_earned_focus_fit(query, doc):
 def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
     if not isinstance(doc, dict):
+        return False
+    if not _relational_blame_transition_evidence(query, doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
