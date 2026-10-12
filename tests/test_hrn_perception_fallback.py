@@ -27,11 +27,13 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
 
 
-def test_perception_fast_failures_can_reach_third_independent_provider(monkeypatch):
+def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypatch):
     candidates = [
-        _candidate("groq", "model-a"),
-        _candidate("nvidia", "model-b"),
-        _candidate("mistral", "model-c"),
+        _candidate("gemini", "model-a"),
+        _candidate("mistral", "model-b"),
+        _candidate("workers_ai", "model-c"),
+        _candidate("nvidia", "model-d"),
+        _candidate("groq", "model-e"),
     ]
     _isolate(monkeypatch, candidates)
 
@@ -44,12 +46,15 @@ def test_perception_fast_failures_can_reach_third_independent_provider(monkeypat
 
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if item["provider"] == "groq":
-            clock.value += 0.25
-            raise provider_bank.ProviderCallError("simulated 429", "groq", "model-a", 429, category="rate_limited")
-        if item["provider"] == "nvidia":
-            clock.value += 0.25
-            raise provider_bank.ProviderCallError("simulated 503", "nvidia", "model-b", 503, category="http_error")
+        if item["provider"] != "groq":
+            clock.value += 0.20
+            raise provider_bank.ProviderCallError(
+                "simulated fast provider failure",
+                item["provider"],
+                item["model"],
+                429 if item["provider"] == "mistral" else 503,
+                category="rate_limited" if item["provider"] == "mistral" else "http_error",
+            )
         return json.dumps({"perception": "bounded synthetic result"})
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
@@ -62,10 +67,10 @@ def test_perception_fast_failures_can_reach_third_independent_provider(monkeypat
     )
 
     assert result is not None
-    assert result["provider"] == "mistral"
-    assert [provider for provider, _ in calls] == ["groq", "nvidia", "mistral"]
+    assert result["provider"] == "groq"
+    assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai", "nvidia", "groq"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
     assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
 
 
