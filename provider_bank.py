@@ -1495,7 +1495,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ". Correct the output now. Return only one valid JSON object matching the supplied response fields. "
                         + "The response must contain at least two complete sentences and 180 characters. "
                         + "Include the non-empty response and question fields required by this operation. "
-                        + "Preserve the actual request context. Return complete values in the required schema and no extra commentary."
+                        + "Do not repeat the rejected wording. Preserve the actual request context. "
+                        + "Avoid generic relationship theory. Use one concrete observation grounded in the visitor's actual words. "
+                        + "Do not restate the same insight in new words. "
+                        + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
                 recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=8 if operation in hrn_operations else None))
