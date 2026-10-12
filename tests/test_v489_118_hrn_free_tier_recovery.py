@@ -136,3 +136,44 @@ def test_hrn_free_attempt_cap_is_bounded():
             os.environ.pop("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", None)
         else:
             os.environ["USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS"] = old
+
+
+def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
+    candidates = [
+        _item("groq", "openai/gpt-oss-120b"),
+        _item("gemini", "gemini-3.8-flash"),
+        _item("mistral", "mistral-small-latest"),
+        _item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
+    monkeypatch.setattr(provider_bank, "_record_quality_rejection", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_failure", lambda *args, **kwargs: None)
+
+    attempts = []
+
+    def fake_call(use_core, item, *args, **kwargs):
+        provider = item["provider"]
+        attempts.append(provider)
+        if provider == "groq":
+            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+        if provider == "gemini":
+            raise provider_bank.ProviderCallError("temporary 503", provider, item["model"], category="http_error")
+        if provider == "mistral":
+            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+        return '{"response":"One colleague is treating the agreed date as a commitment, while the other is pointing to the changed scope as a change in the work itself. The disagreement therefore concerns whether the original date still describes the project now on the table.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}'
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=300,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result and result["provider"] == "workers_ai"
+    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]

@@ -25,6 +25,7 @@ CONTRACT_VERSION = "v2"
 
 # A second independent relational candidate is permitted only after one fast failure.
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
+HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -1512,16 +1513,20 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
     if operation == "hrn_relational" and len(pool) > base_max_attempts:
+        # Prepare several independent lanes, not just one. The loop below admits
+        # these fallbacks only while total elapsed time remains inside the existing
+        # fast-failure window; a slow provider still stops the chain immediately.
         used_providers = {str(item.get("provider") or "") for item in attempt_pool}
-        fast_fallback = next(
-            (
-                item for item in pool[base_max_attempts:]
-                if str(item.get("provider") or "") not in used_providers
-            ),
-            None,
-        )
-        if fast_fallback is not None:
-            attempt_pool.append(fast_fallback)
+        fallback_count = 0
+        for item in pool[base_max_attempts:]:
+            candidate_provider = str(item.get("provider") or "")
+            if not candidate_provider or candidate_provider in used_providers:
+                continue
+            attempt_pool.append(item)
+            used_providers.add(candidate_provider)
+            fallback_count += 1
+            if fallback_count >= HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES:
+                break
     route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
