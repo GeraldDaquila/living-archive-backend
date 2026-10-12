@@ -4833,7 +4833,10 @@ async def _use_request_boundary(scope, receive, send):
             }, 503)
 
     explicit_formation_route = _explicit_formation_entry_route(query)
-    route = explicit_formation_route or _guide_capability_route(query, history)
+    if explicit_formation_route is not None:
+        route = explicit_formation_route
+    else:
+        route = _guide_capability_route(query, history)
     route_id = str(route.get("route") or "guide").strip().casefold()
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
