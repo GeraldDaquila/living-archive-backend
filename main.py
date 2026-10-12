@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.148 — tighten relational doorway topic fit
+# USE PRODUCTION VERSION: v489.149 — stop expanding disagreement into listening themes
 import asyncio
 import hashlib
 import ipaddress
