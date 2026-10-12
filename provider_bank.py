@@ -39,7 +39,7 @@ HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
 # This lets the bank reach additional eligible free lanes when quotas and
 # transient transport failures cluster; strict schema validation and per-call
 # timeouts remain unchanged, and slow failures still stop fallback.
-HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 3.0
+HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 4.5
 HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
