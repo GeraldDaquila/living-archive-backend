@@ -598,7 +598,15 @@ def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
         kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
     request_client = client
     if timeout is not None and callable(getattr(client, "with_options", None)):
-        request_client = client.with_options(timeout=max(1.0, min(10.0, float(timeout))))
+        # The Groq SDK retries transient failures by default. Those hidden
+        # retries can make a nominal one-second Provider Bank attempt take
+        # 3–5 seconds, overrunning the operation's fallback/deadline budget.
+        # Provider Bank owns retries and failover, so a bounded provider call
+        # must make exactly one transport attempt.
+        request_client = client.with_options(
+            timeout=max(1.0, min(10.0, float(timeout))),
+            max_retries=0,
+        )
     response = request_client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
