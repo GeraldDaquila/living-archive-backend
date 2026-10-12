@@ -216,7 +216,7 @@ def main():
             })
         return valid_hrn
     with (
-        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2"}, clear=False),
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2", "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2"}, clear=False),
         patch.object(provider_bank, "select", return_value=selected_pool),
         patch.object(provider_bank, "_call", side_effect=fake_call),
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
