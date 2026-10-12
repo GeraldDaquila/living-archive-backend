@@ -47,3 +47,36 @@ def test_projection_title_is_direct_evidence_even_if_body_uses_broader_language(
         "url": "https://geralddaquila.com/2025/06/04/projection-the-mirror-of-our-inner-shadows/",
     }
     assert main._relational_return_direct_topic_fit(query, doc) is True
+
+
+def test_earlier_hurt_heard_as_blame_does_not_invent_listening_problem():
+    query = (
+        "Understand how raising an earlier hurt becomes a dispute about blame, "
+        "without assuming either partner intends to hurt or dismiss the other. "
+        "The argument changes direction when explaining an earlier hurt is heard as assigning blame."
+    )
+    self_sacrifice_article = {
+        "title": "When Love Has Been Built on Your Self-Sacrifice",
+        "text": (
+            "Many relationships form around roles we step into without realizing it. "
+            "You may think, 'If I stop over-giving, they will feel hurt.' "
+            "You are responsible for changing with honesty and care, not with blame. "
+            "There is a difference between attacking someone for the past and no longer "
+            "participating in a pattern that harms you. Listen without defensiveness."
+        ),
+    }
+    assert not main._relational_return_earned_focus_fit(query, self_sacrifice_article)
+    assert not main._relational_return_direct_topic_fit(query, self_sacrifice_article)
+
+
+def test_explicit_feeling_unheard_still_qualifies_for_listening_resource():
+    query = "I feel unheard when my partner goes silent after an argument. I want to know whether they are listening."
+    listening_article = {
+        "title": "Silence and Rejection After Conflict",
+        "text": (
+            "In relationships, silence after conflict can feel like rejection. "
+            "Listening and acknowledgment can help people feel heard without assuming intention."
+        ),
+    }
+    assert main._relational_return_earned_focus_fit(query, listening_article)
+    assert main._relational_return_direct_topic_fit(query, listening_article)

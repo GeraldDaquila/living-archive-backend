@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.163 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.164 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.163"
-DEPLOYMENT_FINGERPRINT = "USE-v489.163-safety-calibration-informational-answer"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.163-safety-calibration-informational-answer"
+APP_VERSION = "v489.164"
+DEPLOYMENT_FINGERPRINT = "USE-v489.164-relational-return-heard-polysemy"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.164-relational-return-heard-polysemy"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.163":
+if str(APP_VERSION) != "v489.164":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1363,8 +1363,13 @@ def _relational_return_earned_focus_fit(query, doc):
     # Disagreement alone does not establish that the visitor's central concern
     # is listening or being heard. Keep this exception narrow so a broad
     # relationship essay cannot qualify solely because it mentions dialogue.
+    # "A hurt is heard as blame" describes how a statement is interpreted;
+    # it does not establish that the visitor feels unheard or that listening is
+    # the central problem. Require an explicit listening/being-heard signal.
     communication_focus = bool(re.search(
-        r"\b(?:unheard|being heard|heard|hearing|listen|listening|ignored|dismissed)\b", q
+        r"\b(?:unheard|not being heard|not heard|being heard|feel(?:ing)? unheard|"
+        r"feel(?:ing)? not heard|listen|listening|not listening|ignored|dismissed|"
+        r"does not hear me|doesn't hear me|cannot get through to)\b", q
     ))
     communication_evidence = bool(re.search(
         r"\b(?:listen|listening|heard|hearing|acknowledge|acknowledgment|acknowledgement|"
