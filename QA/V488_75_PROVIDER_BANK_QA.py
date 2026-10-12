@@ -231,7 +231,7 @@ def main():
             operation="hrn_relational",
         )
         quality_key = provider_bank._quality_key("hrn_relational", "nvidia", "nvidia/nemotron-test")
-        rejected_quality = provider_bank._STATE["quality"][quality_key]
+        rejected_quality = provider_bank._STATE["quality"].get(quality_key, {})
     assert calls == [("nvidia", "nvidia/nemotron-test"), ("mistral", "mistral-small-test")], (
         "Visitor-surface rejection must skip same-model correction and advance to the independent fallback."
     )
