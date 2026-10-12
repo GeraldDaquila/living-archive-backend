@@ -57,5 +57,6 @@ def test_hrn_visitor_contract_requires_interaction_grounded_questions():
 
     assert "interaction between the people" in contract
     assert "not merely ask for factual reasons" in contract
-    assert "what happens between them" in contract
+    assert "name at least one concrete issue, action, or phrase" in contract
+    assert "unless the actual issue is named" in contract
     assert "visitor's latest turn" in contract
