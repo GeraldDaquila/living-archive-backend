@@ -154,7 +154,6 @@ class Reservation:
             _COUNTERS["released"] += 1
 
     def __enter__(self):
-        self.release()
         return self
 
     def __exit__(self, exc_type, exc, tb):
