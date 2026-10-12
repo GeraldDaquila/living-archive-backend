@@ -67,16 +67,27 @@ def _request(method, payload=None):
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
     request = Request(request_url, data=data, headers=headers, method=method)
+    started = time.monotonic()
+    outcome = "error"
     try:
         with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
             result = json.loads(response.read(512 * 1024 + 1).decode("utf-8", errors="replace"))
         if not isinstance(result, dict) or result.get("contract_version") != CONTRACT_VERSION:
+            outcome = "invalid_contract"
             return None
+        outcome = "ok"
         return result
-    except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as exc:
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
         # Deliberately omit URL, headers, and exception bodies: they may contain
         # deployment details. The provider bank logs only a generic degradation.
         return None
+    finally:
+        elapsed = time.monotonic() - started
+        print(
+            "USE provider health store timing: "
+            f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
+            f"timeout_seconds={TIMEOUT_SECONDS:.1f}"
+        )
 
 
 def load_remote_states():

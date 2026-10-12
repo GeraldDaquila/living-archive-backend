@@ -1829,16 +1829,27 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
 def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
-    """Apply bounded quota admission to every inference attempt, including correction calls."""
+    """Apply bounded quota admission and record safe latency diagnostics."""
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
     reservation = reserve_provider_call(provider, model, messages, max_tokens)
+    started = time.perf_counter()
+    outcome = "error"
     try:
-        return _call(
+        result = _call(
             use_core, item, messages, max_tokens, schema,
             timeout_override=timeout_override,
         )
+        outcome = "ok"
+        return result
     finally:
+        elapsed = time.perf_counter() - started
+        print(
+            "USE provider inference timing: "
+            f"provider={provider}, model={model}, outcome={outcome}, "
+            f"elapsed_seconds={elapsed:.3f}, "
+            f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}"
+        )
         reservation.release()
 
 
