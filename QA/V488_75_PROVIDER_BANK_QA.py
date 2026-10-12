@@ -77,7 +77,7 @@ def main():
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
     assert "operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -380,6 +380,47 @@ def main():
         "Two fast provider failures must advance to one more independent relational lane."
     )
     assert fast_call.call_count == 3, "Fast-failure extension must remain bounded to one extra candidate."
+
+    # The measured 4.27s OpenRouter empty-response path must still permit the
+    # bounded independent fallback under the five-second window.
+    with (
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
+        patch.object(provider_bank, "select", return_value=fast_fallback_pool),
+        patch.object(provider_bank, "_call", side_effect=["not-json", rate_limited, valid_hrn]) as measured_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 4.27]),
+    ):
+        measured_routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert measured_routed["provider"] == "nvidia"
+    assert measured_call.call_count == 3, "A fast failure completing at 4.27s must still use the bounded fallback."
+
+    # Once the five-second wall budget is exceeded, the extra provider must not run.
+    with (
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
+        patch.object(provider_bank, "select", return_value=fast_fallback_pool),
+        patch.object(provider_bank, "_call", side_effect=["not-json", rate_limited]) as over_budget_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 5.01]),
+    ):
+        over_budget_routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert over_budget_routed is None
+    assert over_budget_call.call_count == 2, "The extra provider must be skipped after five seconds."
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until
