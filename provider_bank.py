@@ -1331,7 +1331,17 @@ def _hrn_question_grounding_violation(question, messages):
         return "question-grounding contract violation: structured movement brief is malformed"
     try:
         brief, _ = json.JSONDecoder().raw_decode(brief_content[brace_index:])
-    except (json.JSONDecodeError, TypeError, ValueError):
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        # Keep the visitor payload out of logs. The error position and a short
+        # structural preview are enough to distinguish empty serialization,
+        # invalid JSON, and a marker followed by the wrong object.
+        preview = brief_content[brace_index:brace_index + 80] if brace_index >= 0 else ""
+        print(
+            "USE HRN movement brief parse failure: "
+            f"error={type(exc).__name__}, "
+            f"position={getattr(exc, 'pos', 'n/a')}, "
+            f"preview={preview[:80]!r}"
+        )
         return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
         return "question-grounding contract violation: structured movement brief is not an object"
@@ -1421,9 +1431,14 @@ def _apply_hrn_visitor_contract(messages):
         "field contains exactly one relevant, natural question ending in a question "
         "mark. The question field MUST NEVER be empty. Do not put the follow-up question "
         "only inside response, and do not return an empty string for question. Keep the "
-        "question grounded in the structured movement brief, especially its situation, "
-        "tension, parties, and experience fields. The raw visitor message may not be available "
-        "to this writing layer. Name at least one concrete issue or action from those fields "
+        "question grounded in the structured movement brief's actual declared fields, "
+        "including working_hypothesis, thread_summary, underlying_need, desired_condition, "
+        "emerging_delta, perspective_delta, body_of_thought, unresolved, movement_direction, "
+        "next_movement, new_terrain, completed_insight, next_horizon, current_fractal, "
+        "fractal_transition, pivot_signal, leadership_need, plane_shift, and relational_understanding. "
+        "Do not require fields named situation, tension, parties, or experience; they are not part "
+        "of the WordPress movement-brief schema. The raw visitor message may not be available "
+        "to this writing layer. Name at least one concrete issue or action from the actual fields "
         "in the question and ask about the interpersonal exchange around that specific detail. "
         "Do not use generic words such as 'situation', 'distinction', or 'relationship' as the "
         "only anchor. Move to a different plane when one useful observation has already been "
