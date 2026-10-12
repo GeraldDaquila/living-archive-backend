@@ -1457,6 +1457,22 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             try:
                 parsed = _normalize_operation_result(operation, parsed)
             except ValueError as contract_error:
+                # HRN visitor-surface rejections are semantic quality failures,
+                # not JSON-schema failures. A correction call to the same model
+                # would consume the bounded stage budget and often reproduce the
+                # same disallowed voice. Quarantine this operation/model and move
+                # directly to the independently ranked provider lane.
+                if operation == "hrn_relational" and "visitor-surface contract violation" in str(contract_error):
+                    last_error = str(contract_error)
+                    _record_quality_rejection(provider, model, operation, last_error)
+                    print(
+                        "USE provider quality fast-fail: "
+                        "operation=hrn_relational, provider=" + provider
+                        + ", model=" + model
+                        + ", action=skip_same_model_recovery"
+                    )
+                    continue
+
                 recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
                 if not recovery_schema:
                     raise
@@ -1464,11 +1480,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 recovery_mode_schema = recovery_schema if schema_capable else effective_schema
                 recovery_mode = "strict_schema" if schema_capable else "provider_neutral_json_object"
                 print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=" + recovery_mode)
-                # A schema-only retry repeats the same prompt and gives the model no
-                # information about why its previous object was rejected. Carry the
-                # rejected output forward and ask for a bounded contract correction.
-                # This stays at the Provider Bank boundary; specialist voice methods
-                # and provider selection remain untouched.
+                # Retain schema-correction for genuine operation-envelope failures.
+                # Only HRN relational surface-quality failures bypass same-model retry.
                 recovery_messages = list(effective_messages)
                 recovery_messages.append({
                     "role": "assistant",
@@ -1477,20 +1490,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 recovery_messages.append({
                     "role": "user",
                     "content": (
-                        "Your preceding output failed the HRN relational response contract: "
+                        "Your preceding output failed the operation response contract: "
                         + str(contract_error)[:240]
-                        + ". Correct the output now. Return only one valid JSON object with "
-                        + "a non-empty visitor-facing response string and a non-empty next question string. "
-                        + "The response must contain at least two complete sentences and 180 characters. "
-                        + "Include rest as a boolean, use_resource as a boolean, and resource_intro as a string. "
-                        + "The response must be complete, end with sentence-final punctuation, and never stop mid-sentence. "
-                        + "Speak directly to the visitor. Never refer to a brief, prompt, interpretation, internal state, or the visitor contribution as an object being processed. "
-                        + "Do not explain the contract or omit response/question. Preserve the visitor's context. "
-                        "Do not repeat the rejected wording or any canned explanatory transition, including "
-                        "phrases such as 'this distinction matters because' or 'it shifts the focus from'. "
-                        "Avoid generic relationship theory, abstract labels, and prescriptive advice. "
-                        "Use one concrete observation grounded in the visitor's actual words, then ask a "
-                        "genuinely different, open question. Do not restate the same insight in new words."
+                        + ". Correct the output now. Return only one valid JSON object matching the supplied response fields. "
+                        + "Preserve the actual request context. Return complete values in the required schema and no extra commentary."
                     ),
                 })
                 recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=8 if operation in hrn_operations else None))
