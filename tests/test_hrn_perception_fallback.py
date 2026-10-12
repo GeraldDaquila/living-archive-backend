@@ -478,6 +478,7 @@ def test_legacy_provider_timeout_cooldown_is_bounded_for_recovery(monkeypatch):
     assert recently_failed["cooldown_until"] == 1010.0
 
     recovered = dict(recently_failed)
+    recovered["state"] = "open"
     recovered["last_failure"] = 970.0
     recovered["cooldown_until"] = 1270.0
     assert provider_bank._blocked(recovered) is False
