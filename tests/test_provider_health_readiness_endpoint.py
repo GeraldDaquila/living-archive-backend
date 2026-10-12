@@ -3,6 +3,7 @@ import main
 
 
 def test_provider_health_readiness_reports_degraded_shared_store_without_secrets(monkeypatch):
+    monkeypatch.setattr(main, "refresh_shared_health_state", lambda: None)
     monkeypatch.setattr(main, "provider_bank_snapshot", lambda core: {
         "shared_health_configuration": {
             "configured": False,
@@ -60,6 +61,7 @@ def test_provider_health_readiness_reports_live_shared_store_only_when_configure
 def test_provider_health_readiness_fails_closed_on_diagnostic_exception(monkeypatch):
     def fail(_):
         raise RuntimeError("secret should not leak")
+    monkeypatch.setattr(main, "refresh_shared_health_state", lambda: None)
     monkeypatch.setattr(main, "provider_bank_snapshot", fail)
 
     result = main.provider_health_readiness()
