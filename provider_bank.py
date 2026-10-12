@@ -475,7 +475,7 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
         timeout = _provider_http_timeout()
     else:
         try:
-            timeout = max(5.0, min(10.0, float(timeout)))
+            timeout = max(1.0, min(10.0, float(timeout)))
         except (TypeError, ValueError):
             timeout = _provider_http_timeout()
     req = urllib.request.Request(
