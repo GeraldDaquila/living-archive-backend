@@ -604,3 +604,13 @@ def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retr
     )
     assert result is not None
     assert calls == ["nvidia", "groq"]
+
+def test_hrn_surface_policy_distinguishes_reported_words_from_advice():
+    reported_observation = (
+        "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+        "When something from the past is raised, one of you feels blamed. "
+        "The wish to improve is present, but what either of you intends remains unknown."
+    )
+    direct_advice = "You should say what you need before the argument starts."
+    assert provider_bank._hrn_surface_language_violation(reported_observation) == ""
+    assert provider_bank._hrn_surface_language_violation(direct_advice) == "prescriptive-language"
