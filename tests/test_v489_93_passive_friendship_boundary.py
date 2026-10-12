@@ -121,6 +121,10 @@ def test_bounded_archive_and_definition_exclusions_remain():
 
 
 def test_version_integrity_is_sequential():
-    assert 'APP_VERSION = "v489.104"' in TEXT
-    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.104-hrn-return-communication-resource-fit"' in TEXT
-    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.104-hrn-return-communication-resource-fit"' in TEXT
+    # Track the current release identity contract without pinning the test to a retired release.
+    assert 'APP_VERSION = "v489.105"' in TEXT
+    assert 'DEPLOYMENT_FINGERPRINT = "USE-v489.105-guide-doorway-recovery-runtime-fix"' in TEXT
+    assert 'CANONICAL_BUILD_ID = "USE-BUILD-v489.105-guide-doorway-recovery-runtime-fix"' in TEXT
+    assert 'if str(APP_VERSION) != "v489.105":' in TEXT
+    assert 'if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):' in TEXT
+    assert 'if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):' in TEXT
