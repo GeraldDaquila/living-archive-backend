@@ -494,12 +494,12 @@ def test_hrn_contract_recovery_falls_back_to_json_object_without_schema_capabili
         {
             "role": "user",
             "content": (
-                "STRUCTURED MOVEMENT BRIEF\\n"
+                "STRUCTURED MOVEMENT BRIEF\n"
                 '{"working_hypothesis":"someone I love has become distant",'
                 '"underlying_need":"understand the distance without assuming intent",'
                 '"emerging_delta":"the distance is observable but its reason remains uncertain",'
                 '"body_of_thought":"reaching out feels risky while the reason for the distance is unknown"}'
-                "\\nSomeone I love has become distant."
+                "\nSomeone I love has become distant."
             ),
         }
     ]
@@ -579,12 +579,12 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
         {
             "role": "user",
             "content": (
-                "STRUCTURED MOVEMENT BRIEF\\n"
+                "STRUCTURED MOVEMENT BRIEF\n"
                 '{"working_hypothesis":"someone I love has become distant",'
                 '"underlying_need":"understand the distance without assuming intent",'
                 '"emerging_delta":"the distance is observable but its reason remains uncertain",'
                 '"body_of_thought":"reaching out feels risky while the reason for the distance is unknown"}'
-                "\\nSomeone I love has become distant."
+                "\nSomeone I love has become distant."
             ),
         }
     ]
