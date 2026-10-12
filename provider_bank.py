@@ -1499,6 +1499,29 @@ def _escape_json_string_control_characters(raw):
     return "".join(output)
 
 
+def _hrn_question_response_alignment_violation(question, response):
+    """Reject follow-up questions that are grounded in the brief but not this answer."""
+    stopwords = {
+        "about", "after", "again", "also", "and", "are", "before", "being",
+        "both", "can", "could", "does", "doing", "each", "either", "feel",
+        "feels", "for", "from", "have", "how", "into", "just", "like", "most",
+        "one", "other", "our", "same", "that", "the", "their", "them", "then",
+        "there", "these", "they", "this", "those", "through", "what", "when",
+        "where", "which", "while", "who", "with", "would", "you", "your",
+    }
+    question_terms = {
+        token for token in re.findall(r"[a-z][a-z'-]{3,}", str(question or "").casefold())
+        if token not in stopwords
+    }
+    response_terms = {
+        token for token in re.findall(r"[a-z][a-z'-]{3,}", str(response or "").casefold())
+        if token not in stopwords
+    }
+    if not question_terms or not (question_terms & response_terms):
+        return "question does not align with the response"
+    return ""
+
+
 def _hrn_question_grounding_violation(question, messages):
     """Require HRN follow-up questions to name details in the real movement brief.
 
@@ -1915,6 +1938,8 @@ def _normalize_operation_result(operation, parsed, messages=None):
         question_violation = _hrn_surface_language_violation(question)
         if not question_violation and messages is not None:
             question_violation = _hrn_question_grounding_violation(question, messages)
+        if not question_violation:
+            question_violation = _hrn_question_response_alignment_violation(question, response)
         if question_violation:
             raise ValueError(
                 "hrn_relational question-surface contract violation: "
@@ -2208,12 +2233,22 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # directly to the independently ranked provider lane.
                 targeted_question_recovery = (
                     operation == "hrn_relational"
-                    and "question-surface contract violation: prescriptive-language"
-                    in str(contract_error)
+                    and any(
+                        marker in str(contract_error)
+                        for marker in (
+                            "question-surface contract violation: prescriptive-language",
+                            "hrn_relational composition contract requires a non-empty question",
+                        )
+                    )
                 )
                 targeted_question_grounding_recovery = (
                     operation == "hrn_relational"
                     and "question-grounding contract violation: question does not name a concrete detail from the movement brief"
+                    in str(contract_error)
+                )
+                targeted_question_alignment_recovery = (
+                    operation == "hrn_relational"
+                    and "question-surface contract violation: question does not align with the response"
                     in str(contract_error)
                 )
                 targeted_response_shape_recovery = (
@@ -2260,6 +2295,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 targeted_field_recovery = (
                     targeted_question_recovery
                     or targeted_question_grounding_recovery
+                    or targeted_question_alignment_recovery
                     or targeted_response_shape_recovery
                     or targeted_response_voice_recovery
                 )
@@ -2293,8 +2329,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # Only HRN relational surface-quality failures bypass same-model retry.
                 if targeted_question_recovery:
                     correction_prompt = (
-                        "Your preceding HRN JSON failed specifically because its separate follow-up question used prescriptive language. "
-                        "Correct that field-level defect only: replace the question with one natural, non-prescriptive question grounded in a concrete detail from the structured movement brief. "
+                        "Your preceding HRN JSON failed because its separate follow-up question was missing, empty, or prescriptive. "
+                        "Correct that field-level defect only: supply one natural, non-prescriptive question grounded in a concrete detail from the structured movement brief. "
                         "Do not tell the visitor what to do; do not use should, must, need to, ought to, might/could try, or consider. "
                         "Preserve the original response and all valid flags unless a field independently violates the stated contract. "
                         "Do not invent facts or add advice. "
@@ -2304,6 +2340,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Your preceding HRN JSON failed because the follow-up question did not name a concrete detail from the structured movement brief. "
                         "Correct only the question field: name one actual issue, action, or point of tension present in the brief, using natural non-prescriptive wording. "
                         "Do not ask about an abstract distinction or the relationship in general. Do not invent facts. "
+                        "Preserve the original response and all valid flags. "
+                    )
+                elif targeted_question_alignment_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON failed because its follow-up question was not anchored in the response itself. "
+                        "Correct only the question field: ask about one concrete detail that appears in both the response and the structured movement brief. "
+                        "Use natural, non-prescriptive wording. Do not invent facts or add advice. "
                         "Preserve the original response and all valid flags. "
                     )
                 elif targeted_response_shape_recovery:
