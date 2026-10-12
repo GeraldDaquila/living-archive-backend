@@ -77,9 +77,9 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
     assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai", "nvidia", "groq"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
-    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 6.0
+    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 7.0
     assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 2.5
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.0
 
 
 def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(monkeypatch):
@@ -458,3 +458,45 @@ def test_hrn_contract_recovery_compacts_context_without_losing_movement_brief():
     assert "HRN VISITOR-FACING LANGUAGE CONTRACT" in recovery[1]["content"]
     assert "Rejected draft" in recovery[1]["content"]
     assert "missing required response field" in recovery[1]["content"]
+
+
+def test_legacy_provider_timeout_cooldown_is_bounded_for_recovery(monkeypatch):
+    now = 1000.0
+    monkeypatch.setattr(provider_bank.time, "time", lambda: now)
+    recently_failed = {
+        "provider": "workers_ai",
+        "model": "@cf/example/model",
+        "state": "open",
+        "category": "provider_failure",
+        "last_error": "The read operation timed out",
+        "last_failure": 990.0,
+        "cooldown_until": 1290.0,
+        "quarantine_until": 0.0,
+        "probe_in_flight": False,
+    }
+    assert provider_bank._blocked(recently_failed) is True
+    assert recently_failed["cooldown_until"] == 1010.0
+
+    recovered = dict(recently_failed)
+    recovered["last_failure"] = 970.0
+    recovered["cooldown_until"] = 1270.0
+    assert provider_bank._blocked(recovered) is False
+    assert recovered["state"] == "half_open"
+
+
+def test_provider_rate_limit_cooldown_is_not_shortened_by_timeout_policy(monkeypatch):
+    now = 1000.0
+    monkeypatch.setattr(provider_bank.time, "time", lambda: now)
+    rate_limited = {
+        "provider": "mistral",
+        "model": "mistral-small-latest",
+        "state": "open",
+        "category": "rate_limited",
+        "last_error": "HTTP 429 rate limit",
+        "last_failure": 990.0,
+        "cooldown_until": 1090.0,
+        "quarantine_until": 0.0,
+        "probe_in_flight": False,
+    }
+    assert provider_bank._blocked(rate_limited) is True
+    assert rate_limited["cooldown_until"] == 1090.0
