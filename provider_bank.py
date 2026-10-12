@@ -1147,11 +1147,25 @@ def _hrn_surface_language_violation(response):
         "is a specific, observable pattern",
         "the friction is rarely just about",
         "it often reveals a gap between",
+        "you described the visitor",
+        "the visitor distinguishes",
+        "the visitor is protecting",
+        "the visitor's distress",
+        "the visitor's primary need",
+        "core protectee",
+        "mutual validity",
+        "witness protection",
+        "the conversation centered on understanding the experience",
+        "the details described do not establish every part of what they mean",
+        "what has become clearer can remain distinct from what is still unknown",
+        "the conversation can end here without forcing a verdict",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
         return matched
     patterns = (
+        ("internal-observer-language", r"\b(?:the visitor|visitor contribution|observer intention|observer decision)\b"),
+        ("malformed-second-person-grammar", r"\byou\s+(?:distinguishes|describes|frames|protects|seeks|wants|needs)\b"),
         ("action-guidance", r"\b(?:it|this|that)\s+(?:allows|enables|helps|means)\s+you\s+to\b"),
         ("action-guidance", r"\b(?:you can|you could|you might want to)\s+(?:set|establish|stabilize|enforce|frame|approach|try|consider|focus|decide|reach out|give them space)\b"),
         ("action-guidance", r"\b(?:before|when) engaging with the other (?:person|party)\b"),
