@@ -2112,6 +2112,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     and any(
                         marker in str(contract_error)
                         for marker in (
+                            "visitor-surface contract violation: action-guidance",
                             "visitor-surface contract violation: this distinction matters because",
                             "visitor-surface contract violation: it shifts the focus from",
                             "visitor-surface contract violation: formulaic-connective",
