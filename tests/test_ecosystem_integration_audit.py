@@ -6,8 +6,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.124"
-    assert report["fingerprint"] == "USE-v489.124-safety-presence-grounding"
+    assert report["version"] == "v489.125"
+    assert report["fingerprint"] == "USE-v489.125-safety-presence-grounding"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -18,6 +18,7 @@ def test_integration_audit_does_not_misrepresent_catalogue_as_adapter():
     report = ecosystem_integration_audit()
     assert report["catalogue_mode"] == "direct_handoff_not_adapter"
     assert report["direct_handoffs"]["catalogue"] == "native_catalogue_search"
+    assert report["direct_handoffs"]["systems_ph"] == "native_philippine_systems_landing"
 
 
 def test_integration_audit_discloses_registry_adapter_gaps():
