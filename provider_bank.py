@@ -1159,6 +1159,14 @@ def _hrn_surface_language_violation(response):
         "the details described do not establish every part of what they mean",
         "what has become clearer can remain distinct from what is still unknown",
         "the conversation can end here without forcing a verdict",
+        "a change in the other person's response is observable",
+        "a change in the other person’s response is observable",
+        "the reason for it is not yet established",
+        "the feeling remains part of the experience without becoming proof",
+        "a change can be noticed without treating an explanation for it as established fact",
+        "the other person’s intention remains unconfirmed by the information here",
+        "the other person's intention remains unconfirmed by the information here",
+        "that is part of what was described, not proof of every possible meaning",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
