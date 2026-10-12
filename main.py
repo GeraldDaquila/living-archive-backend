@@ -5299,7 +5299,7 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 # and known direct visitor-facing handoffs. It does not claim that a route has
 # passed a live visitor journey; those require separate E2E checks.
 @app.get("/api/integration-audit")
-async def ecosystem_integration_audit():
+def ecosystem_integration_audit():
     capabilities = []
     for item in SPECIALIST_CAPABILITY_REGISTRY:
         capabilities.append({
