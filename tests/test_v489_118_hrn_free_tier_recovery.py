@@ -81,13 +81,13 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
         _item("groq", "openai/gpt-oss-120b"),
     ])
     attempts = []
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: (
-        attempts.append(item["provider"]) or (
-            '{"response":"When a disagreement leaves you feeling unheard, the friction is rarely just about the topic being debated. It often reveals a gap between reaching an agreement and simply acknowledging what the other person actually experienced. Noticing whether the struggle is about winning a point or making room for two distinct viewpoints allows you to see where the conversation stops being a shared dialogue.","question":"What feels different when you hold both sides together?","rest":false,"use_resource":false,"resource_intro":""}'
-            if item["provider"] == "nvidia" else
-            '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?","rest":false,"use_resource":false,"resource_intro":""}'
-        )
-    ))
+    attempts = []
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        if item["provider"] == "nvidia":
+            return '{"response":"When a disagreement leaves you feeling unheard, the friction is rarely just about the topic being debated. It often reveals a gap between reaching an agreement and simply acknowledging what the other person actually experienced. Noticing whether the struggle is about winning a point or making room for two distinct viewpoints allows you to see where the conversation stops being a shared dialogue.","question":"What feels different when you hold both sides together?"}'
+        return '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?"}'
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
     original_sync = provider_bank._sync_shared_state
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     original_persist = provider_bank._persist_shared_state
