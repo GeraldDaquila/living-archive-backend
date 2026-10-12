@@ -34,12 +34,13 @@ CONTRACT_VERSION = "v2"
 # this allows a third candidate when two transport failures consume ~3-4 seconds.
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
-# Perception is the first inference stage. Permit two independent fallbacks
-# after fast failures, within the same three-second window. This allows the bank
-# to reach a third eligible lane when quota/rate-limit/transport failures cluster,
-# while slow failures still stop fallback and the operation's schema stays strict.
+# Perception is the first inference stage. Permit up to four independent
+# fallbacks after fast failures within the same three-second admission window.
+# This lets the bank reach additional eligible free lanes when quotas and
+# transient transport failures cluster; strict schema validation and per-call
+# timeouts remain unchanged, and slow failures still stop fallback.
 HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 3.0
-HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 2
+HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
