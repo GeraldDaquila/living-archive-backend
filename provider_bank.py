@@ -2129,7 +2129,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
-            # is unhealthy. Skip this lane and allow independent candidates to run.
+            # is unhealthy. Release any half-open probe claim and allow independent
+            # candidates to run; otherwise a local cap could strand recovery forever.
+            state["probe_in_flight"] = False
             last_error = str(exc)
             print(
                 "USE provider quota admission: "
