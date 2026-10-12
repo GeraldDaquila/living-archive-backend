@@ -72,3 +72,26 @@ def test_hrn_provider_bank_rejects_solution_framing_in_response():
     assert provider_bank._hrn_surface_language_violation(
         "This is opening the possibility to negotiate which element should be the negotiable anchor."
     ) == "action-solution-frame"
+
+
+
+def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
+    messages = [
+        {"role": "system", "content": "Write one response and one question."},
+        {
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n"
+                "{\"situation\":\"deadline disagreement\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"the project scope changed\"}"
+                "\n\nSHARED RELATIONAL UNDERSTANDING"
+            ),
+        },
+    ]
+
+    generic = "What does that reveal about the relationship?"
+    grounded = "What happens when the agreed date is raised alongside the changed scope?"
+
+    assert provider_bank._hrn_question_grounding_violation(generic, messages).startswith(
+        "question-grounding contract violation"
+    )
+    assert provider_bank._hrn_question_grounding_violation(grounded, messages) == ""
