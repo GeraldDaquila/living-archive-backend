@@ -1426,7 +1426,7 @@ def _hrn_question_grounding_violation(question, messages):
             # candidate text as well, then let the downstream prefix-recovery parser
             # retain its established fail-closed behavior for concrete anchors.
             semantic_key_present = any(
-                re.search(r'["\\']' + re.escape(key) + r'["\\']\\s*:', candidate_json)
+                f'"{key}"' in candidate_json or f"'{key}'" in candidate_json
                 for key in semantic_keys
             )
             if decoded_brief is not None or semantic_key_present:
