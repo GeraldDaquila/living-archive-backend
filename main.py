@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.165 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.166 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.165"
-DEPLOYMENT_FINGERPRINT = "USE-v489.165-guide-node-level-two-tuple-index"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.165-guide-node-level-two-tuple-index"
+APP_VERSION = "v489.166"
+DEPLOYMENT_FINGERPRINT = "USE-v489.166-relational-communication-focus"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.166-relational-communication-focus"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.165":
+if str(APP_VERSION) != "v489.166":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1288,6 +1288,17 @@ def _build_journey_contribution_for_use(body):
     return _normalize_shared_journey(payload)
 
 
+def _relational_communication_focus(query):
+    """Recognize explicit listening/being-heard concerns without lexical polysemy."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:unheard|not being heard|not heard|being heard|listen(?:ing)?|"
+        r"not listening|ignored|dismissed|(?:do not|don't|does not|doesn't|cannot|can't) "
+        r"(?:hear|listen)(?: me| to me)?|cannot get through to|can't get through to)\b",
+        q,
+    ))
+
+
 def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):
     """Add bounded, earned semantic anchors without replacing the visitor's own question."""
     q = _normalize_query(" ".join(str(value or "") for value in (
@@ -1319,9 +1330,7 @@ def _relational_return_topic_anchor(original_question, underlying_need, perspect
     # semantic expansion when the visitor actually describes not being heard,
     # listening, or dismissal; otherwise it contaminates retrieval with unrelated
     # communication-themed Archive pages.
-    communication = bool(re.search(
-        r"\b(?:unheard|being heard|heard|hearing|listen|listening|ignored|dismissed)\b", q
-    ))
+    communication = _relational_communication_focus(q)
     if communication:
         additions.append(
             "Relational communication during disagreement: listening, acknowledgment, "
@@ -1366,11 +1375,7 @@ def _relational_return_earned_focus_fit(query, doc):
     # "A hurt is heard as blame" describes how a statement is interpreted;
     # it does not establish that the visitor feels unheard or that listening is
     # the central problem. Require an explicit listening/being-heard signal.
-    communication_focus = bool(re.search(
-        r"\b(?:unheard|not being heard|not heard|being heard|feel(?:ing)? unheard|"
-        r"feel(?:ing)? not heard|listen|listening|not listening|ignored|dismissed|"
-        r"does not hear me|doesn't hear me|cannot get through to)\b", q
-    ))
+    communication_focus = _relational_communication_focus(q)
     communication_evidence = bool(re.search(
         r"\b(?:listen|listening|heard|hearing|acknowledge|acknowledgment|acknowledgement|"
         r"communication|dialogue|being heard)\b", material
