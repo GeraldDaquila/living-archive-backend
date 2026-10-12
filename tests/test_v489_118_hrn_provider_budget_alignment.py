@@ -144,7 +144,7 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
         operation="hrn_relational",
     )
 
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 5.0
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 7.0
     assert result is not None
     assert result["provider"] == "mistral"
     assert calls == [

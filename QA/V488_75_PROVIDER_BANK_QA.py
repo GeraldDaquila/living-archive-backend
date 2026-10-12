@@ -82,7 +82,7 @@ def main():
     assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -93,13 +93,13 @@ def main():
     # Bound latency-heavy visitor-facing prose stages without truncating the
     # richer perception/Observer schema needed to form the relational fractal.
     assert '"hrn_relational": 600' in provider
-    assert 'requested_max_tokens = min(requested_max_tokens, 600)' in provider
+    assert 'requested_max_tokens = min(requested_max_tokens, HRN_RELATIONAL_MAX_COMPLETION_TOKENS)' in provider
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Slow Workers AI models must not consume the full generic timeout on every
     # HRN stage or on the bounded contract-correction call.
     assert "HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation" in provider
-    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0' in provider
+    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
     # The visitor contract must explicitly block inferred blame and motive attribution,
@@ -117,8 +117,8 @@ def main():
 
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
-    recovery_start = provider.index("recovery_messages.append({")
-    recovery_end = provider.index("recovered = parse", recovery_start)
+    recovery_start = provider.index("correction_content = (")
+    recovery_end = provider.index('if operation == "hrn_relational":', recovery_start)
     recovery_prompt = provider[recovery_start:recovery_end]
     for phrase in (
         "Do not repeat the rejected wording",

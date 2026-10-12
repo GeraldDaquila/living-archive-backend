@@ -611,10 +611,11 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
     assert result["parsed"]["question"] == "What makes reaching out feel risky while the reason for the distance remains uncertain?"
     assert provider_call.call_count == 2
     recovery_messages = provider_call.call_args_list[1].args[2]
-    assert any(message.get("role") == "user" and message.get("content") == original[0]["content"] for message in recovery_messages)
-    assert recovery_messages[-2] == {"role": "assistant", "content": rejected}
-    assert "requires response" in recovery_messages[-1]["content"]
-    assert "Correct the output now." in recovery_messages[-1]["content"]
+    assert any("Someone I love has become distant." in message.get("content", "") for message in recovery_messages)
+    assert any(rejected in message.get("content", "") for message in recovery_messages)
+    assert "response field was missing" in recovery_messages[-1]["content"]
+    assert "two or three complete, natural sentences" in recovery_messages[-1]["content"]
+    assert "Preserve the original question and all valid flags" in recovery_messages[-1]["content"]
     assert len(original) == 1 and original[0]["role"] == "user"
     assert original[0]["content"].startswith("STRUCTURED MOVEMENT BRIEF")
     assert "Someone I love has become distant." in original[0]["content"]

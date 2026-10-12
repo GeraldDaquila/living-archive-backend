@@ -1433,7 +1433,7 @@ def _hrn_surface_language_violation(response):
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+try\b"),
         ("prescriptive-language", r"\byou\s+(?:need|have)\s+to\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\b"),
         ("prescriptive-language", r"\byou\s+(?:might|could|can|may)\s+consider\b"),
-        ("prescriptive-language", r"\byou\s+(?:try|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\b"),
+        ("prescriptive-language", r"\byou\s+(?:try|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|write|set|change|make|invite|confront)\b"),
         ("prescriptive-language", r"\b(?:i|we)\s+(?:recommend|advise|suggest)\s+(?:you|that you)\b"),
         ("prescriptive-language", r"(?:^|[.!?]\s+)\s*(?:try|consider|avoid|stop|start|tell|ask|call|contact|leave|stay|go|write|say|set|change|make|invite|forgive)\s+(?:to|doing|the|a|an|your|them|him|her|it|someone|anyone|people|this|that|with)\b"),
         ("prescriptive-language", r"\b(?:what you should do|what you need to do|what you must do|what you ought to do)\b"),
@@ -2117,17 +2117,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_relational"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
-            if elapsed > fast_failure_window:
+            candidate_timeout = (
+                HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
+                else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
+                else 0.0
+            )
+            # Admit a fallback only when its full bounded call can fit inside the
+            # remaining WordPress/mirror budget. Checking elapsed time alone can
+            # start a 2-second call with less than 1 second remaining.
+            if elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
                     f"operation={operation}, action=skip_extra_candidate, "
-                    f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
+                    f"elapsed_seconds={elapsed:.2f}, "
+                    f"candidate_timeout_seconds={candidate_timeout:.1f}, "
+                    f"budget_seconds={fast_failure_window:.1f}"
                 )
                 break
             print(
                 "USE provider bank fast-failure fallback: "
                 f"operation={operation}, action=try_independent_candidate, "
-                f"elapsed_seconds={elapsed:.2f}, budget_seconds={fast_failure_window:.1f}"
+                f"elapsed_seconds={elapsed:.2f}, "
+                f"candidate_timeout_seconds={candidate_timeout:.1f}, "
+                f"budget_seconds={fast_failure_window:.1f}"
             )
         model_limit = int(MODEL_LIMITS.get((item["provider"], item["model"]), {}).get("max_completion_tokens", 0) or 0)
         operation_limit = int(OPERATION_MODEL_LIMITS.get(
@@ -2205,8 +2217,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 )
                 targeted_response_shape_recovery = (
                     operation == "hrn_relational"
-                    and "response shape requires at least two complete sentences and 180 characters"
-                    in str(contract_error)
+                    and any(
+                        marker in str(contract_error)
+                        for marker in (
+                            "response shape requires at least two complete sentences and 180 characters",
+                            "hrn_relational composition contract requires response",
+                        )
+                    )
                 )
                 targeted_response_voice_recovery = (
                     operation == "hrn_relational"
@@ -2228,6 +2245,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                             "visitor-surface contract violation: win‑lose fight",
                             "visitor-surface contract violation: win-lose fight",
                             "visitor-surface contract violation: both of you are trying to address the same underlying concern",
+                            "visitor-surface contract violation: opens the possibility of",
+                            "visitor-surface contract violation: this opens the possibility of",
+                            "visitor-surface contract violation: opens the possibility of",
+                            "visitor-surface contract violation: this opens the possibility of",
                             "visitor-surface contract violation: this distinction matters because",
                             "visitor-surface contract violation: it shifts the focus from",
                             "visitor-surface contract violation: formulaic-connective",
@@ -2285,8 +2306,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                 elif targeted_response_shape_recovery:
                     correction_prompt = (
-                        "Your preceding HRN JSON failed specifically because the response field was too short or did not contain enough complete sentences. "
-                        "Correct that field-level defect only: rewrite the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
+                        "Your preceding HRN JSON failed because the response field was missing, too short, or did not contain enough complete sentences. "
+                        "Correct that field-level defect only: supply the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
                         "Do not add advice, prescribe action, infer hidden motives, or introduce new facts. "
                         "Preserve the original question and all valid flags. "
                     )
