@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.113 — repair Guide doorway recovery runtime failure
+# USE PRODUCTION VERSION: v489.114 — strengthen HRN inferred-intent surface contract
 import asyncio
 import hashlib
 import ipaddress
@@ -68,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.113"
-DEPLOYMENT_FINGERPRINT = "USE-v489.113-bounded-provider-inventory-and-relational-quality"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.113-bounded-provider-inventory-and-relational-quality"
+APP_VERSION = "v489.114"
+DEPLOYMENT_FINGERPRINT = "USE-v489.114-hrn-inferred-intent-surface-contract"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.114-hrn-inferred-intent-surface-contract"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
