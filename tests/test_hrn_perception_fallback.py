@@ -125,21 +125,19 @@ def test_groq_bounded_call_disables_sdk_retries(monkeypatch):
     call_kwargs = {}
 
     class FakeClient:
+        def __init__(self):
+            self.chat = SimpleNamespace(
+                completions=SimpleNamespace(create=self.create)
+            )
+
         def with_options(self, **kwargs):
             options.append(kwargs)
             return self
 
-        class _Completions:
-            @staticmethod
-            def create(**kwargs):
-                call_kwargs.update(kwargs)
-                message = SimpleNamespace(content='{"perception":"bounded result"}')
-                return SimpleNamespace(choices=[SimpleNamespace(message=message)])
-
-        class _Chat:
-            completions = _Completions()
-
-        chat = _Chat()
+        def create(self, **kwargs):
+            call_kwargs.update(kwargs)
+            message = SimpleNamespace(content='{"perception":"bounded result"}')
+            return SimpleNamespace(choices=[SimpleNamespace(message=message)])
 
     use_core = SimpleNamespace(groq_client=FakeClient())
     result = provider_bank._groq(
