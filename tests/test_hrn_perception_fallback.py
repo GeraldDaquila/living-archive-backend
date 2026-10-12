@@ -143,7 +143,8 @@ def test_groq_bounded_call_disables_sdk_retries(monkeypatch):
         def create(self, **kwargs):
             call_kwargs.update(kwargs)
             message = SimpleNamespace(content='{"perception":"bounded result"}')
-            return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+            usage = SimpleNamespace(completion_tokens=17)
+            return SimpleNamespace(choices=[SimpleNamespace(message=message)], usage=usage)
 
     use_core = SimpleNamespace(groq_client=FakeClient())
     result = provider_bank._groq(
@@ -156,5 +157,6 @@ def test_groq_bounded_call_disables_sdk_retries(monkeypatch):
     )
 
     assert result == '{"perception":"bounded result"}'
+    assert result.completion_tokens == 17
     assert options == [{"timeout": 1.0, "max_retries": 0}]
     assert call_kwargs["max_completion_tokens"] == 100
