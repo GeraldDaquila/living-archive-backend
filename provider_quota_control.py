@@ -55,14 +55,30 @@ def _slug(value: str) -> str:
     return "".join(char if char.isalnum() else "_" for char in str(value).upper()).strip("_")
 
 
-def estimate_tokens(messages: Any, max_tokens: int) -> int:
-    """Conservative token estimate: roughly one token per four UTF-8-ish chars."""
+def estimate_input_tokens(messages: Any) -> int:
+    """Conservative input estimate: roughly one token per four UTF-8-ish chars."""
     try:
         rendered = json.dumps(messages, ensure_ascii=False, separators=(",", ":"), default=str)
     except (TypeError, ValueError):
         rendered = str(messages)
-    input_estimate = max(1, (len(rendered) + 3) // 4)
-    return input_estimate + max(1, int(max_tokens or 1))
+    return max(1, (len(rendered) + 3) // 4)
+
+
+def estimate_output_tokens(output: Any) -> int:
+    """Conservative output estimate when provider usage metadata is unavailable."""
+    usage = getattr(output, "completion_tokens", None)
+    try:
+        if usage is not None and int(usage) > 0:
+            return int(usage)
+    except (TypeError, ValueError):
+        pass
+    rendered = str(output or "")
+    return max(1, (len(rendered) + 2) // 3)
+
+
+def estimate_tokens(messages: Any, max_tokens: int) -> int:
+    """Conservative reservation for input plus maximum completion allowance."""
+    return estimate_input_tokens(messages) + max(1, int(max_tokens or 1))
 
 
 def _bucket_check(key: str, limit: int, cost: float, period: float, now: float) -> tuple[bool, float]:
@@ -86,11 +102,45 @@ def _bucket_consume(key: str, cost: float) -> None:
 
 
 class Reservation:
-    def __init__(self, provider: str, model: str, token_estimate: int):
+    def __init__(
+        self,
+        provider: str,
+        model: str,
+        token_estimate: int,
+        reserved_output_tokens: int,
+        bucket_reservations: list[tuple[str, str, int, float]],
+    ):
         self.provider = provider
         self.model = model
         self.token_estimate = int(token_estimate)
+        self.reserved_output_tokens = max(1, int(reserved_output_tokens))
+        self._bucket_reservations = list(bucket_reservations)
         self._released = False
+        self._settled = False
+
+    def settle_output(self, output: Any) -> None:
+        """Refund only the unused completion reservation after a successful call."""
+        if self._settled:
+            return
+        actual_output_tokens = estimate_output_tokens(output)
+        refund = max(0, self.reserved_output_tokens - actual_output_tokens)
+        with _LOCK:
+            if refund:
+                now = _monotonic()
+                for bucket_key, kind, limit, period in self._bucket_reservations:
+                    if kind not in ("tpm", "tpd", "model_tpm"):
+                        continue
+                    bucket = _BUCKETS.get(bucket_key)
+                    if bucket is None:
+                        continue
+                    elapsed = max(0.0, now - float(bucket["updated"]))
+                    bucket["tokens"] = min(
+                        float(limit),
+                        float(bucket["tokens"]) + elapsed * float(limit) / float(period),
+                    )
+                    bucket["updated"] = now
+                    bucket["tokens"] = min(float(limit), float(bucket["tokens"]) + refund)
+            self._settled = True
 
     def release(self) -> None:
         if self._released:
@@ -104,6 +154,7 @@ class Reservation:
             _COUNTERS["released"] += 1
 
     def __enter__(self):
+        self.release()
         return self
 
     def __exit__(self, exc_type, exc, tb):
@@ -117,7 +168,9 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
     model = str(model or "").strip()
     if not provider or not model:
         raise QuotaAdmissionDenied(provider, model, "invalid_lane", 1.0)
-    estimate = estimate_tokens(messages, max_tokens)
+    input_estimate = estimate_input_tokens(messages)
+    reserved_output_tokens = max(1, int(max_tokens or 1))
+    estimate = input_estimate + reserved_output_tokens
     provider_key = provider
     model_key = provider + ":" + model
     provider_slug = _slug(provider)
@@ -159,7 +212,7 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
                 counter = "rejected_" + kind
                 _COUNTERS[counter] += 1
                 raise QuotaAdmissionDenied(provider, model, kind + "_budget_exhausted", retry_after)
-            planned_buckets.append((bucket_key, cost))
+            planned_buckets.append((bucket_key, cost, kind, limit, period))
 
         model_tpm_name = f"USE_QUOTA_{provider_slug}_{model_slug}_TPM"
         raw_model_tpm = str(os.getenv(model_tpm_name) or "").strip()
@@ -174,16 +227,20 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
                 if not ok:
                     _COUNTERS["rejected_tpm"] += 1
                     raise QuotaAdmissionDenied(provider, model, "model_tpm_budget_exhausted", retry_after)
-                planned_buckets.append((model_bucket_key, float(estimate)))
+                planned_buckets.append((model_bucket_key, float(estimate), "model_tpm", model_tpm, 60.0))
 
         # Commit all token-bucket deductions only after every budget check passes.
-        for bucket_key, cost in planned_buckets:
+        for bucket_key, cost, _kind, _limit, _period in planned_buckets:
             _bucket_consume(bucket_key, cost)
 
         _ACTIVE_PROVIDER[provider_key] = _ACTIVE_PROVIDER.get(provider_key, 0) + 1
         _ACTIVE_MODEL[model_key] = _ACTIVE_MODEL.get(model_key, 0) + 1
         _COUNTERS["admitted"] += 1
-    return Reservation(provider, model, estimate)
+    bucket_reservations = [
+        (bucket_key, kind, int(limit), float(period))
+        for bucket_key, _cost, kind, limit, period in planned_buckets
+    ]
+    return Reservation(provider, model, estimate, reserved_output_tokens, bucket_reservations)
 
 
 def snapshot() -> dict[str, Any]:
