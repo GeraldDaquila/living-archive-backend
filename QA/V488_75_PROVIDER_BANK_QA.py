@@ -75,7 +75,12 @@ def main():
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "def _hrn_attempt_cap():" in provider
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
-    assert "operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts" in provider
+    assert "if operation in hrn_operations:" in provider
+    assert "elif bounded_guide_operation:" in provider
+    assert "operation_attempt_cap = 1" in provider
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
     assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0" in provider
     assert "action=try_independent_candidate" in provider
@@ -92,7 +97,8 @@ def main():
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Slow Workers AI models must not consume the full generic timeout on every
     # HRN stage or on the bounded contract-correction call.
-    assert 'timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None' in provider
+    assert "HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations" in provider
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation" in provider
     assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
