@@ -50,6 +50,25 @@ def main():
         configured = provider_bank._configured(fake_groq_core)
         assert configured.get("groq") == ["openai/gpt-oss-120b"]
 
+    # A hung inventory endpoint must not block the provider-bank request path.
+    slow_groq_core = type(
+        "SlowGroqCore",
+        (),
+        {"get_live_groq_models": lambda self: (provider_bank.time.sleep(0.5), [])[1]},
+    )()
+    with (
+        patch.dict(os.environ, {
+            "GROQ_API_KEY": "test-key",
+            "USE_GROQ_INVENTORY_TIMEOUT_SECONDS": "0.1",
+        }, clear=False),
+        patch.object(provider_bank, "PRODUCTION_GROQ_MODELS", ["openai/gpt-oss-120b"]),
+    ):
+        started = provider_bank.time.monotonic()
+        configured = provider_bank._configured(slow_groq_core)
+        elapsed = provider_bank.time.monotonic() - started
+        assert elapsed < 0.4, f"Groq inventory discovery blocked the request path for {elapsed:.2f}s"
+        assert configured.get("groq") == ["openai/gpt-oss-120b"]
+
     # HRN's multiple semantic stages must not each fan out across the entire bank.
     # One candidate per primary gateway request leaves the WordPress bridge's
     # bounded mirror replay as the independent fallback; diagnostics may opt into two.
