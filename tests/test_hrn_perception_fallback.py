@@ -605,12 +605,65 @@ def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retr
     assert result is not None
     assert calls == ["nvidia", "groq"]
 
-def test_hrn_surface_policy_distinguishes_reported_words_from_advice():
+def test_hrn_surface_policy_marks_wordpress_rejected_reported_speech_for_recovery():
     reported_observation = (
         "Both of you say you want the argument to change, yet the same exchange keeps returning. "
         "When something from the past is raised, one of you feels blamed. "
         "The wish to improve is present, but what either of you intends remains unknown."
     )
     direct_advice = "You should say what you need before the argument starts."
-    assert provider_bank._hrn_surface_language_violation(reported_observation) == ""
+    assert provider_bank._hrn_surface_language_violation(reported_observation) == "you say"
     assert provider_bank._hrn_surface_language_violation(direct_advice) != ""
+
+
+def test_relational_composition_recovers_wordpress_rejected_reported_speech(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "You both want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning after something from the past is raised.",
+        "observer_so_what": "Both want improvement, but the repeated exchange continues.",
+        "observer_delta": "The conversation moves from the past issue to one partner feeling blamed.",
+        "observer_horizon": "The moment something from the past is brought up.",
+        "observer_next_intention": "Notice what is said just before the familiar exchange returns.",
+    }
+    rejected = {
+        "response": (
+            "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed. "
+            "The wish to improve is present, though what starts the familiar exchange remains uncertain."
+        ),
+        "question": "What usually happens just before one of you brings up something from the past?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    repaired = {
+        "response": (
+            "You both want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed. "
+            "The wish to improve is clear, though what starts the familiar exchange remains uncertain."
+        ),
+        "question": "What usually happens just before one of you brings up something from the past?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    calls = []
+
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(call_messages)
+        return json.dumps(rejected if len(calls) == 1 else repaired)
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief)}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert len(calls) == 2
+    assert result["parsed"]["response"] == repaired["response"]
+    assert "you say" not in result["parsed"]["response"].casefold()
