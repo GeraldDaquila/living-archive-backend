@@ -1116,6 +1116,10 @@ def _hrn_surface_language_violation(response):
         return "formulaic-abstract-question"
     if re.search(r"\bwhat feels different when you hold (?:those(?:\s+two)?|both|the two) sides together\b", text):
         return "formulaic-abstract-question"
+    if re.search(r"\bwhat changes when you look at (?:the situation|it) through that distinction\b", text):
+        return "formulaic-abstract-question"
+    if "opening the possibility to negotiate" in text or "negotiable anchor" in text:
+        return "action-solution-frame"
     forbidden = (
         "the brief identifies",
         "the movement brief",
