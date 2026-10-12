@@ -21,7 +21,7 @@ class SafetyUtilityAdapter:
             ),
             safety_question=str(
                 guide_context.get("safety_question")
-                or context.original_question
+                or ""
             ),
             unit_turns=int(guide_context.get("unit_turns") or 0),
             location=guide_context.get("location") if isinstance(guide_context.get("location"), Mapping) else None,
