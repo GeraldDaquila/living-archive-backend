@@ -354,3 +354,79 @@ def test_relational_composition_recovers_observed_generic_metaphor(monkeypatch):
     assert len(calls) == 2
     assert "shared signal" not in result["parsed"]["response"].casefold()
     assert "speaking different languages" not in result["parsed"]["response"].casefold()
+
+
+def test_hrn_grounding_rejects_abstract_only_relationship_question():
+    import json
+    brief = {
+        "observer_intention": "My partner and I keep having the same argument, even though we both say we want things to improve.",
+        "observer_contrast": "No distinct contrast was established in this round.",
+        "observer_so_what": "The current understanding has not yet yielded a distinct new perspective.",
+        "observer_next_intention": "Notice the point where the familiar exchange returns.",
+    }
+    violation = provider_bank._hrn_question_grounding_violation(
+        "Where do you notice that distinction most clearly in the relationship?",
+        [{"role":"user","content":"STRUCTURED MOVEMENT BRIEF — "+json.dumps(brief)}],
+    )
+    assert violation == "question-grounding contract violation: question does not name a concrete detail from the movement brief"
+
+
+def test_hrn_grounding_accepts_a_concrete_detail_from_the_actual_exchange():
+    import json
+    brief = {
+        "observer_intention": "My partner and I keep having the same argument, even though we both say we want things to improve.",
+        "observer_contrast": "The argument usually starts when one of us brings up something from the past.",
+        "observer_so_what": "One partner then feels blamed.",
+        "observer_next_intention": "Notice what is said just before blame enters the exchange.",
+    }
+    violation = provider_bank._hrn_question_grounding_violation(
+        "What is usually said just before one of you brings up something from the past?",
+        [{"role":"user","content":"STRUCTURED MOVEMENT BRIEF — "+json.dumps(brief)}],
+    )
+    assert violation == ""
+
+
+def test_relational_composition_recovers_observed_rhythm_and_landing_metaphors(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "You both want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning after something from the past is raised.",
+        "observer_so_what": "Both want improvement, but the repeated exchange continues.",
+        "observer_delta": "The conversation moves from the past issue to one partner feeling blamed.",
+        "observer_horizon": "The moment something from the past is brought up.",
+        "observer_next_intention": "Notice what is said just before blame enters the exchange.",
+    }
+    rejected = {
+        "response": (
+            "There is a specific friction when the words about wanting change do not match the rhythm of the argument itself. "
+            "You are both holding the intention to improve, yet the interaction keeps landing in the same place, which suggests the desire is not translating into a different way of meeting each other in that moment."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    repaired = {
+        "response": (
+            "You both say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed, and the conversation moves away from the wish to improve. "
+            "That sequence is clear in what you described, though it does not establish what either of you intends."
+        ),
+        "question": "What is usually said just before one of you brings up something from the past?",
+        "rest": False, "use_resource": False, "resource_intro": "",
+    }
+    calls = []
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(call_messages)
+        return json.dumps(rejected if len(calls) == 1 else repaired)
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role":"user","content":"STRUCTURED MOVEMENT BRIEF — "+json.dumps(brief)}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert len(calls) == 2
+    for phrase in ("specific friction","rhythm of the argument","keeps landing in the same place","desire is not translating","different way of meeting each other"):
+        assert phrase not in result["parsed"]["response"].casefold()
