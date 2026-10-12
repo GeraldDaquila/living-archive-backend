@@ -13,7 +13,7 @@ def test_hrn_provider_prompt_requires_a_separate_nonempty_question_field():
     assert "strict json field contract" in normalized
     assert "question field must never be empty" in normalized
     assert "do not put the follow-up question only inside response" in normalized
-    assert "grounded in the visitor's current message" in normalized
+    assert "grounded in the structured movement brief" in normalized
 
 
 def test_hrn_provider_bank_still_rejects_an_empty_question_field():
@@ -57,9 +57,9 @@ def test_hrn_visitor_contract_requires_interaction_grounded_questions():
 
     assert "interaction between the people" in contract
     assert "not merely ask for factual reasons" in contract
-    assert "name at least one concrete issue, action, or phrase" in contract
+    assert "name at least one concrete issue or action from those fields" in contract
     assert "unless the actual issue is named" in contract
-    assert "visitor's latest turn" in contract
+    assert "the raw visitor message may not be available" in contract
 
 
 def test_hrn_provider_bank_rejects_generic_distinction_question():
@@ -72,3 +72,26 @@ def test_hrn_provider_bank_rejects_solution_framing_in_response():
     assert provider_bank._hrn_surface_language_violation(
         "This is opening the possibility to negotiate which element should be the negotiable anchor."
     ) == "action-solution-frame"
+
+
+
+def test_hrn_question_grounding_rejects_generic_question_without_brief_anchor():
+    messages = [
+        {"role": "system", "content": "Write one response and one question."},
+        {
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n"
+                "{\"situation\":\"deadline disagreement\",\"tension\":\"agreed date versus changed scope\",\"parties\":\"two colleagues\",\"experience\":\"the project scope changed\"}"
+                "\n\nSHARED RELATIONAL UNDERSTANDING"
+            ),
+        },
+    ]
+
+    generic = "What does that reveal about the relationship?"
+    grounded = "What happens when the agreed date is raised alongside the changed scope?"
+
+    assert provider_bank._hrn_question_grounding_violation(generic, messages).startswith(
+        "question-grounding contract violation"
+    )
+    assert provider_bank._hrn_question_grounding_violation(grounded, messages) == ""
