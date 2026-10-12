@@ -138,3 +138,61 @@ def test_followthrough_keeps_resource_when_country_name_resolves_to_iso_code():
     assert normalized["safety_resources"]
     assert normalized["safety_resources"][0]["phone"] == "911"
     assert normalized["safety_location_required"] is False
+
+
+def test_followthrough_does_not_assert_another_person_is_present_without_evidence(monkeypatch):
+    emergency_resolution = {
+        "selection": {
+            "selection_status": "SELECTED",
+            "primary": {
+                "display_name": "Unified 911 Emergency Hotline",
+                "number": "911",
+                "service_types": ["general_emergency"],
+                "presentation_priority": 100,
+                "_verification": {
+                    "status": "verified",
+                    "source": "DILG",
+                    "evidence_type": "official_government_publication",
+                },
+            },
+        },
+        "location": {"location": {"country": {"value": "PH"}}},
+    }
+
+    def fake_emergency(**kwargs):
+        return emergency_resolution
+
+    def fake_hrn(**kwargs):
+        return {
+            "safety_interrupt": True,
+            "safety_message": (
+                "It helps to have another person with you. Please stay together "
+                "while we make sure the immediate danger has passed."
+            ),
+            "safety_question": "Are you safe from acting on these thoughts right now?",
+            "safety_note": "",
+            "safety_location_required": False,
+            "safety_release_ready": False,
+            "safety": "acute_connection",
+            "country": "PH",
+        }
+
+    monkeypatch.setattr(safety_intelligence, "_request_emergency_intelligence", fake_emergency)
+    monkeypatch.setattr(safety_intelligence, "_request_hrn_safety", fake_hrn)
+
+    result = safety_intelligence.resolve_safety(
+        query="No, I don't think I will act on them right now.",
+        history=(
+            "visitor: I don't want to live anymore.\\n"
+            "assistant: Do you think you might act on these thoughts right now?"
+        ),
+        safety_state="acute_followthrough",
+        country="Philippines",
+    )
+
+    assert result["safety_presence"] == "unknown"
+    assert "another person with you" not in result["safety_message"].casefold()
+    assert "stay together" not in result["safety_message"].casefold()
+    assert result["safety_question"] == "Is there someone you trust who can stay with you right now?"
+    assert result["loop_guard"] == "unsupported_presence_claim_repaired"
+    assert result["safety_resources"][0]["phone"] == "911"
