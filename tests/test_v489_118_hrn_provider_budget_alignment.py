@@ -78,10 +78,11 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     assert calls == [("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS)]
 
 
-def test_hrn_fast_failure_can_use_one_independent_provider(monkeypatch):
+def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monkeypatch):
     candidates = [
         _item("groq", "openai/gpt-oss-120b"),
         _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _item("mistral", "mistral-small-latest"),
     ]
     _isolate_route(monkeypatch, candidates)
 
@@ -105,14 +106,14 @@ def test_hrn_fast_failure_can_use_one_independent_provider(monkeypatch):
         "resource_intro": "",
     })
 
-    def first_fast_failure_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+    def two_fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if len(calls) == 1:
-            clock.value += 1.0
+        if len(calls) < 3:
+            clock.value += 1.7
             raise RuntimeError("simulated fast provider failure")
         return good_response
 
-    monkeypatch.setattr(provider_bank, "_call", first_fast_failure_then_success)
+    monkeypatch.setattr(provider_bank, "_call", two_fast_failures_then_success)
     result = provider_bank.route(
         use_core=None,
         messages=[{"role": "system", "content": "Return JSON only."}],
@@ -121,6 +122,11 @@ def test_hrn_fast_failure_can_use_one_independent_provider(monkeypatch):
         operation="hrn_relational",
     )
 
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 5.0
     assert result is not None
-    assert result["provider"] == "workers_ai"
-    assert calls == [("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS), ("workers_ai", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS)]
+    assert result["provider"] == "mistral"
+    assert calls == [
+        ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
+        ("workers_ai", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
+        ("mistral", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
+    ]
