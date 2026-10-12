@@ -199,7 +199,7 @@ def main():
     # Do not spend a second call on the same rejected model; advance to the next
     # independently ranked provider while retaining the quality cooldown.
     valid_hrn = json.dumps({
-        "response": "The disagreement is where you feel unheard, while the reasons for your friend's response remain unknown. That leaves a difference between the effect on you and what your friend intended. The exchange can be understood without deciding their motive from the information available.",
+        "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
         "question": "What happens just before you begin to feel unheard?",
     })
     selected_pool = [
