@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.160 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.161 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -61,7 +61,7 @@ import general_guide_composition
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
-from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, repair_safety_question, safety_intelligence_snapshot
+from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, is_hypothetical_safety_discussion, normalize_safety_state, repair_safety_question, safety_intelligence_snapshot
 from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION, STREAM_TRANSPORT_VERSION
 
 _BASE_MODULE_NAME = "guide_runtime"
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.160"
-DEPLOYMENT_FINGERPRINT = "USE-v489.160-hrn-grounded-detail-and-voice"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.160-hrn-grounded-detail-and-voice"
+APP_VERSION = "v489.161"
+DEPLOYMENT_FINGERPRINT = "USE-v489.161-safety-hypothetical-core-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.161-safety-hypothetical-core-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.160":
+if str(APP_VERSION) != "v489.161":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4123,7 +4123,19 @@ async def _use_request_boundary(scope, receive, send):
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
 
-    # Highest-priority sitewide Safety / Crisis boundary. The Guide owns
+    def _should_apply_protected_core_safety_recovery(query, risk_profile):
+    """Use protected-core risk recovery only for non-hypothetical personal-risk gaps."""
+    if not isinstance(risk_profile, dict) or not bool(risk_profile.get("risk")):
+        return False
+    if (
+        is_hypothetical_safety_discussion(query)
+        and normalize_safety_state(query) is None
+    ):
+        return False
+    return True
+
+
+# Highest-priority sitewide Safety / Crisis boundary. The Guide owns
     # the interruption boundary, but the existing HRN Safety Fractal +
     # Emergency Intelligence system remains the semantic/resource authority.
     # This is deliberately a sibling linkage, not a replacement safety routine.
@@ -4156,9 +4168,11 @@ async def _use_request_boundary(scope, receive, send):
     if not safety_state:
         try:
             risk_profile = _base._inquiry_profile(query)
-            if isinstance(risk_profile, dict) and bool(risk_profile.get("risk")):
+            if _should_apply_protected_core_safety_recovery(query, risk_profile):
                 safety_state = "current"
                 print("The Guide safety boundary recovered from protected-core risk profile.")
+            elif isinstance(risk_profile, dict) and bool(risk_profile.get("risk")):
+                print("The Guide ignored protected-core risk fallback for a hypothetical safety calibration query.")
         except Exception as exc:
             print(f"The Guide protected-core safety recovery was unavailable: {exc}")
 
