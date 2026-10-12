@@ -78,3 +78,24 @@ class ProviderQuotaAdmissionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_settle_output_refunds_unused_completion_reservation(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "USE_QUOTA_TEST_TPM": "10000",
+                "USE_QUOTA_TEST_TPD": "100000",
+            },
+            clear=False,
+        ), patch.object(quota, "_monotonic", return_value=0.0):
+            reservation = quota.reserve("test", "model-a", "x" * 4000, 4000)
+            before_tpm = quota._BUCKETS["test:tpm"]["tokens"]
+            before_tpd = quota._BUCKETS["test:tpd"]["tokens"]
+
+            reservation.settle_output(type("Output", (str,), {"completion_tokens": 500})("short output"))
+
+            self.assertEqual(before_tpm, 10000 - reservation.token_estimate)
+            self.assertEqual(quota._BUCKETS["test:tpm"]["tokens"], before_tpm + 3500)
+            self.assertEqual(quota._BUCKETS["test:tpd"]["tokens"], before_tpd + 3500)
+            reservation.release()
