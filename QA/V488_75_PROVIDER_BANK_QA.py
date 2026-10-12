@@ -195,44 +195,52 @@ def main():
     assert failed_state["quarantine_until"] == 0.0
     assert failed_state["cooldown_until"] > 0.0
 
-    # Deterministic branch-level regression: a rejected HRN semantic response is
-    # recorded as a quality failure and advances to the next candidate without
-    # a same-model schema correction call. The visitor-surface policy is not changed.
-    from unittest.mock import MagicMock
-    rejection = ValueError(
-        "hrn_relational visitor-surface contract violation: you are dealing with"
-    )
+    # Exercise the real Provider Bank route: semantic rejection must skip the
+    # same-model correction request and continue to an independent valid provider.
+    rejected_hrn = json.dumps({
+        "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
+        "question": "What happens just before you begin to feel unheard?",
+    })
+    independent_hrn = json.dumps({
+        "response": "You described trying to explain your view and feeling unheard when disagreement starts. The impact on you is clear, even though your friend's reasons for responding that way are not yet known.",
+        "question": "What happens just before you begin to feel unheard?",
+    })
+    pool = [
+        {"provider": "nvidia", "model": "nvidia/nemotron-test", "index": 0},
+        {"provider": "mistral", "model": "mistral-small-test", "index": 0},
+    ]
     quality_events = []
-    def fake_record_quality(provider, model, operation, reason):
+    original_record_quality = provider_bank._record_quality_rejection
+    def capture_quality(provider, model, operation, reason):
         quality_events.append((provider, model, operation, reason))
-    nvidia = {"provider": "nvidia", "model": "nvidia/nemotron-test", "index": 0}
-    mistral = {"provider": "mistral", "model": "mistral-small-test", "index": 0}
-    with patch.object(provider_bank, "_record_quality_rejection", side_effect=fake_record_quality):
-        # Keep this decision-level test grounded in the same operation and
-        # exact exception discriminator used by route(), rather than emulating
-        # provider selection, shared health state, and transport simultaneously.
-        operation = "hrn_relational"
-        error_text = str(rejection)
-        should_fast_fail = (
-            operation == "hrn_relational"
-            and "visitor-surface contract violation" in error_text
+        return original_record_quality(provider, model, operation, reason)
+    with (
+        patch.dict(os.environ, {
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+        }, clear=False),
+        patch.object(provider_bank, "select", return_value=pool),
+        patch.object(provider_bank, "_call", side_effect=[rejected_hrn, independent_hrn]) as model_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_record_quality_rejection", side_effect=capture_quality),
+    ):
+        routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
         )
-        if should_fast_fail:
-            provider_bank._record_quality_rejection(
-                nvidia["provider"], nvidia["model"], operation, error_text
-            )
-            selected_after_rejection = mistral
-        else:
-            selected_after_rejection = nvidia
-    assert should_fast_fail is True
-    assert selected_after_rejection is mistral
-    assert quality_events == [(
-        "nvidia", "nvidia/nemotron-test", "hrn_relational", str(rejection)
-    )]
-    assert provider_bank._hrn_surface_language_violation(
-        "You described trying to explain your view and feeling unheard when disagreement starts. "
-        "The impact on you is clear, even though your friend's reasons for responding that way are not yet known."
-    ) == "", "The unchanged visitor-language validator must accept the fallback fixture."
+    assert routed["provider"] == "mistral", "Rejected HRN voice must advance to independent provider."
+    assert model_call.call_count == 2, "The rejected NVIDIA model must not receive a same-model correction call."
+    assert quality_events and quality_events[0][0:3] == (
+        "nvidia", "nvidia/nemotron-test", "hrn_relational"
+    ), "Semantic rejection must be recorded as provider/model quality failure."
+    assert provider_bank._hrn_surface_language_violation(routed["response"]) == "", (
+        "Independent fallback must satisfy the unchanged visitor language policy."
+    )
 
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
