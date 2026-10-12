@@ -205,6 +205,7 @@ def test_hypothetical_immediate_danger_calibration_does_not_trigger_personal_cri
         "where should The Guide direct them?"
     )
     assert safety_intelligence.normalize_safety_state(query) is None
+    assert safety_intelligence.classify_safety(query) is None
 
 
 def test_direct_first_person_immediate_danger_still_triggers_safety():
