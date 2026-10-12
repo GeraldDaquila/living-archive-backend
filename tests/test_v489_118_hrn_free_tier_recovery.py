@@ -16,11 +16,11 @@ def _item(provider, model, *, health="healthy", quality=0, transport=0, consecut
     }
 
 
-def test_hrn_relational_selection_prefers_quality_success_when_health_is_equal(monkeypatch):
+def test_hrn_relational_selection_prefers_transport_stability_before_historical_quality(monkeypatch):
     candidates = [
         _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", quality=3, consecutive=0, last_success=999),
         _item("groq", "openai/gpt-oss-120b", quality=0, consecutive=0, last_success=100),
-        _item("openrouter", "openrouter/free", quality=0, consecutive=1, last_success=500),
+        _item("openrouter", "openrouter/free", quality=0, consecutive=0, transport=1, last_success=500),
     ]
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: candidates)
     monkeypatch.setattr(provider_bank, "_csv", lambda name: ["nvidia", "groq", "openrouter"])
@@ -29,7 +29,26 @@ def test_hrn_relational_selection_prefers_quality_success_when_health_is_equal(m
     provider_bank._STATE["models"].clear()
     provider_bank._STATE["quality"].clear()
     selected = provider_bank.select(None, operation="hrn_relational")
-    assert [x["provider"] for x in selected[:3]] == ["groq", "openrouter", "nvidia"]
+    assert [x["provider"] for x in selected[:3]] == ["groq", "nvidia", "openrouter"]
+
+
+
+
+def test_hrn_relational_uses_quality_history_when_transport_health_is_equal(monkeypatch):
+    candidates = [
+        _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", quality=3, consecutive=0, transport=0, last_success=999),
+        _item("groq", "openai/gpt-oss-120b", quality=0, consecutive=0, transport=0, last_success=100),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda name: ["nvidia", "groq"])
+    provider_bank._STATE["provider_cursor"] = 0
+    provider_bank._STATE["model_cursors"] = {}
+    provider_bank._STATE["models"].clear()
+    provider_bank._STATE["quality"].clear()
+
+    selected = provider_bank.select(None, operation="hrn_relational")
+
+    assert [item["provider"] for item in selected[:2]] == ["groq", "nvidia"]
 
 
 def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch):
