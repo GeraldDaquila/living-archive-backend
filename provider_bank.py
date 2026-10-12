@@ -1145,6 +1145,8 @@ def _hrn_surface_language_violation(response):
         "the exchange can end with the distinction intact",
         "without turning uncertainty into a verdict",
         "is a specific, observable pattern",
+        "the friction is rarely just about",
+        "it often reveals a gap between",
     )
     matched = next((phrase for phrase in forbidden if phrase in text), "")
     if matched:
@@ -1156,6 +1158,7 @@ def _hrn_surface_language_violation(response):
         ("action-guidance", r"\b(?:preventing|ensuring|allowing) the (?:decision|choice|response)\b"),
         ("action-guidance", r"\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\b"),
         ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
+        ("action-guidance", r"\b(?:noticing|recognizing|seeing|understanding|separating|distinguishing|considering)\b.{0,180}\ballows you to\b"),
         ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize)\b"),
         ("abstract-generalization", r"\bopens the possibility of\b"),
         ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
