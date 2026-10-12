@@ -31,3 +31,20 @@ def test_hrn_provider_bank_still_rejects_an_empty_question_field():
 
     with pytest.raises(ValueError, match="non-empty question"):
         provider_bank._normalize_operation_result("hrn_relational", partial)
+
+
+def test_hrn_provider_bank_rejects_a_trailing_question_embedded_in_response():
+    partial = {
+        "response": (
+            "Repeated disagreement can make each person focus on proving what they meant rather than noticing what the other person heard. "
+            "The intention may be to clarify, while the effect is that both people feel less understood. "
+            "What do you notice about the relationship when you look at that difference?"
+        ),
+        "question": "What feels most important to understand about the disagreement?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+    with pytest.raises(ValueError, match="embedded question"):
+        provider_bank._normalize_operation_result("hrn_relational", partial)
