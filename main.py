@@ -4097,6 +4097,18 @@ def _relational_handoff_session_id(parsed_body):
     return "relationship-" + uuid.uuid4().hex[:24]
 
 
+def _should_apply_protected_core_safety_recovery(query, risk_profile):
+    """Use protected-core risk recovery only for non-hypothetical personal-risk gaps."""
+    if not isinstance(risk_profile, dict) or not bool(risk_profile.get("risk")):
+        return False
+    if (
+        is_hypothetical_safety_discussion(query)
+        and normalize_safety_state(query) is None
+    ):
+        return False
+    return True
+
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -4123,19 +4135,7 @@ async def _use_request_boundary(scope, receive, send):
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
 
-    def _should_apply_protected_core_safety_recovery(query, risk_profile):
-    """Use protected-core risk recovery only for non-hypothetical personal-risk gaps."""
-    if not isinstance(risk_profile, dict) or not bool(risk_profile.get("risk")):
-        return False
-    if (
-        is_hypothetical_safety_discussion(query)
-        and normalize_safety_state(query) is None
-    ):
-        return False
-    return True
-
-
-# Highest-priority sitewide Safety / Crisis boundary. The Guide owns
+    # Highest-priority sitewide Safety / Crisis boundary. The Guide owns
     # the interruption boundary, but the existing HRN Safety Fractal +
     # Emergency Intelligence system remains the semantic/resource authority.
     # This is deliberately a sibling linkage, not a replacement safety routine.
