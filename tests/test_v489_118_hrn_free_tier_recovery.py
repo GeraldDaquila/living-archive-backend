@@ -58,7 +58,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
         return state
 
     monkeypatch.setattr(provider_bank, "_state", fake_state)
-    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?","rest":false,"use_resource":false,"resource_intro":""}')
+    monkeypatch.setattr(provider_bank, "_call", lambda use_core, item, *a, **kw: calls.append(item["provider"]) or '{"response":"You described feeling unheard during disagreements. The conversation seems to end before your point has been fully acknowledged, leaving both the disagreement and your experience unresolved. There is a difference between disagreeing about a topic and feeling unheard while the conversation is happening.","question":"What happened in the most recent conversation?","rest":false,"use_resource":false,"resource_intro":""}')
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     try:
@@ -85,7 +85,7 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
         if item["provider"] == "nvidia":
-            return '{"response":"When a disagreement leaves you feeling unheard, the friction is rarely just about the topic being debated. It often reveals a gap between reaching an agreement and simply acknowledging what the other person actually experienced. Noticing whether the struggle is about winning a point or making room for two distinct viewpoints allows you to see where the conversation stops being a shared dialogue.","question":"What feels different when you hold both sides together?"}'
+            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happened next?"}'
         return '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"Can you share a recent example of a disagreement where you felt unheard?"}'
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     original_sync = provider_bank._sync_shared_state
