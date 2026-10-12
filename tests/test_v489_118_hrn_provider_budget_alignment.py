@@ -26,6 +26,7 @@ def _item(provider, model):
 
 
 def _isolate_route(monkeypatch, candidates):
+    monkeypatch.setenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
