@@ -26,7 +26,7 @@ CONTRACT_VERSION = "v2"
 # A second independent relational candidate is permitted only after one fast failure.
 HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
-HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
