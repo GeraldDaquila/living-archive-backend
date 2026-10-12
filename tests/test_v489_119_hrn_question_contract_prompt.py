@@ -13,7 +13,7 @@ def test_hrn_provider_prompt_requires_a_separate_nonempty_question_field():
     assert "strict json field contract" in normalized
     assert "question field must never be empty" in normalized
     assert "do not put the follow-up question only inside response" in normalized
-    assert "grounded in the visitor's current message" in normalized
+    assert "grounded in the structured movement brief" in normalized
 
 
 def test_hrn_provider_bank_still_rejects_an_empty_question_field():
@@ -57,9 +57,9 @@ def test_hrn_visitor_contract_requires_interaction_grounded_questions():
 
     assert "interaction between the people" in contract
     assert "not merely ask for factual reasons" in contract
-    assert "name at least one concrete issue, action, or phrase" in contract
+    assert "name at least one concrete issue or action from those fields" in contract
     assert "unless the actual issue is named" in contract
-    assert "visitor's latest turn" in contract
+    assert "the raw visitor message may not be available" in contract
 
 
 def test_hrn_provider_bank_rejects_generic_distinction_question():
