@@ -758,10 +758,10 @@ def resolve_safety(
                 service_need=service_need,
                 safety_state=safety_state,
                 location=location_input,
-                timeout=0.6,
+                timeout=1.2,
             )
             try:
-                emergency_resolution_fast = fast_future.result(timeout=0.65)
+                emergency_resolution_fast = fast_future.result(timeout=1.3)
             except Exception as exc:
                 print(f"Fast safety resource enrichment unavailable; returning immediately: {exc}")
                 emergency_resolution_fast = {}
