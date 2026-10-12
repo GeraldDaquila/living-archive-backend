@@ -1407,7 +1407,7 @@ def _normalize_operation_result(operation, parsed):
         # before applying its 180-character/two-sentence shape gate. Reject that
         # malformed dual-channel draft here so the bank can fail over before the
         # downstream writer silently shortens an otherwise valid-looking response.
-        if re.search(r"\\?\\s*$", completed):
+        if re.search(r"\?\s*$", completed):
             raise ValueError("hrn_relational response field must not end with an embedded question")
         if not completed:
             raise ValueError("hrn_relational composition contract requires a complete response")
