@@ -547,3 +547,60 @@ def test_hrn_relational_uses_small_completion_budget_for_second_stage(monkeypatc
     assert result is not None
     assert token_limits == [250]
     assert provider_bank.HRN_RELATIONAL_MAX_COMPLETION_TOKENS == 250
+
+
+def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retry(monkeypatch):
+    candidates = [
+        _candidate("nvidia", "model-a"),
+        _candidate("groq", "model-b"),
+    ]
+    _isolate(monkeypatch, candidates)
+    brief = {
+        "observer_intention": "Both partners say they want the recurring argument to change.",
+        "observer_contrast": "The same exchange keeps returning.",
+        "observer_so_what": "The stated wish to improve has not changed the repeated argument.",
+        "observer_delta": "One partner feels blamed when something from the past is raised.",
+        "observer_horizon": "The moment the past is brought up.",
+        "observer_next_intention": "What is said just before the past is raised.",
+    }
+    rejected = {
+        "response": (
+            "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed. "
+            "What usually happens just before one of you brings up the past?"
+        ),
+        "question": "What usually happens just before one of you brings up something from the past?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    repaired = {
+        "response": (
+            "Both of you say you want the argument to change, yet the same exchange keeps returning. "
+            "When something from the past is raised, one of you feels blamed. "
+            "The wish to improve is present, but what either of you intends remains unknown."
+        ),
+        "question": "What usually happens just before one of you brings up something from the past?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    calls = []
+
+    def fake_call(use_core, item, call_messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(item["provider"])
+        return json.dumps(rejected if len(calls) == 1 else repaired)
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps(brief),
+        }],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+    assert result is not None
+    assert calls == ["nvidia", "groq"]
