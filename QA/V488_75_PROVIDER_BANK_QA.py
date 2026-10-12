@@ -320,7 +320,15 @@ def main():
     ):
         routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -364,7 +372,15 @@ def main():
     ):
         question_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -398,7 +414,15 @@ def main():
     ):
         shape_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -431,7 +455,15 @@ def main():
     ):
         fast_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -455,7 +487,15 @@ def main():
     ):
         measured_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
@@ -475,7 +515,15 @@ def main():
     ):
         over_budget_routed = provider_bank.route(
             use_core=None,
-            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            messages=[{
+                "role": "user",
+                "content": "STRUCTURED MOVEMENT BRIEF\\n" + json.dumps({
+                    "working_hypothesis": "visitor feels unheard when they disagree while doing most repair work",
+                    "thread_summary": "repair effort feels one-sided and disagreement leaves the visitor feeling unheard",
+                    "underlying_need": "understand what happens before feeling unheard and which repair work feels one-sided",
+                    "body_of_thought": "disagreement, feeling unheard, and one-sided repair work are connected while motives remain unknown",
+                }),
+            }],
             max_tokens=600,
             parse=json.loads,
             operation="hrn_relational",
