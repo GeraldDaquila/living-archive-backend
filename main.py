@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.166 — settle unused completion reservation after successful provider calls
+# USE PRODUCTION VERSION: v489.167 — settle unused completion reservation after successful provider calls
 import asyncio
 import hashlib
 import ipaddress
@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.166"
-DEPLOYMENT_FINGERPRINT = "USE-v489.166-relational-communication-focus"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.166-relational-communication-focus"
+APP_VERSION = "v489.167"
+DEPLOYMENT_FINGERPRINT = "USE-v489.167-quoted-sentence-topic-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.167-quoted-sentence-topic-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +176,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.166":
+if str(APP_VERSION) != "v489.167":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1437,7 +1437,7 @@ def _relational_return_direct_topic_fit(query, doc):
     # a broad family/couple doorway from passing merely because the essay mentions
     # silence, rejection, and intention in unrelated passages.
     sentence_specific_hits = 0
-    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body_text):
+    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\]]+)?\s+|\n+", body_text):
         sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
         sentence_hits = {
             term for term in specific_terms
