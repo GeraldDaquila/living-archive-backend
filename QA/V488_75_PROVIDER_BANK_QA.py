@@ -391,20 +391,19 @@ def main():
     assert question_call.call_count == 2, "Missing-question quality failure must not trigger same-model recovery."
     assert missing_question_events and "non-empty question" in missing_question_events[0][3]
 
-    # A structurally short HRN response is also a model-quality failure, not
-    # a reason to spend the bounded turn on same-model correction.
+    # A short response is a field-level shape defect: permit one bounded
+    # correction on the same candidate, then validate the corrected object.
     short_hrn = json.dumps({
         "response": "You feel unheard when disagreement starts.",
         "question": "What happens just before you feel unheard?",
     })
     shape_pool = [
         {"provider": "nvidia", "model": "nvidia/nemotron-shape-test", "index": 0},
-        {"provider": "mistral", "model": "mistral-small-shape-test", "index": 0},
     ]
     with (
         patch.dict(os.environ, {
             "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1",
-            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "1",
         }, clear=False),
         patch.object(provider_bank, "select", return_value=shape_pool),
         patch.object(provider_bank, "_call", side_effect=[short_hrn, independent_hrn]) as shape_call,
@@ -427,12 +426,13 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-    assert shape_routed["provider"] == "mistral", (
-        "A rejected short HRN response must advance to an independent provider."
+    assert shape_routed["provider"] == "nvidia", (
+        "A corrected short HRN response should retain the original candidate."
     )
     assert shape_call.call_count == 2, (
-        "A short HRN response must not receive a same-model correction request."
+        "A short HRN response receives exactly one bounded field-level correction."
     )
+    assert len(shape_routed["parsed"]["response"]) >= 180
 
     # Fast provider failures may traverse multiple independent relational lanes,
     # but only while the existing five-second aggregate window remains open.
