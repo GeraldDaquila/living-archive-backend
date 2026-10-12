@@ -68,7 +68,14 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     monkeypatch.setattr(provider_bank, "_call", slow_failure)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "system", "content": "Return JSON only."}],
+        messages=[{"role": "system", "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            '{"working_hypothesis":"deadline disagreement",'
+            '"underlying_need":"shared clarity about the date and added work",'
+            '"emerging_delta":"the scope changed after the original agreement",'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\\n'
+            "Return JSON only."
+        )}],
         max_tokens=300,
         parse=provider_bank._json_object,
         operation="hrn_relational",
@@ -95,12 +102,11 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
 
     good_response = json.dumps({
         "response": (
-            "You said you feel unheard when you and your friend disagree. "
-            "You want to understand what happens in those moments without assuming "
-            "what your friend intends. The difference between disagreeing about a "
-            "topic and feeling unheard during the conversation is worth looking at separately."
+            "The agreed deadline and the changed scope are both present in the disagreement. "
+            "One colleague is holding to the date while the other is pointing to the additional work. "
+            "The exchange turns on how the original agreement relates to what was added."
         ),
-        "question": "Can you share a recent example of a disagreement where you felt unheard?",
+        "question": "What happens in the conversation when the deadline is raised alongside the changed scope?",
         "rest": False,
         "use_resource": False,
         "resource_intro": "",
