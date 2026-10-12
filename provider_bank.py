@@ -1341,7 +1341,7 @@ def _hrn_question_grounding_violation(question, messages):
     if not anchors:
         return "question-grounding contract violation: structured movement brief has no concrete question anchors"
     lowered_question = str(question or "").casefold()
-    if any(re.search(r"\\b" + re.escape(token) + r"\\b", lowered_question) for token in anchors):
+    if any(re.search(r"\b" + re.escape(token) + r"\b", lowered_question) for token in anchors):
         return ""
     return "question-grounding contract violation: question does not name a concrete detail from the structured movement brief"
 
