@@ -71,7 +71,7 @@ def main():
             "Provider Bank sentence counter must split on whitespace correctly")
     require("response shape requires at least two complete sentences and 180 characters" in BANK,
             "Provider Bank does not enforce HRN's downstream response-shape floor")
-    require("The response must contain at least two complete sentences and 180 characters." in BANK,
+    require("at least two complete sentences and 180 characters." in BANK,
             "Provider Bank recovery prompt does not explain the response-shape failure")
     require("lanes.sort(key=_hrn_lane_priority)" in BANK, "HRN provider lanes are not ranked by observed health and quality")
     require("configured_priority.get(provider, len(configured_priority))" in BANK, "provider-order tie-breaker is missing")

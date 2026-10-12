@@ -195,6 +195,54 @@ def main():
     assert failed_state["quarantine_until"] == 0.0
     assert failed_state["cooldown_until"] > 0.0
 
+    # Exercise the real Provider Bank route: semantic rejection must skip the
+    # same-model correction request and continue to an independent valid provider.
+    rejected_hrn = json.dumps({
+        "response": "You are dealing with a friend who is avoiding accountability and refusing to listen. This clearly shows that they do not respect your feelings.",
+        "question": "What happens just before you begin to feel unheard?",
+    })
+    independent_hrn = json.dumps({
+        "response": "You described trying to explain your view and feeling unheard when disagreement starts. The impact on you is clear, even though your friend's reasons for responding that way are not yet known.",
+        "question": "What happens just before you begin to feel unheard?",
+    })
+    pool = [
+        {"provider": "nvidia", "model": "nvidia/nemotron-test", "index": 0},
+        {"provider": "mistral", "model": "mistral-small-test", "index": 0},
+    ]
+    quality_events = []
+    original_record_quality = provider_bank._record_quality_rejection
+    def capture_quality(provider, model, operation, reason):
+        quality_events.append((provider, model, operation, reason))
+        return original_record_quality(provider, model, operation, reason)
+    with (
+        patch.dict(os.environ, {
+            "USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+            "USE_PROVIDER_BANK_MAX_ATTEMPTS": "2",
+        }, clear=False),
+        patch.object(provider_bank, "select", return_value=pool),
+        patch.object(provider_bank, "_call", side_effect=[rejected_hrn, independent_hrn]) as model_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+        patch.object(provider_bank, "_record_quality_rejection", side_effect=capture_quality),
+    ):
+        routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert routed["provider"] == "mistral", "Rejected HRN voice must advance to independent provider."
+    assert model_call.call_count == 2, "The rejected NVIDIA model must not receive a same-model correction call."
+    assert quality_events and quality_events[0][0:3] == (
+        "nvidia", "nvidia/nemotron-test", "hrn_relational"
+    ), "Semantic rejection must be recorded as provider/model quality failure."
+    assert provider_bank._hrn_surface_language_violation(routed["parsed"]["response"]) == "", (
+        "Independent fallback must satisfy the unchanged visitor language policy."
+    )
+
+
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until
     # the provider-supplied reset timestamp, rather than retrying siblings.
