@@ -29,6 +29,19 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
+
+class ProviderOutput(str):
+    """String-compatible provider text with optional exact completion usage."""
+
+    def __new__(cls, value, completion_tokens=None):
+        instance = super().__new__(cls, str(value or ""))
+        try:
+            instance.completion_tokens = int(completion_tokens) if completion_tokens is not None else None
+        except (TypeError, ValueError):
+            instance.completion_tokens = None
+        return instance
+
+
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
 # Permit up to three short local candidates within a five-second fast-failure window;
 # this allows a third candidate when two transport failures consume ~3-4 seconds.
@@ -609,7 +622,12 @@ def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
             max_retries=0,
         )
     response = request_client.chat.completions.create(**kwargs)
-    return str(response.choices[0].message.content or "").strip()
+    usage = getattr(response, "usage", None)
+    completion_tokens = getattr(usage, "completion_tokens", None)
+    return ProviderOutput(
+        str(response.choices[0].message.content or "").strip(),
+        completion_tokens=completion_tokens,
+    )
 
 def _gemini_compatible_response_schema(value):
     """Remove JSON Schema keywords that Gemini's responseSchema rejects."""
@@ -722,7 +740,8 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
                 provider + " returned empty message content", provider, model,
                 category="invalid_provider_response"
             )
-        return content
+        usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
+        return ProviderOutput(content, completion_tokens=usage.get("completion_tokens"))
 
     try:
         return request(payload)
@@ -1852,6 +1871,7 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
             use_core, item, messages, max_tokens, schema,
             timeout_override=timeout_override,
         )
+        reservation.settle_output(result)
         outcome = "ok"
         return result
     finally:
