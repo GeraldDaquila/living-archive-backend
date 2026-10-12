@@ -1320,7 +1320,7 @@ def _hrn_surface_language_violation(response):
         ("action-guidance", r"\b(?:stabilize|enforce|set) your (?:own )?(?:position|boundary|boundaries)\b"),
         ("abstract-generalization", r"\b(?:in many|often stems from|a common pattern is|relationships often)\b"),
         ("action-guidance", r"\b(?:noticing|recognizing|seeing|understanding|separating|distinguishing|considering)\b.{0,180}\ballows you to\b"),
-        ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize|re-?allocate|negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
+        ("action-guidance", r"\b(?:lets|allows|helps) you (?:pause|choose|decide|frame|act|respond|engage|set|stabilize|focus|re-?allocate|negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
         ("action-guidance", r"\bopens space to\s+(?:re-?allocate|re-?negotiate|plan|organize|adjust|manage|keep|maintain|prioritize|coordinate)\b"),
         ("abstract-generalization", r"\bopens the possibility of\b"),
         ("abstract-generalization", r"\b(?:physical or emotional gap|choosing a stance|more grounded)\b"),
@@ -1955,8 +1955,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     and "response shape requires at least two complete sentences and 180 characters"
                     in str(contract_error)
                 )
+                targeted_response_voice_recovery = (
+                    operation == "hrn_relational"
+                    and "visitor-surface contract violation: action-guidance"
+                    in str(contract_error)
+                )
                 targeted_field_recovery = (
-                    targeted_question_recovery or targeted_response_shape_recovery
+                    targeted_question_recovery
+                    or targeted_response_shape_recovery
+                    or targeted_response_voice_recovery
                 )
                 hrn_quality_failure = operation == "hrn_relational" and any(
                     marker in str(contract_error)
@@ -2010,6 +2017,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Correct that field-level defect only: rewrite the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
                         "Do not add advice, prescribe action, infer hidden motives, or introduce new facts. "
                         "Preserve the original question and all valid flags. "
+                    )
+                elif targeted_response_voice_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON failed because the response turned an observation into action-guidance. "
+                        "Rewrite only the response field as two or three complete, natural, concrete sentences about what the visitor described and what remains unknown. "
+                        "Do not tell the visitor what to do, suggest reallocating or renegotiating, or frame an interpretation as a route to action. "
+                        "Do not infer hidden motives or introduce new facts. Preserve the original question and all valid flags. "
                     )
                 else:
                     correction_prompt = (
