@@ -76,7 +76,10 @@ def main():
     assert "def _hrn_attempt_cap():" in provider
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
     assert "operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts" in provider
-    assert "max_attempts = min(len(pool), operation_attempt_cap)" in provider
+    assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0" in provider
+    assert "action=try_independent_candidate" in provider
+    assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
     # HRN stages share one visitor turn: provider priority must not rotate between
     # perception and composition, or the bounded window can skip a healthy primary.
@@ -346,6 +349,37 @@ def main():
     assert shape_call.call_count == 2, (
         "A short HRN response must not receive a same-model correction request."
     )
+
+    # Fast provider failures may use one extra independent relational lane,
+    # but slow failures must not expand the wall-clock budget.
+    fast_fallback_pool = [
+        {"provider": "openrouter", "model": "openrouter/free", "index": 0},
+        {"provider": "mistral", "model": "mistral-small-latest", "index": 0},
+        {"provider": "nvidia", "model": "nvidia/nemotron-3-super-120b-a12b", "index": 0},
+    ]
+    rate_limited = provider_bank.ProviderCallError(
+        "HTTP 429: Rate limit exceeded", "mistral", "mistral-small-latest",
+        status_code=429, category="rate_limited",
+    )
+    with (
+        patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
+        patch.object(provider_bank, "select", return_value=fast_fallback_pool),
+        patch.object(provider_bank, "_call", side_effect=["not-json", rate_limited, valid_hrn]) as fast_call,
+        patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
+        patch.object(provider_bank, "acquire_probe", return_value=True),
+        patch.object(provider_bank, "_success"),
+    ):
+        fast_routed = provider_bank.route(
+            use_core=None,
+            messages=[{"role": "user", "content": "I feel unheard when we disagree."}],
+            max_tokens=600,
+            parse=json.loads,
+            operation="hrn_relational",
+        )
+    assert fast_routed["provider"] == "nvidia", (
+        "Two fast provider failures must advance to one more independent relational lane."
+    )
+    assert fast_call.call_count == 3, "Fast-failure extension must remain bounded to one extra candidate."
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until
