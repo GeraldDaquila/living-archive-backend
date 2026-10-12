@@ -2109,8 +2109,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 )
                 targeted_response_voice_recovery = (
                     operation == "hrn_relational"
-                    and "visitor-surface contract violation:"
-                    in str(contract_error)
+                    and any(
+                        marker in str(contract_error)
+                        for marker in (
+                            "visitor-surface contract violation: this distinction matters because",
+                            "visitor-surface contract violation: it shifts the focus from",
+                            "visitor-surface contract violation: formulaic-connective",
+                        )
+                    )
                 )
                 targeted_field_recovery = (
                     targeted_question_recovery
