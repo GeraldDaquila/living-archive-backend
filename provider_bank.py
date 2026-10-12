@@ -609,7 +609,7 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
 
-def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None):
+def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
     # NVIDIA Nemotron 3-series models can emit reasoning separately from the
@@ -636,7 +636,9 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
             # NVIDIA hosted inference has previously exceeded the generic 6s
             # transport budget. Give the bounded NVIDIA attempt 12s while keeping
             # every other provider at the existing default timeout.
-            if provider == "nvidia":
+            if timeout is not None:
+                data = _http_json(url, headers, current_payload, provider, model, timeout=timeout)
+            elif provider == "nvidia":
                 data = _http_json(url, headers, current_payload, provider, model, timeout=12)
             else:
                 data = _http_json(url, headers, current_payload, provider, model)
@@ -1523,26 +1525,26 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         key = os.getenv("OPENROUTER_API_KEY")
         if not key:
             raise ProviderCallError("OpenRouter API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://openrouter.ai/api/v1", key, provider, model, messages, max_tokens, schema)
-    if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema)
+        return _openai_compatible("https://openrouter.ai/api/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
+    if provider == "groq": return _groq(use_core, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "gemini":
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY")
         if not key: raise ProviderCallError("Gemini API key unavailable", provider, model, category="unavailable")
-        return _gemini(key, model, messages, max_tokens, schema)
+        return _gemini(key, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "mistral":
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema)
+        return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "nvidia":
         key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
         if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
             raise ProviderCallError("NVIDIA API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema)
+        return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "cloudflare_gateway":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
         base = "https://api.cloudflare.com/client/v4/accounts/" + urllib.parse.quote(account, safe="") + "/ai/v1"
-        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema)
+        return _openai_compatible(base, token, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "workers_ai":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Workers AI credentials unavailable", provider, model, category="unavailable")
@@ -1644,7 +1646,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=5 if operation in hrn_operations else None)
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations else None)
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
