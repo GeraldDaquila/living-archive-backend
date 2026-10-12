@@ -1115,10 +1115,15 @@ def select(use_core, operation="generic", schema=None):
                 # Among non-probing lanes, keep HRN contract history first;
                 # this prevents a historically rejected model from winning solely
                 # because another stage marked its transport healthy.
+                # Recovery probes must remain behind established lanes. Among
+                # non-probing lanes, current transport health outranks historical
+                # semantic-quality counts: a degraded lane with a clean quality
+                # record is not safer than a healthy lane with a prior rejection.
+                # Quality remains the tie-breaker inside the same health tier.
                 return (
                     recovery_probe_rank,
-                    quality_failures,
                     health_rank,
+                    quality_failures,
                     consecutive_failures,
                     transport_failures,
                     provider_rank,
