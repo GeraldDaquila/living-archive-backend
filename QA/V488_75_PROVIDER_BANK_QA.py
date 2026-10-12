@@ -238,7 +238,7 @@ def main():
     assert quality_events and quality_events[0][0:3] == (
         "nvidia", "nvidia/nemotron-test", "hrn_relational"
     ), "Semantic rejection must be recorded as provider/model quality failure."
-    assert provider_bank._hrn_surface_language_violation(routed["response"]) == "", (
+    assert provider_bank._hrn_surface_language_violation(routed["parsed"]["response"]) == "", (
         "Independent fallback must satisfy the unchanged visitor language policy."
     )
 
