@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.124 — ground safety follow-through presence claims
+# USE PRODUCTION VERSION: v489.125 — shared provider health readiness diagnostics
 import asyncio
 import hashlib
 import ipaddress
@@ -68,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.124"
-DEPLOYMENT_FINGERPRINT = "USE-v489.124-safety-presence-grounding"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.124-safety-presence-grounding"
+APP_VERSION = "v489.125"
+DEPLOYMENT_FINGERPRINT = "USE-v489.125-shared-provider-health-readiness"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.125-shared-provider-health-readiness"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -175,7 +175,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.124":
+if str(APP_VERSION) != "v489.125":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5324,6 +5324,7 @@ def ecosystem_integration_audit():
     # retrieval spokes and must not be misreported as adapter-backed.
     direct_handoffs = {
         "catalogue": "native_catalogue_search",
+        "systems_ph": "native_philippine_systems_landing",
         "navigator": "native_navigator",
         "fsd": "native_fsd_landing",
         "guide_node": "canonical_guide_node",
