@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.116 — measured relational fallback window
+# USE PRODUCTION VERSION: v489.117 — reject incomplete HRN question contracts
 import asyncio
 import hashlib
 import ipaddress
@@ -68,9 +68,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.116"
-DEPLOYMENT_FINGERPRINT = "USE-v489.116-measured-relational-fallback-window"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.116-measured-relational-fallback-window"
+APP_VERSION = "v489.117"
+DEPLOYMENT_FINGERPRINT = "USE-v489.117-hrn-question-independent-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.117-hrn-question-independent-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -175,7 +175,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.116":
+if str(APP_VERSION) != "v489.117":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
