@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.167"
-    assert report["fingerprint"] == "USE-v489.167-quoted-sentence-topic-fit"
+    assert report["version"] == "v489.168"
+    assert report["fingerprint"] == "USE-v489.168-explicit-formation-entry"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -114,3 +114,20 @@ def test_quoted_statements_do_not_merge_separate_topic_evidence():
     }
     assert not main._relational_return_direct_topic_fit(query, self_sacrifice_article)
     assert not main._relational_return_earned_focus_fit(query, self_sacrifice_article)
+
+
+def test_explicit_formation_entry_bypasses_ambiguous_model_route():
+    query = "I want to enter stewardship formation and learn how to carry responsibility well."
+    route = main._explicit_formation_entry_route(query)
+    assert route is not None
+    assert route["route"] == "formation"
+    assert route["mode"] == "delegated_journey"
+    assert route["source"] == "deterministic-explicit-formation-entry"
+    assert route["round1_interpretation"]["presenting_situation"] == query
+
+
+def test_formation_definition_question_is_not_forced_into_specialist_entry():
+    route = main._explicit_formation_entry_route(
+        "What is stewardship formation and why does it matter?"
+    )
+    assert route is None
