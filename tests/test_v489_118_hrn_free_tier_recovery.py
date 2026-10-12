@@ -104,7 +104,7 @@ def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failu
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
         if item["provider"] == "nvidia":
-            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happened next?"}'
+            return '{"response":"You should consider telling the other person how you feel and asking them to listen more carefully. That may help create a different outcome.","question":"What happened when the agreed date was raised alongside the changed scope?"}'
         return '{"response":"You said you feel unheard when you and your friend disagree. You want to understand what happens between you in those moments without assuming what your friend intends. The difference between disagreeing about a topic and feeling unheard during the conversation is worth looking at separately.","question":"What happened in the conversation when the agreed date was raised alongside the changed scope?"}'
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     original_sync = provider_bank._sync_shared_state
