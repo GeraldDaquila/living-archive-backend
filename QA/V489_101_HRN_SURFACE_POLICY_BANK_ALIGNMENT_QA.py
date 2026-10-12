@@ -31,9 +31,14 @@ def _parsed(response, question):
 def main():
     bad_question = "What could you try to change about how you respond?"
     assert _hrn_surface_language_violation(bad_question)
-    normalized = _normalize_operation_result("hrn_relational", _parsed(VALID_RESPONSE, bad_question))
-    assert normalized["response"] == VALID_RESPONSE
-    assert normalized["question"] == "", "HRN must repair a rejected question without losing valid prose."
+    try:
+        _normalize_operation_result("hrn_relational", _parsed(VALID_RESPONSE, bad_question))
+    except ValueError as exc:
+        assert "question-surface contract violation" in str(exc)
+    else:
+        raise AssertionError(
+            "A prescriptive question must be rejected and routed to an independent provider."
+        )
 
     valid_question = "What happens just before you begin to feel unheard?"
     normalized = _normalize_operation_result("hrn_relational", _parsed(VALID_RESPONSE, valid_question))
