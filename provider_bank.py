@@ -2244,7 +2244,6 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         marker in str(contract_error)
                         for marker in (
                             "question-surface contract violation: prescriptive-language",
-                            "hrn_relational composition contract requires a non-empty question",
                         )
                     )
                 )
@@ -2336,8 +2335,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # Only HRN relational surface-quality failures bypass same-model retry.
                 if targeted_question_recovery:
                     correction_prompt = (
-                        "Your preceding HRN JSON failed because its separate follow-up question was missing, empty, or prescriptive. "
-                        "Correct that field-level defect only: supply one natural, non-prescriptive question grounded in a concrete detail from the structured movement brief. "
+                        "Your preceding HRN JSON failed specifically because its separate follow-up question used prescriptive language. "
+                        "Correct that field-level defect only: replace the question with one natural, non-prescriptive question grounded in a concrete detail from the structured movement brief. "
                         "Do not tell the visitor what to do; do not use should, must, need to, ought to, might/could try, or consider. "
                         "Preserve the original response and all valid flags unless a field independently violates the stated contract. "
                         "Do not invent facts or add advice. "
