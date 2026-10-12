@@ -874,11 +874,35 @@ def resolve_safety(
                     "Do you think you might act on these thoughts right now?"
                 )
 
+        # Presence claims must be grounded in the visitor's own words.
+        # HRN has occasionally asserted that another person is already with
+        # the visitor even when the visitor has not said so. That can falsely
+        # imply that immediate support is present. Only preserve that claim
+        # when the current turn explicitly establishes human presence.
+        message = str(normalized.get("safety_message") or "")
+        unsupported_presence_claim = re.search(
+            r"\\b(?:it helps (?:that|to have)|you have|there is)\\b.{0,55}"
+            r"\\b(?:someone|somebody|another person|them)\\b.{0,45}"
+            r"\\b(?:with you|with them|stay together)\\b|"
+            r"\\b(?:someone|somebody|another person)\\s+is\\s+with\\s+you\\b",
+            message,
+            re.I,
+        )
+        if presence != "present" and unsupported_presence_claim:
+            normalized["safety_message"] = (
+                "Thank you for answering. Let's focus on keeping you safe right now."
+            )
+            normalized["safety_question"] = (
+                "Is there someone you trust who can stay with you right now?"
+            )
+            normalized["safety_release_ready"] = False
+            normalized["loop_guard"] = "unsupported_presence_claim_repaired"
+            message = str(normalized["safety_message"])
+
         # Compatibility guard for the known HRN loop defect. If the visitor
         # explicitly establishes human presence, HRN must not pass through a
         # generated assertion that the visitor is alone. We repair the
         # contradiction conservatively and keep the safety latch closed.
-        message = str(normalized.get("safety_message") or "")
         if presence == "present" and re.search(
             r"\b(?:you are|you(?:'re| are)?)\s+alone\b|\bsince you are alone\b",
             message,
