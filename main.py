@@ -10,7 +10,7 @@ from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -3430,7 +3430,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             if not asks_for_homepage:
                 evidence_docs = [
                     item for item in evidence_docs
-                    if urlparse(str(item.get("url") or item.get("canonical_url") or "")).path.strip("/")
+                    if "/" in str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1] and str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1].split("/", 1)[1].strip("/")
                 ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
