@@ -187,6 +187,10 @@ OPERATION_REQUIREMENTS = {
 }
 
 _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
+# Shared health writes are synchronous HTTP requests. During one provider-bank
+# route, collect health events locally and persist one coherent snapshot at the
+# route boundary instead of paying a WordPress round trip for every failed model.
+_PERSIST_CONTEXT = threading.local()
 _LAST_PROVIDER_INVENTORY_DIAGNOSTIC = None
 _SHARED_STATE_DIAGNOSTICS = {
     "mode": "shared_wordpress_database",
@@ -249,6 +253,9 @@ def _sync_shared_state():
 def _persist_shared_state():
     """Persist the bounded health snapshot; failure never fabricates a provider answer."""
     global _LAST_SHARED_STATE_WARNING
+    if getattr(_PERSIST_CONTEXT, "defer", False):
+        _PERSIST_CONTEXT.dirty = True
+        return True
     combined_state = dict(_STATE["models"])
     combined_state.update(_STATE.setdefault("quality", {}))
     ok = save_remote_states(export_health_states(combined_state))
@@ -1835,6 +1842,17 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
         reservation.release()
 
 
+def _route_result(result):
+    """Flush accumulated route health changes once before returning to the caller."""
+    if getattr(_PERSIST_CONTEXT, "defer", False):
+        dirty = bool(getattr(_PERSIST_CONTEXT, "dirty", False))
+        _PERSIST_CONTEXT.defer = False
+        _PERSIST_CONTEXT.dirty = False
+        if dirty:
+            _persist_shared_state()
+    return result
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
     _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
@@ -1903,6 +1921,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         requested_max_tokens = min(requested_max_tokens, 600)
     elif operation == "general_guide_composition":
         requested_max_tokens = min(requested_max_tokens, 900)
+    _PERSIST_CONTEXT.defer = True
+    _PERSIST_CONTEXT.dirty = False
     for attempt_index, item in enumerate(attempt_pool, start=1):
         if attempt_index > base_max_attempts:
             elapsed = time.monotonic() - route_started
@@ -2135,7 +2155,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
             _success(provider, model, operation)
-            return {"parsed": parsed, "provider": provider, "model": model, "preference_order": order}
+            return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
             # is unhealthy. Release any half-open probe claim and allow independent
@@ -2169,7 +2189,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             _failure(exc, provider, model)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
-    return None
+    return _route_result(None)
 
 def refresh_shared_health_state():
     """Refresh shared health once for an explicit operational diagnostic."""
