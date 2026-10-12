@@ -593,10 +593,10 @@ def test_hrn_relational_groq_completion_budget_respects_tpm_headroom(monkeypatch
         original_quality.update(saved_quality)
 
     assert result is not None
-    assert budgets == [1200]
+    assert budgets == [250]
     assert provider_bank.OPERATION_MODEL_LIMITS[
         ("hrn_relational", "groq", "openai/gpt-oss-20b")
-    ] == 1200
+    ] == 250
 
 
 
