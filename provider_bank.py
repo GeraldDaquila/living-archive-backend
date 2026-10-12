@@ -1335,12 +1335,15 @@ def _hrn_question_grounding_violation(question, messages):
         # Keep the visitor payload out of logs. The error position and a short
         # structural preview are enough to distinguish empty serialization,
         # invalid JSON, and a marker followed by the wrong object.
-        preview = brief_content[brace_index:brace_index + 80] if brace_index >= 0 else ""
+        error_position = getattr(exc, "pos", -1)
+        preview_start = max(brace_index, error_position - 80) if brace_index >= 0 else 0
+        preview = brief_content[preview_start:preview_start + 180]
         print(
             "USE HRN movement brief parse failure: "
             f"error={type(exc).__name__}, "
-            f"position={getattr(exc, 'pos', 'n/a')}, "
-            f"preview={preview[:80]!r}"
+            f"reason={getattr(exc, 'msg', str(exc))!r}, "
+            f"position={error_position}, "
+            f"preview={preview[:180]!r}"
         )
         return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
