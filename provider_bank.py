@@ -532,7 +532,7 @@ def _ensure_json_object_instruction(messages, schema=None):
     normalized.insert(0, {"role": "system", "content": instruction})
     return normalized
 
-def _groq(use_core, model, messages, max_tokens, schema=None):
+def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
     client = getattr(use_core, "groq_client", None)
     if client is None: raise ProviderCallError("Groq client unavailable", "groq", model, category="unavailable")
     kwargs = {"model": model, "messages": messages, "temperature": 0.0,
@@ -543,7 +543,10 @@ def _groq(use_core, model, messages, max_tokens, schema=None):
         kwargs["reasoning_effort"] = "low"; kwargs["include_reasoning"] = False
     elif model == "qwen/qwen3.8-27b":
         kwargs["reasoning_effort"] = "none"; kwargs["reasoning_format"] = "hidden"
-    response = client.chat.completions.create(**kwargs)
+    request_client = client
+    if timeout is not None and callable(getattr(client, "with_options", None)):
+        request_client = client.with_options(timeout=max(1.0, min(10.0, float(timeout))))
+    response = request_client.chat.completions.create(**kwargs)
     return str(response.choices[0].message.content or "").strip()
 
 def _gemini_compatible_response_schema(value):
@@ -559,7 +562,7 @@ def _gemini_compatible_response_schema(value):
     return value
 
 
-def _gemini(key, model, messages, max_tokens, schema=None):
+def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
     system = "\n".join(str(x.get("content") or "") for x in messages if x.get("role") == "system" and isinstance(x.get("content"), str)).strip()
     contents = []
     for message in messages:
@@ -601,7 +604,7 @@ def _gemini(key, model, messages, max_tokens, schema=None):
         payload["generationConfig"]["responseSchema"] = _gemini_schema
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
-    data = _http_json(url, {}, payload, "gemini", model)
+    data = _http_json(url, {}, payload, "gemini", model, timeout=timeout)
     try: return str(data["candidates"][0]["content"]["parts"][0]["text"]).strip()
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
