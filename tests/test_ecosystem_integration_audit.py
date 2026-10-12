@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.166"
-    assert report["fingerprint"] == "USE-v489.166-relational-communication-focus"
+    assert report["version"] == "v489.167"
+    assert report["fingerprint"] == "USE-v489.167-quoted-sentence-topic-fit"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -92,3 +92,25 @@ def test_heard_as_blame_is_not_classified_as_a_listening_complaint():
     assert _relational_communication_focus(
         "I feel unheard when my partner goes silent after an argument."
     )
+
+
+def test_quoted_statements_do_not_merge_separate_topic_evidence():
+    query = (
+        "My partner and I keep having the same argument, even though we both say we want things to improve. "
+        "Understand how raising an earlier hurt becomes a dispute about blame, without assuming either partner "
+        "intends to hurt or dismiss the other. The argument changes direction when explaining an earlier hurt "
+        "is heard as assigning blame."
+    )
+    self_sacrifice_article = {
+        "title": "When Love Has Been Built on Your Self-Sacrifice",
+        "text": (
+            "You may think: “If I stop over-giving, they’ll feel hurt.” "
+            "“If I set boundaries, I’ll seem selfish.” "
+            "“If I change, I’ll damage the relationship.” "
+            "But what you are really facing is this question: Can this relationship exist without my self-sacrifice holding it together? "
+            "You are responsible for changing with honesty and care—not with blame, not with punishment, but with truth. "
+            "There is a difference between attacking someone for the past and no longer participating in a pattern that harms you."
+        ),
+    }
+    assert not main._relational_return_direct_topic_fit(query, self_sacrifice_article)
+    assert not main._relational_return_earned_focus_fit(query, self_sacrifice_article)
