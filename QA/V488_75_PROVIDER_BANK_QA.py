@@ -117,8 +117,8 @@ def main():
 
     # A rejected HRN visitor-surface response must receive explicit, phrase-aware
     # correction guidance rather than a schema-only retry that repeats the same voice.
-    recovery_start = provider.index("recovery_messages.append({")
-    recovery_end = provider.index("recovered = parse", recovery_start)
+    recovery_start = provider.index("correction_content = (")
+    recovery_end = provider.index('if operation == "hrn_relational":', recovery_start)
     recovery_prompt = provider[recovery_start:recovery_end]
     for phrase in (
         "Do not repeat the rejected wording",
