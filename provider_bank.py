@@ -1462,7 +1462,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # would consume the bounded stage budget and often reproduce the
                 # same disallowed voice. Quarantine this operation/model and move
                 # directly to the independently ranked provider lane.
-                if operation == "hrn_relational" and "visitor-surface contract violation" in str(contract_error):
+                hrn_quality_failure = operation == "hrn_relational" and any(
+                    marker in str(contract_error)
+                    for marker in (
+                        "visitor-surface contract violation",
+                        "response shape requires",
+                        "composition contract requires a complete response",
+                    )
+                )
+                if hrn_quality_failure:
                     last_error = str(contract_error)
                     _record_quality_rejection(provider, model, operation, last_error)
                     print(
