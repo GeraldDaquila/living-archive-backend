@@ -1119,7 +1119,13 @@ def _hrn_surface_language_violation(response):
         return "formulaic-abstract-question"
     if re.search(r"\bwhat changes when you look at (?:the situation|it) through that distinction\b", text):
         return "formulaic-abstract-question"
-    if "opening the possibility to negotiate" in text or "negotiable anchor" in text:
+    if any(phrase in text for phrase in (
+        "opening the possibility to negotiate",
+        "opening space to negotiate",
+        "negotiable anchor",
+        "common timeline and deliverable set",
+        "shared definition of agreement can be rebuilt",
+    )):
         return "action-solution-frame"
     forbidden = (
         "the brief identifies",
@@ -1288,6 +1294,61 @@ def _hrn_surface_language_violation(response):
     return next((label for label, pattern in patterns if re.search(pattern, text)), "")
 
 
+def _hrn_question_grounding_violation(question, messages):
+    """Require an HRN question to name a concrete detail from the structured current-turn brief."""
+    user_content = ""
+    for item in reversed(list(messages or [])):
+        if isinstance(item, dict) and item.get("role") == "user":
+            candidate = str(item.get("content") or "")
+            if "STRUCTURED MOVEMENT BRIEF" in candidate:
+                user_content = candidate
+                break
+    if not user_content:
+        return ""
+
+    marker_index = user_content.find("STRUCTURED MOVEMENT BRIEF")
+    brace_index = user_content.find("{", marker_index)
+    if brace_index < 0:
+        return ""
+    try:
+        brief, _ = json.JSONDecoder().raw_decode(user_content[brace_index:])
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return ""
+    if not isinstance(brief, dict):
+        return ""
+
+    source_parts = []
+    for field in ("situation", "tension", "parties", "experience"):
+        value = brief.get(field)
+        if isinstance(value, str):
+            source_parts.append(value)
+        elif isinstance(value, (list, tuple)):
+            source_parts.extend(str(part) for part in value if isinstance(part, str))
+    stopwords = {
+        "about", "after", "again", "along", "already", "among", "around", "because",
+        "before", "being", "between", "both", "change", "changes", "changed", "could",
+        "different", "disagreement", "dispute", "during", "each", "either", "enough",
+        "every", "experience", "from", "have", "having", "into", "issue", "itself",
+        "just", "matter", "matters", "maybe", "might", "more", "other", "parties",
+        "pattern", "people", "person", "points", "rather", "really", "relationship",
+        "relationships", "reported", "reports", "situation", "someone", "something",
+        "stated", "their", "there", "these", "thing", "things", "those", "through",
+        "tension", "they", "this", "under", "visitor", "were", "what", "when", "where",
+        "which", "while", "with", "would",
+    }
+    anchors = {
+        token for part in source_parts
+        for token in re.findall(r"[a-z][a-z'-]{3,}", part.casefold())
+        if token not in stopwords
+    }
+    if not anchors:
+        return ""
+    lowered_question = str(question or "").casefold()
+    if any(re.search(r"\b" + re.escape(token) + r"\b", lowered_question) for token in anchors):
+        return ""
+    return "question-grounding contract violation: question does not name a concrete detail from the structured movement brief"
+
+
 def _apply_hrn_visitor_contract(messages):
     """Apply the same visitor-facing language contract to every eligible provider."""
     contract = (
@@ -1319,17 +1380,18 @@ def _apply_hrn_visitor_contract(messages):
         "field contains exactly one relevant, natural question ending in a question "
         "mark. The question field MUST NEVER be empty. Do not put the follow-up question "
         "only inside response, and do not return an empty string for question. Keep the "
-        "question grounded in the visitor's current message, move to a different plane "
-        "when one useful observation has already been made, and do not repeat the "
-        "opening question unless the current message directly calls for it. "
-        "The follow-up must explore the interaction between the people, not merely ask "
-        "for factual reasons, justifications, or each person's stated position. The question "
-        "must name at least one concrete issue, action, or phrase from the visitor's latest "
-        "turn and ask about the interpersonal exchange around that specific detail. Avoid "
-        "broad templates such as 'what happens between them' unless the actual issue is named. "
-        "Do not ask for reasons or importance in the abstract. The response and question must "
-        "describe the same specific interaction, and the question must remain useful if read "
-        "without the original opening question."
+        "question grounded in the structured movement brief, especially its situation, "
+        "tension, parties, and experience fields. The raw visitor message may not be available "
+        "to this writing layer. Name at least one concrete issue or action from those fields "
+        "in the question and ask about the interpersonal exchange around that specific detail. "
+        "Do not use generic words such as 'situation', 'distinction', or 'relationship' as the "
+        "only anchor. Move to a different plane when one useful observation has already been "
+        "made, and do not repeat the opening question unless the current message directly calls "
+        "for it. The follow-up must explore the interaction between the people, not merely ask "
+        "for factual reasons, justifications, or each person's stated position. Avoid broad "
+        "templates such as 'what happens between them' unless the actual issue is named. Do not "
+        "ask for reasons or importance in the abstract. The response and question must describe "
+        "the same specific interaction and remain useful without the original opening question."
     )
     result = [dict(item) if isinstance(item, dict) else item for item in messages]
     for item in result:
@@ -1383,7 +1445,7 @@ def _repair_leading_hrn_hedge(response):
     return text
 
 
-def _normalize_operation_result(operation, parsed):
+def _normalize_operation_result(operation, parsed, messages=None):
     if operation == "hrn_relational":
         response = parsed.get("response")
         question = parsed.get("question")
@@ -1395,6 +1457,8 @@ def _normalize_operation_result(operation, parsed):
         if not isinstance(question, str) or not question.strip():
             raise ValueError("hrn_relational composition contract requires a non-empty question")
         question_violation = _hrn_surface_language_violation(question)
+        if not question_violation and messages is not None:
+            question_violation = _hrn_question_grounding_violation(question, messages)
         if question_violation:
             raise ValueError(
                 "hrn_relational question-surface contract violation: "
@@ -1593,7 +1657,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     provider, model, category="invalid_provider_response"
                 )
             try:
-                parsed = _normalize_operation_result(operation, parsed)
+                parsed = _normalize_operation_result(operation, parsed, messages=effective_messages)
             except ValueError as contract_error:
                 # HRN visitor-surface rejections are semantic quality failures,
                 # not JSON-schema failures. A correction call to the same model
@@ -1654,7 +1718,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=5 if operation in hrn_operations else None))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
-                parsed = _normalize_operation_result(operation, recovered)
+                parsed = _normalize_operation_result(operation, recovered, messages=effective_messages)
             print(
                 "USE provider contract result: "
                 f"operation={operation}, provider={provider}, model={model}, "
