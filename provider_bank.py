@@ -1308,7 +1308,13 @@ def _hrn_surface_language_violation(response):
 
 
 def _hrn_question_grounding_violation(question, messages):
-    """Require grounded HRN questions; missing structured evidence fails closed."""
+    """Require HRN follow-up questions to name details in the real movement brief.
+
+    WordPress v0.5.295 serializes the observer-owned state with keys such as
+    working_hypothesis, thread_summary, body_of_thought, emerging_delta,
+    perspective_delta, next_horizon, and relational_understanding. It does not
+    use the unrelated situation/tension/parties/experience schema.
+    """
     brief_content = ""
     for item in reversed(list(messages or [])):
         if isinstance(item, dict):
@@ -1318,6 +1324,7 @@ def _hrn_question_grounding_violation(question, messages):
                 break
     if not brief_content:
         return "question-grounding contract violation: structured movement brief is missing"
+
     marker_index = brief_content.find("STRUCTURED MOVEMENT BRIEF")
     brace_index = brief_content.find("{", marker_index)
     if brace_index < 0:
@@ -1328,21 +1335,59 @@ def _hrn_question_grounding_violation(question, messages):
         return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
         return "question-grounding contract violation: structured movement brief is not an object"
+
+    # The composition brief is a projection of the observer state. Collect only
+    # declared semantic fields; exclude metadata, history, resource payloads,
+    # and control flags from the lexical grounding source.
+    anchor_fields = (
+        "conversation_purpose", "thread_summary", "working_hypothesis",
+        "underlying_need", "desired_condition", "emerging_delta",
+        "perspective_delta", "body_of_thought", "unresolved",
+        "movement_direction", "next_movement", "new_terrain",
+        "completed_insight", "next_horizon", "current_fractal",
+        "fractal_transition", "pivot_signal", "leadership_need",
+        "plane_shift", "relational_understanding", "archive_grounded_understanding",
+    )
     source_parts = []
-    for field in ("situation", "tension", "parties", "experience"):
-        value = brief.get(field)
+    def collect_text(value, depth=0):
+        if depth > 4 or value is None or isinstance(value, bool):
+            return
         if isinstance(value, str):
-            source_parts.append(value)
+            text = value.strip()
+            if text:
+                source_parts.append(text)
+        elif isinstance(value, dict):
+            for nested in value.values():
+                collect_text(nested, depth + 1)
         elif isinstance(value, (list, tuple)):
-            source_parts.extend(str(part) for part in value if isinstance(part, str))
-    stopwords = {"about","after","again","along","already","among","around","because","before","being","between","both","change","changes","changed","could","different","disagreement","dispute","distinction","during","each","either","enough","every","experience","from","have","having","into","issue","itself","just","look","looking","meaning","matter","matters","maybe","might","more","other","parties","pattern","people","person","perspective","points","rather","really","relationship","relationships","reveal","reveals","reported","reports","situation","someone","something","stated","their","there","these","thing","things","those","through","tension","they","this","under","understanding","visitor","visible","were","what","when","where","which","while","with","would"}
-    anchors = {token for part in source_parts for token in re.findall(r"[a-z][a-z\'-]{3,}", part.casefold()) if token not in stopwords}
+            for nested in value:
+                collect_text(nested, depth + 1)
+    for field in anchor_fields:
+        collect_text(brief.get(field))
+
+    stopwords = {
+        "about","after","again","along","already","among","around","because",
+        "before","being","between","both","change","changes","changed","could",
+        "different","disagreement","dispute","distinction","during","each","either",
+        "enough","every","experience","from","have","having","into","issue","itself",
+        "just","look","looking","meaning","matter","matters","maybe","might","more",
+        "other","parties","pattern","people","person","perspective","points","rather",
+        "really","relationship","relationships","reveal","reveals","reported","reports",
+        "situation","someone","something","stated","their","there","these","thing",
+        "things","those","through","tension","they","this","under","understanding",
+        "visitor","visible","were","what","when","where","which","while","with","would",
+    }
+    anchors = {
+        token for part in source_parts
+        for token in re.findall(r"[a-z][a-z'-]{3,}", part.casefold())
+        if token not in stopwords
+    }
     if not anchors:
-        return "question-grounding contract violation: structured movement brief has no concrete question anchors"
+        return "question-grounding contract violation: movement brief has no concrete question anchors"
     lowered_question = str(question or "").casefold()
     if any(re.search(r"\b" + re.escape(token) + r"\b", lowered_question) for token in anchors):
         return ""
-    return "question-grounding contract violation: question does not name a concrete detail from the structured movement brief"
+    return "question-grounding contract violation: question does not name a concrete detail from the movement brief"
 
 
 def _apply_hrn_visitor_contract(messages):
