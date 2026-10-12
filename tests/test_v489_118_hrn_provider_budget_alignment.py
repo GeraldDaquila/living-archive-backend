@@ -69,11 +69,11 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     result = provider_bank.route(
         use_core=None,
         messages=[{"role": "system", "content": (
-            "STRUCTURED MOVEMENT BRIEF\\n"
+            "STRUCTURED MOVEMENT BRIEF\n"
             '{"working_hypothesis":"deadline disagreement",'
             '"underlying_need":"shared clarity about the date and added work",'
             '"emerging_delta":"the scope changed after the original agreement",'
-            '"body_of_thought":"deadline and changed scope remain in tension"}\\n'
+            '"body_of_thought":"deadline and changed scope remain in tension"}\n'
             "Return JSON only."
         )}],
         max_tokens=300,
