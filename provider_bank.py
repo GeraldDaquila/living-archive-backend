@@ -1459,7 +1459,7 @@ def _escape_json_string_control_characters(raw):
 def _hrn_question_grounding_violation(question, messages):
     """Require HRN follow-up questions to name details in the real movement brief.
 
-    WordPress v0.5.295 serializes the observer-owned state with keys such as
+    WordPress v0.5.296 serializes the observer-owned state with keys such as
     working_hypothesis, thread_summary, body_of_thought, emerging_delta,
     perspective_delta, next_horizon, and relational_understanding. It does not
     use the unrelated situation/tension/parties/experience schema.
@@ -1470,6 +1470,13 @@ def _hrn_question_grounding_violation(question, messages):
     # the next opening brace silently binds grounding to that unrelated object.
     # Select only a decoded object carrying the declared movement-state fields.
     marker = "STRUCTURED MOVEMENT BRIEF"
+    section_headers = (
+        "SOURCE CONTRACT FOR THIS RESPONSE",
+        "SOURCE CONTRACT:",
+        "CURRENT VISITOR MESSAGE:",
+        "CONVERSATION HISTORY:",
+        "RELATIONAL MOVEMENT CONTRACT:",
+    )
     semantic_keys = {
         "observer_intention", "observer_contrast", "observer_so_what",
         "observer_delta", "observer_horizon", "observer_next_intention",
@@ -1483,6 +1490,7 @@ def _hrn_question_grounding_violation(question, messages):
     }
     brief_content = ""
     brace_index = -1
+    fallback_candidate = None
     for item in reversed(list(messages or [])):
         if not isinstance(item, dict):
             continue
@@ -1496,7 +1504,24 @@ def _hrn_question_grounding_violation(question, messages):
             if candidate_brace < 0:
                 search_end = marker_index
                 continue
-            candidate_json = candidate[candidate_brace:]
+            # A marker in the writer instructions can be followed by a SOURCE
+            # CONTRACT JSON object. Do not mistake that unrelated object for the
+            # actual movement brief. The header must not sit between the marker
+            # and the candidate's opening brace.
+            header_between = any(
+                candidate.find(header, marker_index + len(marker), candidate_brace) >= 0
+                for header in section_headers
+            )
+            if header_between:
+                search_end = marker_index
+                continue
+            boundary_positions = [
+                position
+                for header in section_headers
+                if (position := candidate.find(header, candidate_brace)) >= 0
+            ]
+            candidate_limit = min(boundary_positions) if boundary_positions else len(candidate)
+            candidate_json = candidate[candidate_brace:candidate_limit]
             candidate_json = _escape_json_string_control_characters(candidate_json)
             decoded_brief = None
             decoded_any_object = False
@@ -1522,13 +1547,19 @@ def _hrn_question_grounding_violation(question, messages):
                 f'"{key}"' in candidate_json or f"'{key}'" in candidate_json
                 for key in semantic_keys
             )
-            if decoded_brief is not None or semantic_key_present:
-                brief_content = candidate
+            if decoded_brief is not None:
+                brief_content = candidate[:candidate_limit]
                 brace_index = candidate_brace
                 break
+            if semantic_key_present and fallback_candidate is None:
+                # Keep a malformed-but-plausible brief only as a last resort;
+                # continue scanning earlier markers for a decoded semantic object.
+                fallback_candidate = (candidate[:candidate_limit], candidate_brace)
             search_end = marker_index
         if brace_index >= 0:
             break
+    if brace_index < 0 and fallback_candidate is not None:
+        brief_content, brace_index = fallback_candidate
     if not brief_content:
         return "question-grounding contract violation: structured movement brief is missing"
     if brace_index < 0:
@@ -1556,9 +1587,14 @@ def _hrn_question_grounding_violation(question, messages):
     for normalized in normalized_candidates:
         parse_candidates.append(normalized)
         for field in (
-            # Any observer-owned long-form string may contain an unescaped quote
-            # from the WordPress context boundary. Retry the valid semantic prefix
-            # before each such field, not only the final metadata fields.
+            # Observer-owned fields can carry natural-language quotes too. Recover
+            # the valid semantic prefix before any malformed long-form field.
+            "observer_contrast",
+            "observer_so_what",
+            "observer_delta",
+            "observer_horizon",
+            "observer_next_intention",
+            "observer_intention",
             "perspective_delta",
             "body_of_thought",
             "next_horizon",
