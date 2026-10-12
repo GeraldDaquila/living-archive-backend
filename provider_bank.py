@@ -1907,6 +1907,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     and "question-surface contract violation: prescriptive-language"
                     in str(contract_error)
                 )
+                targeted_response_shape_recovery = (
+                    operation == "hrn_relational"
+                    and "response shape requires at least two complete sentences and 180 characters"
+                    in str(contract_error)
+                )
+                targeted_field_recovery = (
+                    targeted_question_recovery or targeted_response_shape_recovery
+                )
                 hrn_quality_failure = operation == "hrn_relational" and any(
                     marker in str(contract_error)
                     for marker in (
@@ -1917,11 +1925,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "composition contract requires a complete response",
                     )
                 )
-                # A prescriptive follow-up question is a field-specific defect.
-                # Give the same candidate one bounded, targeted correction before
-                # penalizing its voice. All corrected output still passes the full
-                # grounding, visitor-surface, and response-shape validators.
-                if hrn_quality_failure and not targeted_question_recovery:
+                # Known field-level defects receive one bounded correction of
+                # the offending field. Every corrected object still passes the
+                # full grounding, visitor-surface, and response-shape validators.
+                if hrn_quality_failure and not targeted_field_recovery:
                     last_error = str(contract_error)
                     _record_quality_rejection(provider, model, operation, last_error)
                     print(
@@ -1953,6 +1960,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Do not tell the visitor what to do; do not use should, must, need to, ought to, might/could try, or consider. "
                         "Preserve the original response and all valid flags unless a field independently violates the stated contract. "
                         "Do not invent facts or add advice. "
+                    )
+                elif targeted_response_shape_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON failed specifically because the response field was too short or did not contain enough complete sentences. "
+                        "Correct that field-level defect only: rewrite the response as two or three complete, natural sentences and at least 180 characters, grounded only in the structured movement brief and the visitor's actual words. "
+                        "Do not add advice, prescribe action, infer hidden motives, or introduce new facts. "
+                        "Preserve the original question and all valid flags. "
                     )
                 else:
                     correction_prompt = (
