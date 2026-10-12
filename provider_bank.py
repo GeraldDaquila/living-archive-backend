@@ -787,7 +787,18 @@ def _configured(use_core):
         print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
         live_groq = []
     live_set = {str(x).strip() for x in (live_groq or []) if str(x).strip()}
-    out["groq"] = [model for model in PRODUCTION_GROQ_MODELS if model in live_set]
+    if live_set:
+        out["groq"] = [model for model in PRODUCTION_GROQ_MODELS if model in live_set]
+    elif str(os.getenv("GROQ_API_KEY") or "").strip():
+        # Inventory discovery can fail independently of inference availability.
+        # Keep the documented production catalog eligible during an empty/failed
+        # listing response; actual calls still pass through normal health/cooldown
+        # controls, so a retired model is quarantined rather than retried forever.
+        out["groq"] = list(PRODUCTION_GROQ_MODELS)
+        print(
+            "USE provider bank: Groq live inventory unavailable; "
+            f"using {len(out['groq'])} configured production models as fallback"
+        )
     # Optional zero-cost fallback lane. It is dormant unless a key is configured;
     # OpenRouter routes openrouter/free across currently available free models.
     if os.getenv("OPENROUTER_API_KEY"):
