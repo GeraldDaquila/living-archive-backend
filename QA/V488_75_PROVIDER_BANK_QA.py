@@ -77,7 +77,7 @@ def main():
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
     assert "operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -92,7 +92,7 @@ def main():
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Slow Workers AI models must not consume the full generic timeout on every
     # HRN stage or on the bounded contract-correction call.
-    assert 'timeout_override=8 if operation in hrn_operations else None' in provider
+    assert 'timeout_override=5 if operation in hrn_operations else None' in provider
     assert 'timeout=timeout_override or 12' in provider
     # The visitor contract must explicitly block inferred blame and motive attribution,
     # not merely generic relationship theory or advice.
@@ -392,7 +392,7 @@ def main():
     )
 
     # Fast provider failures may use one extra independent relational lane,
-    # but slow failures must not expand the wall-clock budget.
+    # but the request must not run a third candidate inside the same gateway call.
     fast_fallback_pool = [
         {"provider": "openrouter", "model": "openrouter/free", "index": 0},
         {"provider": "mistral", "model": "mistral-small-latest", "index": 0},
@@ -417,13 +417,12 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-    assert fast_routed["provider"] == "nvidia", (
-        "Two fast provider failures must advance to one more independent relational lane."
-    )
-    assert fast_call.call_count == 3, "Fast-failure extension must remain bounded to one extra candidate."
+    assert fast_routed is None, "One baseline plus one fast independent fallback must remain bounded."
+    assert fast_call.call_count == 2, "A third provider must be left for the WordPress mirror boundary."
 
-    # The measured 4.27s OpenRouter empty-response path must still permit the
-    # bounded independent fallback under the five-second window.
+    # A 4.27s first failure exceeds the new three-second fast-failure window.
+    # It must return control to the WordPress mirror boundary instead of spending
+    # another provider timeout inside the same primary request.
     with (
         patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
         patch.object(provider_bank, "select", return_value=fast_fallback_pool),
@@ -440,10 +439,10 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-    assert measured_routed["provider"] == "nvidia"
-    assert measured_call.call_count == 3, "A fast failure completing at 4.27s must still use the bounded fallback."
+    assert measured_routed is None
+    assert measured_call.call_count == 1, "A slow first failure must yield to the mirror."
 
-    # Once the five-second wall budget is exceeded, the extra provider must not run.
+    # Once the three-second fast-failure window is exceeded, the extra provider must not run.
     with (
         patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
         patch.object(provider_bank, "select", return_value=fast_fallback_pool),
@@ -461,7 +460,7 @@ def main():
             operation="hrn_relational",
         )
     assert over_budget_routed is None
-    assert over_budget_call.call_count == 2, "The extra provider must be skipped after five seconds."
+    assert over_budget_call.call_count == 1, "The extra provider must be skipped after three seconds."
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until

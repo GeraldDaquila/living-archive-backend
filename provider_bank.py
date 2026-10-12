@@ -22,8 +22,8 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
-# A third independent relational candidate is permitted only after two fast failures.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 5.0
+# A second independent relational candidate is permitted only after one fast failure.
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 3.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -1464,12 +1464,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
     operation_attempt_cap = _hrn_attempt_cap() if operation in hrn_operations else configured_attempts
-    # Relational composition always gets two independent baseline candidates.
-    # If both fail quickly (for example, empty JSON followed by an immediate 429),
-    # permit one additional independent provider while the request is still inside
-    # a strict wall-clock budget. Slow failures never trigger this extra attempt.
-    if operation == "hrn_relational":
-        operation_attempt_cap = max(2, operation_attempt_cap)
+    # Keep each HRN provider-gateway request inside the WordPress transport
+    # contract. Start with one model attempt; the independent second candidate is
+    # admitted only when the first failure completes within the short fast-failure
+    # window below. Slow failures return promptly so the WordPress boundary can
+    # spend its remaining turn budget on the mirror instead of waiting on a second
+    # provider inside the same request.
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
     if operation == "hrn_relational" and len(pool) > base_max_attempts:
@@ -1532,7 +1532,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
-            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=8 if operation in hrn_operations else None)
+            raw_output = _call(use_core, item, effective_messages, effective_max_tokens, effective_schema, timeout_override=5 if operation in hrn_operations else None)
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -1607,7 +1607,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
                     ),
                 })
-                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=8 if operation in hrn_operations else None))
+                recovered = parse(_call(use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema, timeout_override=5 if operation in hrn_operations else None))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
                 parsed = _normalize_operation_result(operation, recovered)
