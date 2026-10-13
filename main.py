@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.198 — route compact repeated-argument inquiries into HRN
+# USE PRODUCTION VERSION: v489.199 — reject broad relational decoys on completed HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.198"
-DEPLOYMENT_FINGERPRINT = "USE-v489.198-compact-relational-inquiry-routing-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.198-compact-relational-inquiry-routing-v1"
+APP_VERSION = "v489.199"
+DEPLOYMENT_FINGERPRINT = "USE-v489.199-hrn-return-reject-broad-glyph-decoy-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.199-hrn-return-reject-broad-glyph-decoy-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.198":
+if str(APP_VERSION) != "v489.199":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1522,6 +1522,22 @@ def _relational_return_earned_focus_fit(query, doc):
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body))
     if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # A specific recurring-argument journey must not fall back to a broad
+    # relationship/communication essay just because it mentions conflict.
+    # Require a directly named conflict/repair doorway for this narrow case;
+    # otherwise only the direct-topic gate may admit a resource.
+    recurring_argument_focus = bool(re.search(
+        r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
         return False
     relationship_evidence = bool(re.search(
         r"\b(?:relationship|relationships|relational|friendship|friends|connection|"
