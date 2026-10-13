@@ -95,7 +95,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("'round_synthesis_history'", method)
         self.assertIn("'fractal_records'", method)
         self.assertIn("$closure_evidence_parts", method)
-        self.assertIn("You said that when you defend your tone, the original hurt gets set aside", method)
+        self.assertIn("You described trying to explain the words that hurt", method)
         self.assertIn("stated without adding an explanation", method)
 
 
