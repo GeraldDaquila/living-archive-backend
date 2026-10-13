@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.200 — require direct conflict titles for recurring-argument returns
+# USE PRODUCTION VERSION: v489.201 — enforce final canonical doorway title boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.200"
-DEPLOYMENT_FINGERPRINT = "USE-v489.200-hrn-return-require-conflict-title-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.200-hrn-return-require-conflict-title-v1"
+APP_VERSION = "v489.201"
+DEPLOYMENT_FINGERPRINT = "USE-v489.201-hrn-return-final-doorway-guard-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.201-hrn-return-final-doorway-guard-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.200":
+if str(APP_VERSION) != "v489.201":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1886,6 +1886,29 @@ async def _v48755_relational_return(request: Request):
             if search_primary:
                 primary = search_primary
                 outward = search_outward
+
+        # Last-mile canonical doorway invariant: even if retrieval normalization
+        # or a future relevance branch changes, a completed recurring-argument
+        # journey cannot release a broad resource whose title does not name
+        # conflict, argument, disagreement, repair, reconciliation, or being heard.
+        original_recurring_argument_focus = bool(re.search(
+            r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+            _normalize_query(original_question),
+        ))
+        primary_title_is_direct_conflict = bool(
+            primary and re.search(
+                r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+                str(primary.get("title") or "").casefold(),
+            )
+        )
+        if primary and original_recurring_argument_focus and not primary_title_is_direct_conflict:
+            print(
+                "The Guide v489.201 rejected a non-conflict canonical doorway "
+                f"for recurring-argument return: {primary.get('title')}"
+            )
+            primary = None
+            outward = []
 
         print(
             "The Guide v487.66 seamless HRN gift return: "
