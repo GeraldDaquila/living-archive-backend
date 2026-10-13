@@ -3588,14 +3588,6 @@ def _basic_inquiry_has_source_dump(response):
 def _basic_inquiry_source_dump_recovery(query):
     """Fail-closed visitor answer when the composer returns copied source material."""
     q = _normalize_query(query).casefold()
-    if re.search(r"\b(?:understand|make sense of|interpret)\b", q) and re.search(r"\b(?:difficult situation|situation|what happened|someone's behavior|their behavior)\b", q) and re.search(r"\b(?:judge|judgment|judgement|assume|assumption|rush)\b", q):
-        response = (
-            "When a situation is difficult, it helps to separate what you know from what you think it means. "
-            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.\n\n"
-            "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
-        )
-        return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
-
     if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
         return (
             "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
@@ -3714,6 +3706,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
     # available, without fabricating Archive evidence or source-specific claims.
+    if re.search(r"\b(?:understand|make sense of|interpret)\b", q) and re.search(r"\b(?:difficult situation|situation|what happened|someone's behavior|their behavior)\b", q) and re.search(r"\b(?:judge|judgment|judgement|assume|assumption|rush)\b", q):
+        response = (
+            "When a situation is difficult, it helps to separate what you know from what you think it means. "
+            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.\n\n"
+            "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
+
     if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
         response = (
             "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
