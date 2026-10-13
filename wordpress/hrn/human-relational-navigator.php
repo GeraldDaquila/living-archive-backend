@@ -5027,6 +5027,19 @@ HRN_QUESTION_REPAIR;
         return array();
     }
 
+    private function strip_unselected_resource_offer($response) {
+        $sentences = preg_split('/(?<=[.!?])\\s+/u', trim((string)$response), -1, PREG_SPLIT_NO_EMPTY);
+        if (!is_array($sentences) || !$sentences) return trim((string)$response);
+        $kept = array();
+        foreach ($sentences as $sentence) {
+            $mentions_resource = preg_match('/\\b(?:archive|article|resource|reading|doorway|recommendation)\\b/i', $sentence);
+            $offers_resource = preg_match('/\\b(?:connects? with|points? to|offers?|recommends?|gift|read|explore|place to|may help|could help|gives you a place)\\b/i', $sentence);
+            if ($mentions_resource && $offers_resource) continue;
+            $kept[] = trim($sentence);
+        }
+        return trim(implode(' ', $kept));
+    }
+
     private function normalize_composition($draft, $state, $message, $resources, $unit_complete=false) {
         $this->last_composition_failure=array();
         $decoded = $this->unwrap_composition_envelope($draft);
@@ -5118,6 +5131,12 @@ HRN_QUESTION_REPAIR;
             }
             if ($use_resource && $resource_intro === '') {
                 $use_resource = false;
+            }
+            // A writer may mention a resource even when no doorway is selected, or
+            // combine a resource offer with a follow-up question. Do not promise a
+            // gift that the route will not render; remove only the offer sentence.
+            if (!$use_resource) {
+                $response = $this->strip_unselected_resource_offer($response);
             }
             if ($response === '') { $this->last_composition_failure=array('reason'=>'empty_response'); return array(); }
             $normalized_response = $this->normalize_paragraphs($response);
