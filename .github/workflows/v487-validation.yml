@@ -18,6 +18,8 @@ jobs:
           python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_health_store.py provider_quota_control.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_QA.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_QA.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py QA/V489_82_HRN_RELATIONAL_RETURN_QA.py QA/V489_102_HRN_ACTION_GUIDANCE_SURFACE_POLICY_QA.py
       - name: Guide hub contract tests
         run: PYTHONPATH=. python -m pytest -q tests/test_hub_contracts.py
+      - name: Formation three-door contribution contract regression
+        run: PYTHONPATH=. python -m pytest -q tests/test_formation_adapter_three_door_contract.py
       - name: General Guide bounded provider-turn regression
         run: PYTHONPATH=. python -m pytest -q tests/test_general_guide_provider_budget.py
       - name: Shared provider health configuration diagnostics regression
