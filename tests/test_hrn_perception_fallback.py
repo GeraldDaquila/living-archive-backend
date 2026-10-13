@@ -707,8 +707,8 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
         messages=[{
             "role": "user",
             "content": (
-                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\\n'
-                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\\n'
+                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\n'
+                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n'
                 '{"thread_summary":"Both partners say they want things to improve, but the same argument keeps returning.",'
                 '"working_hypothesis":"The conversation shifts away from the specific incident when the past is raised.",'
                 '"perspective_delta":"The discussion moves from what happened to whether the visitor may still feel hurt."}'
