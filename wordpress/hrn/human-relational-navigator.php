@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.320
+ * Version: 0.5.321
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.320';
+    const VERSION = '0.5.321';
+    // RELEASE v0.5.321: keep terminal tone-displacement synthesis at the visitor's concrete evidence level; frozen writers unchanged.
     // RELEASE v0.5.320: preserve an evidence-grounded terminal landing for explicit tone-displacement journeys when all closure providers fail; frozen writers unchanged.
     // RELEASE v0.5.319: keep the rotated tone-displacement question inside the perspective-form grounding contract; frozen writers unchanged.
     // RELEASE v0.5.318: rotate tone-displacement recovery across distinct question planes and strengthen its grounded relevance family; frozen writers unchanged.
@@ -3860,9 +3861,9 @@ HRN_INTERPRET;
             && preg_match('/\b(?:hurt|what was said|words that hurt|what happened)\b/i', $closure_material)
             && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
         if ($tone_displacement_closure) {
-            return 'You described how the original hurt can get set aside when the exchange turns to defending your tone. The conversation shifts from what was said to whether you explained your hurt correctly.'
+            return 'You said that when you defend your tone, the original hurt gets set aside. You also said the words that hurt you do not get discussed while you explain how you said things.'
                 . "\n\n"
-                . 'That leaves two distinct things in view: the impact of the words and the difficulty of keeping that impact in the conversation. This names the sequence you described without deciding what the other person intended.';
+                . 'You begin to wonder whether your hurt can be heard if you cannot explain it perfectly. That is the sequence you brought into this conversation, stated without adding an explanation for the other person\'s behavior.';
         }
         $visitor_turn = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
         $specific_incident = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_turn);
