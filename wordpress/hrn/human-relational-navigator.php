@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.323
+ * Version: 0.5.324
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.323';
+    const VERSION = '0.5.324';
+    // RELEASE v0.5.324: persist bounded visitor-authored turns separately so short explicit closure can satisfy earned-evidence gates without trusting generated summaries; frozen writers unchanged.
     // RELEASE v0.5.323: recognize explicit natural-language landing as terminal closure; accepted journey evidence and policy gates remain authoritative.
     // RELEASE v0.5.322: derive short-close recovery eligibility from accepted journey-ledger evidence, not only the final utterance; frozen writers unchanged.
     // RELEASE v0.5.321: keep terminal tone-displacement synthesis at the visitor's concrete evidence level; frozen writers unchanged.
@@ -1340,6 +1341,22 @@ Visitor response: " . $message;
         // Reckoning/Observer work may be staged before prose exists, but a failed turn
         // must never persist that incomplete state over the visitor's last good synthesis.
         $committed_ledger_before_turn = $ledger;
+        // Persist a bounded trail of visitor-authored turns separately from generated
+        // summaries. Failed turns roll back to the committed ledger above.
+        $incoming_is_closure = $this->visitor_requests_closure($message)
+            || sanitize_key((string)$request->get_param('journey_action')) === 'end';
+        if (!$incoming_is_closure) {
+            $visitor_turn_evidence = (array)($ledger['visitor_turn_evidence'] ?? array());
+            $visitor_message_evidence = trim(wp_strip_all_tags((string)$message));
+            if ($visitor_message_evidence !== '') {
+                $visitor_message_evidence = mb_substr($visitor_message_evidence, 0, 1000);
+                $last_visitor_evidence = end($visitor_turn_evidence);
+                if ($last_visitor_evidence !== $visitor_message_evidence) {
+                    $visitor_turn_evidence[] = $visitor_message_evidence;
+                }
+                $ledger['visitor_turn_evidence'] = array_slice($visitor_turn_evidence, -8);
+            }
+        }
 
         // CONTEXT BOUNDARY v1.0: the Journey Ledger is authoritative working memory.
         // Client-supplied transcripts are evidence only and are never allowed to
@@ -2362,7 +2379,7 @@ Visitor response: " . $message;
     }
 
     private function initial_journey_ledger($session_id) {
-        return array('state_version'=>self::JOURNEY_STATE_VERSION,'session_id'=>(string)$session_id,'turn'=>0,'journey_purpose'=>'','current_terrain'=>'','pattern_signal'=>'','vantage_point'=>'','perspective_scale'=>'near','delta_scope'=>'small','completed_insights'=>array(),'perspective_delta'=>'','unresolved'=>'','next_horizon'=>'','movement_status'=>'advancing','fractal_stage'=>'opening','fractal_maturity'=>'immature','pivot_signal'=>'none','leadership_need'=>'lead_forward','body_of_thought'=>'','last_delta'=>'','new_terrain'=>'','archive_territories'=>array(),'archive_perspectives'=>array(),'archive_route'=>'','grounding'=>'','resource_fit'=>'','fractal_records'=>array(),'round_synthesis_history'=>array(),'last_fractal_summary'=>'','segment_index'=>1,'segment_opening'=>'','fractal_complete'=>false,'last_nugget'=>'','plane_shift'=>'','repeat_signal'=>'none','plane_shift_required'=>false,'closure_signal'=>'none','last_response_form'=>'','asked_questions'=>array(),'last_question'=>'','observer_intention'=>'','observer_contrast'=>'','observer_so_what'=>'','observer_delta'=>'','observer_horizon'=>'','observer_decision'=>'','observer_next_intention'=>'');
+        return array('state_version'=>self::JOURNEY_STATE_VERSION,'session_id'=>(string)$session_id,'turn'=>0,'journey_purpose'=>'','current_terrain'=>'','pattern_signal'=>'','vantage_point'=>'','perspective_scale'=>'near','delta_scope'=>'small','completed_insights'=>array(),'perspective_delta'=>'','unresolved'=>'','next_horizon'=>'','movement_status'=>'advancing','fractal_stage'=>'opening','fractal_maturity'=>'immature','pivot_signal'=>'none','leadership_need'=>'lead_forward','body_of_thought'=>'','last_delta'=>'','new_terrain'=>'','archive_territories'=>array(),'archive_perspectives'=>array(),'archive_route'=>'','grounding'=>'','resource_fit'=>'','fractal_records'=>array(),'round_synthesis_history'=>array(),'visitor_turn_evidence'=>array(),'last_fractal_summary'=>','segment_index'=>1,'segment_opening'=>'','fractal_complete'=>false,'last_nugget'=>'','plane_shift'=>'','repeat_signal'=>'none','plane_shift_required'=>false,'closure_signal'=>'none','last_response_form'=>'','asked_questions'=>array(),'last_question'=>'','observer_intention'=>'','observer_contrast'=>'','observer_so_what'=>'','observer_delta'=>'','observer_horizon'=>'','observer_decision'=>'','observer_next_intention'=>'');
     }
 
     private function load_journey_ledger($session_id) {
@@ -2384,7 +2401,7 @@ Visitor response: " . $message;
             } elseif(is_array($default)){
                 $vals=is_array($value)?$value:array($value);
                 $vals=array_values(array_filter(array_map(function($v){return sanitize_textarea_field((string)$v);},$vals)));
-                $limit=in_array($key,array('completed_insights','asked_questions'),true)?8:(in_array($key,array('fractal_records','round_synthesis_history'),true)?12:4);
+                $limit=in_array($key,array('completed_insights','asked_questions'),true)?8:(in_array($key,array('fractal_records','round_synthesis_history'),true)?12:(in_array($key,array('visitor_turn_evidence'),true)?8:4));
                 $clean=array();
                 foreach($vals as $item){
                     $item=$this->compact_journey_text($item,1400);
@@ -3013,7 +3030,7 @@ HRN_RECKON;
     }
 
     private function journey_ledger_to_state($ledger,$turn,$message,$conversation) {
-        $state=array('situation'=>$turn['situation']??'','parties'=>$turn['parties']??'','context'=>$turn['context']??'','experience'=>$turn['experience']??'','exchange'=>$turn['exchange']??'','expectation'=>$turn['expectation']??'','tension'=>$turn['tension']??'','pattern'=>$turn['pattern']??'','uncertainty'=>$turn['uncertainty']??'','agency'=>$turn['agency']??'','possibility'=>$turn['possibility']??'','underlying_need'=>$turn['underlying_need']??'','desired_condition'=>$turn['desired_condition']??'','emerging_delta'=>trim((string)($ledger['last_delta']??''))!==''?$ledger['last_delta']:(trim((string)($turn['emerging_delta']??''))!==''?$turn['emerging_delta']:($turn['perspective_delta']??'')),'perspective_delta'=>trim((string)($ledger['perspective_delta']??''))!==''?$ledger['perspective_delta']:(trim((string)($turn['perspective_delta']??''))!==''?$turn['perspective_delta']:($turn['emerging_delta']??($ledger['last_delta']??''))),'body_of_thought'=>trim((string)($ledger['body_of_thought']??''))!==''?$ledger['body_of_thought']:(trim((string)($turn['body_of_thought']??''))!==''?$turn['body_of_thought']:($ledger['last_fractal_summary']??$ledger['last_nugget']??'')),'pattern_signal'=>$ledger['pattern_signal']??($turn['pattern_signal']??''),'vantage_point'=>$ledger['vantage_point']??($turn['vantage_point']??''),'perspective_scale'=>$ledger['perspective_scale']??($turn['perspective_scale']??'near'),'delta_scope'=>$ledger['delta_scope']??($turn['delta_scope']??'small'),'movement_direction'=>$turn['movement_direction']??'','next_movement'=>$turn['next_movement']??'','resource_fit'=>$ledger['resource_fit']??($turn['resource_fit']??''),'archive_territories'=>$ledger['archive_territories']??($turn['archive_territories']??array()),'archive_perspectives'=>$ledger['archive_perspectives']??($turn['archive_perspectives']??array()),'archive_route'=>$ledger['archive_route']??($turn['archive_route']??''),'grounding'=>$ledger['grounding']??($turn['grounding']??''),'movement_state'=>$ledger['movement_status']??($turn['movement_state']??'advancing'),'conversation_phase'=>$turn['conversation_phase']??'exploration','service_orientation'=>$turn['service_orientation']??'unclear','safety'=>$turn['safety']??'green','clarity'=>$turn['clarity']??'emerging','spiritual_depth'=>$turn['spiritual_depth']??'practical','thread_summary'=>$ledger['journey_purpose']??'','working_hypothesis'=>$turn['working_hypothesis']??'','unresolved'=>$ledger['unresolved']??($turn['unresolved']??''),'branch_candidates'=>$turn['branch_candidates']??array(),'fractal_stage'=>$ledger['fractal_stage']??'exploration','fractal_transition'=>$turn['fractal_transition']??'','new_terrain'=>$ledger['new_terrain']??'','completed_insight'=>!empty($ledger['completed_insights'])?end($ledger['completed_insights']):(trim((string)($turn['completed_insight']??''))!==''?$turn['completed_insight']:($ledger['last_nugget']??$ledger['last_fractal_summary']??'')),'next_horizon'=>$ledger['next_horizon']??'','conversation_purpose'=>$ledger['journey_purpose']??'','current_fractal'=>$ledger['current_terrain']??'','fractal_maturity'=>$ledger['fractal_maturity']??'immature','pivot_signal'=>$ledger['pivot_signal']??'none','leadership_need'=>$ledger['leadership_need']??'lead_forward','last_fractal_summary'=>$ledger['last_fractal_summary']??'','fractal_records'=>$ledger['fractal_records']??array(),'round_synthesis_history'=>$ledger['round_synthesis_history']??array(),'last_nugget'=>$ledger['last_nugget']??'','plane_shift'=>$ledger['plane_shift']??'','repeat_signal'=>$ledger['repeat_signal']??'none','plane_shift_required'=>!empty($ledger['plane_shift_required']),'closure_signal'=>$ledger['closure_signal']??'none','last_response_form'=>$ledger['last_response_form']??'','asked_questions'=>$ledger['asked_questions']??array(),'last_question'=>$ledger['last_question']??'','observer_intention'=>$ledger['observer_intention']??'','observer_contrast'=>$ledger['observer_contrast']??'','observer_so_what'=>$ledger['observer_so_what']??'','observer_delta'=>$ledger['observer_delta']??'','observer_horizon'=>$ledger['observer_horizon']??'','observer_decision'=>$ledger['observer_decision']??'','observer_next_intention'=>$ledger['observer_next_intention']??'');
+        $state=array('situation'=>$turn['situation']??'','parties'=>$turn['parties']??'','context'=>$turn['context']??'','experience'=>$turn['experience']??'','exchange'=>$turn['exchange']??'','expectation'=>$turn['expectation']??'','tension'=>$turn['tension']??'','pattern'=>$turn['pattern']??'','uncertainty'=>$turn['uncertainty']??'','agency'=>$turn['agency']??'','possibility'=>$turn['possibility']??'','underlying_need'=>$turn['underlying_need']??'','desired_condition'=>$turn['desired_condition']??'','emerging_delta'=>trim((string)($ledger['last_delta']??''))!==''?$ledger['last_delta']:(trim((string)($turn['emerging_delta']??''))!==''?$turn['emerging_delta']:($turn['perspective_delta']??'')),'perspective_delta'=>trim((string)($ledger['perspective_delta']??''))!==''?$ledger['perspective_delta']:(trim((string)($turn['perspective_delta']??''))!==''?$turn['perspective_delta']:($turn['emerging_delta']??($ledger['last_delta']??''))),'body_of_thought'=>trim((string)($ledger['body_of_thought']??''))!==''?$ledger['body_of_thought']:(trim((string)($turn['body_of_thought']??''))!==''?$turn['body_of_thought']:($ledger['last_fractal_summary']??$ledger['last_nugget']??'')),'pattern_signal'=>$ledger['pattern_signal']??($turn['pattern_signal']??''),'vantage_point'=>$ledger['vantage_point']??($turn['vantage_point']??''),'perspective_scale'=>$ledger['perspective_scale']??($turn['perspective_scale']??'near'),'delta_scope'=>$ledger['delta_scope']??($turn['delta_scope']??'small'),'movement_direction'=>$turn['movement_direction']??'','next_movement'=>$turn['next_movement']??'','resource_fit'=>$ledger['resource_fit']??($turn['resource_fit']??''),'archive_territories'=>$ledger['archive_territories']??($turn['archive_territories']??array()),'archive_perspectives'=>$ledger['archive_perspectives']??($turn['archive_perspectives']??array()),'archive_route'=>$ledger['archive_route']??($turn['archive_route']??''),'grounding'=>$ledger['grounding']??($turn['grounding']??''),'movement_state'=>$ledger['movement_status']??($turn['movement_state']??'advancing'),'conversation_phase'=>$turn['conversation_phase']??'exploration','service_orientation'=>$turn['service_orientation']??'unclear','safety'=>$turn['safety']??'green','clarity'=>$turn['clarity']??'emerging','spiritual_depth'=>$turn['spiritual_depth']??'practical','thread_summary'=>$ledger['journey_purpose']??'','working_hypothesis'=>$turn['working_hypothesis']??'','unresolved'=>$ledger['unresolved']??($turn['unresolved']??''),'branch_candidates'=>$turn['branch_candidates']??array(),'fractal_stage'=>$ledger['fractal_stage']??'exploration','fractal_transition'=>$turn['fractal_transition']??'','new_terrain'=>$ledger['new_terrain']??'','completed_insight'=>!empty($ledger['completed_insights'])?end($ledger['completed_insights']):(trim((string)($turn['completed_insight']??''))!==''?$turn['completed_insight']:($ledger['last_nugget']??$ledger['last_fractal_summary']??'')),'next_horizon'=>$ledger['next_horizon']??'','conversation_purpose'=>$ledger['journey_purpose']??'','current_fractal'=>$ledger['current_terrain']??'','fractal_maturity'=>$ledger['fractal_maturity']??'immature','pivot_signal'=>$ledger['pivot_signal']??'none','leadership_need'=>$ledger['leadership_need']??'lead_forward','last_fractal_summary'=>$ledger['last_fractal_summary']??'','fractal_records'=>$ledger['fractal_records']??array(),'round_synthesis_history'=>$ledger['round_synthesis_history']??array(),'visitor_turn_evidence'=>$ledger['visitor_turn_evidence']??array(),'last_nugget'=>$ledger['last_nugget']??'','plane_shift'=>$ledger['plane_shift']??'','repeat_signal'=>$ledger['repeat_signal']??'none','plane_shift_required'=>!empty($ledger['plane_shift_required']),'closure_signal'=>$ledger['closure_signal']??'none','last_response_form'=>$ledger['last_response_form']??'','asked_questions'=>$ledger['asked_questions']??array(),'last_question'=>$ledger['last_question']??'','observer_intention'=>$ledger['observer_intention']??'','observer_contrast'=>$ledger['observer_contrast']??'','observer_so_what'=>$ledger['observer_so_what']??'','observer_delta'=>$ledger['observer_delta']??'','observer_horizon'=>$ledger['observer_horizon']??'','observer_decision'=>$ledger['observer_decision']??'','observer_next_intention'=>$ledger['observer_next_intention']??'');
         $state['source_message']=$message; $state['conversation']=$conversation; return $state;
     }
 
@@ -3871,14 +3888,14 @@ HRN_INTERPRET;
             'observer_delta', 'observer_next_intention', 'perspective_delta',
             'last_delta', 'last_nugget', 'body_of_thought', 'current_terrain',
             'journey_purpose', 'thread_summary', 'completed_insight',
-            'last_fractal_summary',
+            'last_fractal_summary', 'last_question',
         ) as $closure_evidence_field) {
             $closure_evidence_value = $state[$closure_evidence_field] ?? '';
             if (is_scalar($closure_evidence_value)) {
                 $closure_evidence_parts[] = (string)$closure_evidence_value;
             }
         }
-        foreach (array('fractal_records', 'round_synthesis_history') as $closure_evidence_collection) {
+        foreach (array('visitor_turn_evidence', 'fractal_records', 'round_synthesis_history') as $closure_evidence_collection) {
             $closure_evidence_value = $state[$closure_evidence_collection] ?? array();
             if (is_array($closure_evidence_value)) {
                 $closure_evidence_parts[] = (string)wp_json_encode($closure_evidence_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -4285,6 +4302,14 @@ BOUNDARIES: Never diagnose, label, pathologize, assign motives as facts, decide 
         if ($visitor_turn_evidence !== '' && mb_strlen($visitor_turn_evidence) >= 20
             && !preg_match('/\b(?:journey ledger|observer decision|fractal maturity|perspective delta)\b/iu', $visitor_turn_evidence)) {
             $sources[] = strtolower($visitor_turn_evidence);
+        }
+        // Only visitor-authored turns count as transcript evidence; assistant
+        // summaries and questions cannot certify their own synthesis.
+        foreach ((array)($state['visitor_turn_evidence'] ?? array()) as $visitor_evidence_item) {
+            $visitor_evidence_item = trim(wp_strip_all_tags((string)$visitor_evidence_item));
+            if ($visitor_evidence_item !== '' && mb_strlen($visitor_evidence_item) >= 20) {
+                $sources[] = strtolower($visitor_evidence_item);
+            }
         }
         foreach (array('perspective_delta','emerging_delta','completed_insight','last_nugget') as $field) {
             $value = trim(wp_strip_all_tags((string)($state[$field] ?? '')));
