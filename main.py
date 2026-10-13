@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.195 — recompose safely after rejecting untrusted Archive markup
+# USE PRODUCTION VERSION: v489.196 — recompose safely after rejecting untrusted Archive markup
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.195"
-DEPLOYMENT_FINGERPRINT = "USE-v489.195-safe-contextless-recomposition"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.195-safe-contextless-recomposition"
+APP_VERSION = "v489.196"
+DEPLOYMENT_FINGERPRINT = "USE-v489.196-safe-contextless-recomposition"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.196-safe-contextless-recomposition"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.195":
+if str(APP_VERSION) != "v489.196":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3498,7 +3498,7 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
     }
 
 
-def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):
+def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
     question = _normalize_query(query)
@@ -3542,16 +3542,46 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_supportive_recovery", "model": ""}
 
+    # When provider composition is exhausted, preserve a directly asked public
+    # governance topic instead of falling through to the generic refusal path.
+    # This is general knowledge, not a claim that the Archive supplied evidence.
+    topic_groups = _topic_anchor_groups(question)
+    if "political_dynasties" in topic_groups:
+        response = (
+            "Political dynasties are families whose members hold or repeatedly win elected office across generations. "
+            "Their influence can shape candidate selection, local party organization, public appointments, and access to public resources. "
+            "The effects depend on how elections, public institutions, and oversight operate around those family networks.\n\n"
+            "Where family networks dominate nominations, appointments, or access to services, accountability can weaken because officials may face stronger incentives to answer to a family network than to the wider public. "
+            "But the existence of a dynasty alone does not prove corruption or poor performance; those are claims that require evidence about specific decisions and outcomes.\n\n"
+            "To assess a particular locality, examine who holds which offices and their family relationships, how competitive elections are, procurement and budget records, conflicts of interest, and whether courts, auditors, media, and citizens can scrutinize decisions. "
+            "These indicators help distinguish a structural risk from an unsupported claim about a particular person or family."
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_public_governance_recovery",
+            "model": "",
+        }
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
         explanation = f"The Archive material available here offers this starting point: “{content[:360].rstrip()}”"
         opening = f"The question is asking about {underlying.rstrip('.')}." if underlying else f"Your question asks: {question.rstrip('?')}."
-        closing = f"A useful next movement may be {movement.rstrip('.')}." if movement else "That gives you a starting point; the recommendation below offers a place to explore further."
+        if movement:
+            closing = f"A useful next movement may be {movement.rstrip('.')}."
+        elif recommendation_available:
+            closing = "That gives you a starting point; the separately selected Archive resource offers a place to explore further."
+        else:
+            closing = "That gives you a starting point; I did not identify a directly relevant Archive resource to recommend for this question."
     else:
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
-        closing = "The recommendation below is a place to explore the topic further."
+        closing = (
+            "The separately selected Archive resource may offer a place to explore the topic further."
+            if recommendation_available
+            else "I did not identify a sufficiently relevant Archive resource to recommend for this question."
+        )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
@@ -4022,11 +4052,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
         else:
             print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
-            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
     except Exception as exc:
         print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
         try:
-            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context).get("response", "")
+            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
         except Exception:
             llm_output = ""
 
@@ -4047,7 +4077,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if not llm_output:
             try:
                 deterministic_recovery = _basic_inquiry_round1_deterministic_response(
-                    query, {}, {"context_blocks": ""}
+                    query, {}, {"context_blocks": ""}, recommendation_available=bool(authoritative_doorway)
                 )
                 llm_output = str(deterministic_recovery.get("response") or "").strip()
             except Exception as exc:
