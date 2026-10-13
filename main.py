@@ -3320,6 +3320,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    if re.search(r"\\boverwhelmed\\b", q) and re.search(r"\\b(?:who|talk|someone|support)\\b", q):
+        response = (
+            "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
+            "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
+            "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
+            "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_supportive_recovery", "model": ""}
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
@@ -3760,8 +3769,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
             "using deterministic synthesis instead."
         )
+        # Do not feed the rejected excerpt back into recovery; that would
+        # reproduce the same copied/truncated passage under a deterministic label.
         deterministic_recovery = _basic_inquiry_round1_deterministic_response(
-            query, {}, composition_context
+            query, {}, {"context_blocks": ""}
         )
         response = _sanitize_basic_inquiry_response(
             str(deterministic_recovery.get("response") or "").strip()
