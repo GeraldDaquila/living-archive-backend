@@ -69,9 +69,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.175"
-DEPLOYMENT_FINGERPRINT = "USE-v489.175-hrn-observed-voice-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.175-hrn-observed-voice-recovery"
+APP_VERSION = "v489.176"
+DEPLOYMENT_FINGERPRINT = "USE-v489.176-provider-model-alternative-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.176-provider-model-alternative-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
