@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.179 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.180 — expanded bounded HRN provider fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.179"
-DEPLOYMENT_FINGERPRINT = "USE-v489.179-hrn-timeout-formation-precedence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.179-hrn-timeout-formation-precedence"
+APP_VERSION = "v489.180"
+DEPLOYMENT_FINGERPRINT = "USE-v489.180-source-excerpt-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.180-source-excerpt-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.179":
+if str(APP_VERSION) != "v489.180":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3320,6 +3320,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
+        response = (
+            "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
+            "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
+            "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
+            "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_supportive_recovery", "model": ""}
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
@@ -3760,8 +3769,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
             "using deterministic synthesis instead."
         )
+        # Do not feed the rejected excerpt back into recovery; that would
+        # reproduce the same copied/truncated passage under a deterministic label.
         deterministic_recovery = _basic_inquiry_round1_deterministic_response(
-            query, {}, composition_context
+            query, {}, {"context_blocks": ""}
         )
         response = _sanitize_basic_inquiry_response(
             str(deterministic_recovery.get("response") or "").strip()
