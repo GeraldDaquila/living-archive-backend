@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.184"
-    assert report["fingerprint"] == "USE-v489.184-archive-orientation-entry-routing"
+    assert report["version"] == "v489.185"
+    assert report["fingerprint"] == "USE-v489.185-explicit-glossary-navigation"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -335,3 +335,17 @@ def test_explanatory_archive_topic_question_stays_with_general_guide():
 def test_explore_next_archive_question_routes_to_native_navigator():
     query = "What should I explore next in the Living Archive?"
     assert main._is_navigator_orientation_request(query) is True
+
+
+
+def test_explicit_glossary_entry_request_hands_off_to_native_glossary():
+    query = "Take me to the glossary entry for stewardship."
+    term = main._normalize_glossary_term(query)
+    assert term == "stewardship"
+    assert main._is_bounded_glossary_request(query, glossary_term=term) is True
+
+
+def test_glossary_explanation_with_why_stays_with_general_guide():
+    query = "What is stewardship and why does it matter now more than ever?"
+    term = main._normalize_glossary_term(query)
+    assert main._is_bounded_glossary_request(query, glossary_term=term) is False
