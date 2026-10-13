@@ -497,8 +497,7 @@ def _explicit_bounded_archive_request(query):
         re.I,
     ))
 
-# v488.72 — SYSTEMIC RELATIONAL BOUNDARY CONTRACT
-#
+# v488.72 — SYSTEMIC RELATIONAL BOUNDARY CONTRACT#
 # This boundary is intentionally owned by the request seam, not by the
 # provider/model router and not by Basic Inquiry. It answers one structural
 # question only: does the visitor's lived situation centrally involve a
@@ -997,8 +996,7 @@ def _normalize_shared_evidence_for_use(documents, *, provenance="supplied"):
 
 
 def _normalize_shared_claims_for_use(candidates):
-    """Normalize legacy USE claim dictionaries through the shared claim primitive."""
-    raw = []
+    """Normalize legacy USE claim dictionaries through the shared claim primitive."""    raw = []
     evidence_ids = []
     for index, candidate in enumerate(candidates or []):
         if not isinstance(candidate, dict):
@@ -1497,8 +1495,7 @@ def _relational_return_earned_focus_fit(query, doc):
     effort_evidence = bool(re.search(
         r"\b(?:imbalance|overgiving|self-sacrifice|giving more|receiving more|"
         r"mutual support|mutuality|reciproc|valued|effort|boundaries|self-erasure)\b", material
-    ))
-    discernment_focus = _relational_discernment_focus(q)
+    ))    discernment_focus = _relational_discernment_focus(q)
     discernment_evidence_terms = set(re.findall(
         r"\b(?:perception|behavior|behaviour|interpret(?:ation|ed|ing)?|"
         r"assumption|inference|intentions?|projection|observation|observed)\b",
@@ -1997,8 +1994,7 @@ Return ONLY valid JSON with exactly these keys:
   "human_reality": "what human reality is being brought, if discernible",
   "presenting_situation": "what is happening on the surface",
   "visitor_proposition": "the explanation, assumption, or proposed solution the visitor is carrying",
-  "underlying_question": "what the visitor may actually be trying to understand or resolve",
-  "uncertainty": "the uncertainty whose clarification would most change direction",
+  "underlying_question": "what the visitor may actually be trying to understand or resolve",  "uncertainty": "the uncertainty whose clarification would most change direction",
   "desired_movement": "the kind of movement that would help now",
   "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
   "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd|guide_node",
@@ -2497,8 +2493,7 @@ def _is_glyph_finder_request(query):
         return False
 
     lookup_language = bool(re.search(
-        r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
-        r"where|identify|search|tell\s+me\s+about|"
+        r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"        r"where|identify|search|tell\s+me\s+about|"
         r"what(?:\s+is|'s)\s+this|what\s+does\s+this)\b",
         q,
         re.I,
@@ -2997,8 +2992,7 @@ def _guide_capability_route(query, history=None):
         if _should_honor_protected_risk_profile(query, profile):
             route = "safety"
             mode = "safety"
-            confidence = 1.0
-            reason = "deterministic safety boundary"
+            confidence = 1.0            reason = "deterministic safety boundary"
         elif profile.get("risk"):
             print("The Guide capability router ignored protected-core risk fallback for a hypothetical safety calibration query.")
     except Exception:
@@ -3497,7 +3491,6 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
         "model": str(bank_result.get("model") or ""),
     }
 
-
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -3845,6 +3838,30 @@ if _normalize_authoritative_recommendation({"title": "Invalid", "url": "https://
     raise RuntimeError("USE v489.09 invariant failed: off-domain recommendation accepted.")
 
 
+def _basic_inquiry_contains_html_markup(text):
+    """Reject HTML-shaped provider output at the plain-text visitor boundary.
+
+    Canonical doorways are returned as structured title/URL data, never embedded
+    in generated prose. Detect incomplete tags as well as complete tags: malformed
+    provider markup must not be passed to the frontend as if it were an answer.
+    """
+    value = str(text or "")
+    return bool(re.search(
+        r"<\s*/?\s*(?:a|p|div|span|br|img|iframe|script|style|button|section|ul|ol|li)\b",
+        value,
+        re.I,
+    ))
+
+
+# v489.193 outward-response integrity probes: complete and truncated HTML are both rejected.
+if not _basic_inquiry_contains_html_markup('<a href="https://geralddaquila.com/example/">Open</a>'):
+    raise RuntimeError("USE visitor-response contract failed: complete HTML markup was not detected.")
+if not _basic_inquiry_contains_html_markup('<a href="https://geralddaquila.com/2025/05/21/political-dynasties”'):
+    raise RuntimeError("USE visitor-response contract failed: truncated HTML markup was not detected.")
+if _basic_inquiry_contains_html_markup("Stewardship means caring for what has been entrusted to us."):
+    raise RuntimeError("USE visitor-response contract failed: ordinary prose was rejected.")
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -3973,9 +3990,26 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             llm_output = ""
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
-    # General Guide Composition owns the generative path for ordinary questions.
-    # No provider-generated prose is allowed to cross the public response
-    # boundary without the final visitor-language normalization.
+    # Canonical navigation is a separate structured field. If a provider tries
+    # to smuggle a link into prose, reject the entire generated response and
+    # recover without reusing that text. This prevents malformed markup and
+    # unsupported title/URL pairs from crossing the API boundary.
+    raw_visitor_text = str(llm_output or "").strip()
+    if _basic_inquiry_contains_html_markup(raw_visitor_text):
+        print(
+            "The Guide visitor boundary: rejected HTML-shaped generated prose; "
+            "using query-grounded deterministic recovery."
+        )
+        try:
+            deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                query, {}, composition_context
+            )
+            llm_output = str(deterministic_recovery.get("response") or "").strip()
+        except Exception as exc:
+            print(f"The Guide markup recovery failed safely: {type(exc).__name__}.")
+            llm_output = ""
+        if _basic_inquiry_contains_html_markup(llm_output):
+            llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if _basic_inquiry_has_source_dump(response):
         print(
@@ -3998,7 +4032,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
-
     if re.search(r"\bUSE\b", response) or re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|"
@@ -4497,8 +4530,7 @@ def _hypothetical_safety_calibration_payload(query):
     calibration_signal = any(
         phrase in normalized
         for phrase in (
-            "immediate danger",
-            "immediate support options",
+            "immediate danger",            "immediate support options",
             "what should the guide do",
             "safety routing",
             "safety calibration",
@@ -4997,8 +5029,7 @@ async def _use_request_boundary(scope, receive, send):
                 "specialist_id": "relationship",
                 "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
                 "voice_policy": RELATIONSHIP_VOICE_POLICY,
-                "session_id": request_id,
-                "seed_message": query,
+                "session_id": request_id,                "seed_message": query,
                 "conversation": _history_text(history),
                 "handoff_reason": "The Guide recognized a lived relational inquiry and is opening Seeing the Relationship directly.",
                 "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
@@ -5497,8 +5528,7 @@ async def _use_request_boundary(scope, receive, send):
                     "intent": "FORMATION_HANDOFF", "response": result["response"],
                     "formation_delegation": result["formation_delegation"],
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
-                })
-            except Exception as exc:
+                })            except Exception as exc:
                 print(f"USE Formation specialist failed safely: {exc}")
                 return await _use_send_json(send, {
                     "ok": False, "version": APP_VERSION, "query": query,
