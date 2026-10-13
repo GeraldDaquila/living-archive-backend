@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.178"
-    assert report["fingerprint"] == "USE-v489.178-systemic-e2e-repair"
+    assert report["version"] == "v489.179"
+    assert report["fingerprint"] == "USE-v489.179-hrn-timeout-formation-precedence"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -221,3 +221,61 @@ def test_relational_return_rejects_broad_life_essay_for_repeated_argument():
     }
     assert not main._relational_return_direct_topic_fit(query, broad_essay)
     assert not main._relational_return_earned_focus_fit(query, broad_essay)
+
+
+
+def test_formation_preparation_handoff_precedes_generic_navigator(monkeypatch):
+    import asyncio
+    import json
+
+    query = "I want to prepare for stewardship responsibilities in a group. Where should I begin learning?"
+    monkeypatch.setattr(
+        main,
+        "_formation_specialist_response",
+        lambda query, history, route, request_id: {
+            "response": "A preparation pathway can help make the responsibilities and learning needs clearer.",
+            "formation_delegation": {
+                "state": "open",
+                "specialist_id": "formation",
+                "doors": [
+                    {"title": "Learning Arcs", "url": "https://geralddaquila.com/steward-access-12-learning-arcs/"}
+                ],
+            },
+        },
+    )
+
+    body = json.dumps({"query": query, "session_id": "test-formation-precedence"}).encode()
+    consumed = False
+    sent = []
+
+    async def receive():
+        nonlocal consumed
+        if not consumed:
+            consumed = True
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.disconnect"}
+
+    async def send(message):
+        sent.append(message)
+
+    asyncio.run(main._use_request_boundary(
+        {"type": "http", "method": "POST", "path": "/api/query", "headers": []},
+        receive,
+        send,
+    ))
+
+    status = next(message["status"] for message in sent if message["type"] == "http.response.start")
+    payload = json.loads(next(message["body"] for message in sent if message["type"] == "http.response.body"))
+    assert status == 200
+    assert payload["intent"] == "FORMATION_HANDOFF"
+    assert payload["formation_delegation"]["specialist_id"] == "formation"
+    assert payload["route_source"] == "deterministic-formation-preparation-entry"
+
+
+def test_basic_inquiry_rejects_copied_case_study_source_dump():
+    response = (
+        "The Archive material available here offers this starting point: "
+        "“5. Case Studies and Real-World Applications. Consider Sarah, a 35-year-old project manager "
+        "overwhelmed by work and family demands. By adopting mindfulness meditation and the Eisenhower Matrix…”"
+    )
+    assert main._basic_inquiry_has_source_dump(response)
