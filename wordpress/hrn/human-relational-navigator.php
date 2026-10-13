@@ -3905,7 +3905,7 @@ HRN_INTERPRET;
         }
         $closure_material = strtolower(implode(' ', $closure_evidence_parts));
 
-        $tone_displacement_closure = preg_match('/\b(?:tone|defending my tone|my tone)\b/i', $closure_material)
+        $tone_displacement_closure = preg_match('/\b(?:tone|defending my tone|my tone|how i said (?:them|it)|how those words were said|way i said (?:them|it))\b/i', $closure_material)
             && preg_match('/\b(?:hurt|what was said|words that hurt|what happened)\b/i', $closure_material)
             && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
         if ($tone_displacement_closure) {
