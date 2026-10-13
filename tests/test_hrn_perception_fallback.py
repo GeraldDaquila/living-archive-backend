@@ -732,8 +732,8 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
 
 
 
-def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
-    """A known-live independent lane must not sit beyond the seven-second budget."""
+def test_relational_fallback_uses_recently_successful_nemotron_first(monkeypatch):
+    """A known-live independent lane must be attempted before slower candidates."""
     candidates = [
         _candidate("groq", "qwen/qwen3.8-27b"),
         _candidate("openrouter", "openrouter/free"),
@@ -792,7 +792,6 @@ def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
     assert result["provider"] == "nvidia"
     assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert calls == [
-        ("groq", "qwen/qwen3.8-27b"),
         ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
     ]
 
@@ -849,3 +848,102 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
     assert result["provider"] == "nvidia"
     assert calls == ["groq", "nvidia"]
     assert clock.value == 3.5
+
+
+def test_recently_successful_nemotron_lightning_is_first_for_perception(monkeypatch):
+    candidates = [
+        _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
+        _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        return json.dumps({"perception": "bounded synthetic result"})
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "synthetic calibration input"}],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="hrn_perception",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+
+
+def test_recently_successful_nemotron_lightning_is_first_for_relational(monkeypatch):
+    candidates = [
+        _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
+        _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        raise provider_bank.ProviderCallError(
+            "simulated fast provider failure",
+            item["provider"],
+            item["model"],
+            503,
+            category="http_error",
+        )
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps({
+                "observer_intention": "A friendship matters to the visitor.",
+                "observer_contrast": "The visitor fears that an honest conversation could change the friendship.",
+                "observer_so_what": "The wish to speak and the fear of change are both explicit.",
+                "observer_delta": "No further distinction has been established.",
+                "observer_horizon": "The conversation with the friend.",
+                "observer_next_intention": "Explore what the visitor wants understood.",
+            }),
+        }],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is None
+    assert calls
+    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+
+
+def test_half_open_nemotron_lightning_does_not_leapfrog_healthy_candidate(monkeypatch):
+    candidates = [
+        _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
+    candidates[1]["health_state"] = "half_open"
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        if item["provider"] == "workers_ai":
+            return json.dumps({"perception": "bounded synthetic result"})
+        raise AssertionError("half-open candidate should not run before the healthy lane")
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "synthetic calibration input"}],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="hrn_perception",
+    )
+
+    assert result is not None
+    assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
