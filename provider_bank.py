@@ -43,10 +43,11 @@ class ProviderOutput(str):
 
 
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
-# Permit up to three short local candidates within a five-second fast-failure window;
-# this allows a third candidate when two transport failures consume ~3-4 seconds.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0
-HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 3
+# Allow up to five fallback candidates within a nine-second fast-failure window.
+# This keeps the full provider-capability call inside its transport budget while
+# allowing recovery to reach additional reviewed models after clustered 429s/timeouts.
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0
+HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 5
 # Perception is the first inference stage. Permit up to four independent
 # fallbacks after fast failures within the same three-second admission window.
 # This lets the bank reach additional eligible free lanes when quotas and
