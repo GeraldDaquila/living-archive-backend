@@ -920,7 +920,7 @@ def _workers_normalize_messages(messages, model):
                     "Workers AI text transport cannot accept non-text message parts",
                     "workers_ai", model, category="unsupported_request",
                 )
-            item["content"] = "\\n".join(text_parts)
+            item["content"] = "\n".join(text_parts)
         elif content is None:
             item["content"] = ""
         elif not isinstance(content, str):
