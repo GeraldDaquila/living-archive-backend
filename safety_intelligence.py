@@ -755,10 +755,22 @@ def resolve_safety(
     safety_question: str = "",
     unit_turns: int = 0,
     location: Mapping[str, Any] | None = None,
-    service_need: str = "general_emergency",
+    service_need: str = "",
     endpoint: str | None = None,
     emergency_endpoint: str | None = None,
 ) -> dict[str, Any]:
+    # Route resource selection by the deterministic safety state. Acute or
+    # near-term danger needs the general emergency service; non-acute current
+    # distress/plan states should receive a verified crisis-support contact.
+    # An explicit caller-provided service need remains authoritative.
+    service_need = str(service_need or "").strip().casefold()
+    if not service_need:
+        service_need = (
+            "general_emergency"
+            if str(safety_state or "").strip().casefold() in {"acute", "immediacy", "acute_followthrough"}
+            else "crisis_support"
+        )
+
     endpoint_url = str(
         endpoint or os.getenv("HRN_ENDPOINT_URL") or DEFAULT_HRN_ENDPOINT
     ).strip()
