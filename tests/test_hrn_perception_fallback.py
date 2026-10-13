@@ -849,3 +849,45 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
     assert result["provider"] == "nvidia"
     assert calls == ["groq", "nvidia"]
     assert clock.value == 3.5
+
+
+
+def test_hrn_relational_uses_validated_local_fallback_after_provider_exhaustion(monkeypatch):
+    candidates = [_candidate("groq", "model-a")]
+    _isolate(monkeypatch, candidates)
+
+    def fail_provider(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        raise provider_bank.ProviderCallError(
+            "simulated quota exhaustion",
+            item["provider"],
+            item["model"],
+            429,
+            category="rate_limited",
+        )
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fail_provider)
+    messages = [{
+        "role": "user",
+        "content": (
+            'SOURCE CONTRACT FOR THIS RESPONSE: JSON object only.\n'
+            'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n'
+            '{"situation":"My partner and I keep having the same argument, even though we both say we want things to improve.",'
+            '"experience":"Both partners want improvement but the same argument returns.",'
+            '"pattern":"The same argument keeps returning.",'
+            '"working_hypothesis":"The discussion moves away from the specific event when the argument starts again.",'
+            '"perspective_delta":"The recurring argument is a pattern, not proof of either person\'s intention."}'
+        ),
+    }]
+    result = provider_bank.route(
+        use_core=None,
+        messages=messages,
+        max_tokens=250,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert result["provider"] == "local_fallback"
+    assert len(result["parsed"]["response"]) >= 180
+    assert "same argument" in result["parsed"]["question"].lower()
+    assert "should" not in result["parsed"]["question"].lower()
