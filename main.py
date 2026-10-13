@@ -71,8 +71,8 @@ use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.202"
-DEPLOYMENT_FINGERPRINT = "USE-v489.201-hrn-return-final-doorway-guard-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.201-hrn-return-final-doorway-guard-v1"
+DEPLOYMENT_FINGERPRINT = "USE-v489.202-relational-multi-query-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.202-relational-multi-query-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
