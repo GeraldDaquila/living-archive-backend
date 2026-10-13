@@ -21,6 +21,14 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
 
 
+
+    def test_blame_and_mutual_understanding_are_structured_recovery_families(self):
+        start = SOURCE.index("private function structured_recovery_candidate_is_relevant(")
+        end = SOURCE.index("private function recover_structured_state_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("'blame_assignment' => array('blame','blaming','fault','accuse','accusation')", method)
+        self.assertIn("'mutual_understanding' => array('understand','understanding','communicate','communication','hear','heard','listen','listening')", method)
+
     def test_structured_recovery_uses_current_observer_contrast_before_prior_turn_memory(self):
         start = SOURCE.index("private function recover_structured_state_composition(")
         end = SOURCE.index("private function normalize_composition(", start)
