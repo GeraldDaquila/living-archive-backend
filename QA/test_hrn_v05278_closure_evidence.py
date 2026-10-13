@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.317", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.317';", SOURCE)
+        self.assertIn("Version: 0.5.318", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.318';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -46,6 +46,21 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("$blame_without_understanding = preg_match", SOURCE)
         self.assertIn("What do you want them to understand that might otherwise sound like blame?", SOURCE)
 
+
+
+
+    def test_tone_displacement_recovery_rotates_after_prior_tone_question(self):
+        start = SOURCE.index("private function structural_question_completion_safe(")
+        end = SOURCE.index("$warmth_without_honesty = preg_match", start + 40)
+        method = SOURCE[start:end]
+        self.assertIn("$tone_focus_question_already_asked = false", method)
+        self.assertIn("What do you notice about whether your hurt can be heard when the words themselves are no longer being discussed?", method)
+
+    def test_tone_displacement_is_a_structured_recovery_relevance_family(self):
+        start = SOURCE.index("private function structured_recovery_candidate_is_relevant(")
+        end = SOURCE.index("private function recover_structured_state_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("'tone_displacement' => array('tone','said','hurt','embarrassed','defend','discussion')", method)
 
 
     def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
