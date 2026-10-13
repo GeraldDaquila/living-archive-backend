@@ -34,7 +34,7 @@ def test_responsibility_that_depends_on_one_person_returns_three_distinct_doors(
     assert {door["id"] for door in doors} == {
         "learning_arcs",
         "governance_foundations",
-        "stewardship_practice",
+        "stewardship_frameworks",
     }
     assert all(door["title"] and door["url"].startswith("https://geralddaquila.com/") for door in doors)
 
