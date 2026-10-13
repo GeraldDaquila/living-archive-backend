@@ -3022,7 +3022,7 @@ def _explicit_formation_entry_route(query):
         "confidence": 1.0,
         "reason": "deterministic stewardship formation or preparation intent",
         "alternatives": ["guide"],
-        "source": "deterministic-formation-preparation-entry",
+        "source": ("deterministic-explicit-formation-entry" if named_formation_surface else "deterministic-formation-preparation-entry"),
         "round1_interpretation": {
             "human_reality": "The visitor is asking how to prepare for stewardship responsibilities.",
             "presenting_situation": str(query).strip(),
