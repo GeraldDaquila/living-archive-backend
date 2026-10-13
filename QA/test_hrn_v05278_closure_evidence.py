@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.315", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.315';", SOURCE)
+        self.assertIn("Version: 0.5.316", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.316';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -44,7 +44,17 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
     def test_blame_understanding_contrast_has_a_grounded_question_fallback(self):
         self.assertIn("$blame_without_understanding = preg_match", SOURCE)
-        self.assertIn("What do you want her to understand that might otherwise sound like blame?", SOURCE)
+        self.assertIn("What do you want them to understand that might otherwise sound like blame?", SOURCE)
+
+
+    def test_tone_displacement_recovers_a_new_grounded_question_plane(self):
+        start = SOURCE.index("private function structural_question_completion_safe(")
+        end = SOURCE.index("$warmth_without_honesty = preg_match", start + 40)
+        method = SOURCE[start:end]
+        self.assertIn("$tone_displacement = preg_match", method)
+        self.assertIn("What changes in the conversation when your tone becomes the focus instead of what was said?", method)
+        self.assertIn("does not assume the other person's motive or gender", method)
+
 
     def test_blame_and_mutual_understanding_are_structured_recovery_families(self):
         start = SOURCE.index("private function structured_recovery_candidate_is_relevant(")
