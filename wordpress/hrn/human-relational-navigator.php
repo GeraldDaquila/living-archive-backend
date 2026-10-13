@@ -5087,7 +5087,7 @@ HRN_QUESTION_REPAIR;
 
         if ($hurt_tone_displacement) {
             $local_response = 'You explain the words that hurt you, and then the conversation shifts to how those words were said. The discussion stays on the way the issue was raised, while the original words that hurt you are no longer being discussed.';
-            $local_question = 'What part of the original hurt feels hardest to get across once the discussion turns to how the words were said?';
+            $local_question = 'What feels most important about the original hurt, apart from how it was explained?';
         } elseif ($hurt_heard_without_perfect_explanation) {
             $local_response = 'You are wondering whether your hurt can be heard if you cannot explain it perfectly. The question has shifted from finding the right words to whether the hurt can be taken seriously when the words are imperfect.';
             $local_question = 'What would tell you that the hurt itself had been heard, even if the explanation were imperfect?';
@@ -5109,13 +5109,19 @@ HRN_QUESTION_REPAIR;
         }
 
         if ($local_response !== '' && $local_question !== '') {
-            $safe_question = $this->structural_question_completion_safe(
-                $local_response . "\n" . $message,
-                (string)$message,
-                $state,
-                (array)($ledger['asked_questions'] ?? array())
-            );
-            if ($safe_question !== '') $local_question = $safe_question;
+            // The two explicit visitor patterns already define a distinct,
+            // evidence-bound next plane. Keep their specific question instead of
+            // replacing it with a generic recovery candidate; normalize_composition
+            // still applies the full question and visitor-surface policy gates.
+            if (!$hurt_tone_displacement && !$hurt_heard_without_perfect_explanation) {
+                $safe_question = $this->structural_question_completion_safe(
+                    $local_response . "\n" . $message,
+                    (string)$message,
+                    $state,
+                    (array)($ledger['asked_questions'] ?? array())
+                );
+                if ($safe_question !== '') $local_question = $safe_question;
+            }
             $local_draft = wp_json_encode(array(
                 'response' => $local_response,
                 'question' => $local_question,
