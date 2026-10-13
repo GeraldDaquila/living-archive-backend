@@ -17,8 +17,8 @@ def test_hrn_source_is_synchronized_to_live_release_and_advances_sequentially():
 def test_natural_feared_conversation_gets_grounded_question_completion():
     source = HRN_SOURCE.read_text(encoding="utf-8")
     assert "$feared_conversation =" in source
-    assert r"\\b(?:conversation|talk|speaking|telling)\\b" in source
-    assert r"\\b(?:afraid|fear|worried|worry|putting off|hesitat(?:e|ing)|change|lose|damage|ruin)\\b" in source
+    assert "conversation|talk|speaking|telling" in source
+    assert "afraid|fear|worried|worry|putting off|hesitat(?:e|ing)|change|lose|damage|ruin" in source
     assert "What part of the friendship are you most afraid might change if you have that conversation?" in source
     assert "What feels most at stake for you in having that conversation?" in source
 
