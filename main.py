@@ -3318,6 +3318,27 @@ def _basic_inquiry_has_source_dump(response):
     ))
 
 
+def _basic_inquiry_source_dump_recovery(query):
+    """Fail-closed visitor answer when the composer returns copied source material."""
+    q = _normalize_query(query).casefold()
+    if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
+        return (
+            "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
+            "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
+            "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
+            "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+    if "stewardship" in q:
+        return (
+            "Stewardship means taking care of what has been entrusted to you while recognizing your limits and the effects your choices have on others. "
+            "It matters because care, neglect, and responsibility accumulate over time, shaping what remains available to other people and to the future."
+        )
+    return (
+        "I can help you think this through, but I don't want to pass along a copied passage as if it were an answer to your question. "
+        "A useful first step is to identify the part of the situation that matters most to you right now, then look for a resource that speaks directly to it."
+    )
+
+
 def _basic_inquiry_round1_response(query, interpretation, context_data):
     """Compose a true Guide Round 1 response without altering protected core."""
     interpretation = interpretation or {}
@@ -3892,6 +3913,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _sanitize_basic_inquiry_response(
             str(deterministic_recovery.get("response") or "").strip()
         )
+        # The boundary is fail-closed: even if deterministic recovery unexpectedly
+        # returns the same excerpt, no copied/truncated source dump may be emitted.
+        if _basic_inquiry_has_source_dump(response):
+            response = _sanitize_basic_inquiry_response(
+                _basic_inquiry_source_dump_recovery(query)
+            )
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
