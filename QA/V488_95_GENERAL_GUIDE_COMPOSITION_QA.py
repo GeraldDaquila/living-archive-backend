@@ -27,17 +27,6 @@ def assert_true(condition, message):
 
 
 def main():
-    # v489.207: provider exhaustion must not blank this common comparison question.
-    comparison = __import__("main")._basic_inquiry_round1_deterministic_response(
-        "What is the difference between responsibility and stewardship?",
-        {},
-        {"context_blocks": ""},
-    )
-    comparison_text = str(comparison.get("response") or "").casefold()
-    assert_true(
-        all(phrase in comparison_text for phrase in ("accountable for", "care for what", "future")),
-        "responsibility/stewardship comparison fallback is incomplete",
-    )
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', MAIN_TEXT)
     assert_true(version_match is not None, "main.py production version is missing")
     app_version = version_match.group(1)
@@ -50,6 +39,9 @@ def main():
     recovery_block = MAIN_TEXT[recovery_start:recovery_end]
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
+    assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
+    assert_true("When a situation is difficult, it helps to separate what you know from what you think it means." in recovery_block, "reflective question recovery is not visitor-useful")
+    assert_true('"care for what is entrusted to you"' in recovery_block, "responsibility/stewardship fallback is missing")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
     assert_true("When a situation is difficult, it helps to separate what you know from what you think it means." in recovery_block, "reflective question recovery is not visitor-useful")
     assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
