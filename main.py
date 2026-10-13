@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.196 — recompose safely after rejecting untrusted Archive markup
+# USE PRODUCTION VERSION: v489.197 — recompose safely after rejecting untrusted Archive markup
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.196"
-DEPLOYMENT_FINGERPRINT = "USE-v489.196-safe-contextless-recomposition"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.196-safe-contextless-recomposition"
+APP_VERSION = "v489.197"
+DEPLOYMENT_FINGERPRINT = "USE-v489.197-safe-contextless-recomposition-runtime-manifest-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.197-safe-contextless-recomposition-runtime-manifest-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -174,10 +174,37 @@ def _guide_node_by_id(node_id):
 
 EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 _MAIN_PATH = Path(__file__).resolve()
-RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
+
+
+def _runtime_source_manifest_sha256(root=None):
+    """Hash application-owned Python runtime modules, not only main.py."""
+    root_path = Path(root if root is not None else _MAIN_PATH.parent).resolve()
+    excluded_parts = {
+        ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+        "tests", "QA", "scripts", "node_modules",
+    }
+    source_files = []
+    for path in root_path.rglob("*.py"):
+        if path.is_symlink():
+            continue
+        relative = path.relative_to(root_path)
+        if any(part in excluded_parts for part in relative.parts):
+            continue
+        source_files.append(path)
+    digest = hashlib.sha256()
+    for path in sorted(source_files, key=lambda item: item.relative_to(root_path).as_posix()):
+        relative_name = path.relative_to(root_path).as_posix()
+        digest.update(relative_name.encode("utf-8"))
+        digest.update(b"\\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\\0")
+    return digest.hexdigest()
+
+
+RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.196":
+if str(APP_VERSION) != "v489.197":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
