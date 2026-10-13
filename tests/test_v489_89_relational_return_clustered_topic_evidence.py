@@ -44,3 +44,62 @@ def test_direct_sentence_evidence_can_match_without_title_keyword():
         ),
     }
     assert main._relational_return_direct_topic_fit(query, relevant)
+
+
+
+def test_rejected_broad_vector_candidate_retries_bounded_conflict_search(monkeypatch):
+    original = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    direct_topic = original + " The discussion shifts to how those words were said."
+    repair_resource = {
+        "title": "Repair Before Withdrawal",
+        "text": (
+            "When a conflict returns, repair can restore conversation after hurt. "
+            "Relationships need listening and acknowledgement."
+        ),
+        "url": "https://geralddaquila.com/2026/02/04/repair-before-withdrawal/",
+    }
+    calls = []
+
+    def recover(question, direct_query, profile):
+        calls.append((question, direct_query))
+        return repair_resource, [repair_resource]
+
+    monkeypatch.setattr(main, "_relational_return_search_recovery", recover)
+    profile = main._base._inquiry_profile(direct_topic)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_retry_after_broad_candidate(
+        None, [], original, direct_topic, profile
+    )
+
+    assert len(calls) == 1
+    assert primary == repair_resource
+    assert outward == [repair_resource]
+
+
+def test_conflict_retry_rejects_a_broad_search_result(monkeypatch):
+    original = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    broad_resource = {
+        "title": "What If Everyone Is Certain Except Me?",
+        "text": "A broad reflection about certainty and interpretation.",
+        "url": "https://geralddaquila.com/what-if-everyone-is-certain-except-me/",
+    }
+    monkeypatch.setattr(
+        main,
+        "_relational_return_search_recovery",
+        lambda question, direct_query, profile: (broad_resource, [broad_resource]),
+    )
+    primary, outward = main._relational_return_retry_after_broad_candidate(
+        None, [], original, original, {}
+    )
+    assert primary is None
+    assert outward == []
