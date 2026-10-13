@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.321
+ * Version: 0.5.322
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.321';
+    const VERSION = '0.5.322';
+    // RELEASE v0.5.322: derive short-close recovery eligibility from accepted journey-ledger evidence, not only the final utterance; frozen writers unchanged.
     // RELEASE v0.5.321: keep terminal tone-displacement synthesis at the visitor's concrete evidence level; frozen writers unchanged.
     // RELEASE v0.5.320: preserve an evidence-grounded terminal landing for explicit tone-displacement journeys when all closure providers fail; frozen writers unchanged.
     // RELEASE v0.5.319: keep the rotated tone-displacement question inside the perspective-form grounding contract; frozen writers unchanged.
@@ -3856,7 +3857,34 @@ HRN_INTERPRET;
         // Observer label, then let the caller enforce the same humanity,
         // boundedness, and earned-evidence gates as every other closure path.
         $closure_message = trim(wp_strip_all_tags((string)($state['closure_message'] ?? '')));
-        $closure_material = strtolower($closure_message . ' ' . (string)($state['conversation'] ?? ''));
+        // A short explicit close message ("let this land") may contain none of
+        // the relational evidence itself. Recover the already accepted journey
+        // evidence from the ledger summaries and prior fractal/round records;
+        // never require visitors to repeat the story to close the conversation.
+        $closure_evidence_parts = array(
+            $closure_message,
+            (string)($state['conversation'] ?? ''),
+        );
+        foreach (array(
+            'observer_intention', 'observer_contrast', 'observer_so_what',
+            'observer_delta', 'observer_next_intention', 'perspective_delta',
+            'last_delta', 'last_nugget', 'body_of_thought', 'current_terrain',
+            'journey_purpose', 'thread_summary', 'completed_insight',
+            'last_fractal_summary',
+        ) as $closure_evidence_field) {
+            $closure_evidence_value = $state[$closure_evidence_field] ?? '';
+            if (is_scalar($closure_evidence_value)) {
+                $closure_evidence_parts[] = (string)$closure_evidence_value;
+            }
+        }
+        foreach (array('fractal_records', 'round_synthesis_history') as $closure_evidence_collection) {
+            $closure_evidence_value = $state[$closure_evidence_collection] ?? array();
+            if (is_array($closure_evidence_value)) {
+                $closure_evidence_parts[] = (string)wp_json_encode($closure_evidence_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+        }
+        $closure_material = strtolower(implode(' ', $closure_evidence_parts));
+
         $tone_displacement_closure = preg_match('/\b(?:tone|defending my tone|my tone)\b/i', $closure_material)
             && preg_match('/\b(?:hurt|what was said|words that hurt|what happened)\b/i', $closure_material)
             && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
