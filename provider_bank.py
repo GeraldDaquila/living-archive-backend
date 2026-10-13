@@ -59,7 +59,7 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # HRN uses free provider lanes whose structured-output latency can exceed 1.5s.
 # Keep each call bounded, but do not quarantine a viable lane before its normal
 # response latency has elapsed.
-HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # HRN needs a short observation and one question; reserve only a bounded output
 # allowance so the second stage can fit within shared free-tier OTPM/TPM budgets.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 250
@@ -338,34 +338,42 @@ def _quality_state(operation, provider, model, create=False):
         "quality_error": "",
     })
 
-def _blocked(state):
+def _blocked(state, operation=None):
+    # Timeouts are operation-specific evidence: a model that misses a perception
+    # deadline may still be viable for the shorter relational composition (and
+    # vice versa). Quota, authentication, and explicit provider-wide circuits
+    # remain shared and are never bypassed here.
+    category = str(state.get("category") or "")
+    error_text = str(state.get("last_error") or "").casefold()
+    timeout_failure = category == "provider_failure" and any(term in error_text for term in (
+        "read operation timed out",
+        "request timed out",
+        "timed out",
+        "timeout",
+    ))
+    last_operation = str(state.get("last_operation") or "")
+    if timeout_failure and operation and last_operation and last_operation != str(operation):
+        return False
+
     # Older provider-bank builds escalated repeated short client timeouts to a
-    # five-minute open circuit. When the failure is specifically a read/HTTP
-    # timeout (not quota, authentication, or rate limiting), cap that legacy
-    # cooldown at 20 seconds so the lane can recover after its latency budget is
-    # corrected. Explicit provider retry-after and daily-quota cooldowns are untouched.
-    if str(state.get("category") or "") == "provider_failure":
-        error_text = str(state.get("last_error") or "").casefold()
-        if any(term in error_text for term in (
-            "read operation timed out",
-            "request timed out",
-            "timed out",
-            "timeout",
-        )):
-            try:
-                last_failure = float(state.get("last_failure", 0) or 0)
-                if last_failure > 0:
-                    bounded_until = last_failure + 20.0
-                    current_until = float(state.get("cooldown_until", 0) or 0)
-                    if current_until > bounded_until:
-                        state["cooldown_until"] = bounded_until
-                        state["quarantine_until"] = 0.0
-            except (TypeError, ValueError):
-                pass
+    # five-minute open circuit. Cap a same-operation timeout at 20 seconds while
+    # retaining the operation-aware isolation above.
+    if timeout_failure:
+        try:
+            last_failure = float(state.get("last_failure", 0) or 0)
+            if last_failure > 0:
+                bounded_until = last_failure + 20.0
+                current_until = float(state.get("cooldown_until", 0) or 0)
+                if current_until > bounded_until:
+                    state["cooldown_until"] = bounded_until
+                    state["quarantine_until"] = 0.0
+        except (TypeError, ValueError):
+            pass
     return blocked(state)
 
-def _failure(exc, provider, model):
+def _failure(exc, provider, model, operation=None):
     state = _state(provider, model)
+    state["last_operation"] = str(operation or state.get("last_operation") or "")
     text = str(exc)
     low = text.casefold()
     status = getattr(exc, "status_code", None)
@@ -1024,7 +1032,7 @@ def candidates(use_core, operation="generic", schema=None):
     for provider, models in configured_models.items():
         for index, model in enumerate(models):
             health = _state(provider, model)
-            if _blocked(health):
+            if _blocked(health, operation=operation):
                 blocked_until = max(
                     float(health.get("cooldown_until", 0) or 0),
                     float(health.get("quarantine_until", 0) or 0),
@@ -2219,7 +2227,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         # was built (for example, daily quota exhaustion). Re-check current state
         # immediately before every call so stale sibling candidates are not sent
         # to an account that has just been quarantined.
-        if _blocked(state):
+        if _blocked(state, operation=operation):
             print(
                 "USE model bank skip newly blocked candidate: "
                 f"provider={provider}, model={model}, "
@@ -2482,7 +2490,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         except Exception as exc:
             last_error = str(exc)
-            _failure(exc, provider, model)
+            _failure(exc, provider, model, operation=operation)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
