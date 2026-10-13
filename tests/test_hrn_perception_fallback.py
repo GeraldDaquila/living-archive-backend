@@ -685,7 +685,7 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append((item["provider"], item["model"]))
         if item["model"] != "nemotron-model-f":
-            clock.value += 0.2
+            clock.value += 1.3
             raise provider_bank.ProviderCallError(
                 "simulated clustered provider failure",
                 item["provider"],
