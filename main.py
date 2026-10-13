@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.190 — restore Formation three-door contribution integrity
+# USE PRODUCTION VERSION: v489.191 — require topic-anchored canonical recommendations
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.190"
-DEPLOYMENT_FINGERPRINT = "USE-v489.190-formation-three-door-integrity"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.190-formation-three-door-integrity"
+APP_VERSION = "v489.191"
+DEPLOYMENT_FINGERPRINT = "USE-v489.191-topic-anchored-canonical-recommendations"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.191-topic-anchored-canonical-recommendations"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.190":
+if str(APP_VERSION) != "v489.191":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -806,12 +806,72 @@ def _uncertainty_resource_direct_fit(query, doc):
     lived_support = bool(re.search(r"\b(?:personal|personally|everyday|daily life|decision|decisions|deciding|cope|coping|tolerat(?:e|ing)|accept(?:ance|ing)?|adapt(?:ation|ing)?|uncertain future|living with|live with|make choices|moving forward|what you can control|control what|emotional|anxiety|fear|patience)\b", body, re.I))
     return uncertainty_support and lived_support
 
+_TOPIC_ANCHOR_GROUPS = {
+    "political_dynasties": (
+        r"\\bpolitical dynast(?:y|ies)\\b",
+        r"\\bdynast(?:y|ies)\\b",
+    ),
+    "accountability": (
+        r"\\baccountability\\b",
+        r"\\baccountable\\b",
+    ),
+    "institutions": (
+        r"\\b(?:public )?institutions?\\b",
+        r"\\binstitutional\\b",
+    ),
+    "governance": (
+        r"\\bgovernance\\b",
+        r"\\bgoverning\\b",
+    ),
+    "political_systems": (
+        r"\\bpolitical systems?\\b",
+        r"\\bpolitics\\b",
+        r"\\bgovernment\\b",
+    ),
+}
+
+
+def _topic_anchor_groups(text):
+    value = str(text or "").casefold()
+    return {
+        group for group, patterns in _TOPIC_ANCHOR_GROUPS.items()
+        if any(re.search(pattern, value, re.I) for pattern in patterns)
+    }
+
+
+def _topic_specific_candidate_fit(query, doc):
+    """Require substantive topic evidence for multi-concept public-system questions.
+
+    Country, locality, or broad cultural words alone cannot authorize a doorway
+    for a question about institutions, political dynasties, or accountability.
+    """
+    query_groups = _topic_anchor_groups(query)
+    if len(query_groups) < 2:
+        return True
+    title = str(doc.get("title") or "")
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if not title.strip() or not body.strip():
+        return False
+    title_groups = _topic_anchor_groups(title)
+    early_groups = _topic_anchor_groups(body[:3000])
+    body_groups = _topic_anchor_groups(body)
+    supported = query_groups & body_groups
+    if len(supported) < 2:
+        return False
+    # Prefer a doorway whose title identifies at least one requested topic.
+    # A broader title may still qualify when the opening directly discusses
+    # at least two of the requested concepts.
+    return bool(query_groups & title_groups) or len(query_groups & early_groups) >= 2
+
+
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
+        return False
+    if not _topic_specific_candidate_fit(query, doc):
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
