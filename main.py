@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.201 — enforce final canonical doorway title boundary
+# USE PRODUCTION VERSION: v489.202 — recover relational doorways across bounded conflict search variants
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.201"
-DEPLOYMENT_FINGERPRINT = "USE-v489.201-hrn-return-final-doorway-guard-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.201-hrn-return-final-doorway-guard-v1"
+APP_VERSION = "v489.202"
+DEPLOYMENT_FINGERPRINT = "USE-v489.202-relational-multi-query-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.202-relational-multi-query-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.201":
+if str(APP_VERSION) != "v489.202":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1701,22 +1701,57 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
     ))
     if not conflict_focus:
         return None, []
-    # This search is a retrieval supplement, not an authority bypass. Every
-    # candidate must still pass the same canonical URL, outward-context, and
-    # direct-topic/earned-focus gates used for vector results.
-    search_query = "relationship repair"
-    candidates = _wordpress_search_canonical_candidates(search_query, limit=5)
-    # Apply the ordinary outward relevance gate against the actual retrieval
-    # query, then separately enforce the visitor's original relational focus.
-    # This avoids requiring incidental words like "improve" to appear in a
-    # directly relevant repair resource while still forbidding broad decoys.
-    outward = _sanitize_outward_context(search_query, candidates, profile)
-    outward = [
-        doc for doc in outward
-        if _relational_return_direct_topic_fit(direct_topic_query, doc)
-        or _relational_return_earned_focus_fit(direct_topic_query, doc)
-    ]
-    primary = _canonical_primary_from_docs(outward, search_query, profile)
+    # This search is a retrieval supplement, not an authority bypass. A single
+    # phrase ("relationship repair") can return plausible results that fail the
+    # normal outward-context gate. Search a small bounded set of adjacent phrasings
+    # in parallel, then require each candidate to pass the same canonical and
+    # original-topic gates before any doorway can be released.
+    search_queries = ("relationship repair", "conflict repair", "argument hurt")
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=len(search_queries)) as executor:
+        candidate_sets = list(executor.map(
+            lambda search_query: _wordpress_search_canonical_candidates(search_query, limit=5),
+            search_queries,
+        ))
+
+    ranked_candidates = []
+    seen = set()
+    candidate_index = 0
+    for search_query, candidates in zip(search_queries, candidate_sets):
+        query_outward = _sanitize_outward_context(search_query, candidates, profile)
+        for doc in query_outward:
+            if not (
+                _relational_return_direct_topic_fit(direct_topic_query, doc)
+                or _relational_return_earned_focus_fit(direct_topic_query, doc)
+            ):
+                continue
+            key = (
+                str(doc.get("title") or "").strip().casefold(),
+                str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold(),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            metrics = _subject_metrics(search_query, doc)
+            context = _contextual_fit(search_query, doc)
+            score = (
+                metrics[2], metrics[3], metrics[0], metrics[1],
+                context[2], context[1], -candidate_index,
+            )
+            ranked_candidates.append((score, doc))
+            candidate_index += 1
+
+    # Rank each candidate against the exact bounded query that retrieved it.
+    # Rechecking every candidate against only the first phrase would silently
+    # discard valid candidates discovered by the secondary queries.
+    ranked_candidates.sort(key=lambda item: item[0], reverse=True)
+    outward = [doc for _score, doc in ranked_candidates]
+    primary = outward[0] if outward else None
+    print(
+        "The Guide relational doorway recovery: "
+        f"queries={len(search_queries)}, candidates={sum(len(items) for items in candidate_sets)}, "
+        f"eligible={len(outward)}, selected={primary['title'] if primary else 'none'}."
+    )
     return primary, (outward if primary else [])
 
 

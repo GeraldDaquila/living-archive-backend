@@ -141,3 +141,74 @@ def test_explicit_feeling_unheard_still_qualifies_for_listening_resource():
     }
     assert main._relational_return_earned_focus_fit(query, listening_article)
     assert main._relational_return_direct_topic_fit(query, listening_article)
+
+
+def test_recurring_argument_search_recovery_uses_bounded_query_variants(monkeypatch):
+    original = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    direct_topic = (
+        original
+        + " The focus shifts from what was said to defending tone, and the hurt "
+        "is no longer discussed."
+    )
+    repair_resource = {
+        "title": "Repair Before Withdrawal",
+        "text": (
+            "When a conflict returns, repair can restore conversation after hurt. "
+            "Relationships need listening and acknowledgement."
+        ),
+        "url": "https://geralddaquila.com/2026/02/04/repair-before-withdrawal/",
+    }
+    queries = []
+
+    def candidates(query, *, limit=3):
+        queries.append(query)
+        return [repair_resource] if query == "conflict repair" else []
+
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", candidates)
+    profile = main._base._inquiry_profile(direct_topic)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_search_recovery(
+        original, direct_topic, profile
+    )
+
+    assert queries == ["relationship repair", "conflict repair", "argument hurt"]
+    assert primary is not None
+    assert primary["title"] == "Repair Before Withdrawal"
+    assert any(doc["url"] == repair_resource["url"] for doc in outward)
+
+
+def test_recurring_argument_search_recovery_still_rejects_broad_decoys(monkeypatch):
+    original = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    broad_resource = {
+        "title": "Glyph of Resonant Governance",
+        "text": "Governance supports communication and shared responsibility.",
+        "url": "https://geralddaquila.com/glyph-of-resonant-governance/",
+    }
+
+    monkeypatch.setattr(
+        main,
+        "_wordpress_search_canonical_candidates",
+        lambda query, *, limit=3: [broad_resource],
+    )
+    profile = main._base._inquiry_profile(original)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_search_recovery(
+        original, original, profile
+    )
+
+    assert primary is None
+    assert outward == []
