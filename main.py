@@ -808,25 +808,25 @@ def _uncertainty_resource_direct_fit(query, doc):
 
 _TOPIC_ANCHOR_GROUPS = {
     "political_dynasties": (
-        r"\\bpolitical dynast(?:y|ies)\\b",
-        r"\\bdynast(?:y|ies)\\b",
+        r"\bpolitical dynast(?:y|ies)\b",
+        r"\bdynast(?:y|ies)\b",
     ),
     "accountability": (
-        r"\\baccountability\\b",
-        r"\\baccountable\\b",
+        r"\baccountability\b",
+        r"\baccountable\b",
     ),
     "institutions": (
-        r"\\b(?:public )?institutions?\\b",
-        r"\\binstitutional\\b",
+        r"\b(?:public )?institutions?\b",
+        r"\binstitutional\b",
     ),
     "governance": (
-        r"\\bgovernance\\b",
-        r"\\bgoverning\\b",
+        r"\bgovernance\b",
+        r"\bgoverning\b",
     ),
     "political_systems": (
-        r"\\bpolitical systems?\\b",
-        r"\\bpolitics\\b",
-        r"\\bgovernment\\b",
+        r"\bpolitical systems?\b",
+        r"\bpolitics\b",
+        r"\bgovernment\b",
     ),
 }
 
