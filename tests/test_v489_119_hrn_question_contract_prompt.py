@@ -17,19 +17,55 @@ def test_hrn_provider_prompt_requires_a_separate_nonempty_question_field():
     assert "grounded in the structured movement brief" in normalized
 
 
-def test_hrn_provider_bank_still_rejects_an_empty_question_field():
+def test_hrn_provider_bank_completes_missing_question_from_grounded_movement_brief():
     partial = {
         "response": (
-            "You described trying to explain yourself more when disagreement begins. "
-            "You also noticed that this effort leaves you feeling even less heard. "
-            "That difference between your intention and what happens next is worth noticing."
+            "You said you keep putting off a conversation with your friend because "
+            "you are afraid the friendship may change. You also described the possibility "
+            "that they may feel hurt or pull away, and that things may not be the same. "
+            "That leaves the anticipated change in closeness at the center of what you described."
         ),
         "question": "",
         "rest": False,
         "use_resource": False,
         "resource_intro": "",
     }
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\n"
+            + json.dumps({
+                "current_fractal": "I think they may feel hurt or pull away, and then things won't be the same.",
+                "thread_summary": "The visitor is postponing a conversation with a friend because they fear the friendship will change.",
+                "working_hypothesis": "fear that a conversation will change the friendship",
+            })
+        ),
+    }]
 
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+    assert normalized["question"].endswith("?")
+    assert "hurt or pull away" in normalized["question"]
+    assert provider_bank._hrn_surface_language_violation(normalized["question"]) == ""
+    assert provider_bank._hrn_question_grounding_violation(
+        normalized["question"], messages
+    ) == ""
+    assert normalized["response"].startswith("You said you keep putting off")
+
+
+def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
+    partial = {
+        "response": (
+            "You described a difficult exchange with your friend and wanting to understand "
+            "what happens during those conversations. You have not yet shared a concrete "
+            "detail that can safely anchor a useful follow-up question."
+        ),
+        "question": "",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
     with pytest.raises(ValueError, match="non-empty question"):
         provider_bank._normalize_operation_result("hrn_relational", partial)
 
