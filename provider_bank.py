@@ -1914,17 +1914,94 @@ def _compact_hrn_contract_recovery_messages(messages, raw_output, correction_con
     ]
 
 
+def _hrn_complete_missing_question(messages):
+    """Build a conservative follow-up only from a decoded HRN movement brief.
+
+    This is a local completion for an omitted question field, not a model fallback.
+    It fails closed unless the resulting question passes the same visitor-surface
+    and concrete-anchor checks used for provider-authored questions.
+    """
+    marker = "STRUCTURED MOVEMENT BRIEF"
+    semantic_keys = {
+        "observer_intention", "observer_contrast", "observer_so_what",
+        "observer_delta", "observer_horizon", "observer_next_intention",
+        "conversation_purpose", "thread_summary", "working_hypothesis",
+        "underlying_need", "desired_condition", "emerging_delta",
+        "perspective_delta", "body_of_thought", "unresolved",
+        "movement_direction", "next_movement", "new_terrain",
+        "completed_insight", "next_horizon", "current_fractal",
+        "fractal_transition", "pivot_signal", "leadership_need",
+        "plane_shift", "relational_understanding", "archive_grounded_understanding",
+    }
+    focus_fields = (
+        "current_fractal", "thread_summary", "working_hypothesis",
+        "observer_intention", "underlying_need", "emerging_delta",
+        "body_of_thought", "unresolved", "next_horizon",
+        "relational_understanding", "observer_contrast",
+    )
+    for item in reversed(list(messages or [])):
+        if not isinstance(item, dict):
+            continue
+        content = str(item.get("content") or "")
+        search_end = len(content)
+        while True:
+            marker_index = content.rfind(marker, 0, search_end)
+            if marker_index < 0:
+                break
+            brace_index = content.find("{", marker_index + len(marker))
+            if brace_index < 0:
+                search_end = marker_index
+                continue
+            raw = _escape_json_string_control_characters(content[brace_index:])
+            decoded = None
+            for candidate in (raw, raw.replace(chr(92) + chr(34), chr(34))):
+                try:
+                    value, _ = json.JSONDecoder().raw_decode(candidate)
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    continue
+                if isinstance(value, dict) and semantic_keys.intersection(value):
+                    decoded = value
+                    break
+            if decoded is not None:
+                for field in focus_fields:
+                    value = decoded.get(field)
+                    if not isinstance(value, str):
+                        continue
+                    focus = re.sub(r"\s+", " ", value).strip(" \t\r\n.!?")
+                    if len(re.findall(r"[A-Za-z]{3,}", focus)) < 2:
+                        continue
+                    # Keep the quotation bounded while preserving whole words.
+                    if len(focus) > 110:
+                        focus = focus[:107].rsplit(" ", 1)[0].rstrip(" ,;:")
+                    if not focus:
+                        continue
+                    question = f'When you say “{focus}”, what do you notice happening between you and the other person?'
+                    if _hrn_surface_language_violation(question):
+                        continue
+                    if _hrn_question_grounding_violation(question, messages):
+                        continue
+                    return question
+                return ""
+            search_end = marker_index
+    return ""
+
+
 def _normalize_operation_result(operation, parsed, messages=None):
     if operation == "hrn_relational":
         response = parsed.get("response")
         question = parsed.get("question")
         if not isinstance(response, str) or not response.strip():
             raise ValueError("hrn_relational composition contract requires response")
-        # The live HRN bridge rejects a missing question rather than completing it.
-        # Treat missing or disallowed questions as model-quality failures here, so the
-        # bounded provider bank can try an independent candidate before the bridge.
+        # A missing question is a recoverable field omission when the actual
+        # movement brief contains a concrete anchor. Complete it locally before
+        # spending another provider call; keep all existing surface and grounding
+        # checks in force. If no grounded question can be formed, fail closed.
         if not isinstance(question, str) or not question.strip():
-            raise ValueError("hrn_relational composition contract requires a non-empty question")
+            question = _hrn_complete_missing_question(messages)
+            if not question:
+                raise ValueError("hrn_relational composition contract requires a non-empty question")
+            parsed["question"] = question
+            print("USE provider question repair: operation=hrn_relational, mode=grounded_local_completion")
         question_violation = _hrn_surface_language_violation(question)
         if not question_violation and messages is not None:
             question_violation = _hrn_question_grounding_violation(question, messages)
