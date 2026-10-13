@@ -110,10 +110,23 @@ def test_recurring_argument_return_keeps_direct_repair_resource():
 
 
 def test_recurring_argument_final_doorway_guard_rejects_broad_title():
-    query = "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
-    assert main._relational_return_requires_direct_conflict_title(query)
-    assert not main._relational_return_has_direct_conflict_title("Glyph of Resonant Governance")
-    assert main._relational_return_has_direct_conflict_title("Repair Before Withdrawal")
+    query = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt. From why do I feel this "
+        "to why is my feeling being treated as a claim to be verified? Relational "
+        "communication during disagreement: listening, acknowledgment, being heard, "
+        "and receiving another person's point before responding."
+    )
+    broad_glyph = {
+        "title": "Glyph of Resonant Governance",
+        "text": "In relationships, conflict can be held through communication. Governance invites shared responsibility and awareness.",
+    }
+    direct_repair = {
+        "title": "Repair Before Withdrawal",
+        "text": "When a conflict returns, repair can restore conversation after hurt. Relationships need listening and acknowledgement.",
+    }
+    assert not main._relational_return_direct_topic_fit(query, broad_glyph)
+    assert main._relational_return_direct_topic_fit(query, direct_repair)
 
 
 
