@@ -71,7 +71,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("$closure_message", method)
         self.assertIn("$tone_displacement_closure", method)
         self.assertIn("You said that when you defend your tone, the original hurt gets set aside", method)
-        self.assertIn("without adding an explanation for the other person's behavior", method)
+        self.assertIn("stated without adding an explanation", method)
 
 
     def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
