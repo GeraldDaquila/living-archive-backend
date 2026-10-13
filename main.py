@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.206 — restore natural explanatory prose at the visitor boundary
+# USE PRODUCTION VERSION: v489.207 — make provider-exhaustion comparison recovery deterministic
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.206"
-DEPLOYMENT_FINGERPRINT = "USE-v489.206-natural-prose-label-boundary-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.206-natural-prose-label-boundary-v1"
+APP_VERSION = "v489.207"
+DEPLOYMENT_FINGERPRINT = "USE-v489.207-provider-exhaustion-comparison-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.207-provider-exhaustion-comparison-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.206":
+if str(APP_VERSION) != "v489.207":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3573,6 +3573,18 @@ if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_I
 if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE or "consider who will live with the consequences" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE:
     raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
 
+# v489.207: common stewardship comparison remains answerable when every model is unavailable.
+_BASIC_INQUIRY_PROVIDER_EXHAUSTION_COMPARISON_PROBE = _basic_inquiry_round1_deterministic_response(
+    "What is the difference between responsibility and stewardship?",
+    {},
+    {"context_blocks": ""},
+)
+if not all(
+    phrase in str(_BASIC_INQUIRY_PROVIDER_EXHAUSTION_COMPARISON_PROBE.get("response") or "").casefold()
+    for phrase in ("accountable for", "care for what", "future")
+):
+    raise RuntimeError("USE v489.207 invariant failed: responsibility/stewardship comparison recovery is incomplete.")
+
 
 def _basic_inquiry_has_source_dump(response):
     """Detect copied source fragments that are not safe as a visitor-facing answer."""
@@ -3706,6 +3718,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
     # available, without fabricating Archive evidence or source-specific claims.
+    if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
+        response = (
+            "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
+            "It can be assigned to you, shared, or delegated. "
+            "Stewardship is about how you care for something placed in your hands, especially when its value reaches beyond your immediate needs. "
+            "It asks you to maintain, protect, or improve it for others and for the future.\n\n"
+            "The two belong together, but they are not identical. Responsibility asks, ‘What am I accountable for?’ "
+            "Stewardship asks, ‘How should I care for what I have been entrusted with?’ "
+            "You can fulfill a duty narrowly and still neglect the wider trust; stewardship asks you to consider that wider effect while respecting your own limits."
+        )
+        return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
+
     if "stewardship" in q and re.search(r"\b(?:why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
