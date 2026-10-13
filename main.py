@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.186 — use earned resource fit in HRN return
+# USE PRODUCTION VERSION: v489.187 — bounded WordPress search fallback for HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.186"
-DEPLOYMENT_FINGERPRINT = "USE-v489.186-safety-calibration-phrase-coverage"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.186-safety-calibration-phrase-coverage"
+APP_VERSION = "v489.187"
+DEPLOYMENT_FINGERPRINT = "USE-v489.187-hrn-return-search-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.187-hrn-return-search-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.186":
+if str(APP_VERSION) != "v489.187":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1459,6 +1459,30 @@ def _relational_return_direct_topic_fit(query, doc):
     if not _relational_return_conflict_topic_fit(query, doc):
         return False
 
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and direct_conflict_title:
+        # For a specific recurring-conflict query, a directly named conflict/
+        # repair title plus body evidence about relational conflict is stronger
+        # than exact lexical overlap with incidental wording such as "improve".
+        body_conflict = bool(re.search(
+            r"\b(?:argument|argue|conflict|disagreement|repair|blame|incident|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        body_relational = bool(re.search(
+            r"\b(?:relationship|relational|partner|hurt|listening|heard|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        if body_conflict and body_relational:
+            return True
+
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
@@ -1517,6 +1541,34 @@ def _relational_return_direct_topic_fit(query, doc):
         (specific_title_hits and len(body_hits) >= 2)
         or sentence_specific_hits >= 2
     )
+
+
+def _relational_return_search_recovery(original_question, direct_topic_query, profile):
+    """Use bounded WordPress search only when focused vector retrieval found no honest doorway."""
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        _normalize_query(original_question),
+    ))
+    if not conflict_focus:
+        return None, []
+    # This search is a retrieval supplement, not an authority bypass. Every
+    # candidate must still pass the same canonical URL, outward-context, and
+    # direct-topic/earned-focus gates used for vector results.
+    search_query = "relationship repair"
+    candidates = _wordpress_search_canonical_candidates(search_query, limit=5)
+    # Apply the ordinary outward relevance gate against the actual retrieval
+    # query, then separately enforce the visitor's original relational focus.
+    # This avoids requiring incidental words like "improve" to appear in a
+    # directly relevant repair resource while still forbidding broad decoys.
+    outward = _sanitize_outward_context(search_query, candidates, profile)
+    outward = [
+        doc for doc in outward
+        if _relational_return_direct_topic_fit(direct_topic_query, doc)
+        or _relational_return_earned_focus_fit(direct_topic_query, doc)
+    ]
+    primary = _canonical_primary_from_docs(outward, search_query, profile)
+    return primary, (outward if primary else [])
 
 
 async def _v48755_relational_return(request: Request):
@@ -1673,6 +1725,18 @@ async def _v48755_relational_return(request: Request):
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
             if primary:
                 outward = fallback_outward
+
+        if not primary:
+            # Vector retrieval can return no sufficiently direct doorway even
+            # when the public Archive contains a clearly relevant conflict/repair
+            # resource. Try bounded WordPress search, then apply the same relevance
+            # and canonical gates before releasing any recommendation.
+            search_primary, search_outward = _relational_return_search_recovery(
+                original_question, direct_topic_query, profile
+            )
+            if search_primary:
+                primary = search_primary
+                outward = search_outward
 
         print(
             "The Guide v487.66 seamless HRN gift return: "
