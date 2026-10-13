@@ -1762,6 +1762,29 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
     return primary, (outward if primary else [])
 
 
+def _relational_return_retry_after_broad_candidate(primary, outward, original_question, direct_topic_query, profile):
+    """Retry the bounded conflict search only after a broad candidate was rejected."""
+    if primary is not None:
+        return primary, outward
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        _normalize_query(original_question),
+    ))
+    if not conflict_focus:
+        return None, []
+    candidate, candidates = _relational_return_search_recovery(
+        original_question, direct_topic_query, profile
+    )
+    if not candidate:
+        return None, []
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        str(candidate.get("title") or "").casefold(),
+    ))
+    return (candidate, candidates) if direct_title else (None, [])
+
+
 async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
@@ -1958,17 +1981,9 @@ async def _v48755_relational_return(request: Request):
         # conflict-specific WordPress search has had its turn. Reuse the same
         # direct-topic and earned-focus gates; never relax the relevance boundary.
         if original_recurring_argument_focus and primary is None:
-            search_primary, search_outward = _relational_return_search_recovery(
-                original_question, direct_topic_query, profile
+            primary, outward = _relational_return_retry_after_broad_candidate(
+                primary, outward, original_question, direct_topic_query, profile
             )
-            if search_primary:
-                search_title_is_direct_conflict = bool(re.search(
-                    r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
-                    str(search_primary.get("title") or "").casefold(),
-                ))
-                if search_title_is_direct_conflict:
-                    primary = search_primary
-                    outward = search_outward
 
         print(
             "The Guide v487.66 seamless HRN gift return: "
