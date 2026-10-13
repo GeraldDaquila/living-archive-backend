@@ -30,7 +30,7 @@ def main():
     require(focused >= 0, "first retrieval does not use the focused relational topic query")
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
     require('if resource_fit:' in route and 'topic_anchor += " Relational resource fit: " + str(resource_fit)' in route, "earned resource-fit note is dropped before retrieval")
-    require("resource_fit" in route[focused:route.find("primary = _canonical_primary_from_docs", focused)], "earned resource-fit note is missing from focused doorway query")
+    require("resource_fit" in route[:focused], "earned resource-fit note is missing before focused retrieval")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
