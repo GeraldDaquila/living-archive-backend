@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.323", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.323';", SOURCE)
+        self.assertIn("Version: 0.5.324", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.324';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -70,6 +70,21 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         method = SOURCE[start:end]
         self.assertIn("let (?:this|the) (?:conversation|discussion|exchange) (?:land|rest|settle)", method)
         self.assertIn("foreach ($patterns as $pattern) if (preg_match($pattern, $m)) return true;", method)
+
+    def test_short_close_uses_bounded_visitor_turn_evidence(self):
+        start = SOURCE.index("private function provider_independent_terminal_closure(")
+        end = SOURCE.index("private function ", start + 40)
+        method = SOURCE[start:end]
+        self.assertIn("'visitor_turn_evidence'", method)
+        self.assertIn("'last_question'", method)
+        self.assertIn("$closure_evidence_parts", method)
+        gate_start = SOURCE.index("private function closure_synthesis_carries_journey_evidence(")
+        gate_end = SOURCE.index("private function ", gate_start + 40)
+        gate = SOURCE[gate_start:gate_end]
+        self.assertIn("$state['visitor_turn_evidence']", gate)
+        self.assertIn("$sources[] = strtolower($visitor_evidence_item)", gate)
+        self.assertIn("'visitor_turn_evidence'=>$ledger['visitor_turn_evidence']??array()", SOURCE)
+        self.assertIn("'visitor_turn_evidence'=>array()", SOURCE)
 
     def test_provider_exhausted_tone_displacement_closure_uses_current_transcript(self):
         start = SOURCE.index("private function provider_independent_terminal_closure(")
