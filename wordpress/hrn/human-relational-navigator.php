@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.324
+ * Version: 0.5.325
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.324';
+    const VERSION = '0.5.325';
+    // RELEASE v0.5.325: recover the hurt-to-tone and hurt-heard turns from accepted visitor language when provider lanes are exhausted; frozen writers unchanged.
     // RELEASE v0.5.324: persist bounded visitor-authored turns separately so short explicit closure can satisfy earned-evidence gates without trusting generated summaries; frozen writers unchanged.
     // RELEASE v0.5.323: recognize explicit natural-language landing as terminal closure; accepted journey evidence and policy gates remain authoritative.
     // RELEASE v0.5.322: derive short-close recovery eligibility from accepted journey-ledger evidence, not only the final utterance; frozen writers unchanged.
@@ -5072,8 +5073,25 @@ HRN_QUESTION_REPAIR;
             && preg_match('/\b(?:reopening the past|reopen(?:ing)? the past)\b/i', $visitor_text);
         $hurt_reopened_past = preg_match('/\b(?:what hurt|feel hurt|hurt)\b/i', $visitor_text)
             && preg_match('/\b(?:reopening the past|reopen(?:ing)? the past|never let anything go)\b/i', $visitor_text);
+        // These two bounded patterns cover the ordinary-turn seam that appeared
+        // in production when a visitor answered the opening question with the
+        // hurt-to-tone shift, then moved to whether the hurt can be heard without
+        // a perfect explanation. Both are derived only from the current visitor
+        // message and still pass through normalize_composition's full policy gates.
+        $hurt_tone_displacement = preg_match('/\b(?:hurt|words that hurt|what hurt|what was said)\b/i', $visitor_text)
+            && preg_match('/\b(?:how i said(?: it| them)?|way i said(?: it| them)?|my tone|tone|defending my tone)\b/i', $visitor_text)
+            && preg_match('/\b(?:conversation|shift|shifts|moves|turns|then)\b/i', $visitor_text);
+        $hurt_heard_without_perfect_explanation = preg_match('/\b(?:hurt|pain)\b/i', $visitor_text)
+            && preg_match('/\b(?:heard|hear|listened|listen)\b/i', $visitor_text)
+            && preg_match('/\b(?:explain|explanation|perfectly|perfect)\b/i', $visitor_text);
 
-        if ($specific_incident_hurt) {
+        if ($hurt_tone_displacement) {
+            $local_response = 'You try to explain the words that hurt you, and then the conversation shifts to how you said them. That leaves the original hurt waiting while you defend the way you raised it, so the argument can become about your explanation rather than the words that affected you.';
+            $local_question = 'What part of the original hurt is hardest to keep in view once the conversation turns to how you said it?';
+        } elseif ($hurt_heard_without_perfect_explanation) {
+            $local_response = 'You are wondering whether your hurt can be heard if you cannot explain it perfectly. That shifts the question from how the conversation unfolds to whether the hurt itself can be heard without a perfect explanation.';
+            $local_question = 'What would tell you that the hurt itself had been heard, even if the explanation were imperfect?';
+        } elseif ($specific_incident_hurt) {
             $local_response = 'You mention a specific incident, your partner says you never let anything go, and the conversation shifts to whether you are allowed to feel hurt. That leaves the original event without much room to be discussed, because the focus has moved to whether it is acceptable to bring it up.';
             $local_question = 'When you mention a specific incident, what do you most want your partner to understand about the hurt?';
         } elseif ($specific_incident_dismissal) {
