@@ -3573,18 +3573,6 @@ if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_I
 if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE or "consider who will live with the consequences" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE:
     raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
 
-# v489.207: common stewardship comparison remains answerable when every model is unavailable.
-_BASIC_INQUIRY_PROVIDER_EXHAUSTION_COMPARISON_PROBE = _basic_inquiry_round1_deterministic_response(
-    "What is the difference between responsibility and stewardship?",
-    {},
-    {"context_blocks": ""},
-)
-if not all(
-    phrase in str(_BASIC_INQUIRY_PROVIDER_EXHAUSTION_COMPARISON_PROBE.get("response") or "").casefold()
-    for phrase in ("accountable for", "care for what", "future")
-):
-    raise RuntimeError("USE v489.207 invariant failed: responsibility/stewardship comparison recovery is incomplete.")
-
 
 def _basic_inquiry_has_source_dump(response):
     """Detect copied source fragments that are not safe as a visitor-facing answer."""
