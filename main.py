@@ -1915,13 +1915,13 @@ async def _v48755_relational_return(request: Request):
         # suppress recovery, then be rejected by the final guard below, leaving no
         # doorway even when the Archive had a directly relevant repair resource.
         _presearch_recurring_argument_focus = bool(re.search(
-            r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
-            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
+            r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
             _normalize_query(original_question),
         ))
         _presearch_title_is_direct_conflict = bool(
             primary and re.search(
-                r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+                r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
                 str(primary.get("title") or "").casefold(),
             )
         )
