@@ -375,6 +375,31 @@ $assert(stripos((string)($resourceData['response'] ?? ''),'archive') === false, 
 $assert(stripos((string)($resourceData['response'] ?? ''),'connects with an idea') === false, 'unselected-resource route removes only the offer sentence');
 $assert(trim((string)($resourceData['question'] ?? '')) !== '', 'unselected-resource route retains the ordinary follow-up question');
 $assert(empty($resourceData['resources']), 'no canonical resource is falsely returned when use_resource is false');
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'honesty and continuity in a friendship',
+    'observer_contrast'=>'A conversation can affect a friendship, but it does not determine what the friendship will become.',
+    'observer_so_what'=>'Silence also leaves questions about the friendship unresolved.',
+    'observer_delta'=>'The conversation and the future of the friendship are not identical.',
+    'observer_horizon'=>'the relationship between honesty and continuity',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'separate the conversation from assumptions about the outcome',
+    'situation'=>'fear that a conversation may change a friendship',
+    'experience'=>$resourceMessage,
+    'tension'=>'honesty and continuity',
+    'pattern'=>'fear of change is delaying a conversation',
+    'underlying_need'=>'to be understood',
+    'desired_condition'=>'honesty without assuming a particular outcome',
+    'emerging_delta'=>'the conversation and the future of the friendship are distinct',
+    'perspective_delta'=>'the conversation and the future of the friendship are distinct',
+    'body_of_thought'=>'A conversation can affect a friendship, but it does not determine what the friendship will become. Silence also leaves questions about the friendship unresolved.',
+    'current_fractal'=>'honesty and continuity in a friendship',
+    'last_nugget'=>'the conversation and the future of the friendship are not identical',
+    'next_horizon'=>'the relationship between honesty and continuity',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
 $GLOBALS['hrn_qa_composition_result'] = array(
     'response'=>'The hesitation to speak suggests that the friendship is already experiencing a shift, even if the conversation has not happened yet. Recognizing that the status quo is not fixed makes it possible to decide whether you want to guide that change or simply watch it happen.',
     'question'=>'What part of the friendship are you most afraid might change if you have that conversation?',
