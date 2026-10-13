@@ -120,6 +120,37 @@ def test_explicit_client_session_token_is_stable_across_retries():
     assert first["relational_delegation"]["session_id"] == second["relational_delegation"]["session_id"]
 
 
+
+def test_compact_repeated_argument_explanation_opens_hrn_boundary():
+    decision = use_main._relational_boundary_decision(
+        "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
+    )
+    assert decision["open"] is True
+    assert decision["reason"] == "lived_relational_structure"
+    assert decision["signals"]["first_person"] is True
+    assert decision["signals"]["dynamic"] is True
+    assert decision["signals"]["inquiry"] is True
+
+
+def test_compact_repeated_argument_request_hands_off_to_hrn():
+    query = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    status, payload = asyncio.run(_post_query(query))
+    assert status == 200
+    assert payload["intent"] == "RELATIONAL_HANDOFF"
+    assert payload["handoff"] == "relationship"
+    assert payload["handoff_mode"] == "immediate"
+    assert payload["handoff_pending"] is True
+    assert payload["relational_delegation"]["specialist_id"] == "relationship"
+    assert payload["relational_delegation"]["seed_message"] == query
+    assert re.fullmatch(
+        r"relationship-[0-9a-f]{24}",
+        payload["relational_delegation"]["session_id"],
+    )
+
+
 def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
     explanatory = use_main._relational_boundary_decision(
         "What is a relationship and why are relationships important?"
