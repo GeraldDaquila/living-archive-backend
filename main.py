@@ -1,6 +1,7 @@
-# USE PRODUCTION VERSION: v489.177 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.178 — expanded bounded HRN provider fallback
 import asyncio
 import hashlib
+from html import unescape
 import ipaddress
 import re
 import json
@@ -69,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.177"
-DEPLOYMENT_FINGERPRINT = "USE-v489.177-expanded-hrn-provider-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.177-expanded-hrn-provider-fallback"
+APP_VERSION = "v489.178"
+DEPLOYMENT_FINGERPRINT = "USE-v489.178-systemic-e2e-repair"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.178-systemic-e2e-repair"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -176,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.177":
+if str(APP_VERSION) != "v489.178":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2953,6 +2954,7 @@ _BASIC_INQUIRY_ENABLED = str(__import__("os").getenv("USE_BASIC_INQUIRY_ENABLED"
 
 _BASIC_INQUIRY_MACRO_PATTERNS = (
     re.compile(r"\b(?:stewardship\s+formation|formation\s+navigator|formation\s+pathway)\b", re.I),
+    re.compile(r"\b(?:prepare|preparing|training|readiness|learning|learn|develop|developing)\b.{0,80}\b(?:stewardship|steward|governance|responsibilities|shared responsibility)\b|\b(?:stewardship|steward|governance)\b.{0,80}\b(?:responsibilities|readiness|training|learning)\b", re.I),
     re.compile(r"\b(?:philippine\s+systems|philippines?\s+(?:systems?|culture|society|history|systemic\s+transformation)|systems?\s+in\s+the\s+philippines)\b", re.I),
 )
 
@@ -2965,33 +2967,46 @@ def _basic_inquiry_requires_macro_routing(query):
 
 
 def _explicit_formation_entry_route(query):
-    """Deterministically honor an explicit request to enter the Formation pathway."""
+    """Deterministically route explicit Formation entry and preparation intent."""
     normalized = _normalize_query(query)
-    if not re.search(
+    named_formation_surface = bool(re.search(
         r"\b(?:stewardship\s+formation|formation\s+navigator|formation\s+pathway)\b",
         normalized,
+    ))
+    preparation_intent = bool(re.search(
+        r"\b(?:prepare|preparing|training|readiness|learning|learn|develop|developing|responsibilities)\b",
+        normalized,
+    ))
+    stewardship_scope = bool(re.search(
+        r"\b(?:stewardship|steward|governance|shared responsibility|responsibilities in a group)\b",
+        normalized,
+    ))
+    entry_language = bool(re.search(
+        r"\b(?:enter|start|begin|join|access|open|launch|take me to|"
+        r"where do i begin|where can i begin|where do i start|where can i start|"
+        r"where should i begin|where should i start|how do i prepare|how can i prepare)\b",
+        normalized,
+    ))
+    if not named_formation_surface and not (
+        preparation_intent and stewardship_scope and entry_language
     ):
         return None
-    if not re.search(
-        r"\b(?:enter|start|begin|join|access|open|launch|take me to|"
-        r"where do i begin|where can i begin|where do i start|where can i start)\b",
-        normalized,
-    ):
+    if named_formation_surface and not entry_language and not preparation_intent:
         return None
     return {
         "route": "formation",
         "mode": "delegated_journey",
         "confidence": 1.0,
-        "reason": "visitor explicitly requested entry into Stewardship Formation",
+        "reason": "deterministic stewardship formation or preparation intent",
         "alternatives": ["guide"],
-        "source": "deterministic-explicit-formation-entry",
+        "source": "deterministic-formation-preparation-entry",
         "round1_interpretation": {
-            "human_reality": "The visitor is asking to enter Stewardship Formation.",
+            "human_reality": "The visitor is asking how to prepare for stewardship responsibilities.",
             "presenting_situation": str(query).strip(),
             "visitor_proposition": str(query).strip(),
-            "underlying_question": "How can the visitor begin the Stewardship Formation pathway?",
+            "underlying_question": "What learning and practice would help the visitor prepare for stewardship responsibilities?",
             "uncertainty": "The most suitable formation movement remains to be explored by the Formation specialist.",
-            "desired_movement": "Open the Stewardship Formation pathway.",
+            "desired_movement": "Open a relevant Stewardship Formation pathway.",
             "processing_need": "formation",
             "glossary_term": "",
             "guide_node_id": "",
@@ -3066,6 +3081,14 @@ def _sanitize_basic_inquiry_response(text):
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     if not raw:
         return ""
+
+    # Providers sometimes return HTML fragments even though the public contract is
+    # plain visitor prose/Markdown. Preserve paragraph/list boundaries, then remove
+    # markup and decode entities before applying the existing language boundary.
+    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", raw)
+    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "\n\n", raw)
+    raw = re.sub(r"(?is)<[^>]{1,1000}>", "", raw)
+    raw = unescape(raw)
 
     internal_bracket_patterns = (
         r"\s*\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
@@ -4196,10 +4219,21 @@ def _guard_hypothetical_safety_route(query, route, mode, reason):
 def _hypothetical_safety_calibration_payload(query):
     """Return a deterministic, non-interrupting answer for explicit safety-routing tests."""
     normalized = " ".join(str(query or "").strip().casefold().split())
+    calibration_signal = any(
+        phrase in normalized
+        for phrase in (
+            "immediate danger",
+            "immediate support options",
+            "what should the guide do",
+            "safety routing",
+            "safety calibration",
+            "calibration test",
+        )
+    )
     if (
         not is_hypothetical_safety_discussion(normalized)
         or normalize_safety_state(normalized) is not None
-        or "immediate danger" not in normalized
+        or not calibration_signal
     ):
         return None
     request_id = "safety-calibration-" + hashlib.sha1(
