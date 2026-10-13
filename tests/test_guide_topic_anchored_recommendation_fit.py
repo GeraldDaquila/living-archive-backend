@@ -72,3 +72,30 @@ def test_political_dynasties_question_rejects_general_institutions_decoy():
         ),
     }
     assert not main._topic_specific_candidate_fit(QUERY, decoy)
+
+def test_deterministic_public_governance_recovery_answers_when_provider_is_unavailable():
+    query = (
+        "How do political dynasties, public institutions, and local accountability "
+        "interact in the Philippines?"
+    )
+    result = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}
+    )
+    response = result["response"].casefold()
+    assert result["provider"] == "bounded_public_governance_recovery"
+    assert "political dynasties" in response
+    assert "public institutions" in response
+    assert "accountability" in response
+    assert "recommendation below" not in response
+    assert result["doorway_title"] == ""
+
+
+def test_deterministic_recovery_does_not_promise_archive_recommendation_without_one():
+    result = main._basic_inquiry_round1_deterministic_response(
+        "Explain a highly specific question with no available source.",
+        {},
+        {"context_blocks": ""},
+        recommendation_available=False,
+    )
+    assert "recommendation below" not in result["response"].casefold()
+    assert "directly relevant archive resource" in result["response"].casefold()
