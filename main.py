@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.188 — bounded WordPress search fallback for HRN return
+# USE PRODUCTION VERSION: v489.189 — recognize natural lived relational entry
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.188"
-DEPLOYMENT_FINGERPRINT = "USE-v489.188-fail-closed-source-dump-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.188-fail-closed-source-dump-boundary"
+APP_VERSION = "v489.189"
+DEPLOYMENT_FINGERPRINT = "USE-v489.189-natural-relational-entry"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.189-natural-relational-entry"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.188":
+if str(APP_VERSION) != "v489.189":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -514,6 +514,8 @@ RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
 _RELATIONAL_COUNTERPART_PATTERNS = (
     r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
     r"\b(?:a|this|our|my)\s+friendship\b",
+    # Natural counterpart phrasing: visitors often say "a friend", not "a friendship".
+    r"\b(?:a|this|our|my)\s+friend\b",
     r"\b(?:someone|somebody|a person|another person|people|person)\s+(?:i|we)\s+(?:care about|love|trust|work with)\b",
     r"\b(?:someone|somebody|a person)\s+(?:close to|important to)\s+me\b",
     r"\b(?:between us|between me and|between you and)\b",
@@ -522,6 +524,8 @@ _RELATIONAL_COUNTERPART_PATTERNS = (
 )
 
 _RELATIONAL_DYNAMIC_PATTERNS = (
+    # Natural lived interaction cues, including feared or postponed conversations.
+    r"\b(?:conversation|conversations|talk(?:ing)?|discussion|putting\s+off|avoid(?:ing)?|hesitat(?:e|ing|ion)|afraid)\b",
     # v489.85: projection/sensing uncertainty is a lived relational dynamic
     # when combined with first-person language and explicit relationship context.
     r"\b(?:projection|projecting|projected|sensing|intuition|perception|perceive|misread|misreading|reading into|over[- ]?read(?:ing)?|interpret(?:ation|ing))\b",
