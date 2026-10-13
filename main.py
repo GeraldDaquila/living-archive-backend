@@ -1555,14 +1555,19 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
     # This search is a retrieval supplement, not an authority bypass. Every
     # candidate must still pass the same canonical URL, outward-context, and
     # direct-topic/earned-focus gates used for vector results.
-    candidates = _wordpress_search_canonical_candidates("relationship repair", limit=5)
-    outward = _sanitize_outward_context(direct_topic_query, candidates, profile)
+    search_query = "relationship repair"
+    candidates = _wordpress_search_canonical_candidates(search_query, limit=5)
+    # Apply the ordinary outward relevance gate against the actual retrieval
+    # query, then separately enforce the visitor's original relational focus.
+    # This avoids requiring incidental words like "improve" to appear in a
+    # directly relevant repair resource while still forbidding broad decoys.
+    outward = _sanitize_outward_context(search_query, candidates, profile)
     outward = [
         doc for doc in outward
         if _relational_return_direct_topic_fit(direct_topic_query, doc)
         or _relational_return_earned_focus_fit(direct_topic_query, doc)
     ]
-    primary = _canonical_primary_from_docs(outward, direct_topic_query, profile)
+    primary = _canonical_primary_from_docs(outward, search_query, profile)
     return primary, (outward if primary else [])
 
 
