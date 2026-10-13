@@ -219,7 +219,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("$hurt_tone_displacement = preg_match", method)
         self.assertIn("$hurt_heard_without_perfect_explanation = preg_match", method)
         self.assertIn("the conversation shifts to how you said them", method)
-        self.assertIn("What part of the original hurt is hardest to keep in view once the conversation turns to how you said it?", method)
+        self.assertIn("What part of the original hurt feels hardest to get across once the discussion turns to how the words were said?", method)
         self.assertIn("What would tell you that the hurt itself had been heard, even if the explanation were imperfect?", method)
         self.assertIn("$this->normalize_composition($local_draft, $state, $message, $resources, false)", method)
 
