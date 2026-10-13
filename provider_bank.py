@@ -46,7 +46,7 @@ class ProviderOutput(str):
 # Allow up to five fallback candidates within a nine-second fast-failure window.
 # This keeps the full provider-capability call inside its transport budget while
 # allowing recovery to reach additional reviewed models after clustered 429s/timeouts.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 5
 # Perception is the first inference stage. Permit up to four independent
 # fallbacks after fast failures within the same three-second admission window.
@@ -2098,7 +2098,33 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             if operation == "hrn_relational"
             else GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES
         )
-        for item in pool[base_max_attempts:]:
+        fallback_items = list(pool[base_max_attempts:])
+        if operation == "hrn_relational" and attempt_pool:
+            primary_provider = str(attempt_pool[0].get("provider") or "")
+            independent_already_admitted = any(
+                str(item.get("provider") or "") != primary_provider
+                for item in attempt_pool
+            )
+            sibling_models = [
+                item for item in fallback_items
+                if str(item.get("provider") or "") == primary_provider
+            ]
+            independent_models = [
+                item for item in fallback_items
+                if str(item.get("provider") or "") != primary_provider
+            ]
+            # Keep one genuinely independent provider ahead of a sibling model,
+            # then let a model-specific failure probe its sibling before the
+            # remaining independent lanes. Provider-wide circuit state is still
+            # rechecked immediately before each attempt, so quota failures skip
+            # siblings without spending the bounded call budget.
+            if independent_already_admitted:
+                fallback_items = sibling_models + independent_models
+            elif independent_models:
+                fallback_items = independent_models[:1] + sibling_models + independent_models[1:]
+            else:
+                fallback_items = sibling_models
+        for item in fallback_items:
             candidate_provider = str(item.get("provider") or "")
             candidate_model = str(item.get("model") or "")
             candidate_key = (candidate_provider, candidate_model)
