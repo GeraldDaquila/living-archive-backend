@@ -704,7 +704,16 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
     result = provider_bank.route(
         use_core=None,
-        messages=[{"role": "user", "content": "My partner and I keep having the same argument, even though we both say we want things to improve."}],
+        messages=[{
+            "role": "user",
+            "content": (
+                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\\n'
+                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\\n'
+                '{"thread_summary":"Both partners say they want things to improve, but the same argument keeps returning.",'
+                '"working_hypothesis":"The conversation shifts away from the specific incident when the past is raised.",'
+                '"perspective_delta":"The discussion moves from what happened to whether the visitor may still feel hurt."}'
+            ),
+        }],
         max_tokens=250,
         parse=provider_bank._json_object,
         operation="hrn_relational",
