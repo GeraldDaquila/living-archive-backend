@@ -27,7 +27,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
     def test_soft_action_frames_are_rejected_by_the_response_policy(self):
         start = SOURCE.index("private function prescriptive_response_violation(")
-        end = SOURCE.index("private function question_semantic_contract(", start)
+        end = SOURCE.index("private function humanity_gate(", start)
         method = SOURCE[start:end]
         self.assertIn("makes it possible|allows|enables|creates room|opens a space|invites a new rhythm", method)
         self.assertIn("decide whether you want to|guide (?:that|the|this) (?:change|shift|outcome)|watch it happen", method)
