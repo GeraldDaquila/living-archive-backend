@@ -5362,7 +5362,7 @@ HRN_QUESTION_REPAIR;
         $blame_without_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
         if ($blame_without_understanding) {
-            $fallbacks[] = 'What feels different between being understood and being heard as blaming?';
+            $fallbacks[] = 'What do you want her to understand that might otherwise sound like blame?';
         }
 
         // When the visitor explicitly describes a recurring conflict, recover with
