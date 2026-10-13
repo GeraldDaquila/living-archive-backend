@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.325
+ * Version: 0.5.326
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.325';
+    const VERSION = '0.5.326';
+    // RELEASE v0.5.326: make terminal closure mirror the exact visitor-described hurt-to-words sequence; frozen writers unchanged.
     // RELEASE v0.5.325: recover the hurt-to-tone and hurt-heard turns from accepted visitor language when provider lanes are exhausted; frozen writers unchanged.
     // RELEASE v0.5.324: persist bounded visitor-authored turns separately so short explicit closure can satisfy earned-evidence gates without trusting generated summaries; frozen writers unchanged.
     // RELEASE v0.5.323: recognize explicit natural-language landing as terminal closure; accepted journey evidence and policy gates remain authoritative.
@@ -3908,9 +3909,13 @@ HRN_INTERPRET;
             && preg_match('/\b(?:hurt|what was said|words that hurt|what happened)\b/i', $closure_material)
             && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
         if ($tone_displacement_closure) {
-            return 'You said that when you defend your tone, the original hurt gets set aside. You also said the words that hurt you do not get discussed while you explain how you said things.'
+            // Use the exact visitor-authored distinction preserved in the ledger:
+            // the words that hurt, the discussion turning to how they were said,
+            // and the question of whether hurt can be heard without perfect wording.
+            // Avoid upgrading that sequence into a claim about "defending tone".
+            return 'You described trying to explain the words that hurt, and then finding that the discussion turns to how those words were said. You also wondered whether your hurt can be heard when you cannot explain it perfectly.'
                 . "\n\n"
-                . 'You begin to wonder whether your hurt can be heard if you cannot explain it perfectly. That is the sequence you brought into this conversation, stated without adding an explanation for the other person\'s behavior.';
+                . 'The conversation has held both parts: the words that hurt, and the difficulty of getting that hurt heard. It can end here without deciding what the other person intended.';
         }
         $visitor_turn = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
         $specific_incident = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_turn);
