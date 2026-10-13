@@ -402,15 +402,7 @@ $policyRequest->set_body_params(array(
     'unit_turns'=>1,
     'safety_stage'=>'green'
 ));
-$policyRequest->set_json_params(array(
-    'message'=>$resourceMessage,
-    'original_question'=>$resourceMessage,
-    'conversation'=>'',
-    'full_conversation'=>'',
-    'session_id'=>'hrn-isolated-soft-action-frame-v05315',
-    'unit_turns'=>1,
-    'safety_stage'=>'green'
-));
+
 $assert($policyRequest->get_param('message') === $resourceMessage, 'soft-action-frame request retains its message before REST dispatch');
 set_error_handler(static function ($severity, $message, $file, $line) {
     if (!(error_reporting() & $severity)) return false;
