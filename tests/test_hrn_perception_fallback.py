@@ -663,3 +663,57 @@ def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monke
         ("nvidia", "nemotron-model"),
     ]
 
+def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(monkeypatch):
+    """The 28s turn budget must allow bounded recovery beyond three failed lanes."""
+    candidates = [
+        _candidate("groq", "model-a"),
+        _candidate("openrouter", "model-b"),
+        _candidate("mistral", "model-c"),
+        _candidate("workers_ai", "model-d"),
+        _candidate("nvidia", "nemotron-model-e"),
+        _candidate("nvidia", "nemotron-model-f"),
+    ]
+    _isolate(monkeypatch, candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        if item["model"] != "nemotron-model-f":
+            clock.value += 0.2
+            raise provider_bank.ProviderCallError(
+                "simulated clustered provider failure",
+                item["provider"],
+                item["model"],
+                429 if item["provider"] in {"openrouter", "mistral"} else 503,
+                category="rate_limited" if item["provider"] in {"openrouter", "mistral"} else "http_error",
+            )
+        return json.dumps({
+            "response": "You both say you want things to improve, but the same argument keeps returning. When it begins again, the conversation can move away from what happened and toward whether the past should be reopened. I do not know either person's intention, so I will stay with the sequence you described.",
+            "question": "What usually happens just before the argument starts again?",
+            "rest": False,
+            "use_resource": False,
+            "resource_intro": "",
+        })
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "My partner and I keep having the same argument, even though we both say we want things to improve."}],
+        max_tokens=250,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nemotron-model-f"
+    assert len(calls) == 6
+    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
+
