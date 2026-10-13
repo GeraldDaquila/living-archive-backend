@@ -67,7 +67,7 @@ set_transient($ledgerKey, $ledger, 86400);
 
 $request = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $request->set_header('content-type','application/json');
-$request->set_param('message','I can see that wanting to be understood and keeping boundaries can both matter. Please let this conversation land.');
+$request->set_param('message','I can see that wanting to be understood and keeping boundaries can both matter.');
 $request->set_param('original_question','I want to understand a difficult friendship without losing my boundaries.');
 $request->set_param('conversation','Assistant: Wanting to be understood and keeping personal boundaries can both matter, even while the other person’s intention remains unknown.');
 $request->set_param('full_conversation','Assistant: Wanting to be understood and keeping personal boundaries can both matter, even while the other person’s intention remains unknown.');
