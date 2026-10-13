@@ -1414,6 +1414,32 @@ def _relational_return_direct_topic_fit(query, doc):
     title = str(doc.get("title") or "").casefold()
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body_text)).casefold()
+    recurring_argument_focus = bool(re.search(
+        r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
+        q,
+    ))
+    if recurring_argument_focus:
+        # A broad life/spirituality essay must not qualify merely because the
+        # long body happens to mention relationships or emotions. Require the
+        # candidate title to name conflict/repair directly, or one body sentence
+        # to contain at least two conflict-specific cues together.
+        direct_conflict_title = bool(re.search(
+            r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+            title,
+        ))
+        conflict_terms = {
+            "argument", "argue", "conflict", "disagreement", "repair",
+            "blame", "hurt", "listening", "reopen", "reopening", "incident",
+        }
+        same_sentence_conflict = False
+        for sentence in re.split(r"(?<=[.!?])(?:[\\\"'”’)\\]]+)?\\s+|\\n+", body_text):
+            sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
+            if len(conflict_terms & sentence_tokens) >= 2:
+                same_sentence_conflict = True
+                break
+        if not (direct_conflict_title or same_sentence_conflict):
+            return False
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
