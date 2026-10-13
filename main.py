@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.178 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.179 — expanded bounded HRN provider fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.178"
-DEPLOYMENT_FINGERPRINT = "USE-v489.178-systemic-e2e-repair"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.178-systemic-e2e-repair"
+APP_VERSION = "v489.179"
+DEPLOYMENT_FINGERPRINT = "USE-v489.179-hrn-timeout-formation-precedence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.179-hrn-timeout-formation-precedence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.178":
+if str(APP_VERSION) != "v489.179":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3192,6 +3192,17 @@ if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archiv
     raise RuntimeError("USE v488.91 visitor-language invariant failed: final response boundary is not sealed.")
 
 
+def _basic_inquiry_has_source_dump(response):
+    """Detect copied source fragments that are not safe as a visitor-facing answer."""
+    text = str(response or "")
+    return bool(re.search(
+        r"(?i)(?:case studies and real-world applications|"
+        r"consider\s+[A-Z][a-z]+,\s*\d{2,3}[- ]year[- ]old|"
+        r"eisenhower matrix|by adopting mindfulness meditation)",
+        text,
+    ))
+
+
 def _basic_inquiry_round1_response(query, interpretation, context_data):
     """Compose a true Guide Round 1 response without altering protected core."""
     interpretation = interpretation or {}
@@ -3744,6 +3755,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # No provider-generated prose is allowed to cross the public response
     # boundary without the final visitor-language normalization.
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
+    if _basic_inquiry_has_source_dump(response):
+        print(
+            "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
+            "using deterministic synthesis instead."
+        )
+        deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+            query, {}, composition_context
+        )
+        response = _sanitize_basic_inquiry_response(
+            str(deterministic_recovery.get("response") or "").strip()
+        )
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
@@ -4519,6 +4541,42 @@ async def _use_request_boundary(scope, receive, send):
                 },
                 "visitor_boundary_version": APP_VERSION,
             })
+
+    # Explicit Formation preparation is a native boundary and must outrank the
+    # generic orientation/Navigator matcher. This runs after the sitewide safety
+    # boundary but before any general navigation handoff or Basic Inquiry.
+    early_formation_route = _explicit_formation_entry_route(query)
+    if early_formation_route is not None:
+        request_id = "formation-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        try:
+            formation_result = _formation_specialist_response(
+                query, history, early_formation_route, request_id
+            )
+            return await _use_send_json(send, {
+                "ok": True,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "FORMATION_HANDOFF",
+                "response": formation_result["response"],
+                "formation_delegation": formation_result["formation_delegation"],
+                "visitor_boundary_version": APP_VERSION,
+                "request_id": request_id,
+                "route_source": "deterministic-formation-preparation-entry",
+            })
+        except Exception as exc:
+            print(f"USE Formation preparation handoff failed safely: {exc}")
+            return await _use_send_json(send, {
+                "ok": False,
+                "version": APP_VERSION,
+                "query": query,
+                "intent": "FORMATION_HANDOFF",
+                "response": "The Formation pathway could not be opened right now.",
+                "error_type": "formation_specialist_failure",
+                "request_id": request_id,
+                "visitor_boundary_version": APP_VERSION,
+            }, 503)
 
     # Immediate FSD handoff: FSD is a native standalone diagnostic
     # surface. Do not spend a routing-model call; send the visitor directly
