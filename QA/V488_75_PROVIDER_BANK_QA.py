@@ -385,11 +385,15 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-    assert question_routed["provider"] == "mistral", (
-        "A missing HRN question must advance to an independent provider before reaching the bridge."
+    assert question_routed["provider"] == "nvidia", (
+        "A grounded movement brief should permit local question completion before another provider call."
     )
-    assert question_call.call_count == 2, "Missing-question quality failure must not trigger same-model recovery."
-    assert missing_question_events and "non-empty question" in missing_question_events[0][3]
+    assert question_call.call_count == 1, "Grounded local completion should not spend a second provider call."
+    assert question_routed["parsed"]["question"].strip(), "The provider-bank result must carry a non-empty grounded question."
+    assert "unheard" in question_routed["parsed"]["question"].casefold(), (
+        "The locally completed question must retain the visitor-grounded relational subject."
+    )
+    assert not missing_question_events, "A successfully completed question must not be recorded as a quality rejection."
 
     # A short response is a field-level shape defect: permit one bounded
     # correction on the same candidate, then validate the corrected object.
