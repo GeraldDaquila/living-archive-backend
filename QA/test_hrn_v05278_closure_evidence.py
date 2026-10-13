@@ -13,9 +13,18 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.311", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.311';", SOURCE)
+        self.assertIn("Version: 0.5.312", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.312';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
+
+
+    def test_opening_rest_without_question_preserves_response_for_structural_completion(self):
+        block_start = SOURCE.index("if (!$unit_complete && $rest && $question === '' && $prior_question === '' && empty($prior_questions))")
+        block_end = SOURCE.index("$use_resource = !empty($decoded['use_resource']);", block_start)
+        block = SOURCE[block_start:block_end]
+        self.assertIn("$rest = false;", block)
+        self.assertNotIn("return array();", block)
+        self.assertIn("downstream", block)
 
     def test_closure_message_is_considered_as_a_distinct_evidence_source(self):
         self.assertIn("$state['closure_message']", SOURCE)
