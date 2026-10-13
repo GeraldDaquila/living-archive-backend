@@ -259,3 +259,26 @@ def test_hrn_question_grounding_recovers_prefix_before_malformed_perspective_del
     assert provider_bank._hrn_question_grounding_violation(
         "What happened when the agreed date was discussed alongside the added work?", messages
     ) == ""
+
+
+
+def test_hrn_provider_bank_completes_hurt_and_hearing_horizon_without_repeating_tone_question():
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            + json.dumps({
+                "current_fractal": "I wonder whether my hurt can be heard if I cannot explain it perfectly.",
+                "thread_summary": "The visitor describes recurring arguments where the original hurt is displaced by defending tone.",
+                "working_hypothesis": "The visitor is wondering whether the hurt can be heard without a perfect explanation.",
+                "perspective_delta": "From defending how the hurt was explained to wondering whether the hurt itself can be heard.",
+                "body_of_thought": "The original hurt gets set aside when the visitor has to explain their tone."
+            })
+        ),
+    }]
+
+    question = provider_bank._hrn_complete_missing_question(messages)
+
+    assert question == "What would tell you that the hurt itself had been heard, even if the explanation were imperfect?"
+    assert provider_bank._hrn_surface_language_violation(question) == ""
+    assert provider_bank._hrn_question_grounding_violation(question, messages) == ""
