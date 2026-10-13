@@ -24,6 +24,14 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
 
 
+
+    def test_soft_action_frames_are_rejected_by_the_response_policy(self):
+        start = SOURCE.index("private function prescriptive_response_violation(")
+        end = SOURCE.index("private function question_semantic_contract(", start)
+        method = SOURCE[start:end]
+        self.assertIn("makes it possible|allows|enables|creates room|opens a space|invites a new rhythm", method)
+        self.assertIn("decide whether you want to|guide (?:that|the|this) (?:change|shift|outcome)|watch it happen", method)
+
     def test_unselected_resource_offer_sentence_is_removed_from_visitor_response(self):
         self.assertIn("private function strip_unselected_resource_offer(", SOURCE)
         self.assertIn("if (!$use_resource) {", SOURCE)
