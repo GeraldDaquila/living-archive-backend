@@ -108,6 +108,15 @@ def test_recurring_argument_return_keeps_direct_repair_resource():
     assert main._relational_return_direct_topic_fit(query, repair_resource)
 
 
+
+def test_recurring_argument_final_doorway_guard_rejects_broad_title():
+    query = "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
+    assert main._relational_return_requires_direct_conflict_title(query)
+    assert not main._relational_return_has_direct_conflict_title("Glyph of Resonant Governance")
+    assert main._relational_return_has_direct_conflict_title("Repair Before Withdrawal")
+
+
+
 def test_explicit_feeling_unheard_still_qualifies_for_listening_resource():
     query = "I feel unheard when my partner goes silent after an argument. I want to know whether they are listening."
     listening_article = {
