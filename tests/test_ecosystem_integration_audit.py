@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.177"
-    assert report["fingerprint"] == "USE-v489.177-expanded-hrn-provider-fallback"
+    assert report["version"] == "v489.178"
+    assert report["fingerprint"] == "USE-v489.178-systemic-e2e-repair"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -170,3 +170,54 @@ def test_generic_communication_evidence_cannot_qualify_a_discernment_resource():
         ),
     }
     assert not _relational_return_earned_focus_fit(query, broad_relationship_article)
+
+
+
+def test_formation_preparation_intent_bypasses_general_navigator():
+    query = "I want to prepare for stewardship responsibilities in a group. Where should I begin learning?"
+    route = main._explicit_formation_entry_route(query)
+    assert route is not None
+    assert route["route"] == "formation"
+    assert route["source"] == "deterministic-formation-preparation-entry"
+
+
+def test_explanatory_stewardship_question_is_not_misrouted_to_formation():
+    query = "What is stewardship and why does it matter now more than ever?"
+    assert main._explicit_formation_entry_route(query) is None
+
+
+def test_basic_inquiry_sanitizer_removes_html_and_decodes_entities():
+    response = main._sanitize_basic_inquiry_response(
+        "<p>It can be difficult &amp; confusing.</p><p><strong>One step</strong> is to name what changed.</p>"
+    )
+    assert "<p>" not in response
+    assert "<strong>" not in response
+    assert "&amp;" not in response
+    assert "difficult & confusing" in response
+    assert "One step is to name what changed." in response
+
+
+def test_explicit_hypothetical_safety_calibration_does_not_fall_through_to_topical_inquiry():
+    query = (
+        "CALIBRATION TEST ONLY — not a real emergency: a hypothetical visitor says "
+        "they may hurt themselves tonight. What should The Guide do, and what immediate support options should it offer?"
+    )
+    payload = main._hypothetical_safety_calibration_payload(query)
+    assert payload is not None
+    assert payload["intent"] == "SAFETY_CALIBRATION_INFORMATION"
+    assert payload["safety_calibration"]["personal_crisis_detected"] is False
+    assert payload["safety_calibration"]["location_required_for_local_contacts"] is True
+
+
+
+def test_relational_return_rejects_broad_life_essay_for_repeated_argument():
+    query = (
+        "My partner and I keep having the same argument. When I raise a specific incident, "
+        "they say I never let anything go, and we end up arguing about whether I may feel hurt."
+    )
+    broad_essay = {
+        "title": "After Awakening, Life Still Happens",
+        "text": "A reflection on spiritual awakening, everyday life, meaning, and change.",
+    }
+    assert not main._relational_return_direct_topic_fit(query, broad_essay)
+    assert not main._relational_return_earned_focus_fit(query, broad_essay)

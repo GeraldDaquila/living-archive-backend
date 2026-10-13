@@ -729,3 +729,69 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
     assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
     assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 7.0
 
+
+
+
+def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
+    """A known-live independent lane must not sit beyond the seven-second budget."""
+    candidates = [
+        _candidate("groq", "qwen/qwen3.8-27b"),
+        _candidate("openrouter", "openrouter/free"),
+        _candidate("nvidia", "google/gemma-4-31b-it"),
+        _candidate("mistral", "mistral-small-latest"),
+        _candidate("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        _candidate("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+    ]
+    _isolate(monkeypatch, candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        if item["provider"] == "nvidia" and item["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b":
+            return json.dumps({
+                "response": "You both say you want things to improve, yet the same argument keeps returning. From what you described, the conversation can move away from the incident itself and toward whether you are allowed to still feel hurt. I cannot know either person’s intention, so I will stay with the sequence you noticed.",
+                "question": "What usually happens just before the argument starts again?",
+                "rest": False,
+                "use_resource": False,
+                "resource_intro": "",
+            })
+        clock.value += 0.35
+        raise provider_bank.ProviderCallError(
+            "simulated fast failure",
+            item["provider"],
+            item["model"],
+            429 if item["provider"] == "openrouter" else 503,
+            category="rate_limited" if item["provider"] == "openrouter" else "http_error",
+        )
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": (
+                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\n'
+                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n'
+                '{"thread_summary":"The same argument keeps returning.",'
+                '"working_hypothesis":"The discussion shifts from the incident to whether it can be mentioned.",'
+                '"perspective_delta":"The visitor wants to discuss hurt without being blamed."}'
+            ),
+        }],
+        max_tokens=250,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+    assert calls == [
+        ("groq", "qwen/qwen3.8-27b"),
+        ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
