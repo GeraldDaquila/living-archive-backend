@@ -440,9 +440,10 @@ $policyResponse = rest_do_request($policyRequest);
 restore_error_handler();
 $policyStatus = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_status() : 500;
 $policyData = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_data() : array('error'=>$policyResponse instanceof WP_Error ? $policyResponse->get_error_message() : 'unknown');
-$assert($policyStatus === 200 && !empty($policyData['ok']), 'soft-action-frame route recovers through the real REST handler; got HTTP '.$policyStatus.' '.wp_json_encode($policyData));
-$assert(stripos((string)($policyData['response'] ?? ''),'makes it possible') === false && stripos((string)($policyData['response'] ?? ''),'guide that change') === false && stripos((string)($policyData['response'] ?? ''),'watch it happen') === false, 'soft-action-frame route does not steer the visitor toward managing the outcome');
-$assert(trim((string)($policyData['question'] ?? '')) !== '', 'soft-action-frame recovery retains a grounded question');
+$assert($policyStatus === 503 && empty($policyData['ok']), 'soft-action-frame route fails closed when the deterministic writer can only repeat rejected prose; got HTTP '.$policyStatus.' '.wp_json_encode($policyData));
+$policyEnvelope = wp_json_encode($policyData);
+$assert(stripos((string)$policyEnvelope,'makes it possible') === false && stripos((string)$policyEnvelope,'guide that change') === false && stripos((string)$policyEnvelope,'watch it happen') === false, 'soft-action-frame text never leaks into the visitor-facing failure envelope');
+$assert(($policyData['reason'] ?? '') === 'composition_policy_rejected', 'soft-action-frame failure identifies the policy boundary without exposing rejected prose');
 unset($GLOBALS['hrn_qa_composition_result']);
 
 
