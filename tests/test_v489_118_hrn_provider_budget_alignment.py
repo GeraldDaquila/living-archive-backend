@@ -4,6 +4,7 @@ These tests are deterministic and never call an external provider.
 """
 import json
 
+import pytest
 import provider_bank
 
 
@@ -152,3 +153,66 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
         ("workers_ai", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
         ("mistral", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
+
+
+
+def test_workers_text_transport_flattens_text_parts_and_omits_invalid_text_response_format(monkeypatch):
+    captured = {}
+
+    def fake_http_json(url, headers, payload, provider, model, timeout=None):
+        captured.update(payload)
+        return {"result": {"response": "plain response"}}
+
+    monkeypatch.setattr(provider_bank, "_http_json", fake_http_json)
+    result = provider_bank._workers(
+        "token", "account", "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        [
+            {"role": "system", "content": [{"type": "text", "text": "Return one JSON object."}]},
+            {"role": "user", "content": [{"type": "text", "text": "Describe the interaction."}]},
+        ],
+        250,
+        schema={"mode": "text"},
+        timeout=1.0,
+    )
+
+    assert result == "plain response"
+    assert captured["messages"] == [
+        {"role": "system", "content": "Return one JSON object."},
+        {"role": "user", "content": "Describe the interaction."},
+    ]
+    assert "response_format" not in captured
+    assert captured["options"] == {"rejectIfBusy": True}
+
+
+def test_workers_json_transport_uses_supported_json_response_format(monkeypatch):
+    captured = {}
+
+    def fake_http_json(url, headers, payload, provider, model, timeout=None):
+        captured.update(payload)
+        return {"result": {"response": '{"ok":true}'}}
+
+    monkeypatch.setattr(provider_bank, "_http_json", fake_http_json)
+    result = provider_bank._workers(
+        "token", "account", "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        [{"role": "user", "content": "Return JSON."}],
+        250,
+        schema=None,
+        timeout=1.0,
+    )
+
+    assert result == '{"ok":true}'
+    assert captured["response_format"] == {"type": "json_object"}
+    assert captured["response_format"]["type"] != "text"
+
+
+def test_workers_text_transport_rejects_multimodal_parts_instead_of_silently_dropping_them():
+    with pytest.raises(provider_bank.ProviderCallError) as exc:
+        provider_bank._workers_normalize_messages(
+            [{"role": "user", "content": [
+                {"type": "text", "text": "Describe this image."},
+                {"type": "image_url", "image_url": {"url": "https://example.com/image.png"}},
+            ]}],
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        )
+
+    assert exc.value.category == "unsupported_request"

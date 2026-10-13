@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.203 — preserve directly relevant canonical conflict candidates during return recovery
+# USE PRODUCTION VERSION: v489.204 — normalize Workers AI text transport contract
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.203"
-DEPLOYMENT_FINGERPRINT = "USE-v489.203-relational-direct-candidate-recovery-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.203-relational-direct-candidate-recovery-v1"
+APP_VERSION = "v489.204"
+DEPLOYMENT_FINGERPRINT = "USE-v489.204-workers-ai-text-transport-contract-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.204-workers-ai-text-transport-contract-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.203":
+if str(APP_VERSION) != "v489.204":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")

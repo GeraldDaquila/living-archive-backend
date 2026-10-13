@@ -98,7 +98,7 @@ MODEL_CAPABILITIES = {
     ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     ("nvidia", "nvidia/nemotron-3-super-120b-a12b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("nvidia", "google/gemma-4-31b-it"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
-    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
+    ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # Canary fallback: Cloudflare documents this variant as optimized for faster inference.
     # It remains behind the same runtime contract and health/quality arbitration as all lanes.
@@ -884,13 +884,70 @@ def _workers_url(account, model):
     return "https://api.cloudflare.com/client/v4/accounts/" + account_path + "/ai/run/" + model_path
 
 
+def _workers_normalize_messages(messages, model):
+    """Normalize text-only message blocks to the Workers AI transport contract.
+
+    The account-level Workers AI chat endpoint rejects OpenAI-style content-part
+    arrays for text requests. Do not silently discard image/unknown parts: reject
+    them explicitly so capability routing can choose a compatible provider.
+    """
+    normalized = []
+    for message in messages or []:
+        if not isinstance(message, dict):
+            raise ProviderCallError(
+                "Workers AI requires each message to be an object",
+                "workers_ai", model, category="unsupported_request",
+            )
+        item = dict(message)
+        content = item.get("content", "")
+        if isinstance(content, list):
+            text_parts = []
+            for part in content:
+                if isinstance(part, str):
+                    if part.strip():
+                        text_parts.append(part)
+                    continue
+                if isinstance(part, dict):
+                    part_type = str(part.get("type") or "").casefold()
+                    part_text = part.get("text")
+                    if part_type in {"text", "input_text"} and isinstance(part_text, str):
+                        text_parts.append(part_text)
+                        continue
+                    if not part_type and isinstance(part_text, str):
+                        text_parts.append(part_text)
+                        continue
+                raise ProviderCallError(
+                    "Workers AI text transport cannot accept non-text message parts",
+                    "workers_ai", model, category="unsupported_request",
+                )
+            item["content"] = "\n".join(text_parts)
+        elif content is None:
+            item["content"] = ""
+        elif not isinstance(content, str):
+            raise ProviderCallError(
+                "Workers AI requires string message content",
+                "workers_ai", model, category="unsupported_request",
+            )
+        normalized.append(item)
+    return normalized
+
+
 def _workers(key, account, model, messages, max_tokens, schema=None, timeout=12):
-    payload = {"messages": messages, "max_tokens": max_tokens, "temperature": 0.0,
-               "options": {"rejectIfBusy": True}}
-    if _text_mode(schema):
-        payload["response_format"] = {"type": "text"}
-    else:
-        payload["response_format"] = {"type": "json_schema", "json_schema": schema["schema"]} if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) else {"type": "json_object"}
+    payload = {
+        "messages": _workers_normalize_messages(messages, model),
+        "max_tokens": max_tokens,
+        "temperature": 0.0,
+        "options": {"rejectIfBusy": True},
+    }
+    # Cloudflare's chat endpoint accepts JSON response formats, but not the
+    # OpenAI-compatible {"type":"text"} value. In text mode, enforce the
+    # requested output through the prompt and let the caller validate it.
+    if not _text_mode(schema):
+        payload["response_format"] = (
+            {"type": "json_schema", "json_schema": schema["schema"]}
+            if isinstance(schema, dict) and isinstance(schema.get("schema"), dict)
+            else {"type": "json_object"}
+        )
     if model == "@cf/google/gemma-4-26b-a4b-it":
         payload["chat_template_kwargs"] = {"enable_thinking": False}
     url = _workers_url(account, model)
@@ -1963,6 +2020,27 @@ def _hrn_complete_missing_question(messages):
                     decoded = value
                     break
             if decoded is not None:
+                # When the visitor moves from defending their tone to wondering
+                # whether the hurt can be heard without a perfect explanation,
+                # use the earned distinction to open a new, concrete plane. The
+                # generic "When you say ... what do you notice" template can be
+                # repetitive here and is not a useful substitute for this horizon.
+                focus_material = " ".join(
+                    str(decoded.get(field) or "")
+                    for field in focus_fields
+                    if isinstance(decoded.get(field), str)
+                )
+                if (
+                    re.search(r"\bhurt\b", focus_material, re.I)
+                    and re.search(r"\b(?:heard|hear|listened|listen)\b", focus_material, re.I)
+                    and re.search(r"\b(?:explain|explanation|perfectly|justify|justification)\b", focus_material, re.I)
+                ):
+                    earned_question = "What would tell you that the hurt itself had been heard, even if the explanation were imperfect?"
+                    if (
+                        not _hrn_surface_language_violation(earned_question)
+                        and not _hrn_question_grounding_violation(earned_question, messages)
+                    ):
+                        return earned_question
                 for field in focus_fields:
                     value = decoded.get(field)
                     if not isinstance(value, str):
