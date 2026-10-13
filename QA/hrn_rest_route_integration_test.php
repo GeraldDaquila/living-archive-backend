@@ -67,7 +67,7 @@ set_transient($ledgerKey, $ledger, 86400);
 
 $request = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $request->set_header('content-type','application/json');
-$request->set_param('message','I can see that wanting to be understood and keeping boundaries can both matter. Please let this conversation land.');
+$request->set_param('message','I can see that wanting to be understood and keeping boundaries can both matter.');
 $request->set_param('original_question','I want to understand a difficult friendship without losing my boundaries.');
 $request->set_param('conversation','Assistant: Wanting to be understood and keeping personal boundaries can both matter, even while the other person’s intention remains unknown.');
 $request->set_param('full_conversation','Assistant: Wanting to be understood and keeping personal boundaries can both matter, even while the other person’s intention remains unknown.');
@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.322', 'isolated route executes the v0.5.322 candidate');
+$assert(($data['version'] ?? '') === '0.5.323', 'isolated route executes the v0.5.323 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -99,7 +99,7 @@ $assert(strpos((string)$data['response'],'spiral_landing_composition_unavailable
 
 // Continue the same visitor journey through explicit closure with every composition
 // provider unavailable. This exercises the actual REST closure branch as well.
-$closureMessage = 'I can see that I may be treating being understood and protecting myself as opposites, when both can matter. Please synthesize what we have learned and close the conversation.';
+$closureMessage = 'I think I understand the pattern now. Please let this conversation land.';
 $closureRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $closureRequest->set_header('content-type','application/json');
 $closureRequest->set_param('message',$closureMessage);

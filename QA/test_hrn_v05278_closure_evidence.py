@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.322", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.322';", SOURCE)
+        self.assertIn("Version: 0.5.323", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.323';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -63,6 +63,13 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("'tone_displacement' => array('tone','said','hurt','embarrassed','defend','discussion')", method)
 
 
+
+    def test_natural_language_landing_is_an_explicit_terminal_closure(self):
+        start = SOURCE.index("private function visitor_requests_closure(")
+        end = SOURCE.index("private function closure_synthesis_carries_journey_evidence(", start)
+        method = SOURCE[start:end]
+        self.assertIn("let (?:this|the) (?:conversation|discussion|exchange) (?:land|rest|settle)", method)
+        self.assertIn("foreach ($patterns as $pattern) if (preg_match($pattern, $m)) return true;", method)
 
     def test_provider_exhausted_tone_displacement_closure_uses_current_transcript(self):
         start = SOURCE.index("private function provider_independent_terminal_closure(")
