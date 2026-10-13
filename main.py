@@ -1459,6 +1459,30 @@ def _relational_return_direct_topic_fit(query, doc):
     if not _relational_return_conflict_topic_fit(query, doc):
         return False
 
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and direct_conflict_title:
+        # For a specific recurring-conflict query, a directly named conflict/
+        # repair title plus body evidence about relational conflict is stronger
+        # than exact lexical overlap with incidental wording such as "improve".
+        body_conflict = bool(re.search(
+            r"\b(?:argument|argue|conflict|disagreement|repair|blame|incident|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        body_relational = bool(re.search(
+            r"\b(?:relationship|relational|partner|hurt|listening|heard|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        if body_conflict and body_relational:
+            return True
+
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
