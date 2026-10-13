@@ -31,6 +31,9 @@ def main():
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
     require('if resource_fit:' in route and 'topic_anchor += " Relational resource fit: " + str(resource_fit)' in route, "earned resource-fit note is dropped before retrieval")
     require("resource_fit" in route[:focused], "earned resource-fit note is missing before focused retrieval")
+    require('if not primary:' in route and '_wordpress_search_canonical_candidates(fit_query, limit=10)' in route, "bounded WordPress canonical search recovery is missing")
+    require('_relational_return_direct_topic_fit(direct_topic_query, doc)' in route, "WP search candidates bypass the direct-topic fit gate")
+    require('_relational_return_earned_focus_fit(direct_topic_query, doc)' in route, "WP search candidates bypass the earned-focus fit gate")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
