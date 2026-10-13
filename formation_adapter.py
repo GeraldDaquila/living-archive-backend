@@ -70,7 +70,8 @@ class FormationAdapter(SpecialistAdapter):
             )),
             "shared_responsibility": bool(re.search(
                 r"\b(?:team|people|others|together|shared|council|community|delegate|"
-                r"participat\w*|staff)\b", value
+                r"participat\w*|staff|depend(?:s|ing)? on me|all on me|"
+                r"everything (?:depend\w*|rest\w*) on me|single point of failure|rely on me)\b", value
             )),
             "governance": bool(re.search(
                 r"\b(?:govern\w*|authority|decision|institution|structure|policy|"
@@ -155,6 +156,28 @@ class FormationAdapter(SpecialistAdapter):
         for item in doors:
             if item not in unique:
                 unique.append(item)
+        # The public Formation entrance has a three-door contract. Signal-driven
+        # candidates can converge on the same resource (for example, a practice
+        # request whose third rule also selects Stewardship Practice). Deduplicate
+        # first, then fill only from the same canonical Formation resource set.
+        fallback_order = []
+        if signals["institution_building"] or signals["governance"] or signals["shared_responsibility"]:
+            fallback_order.append("governance_foundations")
+        if signals["practice"]:
+            fallback_order.append("stewardship_practice")
+        if signals["responsibility_transition"] or signals["continuity"]:
+            fallback_order.append("learning_arcs")
+        fallback_order.extend((
+            "stewardship_frameworks",
+            "learning_arcs",
+            "stewardship_practice",
+            "governance_foundations",
+        ))
+        for item in fallback_order:
+            if item not in unique:
+                unique.append(item)
+            if len(unique) >= 3:
+                break
         return unique[:3]
 
     def process(self, context: SpecialistAdapterContext) -> Mapping[str, Any]:
