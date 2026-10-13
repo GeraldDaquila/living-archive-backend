@@ -398,7 +398,7 @@ def test_relational_return_uses_bounded_wp_search_after_focused_retrieval_misses
         {"primary": "relational", "relational": True, "action": "recommendation"},
     )
 
-    assert calls == [("relationship repair", 5)]
+    assert calls == [("relationship repair", 5), ("conflict repair", 5), ("argument hurt", 5)]
     assert primary is not None
     assert primary["url"] == relevant["url"]
     assert outward == [relevant]
