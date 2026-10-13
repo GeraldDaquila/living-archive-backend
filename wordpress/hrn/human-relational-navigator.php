@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.316
+ * Version: 0.5.317
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.316';
+    const VERSION = '0.5.317';
+    // RELEASE v0.5.317: preserve a bounded visitor-grounded turn when all providers fail during explicit tone-displacement; frozen writers unchanged.
     // RELEASE v0.5.316: recover a grounded next question when discussion shifts from the hurtful event to the visitor's tone; frozen writers unchanged.
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
     // RELEASE v0.5.315: compose bounded recovery from current Observer contrast when all writers fail; frozen writers unchanged.
@@ -4918,8 +4919,21 @@ HRN_QUESTION_REPAIR;
         $observer_candidate = count($observer_parts) >= 2
             ? implode(' ', array_slice($observer_parts, 0, 3))
             : '';
+        // Provider exhaustion must not erase an explicitly described relational
+        // movement. When the visitor says the discussion shifts from a hurtful
+        // event to their tone, create a bounded synthesis from those observable
+        // facts and send it through the same relevance, humanity, and question
+        // gates as every other local recovery candidate.
+        $tone_displacement_candidate = '';
+        $tone_displacement_message = strtolower((string)$message);
+        $tone_displacement = preg_match('/\\b(?:tone|my tone|how I said it|way I said it|my voice)\\b/i', $tone_displacement_message)
+            && preg_match('/\\b(?:hurt|what was said|what happened|specific incident|incident|embarrass(?:ed|ment))\\b/i', $tone_displacement_message);
+        if ($tone_displacement) {
+            $tone_displacement_candidate = 'The discussion keeps moving away from what was said and toward your tone. That shift leaves the original hurt difficult to examine, because the conversation becomes about how you raised it rather than what affected you.';
+        }
         $candidates = array(
             $observer_candidate,
+            $tone_displacement_candidate,
             $this->structured_state_text_value($state['body_of_thought'] ?? ''),
             $this->structured_state_text_value($state['archive_grounded_understanding'] ?? ''),
             $this->structured_state_text_value($state['relational_understanding'] ?? ''),
