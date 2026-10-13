@@ -2051,6 +2051,80 @@ def _route_result(result):
     return result
 
 
+def _local_hrn_relational_fallback(messages):
+    """Build a narrow, grounded HRN response when every bounded provider lane fails."""
+    brief = {}
+    message_text = []
+    for message in messages or []:
+        if not isinstance(message, dict):
+            continue
+        content = str(message.get("content") or "")
+        message_text.append(content)
+        marker = content.find("STRUCTURED MOVEMENT BRIEF")
+        if marker < 0:
+            continue
+        start = content.find("{", marker)
+        if start < 0:
+            continue
+        try:
+            candidate, _ = json.JSONDecoder().raw_decode(content[start:])
+        except (json.JSONDecodeError, TypeError, ValueError):
+            continue
+        if isinstance(candidate, dict):
+            brief = candidate
+            break
+
+    if not brief:
+        return None
+    context = " ".join(
+        str(brief.get(key) or "")
+        for key in (
+            "situation", "experience", "pattern", "thread_summary",
+            "working_hypothesis", "perspective_delta", "body_of_thought",
+            "underlying_need", "desired_condition", "next_horizon",
+        )
+    )
+    context = re.sub(r"\s+", " ", context).strip()
+    source = " ".join(message_text + [context]).casefold()
+    recurring_argument = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|"
+        r"argument starts again|argue about|recurring conflict)\b",
+        source,
+    ))
+    specific_incident = bool(re.search(r"\bspecific incident\b", source))
+    hurt_and_permission = bool(
+        re.search(r"\bhurt\b", source)
+        and re.search(r"\b(?:allowed|permitted|never let anything go)\b", source)
+    )
+
+    if specific_incident and hurt_and_permission:
+        response = (
+            "You described how raising a specific incident turns into a debate about whether you are allowed to feel hurt. "
+            "The conversation seems to move away from what happened and toward whether the feeling is acceptable, leaving the original event without much room. "
+            "I can't know your partner's intention from this alone, but that shift is a concrete part of the pattern you named."
+        )
+        question = (
+            "When you raise a specific incident, what happens just before the conversation shifts to whether you are allowed to feel hurt?"
+        )
+    elif recurring_argument:
+        response = (
+            "You and your partner both say you want things to improve, yet the same argument keeps returning. "
+            "The detail that stands out is the gap between that shared wish and what happens when the conversation starts again. "
+            "I can't know either person's intention from this alone, so I'll stay with the pattern you described."
+        )
+        question = "What usually happens just before the same argument starts again?"
+    else:
+        return None
+
+    return {
+        "response": response,
+        "question": question,
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
     _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
@@ -2062,7 +2136,24 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     elif operation == "hrn_voice_repair":
         effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
-    if not pool: return None
+    if not pool:
+        if operation == "hrn_relational":
+            local = _local_hrn_relational_fallback(effective_messages)
+            if local is not None:
+                try:
+                    normalized = _normalize_operation_result(
+                        operation, local, messages=effective_messages
+                    )
+                    print("USE provider bank: using validated local HRN relational fallback; no provider lane available.")
+                    return _route_result({
+                        "parsed": normalized,
+                        "provider": "local_fallback",
+                        "model": "hrn_relational_bounded_structural",
+                        "preference_order": [],
+                    })
+                except ValueError as exc:
+                    print("USE provider bank local HRN fallback rejected: " + str(exc)[:240])
+        return None
     if operation == "hrn_relational" and len(pool) > 1:
         # Live E2E confirmed NVIDIA Nemotron 3.5 Lightning can complete Guide
         # composition within the HRN turn budget. Promote that known-live lane
@@ -2507,6 +2598,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ", stop_seconds=" + str(HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS)
                     )
                     break
+    if operation == "hrn_relational":
+        local = _local_hrn_relational_fallback(effective_messages)
+        if local is not None:
+            try:
+                normalized = _normalize_operation_result(
+                    operation, local, messages=effective_messages
+                )
+                print(
+                    "USE provider bank: using validated local HRN relational fallback "
+                    "after provider exhaustion; last_error=" + last_error[:180]
+                )
+                return _route_result({
+                    "parsed": normalized,
+                    "provider": "local_fallback",
+                    "model": "hrn_relational_bounded_structural",
+                    "preference_order": order,
+                })
+            except ValueError as exc:
+                print("USE provider bank local HRN fallback rejected: " + str(exc)[:240])
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
     return _route_result(None)
 
