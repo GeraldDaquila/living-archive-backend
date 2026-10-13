@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.280", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.280';", SOURCE)
+        self.assertIn("Version: 0.5.311", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.311';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
     def test_closure_message_is_considered_as_a_distinct_evidence_source(self):
@@ -53,6 +53,15 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("$this->closure_synthesis_is_bounded($local_landing)", helper)
         self.assertIn("$this->closure_synthesis_carries_journey_evidence($local_landing, $state)", helper)
         self.assertLess(branch.index("$this->recover_natural_landing_response($landing_state)"), branch.index("'spiral_landing_composition_unavailable'"))
+
+    def test_missing_ordinary_question_is_not_blocked_by_default_rest_flags(self):
+        marker = "// Structural continuation invariant:"
+        start = SOURCE.index(marker)
+        end = SOURCE.index("if (!$junction_land && !$visitor_closure && !$visitor_resource_request", start)
+        block = SOURCE[start:end]
+        self.assertNotIn("empty($response['rest'])", block)
+        self.assertNotIn("empty($response['use_resource'])", block)
+        self.assertIn("$this->structural_question_completion_safe(", SOURCE[end:end + 1800])
 
     def test_live_writer_and_safety_methods_remain_present(self):
         for signature in (

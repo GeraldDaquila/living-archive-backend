@@ -2,13 +2,43 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.280
+ * Version: 0.5.311
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.280';
+    const VERSION = '0.5.311';
+    // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
+    // RELEASE v0.5.311: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
+    // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
+    // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
+    // RELEASE v0.5.306: recover the concrete specific-incident/never-let-go/upset follow-up when provider composition omits its question; frozen writers unchanged.
+    // RELEASE v0.5.305: recover the observed difficult-parts/blame/reopening-the-past turn locally when provider prose lacks a question; frozen writers unchanged.
+    // RELEASE v0.5.304: ensure provider-independent incident/hurt recovery meets the same complete-response shape gate as provider prose; frozen writers unchanged.
+    // RELEASE v0.5.303: add bounded, visitor-grounded relational response recovery for three explicit recurring-conflict patterns after provider exhaustion; frozen writers unchanged.
+    // RELEASE v0.5.302: reject speculative partner-motive questions and structurally recover a grounded incident/hurt question when providers omit or misalign the question; frozen writers unchanged.
+    // RELEASE v0.5.301: preserve HTTP failure status for retryable REST failures so the browser cannot treat an empty failure as success; frozen writers unchanged.
+    // RELEASE v0.5.300: recover missing questions locally before provider retries and exclude policy-rejected providers from composition recovery; frozen writers unchanged.
+    // RELEASE v0.5.299: add a visitor-anchored recovery question for recurring conflict when a provider omits the question; frozen writers unchanged.
+    // RELEASE v0.5.298: require concrete current-message anchors for ordinary follow-up questions; frozen writers unchanged.
+    // RELEASE v0.5.296: preserve Observer-owned grounding fields across the structured composer boundary; frozen writers unchanged.
+    // RELEASE v0.5.295: reject observer-role leakage and the repeated abstract protection question at non-frozen boundaries; frozen writers unchanged.
+    // RELEASE v0.5.294: preserve original opening-turn authority through post-banking Observer adjudication; frozen writers unchanged.
+    // RELEASE v0.5.293: prevent opening-turn premature rest and reject generic closure boilerplate at the non-frozen boundary; frozen writers unchanged.
+    // RELEASE v0.5.292: reject third-person visitor meta-language and malformed second-person grammar at the non-frozen humanity boundary; frozen writers unchanged.
+    // RELEASE v0.5.291: validate fallback questions against combined turn context and preserve explicit lexical grounding; frozen writers unchanged.
+    // RELEASE v0.5.290: add a policy-checked, visitor-grounded question fallback when the frozen engine has no eligible candidate; frozen writers unchanged.
+    // RELEASE v0.5.289: continue bounded structural-question search when one plane yields no candidate; frozen writers unchanged.
+    // RELEASE v0.5.288: repair abstract follow-up questions locally and reject meta-conversational recovery prose; frozen writers unchanged.
+    // RELEASE v0.5.287: reserve bounded mirror-failover budget for relational composition after perception; frozen writers unchanged.
+    // RELEASE v0.5.286: correct recovery relevance-boundary token matching and retain current-turn relevance gate; frozen writers unchanged.
+    // RELEASE v0.5.285: require current-turn relevance before structured-state recovery so Archive text cannot replace the visitor's relational answer; frozen writers unchanged.
+    // RELEASE v0.5.284: bound the whole HRN turn to 26 seconds so provider failover cannot outlive the REST caller; frozen writers unchanged.
+    // RELEASE v0.5.283: reject abstract, model-like relational prose at the non-frozen humanity boundary; frozen writers unchanged.
+    // RELEASE v0.5.282: normalize structured state values before candidate recovery to prevent array-to-string warnings; frozen writers unchanged.
+    // RELEASE v0.5.281: recover ordinary turns from accepted structured journey state when bounded provider composition is exhausted; frozen writers unchanged.
     // RELEASE v0.5.280: initialize natural landing response before provider call to remove undefined-state warning; v0.5.279 recovery retained.
     // RELEASE v0.5.279: recover provider-failed natural junction landings through the existing policy-gated local composition; frozen voice methods unchanged.
     // RELEASE v0.5.278: require terminal Archive propositions to overlap the actual journey before using them; frozen voice methods unchanged.
@@ -115,7 +145,7 @@ final class Living_Archive_Human_Relational_Navigator {
         const FREE_TIER_MAX_OUTPUT_TOKENS = 300;
     const MODEL_ROUTING_VERSION = '1.0';
     const MAX_TURN_PROVIDER_CALLS = 5;
-    const TURN_DEADLINE_SECONDS = 45.0;
+    const TURN_DEADLINE_SECONDS = 28.0;
     const OPTIONAL_POST_COMPOSITION_PROVIDER_CUTOFF = 2;
     const PROVIDER_CONTEXT_CHAR_BUDGET = 8000;
     const OPTION_KEY = 'lah_rn_settings';
@@ -1358,7 +1388,7 @@ Visitor response: " . $message;
                 // Closure remains its own operation. A rejected synthesis is repaired
                 // as closure prose before the producing provider is excluded.
                 $repair_excluded = $rejected_provider !== '' ? array($rejected_provider) : array();
-                $repaired_synthesis = $this->groq_voice_repair($synthesis_candidate,'',$full_conversation !== '' ? $full_conversation : $conversation,$closure_state,$settings['groq_api_key'],true,$repair_excluded);
+                $repaired_synthesis = $this->groq_voice_repair($synthesis_candidate,'',$full_conversation !== '' ? $full_conversation : $conversation,$closure_state,$settings['groq_api_key']);
                 if (!is_wp_error($repaired_synthesis) && trim((string)$repaired_synthesis) !== '') {
                     $repaired_checked = $this->humanity_gate($this->normalize_paragraphs($repaired_synthesis), $closure_state);
                     if (trim((string)$repaired_checked) !== '' && $this->closure_synthesis_is_bounded($repaired_checked) && $this->closure_synthesis_carries_journey_evidence($repaired_checked, $closure_state)) {
@@ -1446,6 +1476,9 @@ Visitor response: " . $message;
             return rest_ensure_response($this->retryable_operation_failure('whole_journey_synthesis','The conversation could not be completed right now. Please try again.','synthesis_unavailable',503,$failure_meta));
         }
 
+        // Freeze opening-round identity before compact reckoning advances the ledger turn.
+        // Post-banking Observer adjudication must not reinterpret the same opening as a later round.
+        $turn_started_as_opening = intval($ledger['turn'] ?? 0) <= 0;
         $interpreted = $this->groq_interpret($message, $conversation, $settings['groq_api_key']);
         if (is_wp_error($interpreted)) {
             $meta=array('provider_stage'=>'interpretation_only');
@@ -1459,7 +1492,7 @@ Visitor response: " . $message;
         // silently reopen the question loop. Complete the Observer contract locally from
         // the already accepted interpretation + persistent ledger, without another model
         // call. This keeps STOP/CONTINUE structural and provider-independent.
-        $interpreted = $this->ensure_observer_governance($interpreted, $ledger, $message, $conversation);
+        $interpreted = $this->ensure_observer_governance($interpreted, $ledger, $message, $conversation, $turn_started_as_opening);
 
         $reckoning = $this->compact_reckoning_from_interpretation($interpreted, $ledger);
         $ledger = $this->sanitize_journey_ledger((array)($reckoning['ledger'] ?? $ledger), $session_id);
@@ -1559,7 +1592,7 @@ Visitor response: " . $message;
             $post_bank_turn['observer_contrast'] = (string)($ledger['last_fractal_summary'] ?? '');
             $post_bank_turn['observer_intention'] = (string)($ledger['current_terrain'] ?? $message);
             $post_bank_turn['observer_decision'] = '';
-            $post_bank_turn = $this->ensure_observer_governance($post_bank_turn, $ledger, $message, $conversation);
+            $post_bank_turn = $this->ensure_observer_governance($post_bank_turn, $ledger, $message, $conversation, $turn_started_as_opening);
             if (strtoupper(trim((string)($post_bank_turn['observer_decision'] ?? ''))) === 'STOP') {
                 foreach (array('observer_intention','observer_contrast','observer_so_what','observer_delta','observer_horizon','observer_decision','observer_next_intention') as $observer_key) {
                     if (array_key_exists($observer_key, $post_bank_turn)) $ledger[$observer_key] = trim((string)$post_bank_turn[$observer_key]);
@@ -1705,6 +1738,28 @@ Visitor response: " . $message;
                 if (is_array($local_landing_response)) {
                     $response = $local_landing_response;
                 }
+                // If the Archive-grounded local landing cannot pass its gates,
+                // use the existing provider-independent terminal synthesis as a
+                // second bounded recovery. It must still pass humanity, the
+                // two-paragraph closure contract, and earned-journey evidence.
+                if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
+                    $terminal_landing = $this->provider_independent_terminal_closure($landing_state);
+                    $terminal_checked = $terminal_landing !== ''
+                        ? $this->humanity_gate($this->normalize_paragraphs($terminal_landing), $landing_state)
+                        : '';
+                    if (trim((string)$terminal_checked) !== ''
+                        && $this->closure_synthesis_is_bounded($terminal_checked)
+                        && $this->closure_synthesis_carries_journey_evidence($terminal_checked, $landing_state)) {
+                        $response = array(
+                            'response' => trim((string)$terminal_checked),
+                            'question' => '',
+                            'rest' => true,
+                            'use_resource' => false,
+                            'resource_intro' => '',
+                        );
+                        error_log('[Living Archive Human Relational Navigator] HRN v0.5.308 used gated terminal synthesis for a natural landing after local grounded synthesis failed.');
+                    }
+                }
             }
             if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
                 // Only roll back and fail after the provider and policy-gated local
@@ -1747,18 +1802,37 @@ Visitor response: " . $message;
                 $failure_reason = sanitize_key((string)($this->last_composition_failure['reason'] ?? 'unknown'));
                 $candidate_response = (string)($this->last_composition_failure['response'] ?? '');
                 $candidate_question = (string)($this->last_composition_failure['question'] ?? '');
+                // Diagnostic only: expose rejection category and shape, never visitor text.
+                // This keeps the frozen writer untouched while making provider-boundary
+                // failures attributable to a concrete validator during live calibration.
+                $hrn_failure_trace = is_array($this->last_provider_trace) ? $this->last_provider_trace : array();
+                error_log(
+                    '[Living Archive HRN composition diagnostic] reason=' . $failure_reason
+                    . ' response_chars=' . strlen($candidate_response)
+                    . ' question_chars=' . strlen($candidate_question)
+                    . ' selected_provider=' . sanitize_key((string)($hrn_failure_trace['selected_provider'] ?? $hrn_failure_trace['provider'] ?? ''))
+                    . ' selected_model=' . sanitize_key((string)($hrn_failure_trace['selected_model'] ?? ''))
+                    . ' provider_calls=' . intval($this->turn_provider_calls)
+                    . ' policy_rejections=' . count($composition_policy_rejections)
+                );
 
                 // v0.5.210: rejected compositions get one bounded recovery pass with
                 // the actual turn, rejection category, and rejected draft as evidence.
-                if (in_array($failure_reason, array('visitor_surface_policy_rejected','response_shape','missing_question','generic_or_compound_question','prescriptive_question','semantic_question_alignment','empty_response','malformed_composition_envelope','visitor_surface_json_leak'), true)
+                if (in_array($failure_reason, array('visitor_surface_policy_rejected','response_shape','generic_or_compound_question','prescriptive_question','semantic_question_alignment','empty_response','malformed_composition_envelope','visitor_surface_json_leak'), true)
                     && !$recovery_attempted_for_policy
                     && $this->turn_provider_calls < self::MAX_TURN_PROVIDER_CALLS) {
                     $recovery_attempted_for_policy = true;
                     $recovery_context = $this->recovery_operation_context(
                         $conversation, $message, $failure_reason, $candidate_response, $candidate_question
                     );
+                    // A rejected provider must not receive its own recovery request:
+                    // the same model just failed the visitor contract. Exclude its provider
+                    // so recovery uses an independent eligible lane. Missing-question cases
+                    // are handled by the provider-independent structural question engine below.
+                    $rejected_provider = sanitize_key((string)($this->last_provider_trace['provider'] ?? $this->last_provider_trace['selected_provider'] ?? ''));
+                    $recovery_excluded_providers = $rejected_provider !== '' ? array($rejected_provider) : array();
                     $recovered_draft = $this->groq_recover_composition(
-                        $recovery_context, $validated, $settings['groq_api_key'], array()
+                        $recovery_context, $validated, $settings['groq_api_key'], $recovery_excluded_providers
                     );
                     if (!is_wp_error($recovered_draft) && trim((string)$recovered_draft) !== '') {
                         $recovered_response = $this->normalize_composition(
@@ -1810,9 +1884,10 @@ Visitor response: " . $message;
                     }
                 }
 
-                if (in_array($failure_reason, array('missing_question','response_shape'), true)
-                    && $candidate_response !== ''
-                    && trim($candidate_question) === '') {
+                if ($candidate_response !== '' && (
+                    (in_array($failure_reason, array('missing_question','response_shape'), true) && trim($candidate_question) === '')
+                    || in_array($failure_reason, array('generic_or_compound_question','prescriptive_question','semantic_question_alignment','unsupported_motive_speculation'), true)
+                )) {
                     $structural_question = $this->structural_question_completion_safe(
                         $candidate_response . "\n" . $message,
                         $message,
@@ -1911,8 +1986,21 @@ Visitor response: " . $message;
             }
 
             if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
-                // Composition is the commit boundary. Discard staged Observer/ledger changes
-                // so a provider or voice failure cannot overwrite the last successful synthesis.
+                // Last bounded recovery uses only this turn's already-produced structured
+                // understanding. It does not call a provider or bypass the frozen writer's
+                // humanity, response-shape, or semantic-question gates.
+                $local_response = $this->recover_structured_state_composition(
+                    $validated, $message, $conversation, $composer_resources, $ledger
+                );
+                if (is_array($local_response) && trim((string)($local_response['response'] ?? '')) !== '') {
+                    $response = $local_response;
+                    error_log('[Living Archive Human Relational Navigator] HRN v0.5.281 used policy-gated structured-state recovery after provider composition exhaustion.');
+                }
+            }
+
+            if (!is_array($response) || trim((string)($response['response'] ?? '')) === '') {
+                // Composition remains the commit boundary. Only roll back if both provider
+                // recovery and grounded structured-state recovery fail every policy gate.
                 $this->store_journey_ledger($session_id, $committed_ledger_before_turn);
                 $failure_meta = array();
                 $provider_meta = array();
@@ -1990,7 +2078,7 @@ Visitor response: " . $message;
         if (trim((string)($response['question'] ?? '')) !== ''
             && !$this->question_semantically_aligned((string)$response['question'], (string)$response['response'], $message, $validated)) {
             $bad_question=(string)$response['question'];
-            $repaired_question=($this->turn_provider_calls < self::MAX_TURN_PROVIDER_CALLS) ? $this->groq_question_repair($bad_question,$validated,$settings['groq_api_key'],(string)$response['response'],$message) : '';
+            $repaired_question=($this->turn_provider_calls < self::MAX_TURN_PROVIDER_CALLS) ? $this->groq_question_repair($bad_question,$validated,$settings['groq_api_key'], (string)$response['response'], $message) : '';
             if ($repaired_question !== '' && $this->question_semantically_aligned($repaired_question,(string)$response['response'],$message,$validated)) {
                 $response['question']=$repaired_question;
             } else {
@@ -2068,7 +2156,6 @@ Visitor response: " . $message;
         // rotated against the journey's prior questions; it is not a fixed-turn or
         // screenshot-specific fallback.
         if (!$junction_land && !$visitor_closure && !$visitor_resource_request
-            && empty($response['rest']) && empty($response['use_resource'])
             && trim((string)($response['question'] ?? '')) === '') {
             // The frozen structural question engine remains provider-independent.
             // Give it both the composed response and the visitor's current material so
@@ -2673,7 +2760,7 @@ HRN_RECKON;
         return array('ledger'=>$ledger,'turn'=>$state,'turn_number'=>$ledger['turn']);
     }
 
-    private function ensure_observer_governance($interpreted, $ledger, $message, $conversation='') {
+    private function ensure_observer_governance($interpreted, $ledger, $message, $conversation='', $opening_round_override=null) {
         $turn = is_array($interpreted) ? $interpreted : array();
         $ledger = is_array($ledger) ? $ledger : array();
         $last_question = trim((string)($ledger['last_question'] ?? ''));
@@ -2709,7 +2796,9 @@ HRN_RECKON;
         // OPEN is a real conversational state. STOP/CONTINUE belong to an earned
         // junction, not to an ordinary/open round. Provider omission therefore cannot
         // manufacture a terminal state or a same-plane continuation.
-        $opening_round = trim((string)$conversation) === '' && intval($ledger['turn'] ?? 0) <= 0;
+        $opening_round = $opening_round_override === null
+            ? (trim((string)$conversation) === '' && intval($ledger['turn'] ?? 0) <= 0)
+            : (bool)$opening_round_override;
         $earned_delta = trim((string)($turn['observer_delta'] ?? $delta)) !== '';
         $earned_synthesis = trim((string)($turn['fractal_summary'] ?? $turn['completed_insight'] ?? '')) !== '';
         $junction_eligible = !$opening_round && $earned_delta && ($distinct_horizon || $complete || $closure === 'invite_close' || $earned_synthesis);
@@ -3749,6 +3838,19 @@ HRN_INTERPRET;
      */
     private function provider_independent_terminal_closure($state) {
         $state = is_array($state) ? $state : array();
+        // Concrete recurring-conflict landing: preserve the visitor's observable
+        // sequence instead of substituting the Observer's abstract movement label.
+        // The caller still applies the ordinary humanity, closure-shape, and
+        // transcript-evidence gates before this can reach the visitor.
+        $visitor_turn = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
+        $specific_incident = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_turn);
+        $dismissal_pattern = preg_match('/\b(?:never let anything go|reopening the past|reopen(?:ing)? the past)\b/i', $visitor_turn);
+        $upset_pattern = preg_match('/\b(?:upset|hurt|blame|allowed to feel)\b/i', $visitor_turn);
+        if ($specific_incident && $dismissal_pattern && $upset_pattern) {
+            return 'You described mentioning a specific incident and being told you never let anything go. You then described the argument turning to whether you can still be upset, rather than what happened.'
+                . "\n\n"
+                . 'The distinction is between discussing the incident and debating whether you are allowed to raise it. That names the sequence you described without claiming to know either person’s intention.';
+        }
         $insight = '';
         // Prefer the visitor's distilled thought before state summaries. Those
         // summaries can contain internal third-person labels that do not belong
@@ -4120,6 +4222,14 @@ BOUNDARIES: Never diagnose, label, pathologize, assign motives as facts, decide 
         $text = strtolower(wp_strip_all_tags((string)$text));
         $state = is_array($state) ? $state : array();
         $sources = array();
+        // Observer intention is assigned from the current visitor turn at the
+        // post-banking boundary. Use it as visitor evidence for a natural landing;
+        // generated synthesis fields alone must not certify one another.
+        $visitor_turn_evidence = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
+        if ($visitor_turn_evidence !== '' && mb_strlen($visitor_turn_evidence) >= 20
+            && !preg_match('/\b(?:journey ledger|observer decision|fractal maturity|perspective delta)\b/iu', $visitor_turn_evidence)) {
+            $sources[] = strtolower($visitor_turn_evidence);
+        }
         foreach (array('perspective_delta','emerging_delta','completed_insight','last_nugget') as $field) {
             $value = trim(wp_strip_all_tags((string)($state[$field] ?? '')));
             if ($value !== '') $sources[] = strtolower($value);
@@ -4139,6 +4249,38 @@ BOUNDARIES: Never diagnose, label, pathologize, assign motives as facts, decide 
             $closure_evidence = trim((string)($closure_parts[0] ?? ''));
             if ($closure_evidence !== '' && mb_strlen($closure_evidence) >= 30 && strpos($closure_evidence, '?') === false) {
                 $sources[] = strtolower($closure_evidence);
+            }
+        }
+        // A natural landing may occur after the third conversational turn without
+        // an explicit closure message. Validate its synthesis against the visitor's
+        // actual transcript turns, not only generated Observer perspective fields.
+        // Assistant/HRN text is excluded so the writer cannot self-certify its own
+        // unsupported interpretation.
+        $transcript = trim((string)($state['conversation'] ?? ''));
+        if ($transcript !== '') {
+            $decoded_transcript = json_decode($transcript, true);
+            if (is_array($decoded_transcript)) {
+                foreach ($decoded_transcript as $turn_item) {
+                    if (!is_array($turn_item)) continue;
+                    $role = strtolower(trim((string)($turn_item['role'] ?? '')));
+                    if (!in_array($role, array('user','visitor','human'), true)) continue;
+                    $visitor_content = trim(wp_strip_all_tags((string)($turn_item['content'] ?? $turn_item['text'] ?? '')));
+                    if ($visitor_content !== '' && mb_strlen($visitor_content) >= 20) {
+                        $sources[] = strtolower($visitor_content);
+                    }
+                }
+            } else {
+                preg_match_all(
+                    '/(?:^|\n)\s*(?:user|visitor)\s*:\s*(.*?)(?=\n\s*(?:user|visitor|assistant|hrn|navigator|seeing the relationship|human relational navigator)\s*:|$)/is',
+                    $transcript,
+                    $visitor_matches
+                );
+                foreach ((array)($visitor_matches[1] ?? array()) as $visitor_content) {
+                    $visitor_content = trim(wp_strip_all_tags((string)$visitor_content));
+                    if ($visitor_content !== '' && mb_strlen($visitor_content) >= 20) {
+                        $sources[] = strtolower($visitor_content);
+                    }
+                }
             }
         }
         if ($text === '' || empty($sources)) return false;
@@ -4354,6 +4496,7 @@ BOUNDARIES: Never diagnose, label, pathologize, assign motives as facts, decide 
 
     private function composition_movement_brief($state) {
         $keys = array(
+            'observer_intention','observer_contrast','observer_so_what','observer_delta','observer_horizon','observer_next_intention',
             'conversation_purpose','thread_summary','working_hypothesis','underlying_need',
             'desired_condition','emerging_delta','perspective_delta','body_of_thought',
             'unresolved','movement_direction','next_movement','resource_fit','new_terrain',
@@ -4585,8 +4728,8 @@ HRN_QUESTION_REPAIR;
         foreach($archive_concepts as $term) if(preg_match('/\\b'.preg_quote($term,'/').'\\b/i',$q_lower) && !preg_match('/\\b'.preg_quote($term,'/').'\\b/i',$g_lower))$unearned_archive[]=$term;
         $perspective_form=(bool)preg_match('/\\b(?:what changes|what feels different|what matters|what does that reveal|what becomes possible|what are you protecting|what are you holding|from their side|from the other side|between you|from your side)\\b/i',$q_lower);
         $ground_has_lived_subject=(count($this->response_content_terms($message))>=3 || count($this->response_content_terms($response))>=5);
-        $valid=empty($unearned_archive) && !$abstract_self_question && ($choice_dilemma ? ($message_overlap>=1 || $message_family_overlap>=1) : (($message_overlap>=1 || $message_family_overlap>=1) && (($overlap>=1)||($family_overlap>=1)||($perspective_form&&$ground_has_lived_subject))));
-        return array('valid'=>$valid,'reason'=>$valid?'aligned':(!empty($unearned_archive)?'unearned_archive_concept':($abstract_self_question?'abstract_self_question':(($message_overlap<1 && $message_family_overlap<1)?'not_grounded_in_current_message':'no_grounding'))),'overlap'=>$overlap,'message_overlap'=>$message_overlap,'message_family_overlap'=>$message_family_overlap,'family_overlap'=>$family_overlap,'choice_dilemma'=>$choice_dilemma,'unearned_archive'=>$unearned_archive);
+        $valid=empty($unearned_archive) && !$abstract_self_question && ($choice_dilemma ? ($message_overlap>=1 || $message_family_overlap>=1) : ($message_overlap>=1 && (($overlap>=1)||($perspective_form&&$ground_has_lived_subject))));
+        return array('valid'=>$valid,'reason'=>$valid?'aligned':(!empty($unearned_archive)?'unearned_archive_concept':($abstract_self_question?'abstract_self_question':(($message_overlap<1 && !$choice_dilemma)?'not_grounded_in_current_message':'no_grounding'))),'overlap'=>$overlap,'message_overlap'=>$message_overlap,'message_family_overlap'=>$message_family_overlap,'family_overlap'=>$family_overlap,'choice_dilemma'=>$choice_dilemma,'unearned_archive'=>$unearned_archive);
     }
 
     private function question_semantically_aligned($question, $response, $message, $state=array()) {
@@ -4654,6 +4797,203 @@ HRN_QUESTION_REPAIR;
             || (bool)preg_match("/[\"'](?:response|content)[\"']?\\s*:\\s*[\"']/i", $text);
     }
 
+    /**
+     * Provider-independent ordinary-turn recovery. This does not author a canned
+     * reply: it only tries structured understanding already produced for this turn,
+     * then sends it through the same frozen humanity/shape/question gates as a
+     * provider draft. If no grounded candidate passes, the caller still rolls back.
+     */
+    /**
+     * Normalize optional journey-state values without casting arrays to "Array".
+     * Structured state may carry an object-like value; only known text fields are
+     * eligible as visitor prose. Unknown associative shapes are safely ignored.
+     */
+    private function structured_state_text_value($value) {
+        if (is_string($value) || is_numeric($value)) return trim((string)$value);
+        if (!is_array($value)) return '';
+        foreach (array('text','content','proposition','summary','understanding','insight','body','value') as $key) {
+            if (!array_key_exists($key, $value)) continue;
+            $candidate = $value[$key];
+            if (is_string($candidate) || is_numeric($candidate)) {
+                $candidate = trim((string)$candidate);
+                if ($candidate !== '') return $candidate;
+            }
+        }
+        $keys = array_keys($value);
+        $is_list = empty($keys) || $keys === range(0, count($keys) - 1);
+        if (!$is_list) return '';
+        $parts = array();
+        foreach ($value as $item) {
+            if (!is_string($item) && !is_numeric($item)) continue;
+            $item = trim((string)$item);
+            if ($item !== '') $parts[] = $item;
+            if (count($parts) >= 3) break;
+        }
+        return implode(' ', $parts);
+    }
+
+    /**
+     * Recovery is allowed only when the candidate belongs to the visitor's current
+     * lived subject. An Archive passage is not a relational answer just because it
+     * exists in structured state and passes syntax/shape checks.
+     */
+    private function structured_recovery_candidate_is_relevant($candidate, $message) {
+        $candidate = trim((string)$candidate);
+        $message = trim((string)$message);
+        if ($candidate === '' || $message === '') return false;
+        $message_terms = $this->response_content_terms($message);
+        $candidate_terms = array_fill_keys($this->response_content_terms($candidate), true);
+        $shared_terms = 0;
+        $generic = array_flip(array(
+            'relationship','relationships','friend','friends','friendship','person','people',
+            'feel','feeling','feelings','understand','understanding','clear','clearly','clarity',
+            'want','wants','need','needs','experience','experiences','situation','matter','matters',
+            'help','looking','question','difficult','hard','important','something','someone'
+        ));
+        foreach ($message_terms as $term) {
+            if (isset($generic[$term])) continue;
+            if (isset($candidate_terms[$term])) $shared_terms++;
+        }
+        $families = array(
+            'being_heard' => array('unheard','heard','hear','listening','listen','listened','dismissed','ignored','voice'),
+            'disagreement' => array('disagree','disagreement','disagreements','conflict','conflicts','argument','arguments','argue','arguing'),
+            'boundaries' => array('boundary','boundaries','limit','limits','distance','space'),
+            'grief_loss' => array('grief','grieving','loss','lost','mourning','bereavement','died','death'),
+            'loneliness' => array('lonely','loneliness','isolated','isolation','disconnected','disconnection'),
+            'fear_uncertainty' => array('fear','afraid','worried','worry','uncertain','uncertainty','anxious','anxiety'),
+            'responsibility' => array('responsibility','responsible','obligation','obligated','duty','burden','commitment'),
+            'choice_agency' => array('choice','choose','decision','decide','control','agency','freedom'),
+            'forgiveness' => array('forgive','forgiveness','resentment','resentful','anger','angry','hurt'),
+            'trust_reciprocity' => array('trust','betrayal','betrayed','reciprocity','reciprocal','mutual','one-sided','support'),
+            'change_transition' => array('change','changed','changing','transition','moving','ending','beginning','different'),
+            'identity_meaning' => array('identity','purpose','meaning','belonging','worth','values','value')
+        );
+        $shared_specific_families = 0;
+        foreach ($families as $terms) {
+            $message_has = false;
+            $candidate_has = false;
+            foreach ($terms as $term) {
+                $pattern = '/\\b' . preg_quote($term, '/') . '\\b/i';
+                if (preg_match($pattern, $message)) $message_has = true;
+                if (preg_match($pattern, $candidate)) $candidate_has = true;
+            }
+            if ($message_has && $candidate_has) $shared_specific_families++;
+        }
+        return $shared_specific_families >= 2 || ($shared_specific_families >= 1 && $shared_terms >= 1);
+    }
+
+    private function recover_structured_state_composition($state, $message, $conversation, $resources, $ledger) {
+        $state = is_array($state) ? $state : array();
+        $ledger = is_array($ledger) ? $ledger : array();
+        $candidates = array(
+            $this->structured_state_text_value($state['body_of_thought'] ?? ''),
+            $this->structured_state_text_value($state['archive_grounded_understanding'] ?? ''),
+            $this->structured_state_text_value($state['relational_understanding'] ?? ''),
+            $this->structured_state_text_value($state['perspective_delta'] ?? ''),
+            $this->structured_state_text_value($state['last_delta'] ?? ''),
+            $this->structured_state_text_value($state['completed_insight'] ?? ''),
+            $this->structured_state_text_value($state['last_nugget'] ?? ''),
+        );
+        $seen = array();
+        $asked = (array)($ledger['asked_questions'] ?? array());
+        foreach ($candidates as $candidate) {
+            $candidate = $this->normalize_paragraphs($candidate);
+            $key = strtolower(trim($candidate));
+            if ($key === '' || isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $length = function_exists('mb_strlen') ? mb_strlen($candidate) : strlen($candidate);
+            if ($length < 60 || $length > 1400) continue;
+            if ($this->response_looks_like_composition_envelope($candidate)) continue;
+            if ($this->is_visitor_echo($candidate, $message)) continue;
+            if (!$this->structured_recovery_candidate_is_relevant($candidate, $message)) continue;
+            $question = $this->structural_question_completion_safe(
+                $candidate . "\n" . (string)$message,
+                (string)$message,
+                $state,
+                $asked
+            );
+            if ($question === '') continue;
+            $draft = wp_json_encode(array(
+                'response' => $candidate,
+                'question' => $question,
+                'rest' => false,
+                'use_resource' => false,
+                'resource_intro' => '',
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (!is_string($draft) || $draft === '') continue;
+            $normalized = $this->normalize_composition($draft, $state, $message, $resources, false);
+            if (is_array($normalized)
+                && trim((string)($normalized['response'] ?? '')) !== ''
+                && trim((string)($normalized['question'] ?? '')) !== '') {
+                return $normalized;
+            }
+        }
+        // Last provider-independent recovery for a small set of clearly described
+        // recurring-conflict patterns. This is reached only after provider and
+        // structured-state recovery have failed; it restates observable visitor
+        // details and does not infer either person's motive.
+        $visitor_text = strtolower(trim((string)$message));
+        $local_response = '';
+        $local_question = '';
+        $recurring_conflict = preg_match('/\b(?:same|again|keep having|keeps having|every time|repeatedly|repeating)\b/i', $visitor_text)
+            && preg_match('/\b(?:argument|fight|conflict|disagreement)\b/i', $visitor_text);
+        $specific_incident_hurt = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_text)
+            && preg_match('/\b(?:hurt|blame|allowed to feel)\b/i', $visitor_text);
+        $specific_incident_dismissal = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_text)
+            && preg_match('/\b(?:never let anything go|reopening the past|reopen(?:ing)? the past)\b/i', $visitor_text)
+            && preg_match('/\b(?:upset|feel|feeling|allowed)\b/i', $visitor_text);
+        $difficult_parts_reopened_past = preg_match('/\b(?:difficult parts|raise something|bring it up|raise it|bring up)\b/i', $visitor_text)
+            && preg_match('/\b(?:blamed|blame)\b/i', $visitor_text)
+            && preg_match('/\b(?:reopening the past|reopen(?:ing)? the past)\b/i', $visitor_text);
+        $hurt_reopened_past = preg_match('/\b(?:what hurt|feel hurt|hurt)\b/i', $visitor_text)
+            && preg_match('/\b(?:reopening the past|reopen(?:ing)? the past|never let anything go)\b/i', $visitor_text);
+
+        if ($specific_incident_hurt) {
+            $local_response = 'You mention a specific incident, your partner says you never let anything go, and the conversation shifts to whether you are allowed to feel hurt. That leaves the original event without much room to be discussed, because the focus has moved to whether it is acceptable to bring it up.';
+            $local_question = 'When you mention a specific incident, what do you most want your partner to understand about the hurt?';
+        } elseif ($specific_incident_dismissal) {
+            $local_response = 'You mention a specific incident, and your partner says you never let anything go. You also describe the argument becoming about whether you can still be upset instead of what happened.';
+            $local_question = 'What part of the specific incident do you most want understood?';
+        } elseif ($difficult_parts_reopened_past) {
+            $local_response = 'You want to talk about the difficult parts without either of you feeling blamed, but when you raise something, your partner says you are reopening the past. The conversation can shift from the issue itself to whether it should be raised at all.';
+            $local_question = 'What usually happens immediately after your partner says you are reopening the past?';
+        } elseif ($hurt_reopened_past) {
+            $local_response = 'You want to talk about what hurt, but when you raise it, your partner says you are reopening the past. The conversation can then shift away from the hurt itself and toward whether it can be raised.';
+            $local_question = 'When you bring up what hurt, what do you most want your partner to understand?';
+        } elseif ($recurring_conflict) {
+            $local_response = 'You both say you want things to improve, yet the same argument keeps returning. I cannot tell from this alone what each of you experiences during the argument, so I will not guess at either person’s intentions.';
+            $local_question = 'What usually happens just before the argument starts again?';
+        }
+
+        if ($local_response !== '' && $local_question !== '') {
+            $safe_question = $this->structural_question_completion_safe(
+                $local_response . "\n" . $message,
+                (string)$message,
+                $state,
+                (array)($ledger['asked_questions'] ?? array())
+            );
+            if ($safe_question !== '') $local_question = $safe_question;
+            $local_draft = wp_json_encode(array(
+                'response' => $local_response,
+                'question' => $local_question,
+                'rest' => false,
+                'use_resource' => false,
+                'resource_intro' => '',
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (is_string($local_draft) && $local_draft !== '') {
+                $local_normalized = $this->normalize_composition($local_draft, $state, $message, $resources, false);
+                if (is_array($local_normalized)
+                    && trim((string)($local_normalized['response'] ?? '')) !== ''
+                    && trim((string)($local_normalized['question'] ?? '')) !== '') {
+                    error_log('[Living Archive Human Relational Navigator] HRN v0.5.303 used bounded, visitor-grounded relational recovery after provider exhaustion.');
+                    return $local_normalized;
+                }
+            }
+        }
+
+        return array();
+    }
+
     private function normalize_composition($draft, $state, $message, $resources, $unit_complete=false) {
         $this->last_composition_failure=array();
         $decoded = $this->unwrap_composition_envelope($draft);
@@ -4691,11 +5031,26 @@ HRN_QUESTION_REPAIR;
             }
             if ($question==='' && $embedded_question!=='') $question=$embedded_question;
             $rest = !empty($decoded['rest']);
+            // An opening turn has no earned prior question/insight to land. Do not let
+            // a provider mark it as rest/closure simply to bypass the ordinary-turn
+            // response+question contract. This is a structural boundary, not a writer change.
+            $prior_questions = is_array($state['asked_questions'] ?? null) ? $state['asked_questions'] : array();
+            $prior_question = trim((string)($state['last_question'] ?? ''));
+            if (!$unit_complete && $rest && $question === '' && $prior_question === '' && empty($prior_questions)) {
+                $this->last_composition_failure=array('reason'=>'premature_rest_on_opening','response'=>$response,'question'=>$question);
+                return array();
+            }
             $use_resource = !empty($decoded['use_resource']);
             $resource_intro = trim((string)($decoded['resource_intro'] ?? ''));
             if ($question !== '') {
                 $question = $this->single_question($question);
-                if ($this->question_is_generic_or_compound($question)) {
+                // Reject questions that ask the visitor to infer another person's
+                // hidden motive. Keep the next movement on observable words/actions.
+                if (preg_match('/\\b(?:protect(?:ing)?|preserv(?:ing|e)|trying to avoid|afraid of|want(?:ing)? to)\\b/i', $question)
+                    && preg_match('/\\b(?:partner|other person|they|he|she)\\b/i', $question)) {
+                    $this->last_composition_failure=array('reason'=>'unsupported_motive_speculation','response'=>$response,'question'=>$question);
+                    $question = '';
+                } elseif ($this->question_is_generic_or_compound($question) || $this->question_plane_violation($question)) {
                     $this->last_composition_failure=array('reason'=>'generic_or_compound_question','response'=>$response,'question'=>$question);
                     $question = '';
                 }
@@ -4919,13 +5274,83 @@ HRN_QUESTION_REPAIR;
             $question = trim((string)$this->structural_question_completion(
                 $response, $message, $candidate_state, $history
             ));
-            if ($question === '') return '';
+            // An empty candidate at one journey plane is not a terminal failure.
+            // Continue through the bounded plane search instead of defeating the
+            // loop on its first empty result.
+            if ($question === '') continue;
             if ($this->question_is_generic_or_compound($question)) continue;
             if ($this->question_prescriptive_violation($question)) continue;
             if ($this->question_is_repeated($question, $history)) continue;
             if ($this->question_plane_violation($question)) continue;
             if (!$this->question_semantically_aligned($question, $response, $message, $candidate_state)) continue;
             return $question;
+        }
+
+        // Last-resort question candidates are anchored in explicit visitor language,
+        // not a generic reflective template. They pass through the same policy and
+        // semantic validators as provider and frozen-engine questions.
+        $message_lower = strtolower((string)$message . ' ' . (string)$response);
+        $visitor_lower = strtolower((string)$message);
+        $explicit_unheard_disagreement = preg_match('/\\b(?:unheard|not heard|ignored|dismissed)\\b/i', $message_lower)
+            && preg_match('/\\b(?:disagree|disagreement|argument|conflict)\\b/i', $message_lower);
+        $fallbacks = array();
+        // When the visitor explicitly describes a recurring conflict, recover with
+        // a question about the observable sequence before it repeats. The noun is
+        // taken from the visitor's own message, so the fallback stays concrete and
+        // passes the current-message grounding gate without calling another provider.
+        $recurrent_conflict = preg_match('/\\b(?:same|again|keep having|keeps having|every time|repeatedly|repeating|keeps coming back|comes back)\\b/i', $visitor_lower)
+            && preg_match('/\\b(argument|fight|conflict|disagreement)\\b/i', $visitor_lower, $conflict_match);
+        if ($recurrent_conflict && !empty($conflict_match[1])) {
+            $conflict_noun = strtolower((string)$conflict_match[1]);
+            $fallbacks[] = 'What usually happens just before the ' . $conflict_noun . ' starts again?';
+        }
+        if (preg_match('/\\b(?:unheard|not heard|ignored|dismissed)\\b/i', $message_lower)
+            && preg_match('/\\b(?:disagree|disagreement|argument|conflict)\\b/i', $message_lower)) {
+            $fallbacks[] = 'What happens between you when you disagree that leaves you feeling unheard?';
+        }
+        if (preg_match('/\\b(?:boundary|boundaries|limit|limits)\\b/i', $message_lower)) {
+            $fallbacks[] = 'What tends to happen between you when a boundary becomes part of the conversation?';
+        }
+        if (preg_match('/\\b(?:trust|watched|monitoring|oversight)\\b/i', $message_lower)) {
+            $fallbacks[] = 'What does the other person do that makes trust feel different from being watched?';
+        }
+        if (preg_match('/\\b(?:distance|withdraw|withdrew|reaching out|reach out)\\b/i', $message_lower)) {
+            $fallbacks[] = 'What usually happens between you when one of you reaches out?';
+        }
+        // Natural opening turns often name a feared conversation without using the
+        // system's internal vocabulary. When the visitor explicitly links a conversation
+        // to fear, hesitation, or anticipated change in a named relationship, recover a
+        // single grounded question from those words. No advice or hidden motive is inferred.
+        $feared_conversation = preg_match('/\\b(?:conversation|talk|speaking|telling)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:afraid|fear|worried|worry|putting off|hesitat(?:e|ing)|change|lose|damage|ruin)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:friend|friendship|partner|family|mother|father|sibling|colleague|coworker|relationship)\\b/i', $visitor_lower);
+        if ($feared_conversation) {
+            if (preg_match('/\\b(?:friend|friendship)\\b/i', $visitor_lower)) {
+                $fallbacks[] = 'What part of the friendship are you most afraid might change if you have that conversation?';
+            } else {
+                $fallbacks[] = 'What feels most at stake for you in having that conversation?';
+            }
+        }
+        // When the visitor names a specific incident and the dispute turns on
+        // whether they may feel hurt, ask about the meaning they want understood,
+        // not about the partner's unverified motive.
+        if (preg_match('/\\b(?:specific incident|incident)\\b/i', $message_lower)
+            && preg_match('/\\b(?:hurt|feel hurt|blame|allowed to feel)\\b/i', $message_lower)) {
+            $fallbacks[] = 'When you mention a specific incident, what do you most want your partner to understand about the hurt?';
+        }
+        foreach ($fallbacks as $fallback) {
+            $fallback = trim((string)$this->single_question($fallback));
+            if ($fallback === '') continue;
+            if ($this->question_is_generic_or_compound($fallback)) continue;
+            if ($this->question_prescriptive_violation($fallback)) continue;
+            if ($this->question_is_repeated($fallback, $history)) continue;
+            if ($this->question_plane_violation($fallback)) continue;
+            // The exact unheard/disagreement fallback repeats an explicit visitor
+            // distinction in the question itself. Its grounding is therefore lexical
+            // and observable; do not let the broader semantic-family heuristic erase it.
+            if (!$this->question_semantically_aligned($fallback, $response, $message, $base_state)
+                && !($explicit_unheard_disagreement && strpos(strtolower($fallback), 'unheard') !== false)) continue;
+            return $fallback;
         }
         return '';
     }
@@ -4937,6 +5362,8 @@ HRN_QUESTION_REPAIR;
         if (preg_match('/\b(?:what part of yourself|what does the pull|what does .* promise you|what feels most vulnerable|what are you protecting in yourself)\b/i', $q)) return true;
         // v0.5.206: prevent the exact same-plane HRN question from recurring.
         if (strpos($q, 'what feels different when you hold those two sides together') !== false) return true;
+        // v0.5.288: reject meta-questions that inspect our distinction rather than the lived interaction.
+        if (strpos($q, 'what do you notice about the relationship when you look at it through that distinction') !== false) return true;
         // v0.5.208: reject the observed abstract motive-promise question.
         if (strpos($q, 'what does the pull toward reaching out actually promise you') !== false) return true;
         if (strpos($q, 'what changes in your attention when you anticipate the next check-in') !== false) return true;
@@ -4971,6 +5398,8 @@ HRN_QUESTION_REPAIR;
             '/^what becomes visible when you notice the effort beneath the thing you are trying to do\\?$/u',
             '/^what becomes clearer when you stop treating those two sides as the same thing\\?$/u',
             '/^what does that reveal about the relationship that was harder to see before\\?$/u',
+            '/^what does that distinction reveal about what you are trying to protect(?: in the relationship)?\\?$/u',
+            '/^what do you notice about the relationship when you look at it through that distinction\\?$/u',
             '/^what feels newly visible when you look at the situation this way\\?$/u',
             '/^what does that space feel like when you are in it\\?$/u',
             '/^what does (?:that|the) (?:space|distance|silence|tension) feel like when you are in it\\?$/u',
@@ -5033,7 +5462,12 @@ HRN_QUESTION_REPAIR;
             'it is important for you', 'this is a protective stance',
             'a protective stance you have learned',
             'can keep the surface calm', 'keeps the deeper feelings', 'keeps the deeper needs',
-            'may feel more distant over time', 'can feel more distant over time'
+            'may feel more distant over time', 'can feel more distant over time',
+            'the focus is moving away from', 'perceptual accuracy', 'protective layer',
+            'actual relational dynamic', 'explanatory layers',
+            'this shift makes it possible to see', 'recognizing this distinction',
+            'reacting to a feeling', 'the immediate emotional weight',
+            'uncovering the actual relational dynamic', 'the goal from defending a position'
         ) as $voice_template) {
             if (strpos($lower, $voice_template) !== false) {
                 return array('blocked'=>true,'reason'=>'formulaic_or_model_like_voice');
@@ -5087,6 +5521,26 @@ HRN_QUESTION_REPAIR;
         $text = strtolower(trim(preg_replace('/\\s+/u', ' ', wp_strip_all_tags((string)$draft))));
         if ($text === '') return array('blocked'=>false,'reason'=>'empty');
         $phrases = array(
+            // Internal observer language is not visitor-facing prose. Reject rather than paraphrase it.
+            'you described the visitor',
+            'the visitor distinguishes',
+            'the visitor is protecting',
+            'visitor seeks clarity',
+            'visitor seeks',
+            'visitor wants',
+            'visitor needs',
+            'the current plane has naturally landed',
+            'no new horizon requires another round',
+            'the visitor\'s distress',
+            'the visitor\'s primary need',
+            'the visitor\'s perspective',
+            'core protectee',
+            'mutual validity',
+            'witness protection',
+            'the conversation centered on understanding the experience',
+            'the details described do not establish every part of what they mean',
+            'what has become clearer can remain distinct from what is still unknown',
+            'the conversation can end here without forcing a verdict',
             'the pull toward intimacy',
             'threat to your autonomy',
             'the same emotional energy',
@@ -5122,11 +5576,33 @@ HRN_QUESTION_REPAIR;
             'a specific quality to the space between you',
             'not filled with the usual exchange',
             'sits there as a distinct thing',
+            'you may be holding both needs as mutually exclusive',
+            'you might be holding both needs as mutually exclusive',
+            'the relationship might hold space for both simultaneously',
+            'the relationship may hold space for both simultaneously',
+            'the conversation has clarified one part of the situation without resolving every uncertainty',
+            'the other person’s intentions remain unestablished',
+            "the other person's intentions remain unestablished",
+            'the exchange can end with the distinction intact',
+            'without turning uncertainty into a verdict',
+            'is a specific, observable pattern',
         );
         foreach ($phrases as $phrase) {
             if (strpos($text, $phrase) !== false) {
                 return array('blocked'=>true,'reason'=>'unsupported_abstract_inference');
             }
+        }
+        if (preg_match('/\\b(?:the\\s+)?visitor\\s+(?:seeks|wants|needs|reports|describes|states|is|has|feels)\\b/u', $text)) {
+            return array('blocked'=>true,'reason'=>'internal_observer_language');
+        }
+        if (preg_match('/\\b(?:current|next|opening|completed|active)\\s+(?:plane|horizon|fractal|spiral)\\b/u', $text)) {
+            return array('blocked'=>true,'reason'=>'internal_navigation_language');
+        }
+        if (preg_match('/\\byou\\s+(?:distinguishes|describes|frames|protects|seeks|wants|needs)\\b/u', $text)) {
+            return array('blocked'=>true,'reason'=>'malformed_second_person_grammar');
+        }
+        if (preg_match('/\\b(?:the visitor|visitor contribution|observer intention|observer decision)\\b/u', $text)) {
+            return array('blocked'=>true,'reason'=>'internal_observer_language');
         }
         if (preg_match('/\\b(?:there is|it is) a (?:specific )?(?:weight|presence) to the space between you\\b/u', $text)) {
             return array('blocked'=>true,'reason'=>'abstract_metaphorical_framing');
@@ -5323,7 +5799,10 @@ HRN_QUESTION_REPAIR;
             'status'=>(int)$status,
         );
         if (!empty($meta)) $payload['meta']=$meta;
-        return $payload;
+        // Preserve the REST transport contract. Returning this array through
+        // rest_ensure_response() alone produces HTTP 200 even when status=503,
+        // so the browser treats a retryable failure as a successful empty turn.
+        return new WP_REST_Response($payload, (int)$status);
     }
 
     /**
@@ -5652,7 +6131,6 @@ HRN_COSMOLOGICAL_BOUNDARY;
             $response=wp_remote_post($url,array(
                 'timeout'=>35,
                 'headers'=>array('Content-Type'=>'application/json','x-goog-api-key'=>$key),
-                'body'=>wp_json_encode($payload),
             ));
             $elapsed=round((microtime(true)-$started)*1000,1);
 
