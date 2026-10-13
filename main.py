@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.199 — reject broad relational decoys on completed HRN return
+# USE PRODUCTION VERSION: v489.200 — require direct conflict titles for recurring-argument returns
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.199"
-DEPLOYMENT_FINGERPRINT = "USE-v489.199-hrn-return-reject-broad-glyph-decoy-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.199-hrn-return-reject-broad-glyph-decoy-v1"
+APP_VERSION = "v489.200"
+DEPLOYMENT_FINGERPRINT = "USE-v489.200-hrn-return-require-conflict-title-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.200-hrn-return-require-conflict-title-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.199":
+if str(APP_VERSION) != "v489.200":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1589,6 +1589,23 @@ def _relational_return_direct_topic_fit(query, doc):
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body_text)).casefold()
     if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # Keep completed journeys about an explicit recurring argument anchored to
+    # a directly named conflict/repair resource. The Guide may append semantic
+    # expansions such as communication, listening, and being heard to the
+    # retrieval query; those additions must not turn a broad governance essay
+    # into a topical match.
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
         return False
 
     recurring_argument_focus = bool(re.search(
