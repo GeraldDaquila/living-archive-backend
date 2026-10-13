@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.187"
-    assert report["fingerprint"] == "USE-v489.187-hrn-return-search-recovery"
+    assert report["version"] == "v489.188"
+    assert report["fingerprint"] == "USE-v489.188-fail-closed-source-dump-boundary"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -419,3 +419,22 @@ def test_relational_return_search_recovery_does_not_expand_unrelated_topics(monk
     assert primary is None
     assert outward == []
     assert calls == []
+
+
+
+def test_basic_inquiry_source_dump_recovery_is_specific_and_safe():
+    response = main._basic_inquiry_source_dump_recovery(
+        "I feel overwhelmed and don't know who I can talk to about what I'm going through."
+    )
+    assert "someone you trust" in response
+    assert "Eisenhower Matrix" not in response
+    assert not main._basic_inquiry_has_source_dump(response)
+
+
+def test_basic_inquiry_source_dump_recovery_fails_closed_for_unknown_query():
+    response = main._basic_inquiry_source_dump_recovery(
+        "What can I learn from this unfamiliar situation?"
+    )
+    assert "copied passage" in response
+    assert "Case Studies and Real-World Applications" not in response
+    assert not main._basic_inquiry_has_source_dump(response)

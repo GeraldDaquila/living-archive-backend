@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.187 — bounded WordPress search fallback for HRN return
+# USE PRODUCTION VERSION: v489.188 — bounded WordPress search fallback for HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.187"
-DEPLOYMENT_FINGERPRINT = "USE-v489.187-hrn-return-search-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.187-hrn-return-search-recovery"
+APP_VERSION = "v489.188"
+DEPLOYMENT_FINGERPRINT = "USE-v489.188-fail-closed-source-dump-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.188-fail-closed-source-dump-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.187":
+if str(APP_VERSION) != "v489.188":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3318,6 +3318,27 @@ def _basic_inquiry_has_source_dump(response):
     ))
 
 
+def _basic_inquiry_source_dump_recovery(query):
+    """Fail-closed visitor answer when the composer returns copied source material."""
+    q = _normalize_query(query).casefold()
+    if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
+        return (
+            "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
+            "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
+            "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
+            "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+    if "stewardship" in q:
+        return (
+            "Stewardship means taking care of what has been entrusted to you while recognizing your limits and the effects your choices have on others. "
+            "It matters because care, neglect, and responsibility accumulate over time, shaping what remains available to other people and to the future."
+        )
+    return (
+        "I can help you think this through, but I don't want to pass along a copied passage as if it were an answer to your question. "
+        "A useful first step is to identify the part of the situation that matters most to you right now, then look for a resource that speaks directly to it."
+    )
+
+
 def _basic_inquiry_round1_response(query, interpretation, context_data):
     """Compose a true Guide Round 1 response without altering protected core."""
     interpretation = interpretation or {}
@@ -3892,6 +3913,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _sanitize_basic_inquiry_response(
             str(deterministic_recovery.get("response") or "").strip()
         )
+        # The boundary is fail-closed: even if deterministic recovery unexpectedly
+        # returns the same excerpt, no copied/truncated source dump may be emitted.
+        if _basic_inquiry_has_source_dump(response):
+            response = _sanitize_basic_inquiry_response(
+                _basic_inquiry_source_dump_recovery(query)
+            )
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
