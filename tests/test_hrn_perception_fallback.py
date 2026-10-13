@@ -663,15 +663,14 @@ def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monke
         ("nvidia", "nemotron-model"),
     ]
 
-def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(monkeypatch):
-    """The 28s turn budget must allow bounded recovery beyond three failed lanes."""
+def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monkeypatch):
+    """Try one independent provider, then a sibling model, within the existing 7s budget."""
     candidates = [
-        _candidate("groq", "model-a"),
+        _candidate("nvidia", "gemma-model"),
         _candidate("openrouter", "model-b"),
         _candidate("mistral", "model-c"),
         _candidate("workers_ai", "model-d"),
-        _candidate("nvidia", "nemotron-model-e"),
-        _candidate("nvidia", "nemotron-model-f"),
+        _candidate("nvidia", "nemotron-model"),
     ]
     _isolate(monkeypatch, candidates)
 
@@ -684,22 +683,22 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
 
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append((item["provider"], item["model"]))
-        if item["model"] != "nemotron-model-f":
-            clock.value += 1.3
-            raise provider_bank.ProviderCallError(
-                "simulated clustered provider failure",
-                item["provider"],
-                item["model"],
-                429 if item["provider"] in {"openrouter", "mistral"} else 503,
-                category="rate_limited" if item["provider"] in {"openrouter", "mistral"} else "http_error",
-            )
-        return json.dumps({
-            "response": "You both say you want things to improve, but the same argument keeps returning. When it begins again, the conversation can move away from what happened and toward whether the past should be reopened. I do not know either person's intention, so I will stay with the sequence you described.",
-            "question": "What usually happens just before the argument starts again?",
-            "rest": False,
-            "use_resource": False,
-            "resource_intro": "",
-        })
+        if item["model"] == "nemotron-model":
+            return json.dumps({
+                "response": "You both say you want things to improve, but the same argument keeps returning. When it begins again, the conversation can move away from what happened and toward whether the past should be reopened. I do not know either person's intention, so I will stay with the sequence you described.",
+                "question": "What usually happens just before the argument starts again?",
+                "rest": False,
+                "use_resource": False,
+                "resource_intro": "",
+            })
+        clock.value += 1.3
+        raise provider_bank.ProviderCallError(
+            "simulated clustered provider failure",
+            item["provider"],
+            item["model"],
+            429 if item["provider"] in {"openrouter", "mistral"} else 503,
+            category="rate_limited" if item["provider"] in {"openrouter", "mistral"} else "http_error",
+        )
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
     result = provider_bank.route(
@@ -707,8 +706,8 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
         messages=[{
             "role": "user",
             "content": (
-                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\n'
-                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\n'
+                'SOURCE CONTRACT FOR THIS RESPONSE: {"mode":"answer","schema":"v1"}\\n'
+                'STRUCTURED MOVEMENT BRIEF — compose from this interpretation:\\n'
                 '{"thread_summary":"Both partners say they want things to improve, but the same argument keeps returning.",'
                 '"working_hypothesis":"The conversation shifts away from the specific incident when the past is raised.",'
                 '"perspective_delta":"The discussion moves from what happened to whether the visitor may still feel hurt."}'
@@ -721,8 +720,12 @@ def test_relational_fallback_reaches_sixth_candidate_after_clustered_failures(mo
 
     assert result is not None
     assert result["provider"] == "nvidia"
-    assert result["model"] == "nemotron-model-f"
-    assert len(calls) == 6
+    assert result["model"] == "nemotron-model"
+    assert calls == [
+        ("nvidia", "gemma-model"),
+        ("openrouter", "model-b"),
+        ("nvidia", "nemotron-model"),
+    ]
     assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 7.0
 
