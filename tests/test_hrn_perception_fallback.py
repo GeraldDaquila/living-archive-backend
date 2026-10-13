@@ -732,8 +732,8 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
 
 
 
-def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
-    """A known-live independent lane must not sit beyond the seven-second budget."""
+def test_relational_fallback_uses_recently_successful_nemotron_first(monkeypatch):
+    """A known-live independent lane must be attempted before slower candidates."""
     candidates = [
         _candidate("groq", "qwen/qwen3.8-27b"),
         _candidate("openrouter", "openrouter/free"),
@@ -792,7 +792,6 @@ def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
     assert result["provider"] == "nvidia"
     assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert calls == [
-        ("groq", "qwen/qwen3.8-27b"),
         ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
     ]
 
