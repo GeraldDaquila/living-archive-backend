@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.7"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.8"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -495,7 +495,7 @@ def _resource_projection(emergency_resolution: Mapping[str, Any]) -> list[dict[s
 
 def resolve_emergency_resources(
     *,
-    service_need: str = "general_emergency",
+    service_need: str = "",
     safety_state: str = "acute",
     country: str = "",
     location: Mapping[str, Any] | None = None,
@@ -759,6 +759,18 @@ def resolve_safety(
     endpoint: str | None = None,
     emergency_endpoint: str | None = None,
 ) -> dict[str, Any]:
+    # Route resource selection by the deterministic safety state. Acute or
+    # near-term danger needs the general emergency service; non-acute current
+    # distress/plan states should receive a verified crisis-support contact.
+    # An explicit caller-provided service need remains authoritative.
+    service_need = str(service_need or "").strip().casefold()
+    if not service_need:
+        service_need = (
+            "general_emergency"
+            if str(safety_state or "").strip().casefold() in {"acute", "immediacy", "acute_followthrough"}
+            else "crisis_support"
+        )
+
     endpoint_url = str(
         endpoint or os.getenv("HRN_ENDPOINT_URL") or DEFAULT_HRN_ENDPOINT
     ).strip()
