@@ -99,7 +99,7 @@ def main():
     # HRN stage or on the bounded contract-correction call.
     assert "HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation" in provider
-    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0' in provider
+    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
     # The visitor contract must explicitly block inferred blame and motive attribution,

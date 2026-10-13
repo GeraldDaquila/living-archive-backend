@@ -20,7 +20,7 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
-    monkeypatch.setattr(provider_bank, "_blocked", lambda state: False)
+    monkeypatch.setattr(provider_bank, "_blocked", lambda state, operation=None: False)
     monkeypatch.setattr(provider_bank, "acquire_probe", lambda state: True)
     monkeypatch.setattr(provider_bank, "_failure", lambda *args, **kwargs: None)
     monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
@@ -79,7 +79,7 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
     assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
     assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 7.0
     assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 2.5
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.0
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
 
 
 def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(monkeypatch):
@@ -795,3 +795,23 @@ def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
         ("groq", "qwen/qwen3.8-27b"),
         ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
     ]
+
+
+
+def test_provider_timeout_circuit_is_isolated_by_operation():
+    """A timeout in perception must not suppress a model for relational composition."""
+    import time
+
+    state = provider_bank.new_state("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    state.update({
+        "state": "open",
+        "category": "provider_failure",
+        "last_error": "request timed out after 2.0 seconds",
+        "last_failure": time.time(),
+        "cooldown_until": time.time() + 300,
+        "quarantine_until": 0.0,
+        "last_operation": "hrn_perception",
+    })
+
+    assert provider_bank._blocked_for_operation(state, "hrn_relational") is False
+    assert provider_bank._blocked_for_operation(state, "hrn_perception") is True
