@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.179 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.180 — expanded bounded HRN provider fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.179"
-DEPLOYMENT_FINGERPRINT = "USE-v489.179-hrn-timeout-formation-precedence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.179-hrn-timeout-formation-precedence"
+APP_VERSION = "v489.180"
+DEPLOYMENT_FINGERPRINT = "USE-v489.180-source-excerpt-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.180-source-excerpt-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.179":
+if str(APP_VERSION) != "v489.180":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
