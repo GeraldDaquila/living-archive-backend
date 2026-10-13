@@ -574,7 +574,7 @@ _RELATIONAL_INQUIRY_PATTERNS = (
     # effort to explain the hurt, not through explicit "understand" wording.
     # Combined with first-person plural + an argument/fight dynamic, this is
     # sufficient relational evidence without capturing bounded Archive lookups.
-    r"\\b(?:i|we)\\s+(?:keep\\s+)?(?:trying|try)\\s+to\\s+(?:explain|understand|make sense of)\\b",
+    r"\b(?:i|we)\s+(?:keep\s+)?(?:trying|try)\s+to\s+(?:explain|understand|make sense of)\b",
 )
 
 
