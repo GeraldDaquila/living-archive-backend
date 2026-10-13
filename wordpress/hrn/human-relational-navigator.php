@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.322
+ * Version: 0.5.323
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.322';
+    const VERSION = '0.5.323';
+    // RELEASE v0.5.323: recognize explicit natural-language landing as terminal closure; accepted journey evidence and policy gates remain authoritative.
     // RELEASE v0.5.322: derive short-close recovery eligibility from accepted journey-ledger evidence, not only the final utterance; frozen writers unchanged.
     // RELEASE v0.5.321: keep terminal tone-displacement synthesis at the visitor's concrete evidence level; frozen writers unchanged.
     // RELEASE v0.5.320: preserve an evidence-grounded terminal landing for explicit tone-displacement journeys when all closure providers fail; frozen writers unchanged.
@@ -4243,7 +4244,11 @@ BOUNDARIES: Never diagnose, label, pathologize, assign motives as facts, decide 
         // Deterministic high-confidence closure phrase: ordinary language such as
         // "I think we've reached enough for now" is an executive stop, not terrain.
         if (strpos($m, 'enough for now') !== false && preg_match('/\\b(?:i|we)\\b/', $m)) return true;
+        // Natural terminal language such as "please let this conversation land"
+        // is an executive stop, not another exploratory contribution. Keep the
+        // trigger narrow to explicit landing/rest/settling verbs and conversation nouns.
         $patterns = array(
+            '/\b(?:please\s+)?let (?:this|the) (?:conversation|discussion|exchange) (?:land|rest|settle)\b/',
             '/\bi want to (end|stop|finish) (this|the) (conversation|chat|discussion)\b/',
             '/\b(let\'s|lets) (end|stop|finish) (this|the) (conversation|chat|discussion)\b/',
             '/\b(i\'m|im) done\b/',
