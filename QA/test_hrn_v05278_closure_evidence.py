@@ -13,11 +13,20 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.313", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.313';", SOURCE)
+        self.assertIn("Version: 0.5.314", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.314';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
+
+
+    def test_same_change_risk_question_family_is_rejected_as_repeat(self):
+        start = SOURCE.index("private function question_is_repeated(")
+        end = SOURCE.index("private function remember_question(", start)
+        method = SOURCE[start:end]
+        self.assertIn("$change_risk_question = preg_match", method)
+        self.assertIn("$prior_change_risk = preg_match", method)
+        self.assertIn("if ($change_risk_question && $prior_change_risk) return true;", method)
 
     def test_relational_warmth_and_concealment_has_grounded_question_recovery(self):
         self.assertIn("$warmth_without_honesty = preg_match", SOURCE)

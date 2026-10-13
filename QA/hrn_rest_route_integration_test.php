@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.313', 'isolated route executes the v0.5.313 candidate');
+$assert(($data['version'] ?? '') === '0.5.314', 'isolated route executes the v0.5.314 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -226,7 +226,7 @@ $GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], ar
 ));
 $GLOBALS['hrn_qa_composition_result'] = array(
     'response'=>'Keeping the friendship warm and pretending everything is fine are not quite the same thing. One points to the closeness you want to preserve; the other can leave what is difficult between you unspoken, even while the friendship looks unchanged from the outside.',
-    'question'=>'',
+    'question'=>'When you think about having this conversation, what part of the friendship feels most at risk of changing?',
     'rest'=>false,
     'use_resource'=>false,
     'resource_intro'=>''
@@ -255,6 +255,7 @@ $assert($secondStatus === 200 && !empty($secondData['ok']), 'second ordinary rou
 $assert(trim((string)($secondData['response'] ?? '')) !== '', 'second ordinary round preserves the visitor-grounded response');
 $assert(trim((string)($secondData['question'] ?? '')) !== '', 'second ordinary round recovers a follow-up question without provider retries');
 $assert(stripos((string)$secondData['question'],'friendship') !== false && (stripos((string)$secondData['question'],'warm') !== false || stripos((string)$secondData['question'],'unspoken') !== false), 'second-round question remains grounded in the warmth/concealment tension');
+$assert(stripos((string)$secondData['question'],'at risk of changing') === false && stripos((string)$secondData['question'],'afraid might change') === false, 'second-round question does not repeat the prior fear-of-change inquiry');
 $assert(empty($secondData['rest']) && empty($secondData['use_resource']), 'second-round question keeps the ordinary conversation open');
 
 unset($GLOBALS['hrn_qa_composition_result']);
