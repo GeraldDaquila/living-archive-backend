@@ -258,6 +258,38 @@ $assert(stripos((string)$secondData['question'],'friendship') !== false && (stri
 $assert(stripos((string)$secondData['question'],'at risk of changing') === false && stripos((string)$secondData['question'],'afraid might change') === false, 'second-round question does not repeat the prior fear-of-change inquiry');
 $assert(empty($secondData['rest']) && empty($secondData['use_resource']), 'second-round question keeps the ordinary conversation open');
 
+
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'The hesitation to speak suggests that the friendship is already experiencing a shift, even if the conversation has not happened yet. Recognizing that the status quo is not fixed makes it possible to decide whether you want to guide that change or simply watch it happen.',
+    'question'=>'What part of the friendship are you most afraid might change if you have that conversation?',
+    'rest'=>false,
+    'use_resource'=>false,
+    'resource_intro'=>''
+);
+$policyRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$policyRequest->set_header('content-type','application/json');
+$policyRequest->set_param('message',$resourceMessage);
+$policyRequest->set_param('original_question',$resourceMessage);
+$policyRequest->set_param('conversation','');
+$policyRequest->set_param('full_conversation','');
+$policyRequest->set_param('session_id','hrn-isolated-soft-action-frame-v05315');
+$policyRequest->set_param('unit_turns',1);
+$policyRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$policyResponse = rest_do_request($policyRequest);
+restore_error_handler();
+$policyStatus = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_status() : 500;
+$policyData = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_data() : array('error'=>$policyResponse instanceof WP_Error ? $policyResponse->get_error_message() : 'unknown');
+$assert($policyStatus === 200 && !empty($policyData['ok']), 'soft-action-frame route recovers through the real REST handler; got HTTP '.$policyStatus.' '.wp_json_encode($policyData));
+$assert(stripos((string)($policyData['response'] ?? ''),'makes it possible') === false && stripos((string)($policyData['response'] ?? ''),'guide that change') === false && stripos((string)($policyData['response'] ?? ''),'watch it happen') === false, 'soft-action-frame route does not steer the visitor toward managing the outcome');
+$assert(trim((string)($policyData['question'] ?? '')) !== '', 'soft-action-frame recovery retains a grounded question');
+
 unset($GLOBALS['hrn_qa_composition_result']);
 
 $thirdMessage = "I think the hardest part is that she may think I'm blaming her, when really I want us to understand each other better.";
