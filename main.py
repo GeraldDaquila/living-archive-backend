@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.183 — use earned resource fit in HRN return
+# USE PRODUCTION VERSION: v489.184 — bounded WP search fallback for HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.183"
-DEPLOYMENT_FINGERPRINT = "USE-v489.183-earned-resource-fit-return"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.183-earned-resource-fit-return"
+APP_VERSION = "v489.184"
+DEPLOYMENT_FINGERPRINT = "USE-v489.184-hrn-return-wp-search-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.184-hrn-return-wp-search-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.183":
+if str(APP_VERSION) != "v489.184":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1673,6 +1673,35 @@ async def _v48755_relational_return(request: Request):
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
             if primary:
                 outward = fallback_outward
+
+        if not primary:
+            # Last bounded, provider-independent recovery: use the specialist's
+            # explicit resource-fit signal to search WordPress's canonical index,
+            # then apply the exact same Guide relevance and authority gates.
+            # This recovers a known relevant work without forcing a doorway.
+            fit_terms = set(_subject_terms(resource_fit))
+            fit_query = ""
+            if "conflict" in fit_terms and "repair" in fit_terms:
+                fit_query = "conflict repair"
+            elif "argument" in fit_terms and "repair" in fit_terms:
+                fit_query = "argument repair"
+            elif "hurt" in fit_terms and "blame" in fit_terms:
+                fit_query = "hurt blame"
+            elif "repair" in fit_terms:
+                fit_query = "conflict repair"
+            elif "argument" in fit_terms:
+                fit_query = "argument repair"
+            if fit_query:
+                search_docs = _wordpress_search_canonical_candidates(fit_query, limit=10)
+                search_outward = _sanitize_outward_context(fit_query, search_docs, profile)
+                search_outward = [
+                    doc for doc in search_outward
+                    if _relational_return_direct_topic_fit(direct_topic_query, doc)
+                    or _relational_return_earned_focus_fit(direct_topic_query, doc)
+                ]
+                primary = _canonical_primary_from_docs(search_outward, direct_topic_query, profile)
+                if primary:
+                    outward = search_outward
 
         print(
             "The Guide v487.66 seamless HRN gift return: "
