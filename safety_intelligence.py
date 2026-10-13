@@ -755,7 +755,7 @@ def resolve_safety(
     safety_question: str = "",
     unit_turns: int = 0,
     location: Mapping[str, Any] | None = None,
-    service_need: str = "general_emergency",
+    service_need: str = "",
     endpoint: str | None = None,
     emergency_endpoint: str | None = None,
 ) -> dict[str, Any]:
