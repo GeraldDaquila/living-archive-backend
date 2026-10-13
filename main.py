@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.206 — restore natural explanatory prose at the visitor boundary
+# USE PRODUCTION VERSION: v489.209 — preserve general-knowledge answers when composition providers fail
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.206"
-DEPLOYMENT_FINGERPRINT = "USE-v489.206-natural-prose-label-boundary-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.206-natural-prose-label-boundary-v1"
+APP_VERSION = "v489.209"
+DEPLOYMENT_FINGERPRINT = "USE-v489.209-reflective-general-knowledge-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.209-reflective-general-knowledge-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.206":
+if str(APP_VERSION) != "v489.209":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -224,7 +224,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.9":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.10":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -3706,6 +3706,26 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
     # available, without fabricating Archive evidence or source-specific claims.
+    if re.search(r"\b(?:understand|make sense of|interpret)\b", q) and re.search(r"\b(?:difficult situation|situation|what happened|someone's behavior|their behavior)\b", q) and re.search(r"\b(?:judge|judgment|judgement|assume|assumption|rush)\b", q):
+        response = (
+            "When a situation is difficult, it helps to separate what you know from what you think it means. "
+            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.\n\n"
+            "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
+
+    if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
+        response = (
+            "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
+            "It can be assigned to you, shared, or delegated. "
+            "Stewardship is about how you care for something placed in your hands, especially when its value reaches beyond your immediate needs. "
+            "It asks you to maintain, protect, or improve it for others and for the future.\n\n"
+            "The two belong together, but they are not identical. Responsibility asks, ‘What am I accountable for?’ "
+            "Stewardship asks, ‘How should I care for what I have been entrusted with?’ "
+            "You can fulfill a duty narrowly and still neglect the wider trust; stewardship asks you to consider that wider effect while respecting your own limits."
+        )
+        return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
+
     if "stewardship" in q and re.search(r"\b(?:why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
@@ -4362,7 +4382,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.9":
+    if snapshot.get("contract_version") != "v1.10":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
