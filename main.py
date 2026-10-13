@@ -1714,8 +1714,9 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
             search_queries,
         ))
 
-    outward = []
+    ranked_candidates = []
     seen = set()
+    candidate_index = 0
     for search_query, candidates in zip(search_queries, candidate_sets):
         query_outward = _sanitize_outward_context(search_query, candidates, profile)
         for doc in query_outward:
@@ -1731,11 +1732,21 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
             if key in seen:
                 continue
             seen.add(key)
-            outward.append(doc)
+            metrics = _subject_metrics(search_query, doc)
+            context = _contextual_fit(search_query, doc)
+            score = (
+                metrics[2], metrics[3], metrics[0], metrics[1],
+                context[2], context[1], -candidate_index,
+            )
+            ranked_candidates.append((score, doc))
+            candidate_index += 1
 
-    # Rank only the candidates that passed both retrieval-query and original-topic
-    # checks. Never turn the search expansion into a relevance bypass.
-    primary = _canonical_primary_from_docs(outward, "relationship repair", profile)
+    # Rank each candidate against the exact bounded query that retrieved it.
+    # Rechecking every candidate against only the first phrase would silently
+    # discard valid candidates discovered by the secondary queries.
+    ranked_candidates.sort(key=lambda item: item[0], reverse=True)
+    outward = [doc for _score, doc in ranked_candidates]
+    primary = outward[0] if outward else None
     print(
         "The Guide relational doorway recovery: "
         f"queries={len(search_queries)}, candidates={sum(len(items) for items in candidate_sets)}, "
