@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.7"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.8"
 
 DEFAULT_HRN_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
@@ -50,6 +50,11 @@ _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i(?:'m| am)?\s+want(?:ing)?\s+to)\s+(?:kill\s+myself|end\s+my\s+life)\b", re.I),
 )
 _GENERIC_IMMEDIATE_DANGER_PATTERN = re.compile(r"\bimmediate\s+danger\b", re.I)
+_NEGATED_IMMEDIATE_DANGER_PATTERN = re.compile(
+    r"\b(?:not|is\s+not|isn't|no\s+longer)\s+"
+    r"(?:currently\s+)?(?:in\s+)?immediate\s+danger\b",
+    re.I,
+)
 _HYPOTHETICAL_SAFETY_DISCUSSION_PATTERNS = (
     re.compile(r"\b(?:calibration|test case|testing|training|hypothetical|scenario)\b", re.I),
     re.compile(r"\bif\s+(?:a|the)\s+visitor\b", re.I),
@@ -126,6 +131,7 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
         return "acute"
     if (
         _GENERIC_IMMEDIATE_DANGER_PATTERN.search(text)
+        and not _NEGATED_IMMEDIATE_DANGER_PATTERN.search(text)
         and not is_hypothetical_safety_discussion(text)
     ):
         return "acute"
@@ -267,7 +273,10 @@ def classify_safety(query: str, *, history: str = "") -> str | None:
     normalized_query = " ".join(str(query or "").strip().casefold().split())
     if (
         _GENERIC_IMMEDIATE_DANGER_PATTERN.search(normalized_query)
-        and is_hypothetical_safety_discussion(normalized_query)
+        and (
+            _NEGATED_IMMEDIATE_DANGER_PATTERN.search(normalized_query)
+            or is_hypothetical_safety_discussion(normalized_query)
+        )
         and not any(
             pattern.search(normalized_query)
             for pattern in (*_ACUTE_PATTERNS, *_PLAN_PATTERNS, *_IMMEDIACY_PATTERNS, *_CURRENT_PATTERNS)
