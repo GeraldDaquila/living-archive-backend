@@ -2,16 +2,17 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.313
+ * Version: 0.5.314
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.313';
+    const VERSION = '0.5.314';
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
-    // RELEASE v0.5.313: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
-    // RELEASE v0.5.313: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.314: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
+    // RELEASE v0.5.314: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
+    // RELEASE v0.5.314: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
     // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
     // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
     // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
@@ -4603,6 +4604,7 @@ Navigation state:
         $a=array_values(array_filter(explode('|',$sig)));
         $question_text = strtolower(trim(preg_replace('/\\s+/u', ' ', $question)));
         $same_distinction_lens = preg_match('/\\b(?:look at|look through|view|see)\\b.{0,100}\\bthrough that distinction\\b/u', $question_text) === 1;
+        $change_risk_question = preg_match('/\\bwhat\\s+(?:part|aspect|side)\\b.{0,140}\\b(?:change|changing|shift|shifting|at risk|different)\\b/i', $question_text) === 1;
         foreach((array)$history as $prior){
             $prior_text = strtolower(trim(preg_replace('/\\s+/u', ' ', (string)$prior)));
             $prior_sig=$this->question_signature($prior); if($prior_sig==='') continue;
@@ -4610,6 +4612,8 @@ Navigation state:
             // Repeating "look at it through that distinction" is the same plane even
             // when one asks what is noticed and the next asks what changes.
             $prior_same_distinction_lens = preg_match('/\\b(?:look at|look through|view|see)\\b.{0,100}\\bthrough that distinction\\b/u', $prior_text) === 1;
+            $prior_change_risk = preg_match('/\\bwhat\\s+(?:part|aspect|side)\\b.{0,140}\\b(?:change|changing|shift|shifting|at risk|different)\\b/i', $prior_text) === 1;
+            if ($change_risk_question && $prior_change_risk) return true;
             if ($same_distinction_lens && $prior_same_distinction_lens) return true;
             if($sig===$prior_sig) return true;
             $b=array_values(array_filter(explode('|',$prior_sig)));
