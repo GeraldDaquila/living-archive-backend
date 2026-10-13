@@ -2156,7 +2156,6 @@ Visitor response: " . $message;
         // rotated against the journey's prior questions; it is not a fixed-turn or
         // screenshot-specific fallback.
         if (!$junction_land && !$visitor_closure && !$visitor_resource_request
-            && empty($response['rest']) && empty($response['use_resource'])
             && trim((string)($response['question'] ?? '')) === '') {
             // The frozen structural question engine remains provider-independent.
             // Give it both the composed response and the visitor's current material so
