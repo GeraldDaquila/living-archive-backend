@@ -38,6 +38,10 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("$response = $this->strip_unselected_resource_offer($response);", SOURCE)
         self.assertIn("$mentions_resource && $offers_resource", SOURCE)
 
+    def test_generic_next_part_question_is_rejected_before_visitor_grounded_recovery(self):
+        self.assertIn("what becomes clearer when you look toward that next part of the situation", SOURCE)
+        self.assertIn("if (strpos($q, 'what becomes clearer when you look toward that next part of the situation') !== false) return true;", SOURCE)
+
     def test_blame_understanding_contrast_has_a_grounded_question_fallback(self):
         self.assertIn("$blame_without_understanding = preg_match", SOURCE)
         self.assertIn("What do you want her to understand that might otherwise sound like blame?", SOURCE)
