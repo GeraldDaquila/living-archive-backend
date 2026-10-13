@@ -2031,9 +2031,9 @@ def _hrn_complete_missing_question(messages):
                     if isinstance(decoded.get(field), str)
                 )
                 if (
-                    re.search(r"\\bhurt\\b", focus_material, re.I)
-                    and re.search(r"\\b(?:heard|hear|listened|listen)\\b", focus_material, re.I)
-                    and re.search(r"\\b(?:explain|explanation|perfectly|justify|justification)\\b", focus_material, re.I)
+                    re.search(r"\bhurt\b", focus_material, re.I)
+                    and re.search(r"\b(?:heard|hear|listened|listen)\b", focus_material, re.I)
+                    and re.search(r"\b(?:explain|explanation|perfectly|justify|justification)\b", focus_material, re.I)
                 ):
                     earned_question = "What would tell you that the hurt itself had been heard, even if the explanation were imperfect?"
                     if (
