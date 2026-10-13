@@ -45,6 +45,7 @@ foreach ($requiredMethods as $name) {
     $methods[] = $method;
 }
 
+if (!function_exists('wp_json_encode')) { function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); } }
 if (!function_exists('wp_strip_all_tags')) {
     function wp_strip_all_tags($value) { return strip_tags((string)$value); }
 }
