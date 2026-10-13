@@ -5348,6 +5348,8 @@ HRN_QUESTION_REPAIR;
         $visitor_lower = strtolower((string)$message);
         $explicit_unheard_disagreement = preg_match('/\\b(?:unheard|not heard|ignored|dismissed)\\b/i', $message_lower)
             && preg_match('/\\b(?:disagree|disagreement|argument|conflict)\\b/i', $message_lower);
+        $explicit_blame_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
         $fallbacks = array();
         // Preserve a useful next question when the visitor names both relational
         // warmth and concealment. This is a perspective question about the stated
@@ -5420,7 +5422,8 @@ HRN_QUESTION_REPAIR;
             // distinction in the question itself. Its grounding is therefore lexical
             // and observable; do not let the broader semantic-family heuristic erase it.
             if (!$this->question_semantically_aligned($fallback, $response, $message, $base_state)
-                && !($explicit_unheard_disagreement && strpos(strtolower($fallback), 'unheard') !== false)) continue;
+                && !($explicit_unheard_disagreement && strpos(strtolower($fallback), 'unheard') !== false)
+                && !($explicit_blame_understanding && strpos(strtolower($fallback), 'understand') !== false && strpos(strtolower($fallback), 'blame') !== false)) continue;
             return $fallback;
         }
         return '';
