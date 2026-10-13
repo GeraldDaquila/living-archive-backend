@@ -3320,7 +3320,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
-    if re.search(r"\\boverwhelmed\\b", q) and re.search(r"\\b(?:who|talk|someone|support)\\b", q):
+    if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
         response = (
             "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
             "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
