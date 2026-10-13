@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.193 — reject HTML-shaped visitor prose
+# USE PRODUCTION VERSION: v489.194 — fail closed on HTML in every Basic Inquiry recovery path
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.193"
-DEPLOYMENT_FINGERPRINT = "USE-v489.193-outward-response-integrity"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.193-outward-response-integrity"
+APP_VERSION = "v489.194"
+DEPLOYMENT_FINGERPRINT = "USE-v489.194-recovery-boundary-integrity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.194-recovery-boundary-integrity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.193":
+if str(APP_VERSION) != "v489.194":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4009,12 +4009,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         try:
             deterministic_recovery = _basic_inquiry_round1_deterministic_response(
-                query, {}, composition_context
+                query, {}, {"context_blocks": ""}
             )
             llm_output = str(deterministic_recovery.get("response") or "").strip()
         except Exception as exc:
             print(f"The Guide markup recovery failed safely: {type(exc).__name__}.")
             llm_output = ""
+        if _basic_inquiry_contains_html_markup(llm_output):
+            try:
+                deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                    query, {}, {}
+                )
+                llm_output = str(deterministic_recovery.get("response") or "").strip()
+            except Exception:
+                llm_output = ""
         if _basic_inquiry_contains_html_markup(llm_output):
             llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
@@ -5198,6 +5206,20 @@ async def _use_request_boundary(scope, receive, send):
                     recovery_context,
                 )
                 recovery_text = str(recovery.get("response") or "").strip()
+                if _basic_inquiry_contains_html_markup(recovery_text):
+                    print(
+                        "The Guide recovery boundary: rejected HTML-shaped deterministic output; "
+                        "retrying without retrieved context."
+                    )
+                    try:
+                        recovery = _basic_inquiry_round1_deterministic_response(
+                            query, {}, {"context_blocks": ""}
+                        )
+                        recovery_text = str(recovery.get("response") or "").strip()
+                    except Exception:
+                        recovery_text = ""
+                if _basic_inquiry_contains_html_markup(recovery_text):
+                    recovery_text = ""
                 recovery_recommendation = _normalize_authoritative_recommendation(
                     _general_guide_authoritative_doorway(query, recovery_context)
                 )
