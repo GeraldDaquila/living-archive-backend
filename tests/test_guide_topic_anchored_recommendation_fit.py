@@ -48,3 +48,15 @@ def test_topic_fit_does_not_overconstrain_single_anchor_queries():
         "text": "This resource introduces governance and how public decisions are made.",
     }
     assert main._topic_specific_candidate_fit(query, candidate)
+
+
+def test_political_dynasties_question_rejects_general_institutions_decoy():
+    decoy = {
+        "title": "Designing Human-Scale Institutions for the 21st Century",
+        "url": "https://geralddaquila.com/2026/06/03/designing-human-scale-institutions-for-the-21st-century/",
+        "text": (
+            "Institutions and accountability are important for good governance. "
+            "Public institutions need to serve communities and sustain shared decisions."
+        ),
+    }
+    assert not main._topic_specific_candidate_fit(QUERY, decoy)

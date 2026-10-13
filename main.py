@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.191 — require topic-anchored canonical recommendations
+# USE PRODUCTION VERSION: v489.192 — require distinctive-topic evidence for recommendations
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.191"
-DEPLOYMENT_FINGERPRINT = "USE-v489.191-topic-anchored-canonical-recommendations"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.191-topic-anchored-canonical-recommendations"
+APP_VERSION = "v489.192"
+DEPLOYMENT_FINGERPRINT = "USE-v489.192-distinctive-topic-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.192-distinctive-topic-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.191":
+if str(APP_VERSION) != "v489.192":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -858,6 +858,19 @@ def _topic_specific_candidate_fit(query, doc):
     supported = query_groups & body_groups
     if len(supported) < 2:
         return False
+
+    # Distinctive concepts are not interchangeable with broad context. When
+    # the visitor explicitly asks about political dynasties, a general article
+    # about institutions or governance is not enough merely because it also
+    # mentions accountability. Require evidence for that distinctive subject
+    # in the title or opening body, and at least one other requested concept
+    # in the same opening passage.
+    if "political_dynasties" in query_groups:
+        if not (title_groups | early_groups) & {"political_dynasties"}:
+            return False
+        if len(query_groups & early_groups) < 2:
+            return False
+
     # Prefer a doorway whose title identifies at least one requested topic.
     # A broader title may still qualify when the opening directly discusses
     # at least two of the requested concepts.
