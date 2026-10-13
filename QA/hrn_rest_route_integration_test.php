@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.312', 'isolated route executes the v0.5.312 candidate');
+$assert(($data['version'] ?? '') === '0.5.313', 'isolated route executes the v0.5.313 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -192,6 +192,71 @@ $assert(trim((string)($ordinaryData['response'] ?? '')) !== '', 'ordinary missin
 $assert(trim((string)($ordinaryData['question'] ?? '')) !== '', 'ordinary missing-question route structurally completes the question without another provider');
 $assert(stripos((string)$ordinaryData['question'],'friendship') !== false || stripos((string)$ordinaryData['question'],'conversation') !== false, 'structural question remains grounded in the visitor’s named relationship');
 $assert(empty($ordinaryData['rest']) && empty($ordinaryData['use_resource']), 'successful question completion clears default rest/resource flags');
+
+$secondMessage = "I want the friendship to remain warm, but I don't want to keep pretending everything is fine.";
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'warmth and honesty in a friendship',
+    'observer_contrast'=>'Keeping a friendship warm and pretending everything is fine are not the same thing.',
+    'observer_so_what'=>'The wish for closeness can coexist with recognition that something feels unresolved.',
+    'observer_delta'=>'Warmth and concealment are different parts of the relationship.',
+    'observer_horizon'=>'what warmth means when something is unspoken',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'examine the relationship between warmth and honesty',
+    'situation'=>'wanting warmth without pretending everything is fine',
+    'experience'=>$secondMessage,
+    'tension'=>'warmth and honesty',
+    'pattern'=>'keeping things warm may conflict with acknowledging what is not fine',
+    'underlying_need'=>'connection and honesty',
+    'desired_condition'=>'warmth without pretending',
+    'emerging_delta'=>'warmth and concealment are different parts of the relationship',
+    'perspective_delta'=>'warmth and concealment are different parts of the relationship',
+    'body_of_thought'=>(string)$ordinaryData['response'],
+    'current_fractal'=>'warmth and honesty in a friendship',
+    'next_horizon'=>'what warmth means when something is unspoken',
+    'conversation_purpose'=>'understand a difficult friendship',
+    'movement_state'=>'exploring',
+    'conversation_phase'=>'exploration',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'fractal_summary'=>'',
+    'last_nugget'=>(string)$ordinaryData['response'],
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'Keeping the friendship warm and pretending everything is fine are not quite the same thing. One points to the closeness you want to preserve; the other can leave what is difficult between you unspoken, even while the friendship looks unchanged from the outside.',
+    'question'=>'',
+    'rest'=>false,
+    'use_resource'=>false,
+    'resource_intro'=>''
+);
+$secondRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$secondRequest->set_header('content-type','application/json');
+$secondRequest->set_param('message',$secondMessage);
+$secondRequest->set_param('original_question',$ordinaryMessage);
+$secondRequest->set_param('conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']);
+$secondRequest->set_param('full_conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']."\nVisitor: ".$secondMessage);
+$secondRequest->set_param('session_id',$ordinarySession);
+$secondRequest->set_param('unit_turns',2);
+$secondRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$secondResponse = rest_do_request($secondRequest);
+restore_error_handler();
+$secondStatus = $secondResponse instanceof WP_REST_Response ? $secondResponse->get_status() : 500;
+$secondData = $secondResponse instanceof WP_REST_Response ? $secondResponse->get_data() : array('error'=>$secondResponse instanceof WP_Error ? $secondResponse->get_error_message() : 'unknown');
+$assert($secondStatus === 200 && !empty($secondData['ok']), 'second ordinary round succeeds when the visitor names warmth and concealment; got HTTP '.$secondStatus.' '.wp_json_encode($secondData));
+$assert(trim((string)($secondData['response'] ?? '')) !== '', 'second ordinary round preserves the visitor-grounded response');
+$assert(trim((string)($secondData['question'] ?? '')) !== '', 'second ordinary round recovers a follow-up question without provider retries');
+$assert(stripos((string)$secondData['question'],'friendship') !== false && (stripos((string)$secondData['question'],'warm') !== false || stripos((string)$secondData['question'],'unspoken') !== false), 'second-round question remains grounded in the warmth/concealment tension');
+$assert(empty($secondData['rest']) && empty($secondData['use_resource']), 'second-round question keeps the ordinary conversation open');
+
 unset($GLOBALS['hrn_qa_composition_result']);
 
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";

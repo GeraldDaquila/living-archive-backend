@@ -13,10 +13,16 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.312", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.312';", SOURCE)
+        self.assertIn("Version: 0.5.313", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.313';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
+
+
+    def test_relational_warmth_and_concealment_has_grounded_question_recovery(self):
+        self.assertIn("$warmth_without_honesty = preg_match", SOURCE)
+        self.assertIn("What does keeping the ' . $relationship_noun . ' warm mean when something feels unspoken?", SOURCE)
+        self.assertIn("This is a perspective question about the stated", SOURCE)
 
     def test_opening_rest_without_question_preserves_response_for_structural_completion(self):
         block_start = SOURCE.index("if (!$unit_complete && $rest && $question === '' && $prior_question === '' && empty($prior_questions))")

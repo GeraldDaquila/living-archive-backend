@@ -2,15 +2,16 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.312
+ * Version: 0.5.313
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.312';
+    const VERSION = '0.5.313';
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
-    // RELEASE v0.5.312: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.313: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
+    // RELEASE v0.5.313: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
     // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
     // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
     // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
@@ -5297,6 +5298,17 @@ HRN_QUESTION_REPAIR;
         $explicit_unheard_disagreement = preg_match('/\\b(?:unheard|not heard|ignored|dismissed)\\b/i', $message_lower)
             && preg_match('/\\b(?:disagree|disagreement|argument|conflict)\\b/i', $message_lower);
         $fallbacks = array();
+        // Preserve a useful next question when the visitor names both relational
+        // warmth and concealment. This is a perspective question about the stated
+        // tension, not advice to confront, disclose, or change anything.
+        $warmth_without_honesty = preg_match('/\\b(?:friendship|relationship|connection)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:warm|close|connected|intact|good)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:pretend(?:ing)?|act(?:ing)? as if|everything is fine|nothing is wrong|keep up appearances)\\b/i', $visitor_lower);
+        if ($warmth_without_honesty) {
+            $relationship_noun = preg_match('/\\bfriendship\\b/i', $visitor_lower) ? 'friendship' : 'relationship';
+            $fallbacks[] = 'What does keeping the ' . $relationship_noun . ' warm mean when something feels unspoken?';
+        }
+
         // When the visitor explicitly describes a recurring conflict, recover with
         // a question about the observable sequence before it repeats. The noun is
         // taken from the visitor's own message, so the fallback stays concrete and
