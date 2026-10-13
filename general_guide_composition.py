@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.9"
+CONTRACT_VERSION = "v1.10"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -107,6 +107,8 @@ Use a concrete-example decision rule before composing: ask whether a reader coul
 Let the nature and complexity of the question determine the length. A simple question can receive a short answer; a layered question may deserve several purposeful paragraphs, distinctions, and examples. Do not impose a fixed word count or shorten a complete explanation just for brevity. Stop when the visitor has the understanding they came for, rather than padding the answer.
 
 Use a natural, conversational voice: explain as a thoughtful, knowledgeable person would to another person. Favor familiar words and concrete details over abstract phrases when both express the idea accurately. Conversational does not mean shallow, overly casual, or simplistic. Preserve nuance without making the reader work unnecessarily hard.
+
+For reflective questions about how to understand, interpret, or respond to a difficult situation, do not default to a numbered sequence of instructions. Develop the thought conversationally: offer one useful distinction (for example, what is known versus what is inferred), explain why it helps, and give at most one small, optional foothold the visitor can use. Avoid stacking imperatives such as “First… Second… Third…”, rhetorical checklists, and multiple questions in one paragraph. Do not turn reflection into a protocol or imply that a person must consider every angle before acting. Use explicit steps or a Markdown list only when the visitor asks for steps, a checklist, or a practical procedure, or when several independent actions genuinely need to be followed separately. The goal is to widen understanding while preserving the visitor's judgment and freedom to decide what fits.
 
 If the question contains a "why now", "why does this matter", "what does this mean", or similar second part, answer that second part rather than silently answering only the first.
 
