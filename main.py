@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.183 — use earned resource fit in HRN return
+# USE PRODUCTION VERSION: v489.184 — use earned resource fit in HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.183"
-DEPLOYMENT_FINGERPRINT = "USE-v489.183-earned-resource-fit-return"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.183-earned-resource-fit-return"
+APP_VERSION = "v489.184"
+DEPLOYMENT_FINGERPRINT = "USE-v489.184-archive-orientation-entry-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.184-archive-orientation-entry-routing"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.183":
+if str(APP_VERSION) != "v489.184":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2389,7 +2389,10 @@ def _is_navigator_orientation_request(query):
         r"(?:start|begin)\b"
         r"|\b(?:new\s+to|new\s+here|new\s+around)\b"
         r"|\b(?:how\s+do\s+i|where\s+do\s+i)\s+(?:start|begin|"
-        r"get\s+started|go\s+from\s+here)\b",
+        r"get\s+started|go\s+from\s+here)\b"
+        # Explicit whole-Archive pathway requests are orientation, not topic Q&A.
+        r"|\b(?:find|follow|choose|discover)\s+(?:a\s+)?path\s+(?:through|into|around)\b"
+        r"|\bwhat\b.{0,60}\b(?:explore|follow|read|look\s+at)\b.{0,40}\b(?:next|first|here)\b",
         q,
         re.I,
     )

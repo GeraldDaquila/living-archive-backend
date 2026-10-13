@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.183"
-    assert report["fingerprint"] == "USE-v489.183-earned-resource-fit-return"
+    assert report["version"] == "v489.184"
+    assert report["fingerprint"] == "USE-v489.184-archive-orientation-entry-routing"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -319,3 +319,19 @@ def test_relational_return_rejects_cognitive_dissonance_for_specific_repeated_hu
     assert not main._relational_return_direct_topic_fit(query, broad_cognitive_dissonance)
     assert not main._relational_return_earned_focus_fit(query, broad_cognitive_dissonance)
     assert main._relational_return_direct_topic_fit(query, relevant_repair_resource)
+
+
+
+def test_explicit_archive_path_request_routes_to_native_navigator():
+    query = "I need to find a path through the Archive about grief and meaning."
+    assert main._is_navigator_orientation_request(query) is True
+
+
+def test_explanatory_archive_topic_question_stays_with_general_guide():
+    query = "What is stewardship and why does it matter now more than ever?"
+    assert main._is_navigator_orientation_request(query) is False
+
+
+def test_explore_next_archive_question_routes_to_native_navigator():
+    query = "What should I explore next in the Living Archive?"
+    assert main._is_navigator_orientation_request(query) is True
