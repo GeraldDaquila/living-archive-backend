@@ -813,5 +813,5 @@ def test_provider_timeout_circuit_is_isolated_by_operation():
         "last_operation": "hrn_perception",
     })
 
-    assert provider_bank._blocked(state, operation="hrn_relational") is False
-    assert provider_bank._blocked(state, operation="hrn_perception") is True
+    assert provider_bank._blocked_for_operation(state, "hrn_relational") is False
+    assert provider_bank._blocked_for_operation(state, "hrn_perception") is True
