@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.321", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.321';", SOURCE)
+        self.assertIn("Version: 0.5.322", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.322';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -70,6 +70,9 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         method = SOURCE[start:end]
         self.assertIn("$closure_message", method)
         self.assertIn("$tone_displacement_closure", method)
+        self.assertIn("'round_synthesis_history'", method)
+        self.assertIn("'fractal_records'", method)
+        self.assertIn("$closure_evidence_parts", method)
         self.assertIn("You said that when you defend your tone, the original hurt gets set aside", method)
         self.assertIn("stated without adding an explanation", method)
 
