@@ -4862,6 +4862,8 @@ HRN_QUESTION_REPAIR;
         }
         $families = array(
             'being_heard' => array('unheard','heard','hear','listening','listen','listened','dismissed','ignored','voice'),
+            'blame_assignment' => array('blame','blaming','fault','accuse','accusation'),
+            'mutual_understanding' => array('understand','understanding','communicate','communication','hear','heard','listen','listening'),
             'disagreement' => array('disagree','disagreement','disagreements','conflict','conflicts','argument','arguments','argue','arguing'),
             'boundaries' => array('boundary','boundaries','limit','limits','distance','space'),
             'grief_loss' => array('grief','grieving','loss','lost','mourning','bereavement','died','death'),
