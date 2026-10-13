@@ -314,6 +314,7 @@ $thirdData = $thirdResponse instanceof WP_REST_Response ? $thirdResponse->get_da
 $assert($thirdStatus === 200 && !empty($thirdData['ok']), 'third ordinary round recovers from provider exhaustion using current Observer evidence; got HTTP '.$thirdStatus.' '.wp_json_encode($thirdData));
 $assert(stripos((string)($thirdData['response'] ?? ''),'blame') !== false && stripos((string)($thirdData['response'] ?? ''),'understanding') !== false, 'third-round recovery uses current-turn Observer contrast rather than prior-turn summary');
 $assert(trim((string)($thirdData['question'] ?? '')) !== '', 'third-round recovery supplies a grounded continuation question');
+$assert(stripos((string)$thirdData['question'],'understood') !== false || stripos((string)$thirdData['question'],'blaming') !== false, 'third-round question opens the blame/understanding perspective');
 $assert(empty($thirdData['rest']) && empty($thirdData['use_resource']), 'third-round recovery keeps ordinary conversation open');
 
 
