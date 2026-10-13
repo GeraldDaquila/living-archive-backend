@@ -69,6 +69,42 @@ def test_earlier_hurt_heard_as_blame_does_not_invent_listening_problem():
     assert not main._relational_return_direct_topic_fit(query, self_sacrifice_article)
 
 
+
+def test_recurring_argument_return_rejects_broad_governance_glyph_decoy():
+    query = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt. The discussion keeps "
+        "moving away from what was said and toward my tone."
+    )
+    broad_glyph = {
+        "title": "Glyph of Resonant Governance",
+        "text": (
+            "In relationships, conflict can be held through communication. "
+            "Governance invites shared responsibility and awareness."
+        ),
+        "url": "https://geralddaquila.com/glyph-of-resonant-governance/",
+    }
+    assert not main._relational_return_earned_focus_fit(query, broad_glyph)
+    assert not main._relational_return_direct_topic_fit(query, broad_glyph)
+
+
+def test_recurring_argument_return_keeps_direct_repair_resource():
+    query = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt. The discussion keeps "
+        "moving away from what was said and toward my tone."
+    )
+    repair_resource = {
+        "title": "Repair Before Withdrawal",
+        "text": (
+            "When a conflict returns, repair can restore conversation after hurt. "
+            "Relationships need listening and acknowledgement."
+        ),
+        "url": "https://geralddaquila.com/2026/02/04/repair-before-withdrawal/",
+    }
+    assert main._relational_return_direct_topic_fit(query, repair_resource)
+
+
 def test_explicit_feeling_unheard_still_qualifies_for_listening_resource():
     query = "I feel unheard when my partner goes silent after an argument. I want to know whether they are listening."
     listening_article = {
