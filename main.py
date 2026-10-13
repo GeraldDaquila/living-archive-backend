@@ -1529,12 +1529,12 @@ def _relational_return_earned_focus_fit(query, doc):
     # Require a directly named conflict/repair doorway for this narrow case;
     # otherwise only the direct-topic gate may admit a resource.
     recurring_argument_focus = bool(re.search(
-        r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|
         r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
         q,
     ))
     direct_conflict_title = bool(re.search(
-        r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
         title,
     ))
     if recurring_argument_focus and not direct_conflict_title:
