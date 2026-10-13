@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.181 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.182 — relational return topic specificity
 import asyncio
 import hashlib
 from html import unescape
