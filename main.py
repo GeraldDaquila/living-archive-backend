@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.192 — require distinctive-topic evidence for recommendations
+# USE PRODUCTION VERSION: v489.193 — reject HTML-shaped visitor prose
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.192"
-DEPLOYMENT_FINGERPRINT = "USE-v489.192-distinctive-topic-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.192-distinctive-topic-evidence"
+APP_VERSION = "v489.193"
+DEPLOYMENT_FINGERPRINT = "USE-v489.193-outward-response-integrity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.193-outward-response-integrity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
