@@ -5497,6 +5497,10 @@ HRN_QUESTION_REPAIR;
         // conversation and must not be mistaken for prescription.
         $directive_patterns = array(
             '/\\b(?:you)\\s+(?:should|must|need to|have to|ought to|are supposed to)\\b/i',
+            // HRN is perspective-oriented, not solution-oriented. Block soft action
+            // frames that steer the visitor toward managing or directing the outcome.
+            '/\\b(?:makes it possible|allows|enables|creates room|opens a space|invites a new rhythm)\\b/i',
+            '/\\b(?:decide whether you want to|guide (?:that|the|this) (?:change|shift|outcome)|watch it happen)\\b/i',
             '/\\b(?:you)\\s+(?:might|could|can|may)\\s+try\\b/i',
             '/\\b(?:you)\\s+(?:need|have)\\s+to\\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\\b/i',
             '/\\b(?:you)\\s+(?:try|consider|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\\b/i',
