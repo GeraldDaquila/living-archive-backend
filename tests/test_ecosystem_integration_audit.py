@@ -279,3 +279,16 @@ def test_basic_inquiry_rejects_copied_case_study_source_dump():
         "overwhelmed by work and family demands. By adopting mindfulness meditation and the Eisenhower Matrix…”"
     )
     assert main._basic_inquiry_has_source_dump(response)
+
+
+
+def test_overwhelmed_support_recovery_does_not_reuse_archive_excerpt():
+    query = "I feel overwhelmed and don't know who I can talk to about what I'm going through."
+    recovery = main._basic_inquiry_round1_deterministic_response(
+        query,
+        {},
+        {"context_blocks": ""},
+    )
+    response = recovery["response"]
+    assert "you don't have to find the perfect person" in response
+    assert not main._basic_inquiry_has_source_dump(response)
