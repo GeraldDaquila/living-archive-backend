@@ -2050,6 +2050,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
+    if operation == "hrn_relational" and len(pool) > 1:
+        # Live E2E confirmed NVIDIA Nemotron 3.5 Lightning can complete Guide
+        # composition within the HRN turn budget. Promote that known-live lane
+        # immediately after the first candidate so a cluster of unrelated free-tier
+        # quota failures cannot push it beyond the bounded fallback window.
+        preferred = next((
+            item for item in pool
+            if str(item.get("provider") or "") == "nvidia"
+            and str(item.get("model") or "") == "nvidia/nemotron-3.5-lightning-30b-a3b"
+        ), None)
+        if preferred is not None and pool[0] is not preferred:
+            pool = [pool[0], preferred] + [
+                item for item in pool if item is not pool[0] and item is not preferred
+            ]
+            print(
+                "USE provider bank HRN candidate priority: "
+                "promoted recently successful NVIDIA Nemotron 3.5 Lightning "
+                "inside the bounded relational fallback window."
+            )
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
     configured_attempts = max(1, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5)))
