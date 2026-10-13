@@ -96,7 +96,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("'fractal_records'", method)
         self.assertIn("$closure_evidence_parts", method)
         self.assertIn("You described trying to explain the words that hurt", method)
-        self.assertIn("stated without adding an explanation", method)
+        self.assertIn("It can end here without deciding what the other person intended.", method)
 
 
     def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
