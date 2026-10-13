@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.202 — recover relational doorways across bounded conflict search variants
+# USE PRODUCTION VERSION: v489.203 — rerun bounded doorway recovery after final-title rejection
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.202"
-DEPLOYMENT_FINGERPRINT = "USE-v489.202-relational-multi-query-recovery-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.202-relational-multi-query-recovery-v1"
+APP_VERSION = "v489.203"
+DEPLOYMENT_FINGERPRINT = "USE-v489.203-title-guard-before-relational-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.203-title-guard-before-relational-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.202":
+if str(APP_VERSION) != "v489.203":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1909,6 +1909,29 @@ async def _v48755_relational_return(request: Request):
             primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
             if primary:
                 outward = fallback_outward
+
+        # v489.203: apply the direct-conflict title boundary BEFORE deciding
+        # whether recovery is needed. Previously, a broad vector candidate could
+        # suppress recovery, then be rejected by the final guard below, leaving no
+        # doorway even when the Archive had a directly relevant repair resource.
+        _presearch_recurring_argument_focus = bool(re.search(
+            r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
+            _normalize_query(original_question),
+        ))
+        _presearch_title_is_direct_conflict = bool(
+            primary and re.search(
+                r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+                str(primary.get("title") or "").casefold(),
+            )
+        )
+        if primary and _presearch_recurring_argument_focus and not _presearch_title_is_direct_conflict:
+            print(
+                "The Guide v489.203 rerunning recovery after broad doorway rejection: "
+                f"{primary.get('title')}"
+            )
+            primary = None
+            outward = []
 
         if not primary:
             # Vector retrieval can return no sufficiently direct doorway even
