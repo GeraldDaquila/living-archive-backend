@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.315
+ * Version: 0.5.316
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.315';
+    const VERSION = '0.5.316';
+    // RELEASE v0.5.316: recover a grounded next question when discussion shifts from the hurtful event to the visitor's tone; frozen writers unchanged.
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
     // RELEASE v0.5.315: compose bounded recovery from current Observer contrast when all writers fail; frozen writers unchanged.
     // RELEASE v0.5.315: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
@@ -5351,6 +5352,15 @@ HRN_QUESTION_REPAIR;
         $explicit_blame_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
         $fallbacks = array();
+        // When the visitor names a concrete hurtful event but the exchange keeps
+        // shifting toward their tone, recover a question about that observable
+        // change in focus. This is a new plane from explaining the hurt again and
+        // does not assume the other person's motive or gender.
+        $tone_displacement = preg_match('/\\b(?:tone|my tone|how I said it|way I said it|my voice)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:what was said|what happened|hurt|embarrass(?:ed|ment)|specific incident|incident)\\b/i', $visitor_lower);
+        if ($tone_displacement) {
+            $fallbacks[] = 'What changes in the conversation when your tone becomes the focus instead of what was said?';
+        }
         // Preserve a useful next question when the visitor names both relational
         // warmth and concealment. This is a perspective question about the stated
         // tension, not advice to confront, disclose, or change anything.
@@ -5364,7 +5374,7 @@ HRN_QUESTION_REPAIR;
         $blame_without_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
         if ($blame_without_understanding) {
-            $fallbacks[] = 'What do you want her to understand that might otherwise sound like blame?';
+            $fallbacks[] = 'What do you want them to understand that might otherwise sound like blame?';
         }
 
         // When the visitor explicitly describes a recurring conflict, recover with
