@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.318", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.318';", SOURCE)
+        self.assertIn("Version: 0.5.319", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.319';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -54,7 +54,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         end = SOURCE.index("$warmth_without_honesty = preg_match", start + 40)
         method = SOURCE[start:end]
         self.assertIn("$tone_focus_question_already_asked = false", method)
-        self.assertIn("What do you notice about whether your hurt can be heard when the words themselves are no longer being discussed?", method)
+        self.assertIn("What changes in your ability to explain the hurt when the conversation turns to defending your tone?", method)
 
     def test_tone_displacement_is_a_structured_recovery_relevance_family(self):
         start = SOURCE.index("private function structured_recovery_candidate_is_relevant(")
