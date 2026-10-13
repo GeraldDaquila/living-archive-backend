@@ -74,7 +74,10 @@ def test_recurring_argument_return_rejects_broad_governance_glyph_decoy():
     query = (
         "I keep trying to explain why the same argument hurts me, but we end up "
         "arguing about whether I should still feel hurt. The discussion keeps "
-        "moving away from what was said and toward my tone."
+        "moving away from what was said and toward my tone. From why do I feel "
+        "this to why is my feeling being treated as a claim to be verified? "
+        "Relational communication during disagreement: listening, acknowledgment, "
+        "being heard, and receiving another person's point before responding."
     )
     broad_glyph = {
         "title": "Glyph of Resonant Governance",
