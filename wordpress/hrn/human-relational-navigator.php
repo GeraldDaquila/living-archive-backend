@@ -2,17 +2,18 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.314
+ * Version: 0.5.315
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.314';
+    const VERSION = '0.5.315';
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
-    // RELEASE v0.5.314: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
-    // RELEASE v0.5.314: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
-    // RELEASE v0.5.314: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.315: compose bounded recovery from current Observer contrast when all writers fail; frozen writers unchanged.
+    // RELEASE v0.5.315: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
+    // RELEASE v0.5.315: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
+    // RELEASE v0.5.315: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
     // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
     // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
     // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
@@ -4890,7 +4891,32 @@ HRN_QUESTION_REPAIR;
     private function recover_structured_state_composition($state, $message, $conversation, $resources, $ledger) {
         $state = is_array($state) ? $state : array();
         $ledger = is_array($ledger) ? $ledger : array();
+        // If every prose provider fails, preserve the current turn's validated
+        // Observer contrast rather than falling back only to prior-turn summaries.
+        // Observer fields are navigation evidence, not visitor-facing copy by
+        // themselves; join distinct propositions and pass them through the same
+        // relevance, humanity, response-shape, and question gates as other recovery.
+        $observer_parts = array();
+        $observer_seen = array();
+        foreach (array(
+            $state['observer_contrast'] ?? '',
+            $state['observer_so_what'] ?? '',
+            $state['observer_delta'] ?? '',
+        ) as $observer_raw) {
+            $observer_part = $this->normalize_paragraphs(
+                $this->structured_state_text_value($observer_raw)
+            );
+            $observer_key = strtolower(trim($observer_part));
+            if ($observer_key === '' || isset($observer_seen[$observer_key])) continue;
+            $observer_seen[$observer_key] = true;
+            if (!preg_match('/[.!?]$/u', $observer_part)) $observer_part .= '.';
+            $observer_parts[] = $observer_part;
+        }
+        $observer_candidate = count($observer_parts) >= 2
+            ? implode(' ', array_slice($observer_parts, 0, 3))
+            : '';
         $candidates = array(
+            $observer_candidate,
             $this->structured_state_text_value($state['body_of_thought'] ?? ''),
             $this->structured_state_text_value($state['archive_grounded_understanding'] ?? ''),
             $this->structured_state_text_value($state['relational_understanding'] ?? ''),
