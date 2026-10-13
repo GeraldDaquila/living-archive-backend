@@ -2,15 +2,15 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.311
+ * Version: 0.5.312
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.311';
+    const VERSION = '0.5.312';
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
-    // RELEASE v0.5.311: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.312: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
     // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
     // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
     // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
@@ -5037,8 +5037,11 @@ HRN_QUESTION_REPAIR;
             $prior_questions = is_array($state['asked_questions'] ?? null) ? $state['asked_questions'] : array();
             $prior_question = trim((string)($state['last_question'] ?? ''));
             if (!$unit_complete && $rest && $question === '' && $prior_question === '' && empty($prior_questions)) {
-                $this->last_composition_failure=array('reason'=>'premature_rest_on_opening','response'=>$response,'question'=>$question);
-                return array();
+                // An opening turn has no prior evidence to land. Preserve the useful
+                // response and force ordinary-turn continuation; the downstream
+                // provider-independent question boundary will complete the missing
+                // question after response normalization.
+                $rest = false;
             }
             $use_resource = !empty($decoded['use_resource']);
             $resource_intro = trim((string)($decoded['resource_intro'] ?? ''));
