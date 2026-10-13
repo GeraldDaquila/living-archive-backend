@@ -50,6 +50,18 @@ def test_topic_fit_does_not_overconstrain_single_anchor_queries():
     assert main._topic_specific_candidate_fit(query, candidate)
 
 
+def test_outward_response_boundary_rejects_complete_and_truncated_html():
+    assert main._basic_inquiry_contains_html_markup(
+        '<a href="https://geralddaquila.com/example/">Open</a>'
+    )
+    assert main._basic_inquiry_contains_html_markup(
+        '<a href="https://geralddaquila.com/2025/05/21/political-dynasties”'
+    )
+    assert not main._basic_inquiry_contains_html_markup(
+        "Stewardship means caring for what has been entrusted to us."
+    )
+
+
 def test_political_dynasties_question_rejects_general_institutions_decoy():
     decoy = {
         "title": "Designing Human-Scale Institutions for the 21st Century",
