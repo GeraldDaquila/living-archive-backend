@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.181"
-    assert report["fingerprint"] == "USE-v489.181-perception-budget-recovery"
+    assert report["version"] == "v489.182"
+    assert report["fingerprint"] == "USE-v489.182-relational-return-topic-specificity"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -292,3 +292,30 @@ def test_overwhelmed_support_recovery_does_not_reuse_archive_excerpt():
     response = recovery["response"]
     assert "you don't have to find the perfect person" in response
     assert not main._basic_inquiry_has_source_dump(response)
+
+
+
+def test_relational_return_rejects_cognitive_dissonance_for_specific_repeated_hurt_argument():
+    query = (
+        "My partner and I keep having the same argument. When I raise a specific incident, "
+        "they say I never let anything go, and we end up arguing about whether I may feel hurt."
+    )
+    broad_cognitive_dissonance = {
+        "title": "Cognitive Dissonance: The Tension That Shapes Our Minds and Societies",
+        "text": (
+            "Cognitive dissonance describes discomfort arising from conflicting beliefs, "
+            "attitudes, or behaviors. It explores decision-making, change, and social dynamics."
+        ),
+    }
+    relevant_repair_resource = {
+        "title": "Repair Before Withdrawal",
+        "text": (
+            "When partners argue about a hurt, the original incident can be displaced by blame. "
+            "Relational repair begins when both people can return to the disagreement and hear "
+            "what hurt without making the discussion about whether it should be raised."
+        ),
+    }
+
+    assert not main._relational_return_direct_topic_fit(query, broad_cognitive_dissonance)
+    assert not main._relational_return_earned_focus_fit(query, broad_cognitive_dissonance)
+    assert main._relational_return_direct_topic_fit(query, relevant_repair_resource)

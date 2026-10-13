@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.181 — expanded bounded HRN provider fallback
+# USE PRODUCTION VERSION: v489.182 — relational return topic specificity
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.181"
-DEPLOYMENT_FINGERPRINT = "USE-v489.181-perception-budget-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.181-perception-budget-recovery"
+APP_VERSION = "v489.182"
+DEPLOYMENT_FINGERPRINT = "USE-v489.182-relational-return-topic-specificity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.182-relational-return-topic-specificity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.181":
+if str(APP_VERSION) != "v489.182":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1357,6 +1357,46 @@ def _relational_return_topic_anchor(original_question, underlying_need, perspect
     return " ".join(additions)
 
 
+def _relational_return_conflict_topic_fit(query, doc):
+    """Require source evidence for the visitor's concrete recurring-conflict focus."""
+    if not isinstance(doc, dict):
+        return False
+    q = _normalize_query(query)
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    if not recurring_argument_focus:
+        return True
+
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if direct_title:
+        return True
+
+    # Require a sentence linking a concrete conflict action to its relational
+    # impact. Broad concepts such as cognitive dissonance, communication, or
+    # emotional growth cannot qualify through scattered vocabulary alone.
+    core_terms = {
+        "argument", "argue", "disagreement", "repair", "blame",
+        "reopen", "reopening", "incident",
+    }
+    impact_terms = {
+        "hurt", "listening", "heard", "hearing", "partner",
+        "relationship", "conflict", "argument", "disagreement",
+    }
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body):
+        tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        if core_terms & tokens and impact_terms & tokens:
+            return True
+    return False
+
+
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
     if not isinstance(doc, dict):
@@ -1365,6 +1405,8 @@ def _relational_return_earned_focus_fit(query, doc):
     title = str(doc.get("title") or "").casefold()
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body))
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
     relationship_evidence = bool(re.search(
         r"\b(?:relationship|relationships|relational|friendship|friends|connection|"
         r"love|care|communication|between people)\b", material
@@ -1414,29 +1456,9 @@ def _relational_return_direct_topic_fit(query, doc):
     title = str(doc.get("title") or "").casefold()
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body_text)).casefold()
-    recurring_argument_focus = bool(re.search(
-        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
-        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
-        q,
-    ))
-    if recurring_argument_focus:
-        # Broad life/spirituality essays must not qualify through scattered
-        # emotional vocabulary alone. Require conflict evidence in the title
-        # or at least two conflict-specific cues in one source sentence.
-        direct_conflict_title = bool(re.search(
-            r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
-            title,
-        ))
-        conflict_terms = {
-            "argument", "argue", "conflict", "disagreement", "repair",
-            "blame", "hurt", "listening", "reopen", "reopening", "incident",
-        }
-        same_sentence_conflict = any(
-            len(conflict_terms & set(re.findall(r"[a-z0-9]+", sentence))) >= 2
-            for sentence in re.split(r"(?<=[.!?])\s+|\n+", body_text)
-        )
-        if not (direct_conflict_title or same_sentence_conflict):
-            return False
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
     projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
     if projection_query:
         # A canonical title explicitly about projection is direct topical evidence
