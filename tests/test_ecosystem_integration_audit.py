@@ -372,8 +372,8 @@ def test_relational_return_uses_bounded_wp_search_after_focused_retrieval_misses
         "title": "Four Horsemen of Relationships — Early Warning & Repair",
         "url": "https://geralddaquila.com/2025/10/08/t4-codex-four-horsemen-of-relationships-early-warning-repair/",
         "text": (
-            "In relationships, criticism and defensiveness can escalate a disagreement. "
-            "Repair begins by returning to the conflict and hearing what each person is saying."
+            "Relational conflict can include criticism, defensiveness, and recurring disagreement. "
+            "The Four Horsemen framework describes repair in relationships before disconnection deepens."
         ),
     }
     monkeypatch.setattr(
