@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.205 — retry conflict-specific canonical retrieval after rejecting a broad doorway
+# USE PRODUCTION VERSION: v489.206 — restore natural explanatory prose at the visitor boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.205"
-DEPLOYMENT_FINGERPRINT = "USE-v489.205-relational-return-conflict-retry-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.205-relational-return-conflict-retry-v1"
+APP_VERSION = "v489.206"
+DEPLOYMENT_FINGERPRINT = "USE-v489.206-natural-prose-label-boundary-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.206-natural-prose-label-boundary-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.205":
+if str(APP_VERSION) != "v489.206":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3475,6 +3475,15 @@ def _sanitize_basic_inquiry_response(text):
     raw = re.sub(r"(?is)<[^>]{1,1000}>", "", raw)
     raw = unescape(raw)
 
+    # v489.206: prevent formulaic editorial labels from leaking into ordinary
+    # explanatory answers. These are not semantic headings; they are prompt-shaped
+    # lead-ins that make a natural answer read like a templated mini-essay.
+    raw = re.sub(
+        r"(?im)(?<!\S)(?:why it matters now|practical implication)\s*:\s*",
+        "",
+        raw,
+    )
+
     internal_bracket_patterns = (
         r"\s*\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
@@ -3552,6 +3561,17 @@ _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
 )
 if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archive.":
     raise RuntimeError("USE v488.91 visitor-language invariant failed: final response boundary is not sealed.")
+
+# v489.206 regression: ordinary explanatory prose must not expose formulaic section labels.
+_BASIC_INQUIRY_NATURAL_PROSE_PROBE = _sanitize_basic_inquiry_response(
+    "Stewardship means caring for what is entrusted to us.\n\n"
+    "Why it matters now: carelessness passes costs to others.\n\n"
+    "Practical implication: consider who will live with the consequences."
+)
+if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_INQUIRY_NATURAL_PROSE_PROBE):
+    raise RuntimeError("USE v489.206 invariant failed: formulaic explanatory labels escaped the visitor boundary.")
+if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE or "consider who will live with the consequences" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE:
+    raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
 
 
 def _basic_inquiry_has_source_dump(response):
