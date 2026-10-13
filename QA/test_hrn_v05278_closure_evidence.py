@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.316", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.316';", SOURCE)
+        self.assertIn("Version: 0.5.317", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.317';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -45,6 +45,17 @@ class HRNClosureEvidenceContract(unittest.TestCase):
     def test_blame_understanding_contrast_has_a_grounded_question_fallback(self):
         self.assertIn("$blame_without_understanding = preg_match", SOURCE)
         self.assertIn("What do you want them to understand that might otherwise sound like blame?", SOURCE)
+
+
+
+    def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
+        start = SOURCE.index("private function recover_structured_state_composition(")
+        end = SOURCE.index("private function normalize_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("$tone_displacement_candidate = ''", method)
+        self.assertIn("$tone_displacement_message = strtolower((string)$message)", method)
+        self.assertIn("The discussion keeps moving away from what was said and toward your tone.", method)
+        self.assertIn("$tone_displacement_candidate,", method)
 
 
     def test_tone_displacement_recovers_a_new_grounded_question_plane(self):
