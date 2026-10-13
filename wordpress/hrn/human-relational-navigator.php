@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.319
+ * Version: 0.5.320
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.319';
+    const VERSION = '0.5.320';
+    // RELEASE v0.5.320: preserve an evidence-grounded terminal landing for explicit tone-displacement journeys when all closure providers fail; frozen writers unchanged.
     // RELEASE v0.5.319: keep the rotated tone-displacement question inside the perspective-form grounding contract; frozen writers unchanged.
     // RELEASE v0.5.318: rotate tone-displacement recovery across distinct question planes and strengthen its grounded relevance family; frozen writers unchanged.
     // RELEASE v0.5.317: preserve a bounded visitor-grounded turn when all providers fail during explicit tone-displacement; frozen writers unchanged.
@@ -3849,6 +3850,20 @@ HRN_INTERPRET;
         // sequence instead of substituting the Observer's abstract movement label.
         // The caller still applies the ordinary humanity, closure-shape, and
         // transcript-evidence gates before this can reach the visitor.
+        // Explicit closure must remain available when providers are exhausted.
+        // Prefer the visitor's actual tone/impact sequence over an abstract
+        // Observer label, then let the caller enforce the same humanity,
+        // boundedness, and earned-evidence gates as every other closure path.
+        $closure_message = trim(wp_strip_all_tags((string)($state['closure_message'] ?? '')));
+        $closure_material = strtolower($closure_message . ' ' . (string)($state['conversation'] ?? ''));
+        $tone_displacement_closure = preg_match('/\b(?:tone|defending my tone|my tone)\b/i', $closure_material)
+            && preg_match('/\b(?:hurt|what was said|words that hurt|what happened)\b/i', $closure_material)
+            && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
+        if ($tone_displacement_closure) {
+            return 'You described how the original hurt can get set aside when the exchange turns to defending your tone. The conversation shifts from what was said to whether you explained your hurt correctly.'
+                . "\n\n"
+                . 'That leaves two distinct things in view: the impact of the words and the difficulty of keeping that impact in the conversation. This names the sequence you described without deciding what the other person intended.';
+        }
         $visitor_turn = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
         $specific_incident = preg_match('/\b(?:specific incident|incident)\b/i', $visitor_turn);
         $dismissal_pattern = preg_match('/\b(?:never let anything go|reopening the past|reopen(?:ing)? the past)\b/i', $visitor_turn);

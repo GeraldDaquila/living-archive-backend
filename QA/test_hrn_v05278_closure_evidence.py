@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.319", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.319';", SOURCE)
+        self.assertIn("Version: 0.5.320", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.320';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -61,6 +61,17 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         end = SOURCE.index("private function recover_structured_state_composition(", start)
         method = SOURCE[start:end]
         self.assertIn("'tone_displacement' => array('tone','said','hurt','embarrassed','defend','discussion')", method)
+
+
+
+    def test_provider_exhausted_tone_displacement_closure_uses_current_transcript(self):
+        start = SOURCE.index("private function provider_independent_terminal_closure(")
+        end = SOURCE.index("private function ", start + 40)
+        method = SOURCE[start:end]
+        self.assertIn("$closure_message", method)
+        self.assertIn("$tone_displacement_closure", method)
+        self.assertIn("You described how the original hurt can get set aside", method)
+        self.assertIn("without deciding what the other person intended", method)
 
 
     def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
