@@ -5086,7 +5086,7 @@ HRN_QUESTION_REPAIR;
             && preg_match('/\b(?:explain|explanation|perfectly|perfect)\b/i', $visitor_text);
 
         if ($hurt_tone_displacement) {
-            $local_response = 'You try to explain the words that hurt you, and then the conversation shifts to how you said them. The words themselves can drop out of the discussion while you explain your tone, so the original hurt is no longer what the conversation is about.';
+            $local_response = 'You explain the words that hurt you, and then the conversation shifts to how you said them. The discussion stays on how you raised the issue, while the original words that hurt you are no longer being discussed.';
             $local_question = 'What part of the original hurt is hardest to keep in view once the conversation turns to how you said it?';
         } elseif ($hurt_heard_without_perfect_explanation) {
             $local_response = 'You are wondering whether your hurt can be heard if you cannot explain it perfectly. The question has shifted from finding the right words to whether the hurt can be taken seriously when the words are imperfect.';
