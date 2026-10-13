@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.204 — normalize Workers AI text transport contract
+# USE PRODUCTION VERSION: v489.205 — retry conflict-specific canonical retrieval after rejecting a broad doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.204"
-DEPLOYMENT_FINGERPRINT = "USE-v489.204-workers-ai-text-transport-contract-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.204-workers-ai-text-transport-contract-v1"
+APP_VERSION = "v489.205"
+DEPLOYMENT_FINGERPRINT = "USE-v489.205-relational-return-conflict-retry-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.205-relational-return-conflict-retry-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.204":
+if str(APP_VERSION) != "v489.205":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1762,6 +1762,29 @@ def _relational_return_search_recovery(original_question, direct_topic_query, pr
     return primary, (outward if primary else [])
 
 
+def _relational_return_retry_after_broad_candidate(primary, outward, original_question, direct_topic_query, profile):
+    """Retry the bounded conflict search only after a broad candidate was rejected."""
+    if primary is not None:
+        return primary, outward
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        _normalize_query(original_question),
+    ))
+    if not conflict_focus:
+        return None, []
+    candidate, candidates = _relational_return_search_recovery(
+        original_question, direct_topic_query, profile
+    )
+    if not candidate:
+        return None, []
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        str(candidate.get("title") or "").casefold(),
+    ))
+    return (candidate, candidates) if direct_title else (None, [])
+
+
 async def _v48755_relational_return(request: Request):
     try:
         body = await request.json()
@@ -1951,6 +1974,16 @@ async def _v48755_relational_return(request: Request):
             )
             primary = None
             outward = []
+
+        # Structural retry: a broad vector candidate can survive the initial
+        # retrieval path, then be correctly rejected by the last-mile conflict
+        # title guard. That rejection must not end retrieval before the bounded
+        # conflict-specific WordPress search has had its turn. Reuse the same
+        # direct-topic and earned-focus gates; never relax the relevance boundary.
+        if original_recurring_argument_focus and primary is None:
+            primary, outward = _relational_return_retry_after_broad_candidate(
+                primary, outward, original_question, direct_topic_query, profile
+            )
 
         print(
             "The Guide v487.66 seamless HRN gift return: "
