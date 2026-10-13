@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.182 — relational return topic specificity
+# USE PRODUCTION VERSION: v489.183 — use earned resource fit in HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.182"
-DEPLOYMENT_FINGERPRINT = "USE-v489.182-relational-return-topic-specificity"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.182-relational-return-topic-specificity"
+APP_VERSION = "v489.183"
+DEPLOYMENT_FINGERPRINT = "USE-v489.183-earned-resource-fit-return"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.183-earned-resource-fit-return"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.182":
+if str(APP_VERSION) != "v489.183":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1596,6 +1596,10 @@ async def _v48755_relational_return(request: Request):
         topic_anchor += " " + _relational_return_topic_anchor(
             original_question, underlying_need, perspective_delta
         )
+        # Preserve the specialist's explicit resource-fit note as retrieval evidence.
+        # It was in the synthesis payload but dropped from both doorway queries.
+        if resource_fit:
+            topic_anchor += " Relational resource fit: " + str(resource_fit)
         if re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", _normalize_query(original_question)):
             topic_anchor += " Relational projection: distinguish what is observed from what is inferred in the relationship."
         # Retrieval uses the visitor's opening plus the earned need/perspective,
@@ -1606,10 +1610,11 @@ async def _v48755_relational_return(request: Request):
                 underlying_need,
                 completed_insight,
                 perspective_delta,
+                resource_fit,
             ) if value
         )[:6000]
         direct_topic_query = " ".join(
-            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight)
+            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight, resource_fit)
             if value
         )[:5000] or topic_anchor
         context_data = _original_fetch_canonical_context(doorway_query)
@@ -1647,6 +1652,7 @@ async def _v48755_relational_return(request: Request):
                     underlying_need,
                     perspective_delta,
                     completed_insight,
+                    resource_fit,
                     str(journey_ledger.get("current_terrain") or ""),
                     str(journey_ledger.get("unresolved") or ""),
                 ) if value

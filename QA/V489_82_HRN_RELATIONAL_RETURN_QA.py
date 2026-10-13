@@ -29,6 +29,8 @@ def main():
     focused = route.find('context_data = _original_fetch_canonical_context(doorway_query)')
     require(focused >= 0, "first retrieval does not use the focused relational topic query")
     require('topic_anchor = original_question' in route, "original concern is not the first query anchor")
+    require('if resource_fit:' in route and 'topic_anchor += " Relational resource fit: " + str(resource_fit)' in route, "earned resource-fit note is dropped before retrieval")
+    require("resource_fit" in route[:focused], "earned resource-fit note is missing before focused retrieval")
     require('Relational projection: distinguish what is observed from what is inferred in the relationship.' in route,
             "projection concern lacks a concise observation/inference retrieval anchor")
     require('def _relational_return_direct_topic_fit(query, doc):' in SOURCE,
@@ -54,7 +56,7 @@ def main():
     fallback_block = route[fallback:route.find("fallback_data =", fallback)]
     for required in ("underlying_need", "completed_insight", "perspective_delta", "current_terrain", "unresolved"):
         require(required in fallback_block, f"bounded fallback omits focused perspective field: {required}")
-    for forbidden in ("conversation", "thread_summary", "body_of_thought", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "resource_fit", "next_horizon"):
+    for forbidden in ("conversation", "thread_summary", "body_of_thought", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "next_horizon"):
         require(forbidden not in fallback_block, f"fallback reintroduces noisy field: {forbidden}")
     require("def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):" in SOURCE,
             "earned relational topic anchor is missing")
