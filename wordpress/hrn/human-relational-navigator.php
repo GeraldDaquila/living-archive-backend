@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.318
+ * Version: 0.5.319
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.318';
+    const VERSION = '0.5.319';
+    // RELEASE v0.5.319: keep the rotated tone-displacement question inside the perspective-form grounding contract; frozen writers unchanged.
     // RELEASE v0.5.318: rotate tone-displacement recovery across distinct question planes and strengthen its grounded relevance family; frozen writers unchanged.
     // RELEASE v0.5.317: preserve a bounded visitor-grounded turn when all providers fail during explicit tone-displacement; frozen writers unchanged.
     // RELEASE v0.5.316: recover a grounded next question when discussion shifts from the hurtful event to the visitor's tone; frozen writers unchanged.
@@ -5385,7 +5386,7 @@ HRN_QUESTION_REPAIR;
                 }
             }
             if ($tone_focus_question_already_asked) {
-                $fallbacks[] = 'What do you notice about whether your hurt can be heard when the words themselves are no longer being discussed?';
+                $fallbacks[] = 'What changes in your ability to explain the hurt when the conversation turns to defending your tone?';
             } else {
                 $fallbacks[] = 'What changes in the conversation when your tone becomes the focus instead of what was said?';
             }
