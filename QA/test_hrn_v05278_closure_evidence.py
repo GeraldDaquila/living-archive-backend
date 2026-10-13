@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.325", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.325';", SOURCE)
+        self.assertIn("Version: 0.5.326", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.326';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -95,8 +95,8 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("'round_synthesis_history'", method)
         self.assertIn("'fractal_records'", method)
         self.assertIn("$closure_evidence_parts", method)
-        self.assertIn("You said that when you defend your tone, the original hurt gets set aside", method)
-        self.assertIn("stated without adding an explanation", method)
+        self.assertIn("You described trying to explain the words that hurt", method)
+        self.assertIn("It can end here without deciding what the other person intended.", method)
 
 
     def test_provider_exhaustion_recovers_tone_displacement_from_current_visitor_material(self):
@@ -222,6 +222,16 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         self.assertIn("What feels most important about the original hurt, apart from how it was explained?", method)
         self.assertIn("What would tell you that the hurt itself had been heard, even if the explanation were imperfect?", method)
         self.assertIn("$this->normalize_composition($local_draft, $state, $message, $resources, false)", method)
+
+
+    def test_terminal_tone_closure_uses_only_the_visitor_described_sequence(self):
+        start = SOURCE.index("private function provider_independent_terminal_closure(")
+        end = SOURCE.index("private function closure_synthesis_carries_journey_evidence(", start)
+        method = SOURCE[start:end]
+        self.assertIn("the discussion turns to how those words were said", method)
+        self.assertIn("whether your hurt can be heard when you cannot explain it perfectly", method)
+        self.assertIn("It can end here without deciding what the other person intended.", method)
+        self.assertNotIn("when you defend your tone", method)
 
 
 if __name__ == "__main__":

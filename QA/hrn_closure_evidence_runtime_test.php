@@ -29,6 +29,7 @@ function extract_hrn_private_method($source, $name) {
 
 $requiredMethods = array(
     'local_grounded_closure_synthesis',
+    'provider_independent_terminal_closure',
     'closure_synthesis_carries_journey_evidence',
     'closure_synthesis_is_bounded',
     'humanity_gate',
@@ -44,6 +45,7 @@ foreach ($requiredMethods as $name) {
     $methods[] = $method;
 }
 
+if (!function_exists('wp_json_encode')) { function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); } }
 if (!function_exists('wp_strip_all_tags')) {
     function wp_strip_all_tags($value) { return strip_tags((string)$value); }
 }
@@ -129,6 +131,33 @@ $landing = invoke_hrn_private($harness, 'local_grounded_closure_synthesis', arra
 $assert(true, is_string($landing) && trim($landing) !== '', 'local closure fallback produces a landing for the reproduced visitor insight');
 $assert(true, invoke_hrn_private($harness, 'closure_synthesis_is_bounded', array($landing)), 'local closure fallback respects terminal boundedness');
 $assert(true, invoke_hrn_private($harness, 'closure_synthesis_carries_journey_evidence', array($landing, $state)), 'local closure landing preserves earned visitor evidence');
+
+
+// Reproduce the live hurt-to-tone sequence. The terminal fallback must retain
+// only the visitor's stated sequence and must pass the real closure-shape and
+// visitor-evidence gates without depending on any provider.
+$toneTurn1 = 'Usually I try to explain the words that hurt me, and then the conversation shifts to how I said them.';
+$toneTurn2 = 'I wonder whether my hurt can be heard if I cannot explain it perfectly.';
+$toneState = array(
+    'closure_message' => 'I think I understand the pattern now. Please let this conversation land.',
+    'conversation' => "Visitor: " . $toneTurn1 . "\nHRN: The conversation turns to how those words were said.\nVisitor: " . $toneTurn2 . "\nHRN: What would tell you that the hurt itself had been heard, even if the explanation were imperfect?",
+    'visitor_turn_evidence' => array($toneTurn1, $toneTurn2),
+    'observer_contrast' => 'The original hurt and the way it was explained are distinct.',
+    'observer_intention' => $toneTurn2,
+    'perspective_delta' => 'The words that hurt and the way they were said have become separate focuses.',
+    'completed_insight' => 'The visitor wonders whether hurt can be heard without a perfect explanation.',
+    'last_nugget' => 'The hurt can be discussed separately from the way it was said.',
+    'body_of_thought' => 'The conversation shifts from the original hurt to how it was said.',
+    'current_terrain' => $toneTurn2,
+    'journey_purpose' => 'understand the recurring hurt-and-tone argument',
+    'thread_summary' => 'the original hurt and the way it was said',
+    'grounding_anchor' => array(),
+    'archive_grounding' => '',
+);
+$toneClosure = invoke_hrn_private($harness, 'provider_independent_terminal_closure', array($toneState));
+$assert(true, is_string($toneClosure) && strpos($toneClosure, 'the discussion turns to how those words were said') !== false, 'terminal closure retains the exact hurt-to-words sequence');
+$assert(true, invoke_hrn_private($harness, 'closure_synthesis_is_bounded', array($toneClosure)), 'terminal hurt-to-tone closure meets two-paragraph boundedness');
+$assert(true, invoke_hrn_private($harness, 'closure_synthesis_carries_journey_evidence', array($toneClosure, $toneState)), 'terminal hurt-to-tone closure overlaps accepted visitor turns');
 
 $bareState = array('closure_message' => $bareCommand);
 $bareLanding = invoke_hrn_private($harness, 'local_grounded_closure_synthesis', array($bareState));
