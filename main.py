@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.192 — require distinctive-topic evidence for recommendations
+# USE PRODUCTION VERSION: v489.193 — reject HTML-shaped visitor prose
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.192"
-DEPLOYMENT_FINGERPRINT = "USE-v489.192-distinctive-topic-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.192-distinctive-topic-evidence"
+APP_VERSION = "v489.193"
+DEPLOYMENT_FINGERPRINT = "USE-v489.193-outward-response-integrity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.193-outward-response-integrity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.192":
+if str(APP_VERSION) != "v489.193":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3845,6 +3845,30 @@ if _normalize_authoritative_recommendation({"title": "Invalid", "url": "https://
     raise RuntimeError("USE v489.09 invariant failed: off-domain recommendation accepted.")
 
 
+def _basic_inquiry_contains_html_markup(text):
+    """Reject HTML-shaped provider output at the plain-text visitor boundary.
+
+    Canonical doorways are returned as structured title/URL data, never embedded
+    in generated prose. Detect incomplete tags as well as complete tags: malformed
+    provider markup must not be passed to the frontend as if it were an answer.
+    """
+    value = str(text or "")
+    return bool(re.search(
+        r"<\s*/?\s*(?:a|p|div|span|br|img|iframe|script|style|button|section|ul|ol|li)\b",
+        value,
+        re.I,
+    ))
+
+
+# v489.193 outward-response integrity probes: complete and truncated HTML are both rejected.
+if not _basic_inquiry_contains_html_markup('<a href="https://geralddaquila.com/example/">Open</a>'):
+    raise RuntimeError("USE visitor-response contract failed: complete HTML markup was not detected.")
+if not _basic_inquiry_contains_html_markup('<a href="https://geralddaquila.com/2025/05/21/political-dynasties”'):
+    raise RuntimeError("USE visitor-response contract failed: truncated HTML markup was not detected.")
+if _basic_inquiry_contains_html_markup("Stewardship means caring for what has been entrusted to us."):
+    raise RuntimeError("USE visitor-response contract failed: ordinary prose was rejected.")
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -3973,9 +3997,26 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             llm_output = ""
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
-    # General Guide Composition owns the generative path for ordinary questions.
-    # No provider-generated prose is allowed to cross the public response
-    # boundary without the final visitor-language normalization.
+    # Canonical navigation is a separate structured field. If a provider tries
+    # to smuggle a link into prose, reject the entire generated response and
+    # recover without reusing that text. This prevents malformed markup and
+    # unsupported title/URL pairs from crossing the API boundary.
+    raw_visitor_text = str(llm_output or "").strip()
+    if _basic_inquiry_contains_html_markup(raw_visitor_text):
+        print(
+            "The Guide visitor boundary: rejected HTML-shaped generated prose; "
+            "using query-grounded deterministic recovery."
+        )
+        try:
+            deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                query, {}, composition_context
+            )
+            llm_output = str(deterministic_recovery.get("response") or "").strip()
+        except Exception as exc:
+            print(f"The Guide markup recovery failed safely: {type(exc).__name__}.")
+            llm_output = ""
+        if _basic_inquiry_contains_html_markup(llm_output):
+            llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if _basic_inquiry_has_source_dump(response):
         print(
