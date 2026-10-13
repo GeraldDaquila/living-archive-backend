@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.197 — recompose safely after rejecting untrusted Archive markup
+# USE PRODUCTION VERSION: v489.198 — route compact repeated-argument inquiries into HRN
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.197"
-DEPLOYMENT_FINGERPRINT = "USE-v489.197-safe-contextless-recomposition-runtime-manifest-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.197-safe-contextless-recomposition-runtime-manifest-v1"
+APP_VERSION = "v489.198"
+DEPLOYMENT_FINGERPRINT = "USE-v489.198-compact-relational-inquiry-routing-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.198-compact-relational-inquiry-routing-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.197":
+if str(APP_VERSION) != "v489.198":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -570,6 +570,11 @@ _RELATIONAL_INQUIRY_PATTERNS = (
     r"\b(?:how|why|what|can|could)\b.{0,100}\b(?:understand|make sense of|figure out)\b.{0,100}\b(?:relationship|distance|dynamic|pattern|cycle|interaction)\b",
     r"\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b",
     r"\b(?:i|we)\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\b",
+    # Compact lived conflict descriptions often express inquiry through the
+    # effort to explain the hurt, not through explicit "understand" wording.
+    # Combined with first-person plural + an argument/fight dynamic, this is
+    # sufficient relational evidence without capturing bounded Archive lookups.
+    r"\\b(?:i|we)\\s+(?:keep\\s+)?(?:trying|try)\\s+to\\s+(?:explain|understand|make sense of)\\b",
 )
 
 
@@ -705,6 +710,13 @@ _route_probe_projection_uncertainty = (
 )
 if not _relational_boundary_decision(_route_probe_projection_uncertainty).get("open"):
     raise RuntimeError("USE v489.87 routing invariant failed: relationship projection uncertainty did not open HRN")
+
+_route_probe_explain_displacement = (
+    "I keep trying to explain why the same argument hurts me, but we end up "
+    "arguing about whether I should still feel hurt."
+)
+if not _relational_boundary_decision(_route_probe_explain_displacement).get("open"):
+    raise RuntimeError("USE v489.198 routing invariant failed: repeated-argument explanation inquiry did not open HRN")
 
 _route_probe_reciprocity = (
     "My friend always asks me for support when they need something, but "
