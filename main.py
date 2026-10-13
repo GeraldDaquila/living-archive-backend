@@ -1528,12 +1528,12 @@ def _relational_return_earned_focus_fit(query, doc):
     # relationship/communication essay just because it mentions conflict.
     # Require a directly named conflict/repair doorway for this narrow case;
     # otherwise only the direct-topic gate may admit a resource.
-        recurring_argument_focus = bool(re.search(
+    recurring_argument_focus = bool(re.search(
         r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
         r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
         q,
     ))
-        direct_conflict_title = bool(re.search(
+    direct_conflict_title = bool(re.search(
         r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
         title,
     ))
@@ -1596,24 +1596,24 @@ def _relational_return_direct_topic_fit(query, doc):
     # expansions such as communication, listening, and being heard to the
     # retrieval query; those additions must not turn a broad governance essay
     # into a topical match.
-        recurring_argument_focus = bool(re.search(
+    recurring_argument_focus = bool(re.search(
         r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
         r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
         q,
     ))
-        direct_conflict_title = bool(re.search(
+    direct_conflict_title = bool(re.search(
         r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
         title,
     ))
     if recurring_argument_focus and not direct_conflict_title:
         return False
 
-        recurring_argument_focus = bool(re.search(
+    recurring_argument_focus = bool(re.search(
         r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
         r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
         q,
     ))
-        direct_conflict_title = bool(re.search(
+    direct_conflict_title = bool(re.search(
         r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
         title,
     ))
