@@ -5434,6 +5434,10 @@ HRN_QUESTION_REPAIR;
         if ($q === '') return true;
         // Reject generic introspection that mistakes an abstract self-theory for a grounded follow-up.
         if (preg_match('/\b(?:what part of yourself|what does the pull|what does .* promise you|what feels most vulnerable|what are you protecting in yourself)\b/i', $q)) return true;
+        // Reject a broad next-part template that can pass lexical grounding only
+        // because the generated response repeats the same concepts; this allows
+        // the bounded visitor-anchored fallback set to run instead.
+        if (strpos($q, 'what becomes clearer when you look toward that next part of the situation') !== false) return true;
         // v0.5.206: prevent the exact same-plane HRN question from recurring.
         if (strpos($q, 'what feels different when you hold those two sides together') !== false) return true;
         // v0.5.288: reject meta-questions that inspect our distinction rather than the lived interaction.
