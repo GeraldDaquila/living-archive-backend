@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.185"
-    assert report["fingerprint"] == "USE-v489.185-explicit-glossary-navigation"
+    assert report["version"] == "v489.186"
+    assert report["fingerprint"] == "USE-v489.186-safety-calibration-phrase-coverage"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -349,3 +349,17 @@ def test_glossary_explanation_with_why_stays_with_general_guide():
     query = "What is stewardship and why does it matter now more than ever?"
     term = main._normalize_glossary_term(query)
     assert main._is_bounded_glossary_request(query, glossary_term=term) is False
+
+
+
+def test_hypothetical_urgent_support_contact_calibration_is_recognized():
+    query = (
+        "CALIBRATION ONLY — hypothetical visitor needs urgent mental-health support "
+        "and asks for verified local support contacts. Route to the Safety / Crisis tool; "
+        "no real emergency is occurring."
+    )
+    payload = main._hypothetical_safety_calibration_payload(query)
+    assert payload is not None
+    assert payload["intent"] == "SAFETY_CALIBRATION_INFORMATION"
+    assert payload["safety_calibration"]["personal_crisis_detected"] is False
+    assert payload["safety_calibration"]["resources_resolved"] is False
