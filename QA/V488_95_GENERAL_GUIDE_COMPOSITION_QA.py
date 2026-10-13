@@ -33,7 +33,7 @@ def main():
     assert_true(f'if str(APP_VERSION) != "{app_version}":' in MAIN_TEXT, "runtime version invariant does not match APP_VERSION")
     assert_true(f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in MAIN_TEXT, "deployment fingerprint does not match APP_VERSION")
     assert_true(f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in MAIN_TEXT, "canonical build ID does not match APP_VERSION")
-    assert_true("def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data):" in MAIN_TEXT, "question-aware deterministic recovery is missing")
+    assert_true("def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):" in MAIN_TEXT, "question-aware deterministic recovery is missing")
     recovery_start = MAIN_TEXT.find("def _basic_inquiry_round1_deterministic_response(")
     recovery_end = MAIN_TEXT.find("def _general_guide_authoritative_doorway", recovery_start)
     recovery_block = MAIN_TEXT[recovery_start:recovery_end]
