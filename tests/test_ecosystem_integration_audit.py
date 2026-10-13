@@ -7,8 +7,8 @@ from main import ecosystem_integration_audit
 def test_integration_audit_reports_runtime_registry_distinction():
     report = ecosystem_integration_audit()
     assert report["audit_contract"] == "ecosystem-integration-audit-v1"
-    assert report["version"] == "v489.186"
-    assert report["fingerprint"] == "USE-v489.186-safety-calibration-phrase-coverage"
+    assert report["version"] == "v489.187"
+    assert report["fingerprint"] == "USE-v489.187-hrn-return-search-recovery"
     assert report["fingerprint"]
     assert isinstance(report["capability_registry"], list)
     assert isinstance(report["runtime_adapters"], list)
@@ -363,3 +363,59 @@ def test_hypothetical_urgent_support_contact_calibration_is_recognized():
     assert payload["intent"] == "SAFETY_CALIBRATION_INFORMATION"
     assert payload["safety_calibration"]["personal_crisis_detected"] is False
     assert payload["safety_calibration"]["resources_resolved"] is False
+
+
+
+def test_relational_return_uses_bounded_wp_search_after_focused_retrieval_misses(monkeypatch):
+    calls = []
+    relevant = {
+        "title": "Four Horsemen of Relationships — Early Warning & Repair",
+        "url": "https://geralddaquila.com/2025/10/08/t4-codex-four-horsemen-of-relationships-early-warning-repair/",
+        "text": (
+            "In relationships, criticism and defensiveness can escalate a disagreement. "
+            "Repair begins by returning to the conflict and hearing what each person is saying."
+        ),
+    }
+    monkeypatch.setattr(
+        main,
+        "_wordpress_search_canonical_candidates",
+        lambda query, limit=3: calls.append((query, limit)) or [relevant],
+    )
+    monkeypatch.setattr(main, "_sanitize_outward_context", lambda query, docs, profile: docs)
+    monkeypatch.setattr(
+        main,
+        "_canonical_primary_from_docs",
+        lambda docs, query, profile: (
+            {"title": docs[0]["title"], "url": docs[0]["url"]} if docs else None
+        ),
+    )
+
+    original = "My partner and I keep having the same argument, even though we both want things to improve."
+    direct = original + " The same argument keeps returning."
+    primary, outward = main._relational_return_search_recovery(
+        original,
+        direct,
+        {"primary": "relational", "relational": True, "action": "recommendation"},
+    )
+
+    assert calls == [("relationship repair", 5)]
+    assert primary is not None
+    assert primary["url"] == relevant["url"]
+    assert outward == [relevant]
+
+
+def test_relational_return_search_recovery_does_not_expand_unrelated_topics(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        main,
+        "_wordpress_search_canonical_candidates",
+        lambda query, limit=3: calls.append((query, limit)) or [],
+    )
+    primary, outward = main._relational_return_search_recovery(
+        "What does stewardship mean?",
+        "What does stewardship mean?",
+        {"primary": "relational", "relational": True, "action": "recommendation"},
+    )
+    assert primary is None
+    assert outward == []
+    assert calls == []
