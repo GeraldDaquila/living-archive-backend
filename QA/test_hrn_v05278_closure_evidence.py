@@ -13,12 +13,23 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.314", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.314';", SOURCE)
+        self.assertIn("Version: 0.5.315", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.315';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
 
+
+
+    def test_structured_recovery_uses_current_observer_contrast_before_prior_turn_memory(self):
+        start = SOURCE.index("private function recover_structured_state_composition(")
+        end = SOURCE.index("private function normalize_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("$state['observer_contrast'] ?? ''", method)
+        self.assertIn("$state['observer_so_what'] ?? ''", method)
+        self.assertIn("$state['observer_delta'] ?? ''", method)
+        self.assertIn("$observer_candidate", method)
+        self.assertIn("structured_recovery_candidate_is_relevant($candidate, $message)", method)
 
     def test_same_change_risk_question_family_is_rejected_as_repeat(self):
         start = SOURCE.index("private function question_is_repeated(")
