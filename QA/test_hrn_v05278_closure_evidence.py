@@ -13,8 +13,8 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.324", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.324';", SOURCE)
+        self.assertIn("Version: 0.5.325", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.325';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
@@ -210,6 +210,18 @@ class HRNClosureEvidenceContract(unittest.TestCase):
             "function visitor_surface_language_violation(",
         ):
             self.assertIn(signature, SOURCE)
+
+
+    def test_provider_exhaustion_recovers_hurt_to_tone_and_hurt_heard_turns(self):
+        start = SOURCE.index("private function recover_structured_state_composition(")
+        end = SOURCE.index("private function normalize_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("$hurt_tone_displacement = preg_match", method)
+        self.assertIn("$hurt_heard_without_perfect_explanation = preg_match", method)
+        self.assertIn("the conversation shifts to how those words were said", method)
+        self.assertIn("What feels most important about the original hurt, apart from how it was explained?", method)
+        self.assertIn("What would tell you that the hurt itself had been heard, even if the explanation were imperfect?", method)
+        self.assertIn("$this->normalize_composition($local_draft, $state, $message, $resources, false)", method)
 
 
 if __name__ == "__main__":

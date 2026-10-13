@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.324', 'isolated route executes the v0.5.324 candidate');
+$assert(($data['version'] ?? '') === '0.5.325', 'isolated route executes the v0.5.325 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -446,6 +446,147 @@ $assert(stripos((string)$policyEnvelope,'makes it possible') === false && stripo
 $assert(($policyData['reason'] ?? '') === 'composition_policy_rejected', 'soft-action-frame failure identifies the policy boundary without exposing rejected prose');
 unset($GLOBALS['hrn_qa_composition_result']);
 
+
+
+/**
+ * Provider-exhaustion regression for the exact live relational sequence:
+ * the original hurt is displaced by a discussion of how it was said, then the
+ * visitor wonders whether the hurt can be heard without a perfect explanation.
+ * The actual REST route must recover both turns with all composition providers
+ * unavailable, using only current visitor language and the existing policy gates.
+ */
+$recoverySession = 'hrn-isolated-provider-exhaustion-turn-v05325';
+$recoveryOriginal = 'I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt.';
+$recoveryLedger = array(
+    'state_version'=>'1.5',
+    'session_id'=>$recoverySession,
+    'turn'=>1,
+    'journey_purpose'=>'understand why recurring arguments return to whether the visitor should feel hurt',
+    'current_terrain'=>$recoveryOriginal,
+    'movement_status'=>'exploring',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'observer_decision'=>'CONTINUE',
+    'closure_signal'=>'none',
+    'asked_questions'=>array('What usually happens just before the argument starts again?'),
+    'last_question'=>'What usually happens just before the argument starts again?',
+    'last_nugget'=>'The visitor is trying to explain hurt during a recurring argument.',
+    'round_synthesis_history'=>array(),
+    'fractal_records'=>array(),
+    'visitor_turn_evidence'=>array($recoveryOriginal)
+);
+$recoveryLedgerKey = 'lah_rn_journey_' . substr(hash('sha256', '1.5|' . $recoverySession), 0, 32);
+set_transient($recoveryLedgerKey, $recoveryLedger, 86400);
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'explain hurt without losing the original issue',
+    'observer_contrast'=>'The words that hurt the visitor and the way they were said have become different focuses.',
+    'observer_so_what'=>'The conversation can leave the original words behind while the visitor explains how they raised the issue.',
+    'observer_delta'=>'The discussion moves from what hurt to how it was said.',
+    'observer_horizon'=>'what remains of the original hurt when tone becomes the focus',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'open the next perspective plane',
+    'situation'=>'a recurring argument where the original hurt gets displaced',
+    'parties'=>'the visitor and the other person',
+    'experience'=>'The visitor tries to explain the words that hurt, then the conversation shifts to how they were said.',
+    'tension'=>'the original hurt and the way it is raised',
+    'pattern'=>'the conversation shifts from the hurtful words to how they were said',
+    'underlying_need'=>'to have the original hurt heard',
+    'desired_condition'=>'the hurt can be discussed without a perfect explanation',
+    'emerging_delta'=>'what hurt and how it was said are different focuses',
+    'perspective_delta'=>'the conversation shifts from the hurtful words to how they were said',
+    'unresolved'=>'whether the hurt can be heard without a perfect explanation',
+    'body_of_thought'=>'The words that hurt can drop out of the discussion while the visitor explains how they said them.',
+    'current_fractal'=>'The visitor wonders whether their hurt can be heard if they cannot explain it perfectly.',
+    'next_horizon'=>'what would count as the hurt being heard',
+    'conversation_purpose'=>'understand the recurring hurt-and-tone argument',
+    'working_hypothesis'=>'the original hurt is displaced by discussion of how it was said',
+    'movement_state'=>'exploring',
+    'conversation_phase'=>'exploration',
+    'service_orientation'=>'unclear',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'fractal_summary'=>'',
+    'last_nugget'=>'',
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$hurtToneMessage = 'Usually I try to explain the words that hurt me, and then the conversation shifts to how I said them.';
+$hurtToneRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$hurtToneRequest->set_header('content-type','application/json');
+$hurtToneRequest->set_param('message',$hurtToneMessage);
+$hurtToneRequest->set_param('original_question',$recoveryOriginal);
+$hurtToneRequest->set_param('conversation','Visitor: '.$recoveryOriginal."\nAssistant: What usually happens just before the argument starts again?");
+$hurtToneRequest->set_param('full_conversation','Visitor: '.$recoveryOriginal."\nAssistant: What usually happens just before the argument starts again?\nVisitor: ".$hurtToneMessage);
+$hurtToneRequest->set_param('session_id',$recoverySession);
+$hurtToneRequest->set_param('unit_turns',2);
+$hurtToneRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$hurtToneResponse = rest_do_request($hurtToneRequest);
+restore_error_handler();
+$hurtToneStatus = $hurtToneResponse instanceof WP_REST_Response ? $hurtToneResponse->get_status() : 500;
+$hurtToneData = $hurtToneResponse instanceof WP_REST_Response ? $hurtToneResponse->get_data() : array('error'=>$hurtToneResponse instanceof WP_Error ? $hurtToneResponse->get_error_message() : 'unknown');
+$assert($hurtToneStatus === 200 && !empty($hurtToneData['ok']), 'provider-exhausted hurt-to-tone turn returns HTTP 200; got HTTP '.$hurtToneStatus.' '.wp_json_encode($hurtToneData));
+$assert(stripos((string)($hurtToneData['response'] ?? ''),'words that hurt') !== false, 'hurt-to-tone recovery retains the visitor’s concrete account');
+$assert(trim((string)($hurtToneData['question'] ?? '')) !== '', 'hurt-to-tone recovery returns a grounded next question');
+$assert(empty($hurtToneData['rest']) && empty($hurtToneData['use_resource']), 'hurt-to-tone recovery keeps the ordinary conversation open');
+
+$heardMessage = 'I wonder whether my hurt can be heard if I cannot explain it perfectly.';
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'whether hurt can be heard without a perfect explanation',
+    'observer_contrast'=>'Being heard and explaining perfectly are not the same condition.',
+    'observer_so_what'=>'The visitor is asking whether the hurt can be taken seriously when the words are imperfect.',
+    'observer_delta'=>'The focus moves from how the hurt is explained to whether it can be heard.',
+    'observer_horizon'=>'what would count as being heard',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'open a different perspective plane',
+    'experience'=>$heardMessage,
+    'tension'=>'being heard and explaining perfectly',
+    'pattern'=>'the visitor questions whether imperfect words can still communicate hurt',
+    'underlying_need'=>'to have the hurt heard',
+    'desired_condition'=>'the hurt is taken seriously without perfect wording',
+    'emerging_delta'=>'being heard and explaining perfectly are not the same condition',
+    'perspective_delta'=>'being heard and explaining perfectly are not the same condition',
+    'current_fractal'=>$heardMessage,
+    'next_horizon'=>'what would count as being heard',
+    'working_hypothesis'=>'the visitor questions whether imperfect words can still communicate hurt',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$heardRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$heardRequest->set_header('content-type','application/json');
+$heardRequest->set_param('message',$heardMessage);
+$heardRequest->set_param('original_question',$recoveryOriginal);
+$heardRequest->set_param('conversation','Visitor: '.$recoveryOriginal."\nAssistant: ".(string)($hurtToneData['response'] ?? '')."\nAssistant: ".(string)($hurtToneData['question'] ?? '')."\nVisitor: ".$heardMessage);
+$heardRequest->set_param('full_conversation','Visitor: '.$recoveryOriginal."\nAssistant: ".(string)($hurtToneData['response'] ?? '')."\nAssistant: ".(string)($hurtToneData['question'] ?? '')."\nVisitor: ".$heardMessage);
+$heardRequest->set_param('session_id',$recoverySession);
+$heardRequest->set_param('unit_turns',3);
+$heardRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$heardResponse = rest_do_request($heardRequest);
+restore_error_handler();
+$heardStatus = $heardResponse instanceof WP_REST_Response ? $heardResponse->get_status() : 500;
+$heardData = $heardResponse instanceof WP_REST_Response ? $heardResponse->get_data() : array('error'=>$heardResponse instanceof WP_Error ? $heardResponse->get_error_message() : 'unknown');
+$assert($heardStatus === 200 && !empty($heardData['ok']), 'provider-exhausted hurt-heard turn returns HTTP 200; got HTTP '.$heardStatus.' '.wp_json_encode($heardData));
+$assert(stripos((string)($heardData['response'] ?? ''),'hurt') !== false && stripos((string)($heardData['response'] ?? ''),'heard') !== false, 'hurt-heard recovery retains the current visitor perspective');
+$assert(stripos((string)($heardData['question'] ?? ''),'heard') !== false, 'hurt-heard recovery opens a grounded question about what being heard would mean');
+$assert(empty($heardData['rest']) && empty($heardData['use_resource']), 'hurt-heard recovery keeps the ordinary conversation open');
 
 
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";
