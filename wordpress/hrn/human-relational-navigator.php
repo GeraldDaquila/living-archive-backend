@@ -5340,6 +5340,11 @@ HRN_QUESTION_REPAIR;
             $relationship_noun = preg_match('/\\bfriendship\\b/i', $visitor_lower) ? 'friendship' : 'relationship';
             $fallbacks[] = 'What does keeping the ' . $relationship_noun . ' warm mean when something feels unspoken?';
         }
+        $blame_without_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
+        if ($blame_without_understanding) {
+            $fallbacks[] = 'What feels different between being understood and being heard as blaming?';
+        }
 
         // When the visitor explicitly describes a recurring conflict, recover with
         // a question about the observable sequence before it repeats. The noun is
