@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.317
+ * Version: 0.5.318
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.317';
+    const VERSION = '0.5.318';
+    // RELEASE v0.5.318: rotate tone-displacement recovery across distinct question planes and strengthen its grounded relevance family; frozen writers unchanged.
     // RELEASE v0.5.317: preserve a bounded visitor-grounded turn when all providers fail during explicit tone-displacement; frozen writers unchanged.
     // RELEASE v0.5.316: recover a grounded next question when discussion shifts from the hurtful event to the visitor's tone; frozen writers unchanged.
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
@@ -4866,6 +4867,7 @@ HRN_QUESTION_REPAIR;
             'being_heard' => array('unheard','heard','hear','listening','listen','listened','dismissed','ignored','voice'),
             'blame_assignment' => array('blame','blaming','fault','accuse','accusation'),
             'mutual_understanding' => array('understand','understanding','communicate','communication','hear','heard','listen','listening'),
+            'tone_displacement' => array('tone','said','hurt','embarrassed','defend','discussion'),
             'disagreement' => array('disagree','disagreement','disagreements','conflict','conflicts','argument','arguments','argue','arguing'),
             'boundaries' => array('boundary','boundaries','limit','limits','distance','space'),
             'grief_loss' => array('grief','grieving','loss','lost','mourning','bereavement','died','death'),
@@ -5373,7 +5375,20 @@ HRN_QUESTION_REPAIR;
         $tone_displacement = preg_match('/\\b(?:tone|my tone|how I said it|way I said it|my voice)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:what was said|what happened|hurt|embarrass(?:ed|ment)|specific incident|incident)\\b/i', $visitor_lower);
         if ($tone_displacement) {
-            $fallbacks[] = 'What changes in the conversation when your tone becomes the focus instead of what was said?';
+            $tone_focus_question_already_asked = false;
+            foreach ((array)$history as $prior_question) {
+                $prior_question = strtolower((string)$prior_question);
+                if (preg_match('/\\b tone \\b/x', $prior_question)
+                    && preg_match('/\\b(?:focus|said|hurt)\\b/i', $prior_question)) {
+                    $tone_focus_question_already_asked = true;
+                    break;
+                }
+            }
+            if ($tone_focus_question_already_asked) {
+                $fallbacks[] = 'What do you notice about whether your hurt can be heard when the words themselves are no longer being discussed?';
+            } else {
+                $fallbacks[] = 'What changes in the conversation when your tone becomes the focus instead of what was said?';
+            }
         }
         // Preserve a useful next question when the visitor names both relational
         // warmth and concealment. This is a perspective question about the stated
