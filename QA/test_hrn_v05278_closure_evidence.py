@@ -49,7 +49,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
     def test_tone_displacement_recovers_a_new_grounded_question_plane(self):
         start = SOURCE.index("private function structural_question_completion_safe(")
-        end = SOURCE.index("\\n    private function ", start + 40)
+        end = SOURCE.index("$warmth_without_honesty = preg_match", start + 40)
         method = SOURCE[start:end]
         self.assertIn("$tone_displacement = preg_match", method)
         self.assertIn("What changes in the conversation when your tone becomes the focus instead of what was said?", method)
