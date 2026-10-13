@@ -44,6 +44,12 @@ if (!function_exists('la_provider_bank_request')) {
                 'provider_bank_contract'=>'qa-v1','result'=>(array)$GLOBALS['hrn_qa_observer']
             );
         }
+        if ($operation === 'hrn_relational' && isset($GLOBALS['hrn_qa_composition_result'])) {
+            return array(
+                'provider'=>'isolated-qa','model'=>'missing-question-fixture','gateway_contract'=>'qa-v1',
+                'provider_bank_contract'=>'qa-v1','result'=>(array)$GLOBALS['hrn_qa_composition_result']
+            );
+        }
         return new WP_Error('hrn_qa_composition_unavailable', 'Synthetic provider composition failure.');
     }
 }
@@ -119,4 +125,73 @@ $assert($closureStatus === 200 && !empty($closureData['ok']), 'explicit closure 
 $assert(trim((string)($closureData['response'] ?? '')) !== '', 'explicit closure returns a non-empty synthesis');
 $assert(empty($closureData['question']), 'explicit closure does not reopen with a question');
 $assert(stripos((string)$closureData['response'],'understood') !== false || stripos((string)$closureData['response'],'boundar') !== false, 'explicit closure retains visitor-authored evidence');
+
+ // Ordinary substantive turns must remain conversational when the provider returns
+ // useful prose but omits its question and sets default rest/resource flags.
+$ordinarySession = 'hrn-isolated-missing-question-v05311';
+$ordinaryMessage = 'I keep putting off a conversation with a friend because I am afraid it will change the friendship.';
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'honesty and continuity in a friendship',
+    'observer_contrast'=>'Honesty and continuity can both matter without guaranteeing a particular outcome.',
+    'observer_so_what'=>'Treating honesty and continuity as distinct helps clarify what feels at stake.',
+    'observer_delta'=>'The conversation itself and the future of the friendship are not identical.',
+    'observer_horizon'=>'the relationship between honesty and continuity',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'open a different vantage point',
+    'situation'=>'fear that an honest conversation might change a friendship',
+    'experience'=>$ordinaryMessage,
+    'tension'=>'honesty and continuity',
+    'pattern'=>'fear of change is delaying a conversation',
+    'underlying_need'=>'to be understood',
+    'desired_condition'=>'honesty without assuming a particular outcome',
+    'emerging_delta'=>'the conversation and the future of the friendship are distinct',
+    'perspective_delta'=>'the conversation and the future of the friendship are distinct',
+    'body_of_thought'=>'',
+    'current_fractal'=>'honesty and continuity in a friendship',
+    'next_horizon'=>'the relationship between honesty and continuity',
+    'conversation_purpose'=>'understand a difficult friendship',
+    'movement_state'=>'exploring',
+    'conversation_phase'=>'exploration',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'immature',
+    'fractal_complete'=>false,
+    'fractal_summary'=>'',
+    'last_nugget'=>'',
+    'closure_signal'=>'',
+    'leadership_need'=>'open_next_vantage'
+));
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'A conversation can hold two different risks at once: saying what matters may change the friendship, while staying silent can leave the same uncertainty in place. Those are not the same kind of change, even if both feel consequential.',
+    'question'=>'',
+    'rest'=>true,
+    'use_resource'=>true,
+    'resource_intro'=>''
+);
+$ordinaryRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$ordinaryRequest->set_header('content-type','application/json');
+$ordinaryRequest->set_param('message',$ordinaryMessage);
+$ordinaryRequest->set_param('original_question',$ordinaryMessage);
+$ordinaryRequest->set_param('conversation','');
+$ordinaryRequest->set_param('full_conversation','');
+$ordinaryRequest->set_param('session_id',$ordinarySession);
+$ordinaryRequest->set_param('unit_turns',1);
+$ordinaryRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$ordinaryResponse = rest_do_request($ordinaryRequest);
+restore_error_handler();
+$ordinaryStatus = $ordinaryResponse instanceof WP_REST_Response ? $ordinaryResponse->get_status() : 500;
+$ordinaryData = $ordinaryResponse instanceof WP_REST_Response ? $ordinaryResponse->get_data() : array('error'=>$ordinaryResponse instanceof WP_Error ? $ordinaryResponse->get_error_message() : 'unknown');
+$assert($ordinaryStatus === 200 && !empty($ordinaryData['ok']), 'ordinary missing-question route returns HTTP 200; got HTTP '.$ordinaryStatus.' '.wp_json_encode($ordinaryData));
+$assert(trim((string)($ordinaryData['response'] ?? '')) !== '', 'ordinary missing-question route preserves provider-written response prose');
+$assert(trim((string)($ordinaryData['question'] ?? '')) !== '', 'ordinary missing-question route structurally completes the question without another provider');
+$assert(stripos((string)$ordinaryData['question'],'friendship') !== false || stripos((string)$ordinaryData['question'],'conversation') !== false, 'structural question remains grounded in the visitor’s named relationship');
+$assert(empty($ordinaryData['rest']) && empty($ordinaryData['use_resource']), 'successful question completion clears default rest/resource flags');
+unset($GLOBALS['hrn_qa_composition_result']);
+
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";
