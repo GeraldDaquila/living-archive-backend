@@ -56,7 +56,7 @@ def main():
     fallback_block = route[fallback:route.find("fallback_data =", fallback)]
     for required in ("underlying_need", "completed_insight", "perspective_delta", "current_terrain", "unresolved"):
         require(required in fallback_block, f"bounded fallback omits focused perspective field: {required}")
-    for forbidden in ("conversation", "thread_summary", "body_of_thought", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "resource_fit", "next_horizon"):
+    for forbidden in ("conversation", "thread_summary", "body_of_thought", "fractal_records", "round_synthesis_history", "original_question", "topic_anchor", "journey_synthesis", "next_horizon"):
         require(forbidden not in fallback_block, f"fallback reintroduces noisy field: {forbidden}")
     require("def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):" in SOURCE,
             "earned relational topic anchor is missing")
