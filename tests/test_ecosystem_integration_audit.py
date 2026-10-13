@@ -207,3 +207,17 @@ def test_explicit_hypothetical_safety_calibration_does_not_fall_through_to_topic
     assert payload["intent"] == "SAFETY_CALIBRATION_INFORMATION"
     assert payload["safety_calibration"]["personal_crisis_detected"] is False
     assert payload["safety_calibration"]["location_required_for_local_contacts"] is True
+
+
+
+def test_relational_return_rejects_broad_life_essay_for_repeated_argument():
+    query = (
+        "My partner and I keep having the same argument. When I raise a specific incident, "
+        "they say I never let anything go, and we end up arguing about whether I may feel hurt."
+    )
+    broad_essay = {
+        "title": "After Awakening, Life Still Happens",
+        "text": "A reflection on spiritual awakening, everyday life, meaning, and change.",
+    }
+    assert not main._relational_return_direct_topic_fit(query, broad_essay)
+    assert not main._relational_return_earned_focus_fit(query, broad_essay)
