@@ -1415,8 +1415,8 @@ def _relational_return_direct_topic_fit(query, doc):
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
     material = " ".join((title, body_text)).casefold()
     recurring_argument_focus = bool(re.search(
-        r"\\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
-        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\\b",
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
         q,
     ))
     if recurring_argument_focus:
@@ -1425,7 +1425,7 @@ def _relational_return_direct_topic_fit(query, doc):
         # candidate title to name conflict/repair directly, or one body sentence
         # to contain at least two conflict-specific cues together.
         direct_conflict_title = bool(re.search(
-            r"\\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\\b",
+            r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
             title,
         ))
         conflict_terms = {
@@ -1433,17 +1433,19 @@ def _relational_return_direct_topic_fit(query, doc):
             "blame", "hurt", "listening", "reopen", "reopening", "incident",
         }
         same_sentence_conflict = False
-        for sentence in re.split(r"(?<=[.!?])(?:[\\\"'”’)\\]]+)?\\s+|\\n+", body_text):
+        for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\\]]+)?\s+|\n+", body_text):
             sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
             if len(conflict_terms & sentence_tokens) >= 2:
                 same_sentence_conflict = True
                 break
         if not (direct_conflict_title or same_sentence_conflict):
             return False
-    projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
+
+    projection_query = bool(re.search(
+        r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b",
+        q,
+    ))
     if projection_query:
-        # A canonical title explicitly about projection is direct topical evidence
-        # even when its body uses broader language and does not repeat "relationship".
         if re.search(r"\b(?:projection|projecting|projected)\b", title):
             return True
         direct_projection = bool(re.search(r"\b(?:projection|projecting|projected)\b", material))
@@ -1457,8 +1459,6 @@ def _relational_return_direct_topic_fit(query, doc):
             return False
         return True
 
-    # General relational closures must also demonstrate topic fit. A document
-    # that merely shares the broad relational atmosphere is not a valid gift.
     query_terms = set(_subject_terms(q))
     if not query_terms:
         return False
@@ -1471,33 +1471,16 @@ def _relational_return_direct_topic_fit(query, doc):
         "life", "human", "interaction", "dynamic",
     }
     specific_terms = query_terms - generic_terms
-    title_hits = {term for term in query_terms if _term_forms(term) & title_tokens}
     body_hits = {term for term in query_terms if _term_forms(term) & material_tokens}
     specific_title_hits = {term for term in specific_terms if _term_forms(term) & title_tokens}
-    specific_body_hits = {term for term in specific_terms if _term_forms(term) & material_tokens}
-
-    # Scattered mentions across a broad essay are not direct topic fit.
-    # Require either a distinctive title anchor with corroborating body evidence,
-    # or at least two substantive query terms in the same sentence. This prevents
-    # a broad family/couple doorway from passing merely because the essay mentions
-    # silence, rejection, and intention in unrelated passages.
     sentence_specific_hits = 0
-    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\]]+)?\s+|\n+", body_text):
+    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\\]]+)?\s+|\n+", body_text):
         sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
-        sentence_hits = {
-            term for term in specific_terms
-            if _term_forms(term) & sentence_tokens
-        }
+        sentence_hits = {term for term in specific_terms if _term_forms(term) & sentence_tokens}
         sentence_specific_hits = max(sentence_specific_hits, len(sentence_hits))
-
     if len(specific_terms) == 1:
-        # Single-topic queries need the topic named in both title and body.
-        return bool(specific_title_hits and specific_body_hits)
-
-    return bool(
-        (specific_title_hits and len(body_hits) >= 2)
-        or sentence_specific_hits >= 2
-    )
+        return bool(specific_title_hits and body_hits)
+    return bool((specific_title_hits and len(body_hits) >= 2) or sentence_specific_hits >= 2)
 
 
 async def _v48755_relational_return(request: Request):
