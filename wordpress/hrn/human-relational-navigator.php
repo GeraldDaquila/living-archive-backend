@@ -3861,7 +3861,7 @@ HRN_INTERPRET;
             && preg_match('/\b(?:heard|explain|defend|focus|conversation)\b/i', $closure_material);
         if ($tone_displacement_closure) {
             return 'You described how the original hurt can get set aside when the exchange turns to defending your tone. The conversation shifts from what was said to whether you explained your hurt correctly.'
-                . "\\n\\n"
+                . "\n\n"
                 . 'That leaves two distinct things in view: the impact of the words and the difficulty of keeping that impact in the conversation. This names the sequence you described without deciding what the other person intended.';
         }
         $visitor_turn = trim(wp_strip_all_tags((string)($state['observer_intention'] ?? $state['current_terrain'] ?? $state['current_fractal'] ?? '')));
