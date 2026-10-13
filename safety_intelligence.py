@@ -495,7 +495,7 @@ def _resource_projection(emergency_resolution: Mapping[str, Any]) -> list[dict[s
 
 def resolve_emergency_resources(
     *,
-    service_need: str = "",
+    service_need: str = "general_emergency",
     safety_state: str = "acute",
     country: str = "",
     location: Mapping[str, Any] | None = None,
