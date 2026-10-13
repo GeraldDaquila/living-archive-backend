@@ -27,6 +27,17 @@ def assert_true(condition, message):
 
 
 def main():
+    # v489.207: provider exhaustion must not blank this common comparison question.
+    comparison = __import__("main")._basic_inquiry_round1_deterministic_response(
+        "What is the difference between responsibility and stewardship?",
+        {},
+        {"context_blocks": ""},
+    )
+    comparison_text = str(comparison.get("response") or "").casefold()
+    assert_true(
+        all(phrase in comparison_text for phrase in ("accountable for", "care for what", "future")),
+        "responsibility/stewardship comparison fallback is incomplete",
+    )
     version_match = re.search(r'APP_VERSION = "(v[0-9.]+)"', MAIN_TEXT)
     assert_true(version_match is not None, "main.py production version is missing")
     app_version = version_match.group(1)
