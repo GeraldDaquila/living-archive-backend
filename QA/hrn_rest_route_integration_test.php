@@ -317,5 +317,63 @@ $assert(trim((string)($thirdData['question'] ?? '')) !== '', 'third-round recove
 $assert(stripos((string)$thirdData['question'],'understood') !== false || stripos((string)$thirdData['question'],'blaming') !== false, 'third-round question opens the blame/understanding perspective');
 $assert(empty($thirdData['rest']) && empty($thirdData['use_resource']), 'third-round recovery keeps ordinary conversation open');
 
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'honesty and continuity in a friendship',
+    'observer_contrast'=>'Honesty and continuity can both matter without guaranteeing a particular outcome.',
+    'observer_so_what'=>'That distinction helps separate the conversation itself from assumptions about what it will mean for the friendship.',
+    'observer_delta'=>'The conversation and the future of the friendship are not identical.',
+    'observer_horizon'=>'the relationship between honesty and continuity',
+    'observer_decision'=>'CONTINUE',
+    'situation'=>'fear that an honest conversation might change a friendship',
+    'experience'=>$ordinaryMessage,
+    'tension'=>'honesty and continuity',
+    'pattern'=>'fear of change is delaying a conversation',
+    'underlying_need'=>'to be understood',
+    'desired_condition'=>'honesty without assuming a particular outcome',
+    'emerging_delta'=>'the conversation and the future of the friendship are distinct',
+    'perspective_delta'=>'the conversation and the future of the friendship are distinct',
+    'current_fractal'=>'honesty and continuity in a friendship',
+    'next_horizon'=>'the relationship between honesty and continuity',
+    'fractal_maturity'=>'immature',
+    'fractal_complete'=>false,
+    'closure_signal'=>'none',
+    'leadership_need'=>'open_next_vantage'
+));
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'A conversation can hold two different risks at once: saying what matters may change the friendship, while staying silent can leave the same uncertainty in place. Those are not the same kind of change, even if both feel consequential. What you have just uncovered connects with an idea in the Archive about the tension between connection and authenticity.',
+    'question'=>'What part of the friendship are you most afraid might change if you have that conversation?',
+    'rest'=>false,
+    'use_resource'=>false,
+    'resource_intro'=>''
+);
+$resourceMessage = 'I keep putting off a conversation with a friend because I am afraid it will change the friendship.';
+$resourceRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$resourceRequest->set_header('content-type','application/json');
+$resourceRequest->set_param('message',$resourceMessage);
+$resourceRequest->set_param('original_question',$resourceMessage);
+$resourceRequest->set_param('conversation','');
+$resourceRequest->set_param('full_conversation','');
+$resourceRequest->set_param('session_id','hrn-isolated-unselected-resource-offer-v05315');
+$resourceRequest->set_param('unit_turns',1);
+$resourceRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$resourceResponse = rest_do_request($resourceRequest);
+restore_error_handler();
+$resourceStatus = $resourceResponse instanceof WP_REST_Response ? $resourceResponse->get_status() : 500;
+$resourceData = $resourceResponse instanceof WP_REST_Response ? $resourceResponse->get_data() : array('error'=>$resourceResponse instanceof WP_Error ? $resourceResponse->get_error_message() : 'unknown');
+$assert($resourceStatus === 200 && !empty($resourceData['ok']), 'unselected-resource route returns HTTP 200; got HTTP '.$resourceStatus.' '.wp_json_encode($resourceData));
+$assert(stripos((string)($resourceData['response'] ?? ''),'archive') === false, 'unselected-resource route removes the unrendered Archive promise');
+$assert(stripos((string)($resourceData['response'] ?? ''),'connects with an idea') === false, 'unselected-resource route removes only the offer sentence');
+$assert(trim((string)($resourceData['question'] ?? '')) !== '', 'unselected-resource route retains the ordinary follow-up question');
+$assert(empty($resourceData['resources']), 'no canonical resource is falsely returned when use_resource is false');
+unset($GLOBALS['hrn_qa_composition_result']);
+
+
 
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";
