@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.314', 'isolated route executes the v0.5.314 candidate');
+$assert(($data['version'] ?? '') === '0.5.315', 'isolated route executes the v0.5.315 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -259,5 +259,62 @@ $assert(stripos((string)$secondData['question'],'at risk of changing') === false
 $assert(empty($secondData['rest']) && empty($secondData['use_resource']), 'second-round question keeps the ordinary conversation open');
 
 unset($GLOBALS['hrn_qa_composition_result']);
+
+$thirdMessage = "I think the hardest part is that she may think I'm blaming her, when really I want us to understand each other better.";
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'blame and mutual understanding',
+    'observer_contrast'=>'Blame and mutual understanding are not the same thing; the first focuses on fault, while the second asks what each person is trying to communicate.',
+    'observer_so_what'=>'That distinction matters because a person can name an effect without deciding that the other person intended harm.',
+    'observer_delta'=>'The focus can shift from proving fault to understanding what the interaction has meant.',
+    'observer_horizon'=>'what it means to be understood without assigning fault',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'separate impact from blame',
+    'situation'=>'fear of being heard as blaming while wanting mutual understanding',
+    'experience'=>$thirdMessage,
+    'tension'=>'blame and mutual understanding',
+    'pattern'=>'an honest account may be heard as assigning fault',
+    'underlying_need'=>'mutual understanding',
+    'desired_condition'=>'honesty without blame',
+    'emerging_delta'=>'naming an effect is not the same as assigning intention',
+    'perspective_delta'=>'naming an effect is not the same as assigning intention',
+    'body_of_thought'=>'',
+    'current_fractal'=>'blame and mutual understanding',
+    'next_horizon'=>'what it means to be understood without assigning fault',
+    'conversation_purpose'=>'understand a difficult friendship',
+    'movement_state'=>'exploring',
+    'conversation_phase'=>'exploration',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'fractal_summary'=>'',
+    'last_nugget'=>'',
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$thirdRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$thirdRequest->set_header('content-type','application/json');
+$thirdRequest->set_param('message',$thirdMessage);
+$thirdRequest->set_param('original_question',$ordinaryMessage);
+$thirdRequest->set_param('conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']."\nVisitor: ".$secondMessage."\nAssistant: ".(string)$secondData['response']."\nAssistant: ".(string)$secondData['question']);
+$thirdRequest->set_param('full_conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']."\nVisitor: ".$secondMessage."\nAssistant: ".(string)$secondData['response']."\nAssistant: ".(string)$secondData['question']."\nVisitor: ".$thirdMessage);
+$thirdRequest->set_param('session_id',$ordinarySession);
+$thirdRequest->set_param('unit_turns',3);
+$thirdRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$thirdResponse = rest_do_request($thirdRequest);
+restore_error_handler();
+$thirdStatus = $thirdResponse instanceof WP_REST_Response ? $thirdResponse->get_status() : 500;
+$thirdData = $thirdResponse instanceof WP_REST_Response ? $thirdResponse->get_data() : array('error'=>$thirdResponse instanceof WP_Error ? $thirdResponse->get_error_message() : 'unknown');
+$assert($thirdStatus === 200 && !empty($thirdData['ok']), 'third ordinary round recovers from provider exhaustion using current Observer evidence; got HTTP '.$thirdStatus.' '.wp_json_encode($thirdData));
+$assert(stripos((string)($thirdData['response'] ?? ''),'blame') !== false && stripos((string)($thirdData['response'] ?? ''),'understanding') !== false, 'third-round recovery uses current-turn Observer contrast rather than prior-turn summary');
+$assert(trim((string)($thirdData['question'] ?? '')) !== '', 'third-round recovery supplies a grounded continuation question');
+$assert(empty($thirdData['rest']) && empty($thirdData['use_resource']), 'third-round recovery keeps ordinary conversation open');
+
 
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";
