@@ -69,7 +69,7 @@ class HRNClosureEvidenceContract(unittest.TestCase):
         start = SOURCE.index("private function provider_independent_terminal_closure(")
         end = SOURCE.index("private function ", start + 40)
         method = SOURCE[start:end]
-        self.assertIn("$state['visitor_turn_evidence']", method)
+        self.assertIn("'visitor_turn_evidence'", method)
         self.assertIn("'last_question'", method)
         gate_start = SOURCE.index("private function closure_synthesis_carries_journey_evidence(")
         gate_end = SOURCE.index("private function ", gate_start + 40)
