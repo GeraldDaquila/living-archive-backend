@@ -184,6 +184,41 @@ def test_recurring_argument_search_recovery_uses_bounded_query_variants(monkeypa
     assert any(doc["url"] == repair_resource["url"] for doc in outward)
 
 
+
+def test_recurring_argument_recovery_applies_specific_topic_gates_before_generic_outward_filter(monkeypatch):
+    original = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    direct_topic = original + " The focus shifts from what was said to defending tone."
+    repair_resource = {
+        "title": "Repair Before Withdrawal",
+        "text": (
+            "When a conflict returns, repair can restore conversation after hurt. "
+            "Relationships need listening and acknowledgement."
+        ),
+        "url": "https://geralddaquila.com/2026/02/04/repair-before-withdrawal/",
+    }
+    monkeypatch.setattr(
+        main, "_wordpress_search_canonical_candidates",
+        lambda query, *, limit=3: [repair_resource] if query == "conflict repair" else [],
+    )
+    # The ordinary outward sanitizer may reject the resource because its generic
+    # profile is not the authority for this terminal HRN-return contract.
+    monkeypatch.setattr(main, "_sanitize_outward_context", lambda query, docs, profile: [])
+    profile = main._base._inquiry_profile(direct_topic)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_search_recovery(original, direct_topic, profile)
+    assert primary is not None
+    assert primary["title"] == "Repair Before Withdrawal"
+    assert outward == [repair_resource]
+
+
+
 def test_recurring_argument_search_recovery_still_rejects_broad_decoys(monkeypatch):
     original = (
         "I keep trying to explain why the same argument hurts me, but we end up "
