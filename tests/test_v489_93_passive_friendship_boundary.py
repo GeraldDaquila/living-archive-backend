@@ -132,27 +132,23 @@ def test_compact_repeated_argument_explanation_opens_hrn_boundary():
     assert decision["signals"]["inquiry"] is True
 
 
-def test_compact_repeated_argument_request_hands_off_to_hrn(monkeypatch):
-    def controlled_relationship_response(query, history, route, request_id, raw_body=None):
-        return {
-            "response": "The argument keeps shifting away from the hurt you are trying to explain.",
-            "relational_delegation": {
-                "state": "open",
-                "specialist_id": "relationship",
-                "session_id": request_id,
-                "guide_return_endpoint": "/api/relational-return",
-            },
-        }
-
-    monkeypatch.setattr(use_main, "_relationship_specialist_response", controlled_relationship_response)
-    status, payload = asyncio.run(_post_query(
-        "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
-    ))
+def test_compact_repeated_argument_request_hands_off_to_hrn():
+    query = (
+        "I keep trying to explain why the same argument hurts me, but we end up "
+        "arguing about whether I should still feel hurt."
+    )
+    status, payload = asyncio.run(_post_query(query))
     assert status == 200
     assert payload["intent"] == "RELATIONAL_HANDOFF"
     assert payload["handoff"] == "relationship"
+    assert payload["handoff_mode"] == "immediate"
+    assert payload["handoff_pending"] is True
     assert payload["relational_delegation"]["specialist_id"] == "relationship"
-    assert payload["relational_delegation"]["guide_return_endpoint"] == "/api/relational-return"
+    assert payload["relational_delegation"]["seed_message"] == query
+    assert re.fullmatch(
+        r"relationship-[0-9a-f]{24}",
+        payload["relational_delegation"]["session_id"],
+    )
 
 
 def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
