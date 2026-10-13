@@ -1513,23 +1513,6 @@ def _relational_return_conflict_topic_fit(query, doc):
     return False
 
 
-def _relational_return_requires_direct_conflict_title(query):
-    """Identify completed returns whose opening question names a recurring argument."""
-    return bool(re.search(
-        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
-        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
-        _normalize_query(query),
-    ))
-
-
-def _relational_return_has_direct_conflict_title(title):
-    """Only explicitly conflict/repair-named titles qualify for recurring-argument gifts."""
-    return bool(re.search(
-        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
-        str(title or "").casefold(),
-    ))
-
-
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
     if not isinstance(doc, dict):
@@ -1545,8 +1528,15 @@ def _relational_return_earned_focus_fit(query, doc):
     # relationship/communication essay just because it mentions conflict.
     # Require a directly named conflict/repair doorway for this narrow case;
     # otherwise only the direct-topic gate may admit a resource.
-    recurring_argument_focus = _relational_return_requires_direct_conflict_title(q)
-    direct_conflict_title = _relational_return_has_direct_conflict_title(title)
+        recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+        direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
     if recurring_argument_focus and not direct_conflict_title:
         return False
     relationship_evidence = bool(re.search(
@@ -1606,13 +1596,27 @@ def _relational_return_direct_topic_fit(query, doc):
     # expansions such as communication, listening, and being heard to the
     # retrieval query; those additions must not turn a broad governance essay
     # into a topical match.
-    recurring_argument_focus = _relational_return_requires_direct_conflict_title(q)
-    direct_conflict_title = _relational_return_has_direct_conflict_title(title)
+        recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+        direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
     if recurring_argument_focus and not direct_conflict_title:
         return False
 
-    recurring_argument_focus = _relational_return_requires_direct_conflict_title(q)
-    direct_conflict_title = _relational_return_has_direct_conflict_title(title)
+        recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+        direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
     if recurring_argument_focus and direct_conflict_title:
         # For a specific recurring-conflict query, a directly named conflict/
         # repair title plus body evidence about relational conflict is stronger
@@ -1887,11 +1891,18 @@ async def _v48755_relational_return(request: Request):
         # or a future relevance branch changes, a completed recurring-argument
         # journey cannot release a broad resource whose title does not name
         # conflict, argument, disagreement, repair, reconciliation, or being heard.
-        if (
-            primary
-            and _relational_return_requires_direct_conflict_title(original_question)
-            and not _relational_return_has_direct_conflict_title(primary.get("title"))
-        ):
+        original_recurring_argument_focus = bool(re.search(
+            r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+            _normalize_query(original_question),
+        ))
+        primary_title_is_direct_conflict = bool(
+            primary and re.search(
+                r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+                str(primary.get("title") or "").casefold(),
+            )
+        )
+        if primary and original_recurring_argument_focus and not primary_title_is_direct_conflict:
             print(
                 "The Guide v489.201 rejected a non-conflict canonical doorway "
                 f"for recurring-argument return: {primary.get('title')}"
