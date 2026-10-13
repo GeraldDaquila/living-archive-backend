@@ -2020,6 +2020,27 @@ def _hrn_complete_missing_question(messages):
                     decoded = value
                     break
             if decoded is not None:
+                # When the visitor moves from defending their tone to wondering
+                # whether the hurt can be heard without a perfect explanation,
+                # use the earned distinction to open a new, concrete plane. The
+                # generic "When you say ... what do you notice" template can be
+                # repetitive here and is not a useful substitute for this horizon.
+                focus_material = " ".join(
+                    str(decoded.get(field) or "")
+                    for field in focus_fields
+                    if isinstance(decoded.get(field), str)
+                )
+                if (
+                    re.search(r"\\bhurt\\b", focus_material, re.I)
+                    and re.search(r"\\b(?:heard|hear|listened|listen)\\b", focus_material, re.I)
+                    and re.search(r"\\b(?:explain|explanation|perfectly|justify|justification)\\b", focus_material, re.I)
+                ):
+                    earned_question = "What would tell you that the hurt itself had been heard, even if the explanation were imperfect?"
+                    if (
+                        not _hrn_surface_language_violation(earned_question)
+                        and not _hrn_question_grounding_violation(earned_question, messages)
+                    ):
+                        return earned_question
                 for field in focus_fields:
                     value = decoded.get(field)
                     if not isinstance(value, str):
