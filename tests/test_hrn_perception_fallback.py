@@ -78,7 +78,7 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
     assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 7.0
-    assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 2.5
+    assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 4.5
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
 
 
@@ -95,7 +95,7 @@ def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(mo
 
     def slow_failure(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append(item["provider"])
-        clock.value += 3.5
+        clock.value += 5.0
         raise RuntimeError("simulated slow timeout")
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", slow_failure)
@@ -815,3 +815,37 @@ def test_provider_timeout_circuit_is_isolated_by_operation():
 
     assert provider_bank._blocked_for_operation(state, "hrn_relational") is False
     assert provider_bank._blocked_for_operation(state, "hrn_perception") is True
+
+
+
+def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypatch):
+    candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
+    _isolate(monkeypatch, candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(item["provider"])
+        if item["provider"] == "groq":
+            clock.value += 3.5
+            raise RuntimeError("simulated slow first-provider failure")
+        return json.dumps({"perception": "bounded synthetic result"})
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "synthetic calibration input"}],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="hrn_perception",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert calls == ["groq", "nvidia"]
+    assert clock.value == 3.5
