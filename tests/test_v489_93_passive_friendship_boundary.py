@@ -14,6 +14,7 @@ SOURCE = Path(__file__).resolve().parents[1] / "main.py"
 TEXT = SOURCE.read_text(encoding="utf-8")
 
 TARGET = "I am struggling with a friendship where I want to be understood but also need boundaries."
+NATURAL_TARGET = "I keep putting off a conversation with a friend because I am afraid it will change the friendship."
 
 
 def _function_body(name: str, next_marker: str) -> str:
@@ -74,6 +75,23 @@ def test_exact_passive_friendship_query_opens_hrn_boundary():
     assert decision["signals"]["first_person"] is True
     assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["inquiry"] is True
+
+
+def test_natural_friend_conversation_cues_open_hrn_boundary():
+    decision = use_main._relational_boundary_decision(NATURAL_TARGET)
+    assert decision["open"] is True
+    assert decision["reason"] == "lived_relational_structure"
+    assert decision["signals"]["first_person"] is True
+    assert decision["signals"]["counterpart"] is True
+    assert decision["signals"]["dynamic"] is True
+
+
+def test_natural_friend_conversation_request_hands_off_to_hrn():
+    status, payload = asyncio.run(_post_query(NATURAL_TARGET))
+    assert status == 200
+    assert payload["intent"] == "RELATIONAL_HANDOFF"
+    assert payload["handoff"] == "relationship"
+    assert payload["relational_delegation"]["specialist_id"] == "relationship"
 
 
 def test_real_query_request_boundary_hands_off_to_hrn():
