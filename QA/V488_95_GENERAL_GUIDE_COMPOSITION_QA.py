@@ -39,8 +39,6 @@ def main():
     recovery_block = MAIN_TEXT[recovery_start:recovery_end]
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
-    assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
-    assert_true("When a situation is difficult, it helps to separate what you know from what you think it means." in recovery_block, "reflective question recovery is not visitor-useful")
     assert_true('"care for what is entrusted to you"' in recovery_block, "responsibility/stewardship fallback is missing")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
     assert_true("When a situation is difficult, it helps to separate what you know from what you think it means." in recovery_block, "reflective question recovery is not visitor-useful")
