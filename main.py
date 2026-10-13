@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.184 — use earned resource fit in HRN return
+# USE PRODUCTION VERSION: v489.185 — use earned resource fit in HRN return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.184"
-DEPLOYMENT_FINGERPRINT = "USE-v489.184-archive-orientation-entry-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.184-archive-orientation-entry-routing"
+APP_VERSION = "v489.185"
+DEPLOYMENT_FINGERPRINT = "USE-v489.185-explicit-glossary-navigation"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.185-explicit-glossary-navigation"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -177,7 +177,7 @@ _MAIN_PATH = Path(__file__).resolve()
 RUNTIME_SOURCE_SHA256 = hashlib.sha256(_MAIN_PATH.read_bytes()).hexdigest()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.184":
+if str(APP_VERSION) != "v489.185":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1925,6 +1925,21 @@ def _normalize_glossary_term(query, interpretation=None):
             return candidate
 
     normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+
+    # Explicit destination language is different from an explanatory definition
+    # request, but the visitor still expects the Glossary's native lookup UI.
+    navigation = re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|"
+        r"find|access)\b.{0,60}\bglossary(?:\s+entry)?\s*(?:for|about|on)?\s*(.+?)?[?!.]?$",
+        normalized,
+        re.I,
+    )
+    if navigation:
+        candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", str(navigation.group(1) or ""))
+        candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
+        if candidate and len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+            return candidate
+
     patterns = (
         r"^(?:what does|what is|what's)\s+(?:the\s+)?(?:meaning\s+of\s+)?(.+?)(?:\s+mean)?[?!.]?$",
         r"^(?:what is the meaning of|meaning of|define|definition of)\s+(.+?)[?!.]?$",
@@ -2024,12 +2039,17 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if _is_lived_experience_explanatory_request(query):
         return False
 
+    explicit_glossary_navigation = bool(re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        normalized,
+        re.I,
+    ))
     bounded_opening = bool(re.match(
         r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
         normalized,
         re.I,
     ))
-    if not bounded_opening and not embedded:
+    if not bounded_opening and not embedded and not explicit_glossary_navigation:
         return False
 
     remainder = normalized
