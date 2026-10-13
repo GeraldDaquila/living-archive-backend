@@ -614,3 +614,52 @@ def test_hrn_surface_policy_distinguishes_reported_words_from_advice():
     direct_advice = "You should say what you need before the argument starts."
     assert provider_bank._hrn_surface_language_violation(reported_observation) == ""
     assert provider_bank._hrn_surface_language_violation(direct_advice) != ""
+
+def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monkeypatch):
+    """A model-level timeout must not hide a healthy sibling model."""
+    candidates = [
+        _candidate("groq", "model-a"),
+        _candidate("nvidia", "gemma-model"),
+        _candidate("nvidia", "nemotron-model"),
+        _candidate("mistral", "model-d"),
+    ]
+    _isolate(monkeypatch, candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        if item["model"] == "nemotron-model":
+            return json.dumps({"perception": "bounded synthetic result"})
+        clock.value += 0.25
+        raise provider_bank.ProviderCallError(
+            "simulated model-specific failure",
+            item["provider"],
+            item["model"],
+            503,
+            category="http_error",
+        )
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "synthetic calibration input"}],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="hrn_perception",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nemotron-model"
+    assert calls == [
+        ("groq", "model-a"),
+        ("nvidia", "gemma-model"),
+        ("nvidia", "nemotron-model"),
+    ]
+

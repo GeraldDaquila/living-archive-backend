@@ -2078,7 +2078,17 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         # Specialist and Guide fallbacks are admitted only inside their own bounded
         # fast-failure windows. Never let an exhausted free-tier bank turn one query
         # into a serial walk across every configured model.
-        used_providers = {str(item.get("provider") or "") for item in attempt_pool}
+        # Avoid repeating the exact same model, but retain alternate models from
+        # a provider when its failure was model-specific. The attempt loop rechecks
+        # live provider-wide and model-specific circuit state immediately before
+        # every call, so a provider-wide quota/circuit failure still blocks sibling
+        # models. Excluding a provider wholesale here made one slow model suppress
+        # healthy sibling models (for example, NVIDIA Gemma timing out also hid a
+        # viable Nemotron model) and could exhaust the turn despite remaining lanes.
+        used_candidates = {
+            (str(item.get("provider") or ""), str(item.get("model") or ""))
+            for item in attempt_pool
+        }
         fallback_count = 0
         fallback_limit = (
             HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES
@@ -2089,10 +2099,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         )
         for item in pool[base_max_attempts:]:
             candidate_provider = str(item.get("provider") or "")
-            if not candidate_provider or candidate_provider in used_providers:
+            candidate_model = str(item.get("model") or "")
+            candidate_key = (candidate_provider, candidate_model)
+            if not candidate_provider or not candidate_model or candidate_key in used_candidates:
                 continue
             attempt_pool.append(item)
-            used_providers.add(candidate_provider)
+            used_candidates.add(candidate_key)
             fallback_count += 1
             if fallback_count >= fallback_limit:
                 break
