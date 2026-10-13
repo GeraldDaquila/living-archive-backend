@@ -5086,10 +5086,10 @@ HRN_QUESTION_REPAIR;
             && preg_match('/\b(?:explain|explanation|perfectly|perfect)\b/i', $visitor_text);
 
         if ($hurt_tone_displacement) {
-            $local_response = 'You try to explain the words that hurt you, and then the conversation shifts to how you said them. That leaves the original hurt waiting while you defend the way you raised it, so the argument can become about your explanation rather than the words that affected you.';
+            $local_response = 'You try to explain the words that hurt you, and then the conversation shifts to how you said them. The words themselves can drop out of the discussion while you explain your tone, so the original hurt is no longer what the conversation is about.';
             $local_question = 'What part of the original hurt is hardest to keep in view once the conversation turns to how you said it?';
         } elseif ($hurt_heard_without_perfect_explanation) {
-            $local_response = 'You are wondering whether your hurt can be heard if you cannot explain it perfectly. That shifts the question from how the conversation unfolds to whether the hurt itself can be heard without a perfect explanation.';
+            $local_response = 'You are wondering whether your hurt can be heard if you cannot explain it perfectly. The question has shifted from finding the right words to whether the hurt can be taken seriously when the words are imperfect.';
             $local_question = 'What would tell you that the hurt itself had been heard, even if the explanation were imperfect?';
         } elseif ($specific_incident_hurt) {
             $local_response = 'You mention a specific incident, your partner says you never let anything go, and the conversation shifts to whether you are allowed to feel hurt. That leaves the original event without much room to be discussed, because the focus has moved to whether it is acceptable to bring it up.';
