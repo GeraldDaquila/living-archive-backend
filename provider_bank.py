@@ -54,7 +54,7 @@ HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 5
 # transient transport failures cluster; strict schema validation and per-call
 # timeouts remain unchanged, and slow failures still stop fallback.
 HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 7.0
-HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 2.5
+HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 4.5
 HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # HRN uses free provider lanes whose structured-output latency can exceed 1.5s.
 # Keep each call bounded, but do not quarantine a viable lane before its normal
