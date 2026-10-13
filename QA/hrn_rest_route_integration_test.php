@@ -90,7 +90,7 @@ $assert(class_exists('HRN_Canonical_Retriever'), 'tracked canonical retriever cl
 $assert(in_array('hrn_perception', $GLOBALS['hrn_qa_operations'], true), 'real REST handler calls the Provider Bank perception contract');
 $assert(in_array('hrn_relational', $GLOBALS['hrn_qa_operations'], true), 'natural landing reaches the relational composition operation');
 $assert($status === 200 && !empty($data['ok']), 'registered REST route completes successfully; got HTTP '.$status.' '.wp_json_encode($data));
-$assert(($data['version'] ?? '') === '0.5.314', 'isolated route executes the v0.5.314 candidate');
+$assert(($data['version'] ?? '') === '0.5.315', 'isolated route executes the v0.5.315 candidate');
 $assert(is_array($data) && trim((string)($data['response'] ?? '')) !== '', 'route returns a non-empty visitor-facing landing');
 $assert(empty($data['question']), 'natural landing does not reopen with a question');
 $assert(!empty($data['rest']) && empty($data['use_resource']), 'natural landing returns rest state without forced resource handoff');
@@ -258,6 +258,194 @@ $assert(stripos((string)$secondData['question'],'friendship') !== false && (stri
 $assert(stripos((string)$secondData['question'],'at risk of changing') === false && stripos((string)$secondData['question'],'afraid might change') === false, 'second-round question does not repeat the prior fear-of-change inquiry');
 $assert(empty($secondData['rest']) && empty($secondData['use_resource']), 'second-round question keeps the ordinary conversation open');
 
+
+
+
 unset($GLOBALS['hrn_qa_composition_result']);
+
+$thirdMessage = "I think the hardest part is that she may think I'm blaming her, when really I want us to understand each other better.";
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'blame and mutual understanding',
+    'observer_contrast'=>'Blame and mutual understanding are not the same thing; the first focuses on fault, while the second asks what each person is trying to communicate.',
+    'observer_so_what'=>'That distinction matters because a person can name an effect without deciding that the other person intended harm.',
+    'observer_delta'=>'The focus can shift from proving fault to understanding what the interaction has meant.',
+    'observer_horizon'=>'what it means to be understood without assigning fault',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'separate impact from blame',
+    'situation'=>'fear of being heard as blaming while wanting mutual understanding',
+    'experience'=>$thirdMessage,
+    'tension'=>'blame and mutual understanding',
+    'pattern'=>'an honest account may be heard as assigning fault',
+    'underlying_need'=>'mutual understanding',
+    'desired_condition'=>'honesty without blame',
+    'emerging_delta'=>'naming an effect is not the same as assigning intention',
+    'perspective_delta'=>'naming an effect is not the same as assigning intention',
+    'body_of_thought'=>'',
+    'current_fractal'=>'blame and mutual understanding',
+    'next_horizon'=>'what it means to be understood without assigning fault',
+    'conversation_purpose'=>'understand a difficult friendship',
+    'movement_state'=>'exploring',
+    'conversation_phase'=>'exploration',
+    'fractal_stage'=>'exploration',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'fractal_summary'=>'',
+    'last_nugget'=>'',
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$thirdRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$thirdRequest->set_header('content-type','application/json');
+$thirdRequest->set_param('message',$thirdMessage);
+$thirdRequest->set_param('original_question',$ordinaryMessage);
+$thirdRequest->set_param('conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']."\nVisitor: ".$secondMessage."\nAssistant: ".(string)$secondData['response']."\nAssistant: ".(string)$secondData['question']);
+$thirdRequest->set_param('full_conversation','Visitor: '.$ordinaryMessage."\nAssistant: ".(string)$ordinaryData['response']."\nAssistant: ".(string)$ordinaryData['question']."\nVisitor: ".$secondMessage."\nAssistant: ".(string)$secondData['response']."\nAssistant: ".(string)$secondData['question']."\nVisitor: ".$thirdMessage);
+$thirdRequest->set_param('session_id',$ordinarySession);
+$thirdRequest->set_param('unit_turns',3);
+$thirdRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$thirdResponse = rest_do_request($thirdRequest);
+restore_error_handler();
+$thirdStatus = $thirdResponse instanceof WP_REST_Response ? $thirdResponse->get_status() : 500;
+$thirdData = $thirdResponse instanceof WP_REST_Response ? $thirdResponse->get_data() : array('error'=>$thirdResponse instanceof WP_Error ? $thirdResponse->get_error_message() : 'unknown');
+$assert($thirdStatus === 200 && !empty($thirdData['ok']), 'third ordinary round recovers from provider exhaustion using current Observer evidence; got HTTP '.$thirdStatus.' '.wp_json_encode($thirdData));
+$assert(stripos((string)($thirdData['response'] ?? ''),'blame') !== false && stripos((string)($thirdData['response'] ?? ''),'understanding') !== false, 'third-round recovery uses current-turn Observer contrast rather than prior-turn summary');
+$assert(trim((string)($thirdData['question'] ?? '')) !== '', 'third-round recovery supplies a grounded continuation question');
+$assert(stripos((string)$thirdData['question'],'understand') !== false || stripos((string)$thirdData['question'],'blame') !== false, 'third-round question opens the blame/understanding perspective');
+$assert(empty($thirdData['rest']) && empty($thirdData['use_resource']), 'third-round recovery keeps ordinary conversation open');
+
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'honesty and continuity in a friendship',
+    'observer_contrast'=>'Honesty and continuity can both matter without guaranteeing a particular outcome.',
+    'observer_so_what'=>'That distinction helps separate the conversation itself from assumptions about what it will mean for the friendship.',
+    'observer_delta'=>'The conversation and the future of the friendship are not identical.',
+    'observer_horizon'=>'the relationship between honesty and continuity',
+    'observer_decision'=>'CONTINUE',
+    'situation'=>'fear that an honest conversation might change a friendship',
+    'experience'=>$ordinaryMessage,
+    'tension'=>'honesty and continuity',
+    'pattern'=>'fear of change is delaying a conversation',
+    'underlying_need'=>'to be understood',
+    'desired_condition'=>'honesty without assuming a particular outcome',
+    'emerging_delta'=>'the conversation and the future of the friendship are distinct',
+    'perspective_delta'=>'the conversation and the future of the friendship are distinct',
+    'current_fractal'=>'honesty and continuity in a friendship',
+    'next_horizon'=>'the relationship between honesty and continuity',
+    'fractal_maturity'=>'immature',
+    'fractal_complete'=>false,
+    'closure_signal'=>'none',
+    'leadership_need'=>'open_next_vantage'
+));
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'A conversation can hold two different risks at once: saying what matters may change the friendship, while staying silent can leave the same uncertainty in place. Those are not the same kind of change, even if both feel consequential. What you have just uncovered connects with an idea in the Archive about the tension between connection and authenticity.',
+    'question'=>'What part of the friendship are you most afraid might change if you have that conversation?',
+    'rest'=>false,
+    'use_resource'=>false,
+    'resource_intro'=>''
+);
+$resourceMessage = 'I keep putting off a conversation with a friend because I am afraid it will change the friendship.';
+$resourceRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$resourceRequest->set_header('content-type','application/json');
+$resourceRequest->set_param('message',$resourceMessage);
+$resourceRequest->set_param('original_question',$resourceMessage);
+$resourceRequest->set_param('conversation','');
+$resourceRequest->set_param('full_conversation','');
+$resourceRequest->set_param('session_id','hrn-isolated-unselected-resource-offer-v05315');
+$resourceRequest->set_param('unit_turns',1);
+$resourceRequest->set_param('safety_stage','green');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$resourceResponse = rest_do_request($resourceRequest);
+restore_error_handler();
+$resourceStatus = $resourceResponse instanceof WP_REST_Response ? $resourceResponse->get_status() : 500;
+$resourceData = $resourceResponse instanceof WP_REST_Response ? $resourceResponse->get_data() : array('error'=>$resourceResponse instanceof WP_Error ? $resourceResponse->get_error_message() : 'unknown');
+$assert($resourceStatus === 200 && !empty($resourceData['ok']), 'unselected-resource route returns HTTP 200; got HTTP '.$resourceStatus.' '.wp_json_encode($resourceData));
+$assert(stripos((string)($resourceData['response'] ?? ''),'archive') === false, 'unselected-resource route removes the unrendered Archive promise');
+$assert(stripos((string)($resourceData['response'] ?? ''),'connects with an idea') === false, 'unselected-resource route removes only the offer sentence');
+$assert(trim((string)($resourceData['question'] ?? '')) !== '', 'unselected-resource route retains the ordinary follow-up question');
+$assert(empty($resourceData['resources']), 'no canonical resource is falsely returned when use_resource is false');
+$GLOBALS['hrn_qa_observer'] = array_merge((array)$GLOBALS['hrn_qa_observer'], array(
+    'observer_intention'=>'honesty and continuity in a friendship',
+    'observer_contrast'=>'A conversation can affect a friendship, but it does not determine what the friendship will become.',
+    'observer_so_what'=>'Silence also leaves questions about the friendship unresolved.',
+    'observer_delta'=>'The conversation and the future of the friendship are not identical.',
+    'observer_horizon'=>'the relationship between honesty and continuity',
+    'observer_decision'=>'CONTINUE',
+    'observer_next_intention'=>'separate the conversation from assumptions about the outcome',
+    'situation'=>'fear that a conversation may change a friendship',
+    'experience'=>$resourceMessage,
+    'tension'=>'honesty and continuity',
+    'pattern'=>'fear of change is delaying a conversation',
+    'underlying_need'=>'to be understood',
+    'desired_condition'=>'honesty without assuming a particular outcome',
+    'emerging_delta'=>'the conversation and the future of the friendship are distinct',
+    'perspective_delta'=>'the conversation and the future of the friendship are distinct',
+    'body_of_thought'=>'A conversation can affect a friendship, but it does not determine what the friendship will become. Silence also leaves questions about the friendship unresolved.',
+    'current_fractal'=>'honesty and continuity in a friendship',
+    'last_nugget'=>'the conversation and the future of the friendship are not identical',
+    'next_horizon'=>'the relationship between honesty and continuity',
+    'fractal_maturity'=>'maturing',
+    'fractal_complete'=>false,
+    'closure_signal'=>'none',
+    'leadership_need'=>'lead_forward'
+));
+$GLOBALS['hrn_qa_composition_result'] = array(
+    'response'=>'The hesitation to speak suggests that the friendship is already experiencing a shift, even if the conversation has not happened yet. Recognizing that the status quo is not fixed makes it possible to decide whether you want to guide that change or simply watch it happen.',
+    'question'=>'What part of the friendship are you most afraid might change if you have that conversation?',
+    'rest'=>false,
+    'use_resource'=>false,
+    'resource_intro'=>''
+);
+$policyRequest = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$policyRequest->set_header('content-type','application/json');
+$policyRequest->set_param('message',$resourceMessage);
+$policyRequest->set_param('original_question',$resourceMessage);
+$policyRequest->set_param('conversation','');
+$policyRequest->set_param('full_conversation','');
+$policyRequest->set_param('session_id','hrn-isolated-soft-action-frame-v05315');
+$policyRequest->set_param('unit_turns',1);
+$policyRequest->set_param('safety_stage','green');
+// Preserve the request payload across WordPress REST server reuse. Some WP test
+// runs leave the request parameter-order map changed after a previous dispatch.
+$policyRequest->set_body_params(array(
+    'message'=>$resourceMessage,
+    'original_question'=>$resourceMessage,
+    'conversation'=>'',
+    'full_conversation'=>'',
+    'session_id'=>'hrn-isolated-soft-action-frame-v05315',
+    'unit_turns'=>1,
+    'safety_stage'=>'green'
+));
+
+$assert($policyRequest->get_param('message') === $resourceMessage, 'soft-action-frame request retains its message before REST dispatch');
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    if (in_array($severity, array(E_WARNING, E_NOTICE, E_USER_WARNING, E_USER_NOTICE), true)) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+$policyResponse = rest_do_request($policyRequest);
+restore_error_handler();
+$policyStatus = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_status() : 500;
+$policyData = $policyResponse instanceof WP_REST_Response ? $policyResponse->get_data() : array('error'=>$policyResponse instanceof WP_Error ? $policyResponse->get_error_message() : 'unknown');
+$assert($policyStatus === 503 && empty($policyData['ok']), 'soft-action-frame route fails closed when the deterministic writer can only repeat rejected prose; got HTTP '.$policyStatus.' '.wp_json_encode($policyData));
+$policyEnvelope = wp_json_encode($policyData);
+$assert(stripos((string)$policyEnvelope,'makes it possible') === false && stripos((string)$policyEnvelope,'guide that change') === false && stripos((string)$policyEnvelope,'watch it happen') === false, 'soft-action-frame text never leaks into the visitor-facing failure envelope');
+$assert(($policyData['reason'] ?? '') === 'composition_policy_rejected', 'soft-action-frame failure identifies the policy boundary without exposing rejected prose');
+unset($GLOBALS['hrn_qa_composition_result']);
+
+
 
 echo "HRN ISOLATED REST ROUTE INTEGRATION: PASS\n";

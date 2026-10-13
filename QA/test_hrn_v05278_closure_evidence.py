@@ -13,12 +13,55 @@ SOURCE = (ROOT / "wordpress/hrn/human-relational-navigator.php").read_text(encod
 
 class HRNClosureEvidenceContract(unittest.TestCase):
     def test_release_identity_is_sequential_and_aligned(self):
-        self.assertIn("Version: 0.5.314", SOURCE[:500])
-        self.assertIn("const VERSION = '0.5.314';", SOURCE)
+        self.assertIn("Version: 0.5.315", SOURCE[:500])
+        self.assertIn("const VERSION = '0.5.315';", SOURCE)
         self.assertNotIn("0.5.277", SOURCE)
 
 
 
+
+
+
+
+
+
+    def test_soft_action_frames_are_rejected_by_the_response_policy(self):
+        start = SOURCE.index("private function prescriptive_response_violation(")
+        end = SOURCE.index("private function humanity_gate(", start)
+        method = SOURCE[start:end]
+        self.assertIn("makes it possible|allows|enables|creates room|opens a space|invites a new rhythm", method)
+        self.assertIn("decide whether you want to|guide (?:that|the|this) (?:change|shift|outcome)|watch it happen", method)
+
+    def test_unselected_resource_offer_sentence_is_removed_from_visitor_response(self):
+        self.assertIn("private function strip_unselected_resource_offer(", SOURCE)
+        self.assertIn("if (!$use_resource) {", SOURCE)
+        self.assertIn("$response = $this->strip_unselected_resource_offer($response);", SOURCE)
+        self.assertIn("$mentions_resource && $offers_resource", SOURCE)
+
+    def test_generic_next_part_question_is_rejected_before_visitor_grounded_recovery(self):
+        self.assertIn("what becomes clearer when you look toward that next part of the situation", SOURCE)
+        self.assertIn("if (strpos($q, 'what becomes clearer when you look toward that next part of the situation') !== false) return true;", SOURCE)
+
+    def test_blame_understanding_contrast_has_a_grounded_question_fallback(self):
+        self.assertIn("$blame_without_understanding = preg_match", SOURCE)
+        self.assertIn("What do you want her to understand that might otherwise sound like blame?", SOURCE)
+
+    def test_blame_and_mutual_understanding_are_structured_recovery_families(self):
+        start = SOURCE.index("private function structured_recovery_candidate_is_relevant(")
+        end = SOURCE.index("private function recover_structured_state_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("'blame_assignment' => array('blame','blaming','fault','accuse','accusation')", method)
+        self.assertIn("'mutual_understanding' => array('understand','understanding','communicate','communication','hear','heard','listen','listening')", method)
+
+    def test_structured_recovery_uses_current_observer_contrast_before_prior_turn_memory(self):
+        start = SOURCE.index("private function recover_structured_state_composition(")
+        end = SOURCE.index("private function normalize_composition(", start)
+        method = SOURCE[start:end]
+        self.assertIn("$state['observer_contrast'] ?? ''", method)
+        self.assertIn("$state['observer_so_what'] ?? ''", method)
+        self.assertIn("$state['observer_delta'] ?? ''", method)
+        self.assertIn("$observer_candidate", method)
+        self.assertIn("structured_recovery_candidate_is_relevant($candidate, $message)", method)
 
     def test_same_change_risk_question_family_is_rejected_as_repeat(self):
         start = SOURCE.index("private function question_is_repeated(")

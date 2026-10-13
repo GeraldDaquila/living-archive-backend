@@ -2,17 +2,18 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.314
+ * Version: 0.5.315
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.314';
+    const VERSION = '0.5.315';
     // RELEASE v0.5.310: use the visitor's specific-incident sequence for bounded conflict landing instead of abstract Observer movement labels; frozen writers unchanged.
-    // RELEASE v0.5.314: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
-    // RELEASE v0.5.314: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
-    // RELEASE v0.5.314: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
+    // RELEASE v0.5.315: compose bounded recovery from current Observer contrast when all writers fail; frozen writers unchanged.
+    // RELEASE v0.5.315: reject repeated fear-of-change questions as the same cognitive plane; frozen writers unchanged.
+    // RELEASE v0.5.315: recover a grounded perspective question when relational warmth conflicts with pretending everything is fine; frozen writers unchanged.
+    // RELEASE v0.5.315: complete missing opening questions from explicit fear about a conversation changing a named relationship; frozen writers unchanged.
     // RELEASE v0.5.309: validate natural-landing evidence against visitor transcript turns so generated Observer summaries cannot self-certify; frozen writers unchanged.
     // RELEASE v0.5.308: natural landing falls back to existing provider-independent terminal synthesis under the same humanity, closure-shape, and earned-evidence gates; frozen writers unchanged.
     // RELEASE v0.5.307: keep specific-incident recovery strictly within the visitor's stated sequence to pass the grounding boundary; frozen writers unchanged.
@@ -4861,6 +4862,8 @@ HRN_QUESTION_REPAIR;
         }
         $families = array(
             'being_heard' => array('unheard','heard','hear','listening','listen','listened','dismissed','ignored','voice'),
+            'blame_assignment' => array('blame','blaming','fault','accuse','accusation'),
+            'mutual_understanding' => array('understand','understanding','communicate','communication','hear','heard','listen','listening'),
             'disagreement' => array('disagree','disagreement','disagreements','conflict','conflicts','argument','arguments','argue','arguing'),
             'boundaries' => array('boundary','boundaries','limit','limits','distance','space'),
             'grief_loss' => array('grief','grieving','loss','lost','mourning','bereavement','died','death'),
@@ -4890,7 +4893,32 @@ HRN_QUESTION_REPAIR;
     private function recover_structured_state_composition($state, $message, $conversation, $resources, $ledger) {
         $state = is_array($state) ? $state : array();
         $ledger = is_array($ledger) ? $ledger : array();
+        // If every prose provider fails, preserve the current turn's validated
+        // Observer contrast rather than falling back only to prior-turn summaries.
+        // Observer fields are navigation evidence, not visitor-facing copy by
+        // themselves; join distinct propositions and pass them through the same
+        // relevance, humanity, response-shape, and question gates as other recovery.
+        $observer_parts = array();
+        $observer_seen = array();
+        foreach (array(
+            $state['observer_contrast'] ?? '',
+            $state['observer_so_what'] ?? '',
+            $state['observer_delta'] ?? '',
+        ) as $observer_raw) {
+            $observer_part = $this->normalize_paragraphs(
+                $this->structured_state_text_value($observer_raw)
+            );
+            $observer_key = strtolower(trim($observer_part));
+            if ($observer_key === '' || isset($observer_seen[$observer_key])) continue;
+            $observer_seen[$observer_key] = true;
+            if (!preg_match('/[.!?]$/u', $observer_part)) $observer_part .= '.';
+            $observer_parts[] = $observer_part;
+        }
+        $observer_candidate = count($observer_parts) >= 2
+            ? implode(' ', array_slice($observer_parts, 0, 3))
+            : '';
         $candidates = array(
+            $observer_candidate,
             $this->structured_state_text_value($state['body_of_thought'] ?? ''),
             $this->structured_state_text_value($state['archive_grounded_understanding'] ?? ''),
             $this->structured_state_text_value($state['relational_understanding'] ?? ''),
@@ -4999,6 +5027,19 @@ HRN_QUESTION_REPAIR;
         return array();
     }
 
+    private function strip_unselected_resource_offer($response) {
+        $sentences = preg_split('/(?<=[.!?])\\s+/u', trim((string)$response), -1, PREG_SPLIT_NO_EMPTY);
+        if (!is_array($sentences) || !$sentences) return trim((string)$response);
+        $kept = array();
+        foreach ($sentences as $sentence) {
+            $mentions_resource = preg_match('/\\b(?:archive|article|resource|reading|doorway|recommendation)\\b/i', $sentence);
+            $offers_resource = preg_match('/\\b(?:connects? with|points? to|offers?|recommends?|gift|read|explore|place to|may help|could help|gives you a place)\\b/i', $sentence);
+            if ($mentions_resource && $offers_resource) continue;
+            $kept[] = trim($sentence);
+        }
+        return trim(implode(' ', $kept));
+    }
+
     private function normalize_composition($draft, $state, $message, $resources, $unit_complete=false) {
         $this->last_composition_failure=array();
         $decoded = $this->unwrap_composition_envelope($draft);
@@ -5090,6 +5131,12 @@ HRN_QUESTION_REPAIR;
             }
             if ($use_resource && $resource_intro === '') {
                 $use_resource = false;
+            }
+            // A writer may mention a resource even when no doorway is selected, or
+            // combine a resource offer with a follow-up question. Do not promise a
+            // gift that the route will not render; remove only the offer sentence.
+            if (!$use_resource) {
+                $response = $this->strip_unselected_resource_offer($response);
             }
             if ($response === '') { $this->last_composition_failure=array('reason'=>'empty_response'); return array(); }
             $normalized_response = $this->normalize_paragraphs($response);
@@ -5301,6 +5348,8 @@ HRN_QUESTION_REPAIR;
         $visitor_lower = strtolower((string)$message);
         $explicit_unheard_disagreement = preg_match('/\\b(?:unheard|not heard|ignored|dismissed)\\b/i', $message_lower)
             && preg_match('/\\b(?:disagree|disagreement|argument|conflict)\\b/i', $message_lower);
+        $explicit_blame_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
         $fallbacks = array();
         // Preserve a useful next question when the visitor names both relational
         // warmth and concealment. This is a perspective question about the stated
@@ -5311,6 +5360,11 @@ HRN_QUESTION_REPAIR;
         if ($warmth_without_honesty) {
             $relationship_noun = preg_match('/\\bfriendship\\b/i', $visitor_lower) ? 'friendship' : 'relationship';
             $fallbacks[] = 'What does keeping the ' . $relationship_noun . ' warm mean when something feels unspoken?';
+        }
+        $blame_without_understanding = preg_match('/\\b(?:blame|blaming|fault|accuse|accusation)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:understand|understanding|hear|heard|listen|communicate)\\b/i', $visitor_lower);
+        if ($blame_without_understanding) {
+            $fallbacks[] = 'What do you want her to understand that might otherwise sound like blame?';
         }
 
         // When the visitor explicitly describes a recurring conflict, recover with
@@ -5368,7 +5422,8 @@ HRN_QUESTION_REPAIR;
             // distinction in the question itself. Its grounding is therefore lexical
             // and observable; do not let the broader semantic-family heuristic erase it.
             if (!$this->question_semantically_aligned($fallback, $response, $message, $base_state)
-                && !($explicit_unheard_disagreement && strpos(strtolower($fallback), 'unheard') !== false)) continue;
+                && !($explicit_unheard_disagreement && strpos(strtolower($fallback), 'unheard') !== false)
+                && !($explicit_blame_understanding && strpos(strtolower($fallback), 'understand') !== false && strpos(strtolower($fallback), 'blame') !== false)) continue;
             return $fallback;
         }
         return '';
@@ -5379,6 +5434,10 @@ HRN_QUESTION_REPAIR;
         if ($q === '') return true;
         // Reject generic introspection that mistakes an abstract self-theory for a grounded follow-up.
         if (preg_match('/\b(?:what part of yourself|what does the pull|what does .* promise you|what feels most vulnerable|what are you protecting in yourself)\b/i', $q)) return true;
+        // Reject a broad next-part template that can pass lexical grounding only
+        // because the generated response repeats the same concepts; this allows
+        // the bounded visitor-anchored fallback set to run instead.
+        if (strpos($q, 'what becomes clearer when you look toward that next part of the situation') !== false) return true;
         // v0.5.206: prevent the exact same-plane HRN question from recurring.
         if (strpos($q, 'what feels different when you hold those two sides together') !== false) return true;
         // v0.5.288: reject meta-questions that inspect our distinction rather than the lived interaction.
@@ -5445,6 +5504,10 @@ HRN_QUESTION_REPAIR;
         // conversation and must not be mistaken for prescription.
         $directive_patterns = array(
             '/\\b(?:you)\\s+(?:should|must|need to|have to|ought to|are supposed to)\\b/i',
+            // HRN is perspective-oriented, not solution-oriented. Block soft action
+            // frames that steer the visitor toward managing or directing the outcome.
+            '/\\b(?:makes it possible|allows|enables|creates room|opens a space|invites a new rhythm)\\b/i',
+            '/\\b(?:decide whether you want to|guide (?:that|the|this) (?:change|shift|outcome)|watch it happen)\\b/i',
             '/\\b(?:you)\\s+(?:might|could|can|may)\\s+try\\b/i',
             '/\\b(?:you)\\s+(?:need|have)\\s+to\\s+(?:talk|ask|tell|leave|stay|set|change|stop|start|contact|call|reach|write|say|do|make|avoid|create|invite|confront|forgive|accept|let)\\b/i',
             '/\\b(?:you)\\s+(?:try|consider|choose|decide|start|stop|avoid|leave|stay|contact|call|reach out|talk to|tell|ask|say|write|set|change|make|invite|confront)\\b/i',
