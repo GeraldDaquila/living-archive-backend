@@ -23,6 +23,13 @@ class HRNClosureEvidenceContract(unittest.TestCase):
 
 
 
+
+    def test_unselected_resource_offer_sentence_is_removed_from_visitor_response(self):
+        self.assertIn("private function strip_unselected_resource_offer(", SOURCE)
+        self.assertIn("if (!$use_resource) {", SOURCE)
+        self.assertIn("$response = $this->strip_unselected_resource_offer($response);", SOURCE)
+        self.assertIn("$mentions_resource && $offers_resource", SOURCE)
+
     def test_blame_understanding_contrast_has_a_grounded_question_fallback(self):
         self.assertIn("$blame_without_understanding = preg_match", SOURCE)
         self.assertIn("What feels different between being understood and being heard as blaming?", SOURCE)
