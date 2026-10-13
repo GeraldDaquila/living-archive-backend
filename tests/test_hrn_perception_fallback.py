@@ -755,7 +755,7 @@ def test_relational_fallback_promotes_recently_successful_nemotron(monkeypatch):
         calls.append((item["provider"], item["model"]))
         if item["provider"] == "nvidia" and item["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b":
             return json.dumps({
-                "response": "You both say you want things to improve, but the same argument keeps returning. The discussion seems to shift from the specific incident to whether it is acceptable to mention it.",
+                "response": "You both say you want things to improve, yet the same argument keeps returning. From what you described, the conversation can move away from the incident itself and toward whether you are allowed to still feel hurt. I cannot know either person’s intention, so I will stay with the sequence you noticed.",
                 "question": "What usually happens just before the argument starts again?",
                 "rest": False,
                 "use_resource": False,
