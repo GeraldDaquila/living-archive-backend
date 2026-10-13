@@ -19,7 +19,7 @@ def test_multiple_candidate_failures_persist_one_shared_health_snapshot(monkeypa
     candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
-    monkeypatch.setattr(provider_bank, "_blocked", lambda state: False)
+    monkeypatch.setattr(provider_bank, "_blocked", lambda state, operation=None: False)
     monkeypatch.setattr(provider_bank, "acquire_probe", lambda state: True)
     monkeypatch.setattr(provider_bank, "_STATE", {
         "models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}
