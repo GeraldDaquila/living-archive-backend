@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.243 — structural clarification and answer/navigation boundary
+# USE PRODUCTION VERSION: v489.243 — stewardship gold-standard composition
 import asyncio
 import hashlib
 from html import unescape
