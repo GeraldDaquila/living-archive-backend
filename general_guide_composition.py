@@ -396,7 +396,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         if re.search(r"\bstewardship\b", query, re.I) and not _question_requests_enumeration(query):
             if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
                 raise ValueError("plain stewardship explanation must not introduce an unsolicited list")
-            if not re.search(r"\b(?:everyday|promise|shared space|resources thoughtfully|maintain|borrowed|care for)\b", response, re.I):
+            if not re.search(r"\b(?:keeping a promise|shared spaces?|maintain(?:ing)? what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item)\b", response, re.I):
                 raise ValueError("plain stewardship explanation requires one recognizable everyday anchor")
             if not re.search(r"\b(?:does not mean|doesn['’]?t mean|controlling everything|sacrificing yourself|within your limits|what is yours to care for)\b", response, re.I):
                 raise ValueError("plain stewardship explanation must clarify the limits of responsibility")
