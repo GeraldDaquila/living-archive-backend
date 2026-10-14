@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.257 — complete-sentence discovery fallback
+# USE PRODUCTION VERSION: v489.258 — registry-grounded discovery
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.257"
-DEPLOYMENT_FINGERPRINT = "USE-v489.257-provider-independent-discovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.257-provider-independent-discovery"
+APP_VERSION = "v489.258"
+DEPLOYMENT_FINGERPRINT = "USE-v489.258-registry-grounded-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.258-registry-grounded-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.257":
+if str(APP_VERSION) != "v489.258":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4443,7 +4443,7 @@ def _guide_registered_discovery_nodes(subject, limit=3):
     a node can be selected only after its canonical body is fetched and passes
     the existing selected-page evidence checks.
     """
-    query = re.sub(r"\\s+", " ", str(subject or "").casefold()).strip()
+    query = re.sub(r"\s+", " ", str(subject or "").casefold()).strip()
     query_terms = {
         token for token in re.findall(r"[a-z0-9]+", query)
         if len(token) >= 4 and token not in {
@@ -4465,7 +4465,7 @@ def _guide_registered_discovery_nodes(subject, limit=3):
             continue
         url = str(node.get("canonical_url") or "").strip()
         title = str(node.get("title") or "").strip()
-        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+        if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
             continue
         metadata = " ".join([
             title,
