@@ -4815,6 +4815,27 @@ def _is_explicit_guide_destination_request(query):
         re.I,
     ))
 
+def _guide_node_handoff_is_authorized(query, selected_node_id):
+    """Authorize a native Guide Node handoff only when the registry supports it.
+
+    An explicit request to find material is not permission to open an arbitrary
+    node chosen by a model. The selected node must also be the strongest
+    registry-backed subject destination. If no such destination exists, keep
+    the request in ordinary Guide composition so it can answer and recommend
+    relevant material without substituting a generic access page.
+    """
+    if not _is_explicit_guide_destination_request(query):
+        return False
+    selected_id = str(selected_node_id or "").strip()
+    if not selected_id:
+        return False
+    matched = _guide_node_specific_match(query)
+    return bool(
+        matched
+        and str(matched.get("node_id") or "").strip() == selected_id
+    )
+
+
 # Routing boundary regression probes: compound explanatory questions must
 # never be mistaken for a request to navigate directly to a registry node.
 if _is_explicit_guide_destination_request(
@@ -5792,9 +5813,12 @@ async def _use_request_boundary(scope, receive, send):
     # too, so a model-selected Guide Node cannot bypass the registry guard above.
     # A compound explanatory question misclassified as a page destination returns
     # to ordinary Guide composition instead of becoming an empty direct handoff.
-    if route_id == "guide_node" and not _is_explicit_guide_destination_request(query):
+    if route_id == "guide_node" and not _guide_node_handoff_is_authorized(
+        query,
+        (route.get("round1_interpretation") or {}).get("guide_node_id"),
+    ):
         print(
-            "The Guide request boundary: suppressed non-explicit Guide Node handoff; "
+            "The Guide request boundary: suppressed unsupported Guide Node handoff; "
             f"query={_normalize_query(query)[:120]}"
         )
         route_id = "guide"
