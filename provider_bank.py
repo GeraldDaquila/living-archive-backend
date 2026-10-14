@@ -2522,7 +2522,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # This keeps the original response intact and avoids spending the
                 # tiny free-tier completion budget re-generating valid prose.
                 recovery_mode_schema = (
-                    recovery_schema if schema_capable or question_only_recovery
+                    recovery_schema if schema_capable
+                    else {"mode": "json_object"} if question_only_recovery
                     else effective_schema
                 )
                 recovery_mode = "strict_schema" if schema_capable else "provider_neutral_json_object"
