@@ -205,3 +205,28 @@ def test_deterministic_discovery_recovery_uses_selected_resource_content():
     assert "accountability" in response
     assert "public accountability" in response
     assert "relevant entry point" in response
+
+
+
+def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monkeypatch):
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    document = {
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "This canonical resource explains governance structures, institutional accountability, "
+            "transparency, civic participation, and how responsibility is distributed across institutions."
+        ),
+    }
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda subject, candidate: (0, 0, 0, 0),
+    )
+
+    assert main._guide_selected_doorway_discovery_evidence(
+        [document], "public accountability", doorway
+    ) == [document]
