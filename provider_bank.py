@@ -1993,11 +1993,15 @@ def _hrn_complete_missing_question(messages):
         "fractal_transition", "pivot_signal", "leadership_need",
         "plane_shift", "relational_understanding", "archive_grounded_understanding",
     }
+    # Prefer the concrete relational evidence over abstract summaries. The
+    # prior ordering selected labels such as "Discovery" or "Clarify relational
+    # dynamics" before the actual contrast, so the local question could not pass
+    # grounding and needlessly spent another provider call.
     focus_fields = (
-        "current_fractal", "thread_summary", "working_hypothesis",
-        "observer_intention", "underlying_need", "emerging_delta",
-        "body_of_thought", "unresolved", "next_horizon",
-        "relational_understanding", "observer_contrast",
+        "observer_contrast", "observer_delta", "current_fractal",
+        "body_of_thought", "unresolved", "emerging_delta", "thread_summary",
+        "working_hypothesis", "underlying_need", "desired_condition",
+        "next_horizon", "observer_intention", "relational_understanding",
     )
     for item in reversed(list(messages or [])):
         if not isinstance(item, dict):
@@ -2033,6 +2037,34 @@ def _hrn_complete_missing_question(messages):
                     for field in focus_fields
                     if isinstance(decoded.get(field), str)
                 )
+                # Deadline/scope changes are a concrete, recurring relational
+                # contrast in HRN. Complete an omitted question from those declared
+                # fields locally, without burning another provider call. Use the
+                # wording actually present in the brief ("date" when no deadline
+                # is named), and keep the question about the exchange itself.
+                has_scope = bool(re.search(r"\bscope\b", focus_material, re.I))
+                has_deadline = bool(re.search(r"\bdeadline\b", focus_material, re.I))
+                has_date = bool(re.search(r"\b(?:agreed date|date)\b", focus_material, re.I))
+                if has_scope and has_deadline:
+                    grounded_question = (
+                        "When you raise the changed scope alongside the agreed deadline, "
+                        "what happens in the conversation?"
+                    )
+                    if (
+                        not _hrn_surface_language_violation(grounded_question)
+                        and not _hrn_question_grounding_violation(grounded_question, messages)
+                    ):
+                        return grounded_question
+                if has_scope and has_date:
+                    grounded_question = (
+                        "When you raise the changed scope alongside the agreed date, "
+                        "what happens in the conversation?"
+                    )
+                    if (
+                        not _hrn_surface_language_violation(grounded_question)
+                        and not _hrn_question_grounding_violation(grounded_question, messages)
+                    ):
+                        return grounded_question
                 if (
                     re.search(r"\bhurt\b", focus_material, re.I)
                     and re.search(r"\b(?:heard|hear|listened|listen)\b", focus_material, re.I)
