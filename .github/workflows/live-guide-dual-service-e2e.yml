@@ -73,21 +73,40 @@ jobs:
                   if name in ready:
                       continue
                   try:
-                      status, payload = post_query(base_url, clarification_query, timeout=25)
+                      # Use a cheap, read-only diagnostic while waiting for deploy parity.
+                      # Avoid model-backed requests merely to discover the runtime version.
+                      request = urllib.request.Request(
+                          base_url + "/api/integration-audit",
+                          headers={"Accept": "application/json"},
+                          method="GET",
+                      )
+                      with urllib.request.urlopen(request, timeout=10) as response:
+                          status = response.status
+                          payload = json.loads(response.read().decode("utf-8"))
                       last_state[name] = {
                           "status": status,
                           "version": payload.get("version"),
-                          "intent": payload.get("intent"),
+                          "fingerprint": payload.get("fingerprint"),
+                          "ok": payload.get("ok"),
                       }
                       if (
                           status == 200
                           and payload.get("version") == expected_version
-                          and payload.get("intent") == "CLARIFICATION_REQUIRED"
-                          and payload.get("recommendation") is None
-                          and payload.get("clarification", {}).get("required") is True
+                          and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
                       ):
-                          ready.add(name)
-                          print(f"{name}: live clarification boundary PASS; version={expected_version}")
+                          # Exercise the clarification boundary only once the release identity matches.
+                          boundary_status, boundary_payload = post_query(
+                              base_url, clarification_query, timeout=25
+                          )
+                          if (
+                              boundary_status == 200
+                              and boundary_payload.get("version") == expected_version
+                              and boundary_payload.get("intent") == "CLARIFICATION_REQUIRED"
+                              and boundary_payload.get("recommendation") is None
+                              and boundary_payload.get("clarification", {}).get("required") is True
+                          ):
+                              ready.add(name)
+                              print(f"{name}: release identity and clarification boundary PASS; version={expected_version}")
                   except Exception as exc:
                       last_state[name] = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
               if len(ready) == len(services):
