@@ -1,0 +1,25 @@
+{
+  "benchmark_id": "general-guide-stewardship-gold-standard-2026-10-14",
+  "status": "FROZEN_REFERENCE_ONLY",
+  "purpose": "Regression benchmark for the General Purpose Guide composition. This is the accepted reference response shown in the visitor-facing Search UI on 2026-10-14.",
+  "query": "Explain stewardship, but do not send me to another page yet.",
+  "expected_response": "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\nIt matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.",
+  "expected_doorway_title": "The Stewardship Age",
+  "invariants": [
+    "Answer is complete before the optional doorway is presented.",
+    "Three connected paragraphs: ordinary-language meaning; why small choices matter; boundary of care versus control or self-sacrifice.",
+    "Use concrete, everyday language and one coherent line of reasoning.",
+    "No unsolicited taxonomy or list.",
+    "The doorway is separate and optional; it must not replace or delay the answer.",
+    "The query explicitly says not to send the visitor to another page yet; no direct page handoff is allowed.",
+    "A single Search submission must render the answer; a second click must not be required."
+  ],
+  "freeze_policy": [
+    "This fixture is a read-only reference benchmark, not a prompt to rewrite the frozen gold-standard response.",
+    "Do not edit the expected response to accommodate a regression.",
+    "Do not alter protected use_core.py.",
+    "Any future change to the gold standard requires explicit user authorization and a separately documented benchmark-version change.",
+    "Evaluate structural and semantic parity, not only HTTP status or response length.",
+    "Backend JSON/SSE tests do not substitute for browser-level Search submission and render verification."
+  ]
+}
