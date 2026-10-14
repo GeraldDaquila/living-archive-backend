@@ -2385,30 +2385,33 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
-        # Live E2E showed that slower candidates can consume the shared HRN turn
-        # budget before a recently successful fast lane is reached. Promote
-        # Nemotron 3.5 Lightning to the FIRST attempt only when the bank currently
-        # considers it healthy and has recorded a success. Half-open probes never
-        # leapfrog a healthy candidate; all capability, cooldown, and output
-        # contract gates remain authoritative.
+        # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
+        # candidates can consume the shared HRN turn budget before a recently
+        # successful free lane is reached. Prefer proven Workers AI Gemma 4 26B,
+        # then proven NVIDIA Nemotron 3.5 Lightning. Only healthy, previously
+        # successful candidates qualify; half-open probes never leapfrog.
         preferred = next((
-            item for item in pool
-            if str(item.get("provider") or "") == "nvidia"
-            and str(item.get("model") or "") == "nvidia/nemotron-3.5-lightning-30b-a3b"
+            item for preferred_provider, preferred_model in (
+                ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+                ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            )
+            for item in pool
+            if str(item.get("provider") or "") == preferred_provider
+            and str(item.get("model") or "") == preferred_model
             and str(item.get("health_state") or "") == "healthy"
             and float(item.get("last_success", 0) or 0) > 0
+            and int(item.get("quality_failures", 0) or 0) == 0
         ), None)
         if preferred is not None and pool[0] is not preferred:
             pool = [preferred] + [item for item in pool if item is not preferred]
             print(
                 "USE provider bank HRN candidate priority: "
-                "promoted healthy, recently successful NVIDIA Nemotron 3.5 Lightning "
-                "to first attempt for operation=" + operation + "."
+                f"promoted healthy, recently successful {preferred['provider']} "
+                f"{preferred['model']} to first attempt for operation={operation}."
             )
-        # When the known-good NVIDIA fast lane is unavailable, prefer a reviewed
-        # low-latency Cloudflare Workers AI model only after a recorded success.
-        # Half-open Workers AI candidates are recovery probes, not known-good lanes:
-        # they must not leapfrog healthy candidates and consume the turn on timeout.
+        # If no proven first-attempt fast lane is available, prefer a proven
+        # Workers AI fallback before free-router candidates. Include Gemma 4 26B
+        # because live production showed it can satisfy the structured HRN contract.
         if not (preferred is not None and pool[0] is preferred):
             workers_fast = _hrn_workers_fast_candidate(pool)
             if workers_fast is not None and pool[0] is not workers_fast:
@@ -2501,6 +2504,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             primary_provider = str(attempt_pool[0].get("provider") or "")
             fast_fallback = next((
                 item for preferred_model in (
+                    "@cf/google/gemma-4-26b-a4b-it",
                     "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
                     "@cf/zai-org/glm-4.7-flash",
                 )

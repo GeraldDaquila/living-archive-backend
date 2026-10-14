@@ -952,7 +952,7 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
     assert clock.value == 3.5
 
 
-def test_recently_successful_nemotron_lightning_is_first_for_perception(monkeypatch):
+def test_recently_successful_gemma26_is_first_for_perception(monkeypatch):
     candidates = [
         _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -975,12 +975,12 @@ def test_recently_successful_nemotron_lightning_is_first_for_perception(monkeypa
     )
 
     assert result is not None
-    assert result["provider"] == "nvidia"
-    assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
-    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    assert result["provider"] == "workers_ai"
+    assert result["model"] == "@cf/google/gemma-4-26b-a4b-it"
+    assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
 
 
-def test_recently_successful_nemotron_lightning_is_first_for_relational(monkeypatch):
+def test_recently_successful_gemma26_is_first_for_relational(monkeypatch):
     candidates = [
         _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -1020,7 +1020,8 @@ def test_recently_successful_nemotron_lightning_is_first_for_relational(monkeypa
 
     assert result is None
     assert calls
-    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
+    assert ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b") in calls
 
 
 def test_half_open_nemotron_lightning_does_not_leapfrog_healthy_candidate(monkeypatch):
@@ -1049,3 +1050,49 @@ def test_half_open_nemotron_lightning_does_not_leapfrog_healthy_candidate(monkey
 
     assert result is not None
     assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
+
+
+def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_groq(monkeypatch):
+    candidates = [
+        _candidate("groq", "openai/gpt-oss-20b"),
+        _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _candidate("openrouter", "openrouter/free"),
+    ]
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def call_gemma_first(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        assert item["provider"] == "workers_ai"
+        assert item["model"] == "@cf/google/gemma-4-26b-a4b-it"
+        return json.dumps({
+            "response": (
+                "The agreed deadline stayed fixed after the project scope changed. "
+                "When you raise that difference, the conversation shifts toward whether "
+                "your reaction is reasonable rather than what changed in the work."
+            ),
+            "question": (
+                "When you raise the changed scope alongside the agreed deadline, "
+                "what happens in the conversation?"
+            ),
+            "rest": False,
+            "use_resource": False,
+            "resource_intro": "",
+        })
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", call_gemma_first)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps({
+            "observer_contrast": "the agreed deadline stayed fixed after the project scope changed",
+            "observer_delta": "the conversation shifts to judging whether the reaction is reasonable",
+            "observer_horizon": "when the changed scope is raised alongside the agreed deadline",
+            "observer_next_intention": "understand what happens when the change is raised",
+        })}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it")]
