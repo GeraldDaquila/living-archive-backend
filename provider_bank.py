@@ -63,7 +63,7 @@ HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # Workers AI Gemma 4 26B has proven useful but can finish just beyond the generic
 # 2.5s HRN cutoff. Give only this previously successful lane a small extra window;
 # the 7s fast-failure budget still bounds aggregate fallback time.
-HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 3.5
+HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0
 # HRN's final structured composition must contain the complete visitor-facing response
 # AND its distinct follow-up question. 250 tokens starved the question field and
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the

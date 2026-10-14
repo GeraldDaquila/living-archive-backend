@@ -1096,4 +1096,4 @@ def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_g
     )
 
     assert result is not None
-    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 3.5)]
+    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 4.0)]
