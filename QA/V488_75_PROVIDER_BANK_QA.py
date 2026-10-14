@@ -100,7 +100,7 @@ def main():
     assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider
     assert "timeout_override=_provider_call_timeout(operation, item)" in provider
     assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
-    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0' in provider
+    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5' in provider
     assert 'model == "@cf/google/gemma-4-26b-a4b-it"' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
