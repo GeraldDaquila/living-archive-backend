@@ -40,6 +40,8 @@ def main():
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
+    assert_true("relationship between personal agency and responsibility to others" in recovery_block, "calibrated conceptual recovery for agency/responsibility is missing")
+    assert_true("calibrated_general_knowledge_recovery" in recovery_block, "calibrated conceptual fallback provider marker is missing")
     assert_true("When a situation is difficult, it helps to separate what you know from what you think it means." in recovery_block, "reflective question recovery is not visitor-useful")
     assert_true("def _general_guide_authoritative_doorway(query, context_data):" in MAIN_TEXT, "evidence-ranked recommendation selector is missing")
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "recommendation relevance guard is missing")
