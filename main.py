@@ -4333,6 +4333,11 @@ def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, d
     return bool(archive_evidence_unavailable or str(discovery_subject or "").strip())
 
 
+def _guide_subject_supplement_limit(discovery_subject):
+    """Broaden candidate recall for explicit resource-finding requests."""
+    return 10 if str(discovery_subject or "").strip() else 3
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4411,7 +4416,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(resource_query, limit=10 if discovery_subject else 3)
+            recovered_docs = _wordpress_search_canonical_candidates(resource_query, limit=_guide_subject_supplement_limit(discovery_subject))
             recovered_docs = [
                 {
                     "title": str(item.get("title") or "").strip(),
