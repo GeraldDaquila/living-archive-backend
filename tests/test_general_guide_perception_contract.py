@@ -68,7 +68,7 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.15"
+    assert guide.CONTRACT_VERSION == "v1.16"
     assert guide.contract_snapshot()["contract_version"] == "v1.16"
 
 
