@@ -470,3 +470,80 @@ def test_subject_discovery_replaces_provider_specific_prose_with_selected_page_e
     assert "The Psychology of Power" not in response
     assert "establish accountability" in response
 
+
+
+
+def test_registered_discovery_nodes_ranked_from_published_metadata(monkeypatch):
+    nodes = [
+        {
+            "node_id": "leadership-foundations",
+            "title": "Leadership Foundations",
+            "purpose": "Leadership through self-governance, relationships, responsibility, governance, and stewardship.",
+            "semantic_hints": ["leadership foundations", "responsibility", "governance"],
+            "canonical_url": "https://geralddaquila.com/leadership-foundations/",
+            "status": "active",
+        },
+        {
+            "node_id": "steward-readiness",
+            "title": "Steward Readiness Instruments",
+            "purpose": "Reflective assessment, relational accountability, stewardship under institutional responsibility.",
+            "semantic_hints": ["steward readiness", "institutional responsibility", "SRI"],
+            "canonical_url": "https://geralddaquila.com/stewardship-readiness/",
+            "status": "active",
+        },
+    ]
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: nodes)
+
+    ranked = main._guide_registered_discovery_nodes("institutional responsibility", limit=2)
+
+    assert ranked[0]["node_id"] == "steward-readiness"
+    assert all(node["status"] == "active" for node in ranked)
+
+
+def test_registered_discovery_rejects_unregistered_url_even_with_matching_body(monkeypatch):
+    nodes = [{
+        "node_id": "leadership-foundations",
+        "title": "Leadership Foundations",
+        "purpose": "Leadership through responsibility, governance, and stewardship.",
+        "semantic_hints": ["responsibility", "governance"],
+        "canonical_url": "https://geralddaquila.com/leadership-foundations/",
+        "status": "active",
+    }]
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: nodes)
+    unregistered = {
+        "title": "Institutional Stewardship Case Library",
+        "url": "https://geralddaquila.com/institutional-stewardship-case-library/",
+        "text": "This long page body discusses institutional responsibility, governance, accountability, and stewardship. " * 2,
+    }
+
+    assert main._guide_registered_discovery_documents(
+        "institutional responsibility", [unregistered]
+    ) == []
+
+
+def test_registered_discovery_requires_matching_canonical_body(monkeypatch):
+    nodes = [{
+        "node_id": "steward-readiness",
+        "title": "Steward Readiness Instruments",
+        "purpose": "Reflective assessment and stewardship under institutional responsibility.",
+        "semantic_hints": ["institutional responsibility"],
+        "canonical_url": "https://geralddaquila.com/stewardship-readiness/",
+        "status": "active",
+    }]
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: nodes)
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda subject, document: (0, 0, 0, 0),
+    )
+    registered = {
+        "title": "Steward Readiness Instruments",
+        "url": "https://geralddaquila.com/stewardship-readiness/",
+        "text": "This resource describes reflective assessment and stewardship under institutional responsibility. " * 2,
+    }
+
+    selected = main._guide_registered_discovery_documents(
+        "institutional responsibility", [registered]
+    )
+
+    assert selected == [registered]
