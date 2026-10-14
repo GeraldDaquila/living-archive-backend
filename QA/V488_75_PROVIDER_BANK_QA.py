@@ -509,7 +509,7 @@ def main():
     assert measured_routed is None
     assert measured_call.call_count == 1, "A slow first failure must yield to the mirror."
 
-    # Once the five-second fast-failure window is exceeded, the extra provider must not run.
+    # Once the nine-second fast-failure window is exceeded, the extra provider must not run.
     with (
         patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
         patch.object(provider_bank, "select", return_value=fast_fallback_pool),
@@ -517,7 +517,7 @@ def main():
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
         patch.object(provider_bank, "acquire_probe", return_value=True),
         patch.object(provider_bank, "_success"),
-        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 5.01]),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 9.01, 9.01, 9.01, 9.01]),
     ):
         over_budget_routed = provider_bank.route(
             use_core=None,
