@@ -120,3 +120,113 @@ def test_discovery_evidence_requires_direct_subject_fit(monkeypatch):
     assert main._guide_selected_doorway_discovery_evidence(
         [document], "public accountability", doorway
     ) == []
+
+
+
+def test_discovery_answer_validator_rejects_external_search_advice(monkeypatch):
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": "Governance & Decentralization",
+        "url": doorway["url"],
+        "text": "This canonical governance hub covers institutional accountability, public trust, civic participation, and distributed responsibility across institutions.",
+    }]
+    response = (
+        "For public accountability, consult government oversight bodies, academic databases, "
+        "Transparency International, and independent audit offices."
+    )
+
+    assert not main._guide_discovery_response_is_grounded(
+        response, "public accountability", doorway, evidence
+    )
+
+
+def test_discovery_answer_validator_rejects_no_evidence_claims():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": "A long enough resource body discussing governance and institutional accountability, transparency, public trust, and civic participation.",
+    }]
+
+    assert not main._guide_discovery_response_is_grounded(
+        "No specific Archive material was retrieved, but this resource may help.",
+        "public accountability",
+        doorway,
+        evidence,
+    )
+
+
+def test_discovery_answer_validator_accepts_grounded_archive_resource():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": "A canonical governance hub covering institutional accountability, transparency, public trust, and civic participation.",
+    }]
+
+    assert main._guide_discovery_response_is_grounded(
+        "The Archive's Governance & Decentralization hub covers institutional accountability and civic participation.",
+        "public accountability",
+        doorway,
+        evidence,
+    )
+
+
+def test_deterministic_discovery_recovery_uses_selected_resource_content():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "This canonical hub explores governance systems and public trust. "
+            "Its purpose is to establish foundational principles for decentralized governance, "
+            "ethical leadership, distributed responsibility, institutional accountability, "
+            "and regenerative models of collective coordination."
+        ),
+    }]
+
+    response = main._guide_deterministic_discovery_response(
+        "public accountability", doorway, evidence
+    )
+
+    assert "Governance & Decentralization" in response
+    assert "accountability" in response
+    assert "public accountability" in response
+    assert "relevant entry point" in response
+
+
+
+def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monkeypatch):
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    document = {
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "This canonical resource explains governance structures, institutional accountability, "
+            "transparency, civic participation, and how responsibility is distributed across institutions."
+        ),
+    }
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda subject, candidate: (0, 0, 0, 0),
+    )
+
+    assert main._guide_selected_doorway_discovery_evidence(
+        [document], "public accountability", doorway
+    ) == [document]
