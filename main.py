@@ -4509,7 +4509,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("excerpt")
         or ""
     )
-    body = re.sub(r"\\s+", " ", body).strip()
+    body = re.sub(r"\s+", " ", body).strip()
     if not title:
         return ""
 
@@ -4532,19 +4532,19 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         }
     }
     sentences = [
-        re.sub(r"\\s+", " ", sentence).strip(" \\t-•")
-        for sentence in re.split(r"(?<=[.!?])\\s+", body)
+        re.sub(r"\s+", " ", sentence).strip(" \t-•")
+        for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
     candidates = []
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
             continue
-        if not re.search(r"[.!?][\"')\\]]?$", sentence):
+        if not re.search(r"[.!?][\"')\]]?$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
         if subject_terms and not (subject_terms & words):
             continue
-        if re.search(r"\\b(?:governing question|constitutional responsibility|meta description|read more)\\b", sentence, re.I):
+        if re.search(r"\b(?:governing question|constitutional responsibility|meta description|read more)\b", sentence, re.I):
             continue
         candidates.append(sentence)
     if not candidates:
