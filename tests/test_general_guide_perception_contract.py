@@ -1,4 +1,4 @@
-"""Regression contract for structural discernment in general-purpose Guide answers."""
+"""Regression contract preserving the established General Guide writer."""
 
 import general_guide_composition as guide
 
@@ -25,27 +25,24 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.12"
+    assert guide.CONTRACT_VERSION == "v1.13"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.12"
+    assert snapshot["contract_version"] == "v1.13"
     assert snapshot["provider_neutral"] is True
 
 
-def test_discernment_separates_facts_inferences_and_unknowns():
+def test_writer_does_not_force_restrictive_fact_inference_unknown_gate():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "what the question explicitly establishes" in prompt
-    assert "what can reasonably be inferred" in prompt
-    assert "what remains unknown" in prompt
-    assert "Never present (b) as fact" in prompt
+    assert "Apply discernment structurally, not as a final stylistic flourish" not in prompt
+    assert "If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it" in prompt
 
 
-def test_discernment_handles_agency_responsibility_and_boundaries_without_false_balance():
+def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "do not automatically privilege one side" in prompt
-    assert "a boundary or refusal may be responsible" in prompt
-    assert "Do not add a counterpoint merely to appear balanced" in prompt
+    assert "Prefer one earned insight over several generic observations" in prompt
+    assert "Use a concrete-example decision rule before composing" in prompt
 
 
-def test_discernment_contract_advances_sequentially():
-    assert guide.CONTRACT_VERSION == "v1.12"
-    assert guide.contract_snapshot()["contract_version"] == "v1.12"
+def test_writer_contract_advances_sequentially_after_restoration():
+    assert guide.CONTRACT_VERSION == "v1.13"
+    assert guide.contract_snapshot()["contract_version"] == "v1.13"
