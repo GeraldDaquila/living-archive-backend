@@ -311,3 +311,18 @@ def test_selected_canonical_body_fetch_rejects_query_string_urls():
     assert main._wordpress_fetch_selected_canonical_body(
         "https://geralddaquila.com/institutional-stewardship-case-library/?redirect=example.com"
     ) is None
+
+
+
+def test_discovery_fallback_still_offers_selected_doorway_when_body_is_unavailable():
+    doorway = {
+        "title": "Institutional Stewardship Case Library",
+        "url": "https://geralddaquila.com/institutional-stewardship-case-library/",
+    }
+    response = main._guide_deterministic_discovery_response(
+        "institutional responsibility", doorway, []
+    )
+    assert "Institutional Stewardship Case Library" in response
+    assert "institutional responsibility" in response
+    assert "inspect its contents" in response
+    assert "Google Scholar" not in response
