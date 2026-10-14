@@ -62,6 +62,8 @@ def main():
     assert_true("authoritative_doorway = None" not in evidence_boundary, "synthesis insufficiency still erases an independently selected canonical doorway")
     assert_true('"canonical_link_context"' in evidence_boundary and '"context_blocks"' in evidence_boundary, "synthesis evidence is not isolated from the composition context")
 
+    assert_true(callable(getattr(composition, "clarification_response", None)), "missing-context clarification boundary is missing")
+    assert_true("CLARIFICATION_REQUIRED" in MAIN_TEXT, "ordinary Guide entry does not handle clarification before retrieval")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
