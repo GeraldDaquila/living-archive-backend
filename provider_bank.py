@@ -2482,6 +2482,35 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 fallback_items = independent_models[:1] + sibling_models + independent_models[1:]
             else:
                 fallback_items = sibling_models
+        # After the primary candidate fails quickly, prefer a proven Workers AI
+        # fast lane before free-router fallbacks. This is deliberately a fallback
+        # ordering rule, not first-attempt promotion: a half-open lane must never
+        # displace the primary, but should be tried before a free router that can
+        # consume the remaining budget on a 2.5-second timeout or 429 cascade.
+        if operation in {"hrn_perception", "hrn_relational"} and attempt_pool:
+            primary_provider = str(attempt_pool[0].get("provider") or "")
+            fast_fallback = next((
+                item for preferred_model in (
+                    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+                    "@cf/zai-org/glm-4.7-flash",
+                )
+                for item in fallback_items
+                if str(item.get("provider") or "") == "workers_ai"
+                and str(item.get("provider") or "") != primary_provider
+                and str(item.get("model") or "") == preferred_model
+                and str(item.get("health_state") or "") in {"healthy", "half_open"}
+                and float(item.get("last_success", 0) or 0) > 0
+                and int(item.get("quality_failures", 0) or 0) == 0
+            ), None)
+            if fast_fallback is not None:
+                fallback_items = [fast_fallback] + [
+                    item for item in fallback_items if item is not fast_fallback
+                ]
+                print(
+                    "USE provider bank HRN fallback priority: "
+                    f"promoted proven Workers AI {fast_fallback['model']} "
+                    "ahead of free-router fallbacks for operation=" + operation + "."
+                )
         for item in fallback_items:
             candidate_provider = str(item.get("provider") or "")
             candidate_model = str(item.get("model") or "")

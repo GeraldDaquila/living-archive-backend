@@ -125,6 +125,64 @@ def test_hrn_relational_does_not_promote_half_open_workers_over_proven_healthy_c
     assert calls[0] != ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast")
 
 
+def test_hrn_relational_tries_proven_workers_fast_lane_before_free_router_fallback(monkeypatch):
+    candidates = [
+        _candidate("groq", "openai/gpt-oss-120b"),
+        _candidate("openrouter", "openrouter/free"),
+        _candidate("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+        _candidate("mistral", "mistral-small-latest"),
+    ]
+    candidates[2]["health_state"] = "half_open"
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def fail_groq_then_succeed_workers(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        if item["provider"] == "groq":
+            raise provider_bank.ProviderCallError(
+                "simulated quota pressure", item["provider"], item["model"], 429,
+                category="rate_limited",
+            )
+        if item["provider"] == "workers_ai":
+            return json.dumps({
+                "response": (
+                    "You are noticing that the original deadline remains fixed while new work "
+                    "has been added after the agreement. The tension shows up when you name that "
+                    "change and the conversation turns toward whether you are overreacting."
+                ),
+                "question": (
+                    "When you name the new work alongside the original deadline, "
+                    "what happens in the conversation?"
+                ),
+                "rest": False,
+                "use_resource": False,
+                "resource_intro": "",
+            })
+        raise AssertionError("free-router fallback should not run before proven Workers AI")
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fail_groq_then_succeed_workers)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps({
+            "observer_contrast": "the original deadline remains fixed while new work has been added",
+            "observer_delta": "the visitor feels asked to carry both commitments",
+            "observer_next_intention": "explore how raising the additional work changes the conversation",
+        })}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert calls == [
+        ("groq", "openai/gpt-oss-120b"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+    ]
+    assert result["parsed"]["question"] == (
+        "When you name the new work alongside the original deadline, what happens in the conversation?"
+    )
+
+
 def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(monkeypatch):
     candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
     _isolate(monkeypatch, candidates)
