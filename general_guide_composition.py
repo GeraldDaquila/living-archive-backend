@@ -281,9 +281,8 @@ def _clarification_reason(query: str, history_text: str = "") -> str:
     comparison = bool(re.search(
         r"\b(?:compare|comparison|contrast|two ways|different approaches)\b", q
     ))
-    named_subject = bool(re.search(
+    named_subject = bool(not generic_referent and re.search(
         r"\b(?:of|about|between|regarding|concerning|on)\s+"
-        r"(?!this\b|that\b|the problem\b|the issue\b|the situation\b)"
         r"[a-z][a-z -]{2,}", q
     ))
     # The conversation history may supply the omitted subject. Treat it as
