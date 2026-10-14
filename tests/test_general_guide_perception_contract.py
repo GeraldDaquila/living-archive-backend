@@ -52,6 +52,12 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
     import pytest
     with pytest.raises(ValueError):
         parse(compressed)
+    complete = json.dumps({"response": "\n\n".join([
+        "Agency gives people room to make choices, while responsibility asks them to consider how those choices affect others. They are connected because choices happen within relationships, not in isolation.",
+        "For example, a manager may reorganize a team to meet a goal, but the decision also changes employees' workload and security. Taking those consequences seriously is part of exercising authority well.",
+        "Responsibility does not mean obeying every demand. It means being answerable for foreseeable effects while respecting other people's legitimate needs and one's own boundaries."
+    ]), "doorway_title": "", "response_shape": "conceptual"})
+    assert len(parse(complete)["response"].split("\n\n")) == 3
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
