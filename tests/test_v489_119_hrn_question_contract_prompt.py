@@ -164,6 +164,43 @@ def test_hrn_provider_bank_completes_missing_question_from_scope_change_without_
     ) == ""
 
 
+def test_hrn_provider_bank_completes_missing_question_from_deadline_and_new_work():
+    partial = {
+        "response": (
+            "You are describing the strain of carrying new work while the original deadline remains fixed. "
+            "When you raise the additional work, the conversation shifts toward whether you are overreacting "
+            "instead of acknowledging how the project changed."
+        ),
+        "question": "",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            + json.dumps({
+                "observer_contrast": "the original deadline remains fixed while new work has been added",
+                "observer_delta": "the visitor feels asked to carry both commitments",
+                "observer_next_intention": "explore how raising the additional work changes the conversation",
+            })
+        ),
+    }]
+
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+
+    assert normalized["question"] == (
+        "When you name the new work alongside the original deadline, what happens in the conversation?"
+    )
+    assert provider_bank._hrn_surface_language_violation(normalized["question"]) == ""
+    assert provider_bank._hrn_question_grounding_violation(
+        normalized["question"], messages
+    ) == ""
+
+
 def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
     partial = {
         "response": (
