@@ -49,3 +49,10 @@ def test_subject_discovery_always_triggers_canonical_content_supplement():
 def test_ordinary_queries_only_trigger_recovery_when_evidence_is_unavailable():
     assert main._guide_requires_canonical_subject_supplement(True, "")
     assert not main._guide_requires_canonical_subject_supplement(False, "")
+
+
+
+def test_subject_discovery_uses_broader_candidate_recall_than_general_recovery():
+    assert main._guide_subject_supplement_limit("institutional responsibility") == 10
+    assert main._guide_subject_supplement_limit("public accountability") == 10
+    assert main._guide_subject_supplement_limit("") == 3
