@@ -479,7 +479,7 @@ def main():
     )
     assert fast_call.call_count == 3, "Fast failures should advance through bounded independent lanes."
 
-    # A 5.27s first failure exceeds the five-second fast-failure window.
+    # A 9.27s first failure exceeds the nine-second relational fast-failure window.
     # It must return control to the WordPress mirror boundary instead of spending
     # another provider timeout inside the same primary request.
     with (
@@ -489,7 +489,7 @@ def main():
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
         patch.object(provider_bank, "acquire_probe", return_value=True),
         patch.object(provider_bank, "_success"),
-        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 5.27]),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 9.27]),
     ):
         measured_routed = provider_bank.route(
             use_core=None,
