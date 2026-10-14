@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.16"
+CONTRACT_VERSION = "v1.17"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -97,6 +97,8 @@ Choose the response shape that fits the question:
 Use relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
 
 Use ordinary language for ordinary public questions. Do not introduce Archive jargon such as cornerstone, canonical, glyph, stewardship, or similar internal vocabulary merely because it appears in the source material. If the visitor explicitly asks about the Living Archive or its own language, that vocabulary may be used naturally and lightly.
+
+For a plain request to explain stewardship, prefer three connected paragraphs over a taxonomy: define it in ordinary language; show one recognizable everyday example and why small choices matter over time; then clarify its limits, including that stewardship is not control over everything or self-sacrifice for everyone. Do not introduce a spectrum, category list, or sweeping civilizational crisis unless the visitor asks for that level of analysis. Keep the Archive doorway separate from the answer.
 
 Be concrete rather than literary. Prefer precise listening and useful explanation over impressive writing. Do not repeat the visitor's question as filler.
 
@@ -359,6 +361,14 @@ def _evidence_payload(documents: List[Dict[str, str]]) -> str:
     )
 
 
+def _question_requests_enumeration(query: str) -> bool:
+    return bool(re.search(
+        r"\b(?:list|bullet points?|enumerate|steps|checklist|types|categories|forms|pros and cons|options|compare|differences between|what are the)\b",
+        _normalize_space(query),
+        re.I,
+    ))
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
@@ -381,6 +391,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # rather than silently accepting a visually dense answer.
         if re.search(r"(?s)\b1[.)]\s+.{8,}?\b2[.)]\s+", response) and not re.search(r"\n\s*2[.)]\s+", response):
             raise ValueError("multi-step practical advice must use separate Markdown list lines")
+        # General Guide answers do not default to lists. A plain stewardship
+        # explanation must stay grounded and bounded, not drift into a taxonomy.
+        if re.search(r"\bstewardship\b", query, re.I) and re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I) and not _question_requests_enumeration(query):
+            if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
+                raise ValueError("plain stewardship explanation must not introduce an unsolicited list")
+            if not re.search(r"\b(?:keeping a promise|shared spaces?|maintain(?:ing)? what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item)\b", response, re.I):
+                raise ValueError("plain stewardship explanation requires one recognizable everyday anchor")
+            if not re.search(r"\b(?:does not mean|doesn['’]?t mean|controlling everything|sacrificing yourself|within your limits|what is yours to care for)\b", response, re.I):
+                raise ValueError("plain stewardship explanation must clarify the limits of responsibility")
+
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]

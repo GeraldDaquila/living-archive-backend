@@ -109,7 +109,7 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.16", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.17", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(composition._requires_discernment_synthesis("What is the relationship between personal agency and responsibility to others?"), "conceptual relationship synthesis contract is not activated")
@@ -225,7 +225,7 @@ def main():
     def fake_route(**kwargs):
         captured_user_messages.append(kwargs["messages"][-1]["content"])
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\\n\\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\\n\\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            '{"response":"Stewardship means taking care of something entrusted to you, including things other people rely on.\\n\\nIn everyday life, it can mean keeping a promise or maintaining a shared space so others can continue to use it. Small choices like these accumulate: carelessness passes costs to others, while responsible care preserves trust and future possibilities.\\n\\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for and acting responsibly within your limits.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
         return {
             "parsed": parsed,
@@ -251,7 +251,7 @@ def main():
         )
         assert_true(composed is not None, "provider-neutral composition seam returned no result")
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
-        assert_true("Stewardship is about taking responsibility" in composed["response"], "fake provider response was not preserved by composition")
+        assert_true("Stewardship means taking care of something entrusted to you" in composed["response"], "fake provider response was not preserved by composition")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
         empty_result = composition.compose(
             use_core=FakeCore(),
@@ -285,7 +285,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\\n\\nIt matters because our choices can affect people and systems beyond our immediate reach.\\n\\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                '{"response":"Stewardship means taking care of something entrusted to you, including things other people rely on.\\n\\nIn everyday life, it can mean keeping a promise or maintaining a shared space so others can continue to use it. Small choices accumulate: carelessness passes costs to others, while responsible care preserves trust and future possibilities.\\n\\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for and acting responsibly within your limits.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
@@ -394,7 +394,16 @@ def main():
     assert_true("A syntactically valid URL is not proof of relevance" in MAIN_TEXT, "preselected doorway is still trusted without relevance validation")
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
-    print("V489.26 GENERAL GUIDE COMPOSITION QA: PASS")
+    assert_true("_question_requests_enumeration" in composition.__dict__, "list-intent classifier is missing")
+    try:
+        composition._parse_factory([], "Explain stewardship")(
+            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care","doorway_title":"","response_shape":"explanatory"}'
+        )
+    except ValueError as exc:
+        assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
+    else:
+        raise AssertionError("stewardship list gate accepted an unsolicited taxonomy")
+    print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
     print("golden_calibration_cases=6")

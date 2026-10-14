@@ -20,10 +20,9 @@ CANONICAL_TITLE = (
     "The Living Archive Navigator: Volume IV – Stewardship & Exchange"
 )
 ANSWER = (
-    "Stewardship is taking responsibility for something that matters beyond oneself.\n\n"
-    "It matters now because our choices affect people and systems beyond our immediate reach.\n\n"
-    "It asks us to consider not only what we control, but what we are responsible for "
-    "and how our choices affect others."
+    "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
+    "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\n"
+    "Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."
 )
 
 

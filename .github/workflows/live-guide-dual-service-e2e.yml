@@ -7,6 +7,7 @@ on:
       - "main.py"
       - "streaming_transport.py"
       - "general_guide_composition.py"
+      - "tests/test_general_guide_perception_contract.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/live-guide-dual-service-e2e.yml"
   workflow_dispatch:
@@ -152,6 +153,12 @@ jobs:
                   raise SystemExit(f"{name}: explicit stewardship request was not answered directly")
               if re.search(r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\bUSE\b", response):
                   raise SystemExit(f"{name}: limitation-only or machine-facing fallback leaked into visitor prose")
+              if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
+                  raise SystemExit(f"{name}: plain stewardship explanation used an unsolicited list")
+              if not re.search(r"(?i)keeping a promise|shared spaces?|maintaining what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item", response):
+                  raise SystemExit(f"{name}: stewardship answer lacks a recognizable everyday anchor")
+              if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", response):
+                  raise SystemExit(f"{name}: stewardship answer omitted the boundary between care and control")
               if re.search(r"https?://|\[[^\]]+\]\(", response):
                   raise SystemExit(f"{name}: navigation was embedded in answer prose despite the visitor's instruction")
               recommendation = payload.get("recommendation")
@@ -194,6 +201,12 @@ jobs:
               paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
               if len(paragraphs) < 3 or len(answer) < 300:
                   raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
+              if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", answer):
+                  raise SystemExit(f"{name}: SSE stewardship answer used an unsolicited list")
+              if not re.search(r"(?i)keeping a promise|shared spaces?|maintaining what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item", answer):
+                  raise SystemExit(f"{name}: SSE answer lacks a recognizable everyday anchor")
+              if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", answer):
+                  raise SystemExit(f"{name}: SSE answer omitted the boundary between care and control")
               if not isinstance(final_payload.get("recommendation"), dict):
                   raise SystemExit(f"{name}: SSE stream lost the independent canonical recommendation")
               print(f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; final envelope preserved")
