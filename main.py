@@ -4693,7 +4693,39 @@ def _guide_node_specific_match(query):
     best_score = 0
 
     for node in _guide_node_registry_snapshot():
-        labels = [str(node.get("title") or "").strip()]
+        node_title = str(node.get("title") or "").strip()
+        normalized_title = _normalize_query(node_title)
+        node_asset_type = str(node.get("asset_type") or "").strip().casefold().replace("-", "_")
+        # Generic access surfaces explain how to browse the Archive; they are
+        # not subject destinations. Never let their broad semantic hints
+        # outrank a visitor's subject-specific request. A generic surface is
+        # eligible only when the visitor explicitly names that surface.
+        generic_access_titles = {
+            "libraries", "library", "archive index", "site index",
+            "archive navigation", "start here", "begin here",
+        }
+        generic_access_types = {
+            "library_index", "site_index", "navigation_index", "archive_index",
+        }
+        is_generic_access_node = (
+            normalized_title in generic_access_titles
+            or node_asset_type in generic_access_types
+        )
+        if is_generic_access_node:
+            if normalized_title and re.search(
+                rf"\\b{re.escape(normalized_title)}\\b",
+                normalized,
+                re.I,
+            ):
+                score = 105
+                if score > best_score:
+                    best_score = score
+                    best = node
+            # Do not inspect broad generic navigation hints as if they named
+            # the visitor's requested subject.
+            continue
+
+        labels = [node_title]
         labels.extend(
             str(hint).strip()
             for hint in (node.get("semantic_hints") or [])
@@ -4802,6 +4834,18 @@ if _is_explicit_guide_destination_request("What is open source software?"):
 if not _is_explicit_guide_destination_request("Please open the Steward Readiness Instruments."):
     raise RuntimeError("Guide routing invariant failed: explicit open command not recognized.")
 
+# Subject-discovery regression: broad semantic hints on generic access hubs
+# must never convert a topic request into a Libraries page handoff.
+_institutional_discovery_probe = _guide_node_specific_match(
+    "Where can I find material about institutional responsibility?"
+)
+if str((_institutional_discovery_probe or {}).get("title") or "").strip().casefold() in {
+    "libraries", "library", "archive index", "site index",
+    "archive navigation", "start here", "begin here",
+}:
+    raise RuntimeError(
+        "Guide routing invariant failed: subject-specific discovery resolved to a generic access hub."
+    )
 
 def _request_header(scope, name):
     target = str(name or "").strip().lower().encode("latin-1")
