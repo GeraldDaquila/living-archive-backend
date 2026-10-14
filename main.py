@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.229 — complete bounded window for proven Gemma HRN lane
+# USE PRODUCTION VERSION: v489.230 — complete bounded window for proven Gemma HRN lane
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.229"
-DEPLOYMENT_FINGERPRINT = "USE-v489.229-hrn-gemma26-four-second-timeout-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.229-hrn-gemma26-four-second-timeout-v1"
+APP_VERSION = "v489.230"
+DEPLOYMENT_FINGERPRINT = "USE-v489.230-hrn-gemma26-4p5s-nine-second-window-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.230-hrn-gemma26-4p5s-nine-second-window-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.229":
+if str(APP_VERSION) != "v489.230":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
