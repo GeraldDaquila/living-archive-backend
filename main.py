@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.251 — fetch selected canonical page body
+# USE PRODUCTION VERSION: v489.252 — preserve direct discovery evidence
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.251"
-DEPLOYMENT_FINGERPRINT = "USE-v489.251-fetch-selected-canonical-body"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.251-fetch-selected-canonical-body"
+APP_VERSION = "v489.252"
+DEPLOYMENT_FINGERPRINT = "USE-v489.252-preserve-direct-discovery-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.252-preserve-direct-discovery-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.251":
+if str(APP_VERSION) != "v489.252":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4599,6 +4599,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
     )
     discovery_selected_evidence = []
+    direct_selected_body = None
     if _guide_requires_canonical_subject_supplement(
         archive_evidence_unavailable, discovery_subject
     ):
@@ -4626,6 +4627,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 direct_body = _wordpress_fetch_selected_canonical_body(
                     authoritative_doorway.get("url") or ""
                 )
+                direct_selected_body = direct_body if isinstance(direct_body, dict) else None
                 recovered_docs = (
                     ([direct_body] if isinstance(direct_body, dict) else [])
                     + list(doorway_docs)
@@ -4661,8 +4663,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # rejects the document set. This never authorizes unsupported
             # explanatory claims; it only permits a grounded resource orientation.
             if discovery_subject:
+                # The general frame-neutral filter is designed for synthesis
+                # authority and may discard a valid navigation-page body. Keep
+                # the directly fetched selected page in a separate, bounded
+                # discovery-only candidate set and let the exact URL/body/direct-
+                # fit checks decide whether it can ground the doorway.
+                discovery_candidate_docs = list(recovered_docs)
+                if direct_selected_body:
+                    direct_url_key = str(direct_selected_body.get("url") or "").rstrip("/").casefold()
+                    if not any(
+                        str(item.get("url") or "").rstrip("/").casefold() == direct_url_key
+                        for item in discovery_candidate_docs if isinstance(item, dict)
+                    ):
+                        discovery_candidate_docs.append(direct_selected_body)
                 evidence_doorway, evidence_for_doorway = _guide_align_discovery_doorway(
-                    resource_query, recovered_docs
+                    resource_query, discovery_candidate_docs
                 )
                 if evidence_doorway and evidence_for_doorway:
                     authoritative_doorway = evidence_doorway
