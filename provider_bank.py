@@ -46,7 +46,7 @@ class ProviderOutput(str):
 # Allow up to five fallback candidates within a nine-second fast-failure window.
 # This keeps the full provider-capability call inside its transport budget while
 # allowing recovery to reach additional reviewed models after clustered 429s/timeouts.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0
 HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 5
 # Perception is the first inference stage. Permit up to four independent
 # fallbacks after fast failures within the same three-second admission window.
@@ -61,9 +61,9 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # response latency has elapsed.
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # Workers AI Gemma 4 26B has proven useful but can finish just beyond the generic
-# 2.5s HRN cutoff. Give only this previously successful lane a small extra window;
+# 2.5s HRN cutoff. Give only this previously successful lane a bounded 4.5s window;
 # the 7s fast-failure budget still bounds aggregate fallback time.
-HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0
+HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5
 # HRN's final structured composition must contain the complete visitor-facing response
 # AND its distinct follow-up question. 250 tokens starved the question field and
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
