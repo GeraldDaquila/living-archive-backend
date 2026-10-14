@@ -4436,6 +4436,119 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
     return accepted[:1]
 
 
+def _guide_registered_discovery_nodes(subject, limit=3):
+    """Rank active, WordPress-authorized Guide Nodes for a discovery subject.
+
+    This is metadata-based candidate selection, not recommendation authority:
+    a node can be selected only after its canonical body is fetched and passes
+    the existing selected-page evidence checks.
+    """
+    query = re.sub(r"\\s+", " ", str(subject or "").casefold()).strip()
+    query_terms = {
+        token for token in re.findall(r"[a-z0-9]+", query)
+        if len(token) >= 4 and token not in {
+            "about", "article", "articles", "content", "document", "documents",
+            "general", "information", "material", "materials", "public",
+            "resource", "resources", "specific", "where", "find",
+        }
+    }
+    if not query_terms:
+        return []
+    ranked = []
+    try:
+        nodes = _guide_node_registry_snapshot()
+    except Exception as exc:
+        print(f"The Guide registry discovery: registry unavailable ({type(exc).__name__}).")
+        return []
+    for node in nodes:
+        if not isinstance(node, dict) or str(node.get("status") or "") != "active":
+            continue
+        url = str(node.get("canonical_url") or "").strip()
+        title = str(node.get("title") or "").strip()
+        if not title or not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+            continue
+        metadata = " ".join([
+            title,
+            str(node.get("purpose") or ""),
+            " ".join(str(value) for value in (node.get("semantic_hints") or [])),
+        ]).casefold()
+        metadata_terms = set(re.findall(r"[a-z0-9]+", metadata))
+        overlap = query_terms & metadata_terms
+        if not overlap:
+            continue
+        score = len(overlap) * 3
+        if query and query in metadata:
+            score += 6
+        title_terms = set(re.findall(r"[a-z0-9]+", title.casefold()))
+        score += 2 * len(query_terms & title_terms)
+        ranked.append((score, title.casefold(), node))
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return [item[2] for item in ranked[:max(1, int(limit or 3))]
+
+
+def _guide_registered_discovery_documents(subject, documents):
+    """Keep only relevant evidence whose URL belongs to an active Guide Node."""
+    nodes = _guide_registered_discovery_nodes(subject, limit=20)
+    if not nodes:
+        return []
+    node_by_url = {
+        str(node.get("canonical_url") or "").rstrip("/").casefold(): node
+        for node in nodes
+    }
+    ranked = []
+    query_terms = {
+        token for token in re.findall(r"[a-z0-9]+", str(subject or "").casefold())
+        if len(token) >= 4 and token not in {
+            "about", "article", "articles", "content", "document", "documents",
+            "general", "information", "material", "materials", "public",
+            "resource", "resources", "specific",
+        }
+    }
+    for document in documents if isinstance(documents, list) else []:
+        if not isinstance(document, dict):
+            continue
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        node = node_by_url.get(url.rstrip("/").casefold())
+        if not node:
+            continue
+        content = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if len(content) < 80:
+            continue
+        body_terms = set(re.findall(r"[a-z0-9]+", content.casefold()))
+        lexical_fit = bool(query_terms & body_terms)
+        try:
+            direct_fit, _coverage, _relation_hits, _answerability = use_core._question_evidence_fit_profile(
+                str(subject), document
+            )
+        except Exception:
+            direct_fit = 0
+        if direct_fit < 1 and not lexical_fit:
+            continue
+        metadata = " ".join([
+            str(node.get("title") or ""),
+            str(node.get("purpose") or ""),
+            " ".join(str(value) for value in (node.get("semantic_hints") or [])),
+        ]).casefold()
+        metadata_terms = set(re.findall(r"[a-z0-9]+", metadata))
+        overlap = query_terms & metadata_terms
+        if not overlap:
+            continue
+        score = len(overlap) * 3 + (6 if str(subject or "").casefold() in metadata else 0)
+        score += 2 * len(query_terms & set(re.findall(r"[a-z0-9]+", str(node.get("title") or "").casefold())))
+        score += min(int(direct_fit or 0), 3)
+        ranked.append((score, str(node.get("title") or "").casefold(), document))
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return [item[2] for item in ranked]
+
+
+def _guide_align_registered_discovery_doorway(subject, documents):
+    """Resolve discovery only through registered nodes with matching page evidence."""
+    registered_documents = _guide_registered_discovery_documents(subject, documents)
+    if not registered_documents:
+        return None, []
+    return _guide_align_discovery_doorway(subject, registered_documents)
+
+
 def _guide_align_discovery_doorway(subject, documents):
     """Select the discovery doorway only from vetted documents that can ground it."""
     if not str(subject or "").strip() or not isinstance(documents, list) or not documents:
@@ -4618,6 +4731,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     authoritative_doorway = _normalize_authoritative_recommendation(
         _general_guide_authoritative_doorway(resource_query, context_data)
     )
+    # Subject discovery is constrained to the active WordPress Guide Node registry.
+    # A public URL returned by search is not, by itself, an approved Guide doorway.
+    if discovery_subject and authoritative_doorway:
+        registered_urls = {
+            str(node.get("canonical_url") or "").rstrip("/").casefold()
+            for node in _guide_node_registry_snapshot()
+            if isinstance(node, dict) and str(node.get("status") or "") == "active"
+        }
+        if str(authoritative_doorway.get("url") or "").rstrip("/").casefold() not in registered_urls:
+            print("The Guide discovery boundary: rejected unregistered destination.")
+            authoritative_doorway = None
     # Distress-sensitive pacing governs the prose, not access to a separate
     # optional resource. Keep the compassionate response first and preserve a
     # qualified, independently rendered doorway when the existing relevance
@@ -4651,6 +4775,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             recovered_docs = _wordpress_search_canonical_candidates(
                 resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
             )
+            # Add a small, deterministic set of active registry nodes ranked by
+            # their published purpose and semantic hints. Only fetched canonical
+            # page bodies can subsequently authorize a recommendation.
+            if discovery_subject:
+                known_urls = {
+                    str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    for item in recovered_docs if isinstance(item, dict)
+                }
+                for node in _guide_registered_discovery_nodes(discovery_subject, limit=3):
+                    node_url = str(node.get("canonical_url") or "").strip()
+                    if not node_url or node_url.rstrip("/").casefold() in known_urls:
+                        continue
+                    try:
+                        node_body = _wordpress_fetch_selected_canonical_body(node_url)
+                    except Exception:
+                        node_body = None
+                    if isinstance(node_body, dict):
+                        recovered_docs.append(node_body)
+                        known_urls.add(node_url.rstrip("/").casefold())
             # The selected doorway is already independently authorized. Fetch
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
@@ -4715,7 +4858,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         for item in discovery_candidate_docs if isinstance(item, dict)
                     ):
                         discovery_candidate_docs.append(direct_selected_body)
-                evidence_doorway, evidence_for_doorway = _guide_align_discovery_doorway(
+                evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
                     resource_query, discovery_candidate_docs
                 )
                 if evidence_doorway and evidence_for_doorway:
@@ -4762,7 +4905,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # canonical documents that will ground the discovery answer.
                         # This prevents a good-looking but unfetched doorway from
                         # being paired with unrelated prose or a generic fallback.
-                        evidence_doorway, evidence_for_doorway = _guide_align_discovery_doorway(
+                        evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
                             resource_query, recovered_docs
                         )
                         if evidence_doorway and evidence_for_doorway:
