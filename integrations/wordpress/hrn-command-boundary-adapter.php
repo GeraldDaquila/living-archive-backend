@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Living Archive — HRN Command Boundary Adapter
  * Description: Normalizes explicit visitor closure commands and returns completed HRN journeys to USE for a grounded canonical doorway, without modifying the frozen HRN writer.
- * Version: 1.2.1
+ * Version: 1.3.0
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
@@ -122,7 +122,86 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
     }
 
     $data = $response->get_data();
-    if (!is_array($data) || empty($data['unit_complete'])) return $response;
+    if (!is_array($data)) return $response;
+
+    // Keep consecutive questions from harvesting the same relational plane.
+    // When HRN repeats the same question genre on the same concrete topic, make
+    // one bounded move to a desired condition; never run on completed or safety turns.
+    if (empty($data['unit_complete']) && empty($data['safety_interrupt']) && empty($data['junction_available'])) {
+        $current_question = trim((string)($data['question'] ?? ''));
+        $transcript = $request->get_param('conversation');
+        if (is_array($transcript)) $transcript = wp_json_encode($transcript);
+        if (!is_string($transcript) || $transcript === '') {
+            $transcript = $request->get_param('full_conversation') ?: $request->get_param('visitor_history');
+            if (is_array($transcript)) $transcript = wp_json_encode($transcript);
+            if (!is_string($transcript)) $transcript = '';
+        }
+        $turns = json_decode($transcript, true);
+        $previous_question = '';
+        if ($current_question !== '' && is_array($turns)) {
+            for ($i = count($turns) - 1; $i >= 0; $i--) {
+                if (!is_array($turns[$i])) continue;
+                $role = strtolower((string)($turns[$i]['role'] ?? ''));
+                if (!in_array($role, array('assistant', 'hrn', 'seeing the relationship'), true)) continue;
+                $content = trim((string)($turns[$i]['content'] ?? ''));
+                if (preg_match('/([^.!?]*\?)\s*$/u', $content, $match)) {
+                    $previous_question = trim((string)$match[1]);
+                    if ($previous_question !== '') break;
+                }
+            }
+        }
+        if ($current_question !== '' && $previous_question !== '') {
+            $question_genre = static function ($question) {
+                $q = strtolower((string)$question);
+                if (preg_match('/\b(feel|feeling|felt|emotion|hurt)\b/', $q)) return 'feeling';
+                if (preg_match('/\b(what changes|what happens when|how does .* change)\b/', $q)) return 'change';
+                if (preg_match('/\b(what does .* mean|what does .* reveal|what does that tell you)\b/', $q)) return 'meaning';
+                if (preg_match('/\b(what would need|what needs to be acknowledged|what do you most want|what matters)\b/', $q)) return 'desired_condition';
+                if (preg_match('/\b(their side|their perspective|what might they experience|what do you think they experience)\b/', $q)) return 'perspective';
+                return 'other';
+            };
+            $question_topic = static function ($question) {
+                $q = strtolower((string)$question);
+                if (preg_match('/\b(scope|deadline|agreement|project|work|task|added)\b/', $q)) return 'work_agreement';
+                if (preg_match('/\b(character|reasonable|overreact|judg|defend|reaction|blame)\b/', $q)) return 'character_judgment';
+                if (preg_match('/\b(friend|friendship|hurt|argument|conflict|trust)\b/', $q)) return 'relational_conflict';
+                if (preg_match('/\b(silence|withdraw|listening|heard|distance|reply)\b/', $q)) return 'withdrawal';
+                return '';
+            };
+            $current_genre = $question_genre($current_question);
+            $previous_genre = $question_genre($previous_question);
+            $current_topic = $question_topic($current_question);
+            $previous_topic = $question_topic($previous_question);
+            if (
+                $current_genre === $previous_genre
+                && in_array($current_genre, array('feeling', 'change', 'meaning'), true)
+                && $current_topic !== ''
+                && $current_topic === $previous_topic
+            ) {
+                $next_question = '';
+                if ($current_topic === 'work_agreement') {
+                    $next_question = 'What would need to be acknowledged for the discussion to return to the work itself?';
+                } elseif ($current_topic === 'character_judgment') {
+                    $next_question = 'What would let you name the concern without having to defend your character?';
+                } elseif ($current_topic === 'relational_conflict') {
+                    $next_question = 'What do you most want to preserve while being honest about the hurt?';
+                } elseif ($current_topic === 'withdrawal') {
+                    $next_question = 'What would help distinguish what you observed from what you fear it means?';
+                }
+                if ($next_question !== '') {
+                    $data['question'] = $next_question;
+                    $data['plane_shift_required'] = true;
+                    $data['next_plane'] = 'desired_condition';
+                    $data['next_horizon'] = $next_question;
+                    $data['hrn_navigation_override'] = 'same_plane_question_guard_v1';
+                    $response->set_data($data);
+                    return $response;
+                }
+            }
+        }
+    }
+
+    if (empty($data['unit_complete'])) return $response;
     if (!empty($data['safety_interrupt'])) return $response;
     if (!empty($data['junction_available']) || !empty($data['canonical_doorway'])) return $response;
 
