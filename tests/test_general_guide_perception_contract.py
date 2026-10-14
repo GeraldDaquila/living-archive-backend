@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.13"
+    assert guide.CONTRACT_VERSION == "v1.14"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.13"
+    assert snapshot["contract_version"] == "v1.14"
     assert snapshot["provider_neutral"] is True
 
 
@@ -43,6 +43,19 @@ def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance()
     assert "Use a concrete-example decision rule before composing" in prompt
 
 
+def test_conceptual_relationships_require_discernment_example_and_three_paragraphs():
+    query = "What is the relationship between personal agency and responsibility to others?"
+    assert guide._requires_discernment_synthesis(query)
+    parse = guide._parse_factory([], query)
+    import json
+    compressed = json.dumps({"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"})
+    import pytest
+    with pytest.raises(ValueError):
+        parse(compressed)
+    complete = json.dumps({"response":"Agency gives people room to make choices, while responsibility asks them to consider the effects those choices have on others. They are connected because choices take place in relationships, not in isolation.\\n\\nFor example, a manager may reorganize a team to meet a goal, but the decision also changes employees’ workload and security. Taking those consequences seriously is part of exercising authority well.\\n\\nResponsibility does not mean obeying every demand. It means being answerable for foreseeable effects while respecting other people’s legitimate needs and one’s own boundaries.","doorway_title":"","response_shape":"conceptual"})
+    assert len(parse(complete)["response"].split("\\n\\n")) == 3
+
+
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.13"
-    assert guide.contract_snapshot()["contract_version"] == "v1.13"
+    assert guide.CONTRACT_VERSION == "v1.14"
+    assert guide.contract_snapshot()["contract_version"] == "v1.14"
