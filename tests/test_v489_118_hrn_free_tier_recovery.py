@@ -613,7 +613,7 @@ def test_hrn_repeated_prescriptive_question_uses_grounded_lexical_fallback(monke
 
 
 
-def test_hrn_relational_groq_completion_budget_respects_tpm_headroom(monkeypatch):
+def test_hrn_relational_groq_completion_budget_preserves_response_and_question(monkeypatch):
     import json
     candidate = _item("groq", "openai/gpt-oss-20b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
@@ -670,10 +670,14 @@ def test_hrn_relational_groq_completion_budget_respects_tpm_headroom(monkeypatch
         original_quality.update(saved_quality)
 
     assert result is not None
-    assert budgets == [250]
+    assert budgets == [700]
+    assert provider_bank.HRN_RELATIONAL_MAX_COMPLETION_TOKENS == 700
+    assert provider_bank.OPERATION_TOKEN_FLOORS["hrn_relational"] == 600
     assert provider_bank.OPERATION_MODEL_LIMITS[
         ("hrn_relational", "groq", "openai/gpt-oss-20b")
-    ] == 250
+    ] == 700
+    assert result["parsed"]["question"].strip() != ""
+    assert result["parsed"]["response"].strip() != ""
 
 
 

@@ -60,9 +60,11 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # Keep each call bounded, but do not quarantine a viable lane before its normal
 # response latency has elapsed.
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
-# HRN needs a short observation and one question; reserve only a bounded output
-# allowance so the second stage can fit within shared free-tier OTPM/TPM budgets.
-HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 250
+# HRN's final structured composition must contain the complete visitor-facing response
+# AND its distinct follow-up question. 250 tokens starved the question field and
+# forced an extra repair call; keep a bounded 700-token envelope aligned with the
+# operation floor while retaining provider-level model ceilings.
+HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
@@ -167,13 +169,14 @@ MODEL_LIMITS = {
     ("groq", "openai/gpt-oss-120b"): {"max_completion_tokens": 3000},
 }
 
-# HRN perception and relational composition run sequentially in one visitor
-# turn and can share Groq's 8k TPM allowance. Keep relational completions bounded
-# to the small visitor-facing envelope so earlier perception calls do not make
-# the final composition exceed the remaining provider budget.
+# HRN perception and relational composition run sequentially in one visitor turn.
+# The relational operation still needs enough output for both prose and its question;
+# 250 was below the bank's 600-token operation floor and caused empty-question recovery.
+# Keep the model-specific ceiling bounded at 700 and let shared quota admission decide
+# whether a candidate can run, rather than silently truncating the contract payload.
 OPERATION_MODEL_LIMITS = {
-    ("hrn_relational", "groq", "openai/gpt-oss-20b"): 250,
-    ("hrn_relational", "groq", "openai/gpt-oss-120b"): 250,
+    ("hrn_relational", "groq", "openai/gpt-oss-20b"): 700,
+    ("hrn_relational", "groq", "openai/gpt-oss-120b"): 700,
 }
 
 OPERATION_TOKEN_FLOORS = {
