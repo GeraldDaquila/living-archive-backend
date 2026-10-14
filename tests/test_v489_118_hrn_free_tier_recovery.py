@@ -245,8 +245,12 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
         + '"rest":false,"use_resource":false,"resource_intro":""}'
     )
 
+    recovery_schemas = []
+
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
+        if len(attempts) > 1 and len(args) >= 3:
+            recovery_schemas.append(args[2])
         return rejected if len(attempts) == 1 else valid
 
     monkeypatch.setattr(provider_bank, "_call", fake_call)
@@ -277,7 +281,11 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
         original_quality.update(saved_quality)
 
     assert result is not None
+    assert result["parsed"]["response"] == response, "Question repair must preserve the original response."
     assert result["parsed"]["question"] == "What happened in the conversation when the agreed date was raised alongside the added work?"
+    assert recovery_schemas, "Targeted question recovery did not use the dedicated schema."
+    assert recovery_schemas[0]["schema"]["required"] == ["question"]
+    assert set(recovery_schemas[0]["schema"]["properties"]) == {"question"}
     assert attempts == ["nvidia", "nvidia"]
 
 
