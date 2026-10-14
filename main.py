@@ -4763,6 +4763,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     discovery_selected_evidence = []
     direct_selected_body = None
+    registry_discovery_docs = []
     if _guide_requires_canonical_subject_supplement(
         archive_evidence_unavailable, discovery_subject
     ):
@@ -4793,6 +4794,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         node_body = None
                     if isinstance(node_body, dict):
                         recovered_docs.append(node_body)
+                        registry_discovery_docs.append(node_body)
                         known_urls.add(node_url.rstrip("/").casefold())
             # The selected doorway is already independently authorized. Fetch
             # its actual canonical body as well as topic-search candidates so
@@ -4851,6 +4853,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 # discovery-only candidate set and let the exact URL/body/direct-
                 # fit checks decide whether it can ground the doorway.
                 discovery_candidate_docs = list(recovered_docs)
+                known_discovery_urls = {
+                    str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    for item in discovery_candidate_docs if isinstance(item, dict)
+                }
+                for item in registry_discovery_docs:
+                    item_url = str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    if item_url and item_url not in known_discovery_urls:
+                        discovery_candidate_docs.append(item)
+                        known_discovery_urls.add(item_url)
                 if direct_selected_body:
                     direct_url_key = str(direct_selected_body.get("url") or "").rstrip("/").casefold()
                     if not any(
@@ -4906,7 +4917,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # This prevents a good-looking but unfetched doorway from
                         # being paired with unrelated prose or a generic fallback.
                         evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
-                            resource_query, recovered_docs
+                            resource_query, list(recovered_docs) + list(registry_discovery_docs)
                         )
                         if evidence_doorway and evidence_for_doorway:
                             authoritative_doorway = evidence_doorway
