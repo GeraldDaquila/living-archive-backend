@@ -4313,16 +4313,16 @@ def _guide_subject_discovery_query(query):
     still used for visitor-facing composition; the extracted subject is used
     only to retrieve and evaluate relevant resources.
     """
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
     patterns = (
-        r"^(?:please\\s+)?where\\s+(?:can|could|do)\\s+i\\s+find\\s+(?:the\\s+)?(?:(?:relevant|useful|specific)\\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\\s+(?:about|on|regarding|concerning|related\\s+to)\\s+(.+?)[?.!]*$",
-        r"^(?:please\\s+)?(?:find|show\\s+me|help\\s+me\\s+find|locate|search\\s+for)\\s+(?:(?:relevant|useful|specific)\\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\\s+(?:about|on|regarding|concerning|related\\s+to)\\s+(.+?)[?.!]*$",
-        r"^(?:i(?:'m|\\s+am)\\s+looking\\s+for|i\\s+need|can\\s+you\\s+find|could\\s+you\\s+find)\\s+(?:(?:relevant|useful|specific)\\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\\s+(?:about|on|regarding|concerning|related\\s+to)\\s+(.+?)[?.!]*$",
+        r"^(?:please\s+)?where\s+(?:can|could|do)\s+i\s+find\s+(?:the\s+)?(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
+        r"^(?:please\s+)?(?:find|show\s+me|help\s+me\s+find|locate|search\s+for)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
+        r"^(?:i(?:'m|\s+am)\s+looking\s+for|i\s+need|can\s+you\s+find|could\s+you\s+find)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
     )
     for pattern in patterns:
         match = re.match(pattern, q, re.I)
         if match:
-            subject = re.sub(r"\\s+", " ", match.group(1)).strip(" \\t.,;:?!")
+            subject = re.sub(r"\s+", " ", match.group(1)).strip(" \t.,;:?!")
             if subject and len(re.findall(r"[a-z0-9]+", subject, re.I)) >= 1:
                 return subject
     return ""
@@ -4417,14 +4417,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 and str(item.get("text") or "").strip()
             ]
             recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
-                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
             recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
-                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
             if not recovery_insufficient and recovered_docs:
                 recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
-                    recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                    recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
                 )
                 if not recovery_question_unavailable and recovered_docs:
                     composition_context["generation_authority_protected_docs"] = recovered_docs
