@@ -1998,10 +1998,11 @@ def _hrn_complete_missing_question(messages):
     # dynamics" before the actual contrast, so the local question could not pass
     # grounding and needlessly spent another provider call.
     focus_fields = (
-        "observer_contrast", "observer_delta", "current_fractal",
-        "body_of_thought", "unresolved", "emerging_delta", "thread_summary",
-        "working_hypothesis", "underlying_need", "desired_condition",
-        "next_horizon", "observer_intention", "relational_understanding",
+        "observer_contrast", "observer_delta", "observer_horizon",
+        "observer_next_intention", "current_fractal", "body_of_thought",
+        "unresolved", "emerging_delta", "thread_summary", "working_hypothesis",
+        "underlying_need", "desired_condition", "next_horizon",
+        "observer_intention", "relational_understanding",
     )
     for item in reversed(list(messages or [])):
         if not isinstance(item, dict):
@@ -2059,6 +2060,18 @@ def _hrn_complete_missing_question(messages):
                     grounded_question = (
                         "When you raise the changed scope alongside the agreed date, "
                         "what happens in the conversation?"
+                    )
+                    if (
+                        not _hrn_surface_language_violation(grounded_question)
+                        and not _hrn_question_grounding_violation(grounded_question, messages)
+                    ):
+                        return grounded_question
+                has_agreement = bool(re.search(r"\b(?:agreement|agreed)\b", focus_material, re.I))
+                has_change = bool(re.search(r"\b(?:change|changed|new|additional|added)\b", focus_material, re.I))
+                if has_agreement and has_change:
+                    grounded_question = (
+                        "When you raise what changed in the agreement, "
+                        "what does the other person say or do?"
                     )
                     if (
                         not _hrn_surface_language_violation(grounded_question)
