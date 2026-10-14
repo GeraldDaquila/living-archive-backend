@@ -2066,6 +2066,19 @@ def _hrn_complete_missing_question(messages):
                         and not _hrn_question_grounding_violation(grounded_question, messages)
                     ):
                         return grounded_question
+                # Some consolidation turns retain the concrete "new scope"
+                # evidence but no longer repeat the original deadline/agreement.
+                # Keep the visitor in the conversation with a narrow, grounded
+                # question rather than returning an empty question and no closure.
+                if has_scope and has_change:
+                    grounded_question = (
+                        "When you name the changed scope, what happens in the conversation?"
+                    )
+                    if (
+                        not _hrn_surface_language_violation(grounded_question)
+                        and not _hrn_question_grounding_violation(grounded_question, messages)
+                    ):
+                        return grounded_question
                 has_agreement = bool(re.search(r"\b(?:agreement|agreed)\b", focus_material, re.I))
                 has_change = bool(re.search(r"\b(?:change|changed|new|additional|added)\b", focus_material, re.I))
                 if has_agreement and has_change:
