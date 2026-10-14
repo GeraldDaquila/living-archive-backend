@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.255 — reliable discovery fallback boundary
+# USE PRODUCTION VERSION: v489.256 — complete-sentence discovery fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.255"
-DEPLOYMENT_FINGERPRINT = "USE-v489.255-reliable-discovery-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.255-reliable-discovery-fallback"
+APP_VERSION = "v489.256"
+DEPLOYMENT_FINGERPRINT = "USE-v489.256-complete-sentence-discovery-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.256-complete-sentence-discovery-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.255":
+if str(APP_VERSION) != "v489.256":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4501,56 +4501,63 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
 
 
 def _guide_deterministic_discovery_response(subject, doorway, evidence):
-    """Provide a short, evidence-grounded resource orientation when composition drifts."""
+    """Orient discovery with complete verified prose, never fragments."""
     title = str((doorway or {}).get("title") or "").strip()
     body = str(
         (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("text")
         or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("content")
+        or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("excerpt")
         or ""
     )
-    body = re.sub(r"\s+", " ", body).strip()
+    body = re.sub(r"\\s+", " ", body).strip()
     if not title:
         return ""
-    if not body:
-        # A doorway has already passed canonical destination selection, but
-        # its body could not be recovered. Be transparent about the limit while
-        # still giving the visitor the useful destination we can verify.
+
+    def doorway_only():
         return (
-            f"A relevant starting point in the Living Archive is {title}. "
-            f"It is the closest canonical entry point selected for {subject}. "
-            "Open the resource to inspect its contents and decide how directly "
-            "they address the question you have in mind."
+            f"A useful place to start is {title}. The page itself is the best "
+            f"place to check for material related to {subject}. I could not verify "
+            "a complete description in this response, so I will not guess what it covers."
         )
-    subject_tokens = sorted(
-        set(re.findall(r"[a-z0-9]+", str(subject or "").casefold())),
-        key=len,
-        reverse=True,
-    )
-    tokens = re.findall(r"[A-Za-z][A-Za-z'-]*", body)
-    match_index = next(
-        (
-            index
-            for subject_token in subject_tokens
-            for index, token in enumerate(tokens)
-            if token.casefold() == subject_token
-        ),
-        None,
-    )
-    if match_index is None:
-        # Direct-fit validation can include a morphological match; in that
-        # case use a bounded opening passage instead of inventing a paraphrase.
-        phrase = " ".join(tokens[:10]).strip()
-    else:
-        start = max(0, match_index - 4)
-        end = min(len(tokens), match_index + 5)
-        phrase = " ".join(tokens[start:end]).strip()
-    if not phrase:
-        return ""
+
+    if not body:
+        return doorway_only()
+
+    subject_terms = {
+        token for token in re.findall(r"[a-z0-9]+", str(subject or "").casefold())
+        if len(token) >= 5 and token not in {
+            "about", "article", "articles", "content", "document", "documents",
+            "general", "information", "material", "materials", "public",
+            "resource", "resources", "specific",
+        }
+    }
+    sentences = [
+        re.sub(r"\\s+", " ", sentence).strip(" \\t-•")
+        for sentence in re.split(r"(?<=[.!?])\\s+", body)
+    ]
+    candidates = []
+    for sentence in sentences:
+        if len(sentence) < 45 or len(sentence) > 320:
+            continue
+        if not re.search(r"[.!?][\"')\\]]?$", sentence):
+            continue
+        words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
+        if subject_terms and not (subject_terms & words):
+            continue
+        if re.search(r"\\b(?:governing question|constitutional responsibility|meta description|read more)\\b", sentence, re.I):
+            continue
+        candidates.append(sentence)
+    if not candidates:
+        return doorway_only()
+
+    # Use the first complete sentence that directly overlaps the requested
+    # subject. Quote only verified page text; the surrounding orientation
+    # makes clear this is a starting point, not a claim of full coverage.
+    sentence = candidates[0]
     return (
-        f"A useful place to start is {title}. Its description brings together {phrase}. "
-        f"That makes it a relevant entry point for {subject}, while the resource remains "
-        "broader than the exact question and may lead you to related material rather than "
-        "cover every aspect directly."
+        f"A useful place to start is {title}. Its page describes the topic this way: "
+        f"“{sentence}” This makes it a relevant entry point for {subject}; the page "
+        "may also lead to related material beyond this exact question."
     )
 
 
