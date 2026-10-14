@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.220 — ground HRN question repair in visitor evidence
+# USE PRODUCTION VERSION: v489.221 — reject generic HRN return doorways
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.220"
-DEPLOYMENT_FINGERPRINT = "USE-v489.220-hrn-question-grounding-visitor-evidence-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.220-hrn-question-grounding-visitor-evidence-v1"
+APP_VERSION = "v489.221"
+DEPLOYMENT_FINGERPRINT = "USE-v489.221-hrn-return-reject-generic-orientation-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.221-hrn-return-reject-generic-orientation-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.220":
+if str(APP_VERSION) != "v489.221":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1513,9 +1513,30 @@ def _relational_return_conflict_topic_fit(query, doc):
     return False
 
 
+def _relational_return_is_generic_doorway(doc):
+    """Reject broad entrance pages as the earned gift after a completed HRN journey.
+
+    A successful closure must hand the visitor a resource connected to the
+    perspective they reached. Generic Orientation/Home/Welcome pages are not
+    a substitute for a topic-fit canonical doorway; if no specific asset qualifies,
+    the existing safe no-doorway response is more honest.
+    """
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").casefold().strip()
+    title = re.sub(r"^[^a-z0-9]+", "", title)
+    title = re.sub(r"[^a-z0-9]+", " ", title).strip()
+    return bool(re.fullmatch(
+        r"(?:(?:living archive )?orientation|home(?: page)?|"
+        r"welcome(?: to (?:the )?(?:archive|living archive))?|"
+        r"start here|the guide|life understood)",
+        title,
+    ))
+
+
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
-    if not isinstance(doc, dict):
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
@@ -1582,7 +1603,7 @@ def _relational_return_earned_focus_fit(query, doc):
 
 def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
-    if not isinstance(doc, dict):
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
