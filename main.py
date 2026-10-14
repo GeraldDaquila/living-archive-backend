@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.245 — always ground subject discovery
+# USE PRODUCTION VERSION: v489.246 — widen canonical discovery recall
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.245"
-DEPLOYMENT_FINGERPRINT = "USE-v489.245-always-ground-subject-discovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.245-always-ground-subject-discovery"
+APP_VERSION = "v489.246"
+DEPLOYMENT_FINGERPRINT = "USE-v489.246-widen-canonical-discovery-recall"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.246-widen-canonical-discovery-recall"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.245":
+if str(APP_VERSION) != "v489.246":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4333,6 +4333,11 @@ def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, d
     return bool(archive_evidence_unavailable or str(discovery_subject or "").strip())
 
 
+def _guide_subject_supplement_limit(discovery_subject):
+    """Broaden candidate recall for explicit resource-finding requests."""
+    return 10 if str(discovery_subject or "").strip() else 3
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4411,7 +4416,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(resource_query)
+            recovered_docs = _wordpress_search_canonical_candidates(resource_query, limit=_guide_subject_supplement_limit(discovery_subject))
             recovered_docs = [
                 {
                     "title": str(item.get("title") or "").strip(),
