@@ -251,7 +251,7 @@ def main():
         )
         assert_true(composed is not None, "provider-neutral composition seam returned no result")
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
-        assert_true("Stewardship is about taking responsibility" in composed["response"], "fake provider response was not preserved by composition")
+        assert_true("Stewardship means taking care of something entrusted to you" in composed["response"], "fake provider response was not preserved by composition")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
         empty_result = composition.compose(
             use_core=FakeCore(),
