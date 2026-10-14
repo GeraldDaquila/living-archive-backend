@@ -110,11 +110,26 @@ async def validated_query_stream(
     async def capture_send(message: Dict[str, Any]) -> None:
         captured.append(message)
 
-    try:
+    async def run_target() -> None:
         target_scope = dict(scope)
         target_scope["path"] = "/api/query"
         target_scope["raw_path"] = b"/api/query"
         await target_app(target_scope, _replay_receive(body), capture_send)
+
+    # Keep intermediaries from closing an idle SSE response while the
+    # authoritative query is still running.
+    target_task = asyncio.create_task(run_target())
+    try:
+        while not target_task.done():
+            try:
+                await asyncio.wait_for(asyncio.shield(target_task), timeout=8.0)
+            except asyncio.TimeoutError:
+                await send({
+                    "type": "http.response.body",
+                    "body": b": keep-alive\\n\\n",
+                    "more_body": True,
+                })
+        await target_task
     except Exception as exc:
         await _send_event(
             send,
@@ -205,6 +220,7 @@ async def validated_query_stream(
             "validated_output": True,
             "state_commit": "atomic_after_complete",
             "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+            "payload": payload or {},
         },
     )
     await send({"type": "http.response.body", "body": b"", "more_body": False})
