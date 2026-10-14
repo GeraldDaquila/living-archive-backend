@@ -293,7 +293,7 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
 
 
 
-def test_hrn_missing_question_gets_question_only_recovery(monkeypatch):
+def test_hrn_missing_question_gets_grounded_local_completion(monkeypatch):
     import json
 
     candidate = _item(
@@ -311,7 +311,6 @@ def test_hrn_missing_question_gets_question_only_recovery(monkeypatch):
     original_models.clear()
     original_quality.clear()
     attempts = []
-    recovery_schemas = []
 
     response = (
         "The original estimate covered the work that had been described at the time. "
@@ -324,13 +323,10 @@ def test_hrn_missing_question_gets_question_only_recovery(monkeypatch):
         "use_resource": False,
         "resource_intro": "",
     })
-    repaired_question = "What happened when the agreed date was raised alongside the changed scope?"
 
     def fake_call(use_core, item, *args, **kwargs):
         attempts.append(item["provider"])
-        if len(attempts) > 1 and len(args) >= 3:
-            recovery_schemas.append(args[2])
-        return first_pass if len(attempts) == 1 else json.dumps({"question": repaired_question})
+        return first_pass
 
     monkeypatch.setattr(provider_bank, "_call", fake_call)
     messages = [{
@@ -358,9 +354,11 @@ def test_hrn_missing_question_gets_question_only_recovery(monkeypatch):
 
     assert result is not None
     assert result["parsed"]["response"] == response
-    assert result["parsed"]["question"] == repaired_question
-    assert recovery_schemas and recovery_schemas[0]["schema"]["required"] == ["question"]
-    assert attempts == ["nvidia", "nvidia"]
+    assert result["parsed"]["question"] == (
+        "When you raise the changed scope alongside the agreed date, what happens in the conversation?"
+    )
+    assert attempts == ["nvidia"], "A grounded local question must not consume another provider call"
+
 
 def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
     candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
