@@ -503,7 +503,7 @@ def test_provider_rate_limit_cooldown_is_not_shortened_by_timeout_policy(monkeyp
     assert rate_limited["cooldown_until"] == 1090.0
 
 
-def test_hrn_relational_uses_small_completion_budget_for_second_stage(monkeypatch):
+def test_hrn_relational_completion_budget_preserves_question_under_second_stage(monkeypatch):
     candidates = [_candidate("groq", "model-a")]
     _isolate(monkeypatch, candidates)
     brief = {
@@ -545,8 +545,9 @@ def test_hrn_relational_uses_small_completion_budget_for_second_stage(monkeypatc
         operation="hrn_relational",
     )
     assert result is not None
-    assert token_limits == [250]
-    assert provider_bank.HRN_RELATIONAL_MAX_COMPLETION_TOKENS == 250
+    assert token_limits == [600]
+    assert provider_bank.HRN_RELATIONAL_MAX_COMPLETION_TOKENS == 700
+    assert provider_bank.OPERATION_TOKEN_FLOORS["hrn_relational"] == 600
 
 
 def test_hrn_unclassified_embedded_question_failure_skips_same_model_schema_retry(monkeypatch):
