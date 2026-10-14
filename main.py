@@ -4701,16 +4701,10 @@ def _guide_node_specific_match(query):
         # outrank a visitor's subject-specific request. A generic surface is
         # eligible only when the visitor explicitly names that surface.
         generic_access_titles = {
-            "libraries", "library", "archive index", "site index",
-            "archive navigation", "start here", "begin here",
+            "libraries", "library", "archive index", "archive reference index",
+            "site index", "archive navigation", "start here", "begin here",
         }
-        generic_access_types = {
-            "library_index", "site_index", "navigation_index", "archive_index",
-        }
-        is_generic_access_node = (
-            normalized_title in generic_access_titles
-            or node_asset_type in generic_access_types
-        )
+        is_generic_access_node = normalized_title in generic_access_titles
         if is_generic_access_node:
             if normalized_title and re.search(
                 rf"\b{re.escape(normalized_title)}\b",
