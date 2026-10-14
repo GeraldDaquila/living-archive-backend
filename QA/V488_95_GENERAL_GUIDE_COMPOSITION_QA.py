@@ -109,7 +109,7 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.16", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.17", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(composition._requires_discernment_synthesis("What is the relationship between personal agency and responsibility to others?"), "conceptual relationship synthesis contract is not activated")
