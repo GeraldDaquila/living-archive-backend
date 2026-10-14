@@ -2443,6 +2443,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     and "question-grounding contract violation: question does not name a concrete detail from the movement brief"
                     in str(contract_error)
                 )
+                targeted_question_missing_recovery = (
+                    operation == "hrn_relational"
+                    and "hrn_relational composition contract requires a non-empty question"
+                    in str(contract_error)
+                )
                 targeted_response_shape_recovery = (
                     operation == "hrn_relational"
                     and any(
@@ -2486,6 +2491,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 targeted_field_recovery = (
                     targeted_question_recovery
                     or targeted_question_grounding_recovery
+                    or targeted_question_missing_recovery
                     or targeted_response_shape_recovery
                     or targeted_response_voice_recovery
                 )
@@ -2510,7 +2516,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
 
                 question_only_recovery = (
                     operation == "hrn_relational"
-                    and (targeted_question_recovery or targeted_question_grounding_recovery)
+                    and (
+                        targeted_question_recovery
+                        or targeted_question_grounding_recovery
+                        or targeted_question_missing_recovery
+                    )
                 )
                 recovery_schema = OPERATION_SCHEMAS.get(
                     "hrn_question_recovery" if question_only_recovery else operation + "_recovery"
@@ -2544,6 +2554,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Correct only the question field: name one actual issue, action, or point of tension present in the brief, using natural non-prescriptive wording. "
                         "Do not ask about an abstract distinction or the relationship in general. Do not invent facts. "
                         "Preserve the original response and all valid flags. "
+                    )
+                elif targeted_question_missing_recovery:
+                    correction_prompt = (
+                        "Your preceding HRN JSON omitted the separate follow-up question. "
+                        "Provide one natural, non-prescriptive question grounded in a concrete issue, action, or point of tension from the structured movement brief. "
+                        "Do not invent facts or repeat the response as a question. "
                     )
                 elif targeted_response_shape_recovery:
                     correction_prompt = (
