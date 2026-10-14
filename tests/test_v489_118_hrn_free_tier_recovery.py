@@ -144,6 +144,9 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         _item("mistral", "mistral-small-latest"),
         _item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
     ]
+    # This test exercises fallback traversal when the fast lane is quality-rejected;
+    # a separate test covers prioritizing the lane when its quality state is clear.
+    candidates[-1]["quality_failures"] = 1
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
