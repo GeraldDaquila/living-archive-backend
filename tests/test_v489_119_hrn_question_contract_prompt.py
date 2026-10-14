@@ -89,6 +89,43 @@ def test_hrn_provider_bank_replaces_common_advice_sentence_with_grounded_observa
     assert normalized["question"] == partial["question"]
 
 
+def test_hrn_provider_bank_completes_missing_question_from_agreement_change_evidence():
+    partial = {
+        "response": (
+            "You’re describing a gap between the original agreement and the new work that arrived afterward. "
+            "The conversation now seems to be about whether raising that change is reasonable, rather than "
+            "how the agreement relates to the work as it stands."
+        ),
+        "question": "",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            + json.dumps({
+                "observer_contrast": "the original agreement and new work are being treated separately",
+                "observer_delta": "the discussion shifts to whether raising the change is reasonable",
+                "observer_horizon": "the moment the change in agreement is raised",
+            })
+        ),
+    }]
+
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+
+    assert normalized["question"] == (
+        "When you raise what changed in the agreement, what does the other person say or do?"
+    )
+    assert provider_bank._hrn_surface_language_violation(normalized["question"]) == ""
+    assert provider_bank._hrn_question_grounding_violation(
+        normalized["question"], messages
+    ) == ""
+
+
 def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
     partial = {
         "response": (
