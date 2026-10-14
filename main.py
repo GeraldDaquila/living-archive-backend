@@ -3960,6 +3960,60 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     }
 
 
+def _wordpress_fetch_selected_canonical_body(url):
+    """Fetch the selected public Archive page directly when search misses its body."""
+    import html
+    from urllib.parse import urlparse
+
+    candidate_url = str(url or "").strip()
+    parsed = urlparse(candidate_url)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != "geralddaquila.com"
+        or parsed.username
+        or parsed.password
+        or not parsed.path.startswith("/")
+        or parsed.query
+        or parsed.fragment
+    ):
+        return None
+    try:
+        request = UrlRequest(
+            candidate_url,
+            headers={"Accept": "text/html", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=2.0) as response:
+            final_url = str(response.geturl() or "").strip()
+            raw_html = response.read(1_000_000).decode("utf-8", errors="replace")
+        final = urlparse(final_url)
+        if (
+            final.scheme != "https"
+            or final.hostname != "geralddaquila.com"
+            or final.path.rstrip("/").casefold() != parsed.path.rstrip("/").casefold()
+        ):
+            return None
+        title_match = re.search(r"(?is)<title[^>]*>(.*?)</title>", raw_html)
+        title = html.unescape(re.sub(r"(?s)<[^>]+>", " ", title_match.group(1))).strip() if title_match else ""
+        raw_html = re.sub(r"(?is)<(script|style|noscript|svg)\b[^>]*>.*?</\1>", " ", raw_html)
+        raw_html = re.sub(r"(?is)<!--.*?-->", " ", raw_html)
+        main_match = re.search(r"(?is)<main\b[^>]*>(.*?)</main>", raw_html)
+        article_match = re.search(r"(?is)<article\b[^>]*>(.*?)</article>", raw_html)
+        content_html = (main_match or article_match).group(1) if (main_match or article_match) else raw_html
+        content = re.sub(r"(?s)<[^>]+>", " ", content_html)
+        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+        if len(content) < 80:
+            return None
+        return {
+            "title": title or parsed.path.strip("/").replace("-", " ").title(),
+            "url": final_url,
+            "text": content[:6000],
+        }
+    except Exception as exc:
+        print(f"The Guide selected canonical body fetch skipped ({type(exc).__name__}).")
+        return None
+
+
 def _wordpress_search_canonical_candidates(query, *, limit=3):
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
@@ -4565,7 +4619,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 doorway_docs = _wordpress_search_canonical_candidates(
                     authoritative_doorway.get("title") or "", limit=3
                 )
-                recovered_docs = list(doorway_docs) + list(recovered_docs)
+                # Search may rank around a destination without returning that
+                # exact page in its bounded slice. Fetch the already-authorized
+                # URL directly, then let the same URL/body/subject-fit checks
+                # decide whether it can support the discovery answer.
+                direct_body = _wordpress_fetch_selected_canonical_body(
+                    authoritative_doorway.get("url") or ""
+                )
+                recovered_docs = (
+                    ([direct_body] if isinstance(direct_body, dict) else [])
+                    + list(doorway_docs)
+                    + list(recovered_docs)
+                )
             normalized_recovered_docs = []
             seen_recovered_urls = set()
             for item in recovered_docs:
