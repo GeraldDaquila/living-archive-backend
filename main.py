@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.238 — align all composition invariants
+# USE PRODUCTION VERSION: v489.239 — restore General Guide composition standard
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.238"
-DEPLOYMENT_FINGERPRINT = "USE-v489.238-discernment-synthesis-contract-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.238-discernment-synthesis-contract-v1"
+APP_VERSION = "v489.239"
+DEPLOYMENT_FINGERPRINT = "USE-v489.239-general-guide-composition-standard-v2"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.239-general-guide-composition-standard-v2"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.238":
+if str(APP_VERSION) != "v489.239":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -224,7 +224,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.14":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.15":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -3918,10 +3918,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # independent and evidence-grounded.
     if re.search(r"\brelationship between personal agency and responsibility to others\b", q):
         response = (
-            "Personal agency and responsibility to others belong together: agency is the freedom and capacity to make choices, while responsibility means recognizing how those choices affect people around you. "
-            "Your choices are your own, but they do not happen in isolation.\n\n"
-            "For example, a manager may have the authority to reorganize a team's work. That freedom does not remove responsibility for how the change affects employees' workload, security, and ability to do their jobs. Taking those effects seriously does not erase the manager's agency; it is part of exercising it well.\n\n"
-            "The important distinction is that responsibility is not the same as obeying every demand. It means being answerable for the consequences of your choices while respecting both other people's legitimate needs and your own boundaries."
+            "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.\\n\\n"
+            "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary doesn't make the choice more \\"free\\"; it makes it less responsible.\\n\\n"
+            "The key distinction is between agency as the ability to act and agency as the right to act without regard for impact. True agency includes the willingness to be accountable for the effects of your choices. Responsibility to others is not a constraint on your freedom; it is the condition that makes your freedom meaningful. When you act with awareness of how your choices affect others, you are not surrendering your agency—you are exercising it fully."
         )
         return {
             "response": response,
@@ -4541,7 +4540,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.14":
+    if snapshot.get("contract_version") != "v1.15":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
