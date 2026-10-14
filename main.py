@@ -4483,7 +4483,7 @@ def _guide_registered_discovery_nodes(subject, limit=3):
         score += 2 * len(query_terms & title_terms)
         ranked.append((score, title.casefold(), node))
     ranked.sort(key=lambda item: (-item[0], item[1]))
-    return [item[2] for item in ranked[:max(1, int(limit or 3))]
+    return [item[2] for item in ranked[:max(1, int(limit or 3))]]
 
 
 def _guide_registered_discovery_documents(subject, documents):
