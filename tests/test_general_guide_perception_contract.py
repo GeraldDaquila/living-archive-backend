@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.17"
+    assert guide.CONTRACT_VERSION == "v1.18"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.17"
+    assert snapshot["contract_version"] == "v1.18"
     assert snapshot["provider_neutral"] is True
 
 
@@ -68,8 +68,8 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.17"
-    assert guide.contract_snapshot()["contract_version"] == "v1.17"
+    assert guide.CONTRACT_VERSION == "v1.18"
+    assert guide.contract_snapshot()["contract_version"] == "v1.18"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -103,8 +103,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.17"
-    assert guide.contract_snapshot()["contract_version"] == "v1.17"
+    assert guide.CONTRACT_VERSION == "v1.18"
+    assert guide.contract_snapshot()["contract_version"] == "v1.18"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -141,3 +141,12 @@ Stewardship does not mean controlling everything or sacrificing yourself for eve
     assert len(parsed["response"].split("\n\n")) == 3
     assert "keeping a promise" in parsed["response"]
     assert "does not mean controlling everything" in parsed["response"]
+
+
+def test_resource_discovery_answers_the_search_need_without_speculative_padding():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "Distinguish a broad entry point from a resource that directly addresses the subject" in prompt
+    assert "Do not merely quote a generic page description" in prompt
+    assert "Never pad this explanation with speculative phrases" in prompt
+    assert "Keep the canonical link separate from the answer" in prompt
+
