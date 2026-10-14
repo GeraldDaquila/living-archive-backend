@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.15"
+CONTRACT_VERSION = "v1.16"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -269,6 +269,62 @@ def _question_shape(query: str) -> str:
     if re.search(r"\b(?:i feel|i'm feeling|i am feeling|my relationship|my grief|i keep|i can't|i cannot|i'm struggling|i am struggling)\b", q):
         return "reflective"
     return "general"
+
+
+def _clarification_reason(query: str, history_text: str = "") -> str:
+    """Identify an essential missing referent without interrupting complete questions."""
+    q = _normalize_space(query).casefold()
+    history = _normalize_space(history_text).casefold()
+    generic_referent = bool(re.search(
+        r"\b(?:this|that|the)\s+(?:problem|issue|situation|matter|topic)\b", q
+    ))
+    comparison = bool(re.search(
+        r"\b(?:compare|comparison|contrast|two ways|different approaches)\b", q
+    ))
+    named_subject = bool(not generic_referent and re.search(
+        r"\b(?:of|about|between|regarding|concerning|on)\s+"
+        r"[a-z][a-z -]{2,}", q
+    ))
+    # The conversation history may supply the omitted subject. Treat it as
+    # resolving the reference only when it contains substantive context, not
+    # merely the same generic wording.
+    history_supplies_subject = bool(
+        history
+        and len(history.split()) >= 6
+        and not re.search(
+            r"\b(?:this problem|that problem|this issue|that issue)\b", history
+        )
+    )
+    if comparison and generic_referent and not named_subject and not history_supplies_subject:
+        return "comparison_subject_missing"
+    if generic_referent and not named_subject and not history_supplies_subject and len(q.split()) <= 12:
+        return "problem_referent_missing"
+    return ""
+
+
+def clarification_response(query: str, history_text: str = "") -> Optional[Dict[str, str]]:
+    """Offer a concise, natural clarification before retrieval or recommendation."""
+    reason = _clarification_reason(query, history_text)
+    if not reason:
+        return None
+    if reason == "comparison_subject_missing":
+        response = (
+            "Absolutely. Which problem would you like to compare? If you already have "
+            "two approaches in mind, tell me what they are. If not, describe the "
+            "situation briefly and I can help identify two useful ways of understanding "
+            "it, including what each reveals, where each has limits, and what becomes "
+            "clearer when we consider them together."
+        )
+    else:
+        response = (
+            "What problem or situation do you have in mind? A little context will help "
+            "me give you an answer that fits, rather than guess at what you mean."
+        )
+    return {
+        "response": response,
+        "response_shape": "clarifying",
+        "clarification_reason": reason,
+    }
 
 
 def _requires_discernment_synthesis(query: str) -> bool:

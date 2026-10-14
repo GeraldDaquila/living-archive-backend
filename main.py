@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.239 — restore General Guide composition standard
+# USE PRODUCTION VERSION: v489.240 — structural clarification and answer/navigation boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.239"
-DEPLOYMENT_FINGERPRINT = "USE-v489.239-general-guide-composition-standard-v2"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.239-general-guide-composition-standard-v2"
+APP_VERSION = "v489.240"
+DEPLOYMENT_FINGERPRINT = "USE-v489.240-structural-clarification-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.240-structural-clarification-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.239":
+if str(APP_VERSION) != "v489.240":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -224,7 +224,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.15":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.16":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -4305,6 +4305,37 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
     query = str(query or "").strip()
+    clarification = general_guide_composition.clarification_response(
+        query, _history_text(history)
+    )
+    if clarification:
+        request_id = "clarify-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": request_id,
+            "query": query,
+            "intent": "CLARIFICATION_REQUIRED",
+            "response": clarification["response"],
+            "recommendation": None,
+            "answer_basis": {
+                "kind": "clarification",
+                "label": "A little more context",
+                "explanation": "The question needs a subject before a relevant answer or Archive resource can be selected.",
+            },
+            "processing": "guide_clarification",
+            "route_source": "guide_missing_context_guard",
+            "clarification": {
+                "required": True,
+                "reason": clarification["clarification_reason"],
+                "recommendation_suppressed": True,
+            },
+            "visitor_boundary_version": APP_VERSION,
+        }
     context_data = use_core.fetch_canonical_context(query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
@@ -4540,7 +4571,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.15":
+    if snapshot.get("contract_version") != "v1.16":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")

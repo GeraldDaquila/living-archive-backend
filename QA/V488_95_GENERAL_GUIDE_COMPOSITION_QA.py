@@ -62,6 +62,8 @@ def main():
     assert_true("authoritative_doorway = None" not in evidence_boundary, "synthesis insufficiency still erases an independently selected canonical doorway")
     assert_true('"canonical_link_context"' in evidence_boundary and '"context_blocks"' in evidence_boundary, "synthesis evidence is not isolated from the composition context")
 
+    assert_true(callable(getattr(composition, "clarification_response", None)), "missing-context clarification boundary is missing")
+    assert_true("CLARIFICATION_REQUIRED" in MAIN_TEXT, "ordinary Guide entry does not handle clarification before retrieval")
     assert_true(
         "general_guide_composition.compose" in MAIN_TEXT,
         "ordinary Guide path is not bound to General Composition",
@@ -104,7 +106,7 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.15", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.16", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(composition._requires_discernment_synthesis("What is the relationship between personal agency and responsibility to others?"), "conceptual relationship synthesis contract is not activated")
