@@ -217,7 +217,7 @@ def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
 
 
 def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", capabilities=["json_object", "json_schema_best_effort", "long_context", "composition", "relational_analysis"])
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
