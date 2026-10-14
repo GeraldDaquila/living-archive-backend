@@ -396,3 +396,46 @@ def test_discovery_fallback_offers_verified_doorway_without_claiming_page_conten
     assert "public accountability" in response
     assert "inspect its contents" in response
     assert "Google Scholar" not in response
+
+
+
+def test_discovery_fallback_never_constructs_fragmentary_page_summary():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "influence long-term outcomes Constitutional Responsibility Governing Question How does "
+            "public accountability work distributed responsibility institutional accountability "
+            "regenerative models of."
+        ),
+    }]
+    response = main._guide_deterministic_discovery_response(
+        "public accountability", doorway, evidence
+    )
+    assert "Governance & Decentralization" in response
+    assert "could not verify a complete description" in response
+    assert "influence long-term outcomes Constitutional Responsibility" not in response
+
+
+def test_discovery_fallback_uses_a_complete_sentence_when_available():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "This section explores public accountability in institutional life. "
+            "It also discusses transparency and civic participation across communities."
+        ),
+    }]
+    response = main._guide_deterministic_discovery_response(
+        "public accountability", doorway, evidence
+    )
+    assert "This section explores public accountability in institutional life." in response
+    assert "relevant entry point" in response
