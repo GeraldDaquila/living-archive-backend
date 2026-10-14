@@ -356,3 +356,31 @@ def test_workplace_scope_change_return_rejects_adjacent_but_not_direct_workplace
     assert not main._relational_return_earned_focus_fit(query, adjacent_resource)
 
 
+
+def test_canonical_wordpress_search_terms_are_deterministic(monkeypatch):
+    seen_urls = []
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def read(self):
+            return b"[]"
+
+    def fake_request(url, **kwargs):
+        seen_urls.append(url)
+        return type("Request", (), {"full_url": url})()
+
+    monkeypatch.setattr(main, "_subject_terms", lambda query: {"conflict", "workplace"})
+    monkeypatch.setattr(main, "UrlRequest", fake_request)
+    monkeypatch.setattr(main, "urlopen", lambda request, timeout=None: FakeResponse())
+
+    assert main._wordpress_search_canonical_candidates("workplace conflict", limit=3) == []
+    assert seen_urls == [
+        "https://geralddaquila.com/wp-json/wp/v2/search?search=workplace%20conflict&per_page=10"
+    ]
+
+
