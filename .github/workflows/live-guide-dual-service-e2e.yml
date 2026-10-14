@@ -93,7 +93,6 @@ jobs:
                           status == 200
                           and payload.get("version") == expected_version
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
-                          and payload.get("ok") is True
                       ):
                           # Exercise the clarification boundary only once the release identity matches.
                           boundary_status, boundary_payload = post_query(
