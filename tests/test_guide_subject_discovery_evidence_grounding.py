@@ -417,7 +417,7 @@ def test_discovery_fallback_never_constructs_fragmentary_page_summary():
         "public accountability", doorway, evidence
     )
     assert "Governance & Decentralization" in response
-    assert "inspect" in response
+    assert "could not verify a complete description" in response
     assert "influence long-term outcomes Constitutional Responsibility" not in response
 
 
