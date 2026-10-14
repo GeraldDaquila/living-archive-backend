@@ -225,7 +225,7 @@ def main():
     def fake_route(**kwargs):
         captured_user_messages.append(kwargs["messages"][-1]["content"])
         parsed = kwargs["parse"](
-            '{"response":"Stewardship is about taking responsibility for something that matters beyond yourself.\\n\\nIt matters now because the consequences of our choices increasingly extend beyond the people or places immediately around us.\\n\\nThat makes stewardship less about control than about asking what we are responsible for and how we can care for it well.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
+            '{"response":"Stewardship means taking care of something entrusted to you, including things other people rely on.\\n\\nIn everyday life, it can mean keeping a promise or maintaining a shared space so others can continue to use it. Small choices like these accumulate: carelessness passes costs to others, while responsible care preserves trust and future possibilities.\\n\\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for and acting responsibly within your limits.","doorway_title":"Stewardship Today","response_shape":"explanatory"}'
         )
         return {
             "parsed": parsed,
