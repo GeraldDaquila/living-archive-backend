@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.256 — complete-sentence discovery fallback
+# USE PRODUCTION VERSION: v489.257 — complete-sentence discovery fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.256"
-DEPLOYMENT_FINGERPRINT = "USE-v489.256-complete-sentence-discovery-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.256-complete-sentence-discovery-fallback"
+APP_VERSION = "v489.257"
+DEPLOYMENT_FINGERPRINT = "USE-v489.257-provider-independent-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.257-provider-independent-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.256":
+if str(APP_VERSION) != "v489.257":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
