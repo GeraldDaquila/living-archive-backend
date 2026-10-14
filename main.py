@@ -3950,7 +3950,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         closing = (
             "If you would like to explore this further, the Archive resource below may offer a useful next step."
             if recommendation_available
-            else "I could not identify an Archive resource closely related enough to recommend here."
+            else "I could not identify a sufficiently relevant Archive resource to recommend here."
         )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
