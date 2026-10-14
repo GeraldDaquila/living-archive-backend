@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.244 — subject-discovery evidence grounding
+# USE PRODUCTION VERSION: v489.245 — always ground subject discovery
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.244"
-DEPLOYMENT_FINGERPRINT = "USE-v489.244-subject-discovery-evidence-grounding"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.244-subject-discovery-evidence-grounding"
+APP_VERSION = "v489.245"
+DEPLOYMENT_FINGERPRINT = "USE-v489.245-always-ground-subject-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.245-always-ground-subject-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.244":
+if str(APP_VERSION) != "v489.245":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4328,6 +4328,11 @@ def _guide_subject_discovery_query(query):
     return ""
 
 
+def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, discovery_subject):
+    """Always supplement subject-finding requests with vetted canonical content."""
+    return bool(archive_evidence_unavailable or str(discovery_subject or "").strip())
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4397,12 +4402,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "evidence_sufficiency_unavailable",
         )
     )
-    if archive_evidence_unavailable:
-        # A navigation-only recovery can find useful canonical content after
-        # the original vector-evidence gates reject their candidate set. Do not
-        # promote that result merely because its title matches: fetch its text,
-        # then re-run the same frame-neutral, substantive-sufficiency, and
-        # question-evidence-fit gates before allowing it into composition.
+    if _guide_requires_canonical_subject_supplement(
+        archive_evidence_unavailable, discovery_subject
+    ):
+        # Subject-finding requests always receive a bounded WordPress content
+        # supplement, even when the initial vector pass did not set an evidence-
+        # unavailable flag. A valid doorway alone is not enough: fetch the page
+        # text and re-run the same frame-neutral, sufficiency, and question-fit
+        # gates before allowing it into the answer composition.
         try:
             recovered_docs = _wordpress_search_canonical_candidates(resource_query)
             recovered_docs = [

@@ -34,3 +34,18 @@ def test_subject_query_does_not_hard_code_a_specific_archive_topic():
     assert main._guide_subject_discovery_query(
         "Where can I find documents about public health governance?"
     ) == "public health governance"
+
+
+
+def test_subject_discovery_always_triggers_canonical_content_supplement():
+    assert main._guide_requires_canonical_subject_supplement(
+        False, "institutional responsibility"
+    )
+    assert main._guide_requires_canonical_subject_supplement(
+        True, "institutional responsibility"
+    )
+
+
+def test_ordinary_queries_only_trigger_recovery_when_evidence_is_unavailable():
+    assert main._guide_requires_canonical_subject_supplement(True, "")
+    assert not main._guide_requires_canonical_subject_supplement(False, "")
