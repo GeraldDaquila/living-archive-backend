@@ -393,7 +393,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             raise ValueError("multi-step practical advice must use separate Markdown list lines")
         # General Guide answers do not default to lists. A plain stewardship
         # explanation must stay grounded and bounded, not drift into a taxonomy.
-        if re.search(r"\bstewardship\b", query, re.I) and not _question_requests_enumeration(query):
+        if re.search(r"\bstewardship\b", query, re.I) and re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I) and not _question_requests_enumeration(query):
             if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
                 raise ValueError("plain stewardship explanation must not introduce an unsolicited list")
             if not re.search(r"\b(?:keeping a promise|shared spaces?|maintain(?:ing)? what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item)\b", response, re.I):
