@@ -82,6 +82,46 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
 
 
+def test_hrn_relational_prioritizes_healthy_workers_ai_glm_before_slow_free_router_lanes(monkeypatch):
+    candidates = [
+        _candidate("openrouter", "openrouter/free"),
+        _candidate("mistral", "mistral-small-latest"),
+        _candidate("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
+    ]
+    _isolate(monkeypatch, candidates)
+    calls = []
+
+    def fail_fast(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        raise provider_bank.ProviderCallError(
+            "simulated independent-lane failure",
+            item["provider"],
+            item["model"],
+            503,
+            category="provider_failure",
+        )
+
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fail_fast)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "STRUCTURED MOVEMENT BRIEF — " + json.dumps({
+            "observer_intention": "Understand the change in scope",
+            "observer_contrast": "The agreed deadline remained while scope changed",
+            "observer_so_what": "Expectations may no longer match",
+            "observer_delta": "The conversation moved from delivery to fairness",
+            "observer_horizon": "The moment the scope changed",
+            "observer_next_intention": "What the colleague understood the change to mean",
+        })}],
+        max_tokens=600,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is None
+    assert calls[0] == ("workers_ai", "@cf/zai-org/glm-4.7-flash")
+
+
 def test_perception_does_not_spend_turn_budget_on_fallback_after_slow_failure(monkeypatch):
     candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
     _isolate(monkeypatch, candidates)
