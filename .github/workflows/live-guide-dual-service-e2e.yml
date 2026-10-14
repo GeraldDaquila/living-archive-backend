@@ -210,4 +210,35 @@ jobs:
               if not isinstance(final_payload.get("recommendation"), dict):
                   raise SystemExit(f"{name}: SSE stream lost the independent canonical recommendation")
               print(f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; final envelope preserved")
+
+          # The Guide discovery regression that exposed primary/mirror drift.
+          # This is deliberately a direct visitor query, not a unit-level proxy.
+          discovery_query = "Where can I find material about institutional responsibility?"
+          expected_url = "https://geralddaquila.com/stewardship-readiness/"
+          expected_title = "Stewardship Readiness"
+          discovery_results = {}
+          for name, base_url in services.items():
+              status, payload = post_query(base_url, discovery_query, timeout=120)
+              recommendation = payload.get("recommendation")
+              if status != 200 or payload.get("version") != expected_version:
+                  raise SystemExit(
+                      f"{name}: discovery parity request failed: status={status}, "
+                      f"version={payload.get('version')}, expected={expected_version}"
+                  )
+              if not isinstance(recommendation, dict):
+                  raise SystemExit(f"{name}: institutional-responsibility discovery omitted recommendation")
+              actual_url = str(recommendation.get("url") or "").rstrip("/")
+              actual_title = str(recommendation.get("title") or "").strip()
+              if actual_url != expected_url.rstrip("/") or actual_title.casefold() != expected_title.casefold():
+                  raise SystemExit(
+                      f"{name}: discovery destination regression: "
+                      f"title={actual_title!r}, url={actual_url!r}; "
+                      f"expected title={expected_title!r}, url={expected_url!r}"
+                  )
+              discovery_results[name] = (actual_title, actual_url)
+              print(f"{name}: institutional-responsibility discovery PASS; {actual_title}; {actual_url}")
+
+          if discovery_results.get("primary") != discovery_results.get("backup"):
+              raise SystemExit(f"Primary/mirror discovery behavior diverged: {discovery_results}")
+          print("primary/backup discovery parity PASS: both select the same registered canonical destination")
           PY
