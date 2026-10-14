@@ -439,3 +439,34 @@ def test_discovery_fallback_uses_a_complete_sentence_when_available():
     )
     assert "This section explores public accountability in institutional life." in response
     assert "relevant entry point" in response
+
+def test_subject_discovery_replaces_provider_specific_prose_with_selected_page_evidence():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "While governance is often associated with governments and political institutions, "
+            "governance exists wherever people must organize around shared goals, resolve conflicts, "
+            "allocate resources, establish accountability, and adapt to changing conditions."
+        ),
+    }]
+    provider_specific_response = (
+        "Public accountability is a broad field. The Barangay Before the State offers a historical "
+        "contrast, while The Psychology of Power examines institutional behavior."
+    )
+
+    response = main._guide_subject_discovery_answer(
+        provider_specific_response, "public accountability", doorway, evidence
+    )
+
+    assert response == main._guide_deterministic_discovery_response(
+        "public accountability", doorway, evidence
+    )
+    assert "The Barangay Before the State" not in response
+    assert "The Psychology of Power" not in response
+    assert "establish accountability" in response
+
