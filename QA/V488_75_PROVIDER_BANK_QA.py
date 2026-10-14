@@ -82,7 +82,7 @@ def main():
     assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 7.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
