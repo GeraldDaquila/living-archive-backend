@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.14"
+    assert guide.CONTRACT_VERSION == "v1.15"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.14"
+    assert snapshot["contract_version"] == "v1.15"
     assert snapshot["provider_neutral"] is True
 
 
@@ -41,6 +41,9 @@ def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance()
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "Prefer one earned insight over several generic observations" in prompt
     assert "Use a concrete-example decision rule before composing" in prompt
+    assert "preserve the full movement of the reasoning rather than compressing it into a summary" in prompt
+    assert "Each paragraph must advance the thought, not repeat it" in prompt
+    assert "The final insight should emerge from the explanation, not arrive as a generic moral" in prompt
 
 
 def test_conceptual_relationships_require_discernment_example_and_three_paragraphs():
@@ -53,13 +56,17 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
     with pytest.raises(ValueError):
         parse(compressed)
     complete = json.dumps({"response": "\n\n".join([
-        "Agency gives people room to make choices, while responsibility asks them to consider how those choices affect others. They are connected because choices happen within relationships, not in isolation.",
-        "For example, a manager may reorganize a team to meet a goal, but the decision also changes employees' workload and security. Taking those consequences seriously is part of exercising authority well.",
-        "Responsibility does not mean obeying every demand. It means being answerable for foreseeable effects while respecting other people's legitimate needs and one's own boundaries."
+        "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.",
+        "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary doesn't make the choice more free; it makes it less responsible.",
+        "The key distinction is between agency as the ability to act and agency as the right to act without regard for impact. True agency includes the willingness to be accountable for the effects of your choices. Responsibility to others is not a constraint on your freedom; it is the condition that makes your freedom meaningful. When you act with awareness of how your choices affect others, you are not surrendering your agency—you are exercising it fully."
     ]), "doorway_title": "", "response_shape": "conceptual"})
-    assert len(parse(complete)["response"].split("\n\n")) == 3
+    parsed = parse(complete)["response"]
+    assert len(parsed.split("\n\n")) == 3
+    assert "interdependent aspects of the same moral life" in parsed
+    assert "manager who exercises agency to restructure a team" in parsed
+    assert "condition that makes your freedom meaningful" in parsed
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.14"
-    assert guide.contract_snapshot()["contract_version"] == "v1.14"
+    assert guide.CONTRACT_VERSION == "v1.15"
+    assert guide.contract_snapshot()["contract_version"] == "v1.15"
