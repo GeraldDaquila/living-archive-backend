@@ -1,4 +1,4 @@
-"""Regression contract for universal perception in general-purpose Guide answers."""
+"""Regression contract for structural discernment in general-purpose Guide answers."""
 
 import general_guide_composition as guide
 
@@ -25,7 +25,27 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.11"
+    assert guide.CONTRACT_VERSION == "v1.12"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.11"
+    assert snapshot["contract_version"] == "v1.12"
     assert snapshot["provider_neutral"] is True
+
+
+def test_discernment_separates_facts_inferences_and_unknowns():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "what the question explicitly establishes" in prompt
+    assert "what can reasonably be inferred" in prompt
+    assert "what remains unknown" in prompt
+    assert "Never present (b) as fact" in prompt
+
+
+def test_discernment_handles_agency_responsibility_and_boundaries_without_false_balance():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "do not automatically privilege one side" in prompt
+    assert "a boundary or refusal may be responsible" in prompt
+    assert "Do not add a counterpoint merely to appear balanced" in prompt
+
+
+def test_discernment_contract_advances_sequentially():
+    assert guide.CONTRACT_VERSION == "v1.12"
+    assert guide.contract_snapshot()["contract_version"] == "v1.12"
