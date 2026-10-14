@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.243 — stewardship gold-standard composition
+# USE PRODUCTION VERSION: v489.244 — subject-discovery evidence grounding
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.243"
-DEPLOYMENT_FINGERPRINT = "USE-v489.243-stewardship-gold-standard-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.243-stewardship-gold-standard-v1"
+APP_VERSION = "v489.244"
+DEPLOYMENT_FINGERPRINT = "USE-v489.244-subject-discovery-evidence-grounding"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.244-subject-discovery-evidence-grounding"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -4305,6 +4305,29 @@ if _basic_inquiry_contains_html_markup("Stewardship means caring for what has be
     raise RuntimeError("USE visitor-response contract failed: ordinary prose was rejected.")
 
 
+def _guide_subject_discovery_query(query):
+    """Extract the subject from a natural-language request to find Archive material.
+
+    This is a reusable query-shaping boundary: it removes the visitor's search
+    instruction while preserving the requested topic. The original question is
+    still used for visitor-facing composition; the extracted subject is used
+    only to retrieve and evaluate relevant resources.
+    """
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
+    patterns = (
+        r"^(?:please\s+)?where\s+(?:can|could|do)\s+i\s+find\s+(?:the\s+)?(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
+        r"^(?:please\s+)?(?:find|show\s+me|help\s+me\s+find|locate|search\s+for)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
+        r"^(?:i(?:'m|\s+am)\s+looking\s+for|i\s+need|can\s+you\s+find|could\s+you\s+find)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, q, re.I)
+        if match:
+            subject = re.sub(r"\s+", " ", match.group(1)).strip(" \t.,;:?!")
+            if subject and len(re.findall(r"[a-z0-9]+", subject, re.I)) >= 1:
+                return subject
+    return ""
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4340,6 +4363,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             },
             "visitor_boundary_version": APP_VERSION,
         }
+    # Separate the visitor's intent from the resource-search terms. Search
+    # wrapper language such as "Where can I find material about..." is useful
+    # to the composer but can obscure the actual subject during retrieval.
+    discovery_subject = _guide_subject_discovery_query(query)
+    resource_query = discovery_subject or query
     context_data = use_core.fetch_canonical_context(query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
@@ -4348,7 +4376,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
     authoritative_doorway = _normalize_authoritative_recommendation(
-        _general_guide_authoritative_doorway(query, context_data)
+        _general_guide_authoritative_doorway(resource_query, context_data)
     )
     # Distress-sensitive pacing governs the prose, not access to a separate
     # optional resource. Keep the compassionate response first and preserve a
@@ -4376,7 +4404,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # then re-run the same frame-neutral, substantive-sufficiency, and
         # question-evidence-fit gates before allowing it into composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(query)
+            recovered_docs = _wordpress_search_canonical_candidates(resource_query)
             recovered_docs = [
                 {
                     "title": str(item.get("title") or "").strip(),
@@ -4389,14 +4417,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 and str(item.get("text") or "").strip()
             ]
             recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
-                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
             recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
-                recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
             if not recovery_insufficient and recovered_docs:
                 recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
-                    recovered_docs, query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                    recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
                 )
                 if not recovery_question_unavailable and recovered_docs:
                     composition_context["generation_authority_protected_docs"] = recovered_docs
