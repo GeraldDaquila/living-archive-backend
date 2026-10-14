@@ -149,9 +149,9 @@ jobs:
                   raise SystemExit(f"{name}: explicit stewardship explanation is too thin: chars={len(response)}, paragraphs={len(paragraphs)}")
               if not re.search(r"(?i)^stewardship means", response):
                   raise SystemExit(f"{name}: explicit stewardship request was not answered directly")
-              if re.search(r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\\bUSE\\b", response):
+              if re.search(r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\bUSE\b", response):
                   raise SystemExit(f"{name}: limitation-only or machine-facing fallback leaked into visitor prose")
-              if re.search(r"https?://|\\[[^\\]]+\\]\\(", response):
+              if re.search(r"https?://|\[[^\]]+\]\(", response):
                   raise SystemExit(f"{name}: navigation was embedded in answer prose despite the visitor's instruction")
               recommendation = payload.get("recommendation")
               if recommendation is not None and not isinstance(recommendation, dict):
