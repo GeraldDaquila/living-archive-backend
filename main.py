@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.247 — validate selected discovery doorway evidence
+# USE PRODUCTION VERSION: v489.248 — enforce grounded discovery responses
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.247"
-DEPLOYMENT_FINGERPRINT = "USE-v489.247-selected-doorway-discovery-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.247-selected-doorway-discovery-evidence"
+APP_VERSION = "v489.248"
+DEPLOYMENT_FINGERPRINT = "USE-v489.248-grounded-discovery-response"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.248-grounded-discovery-response"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.247":
+if str(APP_VERSION) != "v489.248":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4370,6 +4370,78 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
     return accepted[:1]
 
 
+def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
+    """Reject discovery prose that ignores or contradicts its selected Archive evidence."""
+    text = re.sub(r"\\s+", " ", str(response or "")).strip().casefold()
+    if not text or not isinstance(doorway, dict) or not evidence:
+        return False
+    if re.search(
+        r"\\b(?:no specific archive material|no relevant archive material|"
+        r"couldn['’]?t verify|could not verify|couldn['’]?t identify a directly relevant|"
+        r"cannot point you to a specific internal resource)\\b",
+        text,
+        re.I,
+    ):
+        return False
+    title = _normalize_query(str(doorway.get("title") or ""))
+    if title and title in _normalize_query(text):
+        return True
+    if not re.search(r"\\b(?:archive|living archive)\\b", text, re.I):
+        return False
+    source = evidence[0] if isinstance(evidence[0], dict) else {}
+    body = str(source.get("text") or source.get("content") or source.get("excerpt") or "").casefold()
+    subject_terms = set(re.findall(r"[a-z0-9]+", str(subject or "").casefold()))
+    anchors = {
+        token for token in re.findall(r"[a-z][a-z-]{4,}", body)
+        if token not in subject_terms and token not in {
+            "about", "above", "across", "after", "again", "also", "among",
+            "because", "being", "between", "could", "every", "from", "have",
+            "into", "itself", "other", "their", "there", "these", "those",
+            "through", "under", "using", "where", "which", "while", "within",
+        }
+    }
+    response_tokens = set(re.findall(r"[a-z][a-z-]{4,}", text))
+    return len(anchors & response_tokens) >= 1
+
+
+def _guide_deterministic_discovery_response(subject, doorway, evidence):
+    """Provide a short, evidence-grounded resource orientation when composition drifts."""
+    title = str((doorway or {}).get("title") or "").strip()
+    body = str(
+        (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("text")
+        or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("content")
+        or ""
+    )
+    body = re.sub(r"\\s+", " ", body).strip()
+    if not title or not body:
+        return ""
+    subject_tokens = set(re.findall(r"[a-z0-9]+", str(subject or "").casefold()))
+    tokens = re.findall(r"[A-Za-z][A-Za-z'-]*", body)
+    match_index = next(
+        (
+            index for index, token in enumerate(tokens)
+            if token.casefold() in subject_tokens
+        ),
+        None,
+    )
+    if match_index is None:
+        # Direct-fit validation can include a morphological match; in that
+        # case use a bounded opening passage instead of inventing a paraphrase.
+        phrase = " ".join(tokens[:10]).strip()
+    else:
+        start = max(0, match_index - 4)
+        end = min(len(tokens), match_index + 5)
+        phrase = " ".join(tokens[start:end]).strip()
+    if not phrase:
+        return ""
+    return (
+        f"A useful place to start is {title}. Its description brings together {phrase}. "
+        f"That makes it a relevant entry point for {subject}, while the resource remains "
+        "broader than the exact question and may lead you to related material rather than "
+        "cover every aspect directly."
+    )
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4439,6 +4511,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "evidence_sufficiency_unavailable",
         )
     )
+    discovery_selected_evidence = []
     if _guide_requires_canonical_subject_supplement(
         archive_evidence_unavailable, discovery_subject
     ):
@@ -4477,34 +4550,41 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
+            selected_support = (
+                _guide_selected_doorway_discovery_evidence(
+                    recovered_docs, resource_query, authoritative_doorway
+                )
+                if discovery_subject and authoritative_doorway else []
+            )
             recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
-            if recovery_insufficient and discovery_subject and authoritative_doorway:
-                selected_support = _guide_selected_doorway_discovery_evidence(
-                    recovered_docs, resource_query, authoritative_doorway
+            if recovery_insufficient and selected_support:
+                recovered_docs = selected_support
+                recovery_insufficient = False
+                print(
+                    "The Guide discovery evidence gate: selected canonical doorway body "
+                    "passed direct subject-fit validation."
                 )
-                if selected_support:
-                    recovered_docs = selected_support
-                    recovery_insufficient = False
-                    print(
-                        "The Guide discovery evidence gate: selected canonical doorway body "
-                        "passed direct subject-fit validation."
-                    )
             if not recovery_insufficient and recovered_docs:
                 recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
                     recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
                 )
-                if recovery_question_unavailable and discovery_subject and authoritative_doorway:
-                    selected_support = _guide_selected_doorway_discovery_evidence(
-                        recovered_docs, resource_query, authoritative_doorway
+                if recovery_question_unavailable and selected_support:
+                    recovered_docs = selected_support
+                    recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
+                        recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
                     )
-                    if selected_support:
-                        recovered_docs = selected_support
-                        recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
-                            recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
-                        )
                 if not recovery_question_unavailable and recovered_docs:
+                    discovery_selected_evidence = (
+                        selected_support
+                        or (
+                            _guide_selected_doorway_discovery_evidence(
+                                recovered_docs, resource_query, authoritative_doorway
+                            )
+                            if discovery_subject and authoritative_doorway else []
+                        )
+                    )
                     composition_context["generation_authority_protected_docs"] = recovered_docs
                     composition_context.pop("question_authority_protected_docs", None)
                     for flag in (
@@ -4568,6 +4648,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
         except Exception:
             llm_output = ""
+
+    # Subject discovery has an additional groundedness contract: a selected
+    # Archive doorway cannot coexist with prose that ignores the Archive,
+    # recommends unrelated external search services, or claims no material was
+    # found. Recover deterministically from the selected page's own content.
+    if discovery_subject and authoritative_doorway and discovery_selected_evidence:
+        if not _guide_discovery_response_is_grounded(
+            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
+        ):
+            grounded_recovery = _guide_deterministic_discovery_response(
+                resource_query, authoritative_doorway, discovery_selected_evidence
+            )
+            if grounded_recovery:
+                llm_output = grounded_recovery
+                print(
+                    "The Guide discovery composition boundary: replaced ungrounded prose "
+                    "with selected canonical doorway summary."
+                )
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
     # Canonical navigation is a separate structured field. If a provider tries
