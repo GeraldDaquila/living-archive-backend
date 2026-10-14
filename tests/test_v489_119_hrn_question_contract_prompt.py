@@ -129,8 +129,10 @@ def test_hrn_provider_bank_completes_missing_question_from_agreement_change_evid
 def test_hrn_provider_bank_completes_missing_question_from_scope_change_without_deadline():
     partial = {
         "response": (
-            "You are noticing that the new scope has become a personal burden, "
-            "while the conversation keeps turning toward whether raising it is reasonable."
+            "You are noticing that the new scope has become a personal burden, while the "
+            "conversation keeps turning toward whether raising it is reasonable. The changed "
+            "work remains part of the agreement, even though the discussion keeps shifting "
+            "toward your character instead of the work itself."
         ),
         "question": "",
         "rest": False,
