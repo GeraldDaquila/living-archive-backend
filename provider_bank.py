@@ -2083,6 +2083,30 @@ def _normalize_operation_result(operation, parsed, messages=None):
         question_violation = _hrn_surface_language_violation(question)
         if not question_violation and messages is not None:
             question_violation = _hrn_question_grounding_violation(question, messages)
+        if question_violation and messages is not None:
+            # A provider-authored question can be grammatically valid but fail
+            # the concrete-grounding contract. Reuse the existing local question
+            # constructor, which extracts a bounded focus from the structured
+            # movement brief and independently re-runs the same surface and
+            # grounding checks. This repairs only the question field; the
+            # provider-authored response and all other fields remain untouched.
+            grounded_replacement = _hrn_complete_missing_question(messages)
+            if grounded_replacement:
+                replacement_violation = _hrn_surface_language_violation(
+                    grounded_replacement
+                )
+                if not replacement_violation:
+                    replacement_violation = _hrn_question_grounding_violation(
+                        grounded_replacement, messages
+                    )
+                if not replacement_violation:
+                    question = grounded_replacement
+                    question_violation = ""
+                    parsed["question"] = grounded_replacement
+                    print(
+                        "USE provider question repair: operation=hrn_relational, "
+                        "mode=grounded_local_replacement"
+                    )
         if question_violation:
             raise ValueError(
                 "hrn_relational question-surface contract violation: "
