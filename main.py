@@ -4713,7 +4713,7 @@ def _guide_node_specific_match(query):
         )
         if is_generic_access_node:
             if normalized_title and re.search(
-                rf"\\b{re.escape(normalized_title)}\\b",
+                rf"\b{re.escape(normalized_title)}\b",
                 normalized,
                 re.I,
             ):
