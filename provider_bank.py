@@ -60,6 +60,10 @@ HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
 # Keep each call bounded, but do not quarantine a viable lane before its normal
 # response latency has elapsed.
 HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
+# Workers AI Gemma 4 26B has proven useful but can finish just beyond the generic
+# 2.5s HRN cutoff. Give only this previously successful lane a small extra window;
+# the 7s fast-failure budget still bounds aggregate fallback time.
+HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 3.5
 # HRN's final structured composition must contain the complete visitor-facing response
 # AND its distinct follow-up question. 250 tokens starved the question field and
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
@@ -2351,6 +2355,23 @@ def _route_result(result):
     return result
 
 
+def _provider_call_timeout(operation, item=None):
+    """Return a bounded transport timeout, with a narrow proven-Gemma allowance."""
+    provider = str((item or {}).get("provider") or "")
+    model = str((item or {}).get("model") or "")
+    if (
+        operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
+        and provider == "workers_ai"
+        and model == "@cf/google/gemma-4-26b-a4b-it"
+    ):
+        return HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+        return HRN_PROVIDER_CALL_TIMEOUT_SECONDS
+    if operation == "general_guide_composition":
+        return GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS
+    return None
+
+
 def _hrn_workers_fast_candidate(pool):
     """Return only a proven, recently successful Workers AI fast-lane candidate.
 
@@ -2557,11 +2578,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_relational"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
-            candidate_timeout = (
-                HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
-                else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
-                else 0.0
-            )
+            candidate_timeout = _provider_call_timeout(operation, item) or 0.0
             # Admit a fallback only when its full bounded call can fit inside the
             # remaining WordPress/mirror budget. Checking elapsed time alone can
             # start a 2-second call with less than 1 second remaining.
@@ -2616,11 +2633,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   ", state=" + str(state.get("state") or "healthy"))
             raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
-                timeout_override=(
-                    HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
-                    else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
-                    else None
-                )
+                timeout_override=_provider_call_timeout(operation, item)
             )
             try:
                 parsed = parse(raw_output)
@@ -2837,11 +2850,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     recovery_messages.append({"role": "user", "content": correction_content})
                 recovered = parse(_quota_guarded_call(
                     use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema,
-                    timeout_override=(
-                        HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations
-                        else GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation
-                        else None
-                    )
+                    timeout_override=_provider_call_timeout(operation, item)
                 ))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")

@@ -95,11 +95,13 @@ def main():
     assert '"hrn_relational": 600' in provider
     assert 'requested_max_tokens = min(requested_max_tokens, HRN_RELATIONAL_MAX_COMPLETION_TOKENS)' in provider
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
-    # Slow Workers AI models must not consume the full generic timeout on every
-    # HRN stage or on the bounded contract-correction call.
-    assert "HRN_PROVIDER_CALL_TIMEOUT_SECONDS if operation in hrn_operations" in provider
-    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS if bounded_guide_operation" in provider
+    # Provider-specific HRN transport budgets stay bounded; the proven Gemma
+    # 4 26B lane gets a narrowly scoped extra second for its observed latency.
+    assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider
+    assert "timeout_override=_provider_call_timeout(operation, item)" in provider
     assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
+    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 3.5' in provider
+    assert 'model == "@cf/google/gemma-4-26b-a4b-it"' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
     # The visitor contract must explicitly block inferred blame and motive attribution,

@@ -1062,9 +1062,10 @@ def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_g
     calls = []
 
     def call_gemma_first(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
-        calls.append((item["provider"], item["model"]))
+        calls.append((item["provider"], item["model"], timeout_override))
         assert item["provider"] == "workers_ai"
         assert item["model"] == "@cf/google/gemma-4-26b-a4b-it"
+        assert timeout_override == provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS
         return json.dumps({
             "response": (
                 "The agreed deadline stayed fixed after the project scope changed. "
@@ -1095,4 +1096,4 @@ def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_g
     )
 
     assert result is not None
-    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it")]
+    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 3.5)]
