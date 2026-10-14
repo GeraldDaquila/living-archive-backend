@@ -395,7 +395,14 @@ def main():
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
     assert_true("_question_requests_enumeration" in composition.__dict__, "list-intent classifier is missing")
-    assert_true("plain stewardship explanation must not introduce an unsolicited list" in composition._parse_factory([], "Explain stewardship").__code__.co_consts, "stewardship list gate is missing")
+    try:
+        composition._parse_factory([], "Explain stewardship")(
+            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care","doorway_title":"","response_shape":"explanatory"}'
+        )
+    except ValueError as exc:
+        assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
+    else:
+        raise AssertionError("stewardship list gate accepted an unsolicited taxonomy")
     print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
