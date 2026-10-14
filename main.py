@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.240 — structural clarification and answer/navigation boundary
+# USE PRODUCTION VERSION: v489.241 — structural clarification and answer/navigation boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.240"
-DEPLOYMENT_FINGERPRINT = "USE-v489.240-structural-clarification-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.240-structural-clarification-v1"
+APP_VERSION = "v489.241"
+DEPLOYMENT_FINGERPRINT = "USE-v489.241-structural-explanatory-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.241-structural-explanatory-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.240":
+if str(APP_VERSION) != "v489.241":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3865,7 +3865,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
-    if "stewardship" in q and re.search(r"\b(?:why|matter|important|everyday|life)\b", q):
+    # Treat explicit definition/explanation requests as answerable even when the
+    # visitor does not also use "why", "matter", or "important". Navigation
+    # preferences are separate from answer intent and must never suppress this
+    # bounded general-knowledge recovery when the provider bank is exhausted.
+    if "stewardship" in q and re.search(r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
             "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
@@ -3944,9 +3948,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
         closing = (
-            "The separately selected Archive resource may offer a place to explore the topic further."
+            "If you would like to explore this further, the Archive resource below may offer a useful next step."
             if recommendation_available
-            else "I did not identify a sufficiently relevant Archive resource to recommend for this question."
+            else "I could not identify an Archive resource closely related enough to recommend here."
         )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
