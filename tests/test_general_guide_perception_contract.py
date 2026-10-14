@@ -138,6 +138,6 @@ In everyday life, it shows up in small choices: keeping a promise, maintaining w
 Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."""
     raw = json.dumps({"response": response, "doorway_title": "", "response_shape": "explanatory"})
     parsed = parse(raw)
-    assert len(parsed["response"].split("\\n\\n")) == 3
+    assert len(parsed["response"].split("\n\n")) == 3
     assert "keeping a promise" in parsed["response"]
     assert "does not mean controlling everything" in parsed["response"]
