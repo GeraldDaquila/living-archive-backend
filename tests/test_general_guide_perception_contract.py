@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.16"
+    assert guide.CONTRACT_VERSION == "v1.17"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.16"
+    assert snapshot["contract_version"] == "v1.17"
     assert snapshot["provider_neutral"] is True
 
 
@@ -68,8 +68,8 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.16"
-    assert guide.contract_snapshot()["contract_version"] == "v1.16"
+    assert guide.CONTRACT_VERSION == "v1.17"
+    assert guide.contract_snapshot()["contract_version"] == "v1.17"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -103,5 +103,41 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.16"
-    assert guide.contract_snapshot()["contract_version"] == "v1.16"
+    assert guide.CONTRACT_VERSION == "v1.17"
+    assert guide.contract_snapshot()["contract_version"] == "v1.17"
+
+
+def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
+    import json
+    import pytest
+
+    query = "Explain stewardship, but do not send me to another page yet."
+    parse = guide._parse_factory([], query)
+    response = """Stewardship is care for what others rely on.
+
+A useful way to think about stewardship is as a spectrum:
+- Personal stewardship means caring for yourself.
+- Community stewardship means caring for shared places.
+- Guardian stewardship means caring for the planet.
+
+Each level expands responsibility."""
+    raw = json.dumps({"response": response, "doorway_title": "", "response_shape": "explanatory"})
+    with pytest.raises(ValueError, match="unsolicited list"):
+        parse(raw)
+
+
+def test_plain_stewardship_explanation_accepts_everyday_example_and_clear_limits():
+    import json
+
+    query = "Explain stewardship, but do not send me to another page yet."
+    parse = guide._parse_factory([], query)
+    response = """Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only immediate needs matter.
+
+In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you. These choices accumulate; carelessness can pass costs to others or to the future, while responsible care preserves trust and possibilities.
+
+Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."""
+    raw = json.dumps({"response": response, "doorway_title": "", "response_shape": "explanatory"})
+    parsed = parse(raw)
+    assert len(parsed["response"].split("\\n\\n")) == 3
+    assert "keeping a promise" in parsed["response"]
+    assert "does not mean controlling everything" in parsed["response"]
