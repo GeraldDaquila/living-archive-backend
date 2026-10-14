@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.13"
+CONTRACT_VERSION = "v1.14"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -269,6 +269,15 @@ def _question_shape(query: str) -> str:
     return "general"
 
 
+def _requires_discernment_synthesis(query: str) -> bool:
+    """Recognize conceptual relationship questions that need developed reasoning."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(r"\brelationship between\b", q)
+        and re.search(r"\b(?:agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence)\b", q)
+    )
+
+
 def _requires_compound_explanatory_structure(query: str) -> bool:
     """Return True when the question explicitly asks for both meaning and significance."""
     q = _normalize_space(query).casefold()
@@ -314,6 +323,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # rather than silently accepting a visually dense answer.
         if re.search(r"(?s)\b1[.)]\s+.{8,}?\b2[.)]\s+", response) and not re.search(r"\n\s*2[.)]\s+", response):
             raise ValueError("multi-step practical advice must use separate Markdown list lines")
+
+        if _requires_discernment_synthesis(query):
+            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
+            if len(paragraphs) < 3:
+                raise ValueError("conceptual relationship answer requires three purposeful paragraphs")
+            if not re.search(r"\b(?:for example|for instance|consider a|imagine a)\b", response, re.I):
+                raise ValueError("conceptual relationship answer requires one concrete example")
+            if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
+                raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
 
         if _requires_compound_explanatory_structure(query):
             paragraph_count = len(re.findall(r"\n\s*\n", response)) + 1
