@@ -4415,12 +4415,18 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     body = re.sub(r"\s+", " ", body).strip()
     if not title or not body:
         return ""
-    subject_tokens = set(re.findall(r"[a-z0-9]+", str(subject or "").casefold()))
+    subject_tokens = sorted(
+        set(re.findall(r"[a-z0-9]+", str(subject or "").casefold())),
+        key=len,
+        reverse=True,
+    )
     tokens = re.findall(r"[A-Za-z][A-Za-z'-]*", body)
     match_index = next(
         (
-            index for index, token in enumerate(tokens)
-            if token.casefold() in subject_tokens
+            index
+            for subject_token in subject_tokens
+            for index, token in enumerate(tokens)
+            if token.casefold() == subject_token
         ),
         None,
     )
