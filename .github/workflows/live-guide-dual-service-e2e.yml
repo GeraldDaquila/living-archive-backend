@@ -191,7 +191,7 @@ jobs:
               if not isinstance(final_payload, dict):
                   raise SystemExit(f"{name}: SSE completion omitted the authoritative response payload")
               answer = str(final_payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", answer) if part.strip()]
+              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
               if len(paragraphs) < 3 or len(answer) < 300:
                   raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
               if not isinstance(final_payload.get("recommendation"), dict):
