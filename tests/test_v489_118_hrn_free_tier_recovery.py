@@ -289,6 +289,76 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
     assert attempts == ["nvidia", "nvidia"]
 
 
+
+def test_hrn_missing_question_gets_question_only_recovery(monkeypatch):
+    import json
+
+    candidate = _item(
+        "nvidia",
+        "nvidia/nemotron-3-super-120b-a12b",
+        capabilities=["json_object", "json_schema_best_effort", "long_context", "composition", "relational_analysis"],
+    )
+    monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    original_models = provider_bank._STATE["models"]
+    original_quality = provider_bank._STATE["quality"]
+    saved_models = original_models.copy()
+    saved_quality = original_quality.copy()
+    original_models.clear()
+    original_quality.clear()
+    attempts = []
+    recovery_schemas = []
+
+    response = (
+        "The original estimate covered the work that had been described at the time. "
+        "The additional work changed the scope after the date had already been discussed. "
+        "Those are different baselines, which helps explain why the same deadline now carries a different expectation."
+    )
+    first_pass = json.dumps({
+        "response": response,
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    })
+    repaired_question = "What happened when the agreed date was raised alongside the changed scope?"
+
+    def fake_call(use_core, item, *args, **kwargs):
+        attempts.append(item["provider"])
+        if len(attempts) > 1 and len(args) >= 3:
+            recovery_schemas.append(args[2])
+        return first_pass if len(attempts) == 1 else json.dumps({"question": repaired_question})
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    messages = [{
+        "role": "system",
+        "content": (
+            'STRUCTURED MOVEMENT BRIEF\\n'
+            '{"observer_delta":"the project scope changed after the original agreement; '
+            'the agreed date remains in dispute"}\\n'
+            "Return one JSON object."
+        ),
+    }]
+    try:
+        result = provider_bank.route(
+            use_core=None,
+            messages=messages,
+            max_tokens=300,
+            parse=provider_bank._json_object,
+            operation="hrn_relational",
+        )
+    finally:
+        original_models.clear()
+        original_models.update(saved_models)
+        original_quality.clear()
+        original_quality.update(saved_quality)
+
+    assert result is not None
+    assert result["parsed"]["response"] == response
+    assert result["parsed"]["question"] == repaired_question
+    assert recovery_schemas and recovery_schemas[0]["schema"]["required"] == ["question"]
+    assert attempts == ["nvidia", "nvidia"]
+
 def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
     candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
