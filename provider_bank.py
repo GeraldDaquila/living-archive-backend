@@ -2046,6 +2046,8 @@ def _hrn_complete_missing_question(messages):
                 has_scope = bool(re.search(r"\bscope\b", focus_material, re.I))
                 has_deadline = bool(re.search(r"\bdeadline\b", focus_material, re.I))
                 has_date = bool(re.search(r"\b(?:agreed date|date)\b", focus_material, re.I))
+                has_change = bool(re.search(r"\b(?:change|changed|new|additional|added|expanded)\b", focus_material, re.I))
+                has_work = bool(re.search(r"\b(?:work|tasks?|responsibilities)\b", focus_material, re.I))
                 if has_scope and has_deadline:
                     grounded_question = (
                         "When you raise the changed scope alongside the agreed deadline, "
@@ -2066,7 +2068,18 @@ def _hrn_complete_missing_question(messages):
                         and not _hrn_question_grounding_violation(grounded_question, messages)
                     ):
                         return grounded_question
-                has_change = bool(re.search(r"\b(?:change|changed|new|additional|added)\b", focus_material, re.I))
+                # A visitor may describe "new work" and an "original deadline"
+                # without repeating the word scope. Preserve that concrete contrast.
+                if has_deadline and has_change and has_work:
+                    grounded_question = (
+                        "When you name the new work alongside the original deadline, "
+                        "what happens in the conversation?"
+                    )
+                    if (
+                        not _hrn_surface_language_violation(grounded_question)
+                        and not _hrn_question_grounding_violation(grounded_question, messages)
+                    ):
+                        return grounded_question
                 # Some consolidation turns retain the concrete "new scope"
                 # evidence but no longer repeat the original deadline/agreement.
                 # Keep the visitor in the conversation with a narrow, grounded
