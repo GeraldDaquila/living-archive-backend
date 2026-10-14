@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.222 — recover relevant workplace-conflict doorways
+# USE PRODUCTION VERSION: v489.223 — require direct workplace-conflict doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.222"
-DEPLOYMENT_FINGERPRINT = "USE-v489.222-hrn-workplace-agreement-return-recovery-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.222-hrn-workplace-agreement-return-recovery-v1"
+APP_VERSION = "v489.223"
+DEPLOYMENT_FINGERPRINT = "USE-v489.223-hrn-workplace-return-direct-title-gate-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.223-hrn-workplace-return-direct-title-gate-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.222":
+if str(APP_VERSION) != "v489.223":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1573,8 +1573,8 @@ def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
     if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
-    if _relational_return_workplace_change_fit(query, doc):
-        return True
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
@@ -1642,8 +1642,8 @@ def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
     if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
-    if _relational_return_workplace_change_fit(query, doc):
-        return True
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()

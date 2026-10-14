@@ -336,3 +336,23 @@ def test_workplace_scope_change_search_recovery_uses_bounded_queries(monkeypatch
     assert primary["title"] == conflict_trust_arc["title"]
     assert outward == [conflict_trust_arc]
 
+
+def test_workplace_scope_change_return_rejects_adjacent_but_not_direct_workplace_resource():
+    query = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I am making too much of it. I want to understand what is happening between us."
+    )
+    adjacent_resource = {
+        "title": "Employee Disengagement: Understanding, Addressing, and Reigniting the Workplace Spark",
+        "text": (
+            "Employee disengagement can arise in workplaces when employees feel disconnected from "
+            "their work, colleagues, and organization."
+        ),
+        "url": "https://geralddaquila.com/2025/06/06/employee-disengagement-understanding-addressing-and-reigniting-the-workplace-spark/",
+    }
+    assert main._relational_return_workplace_change_focus(query)
+    assert not main._relational_return_workplace_change_fit(query, adjacent_resource)
+    assert not main._relational_return_direct_topic_fit(query, adjacent_resource)
+    assert not main._relational_return_earned_focus_fit(query, adjacent_resource)
+
+
