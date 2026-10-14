@@ -2038,16 +2038,26 @@ def _hrn_complete_missing_question(messages):
                     for field in focus_fields
                     if isinstance(decoded.get(field), str)
                 )
+                # The structured movement brief can omit the visitor's exact nouns
+                # even when the current user turn states them plainly. Use user-role
+                # evidence as a second grounding source; never infer from system
+                # instructions or schema boilerplate.
+                visitor_material = " ".join(
+                    str(item.get("content") or "")
+                    for item in (messages or [])
+                    if isinstance(item, dict) and str(item.get("role") or "").casefold() == "user"
+                )
+                evidence_material = focus_material + " " + visitor_material
                 # Deadline/scope changes are a concrete, recurring relational
                 # contrast in HRN. Complete an omitted question from those declared
                 # fields locally, without burning another provider call. Use the
                 # wording actually present in the brief ("date" when no deadline
                 # is named), and keep the question about the exchange itself.
-                has_scope = bool(re.search(r"\bscope\b", focus_material, re.I))
-                has_deadline = bool(re.search(r"\bdeadline\b", focus_material, re.I))
-                has_date = bool(re.search(r"\b(?:agreed date|date)\b", focus_material, re.I))
-                has_change = bool(re.search(r"\b(?:change|changed|new|additional|added|expanded)\b", focus_material, re.I))
-                has_work = bool(re.search(r"\b(?:work|tasks?|responsibilities)\b", focus_material, re.I))
+                has_scope = bool(re.search(r"\bscope\b", evidence_material, re.I))
+                has_deadline = bool(re.search(r"\bdeadline\b", evidence_material, re.I))
+                has_date = bool(re.search(r"\b(?:agreed date|date)\b", evidence_material, re.I))
+                has_change = bool(re.search(r"\b(?:change|changed|new|additional|added|expanded)\b", evidence_material, re.I))
+                has_work = bool(re.search(r"\b(?:work|tasks?|responsibilities)\b", evidence_material, re.I))
                 if has_scope and has_deadline:
                     grounded_question = (
                         "When you raise the changed scope alongside the agreed deadline, "
@@ -2093,7 +2103,7 @@ def _hrn_complete_missing_question(messages):
                         and not _hrn_question_grounding_violation(grounded_question, messages)
                     ):
                         return grounded_question
-                has_agreement = bool(re.search(r"\b(?:agreement|agreed)\b", focus_material, re.I))
+                has_agreement = bool(re.search(r"\b(?:agreement|agreed|commitment|commitments)\b", evidence_material, re.I))
                 if has_agreement and has_change:
                     grounded_question = (
                         "When you raise what changed in the agreement, "
