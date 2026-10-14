@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.253 — reject external discovery fallbacks
+# USE PRODUCTION VERSION: v489.254 — preserve doorway-only discovery fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.253"
-DEPLOYMENT_FINGERPRINT = "USE-v489.253-reject-external-discovery-fallbacks"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.253-reject-external-discovery-fallbacks"
+APP_VERSION = "v489.254"
+DEPLOYMENT_FINGERPRINT = "USE-v489.254-doorway-only-discovery-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.254-doorway-only-discovery-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.253":
+if str(APP_VERSION) != "v489.254":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4509,8 +4509,18 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         or ""
     )
     body = re.sub(r"\s+", " ", body).strip()
-    if not title or not body:
+    if not title:
         return ""
+    if not body:
+        # A doorway has already passed canonical destination selection, but
+        # its body could not be recovered. Be transparent about the limit while
+        # still giving the visitor the useful destination we can verify.
+        return (
+            f"A relevant starting point in the Living Archive is {title}. "
+            f"It is the closest canonical entry point selected for {subject}. "
+            "Open the resource to inspect its contents and decide how directly "
+            "they address the question you have in mind."
+        )
     subject_tokens = sorted(
         set(re.findall(r"[a-z0-9]+", str(subject or "").casefold())),
         key=len,
@@ -4815,10 +4825,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Archive doorway cannot coexist with prose that ignores the Archive,
     # recommends unrelated external search services, or claims no material was
     # found. Recover deterministically from the selected page's own content.
-    if discovery_subject and authoritative_doorway and discovery_selected_evidence:
-        if not _guide_discovery_response_is_grounded(
-            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
-        ):
+    if discovery_subject and authoritative_doorway:
+        response_is_grounded = (
+            _guide_discovery_response_is_grounded(
+                llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
+            )
+            if discovery_selected_evidence else False
+        )
+        if not response_is_grounded:
             grounded_recovery = _guide_deterministic_discovery_response(
                 resource_query, authoritative_doorway, discovery_selected_evidence
             )
@@ -4826,7 +4840,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 llm_output = grounded_recovery
                 print(
                     "The Guide discovery composition boundary: replaced ungrounded prose "
-                    "with selected canonical doorway summary."
+                    "with selected canonical doorway orientation."
                 )
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
