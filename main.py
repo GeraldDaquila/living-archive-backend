@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.225 — verified workplace conflict doorway
+# USE PRODUCTION VERSION: v489.226 — deterministic workplace return doorway parity
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.225"
-DEPLOYMENT_FINGERPRINT = "USE-v489.225-hrn-return-verified-workplace-doorway-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.225-hrn-return-verified-workplace-doorway-v1"
+APP_VERSION = "v489.226"
+DEPLOYMENT_FINGERPRINT = "USE-v489.226-hrn-return-workplace-doorway-parity-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.226-hrn-return-workplace-doorway-parity-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.225":
+if str(APP_VERSION) != "v489.226":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1781,9 +1781,9 @@ def _relational_return_verified_workplace_candidate(query):
         content_html = str(
             content_obj.get("rendered") if isinstance(content_obj, dict) else content_obj or ""
         )
-        content_html = re.sub(r"(?is)<(script|style)\\b[^>]*>.*?</\\1>", " ", content_html)
+        content_html = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", content_html)
         content = re.sub(r"(?s)<[^>]+>", " ", content_html)
-        content = re.sub(r"\\s+", " ", html.unescape(content)).strip()
+        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
         candidate = {
             "title": title,
             "url": str(resource.get("link") or "https://geralddaquila.com/conflict-trust-arc/").strip(),
@@ -1791,7 +1791,7 @@ def _relational_return_verified_workplace_candidate(query):
         }
         if (
             candidate["title"]
-            and re.match(r"^https://geralddaquila\\.com/\\S+$", candidate["url"], re.I)
+            and re.match(r"^https://geralddaquila\.com/\S+$", candidate["url"], re.I)
             and _relational_return_workplace_change_fit(query, candidate)
         ):
             return candidate
@@ -1802,6 +1802,16 @@ def _relational_return_verified_workplace_candidate(query):
             f"unavailable ({type(exc).__name__})."
         )
         return None
+
+
+def _relational_return_apply_verified_workplace_candidate(original_question, direct_topic_query, primary, outward):
+    """Prefer the verified canonical work-conflict doorway over retrieval-pool variation."""
+    if not _relational_return_workplace_change_focus(original_question):
+        return primary, outward
+    verified = _relational_return_verified_workplace_candidate(original_question)
+    if verified and _relational_return_direct_topic_fit(direct_topic_query, verified):
+        return verified, [verified]
+    return primary, outward
 
 
 def _relational_return_search_recovery(original_question, direct_topic_query, profile):
@@ -2032,6 +2042,10 @@ async def _v48755_relational_return(request: Request):
             or _relational_return_earned_focus_fit(direct_topic_query, doc)
         ]
         primary = _canonical_primary_from_docs(outward, direct_topic_query, profile)
+        # v489.226: a verified canonical workplace-conflict page outranks vector/search pool variation.
+        primary, outward = _relational_return_apply_verified_workplace_candidate(
+            original_question, direct_topic_query, primary, outward
+        )
 
         if not primary:
             # A second bounded attempt may use only the earned perspective.
