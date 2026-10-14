@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.254"
-DEPLOYMENT_FINGERPRINT = "USE-v489.254-doorway-only-discovery-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.254-doorway-only-discovery-fallback"
+APP_VERSION = "v489.255"
+DEPLOYMENT_FINGERPRINT = "USE-v489.255-reliable-discovery-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.255-reliable-discovery-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.254":
+if str(APP_VERSION) != "v489.255":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4470,15 +4470,15 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     # advice cannot satisfy that request by itself, even if it overlaps with
     # the page's broad vocabulary.
     external_search_advice = bool(re.search(
-        r"\\b(?:google scholar|jstor|project muse|ssrn|academic databases?|"
+        r"\b(?:google scholar|jstor|project muse|ssrn|academic databases?|"
         r"university library catalogs?|think[- ]tanks?|transparency international|"
         r"government oversight bodies|oversight bodies|ngo reports?|policy institutes?|"
-        r"government transparency portals?)\\b",
+        r"government transparency portals?)\b",
         text,
         re.I,
     ))
     explicitly_names_destination = bool(title and title in _normalize_query(text))
-    explicitly_names_archive = bool(re.search(r"\\b(?:archive|living archive)\\b", text, re.I))
+    explicitly_names_archive = bool(re.search(r"\b(?:archive|living archive)\b", text, re.I))
     if external_search_advice and not (explicitly_names_destination or explicitly_names_archive):
         return False
     source = evidence[0] if isinstance(evidence[0], dict) else {}
