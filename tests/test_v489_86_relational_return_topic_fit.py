@@ -283,3 +283,56 @@ def test_completed_hrn_return_still_accepts_a_specific_resource():
     }
     assert not main._relational_return_is_generic_doorway(specific_resource)
 
+
+def test_workplace_scope_change_return_accepts_specific_conflict_asset():
+    query = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I am making too much of it. I want to understand what is happening between us."
+    )
+    conflict_trust_arc = {
+        "title": "ARC I: The real problem isn't conflict. It's the conversations your system is not designed to hold.",
+        "text": (
+            "Most teams do not fail because of disagreement. They fail because disagreement is avoided "
+            "until it becomes unmanageable. This is a structural problem in how teams hold difficult conversations."
+        ),
+        "url": "https://geralddaquila.com/conflict-trust-arc/",
+    }
+    assert main._relational_return_workplace_change_focus(query)
+    assert main._relational_return_workplace_change_fit(query, conflict_trust_arc)
+    assert main._relational_return_direct_topic_fit(query, conflict_trust_arc)
+    assert main._relational_return_earned_focus_fit(query, conflict_trust_arc)
+
+
+def test_workplace_scope_change_search_recovery_uses_bounded_queries(monkeypatch):
+    original = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I am making too much of it. I want to understand what is happening between us."
+    )
+    conflict_trust_arc = {
+        "title": "ARC I: The real problem isn't conflict. It's the conversations your system is not designed to hold.",
+        "text": (
+            "Most teams do not fail because of disagreement. They fail because disagreement is avoided "
+            "until it becomes unmanageable. This is a structural problem in how teams hold difficult conversations."
+        ),
+        "url": "https://geralddaquila.com/conflict-trust-arc/",
+    }
+    queries = []
+
+    def candidates(query, *, limit=3):
+        queries.append(query)
+        return [conflict_trust_arc] if query == "workplace conflict" else []
+
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", candidates)
+    profile = main._base._inquiry_profile(original)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_search_recovery(original, original, profile)
+
+    assert queries == ["workplace conflict", "project scope agreement", "conflict moment"]
+    assert primary is not None
+    assert primary["title"] == conflict_trust_arc["title"]
+    assert outward == [conflict_trust_arc]
+
