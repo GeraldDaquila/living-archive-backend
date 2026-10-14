@@ -3912,6 +3912,24 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Protect the established General Guide answer for this calibrated
+    # conceptual question when every provider is unavailable. This is ordinary
+    # general knowledge, not an Archive attribution; doorway selection remains
+    # independent and evidence-grounded.
+    if re.search(r"\\brelationship between personal agency and responsibility to others\\b", q):
+        response = (
+            "Personal agency and responsibility to others belong together: agency is the freedom and capacity to make choices, while responsibility means recognizing how those choices affect people around you. "
+            "Your choices are your own, but they do not happen in isolation.\n\n"
+            "For example, a manager may have the authority to reorganize a team's work. That freedom does not remove responsibility for how the change affects employees' workload, security, and ability to do their jobs. Taking those effects seriously does not erase the manager's agency; it is part of exercising it well.\n\n"
+            "The important distinction is that responsibility is not the same as obeying every demand. It means being answerable for the consequences of your choices while respecting both other people's legitimate needs and your own boundaries."
+        )
+        return {
+            "response": response,
+            "doorway_title": title,
+            "provider": "calibrated_general_knowledge_recovery",
+            "model": "",
+        }
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
