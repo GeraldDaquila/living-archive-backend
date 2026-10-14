@@ -43,6 +43,29 @@ def main():
             "A missing question must be rejected and routed to an independent provider."
         )
 
+    # A provider-authored abstract question must be repaired only when the
+    # structured movement brief supplies a concrete, validated focus.
+    movement_messages = [
+        {
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\\n"
+                '{"thread_summary":"You want the hurt to be heard even when your '
+                'explanation is imperfect.","working_hypothesis":"The repeated '
+                'concern is that the hurt is not being heard."}'
+            ),
+        }
+    ]
+    grounded = _normalize_operation_result(
+        "hrn_relational",
+        _parsed("What does that reveal about the relationship?"),
+        messages=movement_messages,
+    )
+    assert grounded["response"] == VALID_RESPONSE
+    assert grounded["question"] != "What does that reveal about the relationship?"
+    assert "hurt" in grounded["question"].casefold()
+    assert grounded["question"].endswith("?")
+
     valid_question = "What happens just before you begin to feel unheard?"
     preserved = _normalize_operation_result("hrn_relational", _parsed(valid_question))
     assert preserved["question"] == valid_question
