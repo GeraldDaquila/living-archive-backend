@@ -326,3 +326,73 @@ def test_discovery_fallback_still_offers_selected_doorway_when_body_is_unavailab
     assert "institutional responsibility" in response
     assert "inspect its contents" in response
     assert "Google Scholar" not in response
+
+
+
+def test_discovery_grounding_rejects_external_search_advice_even_if_topic_overlaps():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": "This canonical governance hub covers institutional accountability, public trust, civic participation, and distributed responsibility across institutions.",
+    }]
+    response = (
+        "For public accountability, consult government oversight bodies, academic databases, "
+        "Transparency International, and independent audit offices."
+    )
+    assert not main._guide_discovery_response_is_grounded(
+        response, "public accountability", doorway, evidence
+    )
+
+
+def test_discovery_grounding_rejects_false_no_archive_material_claim():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": "A resource body discussing governance and institutional accountability, transparency, public trust, and civic participation.",
+    }]
+    assert not main._guide_discovery_response_is_grounded(
+        "No specific Archive material was retrieved, but this resource may help.",
+        "public accountability",
+        doorway,
+        evidence,
+    )
+
+
+def test_discovery_grounding_accepts_archive_answer_that_names_selected_resource():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": "A canonical governance hub covering institutional accountability, transparency, public trust, and civic participation.",
+    }]
+    assert main._guide_discovery_response_is_grounded(
+        "The Archive's Governance & Decentralization hub covers institutional accountability and civic participation.",
+        "public accountability",
+        doorway,
+        evidence,
+    )
+
+
+def test_discovery_fallback_offers_verified_doorway_without_claiming_page_contents():
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    response = main._guide_deterministic_discovery_response(
+        "public accountability", doorway, []
+    )
+    assert "Governance & Decentralization" in response
+    assert "public accountability" in response
+    assert "inspect its contents" in response
+    assert "Google Scholar" not in response
