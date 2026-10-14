@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.223 — require direct workplace-conflict doorway
+# USE PRODUCTION VERSION: v489.224 — deterministic HRN return retrieval
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.223"
-DEPLOYMENT_FINGERPRINT = "USE-v489.223-hrn-workplace-return-direct-title-gate-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.223-hrn-workplace-return-direct-title-gate-v1"
+APP_VERSION = "v489.224"
+DEPLOYMENT_FINGERPRINT = "USE-v489.224-hrn-return-deterministic-canonical-search-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.224-hrn-return-deterministic-canonical-search-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.223":
+if str(APP_VERSION) != "v489.224":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3874,7 +3874,9 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     """
     import html
 
-    terms = list(_subject_terms(query))
+    # `_subject_terms` may yield a set; sort before ranking so separate Render
+    # processes do not send different WordPress queries due to hash iteration order.
+    terms = sorted(set(_subject_terms(query)))
     if not terms:
         return []
     # Prefer the visitor's more distinctive query terms without introducing
