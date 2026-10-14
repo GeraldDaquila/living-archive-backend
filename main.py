@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.221 — reject generic HRN return doorways
+# USE PRODUCTION VERSION: v489.222 — recover relevant workplace-conflict doorways
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.221"
-DEPLOYMENT_FINGERPRINT = "USE-v489.221-hrn-return-reject-generic-orientation-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.221-hrn-return-reject-generic-orientation-v1"
+APP_VERSION = "v489.222"
+DEPLOYMENT_FINGERPRINT = "USE-v489.222-hrn-workplace-agreement-return-recovery-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.222-hrn-workplace-agreement-return-recovery-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.221":
+if str(APP_VERSION) != "v489.222":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1534,10 +1534,47 @@ def _relational_return_is_generic_doorway(doc):
     ))
 
 
+def _relational_return_workplace_change_focus(query):
+    """Recognize a concrete work-agreement change that has become interpersonal."""
+    q = _normalize_query(query)
+    work_context = bool(re.search(
+        r"\b(?:project|work|colleague|team|deadline|scope|deliverable|agreement)\b", q
+    ))
+    change_context = bool(re.search(
+        r"\b(?:changed scope|scope changed|changed work|new work|agreement changed|"
+        r"deadline|scope|agreement|making too much of it|unreasonable|overreacting)\b", q
+    ))
+    interpersonal_context = bool(re.search(
+        r"\b(?:colleague|team|other person|conversation|between us|making too much of it|"
+        r"unreasonable|overreacting|reaction|responsibility)\b", q
+    ))
+    return work_context and change_context and interpersonal_context
+
+
+def _relational_return_workplace_change_fit(query, doc):
+    """Accept a directly titled work-conflict asset for a grounded scope/agreement change."""
+    if not isinstance(doc, dict) or not _relational_return_workplace_change_focus(query):
+        return False
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(r"\b(?:conflict|disagreement|trust|team)\b", title))
+    work_evidence = bool(re.search(
+        r"\b(?:team|teams|work|workplace|project|scope|deadline|agreement|expectations|responsibility)\b",
+        body,
+    ))
+    interaction_evidence = bool(re.search(
+        r"\b(?:conflict|disagreement|conversation|communication|trust|relationship)\b",
+        body,
+    ))
+    return direct_title and work_evidence and interaction_evidence
+
+
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
     if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
+    if _relational_return_workplace_change_fit(query, doc):
+        return True
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
@@ -1605,6 +1642,8 @@ def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
     if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
+    if _relational_return_workplace_change_fit(query, doc):
+        return True
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
     body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
@@ -1715,19 +1754,24 @@ def _relational_return_direct_topic_fit(query, doc):
 
 def _relational_return_search_recovery(original_question, direct_topic_query, profile):
     """Use bounded WordPress search only when focused vector retrieval found no honest doorway."""
+    normalized_original = _normalize_query(original_question)
     conflict_focus = bool(re.search(
         r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
         r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
-        _normalize_query(original_question),
+        normalized_original,
     ))
-    if not conflict_focus:
+    workplace_change_focus = _relational_return_workplace_change_focus(normalized_original)
+    if not conflict_focus and not workplace_change_focus:
         return None, []
-    # This search is a retrieval supplement, not an authority bypass. A single
-    # phrase ("relationship repair") can return plausible results that fail the
-    # normal outward-context gate. Search a small bounded set of adjacent phrasings
-    # in parallel, then require each candidate to pass the same canonical and
-    # original-topic gates before any doorway can be released.
-    search_queries = ("relationship repair", "conflict repair", "argument hurt")
+    # Bounded WordPress search supplements vector retrieval for two concrete
+    # relational cases: recurring arguments and a changed work agreement that
+    # has become interpersonal. Every candidate still passes the same topic-fit
+    # and canonical gates before a doorway can be released.
+    search_queries = (
+        ("relationship repair", "conflict repair", "argument hurt")
+        if conflict_focus
+        else ("workplace conflict", "project scope agreement", "conflict moment")
+    )
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=len(search_queries)) as executor:
         candidate_sets = list(executor.map(
