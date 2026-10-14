@@ -77,6 +77,13 @@ def main():
         "legacy single-provider generation remains in the all-purpose Guide path",
     )
 
+    assert_true("Apply a universal perception pass to every answer" in composition._GENERAL_GUIDE_SYSTEM, "universal perception pass missing")
+    assert_true("regardless of topic or response shape" in composition._GENERAL_GUIDE_SYSTEM, "perception does not apply across response types")
+    assert_true("Prefer one earned insight over several generic observations" in composition._GENERAL_GUIDE_SYSTEM, "one-earned-insight restraint missing")
+    assert_true("Perception is not a requirement to sound emotional" in composition._GENERAL_GUIDE_SYSTEM, "neutral factual answers may be over-emotionalized")
+    assert_true("Do not turn a neutral question into personal advice" in composition._GENERAL_GUIDE_SYSTEM, "neutral question boundary missing")
+    assert_true("Preserve the visitor's agency" in composition._GENERAL_GUIDE_SYSTEM, "visitor agency boundary missing")
+    assert_true("A follow-up invitation is optional" in composition._GENERAL_GUIDE_SYSTEM, "optional follow-up boundary missing")
     assert_true("Apply explanatory discernment before composing" in composition._GENERAL_GUIDE_SYSTEM, "discernment prompt missing")
     assert_true("Use a concrete-example decision rule before composing" in composition._GENERAL_GUIDE_SYSTEM, "selective concrete-example decision rule missing")
     assert_true("Do not insert an example into a simple definition or answer when it adds no understanding" in composition._GENERAL_GUIDE_SYSTEM, "example restraint rule missing")
@@ -90,7 +97,7 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.10", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.11", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
