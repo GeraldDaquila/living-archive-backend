@@ -143,7 +143,7 @@ def test_discovery_answer_validator_rejects_external_search_advice(monkeypatch):
     )
 
 
-def test_discovery_answer_validator_rejects_no-evidence_claims():
+def test_discovery_answer_validator_rejects_no_evidence_claims():
     doorway = {
         "title": "Governance & Decentralization",
         "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
