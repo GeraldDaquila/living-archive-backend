@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.15"
+    assert guide.CONTRACT_VERSION == "v1.16"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.15"
+    assert snapshot["contract_version"] == "v1.16"
     assert snapshot["provider_neutral"] is True
 
 
@@ -69,4 +69,39 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
 
 def test_writer_contract_advances_sequentially_after_restoration():
     assert guide.CONTRACT_VERSION == "v1.15"
-    assert guide.contract_snapshot()["contract_version"] == "v1.15"
+    assert guide.contract_snapshot()["contract_version"] == "v1.16"
+
+
+def test_incomplete_comparison_question_clarifies_before_retrieval():
+    result = guide.clarification_response(
+        "Can you compare two ways of understanding this problem?"
+    )
+    assert result is not None
+    assert result["clarification_reason"] == "comparison_subject_missing"
+    assert "Which problem would you like to compare?" in result["response"]
+    assert "help identify two useful ways" in result["response"]
+    assert "what becomes clearer" in result["response"]
+
+
+def test_named_comparison_subject_does_not_trigger_clarification():
+    assert guide.clarification_response(
+        "Can you compare two ways of understanding climate migration?"
+    ) is None
+
+
+def test_relevant_conversation_history_can_supply_the_missing_subject():
+    assert guide.clarification_response(
+        "Can you compare two ways of understanding this problem?",
+        "We are discussing why familiar solutions stop working after circumstances change."
+    ) is None
+
+
+def test_ordinary_explanatory_question_is_not_interrupted():
+    assert guide.clarification_response(
+        "Why do familiar solutions stop working when circumstances change?"
+    ) is None
+
+
+def test_composition_contract_version_advances_for_clarification_boundary():
+    assert guide.CONTRACT_VERSION == "v1.16"
+    assert guide.contract_snapshot()["contract_version"] == "v1.16"
