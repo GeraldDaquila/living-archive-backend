@@ -126,6 +126,44 @@ def test_hrn_provider_bank_completes_missing_question_from_agreement_change_evid
     ) == ""
 
 
+def test_hrn_provider_bank_completes_missing_question_from_scope_change_without_deadline():
+    partial = {
+        "response": (
+            "You are noticing that the new scope has become a personal burden, while the "
+            "conversation keeps turning toward whether raising it is reasonable. The changed "
+            "work remains part of the agreement, even though the discussion keeps shifting "
+            "toward your character instead of the work itself."
+        ),
+        "question": "",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            + json.dumps({
+                "observer_contrast": "the new scope is being treated as the visitor's responsibility",
+                "observer_delta": "the visitor wants to keep commitments honest without being seen as difficult",
+                "observer_next_intention": "explore how to name the changed scope in the conversation",
+            })
+        ),
+    }]
+
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+
+    assert normalized["question"] == (
+        "When you name the changed scope, what happens in the conversation?"
+    )
+    assert provider_bank._hrn_surface_language_violation(normalized["question"]) == ""
+    assert provider_bank._hrn_question_grounding_violation(
+        normalized["question"], messages
+    ) == ""
+
+
 def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
     partial = {
         "response": (
