@@ -155,7 +155,7 @@ jobs:
                   raise SystemExit(f"{name}: limitation-only or machine-facing fallback leaked into visitor prose")
               if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
                   raise SystemExit(f"{name}: plain stewardship explanation used an unsolicited list")
-              if not re.search(r"(?i)everyday|promise|shared space|resources thoughtfully|maintain|borrowed", response):
+              if not re.search(r"(?i)keeping a promise|shared spaces?|maintaining what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item", response):
                   raise SystemExit(f"{name}: stewardship answer lacks a recognizable everyday anchor")
               if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", response):
                   raise SystemExit(f"{name}: stewardship answer omitted the boundary between care and control")
@@ -203,7 +203,7 @@ jobs:
                   raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
               if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", answer):
                   raise SystemExit(f"{name}: SSE stewardship answer used an unsolicited list")
-              if not re.search(r"(?i)everyday|promise|shared space|resources thoughtfully|maintain|borrowed", answer):
+              if not re.search(r"(?i)keeping a promise|shared spaces?|maintaining what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item", answer):
                   raise SystemExit(f"{name}: SSE answer lacks a recognizable everyday anchor")
               if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", answer):
                   raise SystemExit(f"{name}: SSE answer omitted the boundary between care and control")
