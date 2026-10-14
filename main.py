@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.256 — complete-sentence discovery fallback
+# USE PRODUCTION VERSION: v489.257 — complete-sentence discovery fallback
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.256"
-DEPLOYMENT_FINGERPRINT = "USE-v489.256-complete-sentence-discovery-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.256-complete-sentence-discovery-fallback"
+APP_VERSION = "v489.257"
+DEPLOYMENT_FINGERPRINT = "USE-v489.257-provider-independent-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.257-provider-independent-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.256":
+if str(APP_VERSION) != "v489.257":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4561,6 +4561,13 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     )
 
 
+
+def _guide_subject_discovery_answer(response, subject, doorway, evidence):
+    """Use one provider-independent, selected-page-grounded answer for discovery requests."""
+    if not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip():
+        return str(response or "").strip()
+    return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -4828,27 +4835,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception:
             llm_output = ""
 
-    # Subject discovery has an additional groundedness contract: a selected
-    # Archive doorway cannot coexist with prose that ignores the Archive,
-    # recommends unrelated external search services, or claims no material was
-    # found. Recover deterministically from the selected page's own content.
+    # Subject-discovery prose must be independent of provider availability and generation.
+    # Always compose it from the selected canonical page evidence, so primary and mirror
+    # cannot drift into different descriptions or introduce unselected resources.
     if discovery_subject and authoritative_doorway:
-        response_is_grounded = (
-            _guide_discovery_response_is_grounded(
-                llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
-            )
-            if discovery_selected_evidence else False
+        grounded_discovery = _guide_subject_discovery_answer(
+            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
         )
-        if not response_is_grounded:
-            grounded_recovery = _guide_deterministic_discovery_response(
-                resource_query, authoritative_doorway, discovery_selected_evidence
+        if grounded_discovery != str(llm_output or "").strip():
+            print(
+                "The Guide discovery composition boundary: replaced provider prose "
+                "with selected canonical doorway orientation."
             )
-            if grounded_recovery:
-                llm_output = grounded_recovery
-                print(
-                    "The Guide discovery composition boundary: replaced ungrounded prose "
-                    "with selected canonical doorway orientation."
-                )
+        llm_output = grounded_discovery
 
     # Final visitor-language boundary for EVERY ordinary Guide response path.
     # Canonical navigation is a separate structured field. If a provider tries
@@ -4898,23 +4897,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
-    # Re-apply the subject-discovery contract to the final sanitized string,
-    # immediately before payload assembly. This closes any path where earlier
-    # composition recovery runs before the final canonical recommendation is
-    # normalized or where later sanitization changes the response.
+    # Re-apply provider-independent discovery composition after sanitization, immediately
+    # before payload assembly. This is intentionally deterministic even when a generated
+    # answer passed the broad relevance validator above.
     if discovery_subject and authoritative_doorway:
-        if not _guide_discovery_response_is_grounded(
-            response, resource_query, authoritative_doorway, discovery_selected_evidence
-        ):
-            grounded_recovery = _guide_deterministic_discovery_response(
-                resource_query, authoritative_doorway, discovery_selected_evidence
+        response = _sanitize_basic_inquiry_response(
+            _guide_subject_discovery_answer(
+                response, resource_query, authoritative_doorway, discovery_selected_evidence
             )
-            if grounded_recovery:
-                response = _sanitize_basic_inquiry_response(grounded_recovery)
-                print(
-                    "The Guide final discovery boundary: enforced alignment between "
-                    "the sanitized answer and the selected Archive doorway."
-                )
+        )
 
     if re.search(r"\bUSE\b", response) or re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
