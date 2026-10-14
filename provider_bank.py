@@ -1998,10 +1998,10 @@ def _hrn_complete_missing_question(messages):
     # dynamics" before the actual contrast, so the local question could not pass
     # grounding and needlessly spent another provider call.
     focus_fields = (
-        "observer_contrast", "observer_delta", "body_of_thought", "unresolved",
-        "emerging_delta", "working_hypothesis", "underlying_need",
-        "desired_condition", "next_horizon", "thread_summary",
-        "observer_intention", "current_fractal", "relational_understanding",
+        "observer_contrast", "observer_delta", "current_fractal",
+        "body_of_thought", "unresolved", "emerging_delta", "thread_summary",
+        "working_hypothesis", "underlying_need", "desired_condition",
+        "next_horizon", "observer_intention", "relational_understanding",
     )
     for item in reversed(list(messages or [])):
         if not isinstance(item, dict):
