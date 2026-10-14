@@ -1513,9 +1513,30 @@ def _relational_return_conflict_topic_fit(query, doc):
     return False
 
 
+def _relational_return_is_generic_doorway(doc):
+    """Reject broad entrance pages as the earned gift after a completed HRN journey.
+
+    A successful closure must hand the visitor a resource connected to the
+    perspective they reached. Generic Orientation/Home/Welcome pages are not
+    a substitute for a topic-fit canonical doorway; if no specific asset qualifies,
+    the existing safe no-doorway response is more honest.
+    """
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").casefold().strip()
+    title = re.sub(r"^[^a-z0-9]+", "", title)
+    title = re.sub(r"[^a-z0-9]+", " ", title).strip()
+    return bool(re.fullmatch(
+        r"(?:(?:living archive )?orientation|home(?: page)?|"
+        r"welcome(?: to (?:the )?(?:archive|living archive))?|"
+        r"start here|the guide|life understood)",
+        title,
+    ))
+
+
 def _relational_return_earned_focus_fit(query, doc):
     """Accept only a canonical resource that supports an earned relational focus."""
-    if not isinstance(doc, dict):
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
@@ -1582,7 +1603,7 @@ def _relational_return_earned_focus_fit(query, doc):
 
 def _relational_return_direct_topic_fit(query, doc):
     """Require evidence for the visitor's earned relational topic, not just a plausible title."""
-    if not isinstance(doc, dict):
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
         return False
     q = _normalize_query(query)
     title = str(doc.get("title") or "").casefold()
