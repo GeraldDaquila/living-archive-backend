@@ -84,3 +84,44 @@ def test_generic_access_surface_does_not_match_by_asset_type_hints(monkeypatch):
     )
 
     assert result is None
+
+
+
+def test_model_selected_unrelated_node_is_not_authorized_even_for_explicit_discovery(monkeypatch):
+    libraries = _node(
+        "Libraries",
+        hints=("institutional responsibility", "find material"),
+        asset_type="reference_territory",
+    )
+    unrelated = _node(
+        "Living Stewardship",
+        hints=("stewardship in practice", "applied stewardship"),
+    )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [libraries, unrelated])
+
+    assert not main._guide_node_handoff_is_authorized(
+        "Where can I find material about institutional responsibility?",
+        "living-stewardship",
+    )
+
+
+def test_model_selected_node_must_match_registry_subject_destination(monkeypatch):
+    libraries = _node(
+        "Libraries",
+        hints=("institutional responsibility", "find material"),
+        asset_type="reference_territory",
+    )
+    leadership = _node(
+        "Leadership Foundations",
+        hints=("responsibility", "human systems", "governance and stewardship"),
+    )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [libraries, leadership])
+
+    assert main._guide_node_handoff_is_authorized(
+        "Where can I find material about leadership foundations?",
+        "leadership-foundations",
+    )
+    assert not main._guide_node_handoff_is_authorized(
+        "Where can I find material about leadership foundations?",
+        "libraries",
+    )
