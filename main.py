@@ -1781,9 +1781,9 @@ def _relational_return_verified_workplace_candidate(query):
         content_html = str(
             content_obj.get("rendered") if isinstance(content_obj, dict) else content_obj or ""
         )
-        content_html = re.sub(r"(?is)<(script|style)\\b[^>]*>.*?</\\1>", " ", content_html)
+        content_html = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", content_html)
         content = re.sub(r"(?s)<[^>]+>", " ", content_html)
-        content = re.sub(r"\\s+", " ", html.unescape(content)).strip()
+        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
         candidate = {
             "title": title,
             "url": str(resource.get("link") or "https://geralddaquila.com/conflict-trust-arc/").strip(),
@@ -1791,7 +1791,7 @@ def _relational_return_verified_workplace_candidate(query):
         }
         if (
             candidate["title"]
-            and re.match(r"^https://geralddaquila\\.com/\\S+$", candidate["url"], re.I)
+            and re.match(r"^https://geralddaquila\.com/\S+$", candidate["url"], re.I)
             and _relational_return_workplace_change_fit(query, candidate)
         ):
             return candidate
