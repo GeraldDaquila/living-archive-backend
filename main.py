@@ -4372,13 +4372,13 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
 
 def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     """Reject discovery prose that ignores or contradicts its selected Archive evidence."""
-    text = re.sub(r"\\s+", " ", str(response or "")).strip().casefold()
+    text = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
     if not text or not isinstance(doorway, dict) or not evidence:
         return False
     if re.search(
-        r"\\b(?:no specific archive material|no relevant archive material|"
+        r"\b(?:no specific archive material|no relevant archive material|"
         r"couldn['’]?t verify|could not verify|couldn['’]?t identify a directly relevant|"
-        r"cannot point you to a specific internal resource)\\b",
+        r"cannot point you to a specific internal resource)\b",
         text,
         re.I,
     ):
@@ -4386,7 +4386,7 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     title = _normalize_query(str(doorway.get("title") or ""))
     if title and title in _normalize_query(text):
         return True
-    if not re.search(r"\\b(?:archive|living archive)\\b", text, re.I):
+    if not re.search(r"\b(?:archive|living archive)\b", text, re.I):
         return False
     source = evidence[0] if isinstance(evidence[0], dict) else {}
     body = str(source.get("text") or source.get("content") or source.get("excerpt") or "").casefold()
@@ -4412,7 +4412,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("content")
         or ""
     )
-    body = re.sub(r"\\s+", " ", body).strip()
+    body = re.sub(r"\s+", " ", body).strip()
     if not title or not body:
         return ""
     subject_tokens = set(re.findall(r"[a-z0-9]+", str(subject or "").casefold()))
