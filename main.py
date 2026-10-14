@@ -4382,6 +4382,22 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
     return accepted[:1]
 
 
+def _guide_align_discovery_doorway(subject, documents):
+    """Select the discovery doorway only from vetted documents that can ground it."""
+    if not str(subject or "").strip() or not isinstance(documents, list) or not documents:
+        return None, []
+    candidate = _normalize_authoritative_recommendation(
+        _general_guide_authoritative_doorway(
+            str(subject),
+            {"generation_authority_protected_docs": documents},
+        )
+    )
+    evidence = _guide_selected_doorway_discovery_evidence(documents, subject, candidate)
+    if not candidate or not evidence:
+        return None, []
+    return candidate, evidence
+
+
 def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     """Reject discovery prose that ignores or contradicts its selected Archive evidence."""
     text = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
@@ -4609,24 +4625,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # canonical documents that will ground the discovery answer.
                         # This prevents a good-looking but unfetched doorway from
                         # being paired with unrelated prose or a generic fallback.
-                        evidence_doorway = _normalize_authoritative_recommendation(
-                            _general_guide_authoritative_doorway(
-                                resource_query,
-                                {"generation_authority_protected_docs": recovered_docs},
-                            )
+                        evidence_doorway, evidence_for_doorway = _guide_align_discovery_doorway(
+                            resource_query, recovered_docs
                         )
-                        if evidence_doorway:
-                            evidence_for_doorway = _guide_selected_doorway_discovery_evidence(
-                                recovered_docs, resource_query, evidence_doorway
+                        if evidence_doorway and evidence_for_doorway:
+                            authoritative_doorway = evidence_doorway
+                            discovery_selected_evidence = evidence_for_doorway
+                            composition_context["authoritative_doorway"] = evidence_doorway
+                            print(
+                                "The Guide discovery contract: doorway and answer evidence "
+                                f"aligned to {evidence_doorway.get('title')!r}."
                             )
-                            if evidence_for_doorway:
-                                authoritative_doorway = evidence_doorway
-                                discovery_selected_evidence = evidence_for_doorway
-                                composition_context["authoritative_doorway"] = evidence_doorway
-                                print(
-                                    "The Guide discovery contract: doorway and answer evidence "
-                                    f"aligned to {evidence_doorway.get('title')!r}."
-                                )
                     for flag in (
                         "frame_neutral_evidence_unavailable",
                         "question_structure_evidence_unavailable",
