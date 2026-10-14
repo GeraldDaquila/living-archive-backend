@@ -46,3 +46,32 @@ def test_hrn_relational_keeps_quality_history_as_tiebreaker_within_same_health_t
 
     assert selected[0]["provider"] == "nvidia"
     assert selected[0]["quality_failures"] == 0
+
+def test_hrn_workers_half_open_probe_does_not_qualify_as_known_good_fast_lane():
+    candidates = [
+        _candidate("groq", "openai/gpt-oss-20b", health="healthy", quality=0, consecutive=0, failures=0, last_success=300),
+        _candidate("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast", health="half_open", quality=0, consecutive=2, failures=4, last_success=0),
+    ]
+
+    selected = provider_bank._hrn_workers_fast_candidate(candidates)
+
+    assert selected is None
+
+
+def test_hrn_workers_fast_lane_requires_recorded_success_and_healthy_state():
+    candidate = _candidate(
+        "workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        health="healthy", quality=0, consecutive=0, failures=1, last_success=300,
+    )
+
+    assert provider_bank._hrn_workers_fast_candidate([candidate]) is candidate
+
+
+def test_hrn_workers_fast_lane_rejects_healthy_but_never_successful_candidate():
+    candidate = _candidate(
+        "workers_ai", "@cf/zai-org/glm-4.7-flash",
+        health="healthy", quality=0, consecutive=0, failures=1, last_success=0,
+    )
+
+    assert provider_bank._hrn_workers_fast_candidate([candidate]) is None
+

@@ -2315,6 +2315,27 @@ def _route_result(result):
     return result
 
 
+def _hrn_workers_fast_candidate(pool):
+    """Return only a proven, recently successful Workers AI fast-lane candidate.
+
+    A half-open candidate is a recovery probe, not a known-good fast lane. Promoting
+    one ahead of healthy providers can spend the entire HRN deadline on a 2.5-second
+    timeout and prevent the provider bank from reaching a working model.
+    """
+    return next((
+        item for preferred_model in (
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+            "@cf/zai-org/glm-4.7-flash",
+        )
+        for item in pool
+        if str(item.get("provider") or "") == "workers_ai"
+        and str(item.get("model") or "") == preferred_model
+        and str(item.get("health_state") or "") == "healthy"
+        and float(item.get("last_success", 0) or 0) > 0
+        and int(item.get("quality_failures", 0) or 0) == 0
+    ), None)
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
     _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
@@ -2349,24 +2370,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 "to first attempt for operation=" + operation + "."
             )
         # When the known-good NVIDIA fast lane is unavailable, prefer a reviewed
-        # low-latency Cloudflare Workers AI model over slow free-router candidates.
-        # The free router and Mistral lanes have repeatedly returned 429s/timeouts
-        # before the bank reached the independent Workers AI lane. Prefer Llama's
-        # explicitly fast variant, then GLM-4.7-Flash. A half-open candidate is
-        # eligible only because select() admitted its cooldown probe; acquire_probe,
-        # live circuit checks, and all semantic output contracts remain authoritative.
+        # low-latency Cloudflare Workers AI model only after a recorded success.
+        # Half-open Workers AI candidates are recovery probes, not known-good lanes:
+        # they must not leapfrog healthy candidates and consume the turn on timeout.
         if not (preferred is not None and pool[0] is preferred):
-            workers_fast = next((
-                item for preferred_model in (
-                    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-                    "@cf/zai-org/glm-4.7-flash",
-                )
-                for item in pool
-                if str(item.get("provider") or "") == "workers_ai"
-                and str(item.get("model") or "") == preferred_model
-                and str(item.get("health_state") or "") in {"healthy", "half_open"}
-                and int(item.get("quality_failures", 0) or 0) == 0
-            ), None)
+            workers_fast = _hrn_workers_fast_candidate(pool)
             if workers_fast is not None and pool[0] is not workers_fast:
                 pool = [workers_fast] + [item for item in pool if item is not workers_fast]
                 print(
