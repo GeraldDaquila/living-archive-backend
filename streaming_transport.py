@@ -127,7 +127,7 @@ async def validated_query_stream(
             except asyncio.TimeoutError:
                 await send({
                     "type": "http.response.body",
-                    "body": b": keep-alive\\n\\n",
+                    "body": b": keep-alive\n\n",
                     "more_body": True,
                 })
         await target_task
