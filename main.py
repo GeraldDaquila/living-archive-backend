@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.254 — preserve doorway-only discovery fallback
+# USE PRODUCTION VERSION: v489.255 — reliable discovery fallback boundary
 import asyncio
 import hashlib
 from html import unescape
