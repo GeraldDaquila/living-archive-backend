@@ -201,6 +201,51 @@ def test_hrn_provider_bank_completes_missing_question_from_deadline_and_new_work
     ) == ""
 
 
+def test_hrn_missing_question_uses_current_visitor_evidence_when_brief_omits_nouns():
+    partial = {
+        "response": (
+            "You are noticing that responsibility feels uneven as the project changes. "
+            "The conversation shifts toward whether raising the issue is reasonable, while the new work and original deadline still need to be acknowledged."
+        ),
+        "question": "",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\\n"
+                + json.dumps({
+                    "observer_contrast": "responsibility feels uneven",
+                    "observer_delta": "the conversation shifts toward judging the visitor",
+                    "observer_next_intention": "explore what changes in the conversation",
+                })
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "It feels like I am being asked to carry both the original deadline and the new work, "
+                "but when I name the change, the discussion shifts to whether I am overreacting."
+            ),
+        },
+    ]
+
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+
+    assert normalized["question"] == (
+        "When you name the new work alongside the original deadline, what happens in the conversation?"
+    )
+    assert provider_bank._hrn_surface_language_violation(normalized["question"]) == ""
+    assert provider_bank._hrn_question_grounding_violation(
+        normalized["question"], messages
+    ) == ""
+
+
 def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
     partial = {
         "response": (
