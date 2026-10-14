@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.248 — enforce grounded discovery responses
+# USE PRODUCTION VERSION: v489.249 — align discovery doorway and evidence
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.248"
-DEPLOYMENT_FINGERPRINT = "USE-v489.248-grounded-discovery-response"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.248-grounded-discovery-response"
+APP_VERSION = "v489.249"
+DEPLOYMENT_FINGERPRINT = "USE-v489.249-align-discovery-doorway-evidence"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.249-align-discovery-doorway-evidence"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.248":
+if str(APP_VERSION) != "v489.249":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4604,6 +4604,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
                     composition_context["generation_authority_protected_docs"] = recovered_docs
                     composition_context.pop("question_authority_protected_docs", None)
+                    if discovery_subject:
+                        # The final doorway must be selected from the same vetted
+                        # canonical documents that will ground the discovery answer.
+                        # This prevents a good-looking but unfetched doorway from
+                        # being paired with unrelated prose or a generic fallback.
+                        evidence_doorway = _normalize_authoritative_recommendation(
+                            _general_guide_authoritative_doorway(
+                                resource_query,
+                                {"generation_authority_protected_docs": recovered_docs},
+                            )
+                        )
+                        if evidence_doorway:
+                            evidence_for_doorway = _guide_selected_doorway_discovery_evidence(
+                                recovered_docs, resource_query, evidence_doorway
+                            )
+                            if evidence_for_doorway:
+                                authoritative_doorway = evidence_doorway
+                                discovery_selected_evidence = evidence_for_doorway
+                                composition_context["authoritative_doorway"] = evidence_doorway
+                                print(
+                                    "The Guide discovery contract: doorway and answer evidence "
+                                    f"aligned to {evidence_doorway.get('title')!r}."
+                                )
                     for flag in (
                         "frame_neutral_evidence_unavailable",
                         "question_structure_evidence_unavailable",
