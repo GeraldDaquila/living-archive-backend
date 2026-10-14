@@ -2242,27 +2242,31 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 "promoted healthy, recently successful NVIDIA Nemotron 3.5 Lightning "
                 "to first attempt for operation=" + operation + "."
             )
-        # When the NVIDIA fast lane is not eligible, prefer Cloudflare's reviewed
-        # low-latency GLM lane over slow free-router candidates. The free router and
-        # Mistral lanes have repeatedly returned 429s/timeouts while this independent
-        # lane remains configured; placing it behind them exhausts the whole-turn
-        # budget before the bank reaches it. Require healthy transport state and no
-        # recorded semantic-quality failures; all normal contracts still validate
-        # its output and a failed attempt still enters ordinary health arbitration.
+        # When the known-good NVIDIA fast lane is unavailable, prefer a reviewed
+        # low-latency Cloudflare Workers AI model over slow free-router candidates.
+        # The free router and Mistral lanes have repeatedly returned 429s/timeouts
+        # before the bank reached the independent Workers AI lane. Prefer Llama's
+        # explicitly fast variant, then GLM-4.7-Flash. A half-open candidate is
+        # eligible only because select() admitted its cooldown probe; acquire_probe,
+        # live circuit checks, and all semantic output contracts remain authoritative.
         if not (preferred is not None and pool[0] is preferred):
             workers_fast = next((
-                item for item in pool
+                item for preferred_model in (
+                    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+                    "@cf/zai-org/glm-4.7-flash",
+                )
+                for item in pool
                 if str(item.get("provider") or "") == "workers_ai"
-                and str(item.get("model") or "") == "@cf/zai-org/glm-4.7-flash"
-                and str(item.get("health_state") or "") == "healthy"
+                and str(item.get("model") or "") == preferred_model
+                and str(item.get("health_state") or "") in {"healthy", "half_open"}
                 and int(item.get("quality_failures", 0) or 0) == 0
             ), None)
             if workers_fast is not None and pool[0] is not workers_fast:
                 pool = [workers_fast] + [item for item in pool if item is not workers_fast]
                 print(
                     "USE provider bank HRN candidate priority: "
-                    "promoted healthy Cloudflare Workers AI GLM-4.7-Flash ahead of "
-                    "free-router fallbacks for operation=" + operation + "."
+                    f"promoted eligible Cloudflare Workers AI {workers_fast['model']} "
+                    "ahead of free-router fallbacks for operation=" + operation + "."
                 )
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
