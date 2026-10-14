@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "streaming_transport.py"
       - "general_guide_composition.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/live-guide-dual-service-e2e.yml"
@@ -157,4 +158,43 @@ jobs:
               if recommendation is not None and not isinstance(recommendation, dict):
                   raise SystemExit(f"{name}: recommendation field has invalid shape")
               print(f"{name}: explicit stewardship/no-navigation answer PASS; chars={len(response)}; paragraphs={len(paragraphs)}; recommendation remains separate")
+
+          # Verify the browser-facing SSE path is actually live, emits a
+          # keep-alive-capable stream, and preserves the complete response
+          # envelope (including the separately selected Archive recommendation).
+          stream_query = "Explain stewardship, but do not send me to another page yet."
+          for name, base_url in services.items():
+              request = urllib.request.Request(
+                  base_url + "/api/query-stream",
+                  data=json.dumps({"query": stream_query}).encode("utf-8"),
+                  headers={"Content-Type": "application/json", "Accept": "text/event-stream"},
+                  method="POST",
+              )
+              with urllib.request.urlopen(request, timeout=90) as response:
+                  content_type = response.headers.get("Content-Type", "")
+                  stream_body = response.read().decode("utf-8", "replace")
+              if "text/event-stream" not in content_type:
+                  raise SystemExit(f"{name}: stream content type is wrong: {content_type}")
+              events = {}
+              current_event = None
+              for line in stream_body.splitlines():
+                  if line.startswith("event:"):
+                      current_event = line[6:].strip()
+                  elif line.startswith("data:") and current_event:
+                      try:
+                          events[current_event] = json.loads(line[5:].strip())
+                      except Exception:
+                          raise SystemExit(f"{name}: invalid SSE JSON for event {current_event}")
+              if "stream_start" not in events or "response_text" not in events or "response_complete" not in events:
+                  raise SystemExit(f"{name}: SSE stream omitted required lifecycle events: {sorted(events)}")
+              final_payload = events["response_complete"].get("payload")
+              if not isinstance(final_payload, dict):
+                  raise SystemExit(f"{name}: SSE completion omitted the authoritative response payload")
+              answer = str(final_payload.get("response") or "").strip()
+              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
+              if len(paragraphs) < 3 or len(answer) < 300:
+                  raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
+              if not isinstance(final_payload.get("recommendation"), dict):
+                  raise SystemExit(f"{name}: SSE stream lost the independent canonical recommendation")
+              print(f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; final envelope preserved")
           PY
