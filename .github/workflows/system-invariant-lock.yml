@@ -1,0 +1,35 @@
+name: System Invariant Lock
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  invariant-lock:
+    name: Protected core and static integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate and base history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject changes to protected USE core on pull requests
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$BASE_SHA...$GITHUB_SHA" | grep -Fxq 'use_core.py'; then
+            echo "::error::System Invariant Lock: use_core.py is protected and must not change in an ordinary PR."
+            exit 1
+          fi
+          echo "Protected core unchanged."
+      - name: Reject whitespace errors
+        run: git diff --check || (echo '::error::Whitespace/conflict-marker check failed.' && exit 1)
+      - name: Compile Python source without executing application startup
+        run: python -m compileall -q -x '(^|/)(\.git|\.venv|venv|__pycache__)(/|$)' .
