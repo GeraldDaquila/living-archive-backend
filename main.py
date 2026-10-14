@@ -4448,28 +4448,62 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(resource_query, limit=_guide_subject_supplement_limit(discovery_subject))
-            recovered_docs = [
-                {
-                    "title": str(item.get("title") or "").strip(),
-                    "url": str(item.get("url") or "").strip(),
-                    "text": str(item.get("text") or "").strip(),
-                }
-                for item in recovered_docs
-                if isinstance(item, dict)
-                and str(item.get("title") or "").strip()
-                and str(item.get("text") or "").strip()
-            ]
+            recovered_docs = _wordpress_search_canonical_candidates(
+                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+            )
+            # The selected doorway is already independently authorized. Fetch
+            # its actual canonical body as well as topic-search candidates so
+            # content relevance is tested against the destination being offered,
+            # not just whichever pages WordPress ranked highest for the phrase.
+            if discovery_subject and authoritative_doorway:
+                doorway_docs = _wordpress_search_canonical_candidates(
+                    authoritative_doorway.get("title") or "", limit=3
+                )
+                recovered_docs = list(doorway_docs) + list(recovered_docs)
+            normalized_recovered_docs = []
+            seen_recovered_urls = set()
+            for item in recovered_docs:
+                if not isinstance(item, dict):
+                    continue
+                title = str(item.get("title") or "").strip()
+                url = str(item.get("url") or "").strip()
+                text_value = str(item.get("text") or "").strip()
+                key = url.rstrip("/").casefold()
+                if not title or not text_value or not key or key in seen_recovered_urls:
+                    continue
+                seen_recovered_urls.add(key)
+                normalized_recovered_docs.append({"title": title, "url": url, "text": text_value})
+            recovered_docs = normalized_recovered_docs
             recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
             recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
+            if recovery_insufficient and discovery_subject and authoritative_doorway:
+                selected_support = _guide_selected_doorway_discovery_evidence(
+                    recovered_docs, resource_query, authoritative_doorway
+                )
+                if selected_support:
+                    recovered_docs = selected_support
+                    recovery_insufficient = False
+                    print(
+                        "The Guide discovery evidence gate: selected canonical doorway body "
+                        "passed direct subject-fit validation."
+                    )
             if not recovery_insufficient and recovered_docs:
                 recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
                     recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
                 )
+                if recovery_question_unavailable and discovery_subject and authoritative_doorway:
+                    selected_support = _guide_selected_doorway_discovery_evidence(
+                        recovered_docs, resource_query, authoritative_doorway
+                    )
+                    if selected_support:
+                        recovered_docs = selected_support
+                        recovered_docs, recovery_question_unavailable = use_core._v208_question_evidence_fit_gate(
+                            recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                        )
                 if not recovery_question_unavailable and recovered_docs:
                     composition_context["generation_authority_protected_docs"] = recovered_docs
                     composition_context.pop("question_authority_protected_docs", None)
