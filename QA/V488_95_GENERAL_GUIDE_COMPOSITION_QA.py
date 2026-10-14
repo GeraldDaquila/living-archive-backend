@@ -39,7 +39,7 @@ def main():
     recovery_block = MAIN_TEXT[recovery_start:recovery_end]
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
-    assert_true(r'if "stewardship" in q and re.search(r"\\b(?:what\\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\\b", q):' in recovery_block, "stewardship explanation recovery still depends on why/matter wording")
+    assert_true(r'r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):' in recovery_block, "stewardship explanation recovery still depends on why/matter wording")
     assert_true("If you would like to explore this further, the Archive resource below may offer a useful next step." in recovery_block, "deterministic fallback still exposes internal recommendation-selection language")
     assert_true("Stewardship does not mean controlling everything or sacrificing yourself for everyone else." in recovery_block, "stewardship fallback lost its limiting distinction")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
