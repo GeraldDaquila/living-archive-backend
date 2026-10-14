@@ -247,3 +247,39 @@ def test_recurring_argument_search_recovery_still_rejects_broad_decoys(monkeypat
 
     assert primary is None
     assert outward == []
+
+def test_completed_hrn_return_rejects_generic_orientation_even_with_incidental_body_overlap():
+    query = (
+        "The project scope changed after the agreed deadline. I feel held to the old "
+        "agreement, and when I raise the changed work the conversation turns to whether "
+        "I am being unreasonable. I want to see the relationship pattern more clearly."
+    )
+    generic_orientation = {
+        "title": "🧭Orientation",
+        "text": (
+            "The Living Archive offers orientation to change, work, relationships, "
+            "agreements, and the human experience. Start with what matters to you."
+        ),
+        "url": "https://geralddaquila.com/orientation/",
+    }
+    assert main._relational_return_is_generic_doorway(generic_orientation)
+    assert not main._relational_return_direct_topic_fit(query, generic_orientation)
+    assert not main._relational_return_earned_focus_fit(query, generic_orientation)
+
+
+def test_completed_hrn_return_still_accepts_a_specific_resource():
+    query = (
+        "The project scope changed after the agreed deadline. I feel held to the old "
+        "agreement, and when I raise the changed work the conversation turns to whether "
+        "I am being unreasonable. I want to see the relationship pattern more clearly."
+    )
+    specific_resource = {
+        "title": "When Agreements Change",
+        "text": (
+            "In relationships and collaborative work, a change to an agreement can "
+            "create conflict when responsibility and expectations are no longer shared."
+        ),
+        "url": "https://geralddaquila.com/example/when-agreements-change/",
+    }
+    assert not main._relational_return_is_generic_doorway(specific_resource)
+
