@@ -829,7 +829,7 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
         ("nvidia", "nemotron-model"),
     ]
     assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 7.0
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
 
 
 
