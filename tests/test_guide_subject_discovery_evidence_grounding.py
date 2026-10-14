@@ -230,3 +230,65 @@ def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monke
     assert main._guide_selected_doorway_discovery_evidence(
         [document], "public accountability", doorway
     ) == [document]
+
+
+
+def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatch):
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    document = {
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "A canonical governance hub covering institutional accountability, transparency, "
+            "public trust, civic participation, and distributed responsibility across institutions."
+        ),
+    }
+    monkeypatch.setattr(
+        main,
+        "_general_guide_authoritative_doorway",
+        lambda query, context: doorway,
+    )
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda subject, candidate: (1, 1, 0, 2),
+    )
+
+    selected, evidence = main._guide_align_discovery_doorway(
+        "public accountability", [document]
+    )
+
+    assert selected == doorway
+    assert evidence == [document]
+
+
+def test_discovery_doorway_is_not_returned_without_matching_vetted_body(monkeypatch):
+    doorway = {
+        "title": "Governance & Decentralization",
+        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+    }
+    unrelated = {
+        "title": "Unrelated Resource",
+        "url": "https://geralddaquila.com/unrelated/",
+        "text": "This is a sufficiently long resource body but it is not the selected doorway and is not its evidence.",
+    }
+    monkeypatch.setattr(
+        main,
+        "_general_guide_authoritative_doorway",
+        lambda query, context: doorway,
+    )
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda subject, candidate: (4, 2, 0, 6),
+    )
+
+    selected, evidence = main._guide_align_discovery_doorway(
+        "public accountability", [unrelated]
+    )
+
+    assert selected is None
+    assert evidence == []
