@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.249"
-DEPLOYMENT_FINGERPRINT = "USE-v489.249-align-discovery-doorway-evidence"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.249-align-discovery-doorway-evidence"
+APP_VERSION = "v489.250"
+DEPLOYMENT_FINGERPRINT = "USE-v489.250-discovery-evidence-independent"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.250-discovery-evidence-independent"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.249":
+if str(APP_VERSION) != "v489.250":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4589,6 +4589,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
                 if discovery_subject and authoritative_doorway else []
             )
+            # Resource discovery and answer synthesis have different contracts.
+            # Once a canonical page body passes direct subject-fit validation,
+            # align the destination to that exact body and retain it for the
+            # discovery response guard even if the stricter synthesis gate
+            # rejects the document set. This never authorizes unsupported
+            # explanatory claims; it only permits a grounded resource orientation.
+            if discovery_subject:
+                evidence_doorway, evidence_for_doorway = _guide_align_discovery_doorway(
+                    resource_query, recovered_docs
+                )
+                if evidence_doorway and evidence_for_doorway:
+                    authoritative_doorway = evidence_doorway
+                    discovery_selected_evidence = evidence_for_doorway
+                    composition_context["authoritative_doorway"] = evidence_doorway
+                    print(
+                        "The Guide discovery evidence contract: selected destination "
+                        f"and source body aligned to {evidence_doorway.get('title')!r}."
+                    )
             recovered_docs, recovery_insufficient = use_core._evidence_sufficiency_gate(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
