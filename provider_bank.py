@@ -2242,6 +2242,28 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 "promoted healthy, recently successful NVIDIA Nemotron 3.5 Lightning "
                 "to first attempt for operation=" + operation + "."
             )
+        # When the NVIDIA fast lane is not eligible, prefer Cloudflare's reviewed
+        # low-latency GLM lane over slow free-router candidates. The free router and
+        # Mistral lanes have repeatedly returned 429s/timeouts while this independent
+        # lane remains configured; placing it behind them exhausts the whole-turn
+        # budget before the bank reaches it. Require healthy transport state and no
+        # recorded semantic-quality failures; all normal contracts still validate
+        # its output and a failed attempt still enters ordinary health arbitration.
+        if not (preferred is not None and pool[0] is preferred):
+            workers_fast = next((
+                item for item in pool
+                if str(item.get("provider") or "") == "workers_ai"
+                and str(item.get("model") or "") == "@cf/zai-org/glm-4.7-flash"
+                and str(item.get("health_state") or "") == "healthy"
+                and int(item.get("quality_failures", 0) or 0) == 0
+            ), None)
+            if workers_fast is not None and pool[0] is not workers_fast:
+                pool = [workers_fast] + [item for item in pool if item is not workers_fast]
+                print(
+                    "USE provider bank HRN candidate priority: "
+                    "promoted healthy Cloudflare Workers AI GLM-4.7-Flash ahead of "
+                    "free-router fallbacks for operation=" + operation + "."
+                )
     order = [x["provider"] + ":" + x["model"] for x in pool]
     last_error = ""
     configured_attempts = max(1, min(5, int(os.getenv("USE_PROVIDER_BANK_MAX_ATTEMPTS", "5") or 5)))
