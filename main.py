@@ -4693,7 +4693,33 @@ def _guide_node_specific_match(query):
     best_score = 0
 
     for node in _guide_node_registry_snapshot():
-        labels = [str(node.get("title") or "").strip()]
+        node_title = str(node.get("title") or "").strip()
+        normalized_title = _normalize_query(node_title)
+        node_asset_type = str(node.get("asset_type") or "").strip().casefold().replace("-", "_")
+        # Generic access surfaces explain how to browse the Archive; they are
+        # not subject destinations. Never let their broad semantic hints
+        # outrank a visitor's subject-specific request. A generic surface is
+        # eligible only when the visitor explicitly names that surface.
+        generic_access_titles = {
+            "libraries", "library", "archive index", "archive reference index",
+            "site index", "archive navigation", "start here", "begin here",
+        }
+        is_generic_access_node = normalized_title in generic_access_titles
+        if is_generic_access_node:
+            if normalized_title and re.search(
+                rf"\b{re.escape(normalized_title)}\b",
+                normalized,
+                re.I,
+            ):
+                score = 105
+                if score > best_score:
+                    best_score = score
+                    best = node
+            # Do not inspect broad generic navigation hints as if they named
+            # the visitor's requested subject.
+            continue
+
+        labels = [node_title]
         labels.extend(
             str(hint).strip()
             for hint in (node.get("semantic_hints") or [])
@@ -4789,6 +4815,27 @@ def _is_explicit_guide_destination_request(query):
         re.I,
     ))
 
+def _guide_node_handoff_is_authorized(query, selected_node_id):
+    """Authorize a native Guide Node handoff only when the registry supports it.
+
+    An explicit request to find material is not permission to open an arbitrary
+    node chosen by a model. The selected node must also be the strongest
+    registry-backed subject destination. If no such destination exists, keep
+    the request in ordinary Guide composition so it can answer and recommend
+    relevant material without substituting a generic access page.
+    """
+    if not _is_explicit_guide_destination_request(query):
+        return False
+    selected_id = str(selected_node_id or "").strip()
+    if not selected_id:
+        return False
+    matched = _guide_node_specific_match(query)
+    return bool(
+        matched
+        and str(matched.get("node_id") or "").strip() == selected_id
+    )
+
+
 # Routing boundary regression probes: compound explanatory questions must
 # never be mistaken for a request to navigate directly to a registry node.
 if _is_explicit_guide_destination_request(
@@ -4802,6 +4849,18 @@ if _is_explicit_guide_destination_request("What is open source software?"):
 if not _is_explicit_guide_destination_request("Please open the Steward Readiness Instruments."):
     raise RuntimeError("Guide routing invariant failed: explicit open command not recognized.")
 
+# Subject-discovery regression: broad semantic hints on generic access hubs
+# must never convert a topic request into a Libraries page handoff.
+_institutional_discovery_probe = _guide_node_specific_match(
+    "Where can I find material about institutional responsibility?"
+)
+if str((_institutional_discovery_probe or {}).get("title") or "").strip().casefold() in {
+    "libraries", "library", "archive index", "site index",
+    "archive navigation", "start here", "begin here",
+}:
+    raise RuntimeError(
+        "Guide routing invariant failed: subject-specific discovery resolved to a generic access hub."
+    )
 
 def _request_header(scope, name):
     target = str(name or "").strip().lower().encode("latin-1")
@@ -5754,9 +5813,12 @@ async def _use_request_boundary(scope, receive, send):
     # too, so a model-selected Guide Node cannot bypass the registry guard above.
     # A compound explanatory question misclassified as a page destination returns
     # to ordinary Guide composition instead of becoming an empty direct handoff.
-    if route_id == "guide_node" and not _is_explicit_guide_destination_request(query):
+    if route_id == "guide_node" and not _guide_node_handoff_is_authorized(
+        query,
+        (route.get("round1_interpretation") or {}).get("guide_node_id"),
+    ):
         print(
-            "The Guide request boundary: suppressed non-explicit Guide Node handoff; "
+            "The Guide request boundary: suppressed unsupported Guide Node handoff; "
             f"query={_normalize_query(query)[:120]}"
         )
         route_id = "guide"
