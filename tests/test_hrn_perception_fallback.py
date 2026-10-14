@@ -952,7 +952,7 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
     assert clock.value == 3.5
 
 
-def test_recently_successful_nemotron_lightning_is_first_for_perception(monkeypatch):
+def test_recently_successful_gemma26_is_first_for_perception(monkeypatch):
     candidates = [
         _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -975,12 +975,12 @@ def test_recently_successful_nemotron_lightning_is_first_for_perception(monkeypa
     )
 
     assert result is not None
-    assert result["provider"] == "nvidia"
-    assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
-    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    assert result["provider"] == "workers_ai"
+    assert result["model"] == "@cf/google/gemma-4-26b-a4b-it"
+    assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
 
 
-def test_recently_successful_nemotron_lightning_is_first_for_relational(monkeypatch):
+def test_recently_successful_gemma26_is_first_for_relational(monkeypatch):
     candidates = [
         _candidate("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
         _candidate("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -1020,7 +1020,8 @@ def test_recently_successful_nemotron_lightning_is_first_for_relational(monkeypa
 
     assert result is None
     assert calls
-    assert calls[0] == ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b")
+    assert calls[0] == ("workers_ai", "@cf/google/gemma-4-26b-a4b-it")
+    assert ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b") in calls
 
 
 def test_half_open_nemotron_lightning_does_not_leapfrog_healthy_candidate(monkeypatch):
