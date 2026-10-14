@@ -8,6 +8,7 @@ provider-token streaming is introduced.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from typing import Any, Awaitable, Callable, Dict, Optional
