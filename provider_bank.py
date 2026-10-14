@@ -2099,6 +2099,64 @@ def _hrn_complete_missing_question(messages):
     return ""
 
 
+def _hrn_repair_common_guidance_sentence(response, messages=None):
+    """Replace a narrowly recognized advice sentence with a grounded observation.
+
+    HRN's writer must not prescribe or coach. Some providers append "it might help
+    to..." after an otherwise useful observation. When the structured evidence
+    names a scope/deadline or scope/date conflict, replace only that sentence with
+    a concrete observation from the same evidence rather than rejecting the entire
+    turn and exhausting another provider call.
+    """
+    text = str(response or "").strip()
+    guidance = re.compile(
+        r"\b(?:it|this|that)\s+(?:might|may|could|would)\s+help\s+to\b",
+        re.I,
+    )
+    if not guidance.search(text):
+        return text
+    source = " ".join(
+        str(item.get("content") or "")
+        for item in (messages or [])
+        if isinstance(item, dict)
+    )
+    has_scope = bool(re.search(r"\bscope\b", source, re.I))
+    has_deadline = bool(re.search(r"\bdeadline\b", source, re.I))
+    has_date = bool(re.search(r"\b(?:agreed date|date)\b", source, re.I))
+    if has_scope and has_deadline:
+        if re.search(r"\b(?:effort|too much|extra work)\b", text, re.I):
+            replacement = (
+                "The changed scope and the agreed deadline are both part of the work "
+                "being discussed, even as attention keeps returning to the effort involved."
+            )
+        else:
+            replacement = (
+                "The changed scope and the agreed deadline both remain part of the work "
+                "being discussed, even though the conversation has not settled how they fit together."
+            )
+    elif has_scope and has_date:
+        replacement = (
+            "The changed scope and the agreed date both remain part of the work being "
+            "discussed, even though the conversation has not settled how they fit together."
+        )
+    elif re.search(r"\b(?:friendship|friend)\b", source, re.I) and re.search(
+        r"\b(?:hurt|pull away|change)\b", source, re.I
+    ):
+        replacement = (
+            "The possibility of hurting the friendship remains alongside your wish to "
+            "speak honestly about what has changed."
+        )
+    else:
+        return text
+    sentences = [part for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+    changed = False
+    for index, sentence in enumerate(sentences):
+        if guidance.search(sentence):
+            sentences[index] = replacement
+            changed = True
+    return " ".join(sentences) if changed else text
+
+
 def _normalize_operation_result(operation, parsed, messages=None):
     if operation == "hrn_relational":
         response = parsed.get("response")
@@ -2127,7 +2185,10 @@ def _normalize_operation_result(operation, parsed, messages=None):
         repaired_response = _repair_leading_hrn_hedge(response)
         if repaired_response != response.strip():
             print("USE provider response hedge normalized: operation=hrn_relational")
-        response = repaired_response
+        guidance_repaired = _hrn_repair_common_guidance_sentence(repaired_response, messages)
+        if guidance_repaired != repaired_response:
+            print("USE provider response guidance normalized: operation=hrn_relational")
+        response = guidance_repaired
         parsed["response"] = response
         surface_violation = _hrn_surface_language_violation(response)
         if surface_violation:

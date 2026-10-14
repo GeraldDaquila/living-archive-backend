@@ -54,6 +54,41 @@ def test_hrn_provider_bank_completes_missing_question_from_grounded_movement_bri
     assert normalized["response"].startswith("You said you keep putting off")
 
 
+def test_hrn_provider_bank_replaces_common_advice_sentence_with_grounded_observation():
+    partial = {
+        "response": (
+            "You’re noticing that the team treats the new scope as your responsibility, "
+            "while the original deadline feels like a fixed rule that can’t change. "
+            "That split in how responsibility is assigned is creating a tension you’re feeling. "
+            "It might help to think about ways to honor both the fixed deadline and the fact "
+            "that the scope shift is a shared change, rather than a personal burden."
+        ),
+        "question": "What happens when you bring up the changed scope alongside the agreed deadline?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    }
+    messages = [{
+        "role": "user",
+        "content": (
+            "STRUCTURED MOVEMENT BRIEF\\n"
+            + json.dumps({
+                "observer_contrast": "the changed scope came after the agreed deadline",
+                "observer_delta": "the colleague says the effort is too much",
+            })
+        ),
+    }]
+
+    normalized = provider_bank._normalize_operation_result(
+        "hrn_relational", partial, messages=messages
+    )
+
+    assert "it might help to think about ways" not in normalized["response"].lower()
+    assert "changed scope and the agreed deadline" in normalized["response"].lower()
+    assert provider_bank._hrn_surface_language_violation(normalized["response"]) == ""
+    assert normalized["question"] == partial["question"]
+
+
 def test_hrn_provider_bank_fails_closed_when_missing_question_has_no_grounding():
     partial = {
         "response": (
