@@ -292,3 +292,22 @@ def test_discovery_doorway_is_not_returned_without_matching_vetted_body(monkeypa
 
     assert selected is None
     assert evidence == []
+
+
+
+def test_selected_canonical_body_fetch_rejects_non_archive_hosts():
+    assert main._wordpress_fetch_selected_canonical_body(
+        "https://example.com/not-the-archive/"
+    ) is None
+
+
+def test_selected_canonical_body_fetch_rejects_non_https_urls():
+    assert main._wordpress_fetch_selected_canonical_body(
+        "http://geralddaquila.com/institutional-stewardship-case-library/"
+    ) is None
+
+
+def test_selected_canonical_body_fetch_rejects_query_string_urls():
+    assert main._wordpress_fetch_selected_canonical_body(
+        "https://geralddaquila.com/institutional-stewardship-case-library/?redirect=example.com"
+    ) is None
