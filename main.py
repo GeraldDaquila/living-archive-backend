@@ -4891,6 +4891,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if not response:
         raise RuntimeError("Basic Inquiry generation returned an empty visitor response.")
 
+    # Re-apply the subject-discovery contract to the final sanitized string,
+    # immediately before payload assembly. This closes any path where earlier
+    # composition recovery runs before the final canonical recommendation is
+    # normalized or where later sanitization changes the response.
+    if discovery_subject and authoritative_doorway:
+        if not _guide_discovery_response_is_grounded(
+            response, resource_query, authoritative_doorway, discovery_selected_evidence
+        ):
+            grounded_recovery = _guide_deterministic_discovery_response(
+                resource_query, authoritative_doorway, discovery_selected_evidence
+            )
+            if grounded_recovery:
+                response = _sanitize_basic_inquiry_response(grounded_recovery)
+                print(
+                    "The Guide final discovery boundary: enforced alignment between "
+                    "the sanitized answer and the selected Archive doorway."
+                )
+
     if re.search(r"\bUSE\b", response) or re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|"
