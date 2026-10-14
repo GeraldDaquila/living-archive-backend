@@ -323,6 +323,7 @@ def test_workplace_scope_change_search_recovery_uses_bounded_queries(monkeypatch
         return [conflict_trust_arc] if query == "workplace conflict" else []
 
     monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", candidates)
+    monkeypatch.setattr(main, "_relational_return_verified_workplace_candidate", lambda query: None)
     profile = main._base._inquiry_profile(original)
     profile["action"] = "recommendation"
     profile["recommendation"] = 0.95
@@ -382,5 +383,78 @@ def test_canonical_wordpress_search_terms_are_deterministic(monkeypatch):
     assert seen_urls == [
         "https://geralddaquila.com/wp-json/wp/v2/search?search=workplace%20conflict&per_page=10"
     ]
+
+
+
+def test_verified_workplace_candidate_fetches_and_validates_canonical_arc(monkeypatch):
+    import json
+
+    original = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I am making too much of it. I want to understand what is happening between us."
+    )
+    resource = {
+        "title": {"rendered": "🔥ARC I: The real problem isn't conflict. It's the conversations your system is not designed to hold."},
+        "link": "https://geralddaquila.com/conflict-trust-arc/",
+        "content": {"rendered": (
+            "<h2>CONFLICT &amp; TRUST BREAKDOWN</h2>"
+            "<p>Most teams do not fail because of disagreement. They fail because disagreement "
+            "is avoided until it becomes unmanageable. This is a structural problem in how teams "
+            "hold difficult conversations.</p>"
+        )},
+    }
+    seen = []
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def read(self):
+            return json.dumps(resource).encode("utf-8")
+
+    def fake_request(url, **kwargs):
+        seen.append(url)
+        return type("Request", (), {"full_url": url})()
+
+    monkeypatch.setattr(main, "UrlRequest", fake_request)
+    monkeypatch.setattr(main, "urlopen", lambda request, timeout=None: FakeResponse())
+
+    candidate = main._relational_return_verified_workplace_candidate(original)
+
+    assert seen == ["https://geralddaquila.com/wp-json/wp/v2/pages/39753"]
+    assert candidate is not None
+    assert candidate["title"].startswith("🔥ARC I:")
+    assert candidate["url"] == "https://geralddaquila.com/conflict-trust-arc/"
+    assert main._relational_return_workplace_change_fit(original, candidate)
+
+
+def test_verified_workplace_candidate_precedes_unstable_search_recovery(monkeypatch):
+    original = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I am making too much of it. I want to understand what is happening between us."
+    )
+    candidate = {
+        "title": "ARC I: The real problem isn't conflict. It's the conversations your system is not designed to hold.",
+        "text": "Most teams do not fail because of disagreement. They fail because disagreement is avoided until it becomes unmanageable.",
+        "url": "https://geralddaquila.com/conflict-trust-arc/",
+    }
+    monkeypatch.setattr(main, "_relational_return_verified_workplace_candidate", lambda query: candidate)
+    monkeypatch.setattr(
+        main, "_wordpress_search_canonical_candidates",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unstable search must not run")),
+    )
+    profile = main._base._inquiry_profile(original)
+    profile["action"] = "recommendation"
+    profile["recommendation"] = 0.95
+    profile["primary"] = "relational"
+    profile["relational"] = True
+
+    primary, outward = main._relational_return_search_recovery(original, original, profile)
+
+    assert primary == candidate
+    assert outward == [candidate]
 
 
