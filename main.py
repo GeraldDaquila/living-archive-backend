@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.234 — restore established General Guide writer behavior
+# USE PRODUCTION VERSION: v489.236 — enforce discernment synthesis contract
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.234"
-DEPLOYMENT_FINGERPRINT = "USE-v489.234-general-guide-writer-restoration-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.234-general-guide-writer-restoration-v1"
+APP_VERSION = "v489.236"
+DEPLOYMENT_FINGERPRINT = "USE-v489.236-discernment-synthesis-contract-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.236-discernment-synthesis-contract-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.234":
+if str(APP_VERSION) != "v489.236":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3916,7 +3916,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # conceptual question when every provider is unavailable. This is ordinary
     # general knowledge, not an Archive attribution; doorway selection remains
     # independent and evidence-grounded.
-    if re.search(r"\\brelationship between personal agency and responsibility to others\\b", q):
+    if re.search(r"\brelationship between personal agency and responsibility to others\b", q):
         response = (
             "Personal agency and responsibility to others belong together: agency is the freedom and capacity to make choices, while responsibility means recognizing how those choices affect people around you. "
             "Your choices are your own, but they do not happen in isolation.\n\n"
