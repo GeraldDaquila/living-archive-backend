@@ -285,7 +285,7 @@ def main():
         # An imperfect optional doorway label must not invalidate the answer.
         def fake_route_with_bad_doorway(**kwargs):
             parsed = kwargs["parse"](
-                '{"response":"Stewardship asks what we are responsible for and how we care for what affects more than ourselves.\\n\\nIt matters because our choices can affect people and systems beyond our immediate reach.\\n\\nThe useful question is not only what we control, but what we are responsible for.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
+                '{"response":"Stewardship means taking care of something entrusted to you, including things other people rely on.\\n\\nIn everyday life, it can mean keeping a promise or maintaining a shared space so others can continue to use it. Small choices accumulate: carelessness passes costs to others, while responsible care preserves trust and future possibilities.\\n\\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for and acting responsibly within your limits.","doorway_title":"Provider Invented Doorway","response_shape":"explanatory"}'
             )
             return {"parsed": parsed, "provider": "fake_provider", "model": "fake_model"}
 
