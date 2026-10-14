@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.236 — enforce discernment synthesis contract
+# USE PRODUCTION VERSION: v489.237 — align runtime composition invariant
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.236"
-DEPLOYMENT_FINGERPRINT = "USE-v489.236-discernment-synthesis-contract-v1"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.236-discernment-synthesis-contract-v1"
+APP_VERSION = "v489.237"
+DEPLOYMENT_FINGERPRINT = "USE-v489.237-discernment-synthesis-contract-v1"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.237-discernment-synthesis-contract-v1"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.236":
+if str(APP_VERSION) != "v489.237":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -224,7 +224,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.13":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.14":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
