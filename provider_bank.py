@@ -193,7 +193,7 @@ OPERATION_TOKEN_FLOORS = {
 # provider-neutral JSON-object contract because its own protected validator
 # owns the semantic envelope. This prevents constrained decoding from starving
 # a long conversational composition before a valid object is emitted.
-OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery","strict":False,"schema":{"type":"object","properties":{"response":{"type":"string"},"question":{"type":"string"},"rest":{"type":"boolean"},"use_resource":{"type":"boolean"},"resource_intro":{"type":"string"}},"required":["response","question","rest","use_resource","resource_intro"],"additionalProperties":True}}}
+OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery","strict":False,"schema":{"type":"object","properties":{"response":{"type":"string"},"question":{"type":"string"},"rest":{"type":"boolean"},"use_resource":{"type":"boolean"},"resource_intro":{"type":"string"}},"required":["response","question","rest","use_resource","resource_intro"],"additionalProperties":True}},"hrn_question_recovery":{"name":"hrn_question_recovery","strict":False,"schema":{"type":"object","properties":{"question":{"type":"string"}},"required":["question"],"additionalProperties":False}}}
 
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
@@ -2083,30 +2083,6 @@ def _normalize_operation_result(operation, parsed, messages=None):
         question_violation = _hrn_surface_language_violation(question)
         if not question_violation and messages is not None:
             question_violation = _hrn_question_grounding_violation(question, messages)
-        if question_violation and messages is not None:
-            # A provider-authored question can be grammatically valid but fail
-            # the concrete-grounding contract. Reuse the existing local question
-            # constructor, which extracts a bounded focus from the structured
-            # movement brief and independently re-runs the same surface and
-            # grounding checks. This repairs only the question field; the
-            # provider-authored response and all other fields remain untouched.
-            grounded_replacement = _hrn_complete_missing_question(messages)
-            if grounded_replacement:
-                replacement_violation = _hrn_surface_language_violation(
-                    grounded_replacement
-                )
-                if not replacement_violation:
-                    replacement_violation = _hrn_question_grounding_violation(
-                        grounded_replacement, messages
-                    )
-                if not replacement_violation:
-                    question = grounded_replacement
-                    question_violation = ""
-                    parsed["question"] = grounded_replacement
-                    print(
-                        "USE provider question repair: operation=hrn_relational, "
-                        "mode=grounded_local_replacement"
-                    )
         if question_violation:
             raise ValueError(
                 "hrn_relational question-surface contract violation: "
@@ -2532,11 +2508,23 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     continue
 
-                recovery_schema = OPERATION_SCHEMAS.get(operation + "_recovery")
+                question_only_recovery = (
+                    operation == "hrn_relational"
+                    and (targeted_question_recovery or targeted_question_grounding_recovery)
+                )
+                recovery_schema = OPERATION_SCHEMAS.get(
+                    "hrn_question_recovery" if question_only_recovery else operation + "_recovery"
+                )
                 if not recovery_schema:
                     raise
                 schema_capable = bool(_capabilities(provider, model).intersection({"json_schema_strict", "json_schema_best_effort"}))
-                recovery_mode_schema = recovery_schema if schema_capable else effective_schema
+                # Question repairs should generate only the missing/invalid field.
+                # This keeps the original response intact and avoids spending the
+                # tiny free-tier completion budget re-generating valid prose.
+                recovery_mode_schema = (
+                    recovery_schema if schema_capable or question_only_recovery
+                    else effective_schema
+                )
                 recovery_mode = "strict_schema" if schema_capable else "provider_neutral_json_object"
                 print("USE provider contract recovery: operation=" + operation + ", provider=" + provider + ", model=" + model + ", mode=" + recovery_mode)
                 # Retain schema-correction for genuine operation-envelope failures.
@@ -2579,22 +2567,38 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + str(contract_error)[:240]
                         + ". Correct the output now. "
                     )
-                correction_content = (
-                    correction_prompt
-                    + "Return only one valid JSON object matching the supplied response fields. "
-                    + "The response must contain at least two complete sentences and 180 characters. "
-                    + "Include the non-empty response and question fields required by this operation. "
-                    + "Each visitor-facing sentence must end with sentence-final punctuation. "
-                    + "Do not repeat the rejected wording. Preserve the actual request context. "
-                    + "Avoid generic relationship theory. Use one concrete observation grounded in the visitor's actual words. "
-                    + "Do not repeat the rejected wording, including phrases like 'this distinction matters because' or 'it shifts the focus from'. "
-                    + "Do not restate the same insight in new words. "
-                    + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
-                )
+                if question_only_recovery:
+                    correction_content = (
+                        correction_prompt
+                        + "Return exactly one JSON object containing only the string field 'question'. "
+                        + "Do not regenerate or include the response field. "
+                        + "The question must be one natural, non-prescriptive sentence grounded in a concrete detail in the structured movement brief. "
+                        + "Do not invent facts, add advice, or repeat the rejected question."
+                    )
+                else:
+                    correction_content = (
+                        correction_prompt
+                        + "Return only one valid JSON object matching the supplied response fields. "
+                        + "The response must contain at least two complete sentences and 180 characters. "
+                        + "Include the non-empty response and question fields required by this operation. "
+                        + "Each visitor-facing sentence must end with sentence-final punctuation. "
+                        + "Do not repeat the rejected wording. Preserve the actual request context. "
+                        + "Avoid generic relationship theory. Use one concrete observation grounded in the visitor's actual words. "
+                        + "Do not repeat the rejected wording, including phrases like 'this distinction matters because' or 'it shifts the focus from'. "
+                        + "Do not restate the same insight in new words. "
+                        + "Preserve complete, non-prescriptive visitor-facing language and do not add commentary."
+                    )
                 if operation == "hrn_relational":
                     recovery_messages = _compact_hrn_contract_recovery_messages(
                         effective_messages, raw_output, correction_content
                     )
+                    if question_only_recovery:
+                        recovery_messages[0]["content"] = (
+                            "Return exactly one JSON object with a single required string field named 'question'. "
+                            "Generate only the follow-up question, not a response or explanation. "
+                            "Use one concrete detail from the structured movement brief. "
+                            "The question must be natural, non-prescriptive, and pass the HRN surface and grounding contract."
+                        )
                 else:
                     recovery_messages = list(effective_messages)
                     recovery_messages.append({
@@ -2612,6 +2616,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 ))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")
+                if question_only_recovery:
+                    recovered_question = recovered.get("question")
+                    if not isinstance(recovered_question, str) or not recovered_question.strip():
+                        raise ValueError("provider question recovery returned an empty question")
+                    # Merge only the corrected question into the first-pass
+                    # object. Preserve the validated response and every existing
+                    # control flag instead of asking the model to rewrite them.
+                    recovered = dict(parsed)
+                    recovered["question"] = recovered_question.strip()
                 if (
                     targeted_question_recovery
                     and _hrn_surface_language_violation(recovered.get("question", ""))
