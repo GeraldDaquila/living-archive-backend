@@ -4500,19 +4500,28 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     except Exception:
         direct_fit = 0
 
-    # "Institutional responsibility" in a page title or opening is stronger
-    # than a page which only happens to mention "institutional" or
-    # "responsibility" once. Multi-token topics need corroboration from the body.
-    direct = (
-        phrase_in_title
-        or phrase_in_early
+    # A single mention in the opening can be incidental (for example, a
+    # broad leadership page that names institutional responsibility once).
+    # A title-level subject match is strong; body-level directness requires
+    # repeated phrase evidence or multiple subject anchors plus corroboration.
+    phrase_count = len(re.findall(re.escape(normalized_subject), body))
+    direct_body_fit = (
+        (phrase_in_early and phrase_count >= 2 and direct_fit >= 2)
         or (
             len(subject_tokens) >= 2
             and len(early_hits) >= 2
-            and (len(title_hits) >= 1 or direct_fit >= 2)
+            and len(title_hits) >= 1
+            and direct_fit >= 2
+            and phrase_count >= 1
         )
-        or (direct_fit >= 2 and len(body_hits) >= 2)
+        or (
+            direct_fit >= 3
+            and len(body_hits) >= 2
+            and len(early_hits) >= 2
+            and phrase_count >= 1
+        )
     )
+    direct = phrase_in_title or direct_body_fit
     if direct:
         support = sorted(early_hits or body_hits)
         return {"grade": "direct", "score": 100 + direct_fit + len(early_hits) * 4 + len(title_hits) * 3, "support": support}
@@ -4541,7 +4550,15 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     corroborating_context = registered_anchors & body_context
     if body_hits and len(corroborating_context) >= 2:
         support = sorted(body_hits | corroborating_context)
-        score = len(body_hits) * 8 + len(corroborating_context) * 2 + direct_fit
+        metadata_subject_hits = subject_tokens & metadata_tokens
+        # Prefer a registry node whose own approved purpose/hints name the
+        # requested subject, rather than a broad node that merely mentions it.
+        score = (
+            len(body_hits) * 8
+            + len(metadata_subject_hits) * 12
+            + len(corroborating_context) * 2
+            + min(direct_fit, 2)
+        )
         return {"grade": "related", "score": score, "support": support}
     return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
 
@@ -4958,7 +4975,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
                 }
-                for node in _guide_registered_discovery_nodes(discovery_subject, limit=3):
+                for node in _guide_registered_discovery_nodes(discovery_subject, limit=20):
                     node_url = str(node.get("canonical_url") or "").strip()
                     if not node_url or node_url.rstrip("/").casefold() in known_urls:
                         continue
