@@ -77,6 +77,40 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
     ]
 
 
+
+def test_general_guide_tries_second_independent_fallback_after_fast_failures(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        if len(calls) < 3:
+            clock.value += 0.25
+            raise RuntimeError("simulated fast provider failure")
+        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", fast_failures_then_success)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "groq"
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert clock.value == 0.5
+
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
 
