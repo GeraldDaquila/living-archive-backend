@@ -259,6 +259,27 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
+def _is_response_preference_without_subject(query: str, history_text: str = "") -> bool:
+    """Recognize a standalone answer-style preference with no named subject.
+
+    This is intentionally narrow: it must express a preference for explanation
+    over advice, refer only to a generic subject/topic, and have no substantive
+    conversational history from which the missing subject can be recovered.
+    """
+    q = _normalize_space(query).casefold()
+    history = _normalize_space(history_text)
+    if history and len(history.split()) >= 6:
+        return False
+    preference = bool(re.search(
+        r"\b(?:i want|i'd like|i would like) to understand\s+"
+        r"(?:(?:the|this|that)\s+(?:subject|topic|matter)|it|this|that)\b.{0,100}"
+        r"\b(?:not (?:receive|get|be given) advice|rather than advice|instead of advice|"
+        r"not (?:receive|get|be given) recommendations)\b",
+        q,
+    ))
+    return preference
+
+
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
     if _requires_distress_sensitive_pacing(q):
@@ -484,10 +505,26 @@ def compose(
         raise RuntimeError("General Guide composition requires Provider Bank v2.")
 
     question = _normalize_space(query)
-    documents = _documents_from_context(use_core, context_data)
     if not question:
         return None
 
+    # A response-style preference is not itself a subject question. Recover
+    # before retrieval/composition so we do not manufacture a retrieval failure
+    # for input such as "I want to understand the subject, not receive advice."
+    if _is_response_preference_without_subject(question, history_text):
+        return {
+            "response": (
+                "Of course. I’ll focus on explaining the subject itself rather than "
+                "giving advice. What subject would you like to understand?"
+            ),
+            "doorway_title": "",
+            "response_shape": "clarifying",
+            "clarification_reason": "response_preference_subject_missing",
+            "provider": "",
+            "model": "",
+        }
+
+    documents = _documents_from_context(use_core, context_data)
     shape = _question_shape(question)
     user_content = (
         f"Visitor question:\n{question}\n\n"
