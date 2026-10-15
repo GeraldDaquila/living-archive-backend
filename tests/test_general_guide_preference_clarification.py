@@ -17,6 +17,13 @@ def test_exact_source_request_is_recognized():
     assert not is_exact_source_request("Explain institutional responsibility.")
 
 
+def test_source_trace_without_prior_claim_is_clarified_before_retrieval():
+    result = clarification_response("Give me the exact source for that claim.", "")
+    assert result is not None
+    assert result["clarification_reason"] == "source_claim_missing"
+    assert "Please paste the claim" in result["response"]
+
+
 def test_source_trace_without_prior_claim_asks_for_claim_and_suppresses_doorway():
     result = compose(
         use_core=object(),
