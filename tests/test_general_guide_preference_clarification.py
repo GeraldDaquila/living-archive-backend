@@ -5,6 +5,7 @@ from general_guide_composition import (
     _is_response_preference_without_subject,
     clarification_response,
     compose,
+    correction_subject,
 )
 
 
