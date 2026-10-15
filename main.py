@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.261 — Guide related-resource ranking
+# USE PRODUCTION VERSION: v489.262 — registry-grounded Guide directness
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.261"
-DEPLOYMENT_FINGERPRINT = "USE-v489.261-guide-related-resource-ranking"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.261-guide-related-resource-ranking"
+APP_VERSION = "v489.262"
+DEPLOYMENT_FINGERPRINT = "USE-v489.262-guide-registry-directness"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.262-guide-registry-directness"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.261":
+if str(APP_VERSION) != "v489.262":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4500,25 +4500,36 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     except Exception:
         direct_fit = 0
 
-    # A single mention in the opening can be incidental (for example, a
-    # broad leadership page that names institutional responsibility once).
-    # A title-level subject match is strong; body-level directness requires
-    # repeated phrase evidence or multiple subject anchors plus corroboration.
+    # Page text can contain repeated incidental mentions from navigation,
+    # boilerplate, or a broad page's framing. For registered candidates, body
+    # mentions alone cannot establish directness unless the approved node's own
+    # purpose/hints also name every subject anchor. A matching page title is
+    # still strong evidence. Non-registry bodies require unusually strong,
+    # repeated subject evidence and cannot independently authorize a doorway.
+    node_metadata = " ".join([
+        str(node.get("title") or ""),
+        str(node.get("purpose") or ""),
+        " ".join(str(value) for value in (node.get("semantic_hints") or [])),
+    ]).casefold() if node else ""
+    metadata_tokens = set(re.findall(r"[a-z0-9]+", node_metadata))
+    metadata_subject_hits = subject_tokens & metadata_tokens
     phrase_count = len(re.findall(re.escape(normalized_subject), body))
     direct_body_fit = (
-        (phrase_in_early and phrase_count >= 2 and direct_fit >= 2)
-        or (
-            len(subject_tokens) >= 2
+        (
+            node is not None
+            and len(subject_tokens) >= 2
             and len(early_hits) >= 2
-            and len(title_hits) >= 1
-            and direct_fit >= 2
+            and len(metadata_subject_hits) == len(subject_tokens)
             and phrase_count >= 1
+            and direct_fit >= 2
         )
         or (
-            direct_fit >= 3
+            node is None
+            and phrase_in_early
+            and phrase_count >= 3
+            and direct_fit >= 3
             and len(body_hits) >= 2
             and len(early_hits) >= 2
-            and phrase_count >= 1
         )
     )
     direct = phrase_in_title or direct_body_fit
@@ -4533,12 +4544,7 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     # literally; do not invent a semantic relationship.
     if not node:
         return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
-    metadata = " ".join([
-        str(node.get("title") or ""),
-        str(node.get("purpose") or ""),
-        " ".join(str(value) for value in (node.get("semantic_hints") or [])),
-    ]).casefold()
-    metadata_tokens = set(re.findall(r"[a-z0-9]+", metadata))
+    metadata = node_metadata
     registered_anchors = {
         token for token in metadata_tokens
         if len(token) >= 5 and token not in stop and token not in subject_tokens

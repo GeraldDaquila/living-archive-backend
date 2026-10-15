@@ -235,4 +235,30 @@ def test_subject_explicit_registry_purpose_outranks_broad_related_node(monkeypat
     )
     assert doorway is not None
     assert doorway["title"] == "Stewardship Readiness"
-    assert evidence and evidence[0]["_discovery_relevance"] == "related"
+    assert evidence and evidence[0]["_discovery_relevance"] == "direct"
+
+
+def test_repeated_incidental_mentions_do_not_make_registry_misaligned_page_direct(monkeypatch):
+    broad = _doc(
+        "Leadership Challenge Navigator",
+        "https://geralddaquila.com/leadership-challenge-navigator/",
+        "This navigator supports leadership challenges and team decision-making. "
+        "Institutional responsibility appears as one example among several. "
+        "Visitors may encounter institutional responsibility while reviewing "
+        "leadership, accountability, institutional trust, and systems challenges. "
+        "The page primarily helps readers choose leadership cases and learning arcs."
+    )
+    node = {
+        "node_id": "leadership", "status": "active",
+        "title": "Leadership Challenge Navigator",
+        "canonical_url": broad["url"],
+        "purpose": "Recognize the stewardship pattern beneath leadership, governance, institutional, or systems challenges.",
+        "semantic_hints": ["leadership challenge", "governance challenge", "systems challenge"],
+    }
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda *_args, **_kwargs: (4, 0, [], 0),
+    )
+    grade = main._guide_discovery_evidence_grade(SUBJECT, broad, node=node)
+    assert grade["grade"] == "related"
