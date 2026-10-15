@@ -6,7 +6,40 @@ from general_guide_composition import (
     clarification_response,
     compose,
     correction_subject,
+    is_exact_source_request,
+    source_trace_has_prior_claim,
 )
+
+
+def test_exact_source_request_is_recognized():
+    assert is_exact_source_request("Give me the exact source for that claim.")
+    assert is_exact_source_request("Can you provide the original citation?")
+    assert not is_exact_source_request("Explain institutional responsibility.")
+
+
+def test_source_trace_without_prior_claim_is_clarified_before_retrieval():
+    result = clarification_response("Give me the exact source for that claim.", "")
+    assert result is not None
+    assert result["clarification_reason"] == "source_claim_missing"
+    assert "Please paste the claim" in result["response"]
+
+
+def test_source_trace_without_prior_claim_asks_for_claim_and_suppresses_doorway():
+    result = compose(
+        use_core=object(),
+        query="Give me the exact source for that claim.",
+        context_data={},
+        history_text="",
+    )
+    assert result is not None
+    assert result["clarification_reason"] == "source_claim_missing"
+    assert "Please paste the claim" in result["response"]
+    assert result["doorway_title"] == ""
+
+
+def test_source_trace_requires_prior_assistant_claim_not_user_only_history():
+    assert not source_trace_has_prior_claim("user: What is institutional responsibility?")
+    assert source_trace_has_prior_claim("assistant: Institutional responsibility means an organization answers for its decisions.")
 
 
 def test_correction_request_recovers_the_subject_the_visitor_says_was_missed():

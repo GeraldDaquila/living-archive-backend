@@ -4747,8 +4747,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Retrieve and select any doorway for that subject, not the mistaken subject
     # or the full complaint wrapper.
     correction_subject = general_guide_composition.correction_subject(query)
-    discovery_subject = _guide_subject_discovery_query(query) if not correction_subject else ""
-    resource_query = correction_subject or discovery_subject or query
+    source_trace_request = general_guide_composition.is_exact_source_request(query)
+    source_trace_claim = _history_text(history) if source_trace_request else ""
+    discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
+    resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")

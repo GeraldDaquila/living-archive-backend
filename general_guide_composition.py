@@ -259,6 +259,27 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
+def is_exact_source_request(query: str) -> bool:
+    """Recognize requests to trace a claim to its source."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(r"\b(?:exact|original|actual|specific)\s+(?:source|citation|reference)\b", q)
+        or re.search(r"\bsource\s+for\s+(?:that|this|the)\s+claim\b", q)
+        or re.search(r"\bcite\s+(?:the|your|that)\s+claim\b", q)
+        or re.search(r"\bwhere\s+did\s+you\s+(?:get|find|source)\s+(?:that|this)\b", q)
+    )
+
+
+def source_trace_has_prior_claim(history_text: str) -> bool:
+    """Whether prior turns contain an assistant answer that can be traced."""
+    history = str(history_text or "").strip()
+    if not history:
+        return False
+    # Require a role-labelled assistant/Guide answer; user-only history is not provenance.
+    return bool(re.search(r"(?i)\b(?:assistant|guide)\s*:\s*\S", history))
+
+
+
 def correction_subject(query: str) -> str:
     """Recover the subject a visitor explicitly says the previous answer missed."""
     q = _normalize_space(query)
@@ -355,6 +376,15 @@ def _clarification_reason(query: str, history_text: str = "") -> str:
 
 def clarification_response(query: str, history_text: str = "") -> Optional[Dict[str, str]]:
     """Resolve missing subjects and standalone response preferences before retrieval."""
+    if is_exact_source_request(query) and not source_trace_has_prior_claim(history_text):
+        return {
+            "response": (
+                "I can help trace it, but I can’t tell which claim you mean from this message alone. "
+                "Please paste the claim or the answer it came from, and I’ll identify the exact source if I can verify it."
+            ),
+            "response_shape": "clarifying",
+            "clarification_reason": "source_claim_missing",
+        }
     # A request about answer style is a conversation preference, not a subject
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
@@ -555,6 +585,19 @@ def compose(
     if not question:
         return None
 
+    if is_exact_source_request(question) and not source_trace_has_prior_claim(history_text):
+        return {
+            "response": (
+                "I can help trace it, but I can’t tell which claim you mean from this message alone. "
+                "Please paste the claim or the answer it came from, and I’ll identify the exact source if I can verify it."
+            ),
+            "doorway_title": "",
+            "response_shape": "clarifying",
+            "clarification_reason": "source_claim_missing",
+            "provider": "",
+            "model": "",
+        }
+
     # A standalone style preference is not a subject question. Acknowledge it
     # before retrieval so it cannot trigger a false evidence failure or doorway.
     if _is_response_preference_without_subject(question, history_text):
@@ -581,6 +624,17 @@ def compose(
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
+    source_trace_instruction = (
+        "The visitor asks for the exact source of a prior claim. Treat this as a provenance task, not a general topic question. "
+        "Use the recent conversation to identify the specific claim, then inspect the supplied Archive material for direct support. "
+        "Name the exact source title and give a page, section, passage, or URL only when that detail is present and verified. "
+        "Explain briefly what the source supports and whether it supports the full claim or only part of it. "
+        "Never substitute a generally related methodology page for the source of the claim. Never invent citations or source details. "
+        "If the supplied material does not establish the source, say exactly what remains unverified.\n\n"
+        if is_exact_source_request(question)
+        else ""
+    )
+
     correction_instruction = (
         "The visitor is correcting a previous off-topic answer. They explicitly say the subject they asked about was "
         + repr(corrected_subject)
