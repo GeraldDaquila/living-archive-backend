@@ -3983,6 +3983,17 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             closing = "That gives you a starting point; the separately selected Archive resource offers a place to explore further."
         else:
             closing = "That gives you a starting point; I did not identify a directly relevant Archive resource to recommend for this question."
+    elif re.search(r"\\b(?:meaning|means|mean|what is)\\b.{0,60}\\bemptiness\\b|\\bemptiness\\b.{0,60}\\b(?:meaning|means|mean)\\b", question, re.I):
+        opening = "Emptiness can mean different things depending on the context."
+        explanation = (
+            "In everyday life, it can describe a felt absence of meaning, connection, or purpose. "
+            "In philosophy, it can refer to the absence of an independent, permanent essence. "
+            "In Buddhist thought, emptiness does not mean that nothing exists; it points to the way things arise through causes, conditions, and relationships."
+        )
+        closing = (
+            "These are related but distinct uses of the word. The useful next step is to identify whether you mean "
+            "the feeling of inner emptiness, the philosophical idea, or the Buddhist understanding."
+        )
     else:
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
