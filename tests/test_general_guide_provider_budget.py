@@ -22,6 +22,7 @@ def _isolate(monkeypatch):
         _item("gemini", "gemini-3.8-flash"),
         _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
         _item("groq", "openai/gpt-oss-20b"),
+        _item("mistral", "mistral-small-latest"),
     ]
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
@@ -108,7 +109,7 @@ def test_general_guide_tries_second_independent_fallback_after_fast_failures(mon
     assert result["provider"] == "groq"
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
     assert clock.value == 0.5
 
 
@@ -128,6 +129,39 @@ def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch
     assert selected
     assert selected[0]["provider"] == "nvidia"
     assert selected[0]["health_state"] == "healthy"
+
+
+def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def three_fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        if len(calls) < 4:
+            clock.value += 0.2
+            raise RuntimeError("simulated fast provider failure")
+        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", three_fast_failures_then_success)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "mistral"
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
+    assert all(timeout == 1.2 for _, timeout in calls)
+    assert clock.value == 0.6
 
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
@@ -155,5 +189,5 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
 
     assert result is None
     assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS)]
-    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 2.0
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 1.2
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 5.0
