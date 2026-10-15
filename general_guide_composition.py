@@ -263,17 +263,17 @@ def correction_subject(query: str) -> str:
     """Recover the subject a visitor explicitly says the previous answer missed."""
     q = _normalize_space(query)
     patterns = (
-        r"\\bi\\s+asked\\s+about\\s+(.+?),\\s*but\\s+you\\s+answered\\s+about\\s+(.+?)(?:[.!?]|$)",
-        r"\\byou\\s+answered\\s+about\\s+(.+?),\\s*but\\s+i\\s+asked\\s+about\\s+(.+?)(?:[.!?]|$)",
-        r"\\bi\\s+asked\\s+for\\s+(.+?),\\s*but\\s+you\\s+gave\\s+me\\s+(.+?)(?:[.!?]|$)",
+        r"\bi\s+asked\s+about\s+(.+?),\s*but\s+you\s+answered\s+about\s+(.+?)(?:[.!?]|$)",
+        r"\byou\s+answered\s+about\s+(.+?),\s*but\s+i\s+asked\s+about\s+(.+?)(?:[.!?]|$)",
+        r"\bi\s+asked\s+for\s+(.+?),\s*but\s+you\s+gave\s+me\s+(.+?)(?:[.!?]|$)",
     )
     for index, pattern in enumerate(patterns):
         match = re.search(pattern, q, re.I)
         if not match:
             continue
         subject = match.group(1 if index != 1 else 2).strip(" \\t\\r\\n'\\"")
-        subject = re.sub(r"^(?:an?\\s+|the\\s+)", "", subject, flags=re.I).strip()
-        subject = re.sub(r"^(?:please\\s+)?(?:explain|describe|define)\\s+", "", subject, flags=re.I)
+        subject = re.sub(r"^(?:an?\s+|the\s+)", "", subject, flags=re.I).strip()
+        subject = re.sub(r"^(?:please\s+)?(?:explain|describe|define)\s+", "", subject, flags=re.I)
         if 2 <= len(subject.split()) <= 12 and len(subject) <= 120:
             return subject.rstrip(" .?!")
     return ""
@@ -586,17 +586,17 @@ def compose(
         + repr(corrected_subject)
         + ". Briefly acknowledge the mismatch without repeating the whole complaint, then answer that subject directly. "
         "Do not answer about the mistaken subject. Use the supplied Archive material when relevant, and use reliable general knowledge if no suitable Archive material was retrieved. "
-        "Do not turn this recoverable correction into a refusal or ask the visitor to restate the subject.\\n\\n"
+        "Do not turn this recoverable correction into a refusal or ask the visitor to restate the subject.\n\n"
         if corrected_subject
         else ""
     )
     style_instruction = (
-        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\\n\\n"
+        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\n\n"
         if _has_response_style_preference(question) or _has_response_style_preference(history_text)
         else ""
     )
     user_content = (
-        f"Visitor question:\\n{question}\\n\\n"
+        f"Visitor question:\n{question}\n\n"
         + correction_instruction
         + style_instruction
         + f"Suggested response shape (use your judgment; do not mention it): {shape}\\n\\n"
