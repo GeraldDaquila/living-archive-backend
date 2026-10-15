@@ -384,10 +384,37 @@ final class LAN_Engine {
     }
 
     private function subject_fit_threshold(): float {
-        // Short conceptual queries need multiple surface signals. Longer lived
-        // questions need at least one direct title/surface signal because their
-        // meaning may be expressed through ordinary-language variants.
-        return count($this->current_subject_focus_tokens) >= 3 ? 3.0 : 4.5;
+        // A minimum score is necessary but not sufficient: for queries with
+        // multiple subject terms, the separate qualification rule also requires
+        // evidence for at least two distinct terms.
+        return 3.0;
+    }
+
+    private function subject_fit_qualifies(array $resource, array $focus_tokens): bool {
+        if (!$focus_tokens) return true;
+        $score = $this->subject_fit_score($resource, $focus_tokens);
+        if ($score < $this->subject_fit_threshold()) return false;
+
+        $title_tokens = array_fill_keys($this->tokens(strtolower((string)($resource['title'] ?? ''))), true);
+        $surface_tokens = array_fill_keys($this->tokens(strtolower(
+            (string)($resource['excerpt'] ?? '') . ' ' .
+            implode(' ', is_array($resource['source_categories'] ?? null) ? $resource['source_categories'] : [])
+        )), true);
+        $body_tokens = array_fill_keys($this->tokens(strtolower((string)($resource['content'] ?? ''))), true);
+        $matched = 0;
+        foreach ($focus_tokens as $token) {
+            if ($this->subject_token_present($token, $title_tokens)
+                || $this->subject_token_present($token, $surface_tokens)
+                || $this->subject_token_present($token, $body_tokens)) {
+                $matched++;
+            }
+        }
+
+        // A multi-term subject cannot pass on one shared word alone. Fail
+        // closed when the candidate does not address at least two distinct
+        // terms from the visitor's own stated subject.
+        $minimum_terms = count($focus_tokens) >= 2 ? 2 : 1;
+        return $matched >= $minimum_terms;
     }
 
     /**
@@ -400,7 +427,7 @@ final class LAN_Engine {
         foreach ($candidates as $candidate) {
             $resource = is_array($candidate['resource'] ?? null) ? $candidate['resource'] : [];
             $fit = $this->subject_fit_score($resource, $this->current_subject_focus_tokens);
-            if ($fit < $this->subject_fit_threshold()) continue;
+            if (!$this->subject_fit_qualifies($resource, $this->current_subject_focus_tokens)) continue;
             $candidate['subject_fit_score'] = $fit;
             $filtered[] = $candidate;
         }
@@ -520,7 +547,7 @@ final class LAN_Engine {
             if($id!=='')$ids[$id]=true;if(in_array($role,['experience','pattern','structure'],true))$roles[$role]=true;else $issues[]='invalid internal path role';
             if(isset($candidate_map[$id])){
                 if((float)($candidate_map[$id]['anchor_score']??0)<1.5)$issues[]='destination has insufficient visitor-word grounding';
-                if($this->current_subject_focus_tokens && $this->subject_fit_score(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens)<$this->subject_fit_threshold())$issues[]='destination does not fit the visitor\'s stated subject';
+                if($this->current_subject_focus_tokens && !$this->subject_fit_qualifies(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens))$issues[]='destination does not fit the visitor\'s stated subject';
                 $title_key=$this->display_title_key($candidate_map[$id]['resource']??[]);
                 if($title_key!==''){
                     if(isset($titles[$title_key]))$issues[]='displayed destination titles are not distinct';
