@@ -235,7 +235,7 @@ def test_subject_explicit_registry_purpose_outranks_broad_related_node(monkeypat
     )
     assert doorway is not None
     assert doorway["title"] == "Stewardship Readiness"
-    assert evidence and evidence[0]["_discovery_relevance"] == "related"
+    assert evidence and evidence[0]["_discovery_relevance"] == "direct"
 
 
 def test_repeated_incidental_mentions_do_not_make_registry_misaligned_page_direct(monkeypatch):
