@@ -1221,6 +1221,18 @@ def select(use_core, operation="generic", schema=None):
                 int(item.get("transport_failures", 0) or 0),
                 -float(item.get("last_success", 0) or 0),
             ))
+        elif operation == "general_guide_composition":
+            # The general Guide may only have a five-second generation window.
+            # Do not let a half-open probe outrank a healthy model simply because
+            # its provider appears earlier in the rotating lane order.
+            models.sort(key=lambda item: (
+                0 if item.get("health_state") == "healthy" else 1,
+                int(item.get("quality_failures", 0) or 0),
+                0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                int(item.get("consecutive_failures", 0) or 0),
+                int(item.get("transport_failures", 0) or 0),
+                -float(item.get("last_success", 0) or 0),
+            ))
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
@@ -1280,6 +1292,28 @@ def select(use_core, operation="generic", schema=None):
                 last_success,
             )
         lanes.sort(key=_hrn_lane_priority)
+
+    if operation == "general_guide_composition":
+        # Within the Guide's fixed five-second composition window, current
+        # transport health must outrank rotating provider order. Keep operator
+        # order as a tie-breaker between equally healthy lanes.
+        configured_priority = {name: index for index, name in enumerate(providers)}
+
+        def _guide_lane_priority(lane):
+            best = lane[0] if lane else {}
+            health_state = str(best.get("health_state") or "unknown")
+            health_rank = 0 if health_state == "healthy" else 1
+            return (
+                health_rank,
+                int(best.get("quality_failures", 0) or 0),
+                int(best.get("consecutive_failures", 0) or 0),
+                int(best.get("transport_failures", 0) or 0),
+                0 if "low_latency" in (best.get("capabilities") or []) else 1,
+                configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
+                -float(best.get("last_success", 0) or 0),
+            )
+
+        lanes.sort(key=_guide_lane_priority)
 
     # A bounded HRN stage must have a genuinely independent fallback. Flattening
     # provider lanes lets two models from one provider consume both attempts,

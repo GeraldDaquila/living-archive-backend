@@ -111,6 +111,24 @@ def test_general_guide_tries_second_independent_fallback_after_fast_failures(mon
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert clock.value == 0.5
 
+
+def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
+    candidates = [
+        {**_item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"), "health_state": "half_open", "last_success": 90.0},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "healthy", "last_success": 80.0},
+        {**_item("groq", "openai/gpt-oss-20b"), "health_state": "half_open", "last_success": 70.0},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: [])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+
+    assert selected
+    assert selected[0]["provider"] == "nvidia"
+    assert selected[0]["health_state"] == "healthy"
+
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
 
