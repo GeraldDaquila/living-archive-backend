@@ -97,6 +97,7 @@ def test_unregistered_canonical_page_cannot_authorize_discovery():
         "they make decisions, and how they account for effects on the public. "
         "Institutional accountability includes transparent decisions and oversight."
     )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [])
     doorway, evidence = main._guide_align_registered_discovery_doorway(SUBJECT, [direct])
     assert doorway is None
     assert evidence == []
