@@ -87,7 +87,7 @@ def test_relationship_domain_payload_survives_adapter_pipe_and_hub():
     assert result.payload["perspectives"] == [
         {"view": "colleague_a"}, {"view": "colleague_b"}
     ]
-    assert result.canonical_candidates[0]["title"] == "Relationship Door"
+    assert result.canonical_candidates[0]["title"] == "Stewardship Framework"
 
 
 def test_formation_three_doors_survive_adapter_pipe_and_hub():
