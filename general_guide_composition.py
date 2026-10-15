@@ -599,7 +599,7 @@ def compose(
         f"Visitor question:\n{question}\n\n"
         + correction_instruction
         + style_instruction
-        + f"Suggested response shape (use your judgment; do not mention it): {shape}\\n\\n"
+        + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
         + (
             "Response pacing for this visitor: slow down. First recognize the specific difficulty they named in natural, non-formulaic language; do not open with generic sympathy or presume what their loss means. Then ask exactly one gentle, open question about what feels hardest or what they would like to say more about. Do not turn the disclosure into a task-management exercise, list examples of basic tasks, offer advice before understanding their need, or infer suicidality from grief alone. End with the question so the conversation has a clear, humane next step.\n\n"
