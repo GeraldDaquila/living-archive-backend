@@ -53,6 +53,16 @@ def test_registered_direct_resource_wins_over_adjacent_stewardship_resource(monk
     assert doorway is not None
     assert doorway["title"] == "Institutional Responsibility and Accountability"
     assert evidence and evidence[0]["url"] == direct["url"]
+    assert evidence[0]["_discovery_relevance"] == "direct"
+
+    # When the direct page is absent, the same registry may supply a related
+    # destination, but it must never outrank a direct body match.
+    related_only, related_evidence = main._guide_align_registered_discovery_doorway(
+        SUBJECT, [adjacent]
+    )
+    assert related_only is not None
+    assert related_only["title"] == "Stewardship Readiness"
+    assert related_evidence[0]["_discovery_relevance"] == "related"
 
 
 
