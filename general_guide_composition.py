@@ -376,6 +376,15 @@ def _clarification_reason(query: str, history_text: str = "") -> str:
 
 def clarification_response(query: str, history_text: str = "") -> Optional[Dict[str, str]]:
     """Resolve missing subjects and standalone response preferences before retrieval."""
+    if is_exact_source_request(query) and not source_trace_has_prior_claim(history_text):
+        return {
+            "response": (
+                "I can help trace it, but I can’t tell which claim you mean from this message alone. "
+                "Please paste the claim or the answer it came from, and I’ll identify the exact source if I can verify it."
+            ),
+            "response_shape": "clarifying",
+            "clarification_reason": "source_claim_missing",
+        }
     # A request about answer style is a conversation preference, not a subject
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
