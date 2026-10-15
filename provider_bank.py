@@ -43,27 +43,24 @@ class ProviderOutput(str):
 
 
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
-# Allow up to five fallback candidates within a nine-second fast-failure window.
-# This keeps the full provider-capability call inside its transport budget while
-# allowing recovery to reach additional reviewed models after clustered 429s/timeouts.
-HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0
-HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 5
-# Perception is the first inference stage. Permit up to four independent
-# fallbacks after fast failures within the same three-second admission window.
-# This lets the bank reach additional eligible free lanes when quotas and
-# transient transport failures cluster; strict schema validation and per-call
-# timeouts remain unchanged, and slow failures still stop fallback.
-HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 7.0
+# Bound relational provider selection to 4.5 seconds and two fallback candidates.
+# Live production logs showed quota exhaustion and provider timeouts consuming the
+# entire visitor turn; a shorter budget preserves time for the single mirror replay.
+HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 4.5
+HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES = 2
+# Perception is the first inference stage. Keep it to a three-second window and
+# one fallback. Exhausted free-provider quotas must not consume the entire visitor
+# turn before relational composition and bounded WordPress recovery can run.
+HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS = 3.0
 HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS = 4.5
-HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 4
-# HRN uses free provider lanes whose structured-output latency can exceed 1.5s.
-# Keep each call bounded, but do not quarantine a viable lane before its normal
-# response latency has elapsed.
-HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
-# Workers AI Gemma 4 26B has proven useful but can finish just beyond the generic
-# 2.5s HRN cutoff. Give only this previously successful lane a bounded 4.5s window;
-# the 7s fast-failure budget still bounds aggregate fallback time.
-HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5
+HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES = 1
+# HRN provider calls are tightly bounded because the turn also includes perception,
+# relational composition, and one possible mirror replay. A slow lane must not consume
+# the budget needed to return a complete, visitor-facing response.
+HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5
+# Workers AI Gemma 4 26B receives a narrow 2.5s exception based on prior success;
+# the overall HRN stage windows remain the hard ceiling.
+HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # HRN's final structured composition must contain the complete visitor-facing response
 # AND its distinct follow-up question. 250 tokens starved the question field and
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
