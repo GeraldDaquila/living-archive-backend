@@ -4686,7 +4686,7 @@ def _guide_registered_discovery_documents(subject, documents):
 
 
 def _guide_align_registered_discovery_doorway(subject, documents):
-    """Resolve discovery only through registered nodes with matching page evidence."""
+    """Resolve the highest-ranked direct or explicitly related registered resource."""
     registered_documents = _guide_registered_discovery_documents(subject, documents)
     if not registered_documents:
         return None, []
