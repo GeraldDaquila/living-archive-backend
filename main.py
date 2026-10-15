@@ -4726,9 +4726,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Separate the visitor's intent from the resource-search terms. Search
     # wrapper language such as "Where can I find material about..." is useful
     # to the composer but can obscure the actual subject during retrieval.
-    discovery_subject = _guide_subject_discovery_query(query)
-    resource_query = discovery_subject or query
-    context_data = use_core.fetch_canonical_context(query)
+    # A correction explicitly names the subject the prior answer missed.
+    # Retrieve and select any doorway for that subject, not the mistaken subject
+    # or the full complaint wrapper.
+    correction_subject = general_guide_composition.correction_subject(query)
+    discovery_subject = _guide_subject_discovery_query(query) if not correction_subject else ""
+    resource_query = correction_subject or discovery_subject or query
+    context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
 
@@ -4988,7 +4992,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
         else:
             print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
-            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
+            llm_output = _basic_inquiry_round1_deterministic_response(correction_subject or query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
     except Exception as exc:
         print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
         try:
@@ -5027,7 +5031,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if not llm_output:
             try:
                 deterministic_recovery = _basic_inquiry_round1_deterministic_response(
-                    query, {}, {"context_blocks": ""}, recommendation_available=bool(authoritative_doorway)
+                    correction_subject or query, {}, {"context_blocks": ""}, recommendation_available=bool(authoritative_doorway)
                 )
                 llm_output = str(deterministic_recovery.get("response") or "").strip()
             except Exception as exc:
