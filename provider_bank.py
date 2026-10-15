@@ -1321,7 +1321,11 @@ def select(use_core, operation="generic", schema=None):
     # first choice from each eligible provider, then second choices, preserving
     # stable provider priority and existing health/capability/quality filters.
     selected = []
-    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:
+        # The bounded Guide window must reach independent providers before
+        # spending fallback slots on sibling models from the same provider.
+        # A provider-wide quota or outage can invalidate every sibling at once;
+        # lane interleaving preserves the value of independent failover.
         for depth in range(max((len(lane) for lane in lanes), default=0)):
             for lane in lanes:
                 if depth < len(lane):
