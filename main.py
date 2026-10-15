@@ -3983,7 +3983,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             closing = "That gives you a starting point; the separately selected Archive resource offers a place to explore further."
         else:
             closing = "That gives you a starting point; I did not identify a directly relevant Archive resource to recommend for this question."
-    elif re.search(r"\\b(?:meaning|means|mean|what is)\\b.{0,60}\\bemptiness\\b|\\bemptiness\\b.{0,60}\\b(?:meaning|means|mean)\\b", question, re.I):
+    elif re.search(r"\b(?:meaning|means|mean|what is)\b.{0,60}\bemptiness\b|\bemptiness\b.{0,60}\b(?:meaning|means|mean)\b", question, re.I):
         opening = "Emptiness can mean different things depending on the context."
         explanation = (
             "In everyday life, it can describe a felt absence of meaning, connection, or purpose. "
