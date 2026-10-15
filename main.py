@@ -4650,7 +4650,7 @@ def _guide_registered_discovery_nodes(subject, limit=3):
 
 
 def _guide_registered_discovery_documents(subject, documents):
-    """Rank approved discovery candidates by page-level relevance, direct first."""
+    """Rank canonical documents against approved Guide Nodes and page-level evidence."""
     nodes = _guide_registered_discovery_nodes(subject, limit=20)
     if not nodes:
         return []
