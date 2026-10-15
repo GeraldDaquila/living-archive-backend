@@ -259,26 +259,33 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
-def _is_response_preference_without_subject(query: str, history_text: str = "") -> bool:
-    """Recognize a standalone answer-style preference with no named subject.
+def _has_response_style_preference(query: str) -> bool:
+    """Recognize explicit requests about the language or manner of an answer."""
+    q = _normalize_space(query).casefold()
+    patterns = (
+        r"\b(?:without|avoid|don't use|do not use|please don't use|please do not use)\s+(?:using\s+)?(?:technical|academic|jargon|specialist|complicated|complex)\s+(?:or\s+)?(?:technical|academic|jargon|specialist)?\s*(?:language|terms|words|jargon)?\b",
+        r"\b(?:plain|simple|everyday|ordinary|clear)\s+(?:language|words|terms)\b",
+        r"\b(?:explain|say|put|write)\s+(?:it|this|that|the answer)\s+(?:in|using)\s+(?:plain|simple|everyday|ordinary|clear)\s+(?:language|words|terms)\b",
+        r"\b(?:not|rather than|instead of)\s+(?:receive|get|be given)\s+(?:advice|recommendations)\b",
+        r"\b(?:i want|i'd like|i would like)\s+to understand\s+(?:(?:the|this|that)\s+(?:subject|topic|matter)|it|this|that)\b.{0,100}\b(?:not receive advice|rather than advice|instead of advice)\b",
+    )
+    return any(re.search(pattern, q) for pattern in patterns)
 
-    This is intentionally narrow: it must express a preference for explanation
-    over advice, refer only to a generic subject/topic, and have no substantive
-    conversational history from which the missing subject can be recovered.
-    """
+
+def _is_response_preference_without_subject(query: str, history_text: str = "") -> bool:
+    """Recognize a standalone response-style preference with no subject to answer."""
     q = _normalize_space(query).casefold()
     history = _normalize_space(history_text)
+    if not _has_response_style_preference(q):
+        return False
     if history and len(history.split()) >= 6:
         return False
-    preference = bool(re.search(
-        r"\b(?:i want|i'd like|i would like) to understand\s+"
-        r"(?:(?:the|this|that)\s+(?:subject|topic|matter)|it|this|that)\b.{0,100}"
-        r"\b(?:not (?:receive|get|be given) advice|rather than advice|instead of advice|"
-        r"not (?:receive|get|be given) recommendations)\b",
-        q,
-    ))
-    return preference
-
+    named_subject = bool(
+        re.search(r"\b(?:about|regarding|concerning|on)\s+[a-z][a-z -]{2,}", q)
+        or re.search(r"^(?:what is|what's|define|explain|describe|why|how does|how can)\s+(?!this\b|that\b|it\b|the subject\b|the topic\b)[a-z][a-z -]{2,}", q)
+        or re.search(r"\b(?:institutional responsibility|stewardship|governance|grief|loneliness|meaning|coercion)\b", q)
+    )
+    return not named_subject
 
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
@@ -508,15 +515,21 @@ def compose(
     if not question:
         return None
 
-    # A response-style preference is not itself a subject question. Recover
-    # before retrieval/composition so we do not manufacture a retrieval failure
-    # for input such as "I want to understand the subject, not receive advice."
+    # A standalone style preference is not a subject question. Acknowledge it
+    # before retrieval so it cannot trigger a false evidence failure or doorway.
     if _is_response_preference_without_subject(question, history_text):
-        return {
-            "response": (
+        if re.search(r"\b(?:advice|recommendations)\b", question, re.I):
+            response = (
                 "Of course. I’ll focus on explaining the subject itself rather than "
                 "giving advice. What subject would you like to understand?"
-            ),
+            )
+        else:
+            response = (
+                "Of course. I’ll use clear, everyday language and avoid technical "
+                "or academic terms. What would you like to understand?"
+            )
+        return {
+            "response": response,
             "doorway_title": "",
             "response_shape": "clarifying",
             "clarification_reason": "response_preference_subject_missing",
@@ -526,9 +539,15 @@ def compose(
 
     documents = _documents_from_context(use_core, context_data)
     shape = _question_shape(question)
+    style_instruction = (
+        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\n\n"
+        if _has_response_style_preference(question)
+        else ""
+    )
     user_content = (
         f"Visitor question:\n{question}\n\n"
-        f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
+        + style_instruction
+        + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
         + (
             "Response pacing for this visitor: slow down. First recognize the specific difficulty they named in natural, non-formulaic language; do not open with generic sympathy or presume what their loss means. Then ask exactly one gentle, open question about what feels hardest or what they would like to say more about. Do not turn the disclosure into a task-management exercise, list examples of basic tasks, offer advice before understanding their need, or infer suicidality from grief alone. End with the question so the conversation has a clear, humane next step.\n\n"

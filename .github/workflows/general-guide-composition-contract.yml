@@ -16,6 +16,7 @@ on:
       - "main.py"
       - "general_guide_composition.py"
       - "tests/test_general_guide_perception_contract.py"
+      - "tests/test_general_guide_preference_clarification.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-composition-contract.yml"
 
