@@ -263,23 +263,21 @@ def is_exact_source_request(query: str) -> bool:
     """Recognize requests to trace a claim to its source."""
     q = _normalize_space(query).casefold()
     return bool(
-        re.search(r"\\b(?:exact|original|actual|specific)\\s+(?:source|citation|reference)\\b", q)
-        or re.search(r"\\bsource\\s+for\\s+(?:that|this|the)\\s+claim\\b", q)
-        or re.search(r"\\bcite\\s+(?:the|your|that)\\s+claim\\b", q)
-        or re.search(r"\\bwhere\\s+did\\s+you\\s+(?:get|find|source)\\s+(?:that|this)\\b", q)
+        re.search(r"\b(?:exact|original|actual|specific)\s+(?:source|citation|reference)\b", q)
+        or re.search(r"\bsource\s+for\s+(?:that|this|the)\s+claim\b", q)
+        or re.search(r"\bcite\s+(?:the|your|that)\s+claim\b", q)
+        or re.search(r"\bwhere\s+did\s+you\s+(?:get|find|source)\s+(?:that|this)\b", q)
     )
 
 
 def source_trace_has_prior_claim(history_text: str) -> bool:
     """Whether prior turns contain an assistant answer that can be traced."""
-    history = _normalize_space(history_text)
+    history = str(history_text or "").strip()
     if not history:
         return False
-    # The frontend may provide role-labelled turns or a serialized string.
-    # Require a prior assistant message; user-only context is not provenance.
-    if re.search(r"(?i)(?:^|\\n)\\s*(?:assistant|guide)\\s*:", history):
-        return bool(re.search(r"(?i)(?:^|\\n)\\s*(?:assistant|guide)\\s*:\\s*\\S", history))
-    return bool(re.search(r"(?i)\\b(?:assistant|guide)\\b.{0,30}\\b(?:said|answered|claimed|explained)\\b", history))
+    # Require a role-labelled assistant/Guide answer; user-only history is not provenance.
+    return bool(re.search(r"(?i)\b(?:assistant|guide)\s*:\s*\S", history))
+
 
 
 def correction_subject(query: str) -> str:
