@@ -354,6 +354,12 @@ final class LAN_Engine {
         return $score;
     }
 
+    private function subject_fit_threshold(): float {
+        // Multi-term subjects require at least two independent surface signals:
+        // one term in the title and another in the title/excerpt/categories.
+        return count($this->current_subject_focus_tokens) >= 2 ? 4.5 : 3.0;
+    }
+
     /**
      * Apply one subject-fit rule to every retrieval route, including expanded
      * relationship candidates. Never pad a path with unrelated resources.
@@ -364,7 +370,7 @@ final class LAN_Engine {
         foreach ($candidates as $candidate) {
             $resource = is_array($candidate['resource'] ?? null) ? $candidate['resource'] : [];
             $fit = $this->subject_fit_score($resource, $this->current_subject_focus_tokens);
-            if ($fit < 3.0) continue;
+            if ($fit < $this->subject_fit_threshold()) continue;
             $candidate['subject_fit_score'] = $fit;
             $filtered[] = $candidate;
         }
@@ -457,7 +463,7 @@ final class LAN_Engine {
         foreach($roles as $role){
             $best=null;$bestv=-INF;
             foreach($ids as $id){if(isset($used[$id]))continue;$r=$pool[$id]['resource'];$title_key=$this->display_title_key($r);if($title_key!==''&&isset($used_titles[$title_key]))continue;$text=strtolower(implode(' ',[(string)$r['title'],(string)$r['excerpt'],implode(' ',(array)($r['source_categories']??[]))]));
-                $v=(float)($pool[$id]['anchor_score']??$pool[$id]['score']??0);
+                $v=(float)($pool[$id]['anchor_score']??$pool[$id]['score']??0); if($this->current_subject_focus_tokens)$v += 10.0 * $this->subject_fit_score($r, $this->current_subject_focus_tokens);
                 if($role==='experience' && preg_match('/relationship|belong|life|work|change|decision|leav|identity|authentic/i',$text))$v+=1.5;
                 if($role==='pattern' && preg_match('/pattern|behavior|psycholog|assumption|identity|belong|group|relationship/i',$text))$v+=1.5;
                 if($role==='structure' && preg_match('/system|society|community|institution|culture|group|structure/i',$text))$v+=1.5;
@@ -484,7 +490,7 @@ final class LAN_Engine {
             if($id!=='')$ids[$id]=true;if(in_array($role,['experience','pattern','structure'],true))$roles[$role]=true;else $issues[]='invalid internal path role';
             if(isset($candidate_map[$id])){
                 if((float)($candidate_map[$id]['anchor_score']??0)<1.5)$issues[]='destination has insufficient visitor-word grounding';
-                if($this->current_subject_focus_tokens && $this->subject_fit_score(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens)<3.0)$issues[]='destination does not fit the visitor\'s stated subject';
+                if($this->current_subject_focus_tokens && $this->subject_fit_score(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens)<$this->subject_fit_threshold())$issues[]='destination does not fit the visitor\'s stated subject';
                 $title_key=$this->display_title_key($candidate_map[$id]['resource']??[]);
                 if($title_key!==''){
                     if(isset($titles[$title_key]))$issues[]='displayed destination titles are not distinct';
