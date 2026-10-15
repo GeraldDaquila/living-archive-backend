@@ -259,6 +259,26 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
+def correction_subject(query: str) -> str:
+    """Recover the subject a visitor explicitly says the previous answer missed."""
+    q = _normalize_space(query)
+    patterns = (
+        r"\\bi\\s+asked\\s+about\\s+(.+?),\\s*but\\s+you\\s+answered\\s+about\\s+(.+?)(?:[.!?]|$)",
+        r"\\byou\\s+answered\\s+about\\s+(.+?),\\s*but\\s+i\\s+asked\\s+about\\s+(.+?)(?:[.!?]|$)",
+        r"\\bi\\s+asked\\s+for\\s+(.+?),\\s*but\\s+you\\s+gave\\s+me\\s+(.+?)(?:[.!?]|$)",
+    )
+    for index, pattern in enumerate(patterns):
+        match = re.search(pattern, q, re.I)
+        if not match:
+            continue
+        subject = match.group(1 if index != 1 else 2).strip(" \\t\\r\\n'\\"")
+        subject = re.sub(r"^(?:an?\\s+|the\\s+)", "", subject, flags=re.I).strip()
+        subject = re.sub(r"^(?:please\\s+)?(?:explain|describe|define)\\s+", "", subject, flags=re.I)
+        if 2 <= len(subject.split()) <= 12 and len(subject) <= 120:
+            return subject.rstrip(" .?!")
+    return ""
+
+
 def _has_response_style_preference(query: str) -> bool:
     """Recognize explicit requests about the language or manner of an answer."""
     q = _normalize_space(query).casefold()
@@ -558,16 +578,28 @@ def compose(
         }
 
     documents = _documents_from_context(use_core, context_data)
-    shape = _question_shape(question)
+    corrected_subject = correction_subject(question)
+    effective_question = corrected_subject or question
+    shape = _question_shape(effective_question)
+    correction_instruction = (
+        "The visitor is correcting a previous off-topic answer. They explicitly say the subject they asked about was "
+        + repr(corrected_subject)
+        + ". Briefly acknowledge the mismatch without repeating the whole complaint, then answer that subject directly. "
+        "Do not answer about the mistaken subject. Use the supplied Archive material when relevant, and use reliable general knowledge if no suitable Archive material was retrieved. "
+        "Do not turn this recoverable correction into a refusal or ask the visitor to restate the subject.\\n\\n"
+        if corrected_subject
+        else ""
+    )
     style_instruction = (
-        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\n\n"
-        if _has_response_style_preference(question)
+        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\\n\\n"
+        if _has_response_style_preference(question) or _has_response_style_preference(history_text)
         else ""
     )
     user_content = (
-        f"Visitor question:\n{question}\n\n"
+        f"Visitor question:\\n{question}\\n\\n"
+        + correction_instruction
         + style_instruction
-        + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
+        + f"Suggested response shape (use your judgment; do not mention it): {shape}\\n\\n"
         f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
         + (
             "Response pacing for this visitor: slow down. First recognize the specific difficulty they named in natural, non-formulaic language; do not open with generic sympathy or presume what their loss means. Then ask exactly one gentle, open question about what feels hardest or what they would like to say more about. Do not turn the disclosure into a task-management exercise, list examples of basic tasks, offer advice before understanding their need, or infer suicidality from grief alone. End with the question so the conversation has a clear, humane next step.\n\n"
@@ -601,7 +633,7 @@ def compose(
             {"role": "user", "content": user_content[:10000]},
         ],
         max_tokens=900,
-        parse=_parse_factory(documents, question),
+        parse=_parse_factory(documents, effective_question),
     )
     if not result:
         return None
