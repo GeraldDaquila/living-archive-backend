@@ -245,7 +245,8 @@ final class LAN_Engine {
             // High-frequency words are deliberately weak even when they are not
             // conventional stop words. This prevents words such as "new" from
             // opening an unrelated spiritual/new-earth branch of the corpus.
-            if ($df > (int)floor($N * 0.08)) continue;
+            $is_focus_token = in_array($token, $this->current_subject_focus_tokens, true);
+            if ($df > (int)floor($N * 0.08) && !$is_focus_token) continue;
             $idf = log(($N + 1) / ($df + 1)) + 1;
             foreach ($postings as $posting) {
                 if (!is_array($posting) || count($posting) < 2) continue;
@@ -287,9 +288,13 @@ final class LAN_Engine {
             $r = $this->by_id[$id];
             $raw_terms = array_keys($evidence[$id]['raw_terms'] ?? []);
             $anchor = $this->anchor_score($r, $raw_terms, $raw_query, $score, $N);
-            $out[] = ['resource' => $r, 'score' => (float)$score, 'anchor_score' => $anchor['score'], 'anchor_terms' => $anchor['terms'], 'anchor_evidence' => $anchor['evidence']];
+            $out[] = ['resource' => $r, 'score' => (float)$score, 'anchor_score' => $anchor['score'], 'anchor_terms' => $anchor['terms'], 'anchor_evidence' => $anchor['evidence'], 'subject_fit_score' => $this->subject_fit_score($r, $this->current_subject_focus_tokens)];
         }
-        usort($out, static function(array $a, array $b): int {
+        usort($out, function(array $a, array $b): int {
+            if ($this->current_subject_focus_tokens) {
+                $fit = (float)($b['subject_fit_score'] ?? 0) <=> (float)($a['subject_fit_score'] ?? 0);
+                if ($fit !== 0) return $fit;
+            }
             $as = (float)($a['score'] ?? 0); $bs = (float)($b['score'] ?? 0);
             return $bs <=> $as;
         });
@@ -387,7 +392,18 @@ final class LAN_Engine {
     }
 
     private function balance_domains(array $candidates, int $limit = 40): array {
-        usort($candidates, static function(array $a, array $b): int {
+        if ($this->current_subject_focus_tokens) {
+            foreach ($candidates as &$candidate) {
+                $resource = is_array($candidate['resource'] ?? null) ? $candidate['resource'] : [];
+                $candidate['subject_fit_score'] = $this->subject_fit_score($resource, $this->current_subject_focus_tokens);
+            }
+            unset($candidate);
+        }
+        usort($candidates, function(array $a, array $b): int {
+            if ($this->current_subject_focus_tokens) {
+                $fit = (float)($b['subject_fit_score'] ?? 0) <=> (float)($a['subject_fit_score'] ?? 0);
+                if ($fit !== 0) return $fit;
+            }
             $aa = (float)($a['anchor_score'] ?? $a['score'] ?? 0); $bb = (float)($b['anchor_score'] ?? $b['score'] ?? 0);
             return $bb <=> $aa;
         });
