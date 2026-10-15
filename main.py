@@ -2529,11 +2529,19 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if any(re.search(pattern, remainder, re.I) for pattern in compound_patterns):
         return False
 
-    # A bare lookup should be a term, not a sentence containing another
-    # proposition. Keep the native Glossary boundary deliberately narrow.
+    # Only route to the Glossary when the visitor explicitly asks for that
+    # surface, or when the term is part of the small set of canonical terms
+    # already guaranteed by this runtime's frozen routing contracts. A bare
+    # definition request for an unverified term must remain with the Guide:
+    # the Glossary may not contain it, and a missing entry must not become a
+    # dead-end handoff.
     if len(re.findall(r"\b\w+\b", term)) > 8:
         return False
-    return True
+    if explicit_glossary_navigation:
+        return True
+    canonical_routed_terms = {"stewardship", "uncertainty"}
+    normalized_term = re.sub(r"[^a-z0-9\s-]", "", term.casefold()).strip()
+    return normalized_term in canonical_routed_terms
 
 
 # v488.89 regression guard: execute the bounded Glossary contract with the
@@ -2558,6 +2566,12 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
 ) is not True:
     raise RuntimeError("USE v488.89 glossary invariant failed: contextual definition was rejected")
+
+if _is_bounded_glossary_request(
+    "What is the meaning of emptiness?",
+    glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
+) is not False:
+    raise RuntimeError("USE glossary fallback invariant failed: unknown glossary term was handed off instead of remaining with the Guide")
 
 
 def _extract_embedded_glossary_term(query):
