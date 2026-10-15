@@ -1,6 +1,9 @@
 """Regression tests for preference-only General Guide input."""
 
-from general_guide_composition import compose
+from general_guide_composition import (
+    _is_response_preference_without_subject,
+    compose,
+)
 
 
 def test_preference_only_input_clarifies_instead_of_failing_retrieval():
@@ -19,26 +22,22 @@ def test_preference_only_input_clarifies_instead_of_failing_retrieval():
     assert result["doorway_title"] == ""
 
 
-def test_preference_only_input_does_not_override_subject_in_history():
-    result = compose(
-        use_core=object(),
-        query="I want to understand the subject, not receive advice.",
-        context_data={},
-        history_text="I am asking about institutional responsibility in public governance.",
+def test_substantive_history_suppresses_preference_only_shortcut():
+    assert not _is_response_preference_without_subject(
+        "I want to understand the subject, not receive advice.",
+        "I am asking about institutional responsibility in public governance.",
     )
-
-    # A substantive prior turn should leave normal composition in control.
-    # The fake use_core cannot compose; this test checks that the narrow
-    # preference-only shortcut did not return a clarification.
-    assert result is None
 
 
 def test_named_subject_request_is_not_preference_only():
-    result = compose(
-        use_core=object(),
-        query="I want to understand institutional responsibility, not receive advice.",
-        context_data={},
-        history_text="",
+    assert not _is_response_preference_without_subject(
+        "I want to understand institutional responsibility, not receive advice.",
+        "",
     )
 
-    assert result is None
+
+def test_unrelated_incomplete_query_is_not_misclassified_as_preference():
+    assert not _is_response_preference_without_subject(
+        "I want to understand the subject.",
+        "",
+    )
