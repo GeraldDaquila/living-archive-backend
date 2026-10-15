@@ -2539,7 +2539,7 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
         return False
     if explicit_glossary_navigation:
         return True
-    canonical_routed_terms = {"stewardship", "uncertainty"}
+    canonical_routed_terms = {"stewardship"}
     normalized_term = re.sub(r"[^a-z0-9\s-]", "", term.casefold()).strip()
     return normalized_term in canonical_routed_terms
 
