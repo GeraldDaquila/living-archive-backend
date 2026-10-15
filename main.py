@@ -4469,14 +4469,105 @@ def _guide_subject_supplement_limit(discovery_subject):
     return 10 if str(discovery_subject or "").strip() else 3
 
 
-def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
-    """Accept bounded content for the selected canonical doorway in discovery mode.
+def _guide_discovery_evidence_grade(subject, document, node=None):
+    """Grade page-level subject evidence independently of the search provider.
 
-    Discovery needs enough content to describe why a selected destination is
-    useful. It does not use the weaker discovery threshold to answer unrelated
-    explanatory questions or to authorize a different link. The selected URL
-    must match exactly and the resource body must show direct subject fit.
+    DIRECT requires the subject itself to be established by the page, not just
+    one broad shared token. RELATED requires a real page-level overlap plus
+    corroborating registered purpose/hints; it must be described as adjacent.
+    Metadata alone, or an incidental body token, is WEAK and cannot authorize
+    a recommendation.
     """
+    if not isinstance(document, dict) or not str(subject or "").strip():
+        return {"grade": "weak", "score": 0, "support": []}
+    title = str(document.get("title") or "").strip().casefold()
+    body = str(
+        document.get("text") or document.get("content") or document.get("excerpt") or ""
+    ).strip().casefold()
+    early = body[:3000]
+    if len(body) < 80:
+        return {"grade": "weak", "score": 0, "support": []}
+
+    stop = {
+        "about", "article", "articles", "content", "document", "documents",
+        "general", "information", "material", "materials", "public", "resource",
+        "resources", "specific", "where", "find", "please", "useful", "relevant",
+        "could", "would", "should", "from", "with", "into", "that", "this",
+    }
+    subject_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", str(subject).casefold())
+        if len(token) >= 4 and token not in stop
+    }
+    if not subject_tokens:
+        return {"grade": "weak", "score": 0, "support": []}
+
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    body_tokens = set(re.findall(r"[a-z0-9]+", body))
+    early_tokens = set(re.findall(r"[a-z0-9]+", early))
+    title_hits = subject_tokens & title_tokens
+    body_hits = subject_tokens & body_tokens
+    early_hits = subject_tokens & early_tokens
+    normalized_subject = re.sub(r"\s+", " ", str(subject).casefold()).strip()
+    phrase_in_title = normalized_subject in title
+    phrase_in_early = normalized_subject in early
+
+    direct_fit = 0
+    try:
+        direct_fit, _coverage, _relation_hits, _answerability = (
+            use_core._question_evidence_fit_profile(str(subject), document)
+        )
+        direct_fit = int(direct_fit or 0)
+    except Exception:
+        direct_fit = 0
+
+    # "Institutional responsibility" in a page title or opening is stronger
+    # than a page which only happens to mention "institutional" or
+    # "responsibility" once. Multi-token topics need corroboration from the body.
+    direct = (
+        phrase_in_title
+        or phrase_in_early
+        or (
+            len(subject_tokens) >= 2
+            and len(early_hits) >= 2
+            and (len(title_hits) >= 1 or direct_fit >= 2)
+        )
+        or (direct_fit >= 2 and len(body_hits) >= 2)
+    )
+    if direct:
+        support = sorted(early_hits or body_hits)
+        return {"grade": "direct", "score": 100 + direct_fit + len(early_hits) * 4 + len(title_hits) * 3, "support": support}
+
+    # A related destination must be an approved Guide Node and show substantive
+    # overlap in its own body. One generic token is not enough by itself: require
+    # at least one subject anchor in the opening and a second body-level signal
+    # represented in the registered title/purpose/hints. Report the shared terms
+    # literally; do not invent a semantic relationship.
+    if not node:
+        return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
+    metadata = " ".join([
+        str(node.get("title") or ""),
+        str(node.get("purpose") or ""),
+        " ".join(str(value) for value in (node.get("semantic_hints") or [])),
+    ]).casefold()
+    metadata_tokens = set(re.findall(r"[a-z0-9]+", metadata))
+    registered_anchors = {
+        token for token in metadata_tokens
+        if len(token) >= 5 and token not in stop and token not in subject_tokens
+    }
+    body_context = {
+        token for token in body_tokens
+        if len(token) >= 5 and token not in stop and token not in subject_tokens
+    }
+    corroborating_context = registered_anchors & body_context
+    if body_hits and len(corroborating_context) >= 2:
+        support = sorted(body_hits | corroborating_context)
+        score = len(body_hits) * 8 + len(corroborating_context) * 2 + direct_fit
+        return {"grade": "related", "score": score, "support": support}
+    return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
+
+
+def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
+    """Validate the selected canonical page and grade its direct/related fit."""
     if not isinstance(doorway, dict) or not str(subject or "").strip():
         return []
     selected_url = str(doorway.get("url") or "").strip().rstrip("/").casefold()
@@ -4486,32 +4577,27 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
     for document in documents if isinstance(documents, list) else []:
         if not isinstance(document, dict):
             continue
-        candidate_url = str(document.get("url") or document.get("canonical_url") or "").strip().rstrip("/").casefold()
-        content = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
-        if candidate_url != selected_url or len(content) < 80:
+        candidate_url = str(
+            document.get("url") or document.get("canonical_url") or ""
+        ).strip().rstrip("/").casefold()
+        if candidate_url != selected_url:
             continue
-        try:
-            direct_fit, _coverage, _relation_hits, _answerability = use_core._question_evidence_fit_profile(
-                str(subject), document
-            )
-        except Exception:
-            direct_fit = 0
-        subject_tokens = {
-            token for token in re.findall(r"[a-z0-9]+", str(subject or "").casefold())
-            if len(token) >= 5 and token not in {
-                "about", "article", "articles", "content", "document", "documents",
-                "general", "information", "material", "materials", "public",
-                "resource", "resources", "specific",
-            }
-        }
-        content_tokens = set(
-            re.findall(r"[a-z0-9]+", content.casefold())
-        )
-        lexical_subject_fit = bool(subject_tokens & content_tokens)
-        if direct_fit >= 1 or lexical_subject_fit:
-            accepted.append(document)
+        node = document.get("_guide_node") if isinstance(document.get("_guide_node"), dict) else None
+        grade = _guide_discovery_evidence_grade(subject, document, node=node)
+        if grade["grade"] in {"direct", "related"}:
+            approved = dict(document)
+            approved["_discovery_relevance"] = grade["grade"]
+            approved["_discovery_relevance_score"] = grade["score"]
+            approved["_discovery_support_terms"] = grade["support"]
+            accepted.append(approved)
+    accepted.sort(
+        key=lambda item: (
+            item.get("_discovery_relevance") == "direct",
+            int(item.get("_discovery_relevance_score") or 0),
+        ),
+        reverse=True,
+    )
     return accepted[:1]
-
 
 def _guide_registered_discovery_nodes(subject, limit=3):
     """Rank active, WordPress-authorized Guide Nodes for a discovery subject.
