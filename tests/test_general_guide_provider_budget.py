@@ -131,6 +131,26 @@ def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch
     assert selected[0]["health_state"] == "healthy"
 
 
+
+def test_general_guide_interleaves_independent_provider_lanes(monkeypatch):
+    candidates = [
+        _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+        _item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        _item("groq", "openai/gpt-oss-20b"),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["workers_ai", "nvidia", "groq"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    providers = [item["provider"] for item in selected]
+
+    assert len(providers) == 4
+    assert len(set(providers[:3])) == 3
+    assert providers[3] == "workers_ai"
+
 def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypatch):
     _isolate(monkeypatch)
 
