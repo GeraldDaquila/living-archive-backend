@@ -2541,7 +2541,8 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
         return True
     canonical_routed_terms = {"stewardship"}
     normalized_term = re.sub(r"[^a-z0-9\s-]", "", term.casefold()).strip()
-    return any(re.search(rf"\\b{re.escape(canonical)}\\b", normalized_term) for canonical in canonical_routed_terms)
+    normalized_words = set(normalized_term.split())
+    return any(canonical in normalized_words for canonical in canonical_routed_terms)
 
 
 # v488.89 regression guard: execute the bounded Glossary contract with the
