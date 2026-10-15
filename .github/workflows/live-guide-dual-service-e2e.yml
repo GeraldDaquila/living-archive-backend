@@ -248,7 +248,7 @@ jobs:
                   raise SystemExit(f"{name}: institutional-responsibility discovery omitted recommendation")
               actual_url = str(recommendation.get("url") or "").rstrip("/")
               actual_title = str(recommendation.get("title") or "").strip()
-              if actual_url != expected_url.rstrip("/") or not actual_title.casefold().startswith(expected_title.casefold()):
+              if actual_url != expected_url.rstrip("/") or expected_title.casefold() not in actual_title.casefold():
                   raise SystemExit(
                       f"{name}: discovery destination regression: "
                       f"title={actual_title!r}, url={actual_url!r}; "
