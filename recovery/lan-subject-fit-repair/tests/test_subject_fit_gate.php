@@ -45,6 +45,10 @@ $resources = [
         'Explores institutional behavior, shared responsibility, and systemic awareness.',
         'Institutions shape responsibility and collective governance.',
         ['institutional systems']),
+    $resource('institutional-only', 'Institutional Governance',
+        'A page about institutional structures and administrative design.',
+        'This page discusses institutional governance, structures, and administration but does not address responsibility or accountability.',
+        ['institutional systems']),
     $resource('gesara-nodes', 'GESARA Nodes',
         'A discussion of financial abundance and cosmic nodes.',
         'Financial abundance and cosmic nodes are the focus of this page.',
@@ -80,6 +84,10 @@ $fit = $invoke('subject_fit_score', [$resources[0], $focus]);
 $unrelated_fit = $invoke('subject_fit_score', [$resources[3], $focus]);
 assert_true($fit >= 1.0, 'directly relevant resource receives positive subject-fit score');
 assert_true($unrelated_fit < 1.0, 'unrelated resource fails hard subject-fit threshold');
+$partial_fit = $invoke('subject_fit_score', [$resources[3], $focus]);
+assert_true($partial_fit >= 3.0, 'adversarial partial-match fixture shares the broad institutional term');
+assert_true(!$invoke('subject_fit_qualifies', [$resources[3], $focus]),
+    'a resource matching only institutional but not responsibility fails subject qualification');
 
 $candidates = [];
 foreach ($resources as $i => $r) {
