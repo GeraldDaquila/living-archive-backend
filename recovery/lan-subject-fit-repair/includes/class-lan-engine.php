@@ -430,7 +430,10 @@ final class LAN_Engine {
     }
 
     private function deterministic_plan(array $candidates): array {
-        $pool=[]; foreach($candidates as $c){$id=(string)($c['resource']['id']??''); if($id!==''&&$this->is_eligible($c['resource']??[])) { if($this->current_subject_focus_tokens && $this->subject_fit_score(($c['resource']??[]), $this->current_subject_focus_tokens)<1.0) continue; $pool[$id]=$c; }}
+        // navigate() passes this method the already subject-filtered candidate set.
+        // Keep the fallback deterministic over that bounded set; request-specific
+        // focus is enforced before planning and again by plan_quality_issues().
+        $pool=[]; foreach($candidates as $c){$id=(string)($c['resource']['id']??''); if($id!==''&&$this->is_eligible($c['resource']??[]))$pool[$id]=$c;}
         if(count($pool)<3) return ['selected'=>[],'movement_type'=>'continue'];
         $ids=array_keys($pool);
         $selected=[]; $used=[]; $used_titles=[];
