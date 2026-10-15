@@ -3991,8 +3991,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "In Buddhist thought, emptiness does not mean that nothing exists; it points to the way things arise through causes, conditions, and relationships."
         )
         closing = (
-            "These are related but distinct uses of the word. The useful next step is to identify whether you mean "
-            "the feeling of inner emptiness, the philosophical idea, or the Buddhist understanding."
+            "These meanings overlap, but they are not interchangeable. Are you thinking about "
+            "the feeling of emptiness in everyday life, or the deeper philosophical or Buddhist idea?"
         )
     else:
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
