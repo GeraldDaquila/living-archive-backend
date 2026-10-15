@@ -30,49 +30,32 @@
 
 **Caution:** Versions above are the last recorded evidence available to this recovery effort, not a claim that every endpoint has been freshly queried during this documentation commit.
 
-## 3. Proposed common response envelope (target contract, not yet implemented)
+## 3. Existing contract composition — no parallel envelope
 
-Adapters should normalize metadata without changing the specialist's authored content.
+**Do not introduce a new `use-response-v1` runtime envelope.** The current repository already defines the integration boundary in layered, versioned contracts. The task is to verify that the existing contracts preserve identity, payload, voice, canonical candidates, and control flow across the complete journey.
 
-```json
-{
-  "contract": "use-response-v1",
-  "request_id": "opaque-correlation-id",
-  "producer": {
-    "system": "guide-or-specialist-id",
-    "version": "version-string",
-    "fingerprint": "build-fingerprint"
-  },
-  "status": "ok",
-  "response": "visitor-facing prose",
-  "question": null,
-  "recommendations": [
-    {
-      "asset_id": "canonical-id",
-      "title": "canonical title",
-      "url": "verified canonical URL",
-      "role": "next-reading",
-      "evidence": "brief evidence/rationale",
-      "provenance": "catalogue or canonical retrieval source"
-    }
-  ],
-  "diagnostics": {
-    "fallback_used": false,
-    "evidence_sufficient": true
-  },
-  "error": null
-}
-```
+### Existing layers confirmed in source
 
-### Envelope rules
-- `request_id` is opaque and propagated across Guide → specialist adapter → Catalogue/asset selection → WordPress bridge.
-- Do not log visitor message, relationship details, or full generated prose merely to correlate a request. Use IDs, bounded reason codes, durations, versions, and counts.
-- `response` is specialist-owned prose. Adapters may validate shape, not rewrite voice.
-- `question` is nullable. For HRN, a missing question is a composition defect only where the turn contract requires one; a safe, local, visitor-grounded completion may be used only after its validators pass.
-- `recommendations` must be empty or contain only canonical assets actually retrieved/verified. No fabricated IDs or URLs.
-- `status` should distinguish successful response, bounded insufficient evidence, invalid request, and retryable operation failure. Exact enum values require implementation review.
-- `producer.version` and fingerprint are required for live parity and regression attribution.
-- Never expose internal stack traces, credentials, provider keys, or private diagnostics to visitors.
+1. **Capability registry — `specialist_registry.py`, pipe contract v1.** Declares specialist identity, purpose, entry point, access class, and availability. A declared capability is not proof that its complete visitor journey is live.
+2. **Adapter pipe — `specialist_adapters.py`, adapter contract v1.** Invokes the selected registered adapter and validates request identity, specialist identity, status, and the common envelope. When a specialist owns a domain contract, its full domain contribution is preserved in `payload`.
+3. **Guide hub — `hub_contracts.py`, hub contract v1.** Builds the Guide-owned request and validates the returned request ID, specialist ID, status, payload, voice policy, and canonical candidates. `route_spoke` is the existing bridge between the Guide request and adapter invocation.
+4. **Domain contracts.** Relationship uses contribution contract v2 with `preserve_specialist_voice`; Formation uses `formation-v1` with `preserve_specialist_boundary`; Safety retains its existing safety-specific contract and highest-priority interruption boundary.
+5. **Native handoffs.** Catalogue, Navigator, Guide Nodes, Atlas, FSD, Glossary, and other standalone tools retain their own visitor-facing surfaces and query-transfer conventions. Do not force native handoffs into adapter contracts merely to make the architecture look uniform.
+
+### Integration invariants to verify
+
+- Carry the existing opaque request/session identity across each path; do not create a second identity system unless a current contract demonstrably cannot support the journey.
+- Preserve the original question and required bounded context through invocation and return.
+- Preserve complete specialist-owned payloads, HRN voice/journey state, and domain contract versions.
+- Treat canonical candidates as candidates until the owning Guide/resource boundary validates relevance and URL authority.
+- Keep Catalogue as its existing native search/handoff path; do not duplicate its retrieval or ranking in USE.
+- Keep HRN's direct browser journey and its completed-journey return path distinct from the optional adapter-backed contribution path. Test both where they are intended to operate.
+- A contract test or registration audit is not proof of a successful live visitor journey.
+- Do not normalize away meaningful specialist state or rewrite specialist prose to fit a generic envelope.
+
+### Required next action
+
+Trace each existing visitor entry point to its actual return boundary, then exercise the complete journey with the established contracts. Add or change a contract only when a reproducible end-to-end failure demonstrates that the current one cannot represent a required field or state. Do not create a parallel contract preemptively.
 
 ## 4. System boundaries
 
@@ -141,4 +124,4 @@ Live v0.5.330 request about two colleagues disagreeing over responsibility-shari
 
 ## 9. Change control
 
-This document is a proposed integration contract, not authorization to change runtime behavior. Runtime adoption requires a separately reviewed implementation, full-file replacements where required, sequential commits, passing tests, explicit version advancement, and primary/mirror deployment only after QA. Keep the current production baseline intact while source recovery is incomplete.
+This document is a recovery and integration register, not a new runtime contract or authorization to change production behavior. Runtime adoption requires a separately reviewed implementation, full-file replacements where required, sequential commits, passing tests, explicit version advancement, and primary/mirror deployment only after QA. Keep the current production baseline intact while source recovery is incomplete.
