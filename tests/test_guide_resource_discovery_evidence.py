@@ -55,7 +55,7 @@ def test_registered_direct_resource_wins_over_adjacent_stewardship_resource(monk
     assert evidence and evidence[0]["url"] == direct["url"]
 
 
-def test_adjacent_resource_is_not_misrepresented_as_direct_coverage(monkeypatch):
+def test_related_resource_can_be_offered_only_with_related_grade(monkeypatch):
     adjacent = _doc(
         "Stewardship Readiness",
         "https://geralddaquila.com/stewardship-readiness/",
@@ -65,12 +65,17 @@ def test_adjacent_resource_is_not_misrepresented_as_direct_coverage(monkeypatch)
     )
     monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [
         {"node_id":"adjacent", "status":"active", "title":adjacent["title"],
-         "canonical_url":adjacent["url"], "purpose":"Leadership readiness",
+         "canonical_url":adjacent["url"], "purpose":"Leadership readiness and institutional trust",
          "semantic_hints":["stewardship readiness","leadership","institutional trust"]},
     ])
     doorway, evidence = main._guide_align_registered_discovery_doorway(SUBJECT, [adjacent])
-    assert doorway is None
-    assert evidence == []
+    assert doorway is not None
+    assert doorway["title"] == "Stewardship Readiness"
+    assert evidence and evidence[0]["_discovery_relevance"] == "related"
+    response = main._guide_deterministic_discovery_response(SUBJECT, doorway, evidence)
+    assert "didn’t verify a page that directly covers institutional responsibility" in response
+    assert "related starting point" in response
+    assert "does not establish that the page directly treats institutional responsibility" in response
 
 
 def test_weak_resource_fails_closed_when_only_title_or_metadata_overlaps(monkeypatch):
