@@ -4861,9 +4861,12 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
 
 
 def _guide_subject_discovery_answer(response, subject, doorway, evidence):
-    """Use one provider-independent, selected-page-grounded answer for discovery requests."""
+    """Use a page-grounded direct/related answer or fall back without a false match."""
     if not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip():
-        return str(response or "").strip()
+        return (
+            f"I couldn’t verify a Living Archive page that directly covers {str(subject or 'this subject').strip()}. "
+            "I’d rather leave the link out than point you to a page on the strength of a shared word alone."
+        )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
 
 def _basic_inquiry_response(query, history=None, raw_body=None):
