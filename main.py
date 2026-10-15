@@ -3955,6 +3955,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Help a visitor begin when they cannot yet phrase the question.
+    if "not sure how to phrase my question" in q and "something is missing" in q:
+        response = (
+            "You do not need to have the question fully formed yet. We can start with the sense that something feels missing, without deciding in advance what it means. "
+            "When you notice that feeling, does it seem connected to a particular part of your life, or is it difficult to locate?"
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_human_orientation_recovery", "model": ""}
     # Protect the established General Guide answer for this calibrated
     # conceptual question when every provider is unavailable. This is ordinary
     # general knowledge, not an Archive attribution; doorway selection remains
