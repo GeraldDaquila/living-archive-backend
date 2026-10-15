@@ -326,6 +326,34 @@ final class LAN_Engine {
         return array_values(array_keys($focus));
     }
 
+    private function subject_token_present(string $focus_token, array $field_tokens): bool {
+        if (isset($field_tokens[$focus_token])) return true;
+        $variants = [
+            'leave' => ['leaving', 'left'],
+            'leaving' => ['leave', 'left'],
+            'institutional' => ['institution', 'institutions'],
+            'institution' => ['institutional', 'institutions'],
+            'responsibility' => ['responsibilities'],
+            'responsibilities' => ['responsibility'],
+            'group' => ['groups', 'grouping'],
+            'groups' => ['group', 'grouping'],
+            'changed' => ['change', 'changing'],
+            'change' => ['changed', 'changing'],
+            'dissonant' => ['dissonance'],
+            'dissonance' => ['dissonant'],
+        ];
+        foreach (($variants[$focus_token] ?? []) as $variant) {
+            if (isset($field_tokens[$variant])) return true;
+        }
+        foreach (array_keys($field_tokens) as $field_token) {
+            $common = 0;
+            $limit = min(strlen($focus_token), strlen($field_token));
+            while ($common < $limit && $focus_token[$common] === $field_token[$common]) $common++;
+            if ($common >= 5) return true;
+        }
+        return false;
+    }
+
     /**
      * Score direct evidence for the visitor's subject independently of the
      * broad lexical score. Title evidence is strongest; excerpt/category
@@ -343,11 +371,11 @@ final class LAN_Engine {
         $body_tokens = array_fill_keys($this->tokens($content), true);
         $score = 0.0;
         foreach ($focus_tokens as $token) {
-            if (isset($title_tokens[$token])) {
+            if ($this->subject_token_present($token, $title_tokens)) {
                 $score += 3.0;
-            } elseif (isset($surface_tokens[$token])) {
+            } elseif ($this->subject_token_present($token, $surface_tokens)) {
                 $score += 1.5;
-            } elseif (isset($body_tokens[$token])) {
+            } elseif ($this->subject_token_present($token, $body_tokens)) {
                 $score += 0.5;
             }
         }
@@ -355,9 +383,10 @@ final class LAN_Engine {
     }
 
     private function subject_fit_threshold(): float {
-        // Multi-term subjects require at least two independent surface signals:
-        // one term in the title and another in the title/excerpt/categories.
-        return count($this->current_subject_focus_tokens) >= 2 ? 4.5 : 3.0;
+        // Short conceptual queries need multiple surface signals. Longer lived
+        // questions need at least one direct title/surface signal because their
+        // meaning may be expressed through ordinary-language variants.
+        return count($this->current_subject_focus_tokens) >= 3 ? 3.0 : 4.5;
     }
 
     /**
