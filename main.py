@@ -4650,7 +4650,7 @@ def _guide_registered_discovery_nodes(subject, limit=3):
 
 
 def _guide_registered_discovery_documents(subject, documents):
-    """Keep only relevant evidence whose URL belongs to an active Guide Node."""
+    """Rank approved discovery candidates by page-level relevance, direct first."""
     nodes = _guide_registered_discovery_nodes(subject, limit=20)
     if not nodes:
         return []
@@ -4659,49 +4659,30 @@ def _guide_registered_discovery_documents(subject, documents):
         for node in nodes
     }
     ranked = []
-    query_terms = {
-        token for token in re.findall(r"[a-z0-9]+", str(subject or "").casefold())
-        if len(token) >= 4 and token not in {
-            "about", "article", "articles", "content", "document", "documents",
-            "general", "information", "material", "materials", "public",
-            "resource", "resources", "specific",
-        }
-    }
-    for document in documents if isinstance(documents, list) else []:
+    for index, document in enumerate(documents if isinstance(documents, list) else []):
         if not isinstance(document, dict):
             continue
         url = str(document.get("url") or document.get("canonical_url") or "").strip()
         node = node_by_url.get(url.rstrip("/").casefold())
         if not node:
             continue
-        content = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
-        if len(content) < 80:
+        grade = _guide_discovery_evidence_grade(subject, document, node=node)
+        if grade["grade"] not in {"direct", "related"}:
             continue
-        body_terms = set(re.findall(r"[a-z0-9]+", content.casefold()))
-        lexical_fit = bool(query_terms & body_terms)
-        try:
-            direct_fit, _coverage, _relation_hits, _answerability = use_core._question_evidence_fit_profile(
-                str(subject), document
-            )
-        except Exception:
-            direct_fit = 0
-        if direct_fit < 1 and not lexical_fit:
-            continue
-        metadata = " ".join([
-            str(node.get("title") or ""),
-            str(node.get("purpose") or ""),
-            " ".join(str(value) for value in (node.get("semantic_hints") or [])),
-        ]).casefold()
-        metadata_terms = set(re.findall(r"[a-z0-9]+", metadata))
-        overlap = query_terms & metadata_terms
-        if not overlap:
-            continue
-        score = len(overlap) * 3 + (6 if str(subject or "").casefold() in metadata else 0)
-        score += 2 * len(query_terms & set(re.findall(r"[a-z0-9]+", str(node.get("title") or "").casefold())))
-        score += min(int(direct_fit or 0), 3)
-        ranked.append((score, str(node.get("title") or "").casefold(), document))
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return [item[2] for item in ranked]
+        approved = dict(document)
+        approved["_guide_node"] = node
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade["score"]
+        approved["_discovery_support_terms"] = grade["support"]
+        ranked.append((
+            0 if grade["grade"] == "direct" else 1,
+            -int(grade["score"]),
+            str(node.get("title") or "").casefold(),
+            index,
+            approved,
+        ))
+    ranked.sort(key=lambda item: item[:4])
+    return [item[-1] for item in ranked]
 
 
 def _guide_align_registered_discovery_doorway(subject, documents):
@@ -4777,35 +4758,43 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
 
 
 def _guide_deterministic_discovery_response(subject, doorway, evidence):
-    """Orient discovery with complete verified prose, never fragments."""
+    """Orient discovery from selected-page evidence, labeling directness honestly."""
     title = str((doorway or {}).get("title") or "").strip()
+    source = evidence[0] if evidence and isinstance(evidence[0], dict) else {}
     body = str(
-        (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("text")
-        or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("content")
-        or (evidence[0] if evidence and isinstance(evidence[0], dict) else {}).get("excerpt")
-        or ""
+        source.get("text") or source.get("content") or source.get("excerpt") or ""
     )
     body = re.sub(r"\s+", " ", body).strip()
+    grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
+    support_terms = [
+        str(term).strip()
+        for term in (source.get("_discovery_support_terms") or [])
+        if str(term).strip()
+    ]
     if not title:
         return ""
 
-    def doorway_only():
+    normalized_subject = re.sub(r"\s+", " ", str(subject or "")).strip()
+    if grade == "related":
+        overlap = ", ".join(support_terms[:4]) if support_terms else "some related terms"
         return (
-            f"A useful place to start is {title}. The page itself is the best "
-            f"place to check for material related to {subject}. I could not verify "
-            "a complete description in this response, so I will not guess what it covers."
+            f"I didn’t verify a page that directly covers {normalized_subject}. "
+            f"The closest verified related starting point I found is {title}. "
+            f"Its own content and description overlap through {overlap}. "
+            "That makes it a related place to explore, but it does not establish "
+            f"that the page directly treats {normalized_subject}."
         )
 
     if not body:
-        return doorway_only()
+        return (
+            f"The strongest direct match I could verify is {title}. "
+            f"I could confirm the destination, but not enough page content to describe "
+            f"how it treats {normalized_subject}."
+        )
 
-    subject_terms = {
-        token for token in re.findall(r"[a-z0-9]+", str(subject or "").casefold())
-        if len(token) >= 5 and token not in {
-            "about", "article", "articles", "content", "document", "documents",
-            "general", "information", "material", "materials", "public",
-            "resource", "resources", "specific",
-        }
+    subject_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold())
+        if len(token) >= 4
     }
     sentences = [
         re.sub(r"\s+", " ", sentence).strip(" \t-•")
@@ -4818,24 +4807,23 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         if not re.search(r"[.!?][\"')\]]?$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
-        if subject_terms and not (subject_terms & words):
+        if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
             continue
-        if re.search(r"\b(?:governing question|constitutional responsibility|meta description|read more)\b", sentence, re.I):
+        if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
             continue
         candidates.append(sentence)
     if not candidates:
-        return doorway_only()
-
-    # Use the first complete sentence that directly overlaps the requested
-    # subject. Quote only verified page text; the surrounding orientation
-    # makes clear this is a starting point, not a claim of full coverage.
+        return (
+            f"The strongest direct match I found is {title}. The page passed the "
+            f"subject-fit check for {normalized_subject}, but I could not isolate a "
+            "complete sentence that describes its contribution reliably."
+        )
     sentence = candidates[0]
     return (
-        f"A useful place to start is {title}. Its page describes the topic this way: "
-        f"“{sentence}” This makes it a relevant entry point for {subject}; the page "
-        "may also lead to related material beyond this exact question."
+        f"The strongest direct match I found is {title}. Its page states: "
+        f"“{sentence}” This gives you a source-grounded place to begin exploring "
+        f"{normalized_subject}."
     )
-
 
 
 def _guide_subject_discovery_answer(response, subject, doorway, evidence):
