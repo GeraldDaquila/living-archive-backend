@@ -359,7 +359,7 @@ final class LAN_Engine {
         foreach ($candidates as $candidate) {
             $resource = is_array($candidate['resource'] ?? null) ? $candidate['resource'] : [];
             $fit = $this->subject_fit_score($resource, $this->current_subject_focus_tokens);
-            if ($fit < 1.0) continue;
+            if ($fit < 1.5) continue;
             $candidate['subject_fit_score'] = $fit;
             $filtered[] = $candidate;
         }
@@ -468,7 +468,7 @@ final class LAN_Engine {
             if($id!=='')$ids[$id]=true;if(in_array($role,['experience','pattern','structure'],true))$roles[$role]=true;else $issues[]='invalid internal path role';
             if(isset($candidate_map[$id])){
                 if((float)($candidate_map[$id]['anchor_score']??0)<1.5)$issues[]='destination has insufficient visitor-word grounding';
-                if($this->current_subject_focus_tokens && $this->subject_fit_score(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens)<1.0)$issues[]='destination does not fit the visitor\'s stated subject';
+                if($this->current_subject_focus_tokens && $this->subject_fit_score(($candidate_map[$id]['resource']??[]), $this->current_subject_focus_tokens)<1.5)$issues[]='destination does not fit the visitor\'s stated subject';
                 $title_key=$this->display_title_key($candidate_map[$id]['resource']??[]);
                 if($title_key!==''){
                     if(isset($titles[$title_key]))$issues[]='displayed destination titles are not distinct';
