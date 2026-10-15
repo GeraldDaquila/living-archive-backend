@@ -129,7 +129,7 @@ def test_unregistered_canonical_page_cannot_authorize_discovery(monkeypatch):
     assert evidence == []
 
 
-def test_discovery_answer_explains_a_related_starting_point_only_if_verified():
+def test_selected_page_evidence_requires_registered_node_and_real_body_fit(monkeypatch):
     related = _doc(
         "Stewardship Readiness",
         "https://geralddaquila.com/stewardship-readiness/",
@@ -137,9 +137,23 @@ def test_discovery_answer_explains_a_related_starting_point_only_if_verified():
         "assessment. It discusses leadership, accountability, and institutional "
         "trust as parts of readiness."
     )
-    doorway = {"title":related["title"],"url":related["url"]}
-    # No page excerpt or lexical overlap should be enough to claim direct coverage.
-    assert main._guide_selected_doorway_discovery_evidence([related], SUBJECT, doorway) == []
+    doorway = {"title": related["title"], "url": related["url"]}
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [])
+    assert main._guide_selected_doorway_discovery_evidence(
+        [related], SUBJECT, doorway
+    ) == []
+
+    node = {
+        "node_id": "adjacent", "status": "active",
+        "title": related["title"], "canonical_url": related["url"],
+        "purpose": "Leadership readiness and institutional trust",
+        "semantic_hints": ["leadership", "institutional trust"],
+    }
+    verified = dict(related, _guide_node=node)
+    evidence = main._guide_selected_doorway_discovery_evidence(
+        [verified], SUBJECT, doorway
+    )
+    assert evidence and evidence[0]["_discovery_relevance"] == "related"
 
 
 def test_multi_concept_subject_fit_guard_remains_additive():
