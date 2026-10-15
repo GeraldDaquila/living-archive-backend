@@ -105,7 +105,7 @@ def test_weak_resource_fails_closed_when_only_title_or_metadata_overlaps(monkeyp
     assert evidence == []
 
 
-def test_unregistered_canonical_page_cannot_authorize_discovery():
+def test_unregistered_canonical_page_cannot_authorize_discovery(monkeypatch):
     direct = _doc(
         "Institutional Responsibility and Accountability",
         "https://geralddaquila.com/institutional-responsibility/",
