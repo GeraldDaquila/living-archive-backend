@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.259 — registry-grounded discovery
+# USE PRODUCTION VERSION: v489.260 — workplace relational return
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.259"
-DEPLOYMENT_FINGERPRINT = "USE-v489.259-subject-discovery-quality"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.259-subject-discovery-quality"
+APP_VERSION = "v489.260"
+DEPLOYMENT_FINGERPRINT = "USE-v489.260-workplace-relational-return"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.260-workplace-relational-return"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.259":
+if str(APP_VERSION) != "v489.260":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1537,16 +1537,23 @@ def _relational_return_is_generic_doorway(doc):
 def _relational_return_workplace_change_focus(query):
     """Recognize a concrete work-agreement change that has become interpersonal."""
     q = _normalize_query(query)
+    # Workplace relational closure must include managerial trust and decision-rights
+    # tensions, not only project/scope-change vocabulary. HRN can surface these as
+    # an earned perspective after several turns, so classify the opening context too.
     work_context = bool(re.search(
-        r"\b(?:project|work|colleague|team|deadline|scope|deliverable|agreement)\b", q
+        r"\b(?:project|work|workplace|manager|boss|supervisor|colleague|team|deadline|scope|deliverable|agreement|role)\b", q
     ))
     change_context = bool(re.search(
         r"\b(?:changed scope|scope changed|changed work|new work|agreement changed|"
-        r"deadline|scope|agreement|making too much of it|unreasonable|overreacting)\b", q
+        r"deadline|scope|agreement|making too much of it|unreasonable|overreacting|"
+        r"trust|questions every decision|question(?:s|ed|ing)? (?:every )?decision|"
+        r"decision rights|decision boundaries|decision is within my role|"
+        r"prove my competence|prove i know what i'm doing|repeated scrutiny)\b", q
     ))
     interpersonal_context = bool(re.search(
-        r"\b(?:colleague|team|other person|conversation|between us|making too much of it|"
-        r"unreasonable|overreacting|reaction|responsibility)\b", q
+        r"\b(?:colleague|manager|boss|supervisor|team|other person|conversation|between us|"
+        r"making too much of it|unreasonable|overreacting|reaction|responsibility|"
+        r"trust|judgment|decision|role|review|questions every decision)\b", q
     ))
     return work_context and change_context and interpersonal_context
 
