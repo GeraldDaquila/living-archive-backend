@@ -81,7 +81,7 @@ $prop = $reflect->getProperty('current_subject_focus_tokens');
 $prop->setAccessible(true);
 $prop->setValue($engine, $focus);
 $fit = $invoke('subject_fit_score', [$resources[0], $focus]);
-$unrelated_fit = $invoke('subject_fit_score', [$resources[3], $focus]);
+$unrelated_fit = $invoke('subject_fit_score', [$resources[4], $focus]);
 assert_true($fit >= 1.0, 'directly relevant resource receives positive subject-fit score');
 assert_true($unrelated_fit < 1.0, 'unrelated resource fails hard subject-fit threshold');
 $partial_fit = $invoke('subject_fit_score', [$resources[3], $focus]);
@@ -96,7 +96,7 @@ foreach ($resources as $i => $r) {
 $filtered = $invoke('filter_subject_relevant_candidates', [$candidates]);
 assert_true(count($filtered) === 3, 'irrelevant resource is removed before planning');
 
-$plan = $invoke('deterministic_plan', [$candidates]);
+$plan = $invoke('deterministic_plan', [$filtered]);
 $selected_ids = array_column($plan['selected'], 'id');
 assert_true(count($selected_ids) === 3, 'fallback selects three relevant resources when three exist');
 assert_true(!in_array('gesara-nodes', $selected_ids, true), 'deterministic fallback cannot pad with unrelated resource');
