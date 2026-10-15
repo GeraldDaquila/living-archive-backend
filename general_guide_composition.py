@@ -271,21 +271,13 @@ def _is_response_preference_without_subject(query: str, history_text: str = "") 
     if history and len(history.split()) >= 6:
         return False
     preference = bool(re.search(
-        r"\b(?:i want|i'd like|i would like) to understand\b.{0,100}"
+        r"\b(?:i want|i'd like|i would like) to understand\s+"
+        r"(?:(?:the|this|that)\s+(?:subject|topic|matter)|it|this|that)\b.{0,100}"
         r"\b(?:not (?:receive|get|be given) advice|rather than advice|instead of advice|"
         r"not (?:receive|get|be given) recommendations)\b",
         q,
     ))
-    if not preference:
-        return False
-    # A named topic introduced by a content-bearing preposition means this is
-    # already a substantive question, not a preference-only turn.
-    named_topic = re.search(
-        r"\b(?:about|on|regarding|concerning)\s+(?!the subject\b|the topic\b|this subject\b|this topic\b)"
-        r"[a-z][a-z0-9 -]{2,}",
-        q,
-    )
-    return named_topic is None
+    return preference
 
 
 def _question_shape(query: str) -> str:
