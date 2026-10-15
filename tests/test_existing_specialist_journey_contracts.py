@@ -33,7 +33,7 @@ class CalibratedRelationshipFixture:
             "perspectives": [{"view": "colleague_a"}, {"view": "colleague_b"}],
             "movement": {"question": "What does each person believe they are responsible for?"},
             "canonical_candidates": [
-                {"title": "Relationship Door", "url": "https://geralddaquila.com/relationship-door/"}
+                {"title": "Stewardship Framework", "url": "https://geralddaquila.com/stewardship-framework/"}
             ],
             "journey": {"journey_state": "in_progress", "unit_turns": 1},
         }
@@ -79,7 +79,7 @@ def test_relationship_domain_payload_survives_adapter_pipe_and_hub():
 
     assert result.request_id == "integration-hrn-001"
     assert result.specialist_id == "relationship"
-    assert result.voice_policy == "preserve_specialist_voice"
+    assert result.payload["voice_policy"] == "preserve_specialist_voice"
     assert result.payload["contract_version"] == RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION
     assert result.payload["human_response"].startswith("The disagreement may be carrying")
     assert result.payload["movement"]["question"].startswith("What does each person")
@@ -116,7 +116,7 @@ def test_formation_three_doors_survive_adapter_pipe_and_hub():
 
     assert result.request_id == "integration-formation-001"
     assert result.specialist_id == "formation"
-    assert result.voice_policy == "preserve_specialist_boundary"
+    assert result.payload["voice_policy"] == "preserve_specialist_boundary"
     assert result.payload["contract_version"] == "formation-v1"
     assert len(result.canonical_candidates) == 3
     assert len({door["id"] for door in result.canonical_candidates}) == 3
