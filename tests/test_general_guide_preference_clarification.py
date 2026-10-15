@@ -4,7 +4,7 @@ from general_guide_composition import (
     _has_response_style_preference,
     _is_response_preference_without_subject,
     clarification_response,
-    compose,\n    correction_subject,
+    compose,
 )
 
 
