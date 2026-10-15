@@ -3841,26 +3841,6 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
     ):
         return None
 
-    # Subject-specific discovery must distinguish a direct match from an adjacent
-    # resource. Never let a page about stewardship readiness be represented as
-    # confirmed coverage of institutional responsibility when its own description
-    # only establishes overlap through accountability and institutional trust.
-    normalized_query = _normalize_query(query).casefold()
-    if re.search(r"\bwhere can i find material about institutional responsibility\b", normalized_query):
-        if selected:
-            visitor_response = (
-                f"I found a related starting point: {selected}. Its description connects leadership, accountability, and institutional trust, "
-                "which overlap with institutional responsibility. I can’t confirm from that description alone that it treats institutional responsibility directly. "
-                "Are you looking for material about how institutions should be accountable for their decisions, or about the responsibilities of people working within them?"
-            )
-        else:
-            visitor_response = (
-                "I haven’t verified a resource that directly addresses institutional responsibility yet. The closest useful material should discuss institutional accountability, duties, and the consequences of organizational decisions. "
-                "Are you looking for institutional accountability in general, or the responsibilities of people working within an institution?"
-            )
-        if visitor_response.count("?") != 1:
-            return None
-
     return {
         "response": visitor_response,
         "doorway_title": selected,
