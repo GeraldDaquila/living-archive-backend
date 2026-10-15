@@ -11,6 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install PHP for recovered LAN fixture validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Recovered LAN subject-fit gate regression (synthetic fixture only)
+        run: |
+          php -l recovery/lan-subject-fit-repair/includes/class-lan-engine.php
+          php -l recovery/lan-subject-fit-repair/tests/test_subject_fit_gate.php
+          php recovery/lan-subject-fit-repair/tests/test_subject_fit_gate.php
       - name: Install dependencies
         run: pip install -r requirements.txt pytest
       - name: Compile current production modules
