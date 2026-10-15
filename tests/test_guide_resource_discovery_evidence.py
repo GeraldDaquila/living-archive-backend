@@ -55,6 +55,17 @@ def test_registered_direct_resource_wins_over_adjacent_stewardship_resource(monk
     assert evidence and evidence[0]["url"] == direct["url"]
 
 
+
+
+def test_only_one_shared_word_without_registered_context_is_weak():
+    document = _doc(
+        "General Leadership",
+        "https://geralddaquila.com/general-leadership/",
+        "A general overview of leadership and personal development for teams."
+    )
+    grade = main._guide_discovery_evidence_grade(SUBJECT, document, node=None)
+    assert grade["grade"] == "weak"
+
 def test_related_resource_can_be_offered_only_with_related_grade(monkeypatch):
     adjacent = _doc(
         "Stewardship Readiness",
