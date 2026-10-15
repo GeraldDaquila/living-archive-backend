@@ -3,6 +3,7 @@
 from general_guide_composition import (
     _has_response_style_preference,
     _is_response_preference_without_subject,
+    clarification_response,
     compose,
 )
 
@@ -34,6 +35,26 @@ def test_plain_language_preference_without_subject_clarifies_without_retrieval()
     assert "clear, everyday language" in result["response"]
     assert "What would you like to understand?" in result["response"]
     assert result["doorway_title"] == ""
+
+
+def test_plain_language_preference_clarifies_before_retrieval_and_suppresses_recommendation():
+    result = clarification_response(
+        "Can you answer this without using technical or academic language?",
+        "",
+    )
+    assert result is not None
+    assert result["clarification_reason"] == "response_preference_subject_missing"
+    assert result["response"] == (
+        "Of course. I’ll use clear, everyday language and avoid technical "
+        "or academic terms. What would you like to understand?"
+    )
+
+
+def test_named_subject_style_request_is_not_a_preference_only_clarification():
+    assert clarification_response(
+        "Explain institutional responsibility without technical language.",
+        "",
+    ) is None
 
 
 def test_style_preference_is_detected_for_a_named_subject():
