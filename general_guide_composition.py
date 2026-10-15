@@ -625,7 +625,8 @@ def compose(
         if is_exact_source_request(question)
         else ""
     )
-\n    correction_instruction = (
+
+    correction_instruction = (
         "The visitor is correcting a previous off-topic answer. They explicitly say the subject they asked about was "
         + repr(corrected_subject)
         + ". Briefly acknowledge the mismatch without repeating the whole complaint, then answer that subject directly. "
