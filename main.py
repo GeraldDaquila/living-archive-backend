@@ -559,9 +559,9 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
     # Reciprocity and uneven effort are lived relational dynamics even when the
     # visitor does not name conflict, trust, or a formal relationship problem.
-    r"\b(?:effort|making an effort|make an effort|made an effort|always the one|
-    r"doing all the work|carrying the relationship|one[- ]sided effort|
-    r"not reciprocated|unequal effort|uneven effort)\b",
+    r"\b(?:effort|making an effort|make an effort|made an effort)\b",
+    r"\b(?:always the one|doing all the work|carrying the relationship)\b",
+    r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
     r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
     r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
     r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
