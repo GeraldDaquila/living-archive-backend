@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.260 — workplace relational return
+# USE PRODUCTION VERSION: v489.261 — Guide related-resource ranking
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.260"
-DEPLOYMENT_FINGERPRINT = "USE-v489.260-workplace-relational-return"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.260-workplace-relational-return"
+APP_VERSION = "v489.261"
+DEPLOYMENT_FINGERPRINT = "USE-v489.261-guide-related-resource-ranking"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.261-guide-related-resource-ranking"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
