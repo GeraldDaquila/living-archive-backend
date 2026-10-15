@@ -4694,17 +4694,51 @@ def _guide_align_registered_discovery_doorway(subject, documents):
 
 
 def _guide_align_discovery_doorway(subject, documents):
-    """Select the discovery doorway only from vetted documents that can ground it."""
+    """Select direct evidence first, or an approved related resource with its grade."""
     if not str(subject or "").strip() or not isinstance(documents, list) or not documents:
         return None, []
-    candidate = _normalize_authoritative_recommendation(
-        _general_guide_authoritative_doorway(
-            str(subject),
-            {"generation_authority_protected_docs": documents},
-        )
-    )
-    evidence = _guide_selected_doorway_discovery_evidence(documents, subject, candidate)
-    if not candidate or not evidence:
+    # The Guide Node registry is destination authority; evidence grading decides
+    # directness and rank. Do not use the general outward doorway gate here because
+    # it intentionally rejects adjacent resources that this discovery fallback
+    # must be able to describe honestly as related rather than direct.
+    graded = []
+    for index, document in enumerate(documents):
+        if not isinstance(document, dict):
+            continue
+        node = document.get("_guide_node") if isinstance(document.get("_guide_node"), dict) else None
+        if node is None:
+            continue
+        canonical_url = str(node.get("canonical_url") or "").rstrip("/").casefold()
+        document_url = str(document.get("url") or document.get("canonical_url") or "").rstrip("/").casefold()
+        if not canonical_url or canonical_url != document_url:
+            continue
+        grade = _guide_discovery_evidence_grade(subject, document, node=node)
+        if grade["grade"] not in {"direct", "related"}:
+            continue
+        approved = dict(document)
+        approved["_guide_node"] = node
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade["score"]
+        approved["_discovery_support_terms"] = grade["support"]
+        graded.append((
+            0 if grade["grade"] == "direct" else 1,
+            -int(grade["score"]),
+            str(node.get("title") or "").casefold(),
+            index,
+            approved,
+        ))
+    if not graded:
+        return None, []
+    graded.sort(key=lambda item: item[:4])
+    selected = graded[0][-1]
+    candidate = _normalize_authoritative_recommendation({
+        "title": selected.get("title") or selected.get("_guide_node", {}).get("title"),
+        "url": selected.get("url") or selected.get("canonical_url") or selected.get("_guide_node", {}).get("canonical_url"),
+    })
+    if not candidate:
+        return None, []
+    evidence = _guide_selected_doorway_discovery_evidence([selected], subject, candidate)
+    if not evidence:
         return None, []
     return candidate, evidence
 
