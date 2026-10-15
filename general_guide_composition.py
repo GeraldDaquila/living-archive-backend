@@ -621,7 +621,7 @@ def compose(
         "Name the exact source title and give a page, section, passage, or URL only when that detail is present and verified. "
         "Explain briefly what the source supports and whether it supports the full claim or only part of it. "
         "Never substitute a generally related methodology page for the source of the claim. Never invent citations or source details. "
-        "If the supplied material does not establish the source, say exactly what remains unverified.\\n\\n"
+        "If the supplied material does not establish the source, say exactly what remains unverified.\n\n"
         if is_exact_source_request(question)
         else ""
     )
