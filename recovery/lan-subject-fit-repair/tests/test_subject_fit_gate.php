@@ -47,7 +47,7 @@ $resources = [
         ['institutional systems']),
     $resource('institutional-only', 'Institutional Governance',
         'A page about institutional structures and administrative design.',
-        'This page discusses institutional governance, structures, and administration but does not address responsibility or accountability.',
+        'This page discusses institutional governance, structures, and administration only.',
         ['institutional systems']),
     $resource('gesara-nodes', 'GESARA Nodes',
         'A discussion of financial abundance and cosmic nodes.',
