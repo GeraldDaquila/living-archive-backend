@@ -5,7 +5,9 @@ from general_guide_composition import (
     _is_response_preference_without_subject,
     clarification_response,
     compose,
-    correction_subject,\n    is_exact_source_request,\n    source_trace_has_prior_claim,
+    correction_subject,
+    is_exact_source_request,
+    source_trace_has_prior_claim,
 )
 
 
