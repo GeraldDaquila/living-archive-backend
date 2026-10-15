@@ -169,3 +169,70 @@ def test_multi_concept_subject_fit_guard_remains_additive():
         "institutional checks affect how governance works."
     )
     assert main._topic_specific_candidate_fit(query, direct)
+
+
+def test_single_body_mention_is_related_not_direct_on_a_broad_page(monkeypatch):
+    document = _doc(
+        "Leadership Challenge Navigator",
+        "https://geralddaquila.com/leadership-challenge-navigator/",
+        "This navigator supports leadership challenges and team decision-making. "
+        "Institutional responsibility is one concern among many. The page focuses "
+        "on leadership, accountability, institutional trust, communication, and "
+        "working through difficult organizational choices."
+    )
+    node = {
+        "node_id": "leadership", "status": "active",
+        "title": "Leadership Challenge Navigator",
+        "canonical_url": document["url"],
+        "purpose": "Leadership challenges, accountability, and institutional trust",
+        "semantic_hints": ["leadership", "accountability", "institutional trust"],
+    }
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda *_args, **_kwargs: (2, 0, [], 0),
+    )
+    grade = main._guide_discovery_evidence_grade(SUBJECT, document, node=node)
+    assert grade["grade"] == "related"
+
+
+def test_subject_explicit_registry_purpose_outranks_broad_related_node(monkeypatch):
+    related = _doc(
+        "Stewardship Readiness",
+        "https://geralddaquila.com/stewardship-readiness/",
+        "This page connects institutional responsibility with leadership, "
+        "accountability, institutional trust, and stewardship practice. It offers "
+        "a structured starting point for reflection on how organizations act."
+    )
+    broad = _doc(
+        "Leadership Challenge Navigator",
+        "https://geralddaquila.com/leadership-challenge-navigator/",
+        "This page connects institutional responsibility with leadership, "
+        "accountability, institutional trust, and stewardship practice. It offers "
+        "a structured starting point for reflection on how organizations act."
+    )
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda *_args, **_kwargs: (2, 0, [], 0),
+    )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [
+        {
+            "node_id": "leadership", "status": "active",
+            "title": broad["title"], "canonical_url": broad["url"],
+            "purpose": "Leadership readiness and institutional trust",
+            "semantic_hints": ["leadership", "institutional trust"],
+        },
+        {
+            "node_id": "stewardship", "status": "active",
+            "title": related["title"], "canonical_url": related["url"],
+            "purpose": "Institutional responsibility, accountability, and stewardship readiness",
+            "semantic_hints": ["institutional responsibility", "accountability", "stewardship"],
+        },
+    ])
+    doorway, evidence = main._guide_align_registered_discovery_doorway(
+        SUBJECT, [broad, related]
+    )
+    assert doorway is not None
+    assert doorway["title"] == "Stewardship Readiness"
+    assert evidence and evidence[0]["_discovery_relevance"] == "related"
