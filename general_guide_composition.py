@@ -271,7 +271,7 @@ def correction_subject(query: str) -> str:
         match = re.search(pattern, q, re.I)
         if not match:
             continue
-        subject = match.group(1 if index != 1 else 2).strip(" \\t\\r\\n'\\"")
+        subject = match.group(1 if index != 1 else 2).strip().strip(chr(39)).strip(chr(34)).strip()
         subject = re.sub(r"^(?:an?\s+|the\s+)", "", subject, flags=re.I).strip()
         subject = re.sub(r"^(?:please\s+)?(?:explain|describe|define)\s+", "", subject, flags=re.I)
         if 2 <= len(subject.split()) <= 12 and len(subject) <= 120:
