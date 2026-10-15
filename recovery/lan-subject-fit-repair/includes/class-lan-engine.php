@@ -346,6 +346,7 @@ final class LAN_Engine {
             if (isset($field_tokens[$variant])) return true;
         }
         foreach (array_keys($field_tokens) as $field_token) {
+            $field_token = (string)$field_token;
             $common = 0;
             $limit = min(strlen($focus_token), strlen($field_token));
             while ($common < $limit && $focus_token[$common] === $field_token[$common]) $common++;
