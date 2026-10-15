@@ -10,7 +10,6 @@ from hub_contracts import build_hub_request, route_spoke
 from formation_adapter import FormationAdapter
 from relationship_contribution import RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION
 from specialist_adapters import (
-    SpecialistAdapterContext,
     SpecialistAdapterRegistry,
     invoke_specialist,
 )
@@ -117,7 +116,7 @@ def test_formation_three_doors_survive_adapter_pipe_and_hub():
 
     assert result.request_id == "integration-formation-001"
     assert result.specialist_id == "formation"
-    assert result.voice_policy == "preserve_formation_boundary"
+    assert result.voice_policy == "preserve_specialist_boundary"
     assert result.payload["contract_version"] == "formation-v1"
     assert len(result.canonical_candidates) == 3
     assert len({door["id"] for door in result.canonical_candidates}) == 3
