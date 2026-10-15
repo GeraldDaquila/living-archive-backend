@@ -334,7 +334,27 @@ def _clarification_reason(query: str, history_text: str = "") -> str:
 
 
 def clarification_response(query: str, history_text: str = "") -> Optional[Dict[str, str]]:
-    """Offer a concise, natural clarification before retrieval or recommendation."""
+    """Resolve missing subjects and standalone response preferences before retrieval."""
+    # A request about answer style is a conversation preference, not a subject
+    # to search. Resolve it at the request boundary so no unrelated doorway can
+    # be selected and attached later by the ordinary Guide pipeline.
+    if _is_response_preference_without_subject(query, history_text):
+        if re.search(r"\\b(?:advice|recommendations)\\b", query, re.I):
+            response = (
+                "Of course. I’ll focus on explaining the subject itself rather than "
+                "giving advice. What subject would you like to understand?"
+            )
+        else:
+            response = (
+                "Of course. I’ll use clear, everyday language and avoid technical "
+                "or academic terms. What would you like to understand?"
+            )
+        return {
+            "response": response,
+            "response_shape": "clarifying",
+            "clarification_reason": "response_preference_subject_missing",
+        }
+
     reason = _clarification_reason(query, history_text)
     if not reason:
         return None
