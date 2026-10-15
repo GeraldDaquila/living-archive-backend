@@ -67,8 +67,8 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # operation floor while retaining provider-level model ceilings.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
-GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.2
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -1306,9 +1306,9 @@ def select(use_core, operation="generic", schema=None):
             return (
                 health_rank,
                 int(best.get("quality_failures", 0) or 0),
+                0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 int(best.get("consecutive_failures", 0) or 0),
                 int(best.get("transport_failures", 0) or 0),
-                0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
                 -float(best.get("last_success", 0) or 0),
             )
