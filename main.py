@@ -3902,6 +3902,23 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_supportive_recovery", "model": ""}
 
+    # Preserve a direct, bounded explanation of institutional responsibility when
+    # provider composition is unavailable. A relevant doorway is not a substitute
+    # for answering the visitor, and missing Archive evidence is not missing general
+    # knowledge. This is explicitly general knowledge, not Archive attribution.
+    if re.search(r"\binstitutional responsibility\b", q):
+        response = (
+            "Institutional responsibility means that an organization and the people who lead or act for it must answer for the decisions they make, the duties they hold, and the effects those decisions have on others. It is not enough for an institution to say that a harmful outcome was nobody’s personal intention; its rules, choices, and failures to act can still have real consequences.\n\n"
+            "For example, if a public office repeatedly loses applications, responsibility includes more than blaming the employee at the desk. The office should examine its process, explain what went wrong, correct the problem, and make it less likely to happen again. Individual people may also be accountable for their own choices, but the institution must address problems built into its systems.\n\n"
+            "Institutional responsibility does not mean an organization can control everything or guarantee perfect results. It means being clear about its obligations, making decisions fairly, giving reasons, listening to people affected, correcting preventable harm, and accepting appropriate oversight. The exact duties depend on the institution’s role, the rules that govern it, and the situation involved."
+        )
+        return {
+            "response": response,
+            "doorway_title": title,
+            "provider": "bounded_general_knowledge_recovery",
+            "model": "",
+        }
+
     # When provider composition is exhausted, preserve a directly asked public
     # governance topic instead of falling through to the generic refusal path.
     # This is general knowledge, not a claim that the Archive supplied evidence.
