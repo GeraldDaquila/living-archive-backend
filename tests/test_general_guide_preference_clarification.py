@@ -5,7 +5,27 @@ from general_guide_composition import (
     _is_response_preference_without_subject,
     clarification_response,
     compose,
+    correction_subject,
 )
+
+
+def test_correction_request_recovers_the_subject_the_visitor_says_was_missed():
+    query = (
+        "I asked about institutional responsibility, but you answered about "
+        "personal growth. Can you correct that?"
+    )
+    assert correction_subject(query) == "institutional responsibility"
+
+
+def test_correction_request_accepts_reverse_subject_order():
+    assert correction_subject(
+        "You answered about personal growth, but I asked about institutional responsibility. "
+        "Please correct that."
+    ) == "institutional responsibility"
+
+
+def test_ordinary_question_is_not_misclassified_as_a_correction():
+    assert correction_subject("Explain institutional responsibility in plain language.") == ""
 
 
 def test_advice_preference_without_subject_clarifies_without_retrieval():
