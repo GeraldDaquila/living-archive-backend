@@ -245,7 +245,7 @@ def test_action_guidance_contract_failure_skips_same_model_rewrite_and_uses_inde
             "Those two parts of your account can both be true: the effort may feel uneven, and you may still be unsure "
             "what explains the difference. What your friend is experiencing remains unknown from this account alone."
         ),
-        "question": "Can you recall a recent moment when you were the one who reached out?",
+        "question": "What happened the last time you were the one who reached out to your friend?",
         "rest": False,
         "use_resource": False,
         "resource_intro": "",
