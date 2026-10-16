@@ -79,7 +79,7 @@ def main():
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
     assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
     assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0" in provider
