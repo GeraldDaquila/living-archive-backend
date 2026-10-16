@@ -51,3 +51,36 @@ def test_catalogue_is_available_as_native_handoff_not_adapter():
     assert audit["direct_handoffs"]["catalogue"] == "native_catalogue_search"
     assert "catalogue" not in audit["available_capabilities_missing_adapters"]
     assert audit["ok"] is True
+
+
+def test_request_boundary_hands_explicit_resource_search_to_catalogue():
+    from starlette.testclient import TestClient
+
+    query = "Where can I find material about institutional responsibility?"
+    with TestClient(main.app) as client:
+        response = client.post("/api/query", json={"query": query})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "CATALOGUE_HANDOFF"
+    assert payload["handoff"] == "catalogue"
+    assert payload["catalogue_query"] == query
+
+
+def test_request_boundary_keeps_explanatory_question_in_guide(monkeypatch):
+    from starlette.testclient import TestClient
+
+    monkeypatch.setattr(
+        main,
+        "_basic_inquiry_response",
+        lambda **kwargs: {"response": "A bounded Guide explanation."},
+    )
+    query = "What is stewardship and why does it matter now more than ever?"
+    with TestClient(main.app) as client:
+        response = client.post("/api/query", json={"query": query})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload.get("intent") != "CATALOGUE_HANDOFF"
+    assert payload.get("handoff") != "catalogue"
+    assert "bounded Guide explanation" in str(payload.get("response") or payload)
