@@ -1670,9 +1670,9 @@ Visitor response: " . $message;
         $validated['archive_grounding']=$archive_grounding_json;
         $validated['grounding_anchor'] = (array)($archive_grounding['grounding_anchor'] ?? array());
         $validated['archive_grounded_understanding'] = $this->archive_grounded_understanding($validated['relational_understanding'] ?? '', $archive_grounding);
-        // Structural grounding seam: the frozen composer already treats relational_understanding as substantive interpretive ground.
-        // Promote the grounded form into that existing channel without modifying the frozen human-voice writer.
-        $validated['relational_understanding'] = $validated['archive_grounded_understanding'];
+        // Preserve the visitor's relational understanding as its own channel.
+        // Canonical Archive evidence remains available separately through archive_grounded_understanding,
+        // archive_grounding, and grounding_anchor; it must not replace relational interpretation.
         $unit_position = max(1, intval($ledger['turn'] ?? 1));
         $fractal_boundary = $this->fractal_boundary_reached($validated);
         $spiral_matured = in_array(strtolower(trim((string)($validated['fractal_maturity'] ?? ''))), array('mature','complete'), true)

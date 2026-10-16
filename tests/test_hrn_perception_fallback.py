@@ -27,7 +27,7 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
 
 
-def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypatch):
+def test_perception_fast_failures_respect_bounded_candidate_policy(monkeypatch):
     candidates = [
         _candidate("gemini", "model-a"),
         _candidate("mistral", "model-b"),
@@ -72,14 +72,16 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "groq"
-    assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai", "nvidia", "groq"]
+    # One initial candidate plus at most one fallback; do not consume the turn
+    # trying a fifth provider when the current contract is deliberately bounded.
+    assert result is None
+    assert len(calls) <= 2  # one primary candidate plus one fallback
+    assert "groq" not in [provider for provider, _ in calls]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
-    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 7.0
+    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 1
+    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
     assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 4.5
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
 
 
 def test_hrn_relational_does_not_promote_half_open_workers_over_proven_healthy_candidate(monkeypatch):
@@ -717,7 +719,7 @@ def test_hrn_surface_policy_distinguishes_reported_words_from_advice():
     assert provider_bank._hrn_surface_language_violation(reported_observation) == ""
     assert provider_bank._hrn_surface_language_violation(direct_advice) != ""
 
-def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monkeypatch):
+def test_perception_fallback_respects_bounded_candidate_policy(monkeypatch):
     """A model-level timeout must not hide a healthy sibling model."""
     candidates = [
         _candidate("groq", "model-a"),
@@ -756,14 +758,11 @@ def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monke
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "nvidia"
-    assert result["model"] == "nemotron-model"
-    assert calls == [
-        ("groq", "model-a"),
-        ("nvidia", "gemma-model"),
-        ("nvidia", "nemotron-model"),
-    ]
+    # The current policy permits one fallback candidate, not an unbounded
+    # sibling-model search after that candidate fails.
+    assert result is None
+    assert len(calls) <= 2  # primary plus the single permitted fallback
+    assert ("nvidia", "nemotron-model") not in calls
 
 def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monkeypatch):
     """Try one independent provider, then a sibling model, within the existing 7s budget."""
@@ -828,8 +827,8 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
         ("openrouter", "model-b"),
         ("nvidia", "nemotron-model"),
     ]
-    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
+    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
 
 
 
@@ -919,7 +918,7 @@ def test_provider_timeout_circuit_is_isolated_by_operation():
 
 
 
-def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypatch):
+def test_perception_stops_after_failure_exceeds_fast_window(monkeypatch):
     candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
     _isolate(monkeypatch, candidates)
 
@@ -946,9 +945,8 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "nvidia"
-    assert calls == ["groq", "nvidia"]
+    assert result is None
+    assert calls == ["groq"]
     assert clock.value == 3.5
 
 
@@ -1096,4 +1094,4 @@ def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_g
     )
 
     assert result is not None
-    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 4.5)]
+    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 2.5)]
