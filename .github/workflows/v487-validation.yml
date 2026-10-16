@@ -13,6 +13,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: pip install -r requirements.txt pytest
+      - name: PHP syntax check for HRN v0.5.332 candidate
+        run: php -l recovery/live-hrn-v05330/candidate/human-relational-navigator.php
+      - name: HRN v0.5.332 runtime question-recovery smoke test
+        run: php tests/hrn_v05332_question_recovery_smoke.php
+      - name: HRN v0.5.332 source-contract regression
+        run: PYTHONPATH=. python -m pytest -q tests/test_hrn_v05332_source_contract.py
       - name: Compile current production modules
         run: >-
           python -m py_compile main.py use_core.py boundary_resilience.py provider_resilience.py provider_health_store.py provider_quota_control.py provider_bank.py shared_evidence.py shared_intelligence_primitives.py relationship_contribution.py relationship_adapter.py formation_contribution.py formation_adapter.py specialist_adapters.py specialist_registry.py QA/V487_91_DOORWAY_ADAPTER_QA.py QA/V487_91_DOORWAY_ADAPTER_TESTS.py QA/V487_92_JOURNEY_CONTRIBUTION_QA.py QA/V487_92_JOURNEY_CONTRIBUTION_TESTS.py QA/V489_84_HRN_PROVIDER_LANE_ARBITRATION_TESTS.py QA/V489_82_HRN_RELATIONAL_RETURN_QA.py QA/V489_102_HRN_ACTION_GUIDANCE_SURFACE_POLICY_QA.py

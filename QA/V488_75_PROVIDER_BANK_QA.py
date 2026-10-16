@@ -79,10 +79,10 @@ def main():
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
     assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
-    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 4.5" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -96,11 +96,11 @@ def main():
     assert 'requested_max_tokens = min(requested_max_tokens, HRN_RELATIONAL_MAX_COMPLETION_TOKENS)' in provider
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Provider-specific HRN transport budgets stay bounded; the proven Gemma
-    # 4 26B lane gets a narrowly scoped extra second for its observed latency.
+    # 4 26B lane gets a narrowly scoped 2.5-second timeout exception.
     assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider
     assert "timeout_override=_provider_call_timeout(operation, item)" in provider
-    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
-    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5' in provider
+    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5' in provider
+    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
     assert 'model == "@cf/google/gemma-4-26b-a4b-it"' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
@@ -441,7 +441,7 @@ def main():
     assert len(shape_routed["parsed"]["response"]) >= 180
 
     # Fast provider failures may traverse multiple independent relational lanes,
-    # but only while the existing five-second aggregate window remains open.
+    # but only while the existing 4.5-second relational window remains open.
     fast_fallback_pool = [
         {"provider": "openrouter", "model": "openrouter/free", "index": 0},
         {"provider": "mistral", "model": "mistral-small-latest", "index": 0},
@@ -479,7 +479,7 @@ def main():
     )
     assert fast_call.call_count == 3, "Fast failures should advance through bounded independent lanes."
 
-    # A 9.27s first failure exceeds the nine-second relational fast-failure window.
+    # A 4.51s first failure exceeds the 4.5-second relational fast-failure window.
     # It must return control to the WordPress mirror boundary instead of spending
     # another provider timeout inside the same primary request.
     with (
@@ -489,7 +489,7 @@ def main():
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
         patch.object(provider_bank, "acquire_probe", return_value=True),
         patch.object(provider_bank, "_success"),
-        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 9.27]),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 4.51]),
     ):
         measured_routed = provider_bank.route(
             use_core=None,
@@ -509,7 +509,7 @@ def main():
     assert measured_routed is None
     assert measured_call.call_count == 1, "A slow first failure must yield to the mirror."
 
-    # Once the nine-second fast-failure window is exceeded, the extra provider must not run.
+    # Once the 4.5-second fast-failure window is exceeded, the extra provider must not run.
     with (
         patch.dict(os.environ, {"USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS": "1"}, clear=False),
         patch.object(provider_bank, "select", return_value=fast_fallback_pool),
@@ -517,7 +517,7 @@ def main():
         patch.object(provider_bank, "_STATE", {"models": {}, "provider_cursor": 0, "model_cursors": {}, "quality": {}}),
         patch.object(provider_bank, "acquire_probe", return_value=True),
         patch.object(provider_bank, "_success"),
-        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 9.01, 9.01, 9.01, 9.01]),
+        patch.object(provider_bank.time, "monotonic", side_effect=[0.0, 4.51, 4.51, 4.51, 4.51]),
     ):
         over_budget_routed = provider_bank.route(
             use_core=None,
@@ -535,7 +535,7 @@ def main():
             operation="hrn_relational",
         )
     assert over_budget_routed is None
-    assert over_budget_call.call_count == 1, "The extra provider must be skipped after three seconds."
+    assert over_budget_call.call_count == 1, "The extra provider must be skipped after the 4.5-second window."
 
     # OpenRouter's free daily allowance is shared across model IDs. A 429
     # for free-models-per-day must quarantine the whole OpenRouter lane until

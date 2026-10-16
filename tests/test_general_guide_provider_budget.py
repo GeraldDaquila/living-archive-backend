@@ -1,6 +1,8 @@
 """Regression tests for bounded General Guide provider arbitration."""
 import json
 
+import pytest
+
 import provider_bank
 
 
@@ -181,7 +183,7 @@ def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypa
     assert result["provider"] == "mistral"
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert all(timeout == 1.5 for _, timeout in calls)
-    assert clock.value == 0.6
+    assert clock.value == pytest.approx(0.6)
 
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
