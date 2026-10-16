@@ -819,11 +819,15 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
         operation="hrn_relational",
     )
 
-    # Current relational policy is capped at two total candidates here.
-    assert result is None
+    # The configured value counts fallback candidates after the initial attempt.
+    # One independent lane may fail before the sibling model succeeds.
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nemotron-model"
     assert calls == [
         ("nvidia", "gemma-model"),
         ("openrouter", "model-b"),
+        ("nvidia", "nemotron-model"),
     ]
     assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
