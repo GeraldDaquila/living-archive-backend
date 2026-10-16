@@ -1,4 +1,6 @@
 """Routing boundary tests for native Catalogue resource search."""
+from urllib.parse import quote
+
 import main
 
 
@@ -34,5 +36,5 @@ def test_catalogue_handoff_preserves_original_query_and_native_boundary():
     assert payload["handoff_mode"] == "direct"
     assert payload["return_mode"] == "native_catalogue_search"
     assert payload["catalogue_query"] == query
-    assert query in payload["catalogue_url"] or "catalogue_query=" in payload["catalogue_url"]
+    assert quote(query, safe="") in payload["catalogue_url"]
     assert payload["response"] == ""
