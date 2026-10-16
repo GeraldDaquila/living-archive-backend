@@ -72,7 +72,7 @@ Exact live HRN v0.5.330 source could not be retrieved through the current Cowboy
 ### Render services
 - Primary USE `srv-da98sm2jnfac73d2ki5g`: latest deployment LIVE at v489.268 / commit `6fb85fe3efa229cbe2aba03dab489d6069e6f8e0`.
 - Canonical USE2-Mirror `srv-db2s2bid0e5s73e7gt9g`: service metadata confirms `suspended=not_suspended`; its latest deployment record is LIVE at the same commit as primary. Render app logs show `GET /` returning HTTP 200 at 2026-10-16 04:30 UTC and `/api/provider-capability` returning HTTP 200 at 04:21 UTC. These are endpoint-level smoke signals, not proof of a full visitor journey. Provider health-store timeouts and upstream rate-limit/timeout errors also appear in the same window.
-- A second service `living-archive-backend-deuu` exists in the Mirror workspace and is suspended. Do not confuse it with the canonical mirror.
+- The redundant service `living-archive-backend-deuu` (ID `srv-db2scecs728c73ag0dn0`) was deleted on 2026-10-16 after confirming the canonical Mirror identity. It is no longer part of the active service inventory. The designated Mirror remains `srv-db2s2bid0e5s73e7gt9g`; do not recreate the redundant service.
 - Catalogue `srv-dami28f40ujc73b15ej0`: latest deployment LIVE at M0.15.70 / commit `d2fd087cf7923fc02ddc108ed36fa01d6de5c42e`.
 - Additional Catalogue workspace services (`mini-use-payhip-m01554-candidate` and `mini-use-payhip-stewardship`) remain present. Do not delete or suspend them until caller/dependency tracing proves it safe.
 
