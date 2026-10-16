@@ -5009,7 +5009,7 @@ HRN_QUESTION_REPAIR;
     private function one_sided_effort_recovery_candidate($message) {
         $message = trim((string)$message);
         if ($message === '') return '';
-        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one|i\\'m the one)\\b/i', $message);
+        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one)\\b/i', $message);
         $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|showing up)\\b/i', $message);
         $relationship = preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $message);
         if (!$asymmetry || !$effort || !$relationship) return '';
@@ -5028,7 +5028,7 @@ HRN_QUESTION_REPAIR;
         $message = strtolower(trim((string)$message));
         if ($response === '' || $message === '') return false;
         $abstract_frame = preg_match('/\\b(?:distribution of tasks|actual distribution|perceiving (?:their|your) participation|imbalance in the actual distribution)\\b/i', $response);
-        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one|i\\'m the one)\\b/i', $message);
+        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one)\\b/i', $message);
         $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|showing up)\\b/i', $message);
         $relationship = preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $message);
         return (bool)($abstract_frame && $asymmetry && $effort && $relationship);
