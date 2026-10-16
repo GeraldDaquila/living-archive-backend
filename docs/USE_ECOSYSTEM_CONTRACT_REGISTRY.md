@@ -71,7 +71,7 @@ Exact live HRN v0.5.330 source could not be retrieved through the current Cowboy
 
 ### Render services
 - Primary USE `srv-da98sm2jnfac73d2ki5g`: latest deployment LIVE at v489.268 / commit `6fb85fe3efa229cbe2aba03dab489d6069e6f8e0`.
-- Canonical USE2-Mirror `srv-db2s2bid0e5s73e7gt9g`: latest deployment record is LIVE at the same commit as primary. The service-detail call returned 404 and the service-list result did not include its suspension field, so current serving/health state remains UNVERIFIED. A deployment record marked live does not alone prove the service is currently serving traffic.
+- Canonical USE2-Mirror `srv-db2s2bid0e5s73e7gt9g`: service metadata confirms `suspended=not_suspended`; its latest deployment record is LIVE at the same commit as primary. Runtime health and successful request handling still require a live smoke test. A deployment record alone does not prove end-to-end visitor-path correctness.
 - A second service `living-archive-backend-deuu` exists in the Mirror workspace and is suspended. Do not confuse it with the canonical mirror.
 - Catalogue `srv-dami28f40ujc73b15ej0`: latest deployment LIVE at M0.15.70 / commit `d2fd087cf7923fc02ddc108ed36fa01d6de5c42e`.
 - Additional Catalogue workspace services (`mini-use-payhip-m01554-candidate` and `mini-use-payhip-stewardship`) remain present. Do not delete or suspend them until caller/dependency tracing proves it safe.
