@@ -87,9 +87,10 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     )
 
     assert result is None
+    # A six-second first-lane failure exhausts the relational window; do not
+    # start another provider after the mirror budget has been consumed.
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
@@ -124,7 +125,7 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
     def two_fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
         if len(calls) < 3:
-            clock.value += 1.7
+            clock.value += 1.4
             raise RuntimeError("simulated fast provider failure")
         return good_response
 
