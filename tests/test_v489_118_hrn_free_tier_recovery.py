@@ -137,7 +137,7 @@ def test_hrn_free_attempt_cap_is_bounded():
             os.environ["USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS"] = old
 
 
-def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
+def test_hrn_relational_respects_two_fallback_candidate_cap(monkeypatch):
     candidates = [
         _item("groq", "openai/gpt-oss-120b"),
         _item("gemini", "gemini-3.8-flash"),
@@ -177,8 +177,11 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         operation="hrn_relational",
     )
 
-    assert result and result["provider"] == "workers_ai"
-    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
+    # Production permits the primary plus two fallback candidates. The
+    # quality-rejected Workers AI lane remains excluded, and no fourth attempt
+    # may be added just because the synthetic calls return quickly.
+    assert result is None
+    assert attempts == ["groq", "gemini", "mistral"]
 
 
 
@@ -214,7 +217,7 @@ def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch
 
 
 def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS < provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
 
 
