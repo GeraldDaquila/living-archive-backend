@@ -27,7 +27,7 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
 
 
-def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypatch):
+def test_perception_fast_failures_stop_at_one_bounded_fallback(monkeypatch):
     candidates = [
         _candidate("gemini", "model-a"),
         _candidate("mistral", "model-b"),
@@ -46,22 +46,14 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
 
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if item["provider"] != "groq" or item["model"] != "model-e":
-            durations = {
-                "gemini": 0.27,
-                "mistral": 1.025,
-                "workers_ai": 1.030,
-                "nvidia": 1.005,
-            }
-            clock.value += durations.get(item["provider"], 0.25)
-            raise provider_bank.ProviderCallError(
-                "simulated fast provider failure",
-                item["provider"],
-                item["model"],
-                429 if item["provider"] == "mistral" else 503,
-                category="rate_limited" if item["provider"] == "mistral" else "http_error",
-            )
-        return json.dumps({"perception": "bounded synthetic result"})
+        clock.value += 0.27
+        raise provider_bank.ProviderCallError(
+            "simulated fast provider failure",
+            item["provider"],
+            item["model"],
+            503,
+            category="http_error",
+        )
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
     result = provider_bank.route(
@@ -72,15 +64,13 @@ def test_perception_fast_failures_can_reach_fifth_independent_provider(monkeypat
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "groq"
-    assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai", "nvidia", "groq"]
+    assert result is None
+    assert [provider for provider, _ in calls] == ["gemini", "mistral"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 4
-    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 7.0
+    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 1
+    assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
     assert provider_bank.HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS == 4.5
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
-
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
 
 def test_hrn_relational_does_not_promote_half_open_workers_over_proven_healthy_candidate(monkeypatch):
     candidates = [
@@ -717,8 +707,8 @@ def test_hrn_surface_policy_distinguishes_reported_words_from_advice():
     assert provider_bank._hrn_surface_language_violation(reported_observation) == ""
     assert provider_bank._hrn_surface_language_violation(direct_advice) != ""
 
-def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monkeypatch):
-    """A model-level timeout must not hide a healthy sibling model."""
+def test_perception_fallback_does_not_exceed_one_alternate_candidate(monkeypatch):
+    """Perception stays within one fallback even when a later sibling could succeed."""
     candidates = [
         _candidate("groq", "model-a"),
         _candidate("nvidia", "gemma-model"),
@@ -756,14 +746,9 @@ def test_perception_fallback_can_try_an_alternate_model_from_same_provider(monke
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "nvidia"
-    assert result["model"] == "nemotron-model"
-    assert calls == [
-        ("groq", "model-a"),
-        ("nvidia", "gemma-model"),
-        ("nvidia", "nemotron-model"),
-    ]
+    assert result is None
+    assert calls == [("groq", "model-a"), ("nvidia", "gemma-model")]
+    assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 1
 
 def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monkeypatch):
     """Try one independent provider, then a sibling model, within the existing 7s budget."""
@@ -828,8 +813,8 @@ def test_relational_fallback_prioritizes_sibling_after_one_independent_lane(monk
         ("openrouter", "model-b"),
         ("nvidia", "nemotron-model"),
     ]
-    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
+    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
 
 
 
@@ -919,7 +904,7 @@ def test_provider_timeout_circuit_is_isolated_by_operation():
 
 
 
-def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypatch):
+def test_perception_slow_failure_exhausts_budget_without_extra_fallback(monkeypatch):
     candidates = [_candidate("groq", "model-a"), _candidate("nvidia", "model-b")]
     _isolate(monkeypatch, candidates)
 
@@ -932,10 +917,8 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
 
     def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         calls.append(item["provider"])
-        if item["provider"] == "groq":
-            clock.value += 3.5
-            raise RuntimeError("simulated slow first-provider failure")
-        return json.dumps({"perception": "bounded synthetic result"})
+        clock.value += 3.5
+        raise RuntimeError("simulated slow first-provider failure")
 
     monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
     result = provider_bank.route(
@@ -946,11 +929,9 @@ def test_perception_tries_one_fallback_after_slow_but_budgeted_failure(monkeypat
         operation="hrn_perception",
     )
 
-    assert result is not None
-    assert result["provider"] == "nvidia"
-    assert calls == ["groq", "nvidia"]
+    assert result is None
+    assert calls == ["groq"]
     assert clock.value == 3.5
-
 
 def test_recently_successful_gemma26_is_first_for_perception(monkeypatch):
     candidates = [
@@ -1096,4 +1077,5 @@ def test_hrn_relational_promotes_proven_workers_gemma26_before_quota_exhausted_g
     )
 
     assert result is not None
-    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", 4.5)]
+    assert calls == [("workers_ai", "@cf/google/gemma-4-26b-a4b-it", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS)]
+    assert provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
