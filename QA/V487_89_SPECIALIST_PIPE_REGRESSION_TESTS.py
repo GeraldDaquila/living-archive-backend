@@ -636,7 +636,7 @@ def test_current_main_contains_domain_payload_consumption_guards():
     provider_bank_source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
     assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider_bank_source
     assert "timeout_override=_provider_call_timeout(operation, item)" in provider_bank_source
-    assert "HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5" in provider_bank_source
+    assert "HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5" in provider_bank_source
     assert "recovery_messages.append({" in provider_bank_source
     assert "Correct the output now." in provider_bank_source
 
