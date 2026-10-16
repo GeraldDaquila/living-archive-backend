@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.268 — balanced Guide provider timeout
+# USE PRODUCTION VERSION: v489.269 — native Catalogue resource-search handoff
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.268"
-DEPLOYMENT_FINGERPRINT = "USE-v489.268-guide-balanced-timeout"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.268-guide-balanced-timeout"
+APP_VERSION = "v489.269"
+DEPLOYMENT_FINGERPRINT = "USE-v489.269-native-catalogue-resource-search-handoff"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.269-native-catalogue-resource-search-handoff"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.268":
+if str(APP_VERSION) != "v489.269":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -2660,6 +2660,73 @@ def _catalogue_handoff_url(query):
         + "?catalogue_query="
         + quote(str(query or "").strip(), safe="")
     )
+def _is_catalogue_resource_search_query(query):
+    """Recognize natural-language requests to find/browse resources, not explanatory questions."""
+    text = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not text:
+        return False
+
+    resource_noun = (
+        r"(?:resources?|materials?|sources?|works?|essays?|articles?|cases?|"
+        r"readings?|publications?|texts?|information|content)"
+    )
+
+    # Resource-seeking questions can start with "what/which" without asking
+    # for an explanation of the underlying topic.
+    if re.search(rf"^(?:what|which)\s+{resource_noun}\b", text):
+        return True
+
+    search_pattern = re.compile(
+        rf"\b(?:where can i find|where do i find|how can i find|"
+        rf"find(?: me)?|search(?: for| the archive| the catalogue| the catalog)|"
+        rf"browse|explore|look(?:ing)? for|locate|recommend|suggest|"
+        rf"show me|list|give me|provide|surface|open)\b"
+        rf".{{0,120}}\b{resource_noun}\b"
+    )
+    # These requests explicitly name the Catalogue/Archive even when the
+    # visitor describes the task as browsing or exploring rather than searching.
+    catalogue_pattern = re.compile(
+        r"\b(?:browse|explore|search|open)\s+(?:the\s+)?"
+        r"(?:catalogue|catalog|archive)\b"
+    )
+    match = search_pattern.search(text)
+    if not match and not catalogue_pattern.search(text):
+        return False
+
+    # Preserve Guide explanations when a visitor asks an explanatory question
+    # first and only then appends a resource request.
+    explanatory_pattern = re.compile(
+        r"\b(?:what is|what are|why is|why are|why does|why do|"
+        r"explain|how does|how do|how is|how are)\b"
+    )
+    explanatory = explanatory_pattern.search(text)
+    if explanatory and match and explanatory.start() < match.start():
+        return False
+    if explanatory and not match:
+        return False
+    return True
+
+
+def _catalogue_handoff_payload(query, history):
+    catalogue_url = _catalogue_handoff_url(query)
+    request_id = "catalogue-" + hashlib.sha1(
+        (query + "|" + _history_text(history)).encode("utf-8")
+    ).hexdigest()[:16]
+    return {
+        "ok": True,
+        "version": APP_VERSION,
+        "query": query,
+        "intent": "CATALOGUE_HANDOFF",
+        "response": "",
+        "handoff": "catalogue",
+        "handoff_mode": "direct",
+        "handoff_pending": True,
+        "catalogue_query": query,
+        "catalogue_url": catalogue_url,
+        "return_mode": "native_catalogue_search",
+        "visitor_boundary_version": APP_VERSION,
+        "request_id": request_id,
+    }
 
 
 def _atlas_handoff_url(query):
@@ -6458,6 +6525,13 @@ async def _use_request_boundary(scope, receive, send):
     # failure must NOT re-enter the legacy capability router: doing so creates
     # a second classification decision and can turn a transient generation
     # failure into a false specialist handoff.
+    # Explicit resource-search requests belong to the native Catalogue. This
+    # boundary runs before Basic Inquiry recovery so broad source-finding
+    # questions do not collapse to one generic recommendation. Explanatory
+    # questions remain in the frozen Guide composition path.
+    if _is_catalogue_resource_search_query(query):
+        return await _use_send_json(send, _catalogue_handoff_payload(query, history))
+
     if not _basic_inquiry_requires_macro_routing(query):
         try:
             basic_result = _basic_inquiry_response(
@@ -6660,33 +6734,10 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    # Catalogue is a visitor-facing specialist surface, not a Guide retrieval
-    # spoke. Preserve the visitor's request and let the native Catalogue own
-    # the actual resource search and presentation.
+    # Catalogue is a native visitor-facing search surface, not a Guide retrieval
+    # spoke. Preserve the original request and let Catalogue own retrieval/ranking.
     if route_id == "catalogue":
-        catalogue_url = _catalogue_handoff_url(query)
-        request_id = "catalogue-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-        print(
-            "The Guide direct Catalogue handoff: "
-            f"request_id={request_id}, url={catalogue_url}"
-        )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "CATALOGUE_HANDOFF",
-            "response": "",
-            "handoff": "catalogue",
-            "handoff_mode": "direct",
-            "handoff_pending": True,
-            "catalogue_query": query,
-            "catalogue_url": catalogue_url,
-            "return_mode": "native_catalogue_search",
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-        })
+        return await _use_send_json(send, _catalogue_handoff_payload(query, history))
 
         # Navigator is a visitor-facing specialist surface. Hand the original
     # inquiry to its native Start Here/Navigator experience rather than
@@ -7223,11 +7274,9 @@ def ecosystem_integration_audit():
         item["specialist_id"] for item in capabilities
         if item["status"] == "available"
     }
-    missing_adapters = sorted(declared_available - adapter_set)
-    unregistered_adapters = sorted(adapter_set - capability_ids)
 
-    # These routes hand the visitor to a native surface; they are not runtime
-    # retrieval spokes and must not be misreported as adapter-backed.
+    # Native visitor-facing surfaces are available capabilities, but they are
+    # deliberately not adapter-backed retrieval spokes.
     direct_handoffs = {
         "catalogue": "native_catalogue_search",
         "systems_ph": "native_philippine_systems_landing",
@@ -7235,6 +7284,9 @@ def ecosystem_integration_audit():
         "fsd": "native_fsd_landing",
         "guide_node": "canonical_guide_node",
     }
+    native_handoff_ids = set(direct_handoffs)
+    missing_adapters = sorted(declared_available - adapter_set - native_handoff_ids)
+    unregistered_adapters = sorted(adapter_set - capability_ids)
 
     return {
         "ok": not missing_adapters and not unregistered_adapters,

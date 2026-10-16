@@ -59,9 +59,9 @@ SPECIALIST_REGISTRY: Tuple[SpecialistCapability, ...] = (
         domain="stewardship resources",
         purpose="Navigate the specialized stewardship catalogue.",
         entry_point="catalogue",
-        trigger_territory="bounded questions about stewardship resources and specialized catalogue material",
+        trigger_territory="explicit resource-search requests for stewardship resources and specialized catalogue material",
         access_class="catalogue",
-        status="planned",
+        status="available",
     ),
     SpecialistCapability(
         specialist_id="systems_ph",

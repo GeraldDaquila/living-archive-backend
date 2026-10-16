@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTECTED = {
     "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
     "main_v487_28_runtime.py": "4c8c72d70fa5f93e8bbcdd1c1d8e4696a4949a31",
-    "specialist_registry.py": "9c18aca2c47333355ba87c650af32f9b43e2f716",
+    "specialist_registry.py": "b796272adf1f1d018c83c1aa092f76eee28c49d8",
     "specialist_adapters.py": "ff27c9e7c6df66c622cf389765c7fed775810383",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "c10a26e2f4432a0b7712dbc17e8acca4a76c17c5",
