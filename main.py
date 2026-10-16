@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.269 — balanced Guide provider timeout
+# USE PRODUCTION VERSION: v489.269 — native Catalogue resource-search handoff
 import asyncio
 import hashlib
 from html import unescape
@@ -72,7 +72,7 @@ app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.269"
 DEPLOYMENT_FINGERPRINT = "USE-v489.269-native-catalogue-resource-search-handoff"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.269-guide-balanced-timeout"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.269-native-catalogue-resource-search-handoff"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
