@@ -72,10 +72,10 @@ def test_perception_fallback_stops_before_exceeding_turn_budget(monkeypatch):
         operation="hrn_perception",
     )
 
-    # The current 3-second perception window can admit only candidates whose
-    # complete bounded call fits. Do not walk into NVIDIA/Groq after the window.
+    # The current 3-second perception window admits only candidates whose full
+    # bounded call fits. The Workers AI timeout exception does not fit here.
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "mistral", "workers_ai"]
+    assert [provider for provider, _ in calls] == ["gemini", "mistral"]
     assert all(timeout == provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.HRN_PERCEPTION_FAST_FALLBACK_MAX_CANDIDATES == 1
     assert provider_bank.HRN_PERCEPTION_FAST_FAILURE_WINDOW_SECONDS == 3.0
