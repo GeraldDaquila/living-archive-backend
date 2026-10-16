@@ -87,9 +87,9 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     )
 
     assert result is None
+    # The first candidate exceeded the slow-failure stop; do not spend another provider call.
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
@@ -148,13 +148,13 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
         operation="hrn_relational",
     )
 
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
-    assert result is not None
-    assert result["provider"] == "mistral"
+    # Two fast failures consume 3.4s; only 1.1s remains, less than the next 1.5s timeout.
+    # The bounded policy therefore fails closed instead of starting a third candidate.
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
+    assert result is None
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
         ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("mistral", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
