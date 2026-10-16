@@ -57,6 +57,23 @@ if ($question !== $expected) {
     exit(1);
 }
 
+$messageInitiation = "In a friendship, I am usually the one who initiates contact and makes plans. When I stop, we don't speak for weeks. What might that pattern tell me about the relationship?";
+$responseInitiation = 'When you initiate contact and the friendship stalls until you do, the pattern suggests that the connection may be more dependent on your outreach than on a mutual rhythm.';
+$expectedInitiationQuestion = 'What happens to the contact between you when you stop initiating it?';
+$questionInitiation = $complete->invoke($instance, $responseInitiation, $messageInitiation, array(), array());
+if ($questionInitiation !== $expectedInitiationQuestion) {
+    fwrite(STDERR, "The observed generic relationship-pattern question was not replaced with a contact-grounded question: " . var_export($questionInitiation, true) . "\n");
+    exit(1);
+}
+$initiationRecovery = new ReflectionMethod($class, 'one_sided_effort_recovery_candidate');
+$initiationRecovery->setAccessible(true);
+$initiationResponse = $initiationRecovery->invoke($instance, $messageInitiation);
+if (strpos((string)$initiationResponse, 'starts contact and makes plans') === false
+    || strpos((string)$initiationResponse, 'long silence') === false) {
+    fwrite(STDERR, "The observed initiation-and-silence pattern did not receive grounded prose recovery.\n");
+    exit(1);
+}
+
 $messageEffort = "I care about a friend, but lately I feel I'm always the one making an effort. I don't want to judge them unfairly, but I also don't want to keep ignoring how I feel. How can I understand what's happening between us?";
 $effortResponseMethod = new ReflectionMethod($class, 'one_sided_effort_recovery_candidate');
 $effortResponseMethod->setAccessible(true);
