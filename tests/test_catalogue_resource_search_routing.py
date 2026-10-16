@@ -38,3 +38,16 @@ def test_catalogue_handoff_preserves_original_query_and_native_boundary():
     assert payload["catalogue_query"] == query
     assert quote(query, safe="") in payload["catalogue_url"]
     assert payload["response"] == ""
+
+
+def test_catalogue_is_available_as_native_handoff_not_adapter():
+    audit = main.ecosystem_integration_audit()
+    catalogue = next(
+        item for item in audit["capability_registry"]
+        if item["specialist_id"] == "catalogue"
+    )
+
+    assert catalogue["status"] == "available"
+    assert audit["direct_handoffs"]["catalogue"] == "native_catalogue_search"
+    assert "catalogue" not in audit["available_capabilities_missing_adapters"]
+    assert audit["ok"] is True
