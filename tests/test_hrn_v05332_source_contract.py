@@ -26,6 +26,23 @@ def test_one_sided_effort_recovery_is_grounded_and_non_prescriptive():
     assert "What happens between you when you are the one making the effort?" in fallback
 
 
+
+def test_observed_contact_initiation_question_is_replaced_with_grounded_question():
+    source = SOURCE.read_text(encoding="utf-8")
+    validator_start = source.index("private function question_is_generic_or_compound")
+    validator_end = source.index("private function question_plane_violation", validator_start)
+    validator = source[validator_start:validator_end]
+    assert "where does that pattern become visible beyond this particular moment" in validator
+    assert "what do you notice about the pattern when you step back from this one exchange" in validator
+    assert "What happens to the contact between you when you stop initiating it?" in source
+
+
+def test_contact_initiation_and_silence_are_supported_by_bounded_recovery():
+    source = SOURCE.read_text(encoding="utf-8")
+    assert "initiates? contact|initiating contact|making plans" in source
+    assert "You are usually the one who starts contact and makes plans." in source
+    assert "a long silence when you do not" in source
+
 def test_frozen_writer_boundary_remains_present():
     source = SOURCE.read_text(encoding="utf-8")
     assert "private function groq_compose" in source
