@@ -5010,10 +5010,18 @@ HRN_QUESTION_REPAIR;
         $message = trim((string)$message);
         if ($message === '') return '';
         $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one)\\b/i', $message);
-        $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|showing up)\\b/i', $message);
+        $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|initiates? contact|initiating contact|making plans|starting conversations|starts? conversations|showing up)\\b/i', $message);
+        $contact_initiation = preg_match('/\\b(?:initiates? contact|initiating contact|making plans|starting conversations|starts? conversations)\\b/i', $message)
+            && preg_match('/\\b(?:when i stop|if i stop|we (?:do not|don\'t) (?:speak|talk)|for weeks|go(?:es)? quiet)\\b/i', $message);
         $relationship = preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $message);
-        if (!$asymmetry || !$effort || !$relationship) return '';
+        if (!$asymmetry || (!$effort && !$contact_initiation) || !$relationship) return '';
         $lower = strtolower($message);
+        if ($contact_initiation) {
+            if (preg_match('/\\b(?:friend|friendship)\\b/i', $lower)) {
+                return 'You are usually the one who starts contact and makes plans. When you stop, the friendship goes quiet for weeks. That contrast makes the pattern concrete: you are initiating the connection, and there is a long silence when you do not. It does not yet tell us why the other person responds this way.';
+            }
+            return 'You are usually the one who starts contact and makes plans. When you stop, the connection goes quiet for weeks. That contrast makes the pattern concrete: you are initiating contact, and there is a long silence when you do not. It does not yet tell us why the other person responds this way.';
+        }
         if (preg_match('/\\b(?:friend|friendship)\\b/i', $lower)) {
             return 'You care about this friendship and want to be fair to your friend. At the same time, you notice that you are usually the one making the effort, and you do not want to keep ignoring how that feels. Both concerns are present in what you said: being fair to your friend, and taking your own experience seriously.';
         }
@@ -5544,6 +5552,13 @@ HRN_QUESTION_REPAIR;
         $fallbacks = array();
         // A first-turn account of one-sided effort needs an observable, non-accusatory question.
         // Use only when the visitor explicitly names asymmetry, effort/support, and a relationship.
+        $contact_initiation_asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:initiates? contact|initiating contact|making plans|starting conversations|starts? conversations)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:when i stop|if i stop|we (?:do not|don\'t) (?:speak|talk)|for weeks|go(?:es)? quiet)\\b/i', $visitor_lower)
+            && preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $visitor_lower);
+        if ($contact_initiation_asymmetry) {
+            $fallbacks[] = 'What happens to the contact between you when you stop initiating it?';
+        }
         $uneven_effort = preg_match('/\\b(?:always|usually|mostly|only|one-sided|one way|unequal)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:effort|reach(?:ing)? out|support|give|giving|show up)\\b/i', $visitor_lower)
             && preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $visitor_lower);
@@ -5675,6 +5690,8 @@ HRN_QUESTION_REPAIR;
         if ($q === '') return true;
         // Reject generic introspection that mistakes an abstract self-theory for a grounded follow-up.
         if (strpos($q, 'what part of that effort is easiest to overlook') !== false) return true;
+        if (strpos($q, 'where does that pattern become visible beyond this particular moment') !== false) return true;
+        if (strpos($q, 'what do you notice about the pattern when you step back from this one exchange') !== false) return true;
         if (preg_match('/\b(?:what part of yourself|what does the pull|what does .* promise you|what feels most vulnerable|what are you protecting in yourself)\b/i', $q)) return true;
         // Reject a broad next-part template that can pass lexical grounding only
         // because the generated response repeats the same concepts; this allows
