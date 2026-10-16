@@ -16,6 +16,7 @@ function plugin_basename($file) { return basename((string)$file); }
 function get_plugins() { return array(); }
 function is_plugin_active($file) { return false; }
 function deactivate_plugins(...$args) {}
+function register_activation_hook(...$args) {}
 
 require __DIR__ . '/../recovery/live-hrn-v05330/candidate/human-relational-navigator.php';
 
