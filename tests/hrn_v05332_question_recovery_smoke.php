@@ -80,5 +80,19 @@ if (trim((string)$humanResponse) === '') {
     fwrite(STDERR, "The grounded recovery prose failed the existing humanity/grounding gates.\n");
     exit(1);
 }
+$fullRecovery = new ReflectionMethod($class, 'recover_structured_state_composition');
+$fullRecovery->setAccessible(true);
+$recoveredTurn = $fullRecovery->invoke($instance, array(), $messageEffort, $messageEffort, array(), array());
+if (!is_array($recoveredTurn)
+    || trim((string)($recoveredTurn['response'] ?? '')) === ''
+    || trim((string)($recoveredTurn['question'] ?? '')) === '') {
+    fwrite(STDERR, "The full provider-independent structured-state recovery path did not return a complete visitor-facing turn.\n");
+    exit(1);
+}
+if (strpos(strtolower($recoveredTurn['response']), 'distribution of tasks') !== false
+    || strpos(strtolower($recoveredTurn['response']), 'perceiving their participation') !== false) {
+    fwrite(STDERR, "The full recovery path returned the known abstract task-allocation framing.\n");
+    exit(1);
+}
 echo "HRN v0.5.332 one-sided-effort prose and question recovery smoke tests passed.\n";
 
