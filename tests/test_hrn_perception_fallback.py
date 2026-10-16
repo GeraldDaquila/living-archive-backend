@@ -408,10 +408,11 @@ def test_relational_composition_recovers_prescriptive_response_language(monkeypa
         parse=provider_bank._json_object,
         operation="hrn_relational",
     )
-    assert result is not None
-    assert len(calls) == 2
-    assert "you should" not in result["parsed"]["response"].casefold()
-    assert "try to keep" not in result["parsed"]["response"].casefold()
+    # Action-guidance is now a fast-fail quality rejection. Do not spend a
+    # second call asking the same model to rewrite the full answer; a later
+    # independent candidate may still be tried by the provider bank.
+    assert result is None
+    assert len(calls) == 1
 
 
 def test_relational_composition_recovers_observed_generic_metaphor(monkeypatch):

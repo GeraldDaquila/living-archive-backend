@@ -752,10 +752,10 @@ def test_hrn_action_guidance_gets_one_bounded_response_recovery(monkeypatch):
         original_quality.clear()
         original_quality.update(saved_quality)
 
-    assert result is not None
-    assert "reallocating resources" not in result["parsed"]["response"].casefold()
-    assert "renegotiating the timeline" not in result["parsed"]["response"].casefold()
-    assert attempts == ["groq", "groq"]
+    # Action-guidance failures are rejected without a same-model rewrite.
+    # With no independent candidate configured, fail closed after one call.
+    assert result is None
+    assert attempts == ["groq"]
 
 
 

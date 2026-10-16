@@ -2760,6 +2760,23 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # unlisted defect fall through to same-model strict-schema retry:
                 # it consumes the same scarce lane without changing the defect.
                 hrn_quality_failure = operation == "hrn_relational"
+                # Production logs show action-guidance repeated after a same-model
+                # whole-answer rewrite. Fail this candidate fast so the independent
+                # provider lane gets the remaining turn budget; never relax the
+                # frozen visitor-surface contract to accept the rejected wording.
+                if (
+                    operation == "hrn_relational"
+                    and "visitor-surface contract violation: action-guidance" in str(contract_error)
+                ):
+                    last_error = str(contract_error)
+                    _record_quality_rejection(provider, model, operation, last_error)
+                    print(
+                        "USE provider quality fast-fail: "
+                        "operation=hrn_relational, provider=" + provider
+                        + ", model=" + model
+                        + ", action=skip_same_model_action_guidance_recovery"
+                    )
+                    continue
                 # Known field-level defects receive one bounded correction of
                 # the offending field. Every corrected object still passes the
                 # full grounding, visitor-surface, and response-shape validators.
