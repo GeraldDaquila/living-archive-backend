@@ -51,3 +51,17 @@ def test_one_sided_effort_recovery_is_inserted_before_structured_state_fallbacks
 def test_effort_relevance_family_is_explicit():
     source = SOURCE.read_text(encoding="utf-8")
     assert "'effort_reciprocity' => array('effort','efforts','one-sided','support','reaching out','showing up')" in source
+
+
+def test_provider_bridge_errors_keep_failure_diagnostics():
+    source = SOURCE.read_text(encoding="utf-8")
+    start = source.index("private function record_provider_bridge_failure")
+    end = source.index("private function provider_bank_chat", start)
+    failure_boundary = source[start:end]
+    assert "$this->record_provider_bridge_failure($result, $operation);" in source
+    assert "'provider_error_code' => $error_code" in failure_boundary
+    assert "'provider_error_stage' => $stage" in failure_boundary
+    assert "'failure_stage' => $stage" in failure_boundary
+    assert "'provider_unavailable'" in failure_boundary
+    assert "'provider_budget_exhausted'" in failure_boundary
+    assert "private message must not be logged" not in failure_boundary
