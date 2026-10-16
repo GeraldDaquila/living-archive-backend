@@ -47,7 +47,7 @@ def _isolate_route(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_state", fake_state)
 
 
-def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch):
+def test_hrn_slow_provider_failure_stops_before_extra_fallback(monkeypatch):
     candidates = [
         _item("groq", "openai/gpt-oss-120b"),
         _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -89,11 +89,11 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     assert result is None
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
+    assert provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
 
 
-def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monkeypatch):
+def test_hrn_fast_failures_stop_after_two_fallback_candidates(monkeypatch):
     candidates = [
         _item("groq", "openai/gpt-oss-120b"),
         _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -148,13 +148,12 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
         operation="hrn_relational",
     )
 
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
-    assert result is not None
-    assert result["provider"] == "mistral"
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
+    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert result is None
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
         ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("mistral", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
