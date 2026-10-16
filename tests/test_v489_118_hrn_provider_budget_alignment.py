@@ -87,13 +87,14 @@ def test_hrn_slow_provider_failure_yields_to_wordpress_mirror_budget(monkeypatch
     )
 
     assert result is None
+    # A six-second elapsed failure exceeds the 4.5-second budget, so no
+    # mirror candidate is attempted after the slow primary lane.
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
-def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monkeypatch):
+def test_hrn_fast_failures_stop_before_third_candidate_when_budget_is_exhausted(monkeypatch):
     candidates = [
         _item("groq", "openai/gpt-oss-120b"),
         _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
@@ -148,13 +149,11 @@ def test_hrn_fast_failures_can_reach_third_candidate_inside_bounded_window(monke
         operation="hrn_relational",
     )
 
-    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 9.0
-    assert result is not None
-    assert result["provider"] == "mistral"
+    assert provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS == 4.5
+    assert result is None
     assert calls == [
         ("workers_ai", provider_bank.HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS),
         ("groq", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("mistral", provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS),
     ]
 
 
