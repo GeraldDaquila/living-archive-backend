@@ -7251,11 +7251,9 @@ def ecosystem_integration_audit():
         item["specialist_id"] for item in capabilities
         if item["status"] == "available"
     }
-    missing_adapters = sorted(declared_available - adapter_set)
-    unregistered_adapters = sorted(adapter_set - capability_ids)
 
-    # These routes hand the visitor to a native surface; they are not runtime
-    # retrieval spokes and must not be misreported as adapter-backed.
+    # Native visitor-facing surfaces are available capabilities, but they are
+    # deliberately not adapter-backed retrieval spokes.
     direct_handoffs = {
         "catalogue": "native_catalogue_search",
         "systems_ph": "native_philippine_systems_landing",
@@ -7263,6 +7261,9 @@ def ecosystem_integration_audit():
         "fsd": "native_fsd_landing",
         "guide_node": "canonical_guide_node",
     }
+    native_handoff_ids = set(direct_handoffs)
+    missing_adapters = sorted(declared_available - adapter_set - native_handoff_ids)
+    unregistered_adapters = sorted(adapter_set - capability_ids)
 
     return {
         "ok": not missing_adapters and not unregistered_adapters,
