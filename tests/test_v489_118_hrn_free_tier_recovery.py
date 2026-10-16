@@ -161,7 +161,7 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         provider = item["provider"]
         attempts.append(provider)
         if provider == "groq":
-            return '{"response":"One colleague treats the agreed date as a commitment, while the other points to the changed scope as a change in the work itself. The disagreement is about whether the original date still fits the project as it now stands.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?"}'
+            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
         if provider == "gemini":
             raise provider_bank.ProviderCallError("temporary 503", provider, item["model"], category="http_error")
         if provider == "mistral":
