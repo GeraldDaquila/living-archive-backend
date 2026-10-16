@@ -15,7 +15,7 @@ PROTECTED = {
     "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
-    "specialist_registry.py": "25964a7ceaa30d7fa9d80524d3e3d5afc7434f0d",
+    "specialist_registry.py": "b796272adf1f1d018c83c1aa092f76eee28c49d8",
 }
 
 def blob_sha1(data):
