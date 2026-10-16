@@ -165,7 +165,7 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         if provider == "gemini":
             raise provider_bank.ProviderCallError("temporary 503", provider, item["model"], category="http_error")
         if provider == "mistral":
-            return '{"response":"The disagreement concerns which part of the project each person treats as fixed. One points to the agreed date, while the other points to the changed scope.","question":"What changes when you look at the situation through that distinction?"}'
+            return '{"response":"One colleague treats the agreed date as a commitment, while the other points to the changed scope as a change in the work itself. The disagreement is about whether the original date still fits the project as it now stands.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?"}'
         return '{"response":"One colleague is treating the agreed date as a commitment, while the other is pointing to the changed scope as a change in the work itself. The disagreement therefore concerns whether the original date still describes the project now on the table.","question":"What happens in their conversation when the agreed date is raised alongside the changed scope?","rest":false,"use_resource":false,"resource_intro":""}'
 
     monkeypatch.setattr(provider_bank, "_call", fake_call)
@@ -177,8 +177,9 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
         operation="hrn_relational",
     )
 
-    assert result and result["provider"] == "workers_ai"
-    assert attempts == ["groq", "gemini", "mistral", "workers_ai"]
+    assert result and result["provider"] == "mistral"
+    assert attempts == ["groq", "gemini", "mistral"]
+    assert provider_bank.HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES == 2
 
 
 
@@ -214,7 +215,7 @@ def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch
 
 
 def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
-    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 2.5
+    assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
     assert provider_bank.HRN_PROVIDER_CALL_TIMEOUT_SECONDS < provider_bank.HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
 
 
