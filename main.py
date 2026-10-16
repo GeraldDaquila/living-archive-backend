@@ -2661,27 +2661,50 @@ def _catalogue_handoff_url(query):
         + quote(str(query or "").strip(), safe="")
     )
 def _is_catalogue_resource_search_query(query):
-    """True only for an explicit request to find/browse sources, not an explanatory question."""
+    """Recognize natural-language requests to find/browse resources, not explanatory questions."""
     text = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not text:
         return False
-    search_markers = (
-        "where can i find", "find me resources", "find resources", "find material",
-        "find materials", "find sources", "search for", "search the catalogue",
-        "browse resources", "browse the catalogue", "locate resources",
-        "recommend resources", "recommend sources", "show me resources",
-        "show me sources", "list resources", "list sources", "give me resources",
-        "give me sources", "provide resources", "provide sources",
-        "i am looking for resources", "i'm looking for resources",
-        "i am looking for material", "i'm looking for material", "i need sources",
+
+    resource_noun = (
+        r"(?:resources?|materials?|sources?|works?|essays?|articles?|cases?|"
+        r"readings?|publications?|texts?|information|content)"
     )
-    search_positions = [text.find(marker) for marker in search_markers if text.find(marker) >= 0]
-    if not search_positions:
+
+    # Resource-seeking questions can start with "what/which" without asking
+    # for an explanation of the underlying topic.
+    if re.search(rf"^(?:what|which)\s+{resource_noun}\b", text):
+        return True
+
+    search_pattern = re.compile(
+        rf"\b(?:where can i find|where do i find|how can i find|"
+        rf"find(?: me)?|search(?: for| the archive| the catalogue| the catalog)|"
+        rf"browse|explore|look(?:ing)? for|locate|recommend|suggest|"
+        rf"show me|list|give me|provide|surface|open)\b"
+        rf".{{0,120}}\b{resource_noun}\b"
+    )
+    # These requests explicitly name the Catalogue/Archive even when the
+    # visitor describes the task as browsing or exploring rather than searching.
+    catalogue_pattern = re.compile(
+        r"\b(?:browse|explore|search|open)\s+(?:the\s+)?"
+        r"(?:catalogue|catalog|archive)\b"
+    )
+    match = search_pattern.search(text)
+    if not match and not catalogue_pattern.search(text):
         return False
-    first_search = min(search_positions)
-    explanatory_markers = ("what is", "what are", "why is", "why are", "why does", "why do", "explain", "how does", "how do", "how is", "how are")
-    explain_positions = [text.find(marker) for marker in explanatory_markers if text.find(marker) >= 0]
-    return not explain_positions or first_search < min(explain_positions)
+
+    # Preserve Guide explanations when a visitor asks an explanatory question
+    # first and only then appends a resource request.
+    explanatory_pattern = re.compile(
+        r"\b(?:what is|what are|why is|why are|why does|why do|"
+        r"explain|how does|how do|how is|how are)\b"
+    )
+    explanatory = explanatory_pattern.search(text)
+    if explanatory and match and explanatory.start() < match.start():
+        return False
+    if explanatory and not match:
+        return False
+    return True
 
 
 def _catalogue_handoff_payload(query, history):
