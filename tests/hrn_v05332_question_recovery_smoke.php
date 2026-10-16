@@ -2,6 +2,22 @@
 declare(strict_types=1);
 
 if (!defined('ABSPATH')) define('ABSPATH', '/');
+if (!class_exists('WP_Error')) {
+    class WP_Error {
+        private $error_code;
+        private $error_message;
+        private $error_data;
+        public function __construct($code = '', $message = '', $data = array()) {
+            $this->error_code = (string)$code;
+            $this->error_message = (string)$message;
+            $this->error_data = $data;
+        }
+        public function get_error_code() { return $this->error_code; }
+        public function get_error_message() { return $this->error_message; }
+        public function get_error_data() { return $this->error_data; }
+    }
+}
+
 function add_action(...$args) {}
 function add_shortcode(...$args) {}
 function add_filter(...$args) {}
@@ -115,5 +131,29 @@ if (strpos(strtolower($recoveredTurn['response']), 'distribution of tasks') !== 
     fwrite(STDERR, "The full recovery path returned the known abstract task-allocation framing.\n");
     exit(1);
 }
-echo "HRN v0.5.332 one-sided-effort prose and question recovery smoke tests passed.\n";
+
+$recordFailure = new ReflectionMethod($class, 'record_provider_bridge_failure');
+$recordFailure->setAccessible(true);
+$recordFailure->invoke($instance, new WP_Error(
+    'lah_rn_turn_provider_budget',
+    'Provider budget exhausted; private message must not be logged.',
+    array('stage' => 'turn_budget', 'provider_code' => 'turn_provider_budget_exhausted', 'retryable' => true)
+), 'hrn_relational');
+$failureAfterBridgeError = $failureProperty->getValue($instance);
+$traceAfterBridgeError = $failureProperty->getDeclaringClass()->getProperty('last_provider_trace');
+$traceAfterBridgeError->setAccessible(true);
+$trace = $traceAfterBridgeError->getValue($instance);
+if (($failureAfterBridgeError['reason'] ?? '') !== 'provider_budget_exhausted'
+    || ($failureAfterBridgeError['provider_error_stage'] ?? '') !== 'turn_budget'
+    || ($trace['failure_code'] ?? '') !== 'lah_rn_turn_provider_budget'
+    || ($trace['failure_stage'] ?? '') !== 'turn_budget') {
+    fwrite(STDERR, "Provider bridge errors did not preserve their failure class and stage.\n");
+    exit(1);
+}
+if (strpos(json_encode($trace), 'private message must not be logged') !== false) {
+    fwrite(STDERR, "Provider bridge diagnostics unexpectedly retained the raw provider error message.\n");
+    exit(1);
+}
+
+echo "HRN v0.5.332 one-sided-effort prose, question recovery, and provider failure diagnostics smoke tests passed.\n";
 
