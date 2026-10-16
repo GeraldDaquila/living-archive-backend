@@ -1,0 +1,19 @@
+name: HRN archive-grounding boundary (tracked source)
+
+on:
+  pull_request:
+    paths:
+      - "tests/test_hrn_archive_grounding_boundary.py"
+      - "wordpress/hrn/human-relational-navigator.php"
+      - ".github/workflows/hrn-archive-grounding-boundary.yml"
+  workflow_dispatch:
+
+jobs:
+  tracked-source-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Test tracked HRN archive-grounding boundary
+        run: PYTHONPATH=. python -m pytest -q tests/test_hrn_archive_grounding_boundary.py
