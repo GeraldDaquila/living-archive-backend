@@ -181,7 +181,8 @@ def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypa
     assert result["provider"] == "mistral"
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert all(timeout == 1.5 for _, timeout in calls)
-    assert clock.value == 0.6
+    # Repeated binary floating-point additions can yield 0.6000000000000001.
+    assert abs(clock.value - 0.6) < 1e-9
 
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
