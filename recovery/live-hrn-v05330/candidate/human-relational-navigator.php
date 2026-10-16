@@ -6320,6 +6320,60 @@ HRN_COSMOLOGICAL_BOUNDARY;
         return $out;
     }
 
+    /**
+     * Preserve the provider bridge's failure class when no composition envelope
+     * reaches normalize_composition(). Do not log provider messages or visitor text.
+     */
+    private function record_provider_bridge_failure($error, $operation) {
+        if (!($error instanceof WP_Error)) return;
+
+        $data = $error->get_error_data();
+        if (!is_array($data)) $data = array();
+
+        $error_code = sanitize_key((string)$error->get_error_code());
+        $provider_code = sanitize_key((string)($data['provider_code'] ?? ''));
+        $stage = sanitize_key((string)($data['stage'] ?? ''));
+        $provider = sanitize_key((string)($data['provider'] ?? $data['selected_provider'] ?? ''));
+        $model = sanitize_key((string)($data['model'] ?? $data['selected_model'] ?? ''));
+
+        $this->last_provider_trace = array(
+            'provider' => 'provider_bank',
+            'operation' => sanitize_key((string)$operation),
+            'selected_provider' => $provider,
+            'selected_model' => $model,
+            'failure_code' => $error_code,
+            'failure_stage' => $stage,
+            'provider_code' => $provider_code,
+            'retryable' => !empty($data['retryable']),
+        );
+
+        if ($operation !== 'hrn_relational') return;
+
+        $reason = 'provider_unavailable';
+        if (strpos($error_code, 'turn_provider_budget') !== false
+            || strpos($provider_code, 'turn_provider_budget') !== false) {
+            $reason = 'provider_budget_exhausted';
+        } elseif (strpos($error_code, 'contract') !== false
+            || strpos($provider_code, 'contract') !== false) {
+            $reason = 'provider_contract_rejected';
+        } elseif (strpos($error_code, 'quota') !== false
+            || strpos($error_code, 'rate') !== false
+            || strpos($provider_code, 'quota') !== false
+            || strpos($provider_code, 'rate') !== false) {
+            $reason = 'provider_quota_or_rate_limit';
+        }
+
+        $this->last_composition_failure = array(
+            'reason' => $reason,
+            'response' => '',
+            'question' => '',
+            'provider_error_code' => $error_code,
+            'provider_error_stage' => $stage,
+            'provider_code' => $provider_code,
+            'retryable' => !empty($data['retryable']),
+        );
+    }
+
     private function provider_bank_chat($messages,$temperature=0.2,$max_tokens=900,$schema_name=null){
         /*
          * v0.5.196 — HRN submits a semantic operation to the shared WordPress
@@ -6372,7 +6426,10 @@ HRN_COSMOLOGICAL_BOUNDARY;
             max(128,$max_tokens),
             $bank_schema
         );
-        if(is_wp_error($result)) return $result;
+        if(is_wp_error($result)) {
+            $this->record_provider_bridge_failure($result, $operation);
+            return $result;
+        }
 
         $this->last_provider_trace=array(
             'provider'=>'provider_bank',
