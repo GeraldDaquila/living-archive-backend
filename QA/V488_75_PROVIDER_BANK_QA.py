@@ -69,9 +69,10 @@ def main():
         assert elapsed < 0.4, f"Groq inventory discovery blocked the request path for {elapsed:.2f}s"
         assert configured.get("groq") == ["openai/gpt-oss-120b"]
 
-    # HRN's multiple semantic stages must not each fan out across the entire bank.
-    # One candidate per primary gateway request leaves the WordPress bridge's
-    # bounded mirror replay as the independent fallback; diagnostics may opt into two.
+    # HRN stages are bounded separately so they leave room for the WordPress
+    # bridge's one mirror replay. General Guide uses its own three-candidate,
+    # five-second fallback window; HRN perception and relational stages have
+    # tighter stage-specific candidate and time ceilings.
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "def _hrn_attempt_cap():" in provider
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
@@ -79,10 +80,10 @@ def main():
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
     assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
-    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 2.0" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
-    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 9.0" in provider
+    assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 4.5" in provider
     assert "action=try_independent_candidate" in provider
     assert "action=skip_extra_candidate" in provider
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
@@ -99,8 +100,8 @@ def main():
     # 4 26B lane gets a narrowly scoped extra second for its observed latency.
     assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider
     assert "timeout_override=_provider_call_timeout(operation, item)" in provider
-    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
-    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 4.5' in provider
+    assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5' in provider
+    assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
     assert 'model == "@cf/google/gemma-4-26b-a4b-it"' in provider
     assert 'timeout = max(1.0, min(10.0, float(timeout)))' in provider
     assert 'timeout=timeout_override or 12' in provider
