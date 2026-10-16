@@ -218,3 +218,74 @@ def test_workers_text_transport_rejects_multimodal_parts_instead_of_silently_dro
         )
 
     assert exc.value.category == "unsupported_request"
+
+
+def test_action_guidance_contract_failure_skips_same_model_rewrite_and_uses_independent_candidate(monkeypatch):
+    candidates = [
+        _item("groq", "qwen/qwen3.8-27b"),
+        _item("mistral", "mistral-small-latest"),
+    ]
+    _isolate_route(monkeypatch, candidates)
+    calls = []
+
+    rejected = json.dumps({
+        "response": (
+            "You described a recurring imbalance in the friendship. "
+            "You should discuss expectations with your friend and agree on a fairer division. "
+            "This may help both of you understand what each person contributes."
+        ),
+        "question": "What would change if you discussed expectations directly?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    })
+    accepted = json.dumps({
+        "response": (
+            "You described being the one who often makes the effort, while also wanting to be fair to your friend. "
+            "Those two parts of your account can both be true: the effort may feel uneven, and you may still be unsure "
+            "what explains the difference. What your friend is experiencing remains unknown from this account alone."
+        ),
+        "question": "Can you recall a recent moment when you were the one who reached out?",
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    })
+
+    def fake_call(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], item["model"]))
+        return rejected if item["provider"] == "groq" else accepted
+
+    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    original_normalize = provider_bank._normalize_operation_result
+
+    def reject_action_guidance(operation, parsed, messages=None):
+        if operation == "hrn_relational" and parsed.get("response", "").startswith("You described a recurring imbalance"):
+            raise ValueError("hrn_relational visitor-surface contract violation: action-guidance")
+        return original_normalize(operation, parsed, messages=messages)
+
+    monkeypatch.setattr(provider_bank, "_normalize_operation_result", reject_action_guidance)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\n"
+                '{"working_hypothesis":"visitor feels effort is uneven but does not want to judge friend",'
+                '"thread_summary":"visitor often initiates effort in a friendship",'
+                '"underlying_need":"understand the perceived imbalance fairly",'
+                '"emerging_delta":"feeling uneven effort does not establish the friend's intentions",'
+                '"body_of_thought":"the visitor reports initiating effort and remains uncertain about the friend's perspective"}'
+                "\nReturn JSON only."
+            ),
+        }],
+        max_tokens=300,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert result["provider"] == "mistral"
+    assert calls == [
+        ("groq", "qwen/qwen3.8-27b"),
+        ("mistral", "mistral-small-latest"),
+    ]
