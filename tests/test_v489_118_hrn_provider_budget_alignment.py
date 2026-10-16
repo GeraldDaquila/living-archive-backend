@@ -273,7 +273,7 @@ def test_action_guidance_contract_failure_skips_same_model_rewrite_and_uses_inde
                 '{"working_hypothesis":"visitor feels effort is uneven but does not want to judge friend",'
                 '"thread_summary":"visitor often initiates effort in a friendship",'
                 '"underlying_need":"understand the perceived imbalance fairly",'
-                '"emerging_delta":"feeling uneven effort does not establish the friend's intentions",'
+                '"emerging_delta":"feeling uneven effort does not establish the friend\'s intentions",'
                 '"body_of_thought":"the visitor reports initiating effort and remains uncertain about the friend's perspective"}'
                 "\nReturn JSON only."
             ),
