@@ -5,15 +5,20 @@ import main
 
 
 def test_explicit_material_search_routes_to_catalogue():
-    assert main._is_catalogue_resource_search_query(
-        "Where can I find material about institutional responsibility?"
+    explicit_searches = (
+        "Where can I find material about institutional responsibility?",
+        "Find resources about governance and shared stewardship.",
+        "Please recommend resources on stewardship.",
+        "Can you help me find resources about institutional responsibility?",
+        "Please search the archive for resources on stewardship.",
+        "I'd like to browse works about stewardship.",
+        "Show me works about institutional responsibility.",
+        "What resources are available on stewardship?",
+        "I'm looking for materials about shared governance.",
+        "I want to explore the Catalogue for readings about stewardship.",
     )
-    assert main._is_catalogue_resource_search_query(
-        "Find resources about governance and shared stewardship."
-    )
-    assert main._is_catalogue_resource_search_query(
-        "Please recommend resources on stewardship."
-    )
+    for query in explicit_searches:
+        assert main._is_catalogue_resource_search_query(query), query
 
 
 def test_explanatory_questions_stay_in_the_guide():
