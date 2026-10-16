@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.331
+ * Version: 0.5.332
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.331';
+    const VERSION = '0.5.332';
+    // RELEASE v0.5.332: reject abstract task-allocation framing for explicit one-sided friendship effort and recover grounded prose plus question after provider exhaustion; frozen writer unchanged.
     // RELEASE v0.5.331: reject the abstract effort-overlook template and recover a grounded question for explicit one-sided effort; frozen writer unchanged.
     // RELEASE v0.5.330: reject indirect action invitations and repeated disappearance-framed questions; frozen writer unchanged.
     // RELEASE v0.5.329: recover a grounded workplace scope/deadline follow-up when providers omit the question; frozen writer unchanged.
@@ -4987,6 +4988,7 @@ HRN_QUESTION_REPAIR;
             'choice_agency' => array('choice','choose','decision','decide','control','agency','freedom'),
             'forgiveness' => array('forgive','forgiveness','resentment','resentful','anger','angry','hurt'),
             'trust_reciprocity' => array('trust','betrayal','betrayed','reciprocity','reciprocal','mutual','one-sided','support'),
+            'effort_reciprocity' => array('effort','efforts','one-sided','support','reaching out','showing up'),
             'change_transition' => array('change','changed','changing','transition','moving','ending','beginning','different'),
             'identity_meaning' => array('identity','purpose','meaning','belonging','worth','values','value')
         );
@@ -5002,6 +5004,34 @@ HRN_QUESTION_REPAIR;
             if ($message_has && $candidate_has) $shared_specific_families++;
         }
         return $shared_specific_families >= 2 || ($shared_specific_families >= 1 && $shared_terms >= 1);
+    }
+
+    private function one_sided_effort_recovery_candidate($message) {
+        $message = trim((string)$message);
+        if ($message === '') return '';
+        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one|i\\'m the one)\\b/i', $message);
+        $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|showing up)\\b/i', $message);
+        $relationship = preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $message);
+        if (!$asymmetry || !$effort || !$relationship) return '';
+        $lower = strtolower($message);
+        if (preg_match('/\\b(?:friend|friendship)\\b/i', $lower)) {
+            return 'You care about this friendship and want to be fair to your friend. At the same time, you notice that you are usually the one making the effort, and you do not want to keep ignoring how that feels. Both concerns are present in what you said: being fair to your friend, and taking your own experience seriously.';
+        }
+        if (preg_match('/\\bpartner\\b/i', $lower)) {
+            return 'You care about this relationship and want to be fair to your partner. At the same time, you notice that you are usually the one making the effort, and you do not want to keep ignoring how that feels. Both concerns are present in what you said: being fair to your partner, and taking your own experience seriously.';
+        }
+        return 'You care about this relationship and want to be fair to the other person. At the same time, you notice that you are usually the one making the effort, and you do not want to keep ignoring how that feels. Both concerns are present in what you said: being fair to them, and taking your own experience seriously.';
+    }
+
+    private function one_sided_effort_response_violation($response, $message) {
+        $response = strtolower(trim((string)$response));
+        $message = strtolower(trim((string)$message));
+        if ($response === '' || $message === '') return false;
+        $abstract_frame = preg_match('/\\b(?:distribution of tasks|actual distribution|perceiving (?:their|your) participation|imbalance in the actual distribution)\\b/i', $response);
+        $asymmetry = preg_match('/\\b(?:always|usually|mostly|only|one[- ]sided|unequal|i am the one|i\\'m the one)\\b/i', $message);
+        $effort = preg_match('/\\b(?:effort|support|reaching out|checking in|initiating|showing up)\\b/i', $message);
+        $relationship = preg_match('/\\b(?:friend|friendship|partner|relationship|between us|between you)\\b/i', $message);
+        return (bool)($abstract_frame && $asymmetry && $effort && $relationship);
     }
 
     private function recover_structured_state_composition($state, $message, $conversation, $resources, $ledger) {
@@ -5043,7 +5073,9 @@ HRN_QUESTION_REPAIR;
         if ($tone_displacement) {
             $tone_displacement_candidate = 'The discussion keeps moving away from what was said and toward your tone. That shift leaves the original hurt difficult to examine, because the conversation becomes about how you raised it rather than what affected you.';
         }
+        $one_sided_effort_candidate = $this->one_sided_effort_recovery_candidate($message);
         $candidates = array(
+            $one_sided_effort_candidate,
             $observer_candidate,
             $tone_displacement_candidate,
             $this->structured_state_text_value($state['body_of_thought'] ?? ''),
@@ -5289,6 +5321,15 @@ HRN_QUESTION_REPAIR;
                 $response = $this->strip_unselected_resource_offer($response);
             }
             if ($response === '') { $this->last_composition_failure=array('reason'=>'empty_response'); return array(); }
+            if ($this->one_sided_effort_response_violation($response, $message)) {
+                $this->last_composition_failure = array(
+                    'reason' => 'visitor_surface_policy_rejected',
+                    'response' => $this->normalize_paragraphs($response),
+                    'question' => $question,
+                    'provider' => $this->last_provider_trace,
+                );
+                return array();
+            }
             $normalized_response = $this->normalize_paragraphs($response);
             $response = $this->humanity_gate($normalized_response, $state);
             if ($response === '') {
