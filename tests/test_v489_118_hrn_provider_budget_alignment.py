@@ -255,7 +255,7 @@ def test_action_guidance_contract_failure_skips_same_model_rewrite_and_uses_inde
         calls.append((item["provider"], item["model"]))
         return rejected if item["provider"] == "groq" else accepted
 
-    monkeypatch.setattr(provider_bank, "_call", fake_call)
+    monkeypatch.setattr(provider_bank, "_quota_guarded_call", fake_call)
     original_normalize = provider_bank._normalize_operation_result
 
     def reject_action_guidance(operation, parsed, messages=None):
