@@ -80,6 +80,27 @@ if (trim((string)$humanResponse) === '') {
     fwrite(STDERR, "The grounded recovery prose failed the existing humanity/grounding gates.\n");
     exit(1);
 }
+$normalize = new ReflectionMethod($class, 'normalize_composition');
+$normalize->setAccessible(true);
+$abstractEnvelope = wp_json_encode(array(
+    'response' => $abstractDraft,
+    'question' => $expected,
+    'rest' => false,
+    'use_resource' => false,
+    'resource_intro' => '',
+));
+$rejectedTurn = $normalize->invoke($instance, $abstractEnvelope, array(), $messageEffort, array(), false);
+$failureProperty = new ReflectionProperty($class, 'last_composition_failure');
+$failureProperty->setAccessible(true);
+$failure = $failureProperty->getValue($instance);
+if (is_array($rejectedTurn) && trim((string)($rejectedTurn['response'] ?? '')) !== '') {
+    fwrite(STDERR, "The full composition normalizer did not reject the known abstract friendship-effort response.\n");
+    exit(1);
+}
+if (($failure['reason'] ?? '') !== 'visitor_surface_policy_rejected') {
+    fwrite(STDERR, "The known abstract response was rejected for an unexpected reason: " . var_export($failure['reason'] ?? null, true) . "\n");
+    exit(1);
+}
 $fullRecovery = new ReflectionMethod($class, 'recover_structured_state_composition');
 $fullRecovery->setAccessible(true);
 $recoveredTurn = $fullRecovery->invoke($instance, array(), $messageEffort, $messageEffort, array(), array());
