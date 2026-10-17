@@ -105,6 +105,12 @@ try {
       }
     };
     page.on("request", onRequest);
+    // Arm the request waiter BEFORE the click so a fast request cannot be
+    // missed between the click and waiter registration.
+    const requestWaiter = page.waitForRequest(request =>
+      API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
+      { timeout: 15_000 }
+    ).then(request => ({ request, error: null }), error => ({ request: null, error }));
     try {
       let clickError = null;
       try {
@@ -114,14 +120,11 @@ try {
       }
       let requestSeen = false;
       if (!clickError) {
-        try {
-          await page.waitForRequest(request =>
-            API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
-            { timeout: 15_000 }
-          );
+        const waited = await requestWaiter;
+        if (waited.request) {
           requestSeen = true;
-        } catch (error) {
-          clickError = "click completed but no POST /api/query was observed within 15 seconds: " + error.message;
+        } else {
+          clickError = "click completed but no POST /api/query was observed within 15 seconds: " + waited.error.message;
         }
       }
       if (!requestSeen) {
