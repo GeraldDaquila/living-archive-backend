@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 
-const GUIDE_URL = "https://geralddaquila.com/the-guide/";
+const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/";
 const QUERY = "What does stewardship mean in everyday life, and why does it matter now more than ever?";
 const API_PATTERN = /\/api\/query(?:\?|$)/;
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, at: new Date().toISOString(), ...details }));
