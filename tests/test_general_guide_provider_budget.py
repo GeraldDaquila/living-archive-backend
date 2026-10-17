@@ -80,7 +80,7 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
 
 
 
-def test_general_guide_tries_second_independent_fallback_after_fast_failures(monkeypatch):
+def test_general_guide_stops_after_one_failed_fallback(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -92,10 +92,8 @@ def test_general_guide_tries_second_independent_fallback_after_fast_failures(mon
 
     def fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if len(calls) < 3:
-            clock.value += 0.25
-            raise RuntimeError("simulated fast provider failure")
-        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+        clock.value += 0.25
+        raise RuntimeError("simulated fast provider failure")
 
     monkeypatch.setattr(provider_bank, "_call", fast_failures_then_success)
     result = provider_bank.route(
@@ -106,11 +104,10 @@ def test_general_guide_tries_second_independent_fallback_after_fast_failures(mon
         operation="general_guide_composition",
     )
 
-    assert result is not None
-    assert result["provider"] == "groq"
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert result is None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 1
     assert clock.value == 0.5
 
 
@@ -152,7 +149,7 @@ def test_general_guide_interleaves_independent_provider_lanes(monkeypatch):
     assert len(set(providers[:3])) == 3
     assert providers[3] == "workers_ai"
 
-def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypatch):
+def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -162,14 +159,12 @@ def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypa
     monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
     calls = []
 
-    def three_fast_failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+    def failures_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if len(calls) < 4:
-            clock.value += 0.2
-            raise RuntimeError("simulated fast provider failure")
-        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+        clock.value += 0.2
+        raise RuntimeError("simulated fast provider failure")
 
-    monkeypatch.setattr(provider_bank, "_call", three_fast_failures_then_success)
+    monkeypatch.setattr(provider_bank, "_call", failures_then_success)
     result = provider_bank.route(
         use_core=None,
         messages=[{"role": "system", "content": "Return one JSON object."}],
@@ -178,11 +173,10 @@ def test_general_guide_can_reach_fourth_candidate_inside_bounded_window(monkeypa
         operation="general_guide_composition",
     )
 
-    assert result is not None
-    assert result["provider"] == "mistral"
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
-    assert all(timeout == 1.5 for _, timeout in calls)
-    assert clock.value == pytest.approx(0.6)
+    assert result is None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai"]
+    assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
+    assert clock.value == pytest.approx(0.4)
 
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
@@ -210,5 +204,5 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
 
     assert result is None
     assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS)]
-    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 1.5
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 5.0
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 1.25
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 2.8
