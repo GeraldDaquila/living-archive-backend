@@ -1,3 +1,4 @@
+// Diagnostic rerun marker: 2026-10-18; QA branch only, no production changes.
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/";
