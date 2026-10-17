@@ -70,18 +70,17 @@ def main():
         assert configured.get("groq") == ["openai/gpt-oss-120b"]
 
     # HRN stages are bounded separately so they leave room for the WordPress
-    # bridge's one mirror replay. General Guide uses its own three-candidate,
-    # five-second fallback window; HRN perception and relational stages have
-    # tighter stage-specific candidate and time ceilings.
+    # bridge's one mirror replay. General Guide uses a two-candidate total,
+    # 2.8-second fast-failure window; HRN stages have separate ceilings.
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "def _hrn_attempt_cap():" in provider
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
     assert "if operation in hrn_operations:" in provider
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 5.0" in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
-    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5" in provider
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 2.8" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1" in provider
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.25" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
     assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 4.5" in provider
     assert "action=try_independent_candidate" in provider
