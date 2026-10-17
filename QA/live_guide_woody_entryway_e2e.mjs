@@ -55,6 +55,26 @@ page.on("request", request => {
  * No production page or snippet is changed by this instrumentation.
  */
 await page.addInitScript(() => {
+  // Trace synchronous entry into the Woody controller's DOM and async boundaries.
+  // Bounded counters prevent diagnostic output from overwhelming the runner.
+  const originalGetElementById = Document.prototype.getElementById;
+  let lookupTraceCount = 0;
+  Document.prototype.getElementById = function (id) {
+    if (lookupTraceCount++ < 35) {
+      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "getElementById", id: String(id), time: performance.now() }));
+    }
+    return originalGetElementById.call(this, id);
+  };
+  const originalRAF = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = callback => originalRAF(timestamp => {
+    console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "animation_frame_enter", time: performance.now() }));
+    callback(timestamp);
+  });
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = (...args) => {
+    console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "fetch_enter", url: String(args[0]), time: performance.now() }));
+    return originalFetch(...args);
+  };
   const trace = label => event => {
     if (event.type !== "click" || !event.target?.closest?.(".archive-stage-wrapper[data-guide-instance='woody']")) return;
     console.log("GUIDE_CLICK_TRACE " + JSON.stringify({
