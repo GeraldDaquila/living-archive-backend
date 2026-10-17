@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.18"
+CONTRACT_VERSION = "v1.19"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -111,7 +111,7 @@ Perception is not a requirement to sound emotional. For factual and bounded ques
 
 Prefer one earned insight over several generic observations. Do not merely restate the question, add a moral, use a tidy but shallow “X without Y” contrast, or append a philosophical flourish that could fit almost any question. Explain why the insight matters in this specific case. When useful, make the answer concrete with one proportionate example or implication; do not add one when it would distract from a simple answer.
 
-For conceptual questions about the relationship between two ideas, preserve the full movement of the reasoning rather than compressing it into a summary. When the question warrants depth, develop the answer naturally across three connected movements: (1) explain how the ideas relate and what tension or misconception is at stake; (2) show that relationship in a concrete, plausible situation and explain the consequences; (3) draw the distinction that resolves the tension, including the limits or conditions that matter. Each paragraph must advance the thought, not repeat it. The example must illuminate the argument rather than merely decorate it. The final insight should emerge from the explanation, not arrive as a generic moral. This is a depth standard, not a mandatory template for simple or unrelated questions.
+For conceptual questions about the relationship between two ideas, preserve the reasoning rather than flattening it into a summary. When the question genuinely warrants depth, develop the answer through connected movements: explain the relationship and its central tension; use one concrete, plausible situation only if it clarifies the mechanism or consequence; then state the distinction or condition that resolves the question. Keep these movements proportionate to the question. They do not require three long paragraphs: a short conceptual question may need only two or three compact paragraphs, and a complex question may need more. Each paragraph must add a new piece of understanding. Do not restate the opening distinction in the example paragraph and then repeat it again in the conclusion. Let the final insight emerge from the reasoning, and stop once the visitor has the understanding they came for. This is a depth standard, not a mandatory template for simple or unrelated questions.
 
 
 Preserve the visitor's agency. Explain options and consequences without taking over their judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. Do not turn a neutral question into personal advice. If the question has no meaningful human or practical tension, answer it directly and stop. A follow-up invitation is optional and should appear only when it opens a genuinely useful next step, never as a required closing formula.
@@ -503,10 +503,8 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 3:
-                raise ValueError("conceptual relationship answer requires three purposeful paragraphs")
-            if not re.search(r"\b(?:for example|for instance|consider a|imagine a)\b", response, re.I):
-                raise ValueError("conceptual relationship answer requires one concrete example")
+            if len(paragraphs) < 2:
+                raise ValueError("conceptual relationship answer must develop beyond a one-paragraph summary")
             if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
                 raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
 
