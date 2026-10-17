@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide/";
 const QUERY = "Explain stewardship in everyday life without sending me to another page.";
-const API_PATTERN = /\\/api\\/query(?:\\?|$)/;
+const API_PATTERN = /\/api\/query(?:\?|$)/;
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
