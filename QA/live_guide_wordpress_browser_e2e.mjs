@@ -50,7 +50,7 @@ try {
   const scriptResponses = [];
   const browserEvents = [];
   page.on("requestfailed", request => {
-    if (/living-archive-guide|guide.*\\.js|\\.js(?:\\?|$)/i.test(request.url())) {
+    if (/living-archive-guide|guide.*\.js|\.js(?:\?|$)/i.test(request.url())) {
       browserEvents.push({ kind: "script-request-failed", url: request.url(), error: request.failure()?.errorText || "unknown" });
     }
   });
@@ -142,8 +142,7 @@ try {
             rootControllerAuthority: root?.__USE_GUIDE_FRONTEND_CONTROLLER__?.authority ?? null,
             rootExists: Boolean(root),
             scripts: Array.from(document.scripts).map(script => ({ src: script.src, type: script.type || "classic" })),
-            listenerTrace: window.__guideE2EListenerTrace || [],
-            observedEvents: browserEvents
+            listenerTrace: window.__guideE2EListenerTrace || []
           };
         }, { index });
         state.scriptResponses = scriptResponses;
