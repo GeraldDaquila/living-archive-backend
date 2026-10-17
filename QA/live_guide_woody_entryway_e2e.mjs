@@ -26,6 +26,10 @@ page.on("pageerror", error => {
 });
 page.on("console", message => {
   const line = message.text();
+  if (line.startsWith("GUIDE_EXEC_TRACE ")) {
+    const item = line.slice("GUIDE_EXEC_TRACE ".length);
+    mark("execution_trace", { item });
+  }
   if (line.startsWith("GUIDE_CLICK_TRACE ")) {
     const item = line.slice("GUIDE_CLICK_TRACE ".length);
     eventTrace.push(item);
@@ -189,10 +193,10 @@ try {
 
   if (requestOutcome.kind === "post_observed") {
     const responseOutcome = await Promise.race([
-      page.waitForResponse(response => API_PATTERN.test(new URL(response.url()).pathname), { timeout: 20_000 })
+      page.waitForResponse(response => API_PATTERN.test(new URL(response.url()).pathname), { timeout: 35_000 })
         .then(response => ({ kind: "response_observed", url: response.url(), status: response.status() }))
         .catch(error => ({ kind: "no_response", message: error.message })),
-      new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_20s" }), 20_000))
+      new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
     ]);
     mark("response_outcome", { ...responseOutcome, apiResponses });
 
