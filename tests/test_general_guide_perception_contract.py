@@ -25,9 +25,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.18"
+    assert guide.CONTRACT_VERSION == "v1.19"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.18"
+    assert snapshot["contract_version"] == "v1.19"
     assert snapshot["provider_neutral"] is True
 
 
@@ -41,12 +41,13 @@ def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance()
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "Prefer one earned insight over several generic observations" in prompt
     assert "Use a concrete-example decision rule before composing" in prompt
-    assert "preserve the full movement of the reasoning rather than compressing it into a summary" in prompt
-    assert "Each paragraph must advance the thought, not repeat it" in prompt
-    assert "The final insight should emerge from the explanation, not arrive as a generic moral" in prompt
+    assert "preserve the reasoning rather than flattening it into a summary" in prompt
+    assert "Each paragraph must add a new piece of understanding" in prompt
+    assert "stop once the visitor has the understanding they came for" in prompt
+    assert "one concrete, plausible situation only if it clarifies the mechanism or consequence" in prompt
 
 
-def test_conceptual_relationships_require_discernment_example_and_three_paragraphs():
+def test_conceptual_relationships_require_reasoning_but_allow_proportionate_length():
     query = "What is the relationship between personal agency and responsibility to others?"
     assert guide._requires_discernment_synthesis(query)
     parse = guide._parse_factory([], query)
@@ -66,10 +67,24 @@ def test_conceptual_relationships_require_discernment_example_and_three_paragrap
     assert "manager who exercises agency to restructure a team" in parsed
     assert "condition that makes your freedom meaningful" in parsed
 
+    compact = json.dumps({
+        "response": (
+            "Agency is the ability to make choices; responsibility recognizes that those choices affect other people. "
+            "The tension appears when independence is mistaken for freedom from consequences.\n\n"
+            "Agency does not mean acting without regard for impact. Responsibility gives freedom a relational boundary "
+            "without removing the person's ability to choose."
+        ),
+        "doorway_title": "",
+        "response_shape": "conceptual",
+    })
+    compact_parsed = parse(compact)["response"]
+    assert len(compact_parsed.split("\n\n")) == 2
+    assert "does not mean" in compact_parsed
+
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.18"
-    assert guide.contract_snapshot()["contract_version"] == "v1.18"
+    assert guide.CONTRACT_VERSION == "v1.19"
+    assert guide.contract_snapshot()["contract_version"] == "v1.19"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -103,8 +118,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.18"
-    assert guide.contract_snapshot()["contract_version"] == "v1.18"
+    assert guide.CONTRACT_VERSION == "v1.19"
+    assert guide.contract_snapshot()["contract_version"] == "v1.19"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
