@@ -18,6 +18,7 @@ const eventTrace = [];
 const scriptResponses = [];
 const scriptFailures = [];
 const posts = [];
+const apiResponses = [];
 
 page.on("pageerror", error => {
   pageErrors.push(error.message);
@@ -35,6 +36,10 @@ page.on("console", message => {
 page.on("response", response => {
   if (/living-archive-guide|guide.*\.js/i.test(response.url())) {
     scriptResponses.push({ url: response.url(), status: response.status() });
+  }
+  if (API_PATTERN.test(new URL(response.url()).pathname)) {
+    apiResponses.push({ url: response.url(), status: response.status() });
+    mark("api_response_observed", { url: response.url(), status: response.status() });
   }
 });
 page.on("requestfailed", request => {
@@ -161,26 +166,53 @@ try {
   ]);
   mark("click_outcome", { ...clickOutcome, eventTraceCount: eventTrace.length });
 
-  if (clickOutcome.kind === "click_watchdog_5s" || clickOutcome.kind === "click_error") {
-    mark("diagnostic_stop_no_renderer_eval", {
-      reason: "Avoid issuing another page.evaluate if click handling may have blocked the renderer.",
-      eventTrace,
-      posts,
-      scriptResponses,
-      scriptFailures,
-      pageErrors,
-      consoleErrors
+  // A click timeout is not itself a submission failure: the capture handler can
+  // dispatch the request and mutate the button before Playwright finishes its click.
+  // Continue only when a real POST was observed; otherwise preserve the fail-closed stop.
+  if ((clickOutcome.kind === "click_watchdog_5s" || clickOutcome.kind === "click_error") && posts.length === 0) {
+    mark("diagnostic_stop_no_request", {
+      reason: "Click did not complete and no API POST was observed.",
+      eventTrace, posts, apiResponses, scriptResponses, scriptFailures, pageErrors, consoleErrors
     });
     process.exit(1);
-  } else {
-    const requestOutcome = await Promise.race([
-      page.waitForRequest(request => request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname), { timeout: 12_000 })
-        .then(request => ({ kind: "post_observed", url: request.url() }))
-        .catch(error => ({ kind: "no_post", message: error.message })),
-      new Promise(resolve => setTimeout(() => resolve({ kind: "post_watchdog_12s" }), 12_000))
+  }
+
+  const requestOutcome = posts.length
+    ? { kind: "post_observed", url: posts[0].url }
+    : await Promise.race([
+        page.waitForRequest(request => request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname), { timeout: 12_000 })
+          .then(request => ({ kind: "post_observed", url: request.url() }))
+          .catch(error => ({ kind: "no_post", message: error.message })),
+        new Promise(resolve => setTimeout(() => resolve({ kind: "post_watchdog_12s" }), 12_000))
+      ]);
+  mark("request_outcome", { ...requestOutcome, postsObserved: posts.length });
+
+  if (requestOutcome.kind === "post_observed") {
+    const responseOutcome = await Promise.race([
+      page.waitForResponse(response => API_PATTERN.test(new URL(response.url()).pathname), { timeout: 20_000 })
+        .then(response => ({ kind: "response_observed", url: response.url(), status: response.status() }))
+        .catch(error => ({ kind: "no_response", message: error.message })),
+      new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_20s" }), 20_000))
     ]);
-    mark("request_outcome", { ...requestOutcome, postsObserved: posts.length });
-    if (requestOutcome.kind !== "post_observed") process.exitCode = 1;
+    mark("response_outcome", { ...responseOutcome, apiResponses });
+
+    const uiOutcome = await Promise.race([
+      page.waitForFunction(() => {
+        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+        const box = root?.querySelector("#archive-response-box");
+        const text = root?.querySelector("#archive-response-text");
+        const content = (text?.innerText || box?.innerText || "").trim();
+        return content.length > 80;
+      }, null, { timeout: 15_000 }).then(() => ({ kind: "response_ui_present" }))
+        .catch(error => ({ kind: "response_ui_missing", message: error.message })),
+      new Promise(resolve => setTimeout(() => resolve({ kind: "ui_watchdog_15s" }), 15_000))
+    ]);
+    mark("ui_outcome", { ...uiOutcome });
+    const finalDiagnostics = await diagnostics().catch(error => ({ diagnosticError: error.message }));
+    mark("final_diagnostic", { finalDiagnostics, posts, apiResponses, pageErrors, consoleErrors });
+    if (responseOutcome.kind !== "response_observed" || responseOutcome.status < 200 || responseOutcome.status >= 300 || uiOutcome.kind !== "response_ui_present") process.exitCode = 1;
+  } else {
+    process.exitCode = 1;
   }
 } catch (error) {
   process.exitCode = 1;
