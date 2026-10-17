@@ -17,9 +17,12 @@ page.on("request", r => {
 });
 try {
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 25_000 });
-  const upper = page.locator("form#archive-search-form").filter({ hasNot: page.locator('.archive-stage-wrapper[data-guide-instance="woody"]') }).first();
-  const input = page.locator("#archive-container-top form#archive-search-form #archive-query-input").first();
-  const button = page.locator("#archive-container-top form#archive-search-form #archive-submit-btn").first();
+  const entrywayInfo = await page.locator("form#archive-search-form").evaluateAll(forms => forms.map((form, index) => ({ index, woody: Boolean(form.closest('.archive-stage-wrapper[data-guide-instance="woody"]')), parent: form.parentElement?.id || form.parentElement?.className || form.parentElement?.tagName })));
+  const upperIndex = entrywayInfo.findIndex(item => !item.woody);
+  if (upperIndex < 0) throw new Error("No upper Custom HTML form found: " + JSON.stringify(entrywayInfo));
+  const upper = page.locator("form#archive-search-form").nth(upperIndex);
+  const input = upper.locator("#archive-query-input");
+  const button = upper.locator("#archive-submit-btn");
   await input.waitFor({ state: "visible", timeout: 8_000 });
   await input.fill(QUERY);
   const waiter = page.waitForRequest(r => r.method() === "POST" && API_PATTERN.test(new URL(r.url()).pathname), { timeout: 12_000 }).catch(e => null);
