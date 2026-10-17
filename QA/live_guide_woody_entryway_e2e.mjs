@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide/";
 const QUERY = "Explain stewardship in everyday life without sending me to another page.";
-const API_PATTERN = /\/api\/query(?:\?|$)/;
+const API_PATTERN = /\\/api\\/query(?:\\?|$)/;
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
@@ -18,12 +18,12 @@ page.on("console", message => {
   if (message.type() === "error") consoleErrors.push(message.text());
 });
 page.on("response", response => {
-  if (/living-archive-guide|guide.*\.js/i.test(response.url())) {
+  if (/living-archive-guide|guide.*\\.js/i.test(response.url())) {
     scriptResponses.push({ url: response.url(), status: response.status() });
   }
 });
 page.on("requestfailed", request => {
-  if (/living-archive-guide|guide.*\.js/i.test(request.url())) {
+  if (/living-archive-guide|guide.*\\.js/i.test(request.url())) {
     scriptFailures.push({ url: request.url(), error: request.failure()?.errorText || "unknown" });
   }
 });
@@ -32,6 +32,32 @@ page.on("request", request => {
     posts.push({ url: request.url(), postData: request.postData()?.slice(0, 500) || "" });
   }
 });
+
+async function diagnostics() {
+  return page.evaluate(() => {
+    const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
+    const form = root?.querySelector("form#archive-search-form");
+    const button = form?.querySelector("#archive-submit-btn");
+    const input = form?.querySelector("#archive-query-input");
+    const rect = button?.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width / 2 : 0;
+    const y = rect ? rect.top + rect.height / 2 : 0;
+    const hit = button && rect ? document.elementFromPoint(x, y) : null;
+    return {
+      formFound: Boolean(form),
+      inputLength: input?.value?.length ?? null,
+      buttonDisabled: button?.disabled ?? null,
+      buttonText: button?.innerText ?? null,
+      buttonRect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
+      centerHitTag: hit?.tagName ?? null,
+      centerHitId: hit?.id ?? null,
+      centerHitClass: typeof hit?.className === "string" ? hit.className : null,
+      centerHitHTML: hit?.outerHTML?.slice(0, 600) ?? null,
+      rootAttributes: root ? Object.fromEntries(Array.from(root.attributes).map(a => [a.name, a.value])) : null,
+      scripts: Array.from(document.scripts).map(s => ({ src: s.src, type: s.type || "classic" }))
+    };
+  });
+}
 
 try {
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
@@ -47,26 +73,24 @@ try {
     { timeout: 20_000 }
   ).then(request => ({ request, error: null }), error => ({ request: null, error: error.message }));
 
-  await button.click({ timeout: 10_000 });
+  try {
+    await button.click({ timeout: 10_000 });
+  } catch (clickError) {
+    throw new Error("Woody submit button could not be clicked. " + JSON.stringify({
+      clickError: clickError.message,
+      diagnostic: await diagnostics(),
+      scriptResponses,
+      scriptFailures,
+      posts,
+      pageErrors,
+      consoleErrors
+    }));
+  }
+
   const requestResult = await requestWaiter;
   if (!requestResult.request) {
-    const diagnostic = await page.evaluate(() => {
-      const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
-      const form = root?.querySelector("form#archive-search-form");
-      const button = form?.querySelector("#archive-submit-btn");
-      const input = form?.querySelector("#archive-query-input");
-      return {
-        formFound: Boolean(form),
-        inputLength: input?.value?.length ?? null,
-        buttonDisabled: button?.disabled ?? null,
-        buttonText: button?.innerText ?? null,
-        rootAttributes: root ? Object.fromEntries(Array.from(root.attributes).map(a => [a.name, a.value])) : null,
-        scripts: Array.from(document.scripts).map(s => ({ src: s.src, type: s.type || "classic" })),
-        listeners: window.__guideE2EListenerTrace || []
-      };
-    });
     throw new Error("Woody click produced no POST /api/query within 20 seconds. " +
-      JSON.stringify({ diagnostic, scriptResponses, scriptFailures, posts, pageErrors, consoleErrors }));
+      JSON.stringify({ diagnostic: await diagnostics(), scriptResponses, scriptFailures, posts, pageErrors, consoleErrors }));
   }
 
   if (posts.length !== 1) {
