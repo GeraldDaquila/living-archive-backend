@@ -45,6 +45,21 @@ for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived"
     mark("cdp_api_lifecycle", item);
   });
 }
+// ExtraInfo carries the actual CORS response headers and any browser-side
+// status code even when page-level response callbacks never fire.
+for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.responseReceivedExtraInfo"]) {
+  cdp.on(eventName, event => {
+    const item = {
+      event: eventName,
+      requestId: event.requestId,
+      statusCode: event.statusCode,
+      headers: event.headers ? Object.fromEntries(Object.entries(event.headers).filter(([k]) => /access-control|content-type|content-length|vary|origin/i.test(k))) : undefined,
+      associatedCookies: event.associatedCookies?.length
+    };
+    apiLifecycle.push(item);
+    mark("cdp_api_extra_info", item);
+  });
+}
 
 page.on("requestfinished", request => {
   if (API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_finished", { url: request.url() });
