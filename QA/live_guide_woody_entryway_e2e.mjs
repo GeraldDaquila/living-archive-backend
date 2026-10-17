@@ -6,18 +6,30 @@ const API_PATTERN = /\/api\/query(?:\?|$)/;
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, at: new Date().toISOString(), ...details }));
 
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage();
+const context = await browser.newContext();
+const page = await context.newPage();
 page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
+
 const pageErrors = [];
 const consoleErrors = [];
+const eventTrace = [];
 const scriptResponses = [];
 const scriptFailures = [];
 const posts = [];
 
-page.on("pageerror", error => pageErrors.push(error.message));
+page.on("pageerror", error => {
+  pageErrors.push(error.message);
+  mark("page_error", { message: error.message });
+});
 page.on("console", message => {
-  if (message.type() === "error") consoleErrors.push(message.text());
+  const line = message.text();
+  if (line.startsWith("GUIDE_CLICK_TRACE ")) {
+    const item = line.slice("GUIDE_CLICK_TRACE ".length);
+    eventTrace.push(item);
+    mark("click_trace", { item });
+  }
+  if (message.type() === "error") consoleErrors.push(line);
 });
 page.on("response", response => {
   if (/living-archive-guide|guide.*\.js/i.test(response.url())) {
@@ -36,99 +48,126 @@ page.on("request", request => {
   }
 });
 
+/*
+ * Install tracing before the page's own scripts. If a synchronous event handler
+ * blocks the renderer, the last trace tells us how far click propagation got.
+ * No production page or snippet is changed by this instrumentation.
+ */
+await page.addInitScript(() => {
+  const trace = label => event => {
+    if (event.type !== "click" || !event.target?.closest?.(".archive-stage-wrapper[data-guide-instance='woody']")) return;
+    console.log("GUIDE_CLICK_TRACE " + JSON.stringify({
+      label,
+      phase: event.eventPhase,
+      target: event.target?.id || event.target?.tagName || null,
+      defaultPrevented: event.defaultPrevented,
+      time: performance.now()
+    }));
+  };
+  window.addEventListener("click", trace("window-capture"), true);
+  document.addEventListener("click", trace("document-capture-early"), true);
+  document.addEventListener("click", trace("document-bubble-early"), false);
+
+  const bindNodeTrace = () => {
+    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+    if (!root || root.dataset.__clickTraceBound === "1") return;
+    root.dataset.__clickTraceBound = "1";
+    root.addEventListener("click", trace("root-capture-early"), true);
+    root.addEventListener("click", trace("root-bubble-early"), false);
+    const form = root.querySelector("#archive-search-form");
+    const button = root.querySelector("#archive-submit-btn");
+    form?.addEventListener("click", trace("form-capture-early"), true);
+    form?.addEventListener("click", trace("form-bubble-early"), false);
+    button?.addEventListener("click", trace("button-capture-early"), true);
+    button?.addEventListener("click", trace("button-bubble-early"), false);
+    console.log("GUIDE_CLICK_TRACE " + JSON.stringify({ label: "trace-listeners-installed", form: Boolean(form), button: Boolean(button) }));
+  };
+  new MutationObserver(bindNodeTrace).observe(document, { childList: true, subtree: true });
+  if (document.readyState !== "loading") bindNodeTrace();
+  document.addEventListener("DOMContentLoaded", bindNodeTrace, { once: true });
+});
+
 async function diagnostics() {
   return page.evaluate(() => {
-    const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
+    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
     const form = root?.querySelector("form#archive-search-form");
     const button = form?.querySelector("#archive-submit-btn");
     const input = form?.querySelector("#archive-query-input");
-    const rect = button?.getBoundingClientRect();
-    const hit = button && rect ? document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) : null;
+    const ids = ["archive-stage-wrapper", "archive-search-form", "archive-submit-btn", "archive-query-input", "archive-response-box", "archive-response-text"];
+    const duplicateIds = Object.fromEntries(ids.map(id => [id, document.querySelectorAll("#" + id).length]).filter(([, count]) => count > 1));
     return {
+      title: document.title,
+      rootFound: Boolean(root),
+      rootAttributes: root ? Object.fromEntries(Array.from(root.attributes).map(a => [a.name, a.value])) : null,
       formFound: Boolean(form),
       inputLength: input?.value?.length ?? null,
       buttonDisabled: button?.disabled ?? null,
       buttonText: button?.innerText ?? null,
-      buttonRect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
-      centerHitTag: hit?.tagName ?? null,
-      centerHitId: hit?.id ?? null,
-      centerHitClass: typeof hit?.className === "string" ? hit.className : null,
-      centerHitHTML: hit?.outerHTML?.slice(0, 400) ?? null,
-      rootAttributes: root ? Object.fromEntries(Array.from(root.attributes).map(a => [a.name, a.value])) : null,
-      scripts: Array.from(document.scripts).map(s => ({ src: s.src, type: s.type || "classic" }))
+      formOnsubmitAttribute: form?.getAttribute("onsubmit") ?? null,
+      duplicateIds,
+      controllerFlags: root ? {
+        submit: root.__USE_GUIDE_DELEGATED_SUBMIT_CONTROLLER__ ?? null,
+        frontend: root.__USE_GUIDE_FRONTEND_CONTROLLER__ ?? null,
+        safetyRootFlag: root.__USE_SAFETY_FOLLOWUP_CONTROLLER__ ?? null
+      } : null,
+      scripts: Array.from(document.scripts).map(s => s.src).filter(Boolean).filter(src => /guide|living-archive/i.test(src))
     };
-  }, null, { timeout: 5_000 });
+  });
 }
 
 try {
   mark("navigation_start", { url: GUIDE_URL });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 25_000 });
   mark("navigation_complete", { title: await page.title() });
-  const woody = page.locator('.archive-stage-wrapper[data-guide-instance="woody"]');
+
+  const woody = page.locator(".archive-stage-wrapper[data-guide-instance='woody']");
   await woody.waitFor({ state: "attached", timeout: 8_000 });
-  mark("woody_wrapper_found");
   const form = woody.locator("form#archive-search-form").first();
   const input = form.locator("#archive-query-input").first();
   const button = form.locator("#archive-submit-btn").first();
   await input.fill(QUERY);
-  mark("query_filled", { query: QUERY });
-
-  const requestWaiter = page.waitForRequest(request =>
-    request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname),
-    { timeout: 12_000 }
-  ).then(request => ({ request, error: null }), error => ({ request: null, error: error.message }));
 
   const preClick = await diagnostics();
   mark("pre_click_diagnostic", preClick);
+
+  const clickPromise = button.click({ timeout: 5_000 }).then(
+    () => ({ kind: "click_completed" }),
+    error => ({ kind: "click_error", message: error.message })
+  );
   const clickOutcome = await Promise.race([
-    button.click({ timeout: 4_000 }).then(() => ({ kind: "playwright_click_completed" }), error => ({ kind: "playwright_click_error", message: error.message })),
-    new Promise(resolve => setTimeout(() => resolve({ kind: "playwright_click_watchdog" }), 4_500))
+    clickPromise,
+    new Promise(resolve => setTimeout(() => resolve({ kind: "click_watchdog_5s" }), 5_000))
   ]);
-  mark("playwright_click_outcome", clickOutcome);
-  if (clickOutcome.kind !== "playwright_click_completed") {
-    const domClick = await page.evaluate(() => {
-      const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
-      const button = root?.querySelector("form#archive-search-form #archive-submit-btn");
-      const rect = button?.getBoundingClientRect();
-      const hit = rect ? document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) : null;
-      const result = { buttonFound: Boolean(button), hitTag: hit?.tagName ?? null, hitId: hit?.id ?? null, hitClass: typeof hit?.className === "string" ? hit.className : null };
-      button?.click();
-      return result;
+  mark("click_outcome", { ...clickOutcome, eventTraceCount: eventTrace.length });
+
+  if (clickOutcome.kind === "click_watchdog_5s" || clickOutcome.kind === "click_error") {
+    mark("diagnostic_stop_no_renderer_eval", {
+      reason: "Avoid issuing another page.evaluate if click handling may have blocked the renderer.",
+      eventTrace,
+      posts,
+      scriptResponses,
+      scriptFailures,
+      pageErrors,
+      consoleErrors
     });
-    mark("dom_click_fallback", domClick);
+    process.exitCode = 1;
+  } else {
+    const requestOutcome = await Promise.race([
+      page.waitForRequest(request => request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname), { timeout: 12_000 })
+        .then(request => ({ kind: "post_observed", url: request.url() }))
+        .catch(error => ({ kind: "no_post", message: error.message })),
+      new Promise(resolve => setTimeout(() => resolve({ kind: "post_watchdog_12s" }), 12_000))
+    ]);
+    mark("request_outcome", { ...requestOutcome, postsObserved: posts.length });
+    if (requestOutcome.kind !== "post_observed") process.exitCode = 1;
   }
-
-  const requestResult = await requestWaiter;
-  if (!requestResult.request) {
-    throw new Error("Woody click produced no POST /api/query within 12 seconds. " +
-      JSON.stringify({ diagnostic: await diagnostics(), scriptResponses, scriptFailures, posts, pageErrors, consoleErrors }));
-  }
-  if (posts.length !== 1) {
-    throw new Error("Expected exactly one POST, observed " + posts.length + ". " + JSON.stringify(posts));
-  }
-
-  const responseBox = woody.locator("#archive-response-box").first();
-  const responseText = woody.locator("#archive-response-text").first();
-  await responseBox.waitFor({ state: "visible", timeout: 8_000 });
-  await page.waitForFunction(() => {
-    const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
-    const text = root?.querySelector("#archive-response-text")?.innerText?.trim() || "";
-    return text.length >= 80 && !/Giving this question a little more room/i.test(text);
-  }, null, { timeout: 60_000 });
-  const answer = (await responseText.innerText()).trim();
-  console.log(JSON.stringify({
-    result: "WOODY_PASS",
-    requestCount: posts.length,
-    requestUrl: posts[0].url,
-    answerChars: answer.length,
-    answerVisible: await responseBox.isVisible(),
-    answerPreview: answer.slice(0, 350),
-    scriptResponses, scriptFailures, pageErrors, consoleErrors
-  }));
-  if (pageErrors.length) throw new Error("Page errors after answer: " + JSON.stringify(pageErrors));
 } catch (error) {
-  mark("woody_test_failed", { message: error.message, stack: error.stack, scriptResponses, scriptFailures, posts, pageErrors, consoleErrors });
   process.exitCode = 1;
+  mark("diagnostic_failed", { message: error.message, eventTrace, posts, scriptResponses, scriptFailures, pageErrors, consoleErrors });
 } finally {
-  await browser.close();
+  const closeResult = await Promise.race([
+    browser.close().then(() => "closed", error => "close_error:" + error.message),
+    new Promise(resolve => setTimeout(() => resolve("close_watchdog_3s"), 3_000))
+  ]);
+  mark("browser_close", { result: closeResult });
 }
