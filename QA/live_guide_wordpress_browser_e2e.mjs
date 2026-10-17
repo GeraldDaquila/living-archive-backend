@@ -10,7 +10,11 @@ page.setDefaultTimeout(20_000);
 
 try {
   const pageErrors = [];
+  const consoleErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
 
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator("form#archive-search-form").first().waitFor({ state: "attached", timeout: 30_000 });
@@ -53,13 +57,38 @@ try {
     };
     page.on("request", onRequest);
     try {
-      await Promise.all([
-        page.waitForRequest(request =>
-          API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
-          { timeout: 25_000 }
-        ),
-        button.click()
-      ]);
+      try {
+        await Promise.all([
+          page.waitForRequest(request =>
+            API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
+            { timeout: 25_000 }
+          ),
+          button.click()
+        ]);
+      } catch (error) {
+        const state = await page.evaluate(({ index }) => {
+          const form = Array.from(document.querySelectorAll("form#archive-search-form"))[index];
+          const root = form?.closest('.archive-stage-wrapper[data-guide-instance="woody"]');
+          const button = form?.querySelector("#archive-submit-btn");
+          const input = form?.querySelector("#archive-query-input");
+          return {
+            formFound: Boolean(form),
+            inputValueLength: input?.value?.length ?? null,
+            buttonDisabled: button?.disabled ?? null,
+            buttonClass: button?.className ?? null,
+            buttonLabel: button?.innerText ?? null,
+            formControllerInstalled: form?.dataset?.useGuideControllerInstalled ?? null,
+            rootControllerLoaded: root?.dataset?.useScopedControllerLoaded ?? null,
+            rootControllerBuild: root?.__USE_GUIDE_FRONTEND_CONTROLLER__?.build ?? null,
+            rootControllerAuthority: root?.__USE_GUIDE_FRONTEND_CONTROLLER__?.authority ?? null,
+            rootExists: Boolean(root)
+          };
+        }, { index });
+        throw new Error(kind + " entryway did not submit. Browser state=" +
+          JSON.stringify(state) + "; pageErrors=" + JSON.stringify(pageErrors) +
+          "; consoleErrors=" + JSON.stringify(consoleErrors) +
+          "; cause=" + error.message);
+      }
       await page.waitForTimeout(1200);
     } finally {
       page.off("request", onRequest);
