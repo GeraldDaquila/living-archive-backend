@@ -16,6 +16,39 @@ try {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
 
+  // Observe actual listener registration and script responses; do not assume
+  // undocumented dataset markers exist in either controller.
+  await page.addInitScript(() => {
+    window.__guideE2EListenerTrace = [];
+    const originalAdd = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function(type, listener, options) {
+      try {
+        const target = this;
+        if (target instanceof Element) {
+          const form = target.matches?.("form#archive-search-form")
+            ? target : target.closest?.("form#archive-search-form");
+          const button = target.matches?.("#archive-submit-btn")
+            ? target : target.closest?.("form#archive-search-form")?.querySelector?.("#archive-submit-btn");
+          if (form || button) {
+            window.__guideE2EListenerTrace.push({
+              type,
+              target: target.tagName + (target.id ? "#" + target.id : ""),
+              formIndex: form ? Array.from(document.querySelectorAll("form#archive-search-form")).indexOf(form) : null
+            });
+          }
+        }
+      } catch (_) {}
+      return originalAdd.call(this, type, listener, options);
+    };
+  });
+
+  const scriptResponses = [];
+  page.on("response", response => {
+    if (/living-archive-guide|guide.*\.js|\.js(?:\?|$)/i.test(response.url())) {
+      scriptResponses.push({ url: response.url(), status: response.status() });
+    }
+  });
+
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator("form#archive-search-form").first().waitFor({ state: "attached", timeout: 30_000 });
 
@@ -91,9 +124,13 @@ try {
             rootControllerLoaded: root?.dataset?.useScopedControllerLoaded ?? null,
             rootControllerBuild: root?.__USE_GUIDE_FRONTEND_CONTROLLER__?.build ?? null,
             rootControllerAuthority: root?.__USE_GUIDE_FRONTEND_CONTROLLER__?.authority ?? null,
-            rootExists: Boolean(root)
+            rootExists: Boolean(root),
+            scripts: Array.from(document.scripts).map(script => ({ src: script.src, type: script.type || "classic" })),
+            listenerTrace: window.__guideE2EListenerTrace || [],
+            scriptResponses: window.__guideE2EScriptResponses || []
           };
         }, { index });
+        state.scriptResponses = scriptResponses;
         throw new Error(kind + " entryway did not submit. Browser state=" +
           JSON.stringify(state) + "; pageErrors=" + JSON.stringify(pageErrors) +
           "; consoleErrors=" + JSON.stringify(consoleErrors) +
