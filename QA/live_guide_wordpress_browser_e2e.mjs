@@ -24,15 +24,20 @@ try {
     EventTarget.prototype.addEventListener = function(type, listener, options) {
       try {
         const target = this;
-        if (target instanceof Element) {
-          const form = target.matches?.("form#archive-search-form")
-            ? target : target.closest?.("form#archive-search-form");
-          const button = target.matches?.("#archive-submit-btn")
-            ? target : target.closest?.("form#archive-search-form")?.querySelector?.("#archive-submit-btn");
-          if (form || button) {
+        if (["click", "submit", "input", "change"].includes(type)) {
+          const isGlobal = target === window || target === document;
+          const element = target instanceof Element ? target : null;
+          const form = element?.matches?.("form#archive-search-form")
+            ? element : element?.closest?.("form#archive-search-form");
+          const isRelevantAncestor = element && (
+            element.matches?.("#archive-container-top, .archive-stage-wrapper, body, html") ||
+            element.closest?.("#archive-container-top, .archive-stage-wrapper")
+          );
+          if (isGlobal || form || isRelevantAncestor) {
             window.__guideE2EListenerTrace.push({
               type,
-              target: target.tagName + (target.id ? "#" + target.id : ""),
+              target: target === window ? "window" : target === document ? "document" :
+                (element?.tagName || "unknown") + (element?.id ? "#" + element.id : ""),
               formIndex: form ? Array.from(document.querySelectorAll("form#archive-search-form")).indexOf(form) : null
             });
           }
@@ -43,12 +48,23 @@ try {
   });
 
   const scriptResponses = [];
+  const browserEvents = [];
+  page.on("requestfailed", request => {
+    if (/living-archive-guide|guide.*\\.js|\\.js(?:\\?|$)/i.test(request.url())) {
+      browserEvents.push({ kind: "script-request-failed", url: request.url(), error: request.failure()?.errorText || "unknown" });
+    }
+  });
   page.on("response", response => {
     if (/living-archive-guide|guide.*\.js|\.js(?:\?|$)/i.test(response.url())) {
       scriptResponses.push({ url: response.url(), status: response.status() });
     }
   });
 
+  page.on("request", request => {
+    if (API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST") {
+      browserEvents.push({ kind: "api-post", url: request.url() });
+    }
+  });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator("form#archive-search-form").first().waitFor({ state: "attached", timeout: 30_000 });
 
@@ -127,10 +143,11 @@ try {
             rootExists: Boolean(root),
             scripts: Array.from(document.scripts).map(script => ({ src: script.src, type: script.type || "classic" })),
             listenerTrace: window.__guideE2EListenerTrace || [],
-            scriptResponses: window.__guideE2EScriptResponses || []
+            observedEvents: browserEvents
           };
         }, { index });
         state.scriptResponses = scriptResponses;
+        state.observedEvents = browserEvents;
         throw new Error(kind + " entryway did not submit. Browser state=" +
           JSON.stringify(state) + "; pageErrors=" + JSON.stringify(pageErrors) +
           "; consoleErrors=" + JSON.stringify(consoleErrors) +
