@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: live-guide-woody-entryway-e2e
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   woody-e2e:
