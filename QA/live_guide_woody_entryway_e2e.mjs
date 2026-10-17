@@ -19,6 +19,39 @@ const scriptResponses = [];
 const scriptFailures = [];
 const posts = [];
 const apiResponses = [];
+const apiLifecycle = [];
+
+// Chromium DevTools Protocol observes network events independently of the
+// page's JavaScript event loop. This distinguishes renderer stalls from
+// requests that genuinely never receive/finish a response.
+const cdp = await context.newCDPSession(page);
+await cdp.send("Network.enable");
+for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived", "Network.loadingFinished", "Network.loadingFailed"]) {
+  cdp.on(eventName, event => {
+    const url = event.request?.url || event.response?.url || "";
+    let pathname = "";
+    try { pathname = new URL(url).pathname; } catch {}
+    if (!API_PATTERN.test(pathname)) return;
+    const item = {
+      event: eventName,
+      requestId: event.requestId,
+      url,
+      method: event.request?.method,
+      status: event.response?.status,
+      errorText: event.errorText,
+      timestamp: event.timestamp
+    };
+    apiLifecycle.push(item);
+    mark("cdp_api_lifecycle", item);
+  });
+}
+
+page.on("requestfinished", request => {
+  if (API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_finished", { url: request.url() });
+});
+page.on("requestfailed", request => {
+  if (API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_failed", { url: request.url(), error: request.failure()?.errorText || "unknown" });
+});
 
 page.on("pageerror", error => {
   pageErrors.push(error.message);
@@ -198,7 +231,19 @@ try {
         .catch(error => ({ kind: "no_response", message: error.message })),
       new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
     ]);
-    mark("response_outcome", { ...responseOutcome, apiResponses });
+    mark("response_outcome", { ...responseOutcome, apiResponses, apiLifecycle });
+
+    // Probe renderer responsiveness without making it a gate for collecting
+    // network evidence. A timeout is diagnostic, not a new production claim.
+    const rendererProbe = await Promise.race([
+      page.evaluate(() => ({
+        readyState: document.readyState,
+        responseTextLength: document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text")?.innerText?.trim()?.length ?? null,
+        now: performance.now()
+      })).then(value => ({ kind: "renderer_responsive", value })),
+      new Promise(resolve => setTimeout(() => resolve({ kind: "renderer_probe_timeout" }), 3_000))
+    ]);
+    mark("renderer_probe", { rendererProbe, apiLifecycle });
 
     const uiOutcome = await Promise.race([
       page.waitForFunction(() => {
