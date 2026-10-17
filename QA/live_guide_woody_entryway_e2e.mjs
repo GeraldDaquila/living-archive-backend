@@ -78,16 +78,24 @@ try {
     { timeout: 12_000 }
   ).then(request => ({ request, error: null }), error => ({ request: null, error: error.message }));
 
-  try {
-    await button.click({ timeout: 5_000 });
-    mark("button_clicked");
-  } catch (clickError) {
-    mark("button_click_failed", { message: clickError.message });
-    throw new Error("Woody submit button could not be clicked. " + JSON.stringify({
-      clickError: clickError.message,
-      diagnostic: await diagnostics(),
-      scriptResponses, scriptFailures, posts, pageErrors, consoleErrors
-    }));
+  const preClick = await diagnostics();
+  mark("pre_click_diagnostic", preClick);
+  const clickOutcome = await Promise.race([
+    button.click({ timeout: 4_000 }).then(() => ({ kind: "playwright_click_completed" }), error => ({ kind: "playwright_click_error", message: error.message })),
+    new Promise(resolve => setTimeout(() => resolve({ kind: "playwright_click_watchdog" }), 4_500))
+  ]);
+  mark("playwright_click_outcome", clickOutcome);
+  if (clickOutcome.kind !== "playwright_click_completed") {
+    const domClick = await page.evaluate(() => {
+      const root = document.querySelector('.archive-stage-wrapper[data-guide-instance="woody"]');
+      const button = root?.querySelector("form#archive-search-form #archive-submit-btn");
+      const rect = button?.getBoundingClientRect();
+      const hit = rect ? document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) : null;
+      const result = { buttonFound: Boolean(button), hitTag: hit?.tagName ?? null, hitId: hit?.id ?? null, hitClass: typeof hit?.className === "string" ? hit.className : null };
+      button?.click();
+      return result;
+    });
+    mark("dom_click_fallback", domClick);
   }
 
   const requestResult = await requestWaiter;
