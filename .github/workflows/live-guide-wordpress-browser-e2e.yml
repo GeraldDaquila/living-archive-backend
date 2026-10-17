@@ -18,7 +18,7 @@ concurrency:
 jobs:
   woody-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,4 +29,5 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
       - name: Test live Woody shortcode entryway only
+        timeout-minutes: 2
         run: node QA/live_guide_woody_entryway_e2e.mjs
