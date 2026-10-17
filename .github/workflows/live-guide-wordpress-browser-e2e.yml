@@ -1,10 +1,10 @@
-name: Live Guide WordPress Browser E2E
+name: Live Guide Woody Entryway E2E
 
 on:
   push:
     branches: [qa/live-guide-wordpress-browser-e2e]
     paths:
-      - "QA/live_guide_wordpress_browser_e2e.mjs"
+      - "QA/live_guide_woody_entryway_e2e.mjs"
       - ".github/workflows/live-guide-wordpress-browser-e2e.yml"
   workflow_dispatch:
 
@@ -12,13 +12,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: live-guide-wordpress-browser-e2e
+  group: live-guide-woody-entryway-e2e
   cancel-in-progress: false
 
 jobs:
-  browser-e2e:
+  woody-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,5 +28,5 @@ jobs:
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
-      - name: Test both live WordPress Guide entryways
-        run: node QA/live_guide_wordpress_browser_e2e.mjs
+      - name: Test live Woody shortcode entryway only
+        run: node QA/live_guide_woody_entryway_e2e.mjs
