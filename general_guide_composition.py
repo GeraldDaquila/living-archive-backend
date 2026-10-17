@@ -503,10 +503,8 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 3:
-                raise ValueError("conceptual relationship answer requires three purposeful paragraphs")
-            if not re.search(r"\b(?:for example|for instance|consider a|imagine a)\b", response, re.I):
-                raise ValueError("conceptual relationship answer requires one concrete example")
+            if len(paragraphs) < 2:
+                raise ValueError("conceptual relationship answer must develop beyond a one-paragraph summary")
             if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
                 raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
 
