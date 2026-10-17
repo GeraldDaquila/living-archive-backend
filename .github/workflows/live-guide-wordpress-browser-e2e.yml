@@ -2,10 +2,8 @@ name: Live Guide Woody Entryway E2E
 
 on:
   push:
-    branches: [qa/live-guide-wordpress-browser-e2e]
-    paths:
-      - "QA/live_guide_woody_entryway_e2e.mjs"
-      - ".github/workflows/live-guide-wordpress-browser-e2e.yml"
+    branches:
+      - qa/live-guide-wordpress-browser-e2e
   workflow_dispatch:
 
 permissions:
