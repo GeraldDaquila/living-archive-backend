@@ -208,6 +208,14 @@ try {
   const preClick = await diagnostics();
   mark("pre_click_diagnostic", preClick);
 
+  // Arm the response listener BEFORE clicking. A fast response may arrive
+  // before the click promise settles; registering after the click loses it.
+  const responsePromise = page.waitForResponse(
+    response => API_PATTERN.test(new URL(response.url()).pathname),
+    { timeout: 35_000 }
+  ).then(response => ({ kind: "response_observed", url: response.url(), status: response.status() }))
+   .catch(error => ({ kind: "no_response", message: error.message }));
+
   const clickPromise = button.click({ timeout: 5_000 }).then(
     () => ({ kind: "click_completed" }),
     error => ({ kind: "click_error", message: error.message })
@@ -241,9 +249,7 @@ try {
 
   if (requestOutcome.kind === "post_observed") {
     const responseOutcome = await Promise.race([
-      page.waitForResponse(response => API_PATTERN.test(new URL(response.url()).pathname), { timeout: 35_000 })
-        .then(response => ({ kind: "response_observed", url: response.url(), status: response.status() }))
-        .catch(error => ({ kind: "no_response", message: error.message })),
+      responsePromise,
       new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
     ]);
     mark("response_outcome", { ...responseOutcome, apiResponses, apiLifecycle });
