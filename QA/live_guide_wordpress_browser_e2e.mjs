@@ -57,15 +57,25 @@ try {
     };
     page.on("request", onRequest);
     try {
+      let clickError = null;
       try {
-        await Promise.all([
-          page.waitForRequest(request =>
-            API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
-            { timeout: 25_000 }
-          ),
-          button.click()
-        ]);
+        await button.click({ timeout: 10_000 });
       } catch (error) {
+        clickError = error.message;
+      }
+      let requestSeen = false;
+      if (!clickError) {
+        try {
+          await page.waitForRequest(request =>
+            API_PATTERN.test(new URL(request.url()).pathname) && request.method() === "POST",
+            { timeout: 15_000 }
+          );
+          requestSeen = true;
+        } catch (error) {
+          clickError = "click completed but no POST /api/query was observed within 15 seconds: " + error.message;
+        }
+      }
+      if (!requestSeen) {
         const state = await page.evaluate(({ index }) => {
           const form = Array.from(document.querySelectorAll("form#archive-search-form"))[index];
           const root = form?.closest('.archive-stage-wrapper[data-guide-instance="woody"]');
@@ -87,7 +97,7 @@ try {
         throw new Error(kind + " entryway did not submit. Browser state=" +
           JSON.stringify(state) + "; pageErrors=" + JSON.stringify(pageErrors) +
           "; consoleErrors=" + JSON.stringify(consoleErrors) +
-          "; cause=" + error.message);
+          "; cause=" + clickError);
       }
       await page.waitForTimeout(1200);
     } finally {
