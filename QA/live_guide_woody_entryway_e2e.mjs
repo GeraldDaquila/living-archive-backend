@@ -208,6 +208,19 @@ try {
   const preClick = await diagnostics();
   mark("pre_click_diagnostic", preClick);
 
+  // QA-only CPU profile: capture the renderer's sampled JavaScript stack during the freeze.
+  // CDP operates outside page.evaluate, so this can still help when the page event loop stalls.
+  let cpuProfileStarted = false;
+  try {
+    await cdp.send("Profiler.enable");
+    await cdp.send("Profiler.setSamplingInterval", { interval: 10_000 });
+    await cdp.send("Profiler.start");
+    cpuProfileStarted = true;
+    mark("cpu_profile_started", { samplingIntervalMicroseconds: 10_000 });
+  } catch (error) {
+    mark("cpu_profile_start_failed", { message: error.message });
+  }
+
   // Arm the response listener BEFORE clicking. A fast response may arrive
   // before the click promise settles; registering after the click loses it.
   const responsePromise = page.waitForResponse(
@@ -278,6 +291,31 @@ try {
       new Promise(resolve => setTimeout(() => resolve({ kind: "ui_watchdog_15s" }), 15_000))
     ]);
     mark("ui_outcome", { ...uiOutcome });
+    if (cpuProfileStarted) {
+      const profileResult = await Promise.race([
+        cdp.send("Profiler.stop").then(result => ({ kind: "profile_captured", profile: result.profile })),
+        new Promise(resolve => setTimeout(() => resolve({ kind: "profile_stop_timeout" }), 5_000))
+      ]);
+      if (profileResult.kind === "profile_captured") {
+        const profile = profileResult.profile;
+        const nodes = (profile.nodes || []).map(node => ({
+          functionName: node.callFrame?.functionName || "(anonymous)",
+          url: node.callFrame?.url || "",
+          lineNumber: node.callFrame?.lineNumber,
+          columnNumber: node.callFrame?.columnNumber,
+          selfSamples: node.hitCount || 0,
+          children: node.children?.length || 0
+        })).sort((a, b) => b.selfSamples - a.selfSamples).slice(0, 30);
+        mark("cpu_profile_summary", {
+          kind: profileResult.kind,
+          durationSeconds: ((profile.endTime || 0) - (profile.startTime || 0)) / 1_000_000,
+          sampleCount: profile.samples?.length || 0,
+          topNodes: nodes
+        });
+      } else {
+        mark("cpu_profile_summary", { kind: profileResult.kind });
+      }
+    }
     const finalDiagnostics = await diagnostics().catch(error => ({ diagnosticError: error.message }));
     mark("final_diagnostic", { finalDiagnostics, posts, apiResponses, pageErrors, consoleErrors });
     if (responseOutcome.kind !== "response_observed" || responseOutcome.status < 200 || responseOutcome.status >= 300 || uiOutcome.kind !== "response_ui_present") process.exitCode = 1;
