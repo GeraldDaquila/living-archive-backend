@@ -20,29 +20,53 @@ const scriptFailures = [];
 const posts = [];
 const apiResponses = [];
 const apiLifecycle = [];
+const cdpRequestUrls = new Map();
+const apiRequestIds = new Set();
+const apiResponseBodies = [];
 
 // Chromium DevTools Protocol observes network events independently of the
-// page's JavaScript event loop. This distinguishes renderer stalls from
-// requests that genuinely never receive/finish a response.
+// page's JavaScript event loop. Keep requestId→URL correlation because
+// loadingFinished/loadingFailed events contain requestId but no URL.
 const cdp = await context.newCDPSession(page);
 await cdp.send("Network.enable");
 for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived", "Network.loadingFinished", "Network.loadingFailed"]) {
-  cdp.on(eventName, event => {
-    const url = event.request?.url || event.response?.url || "";
+  cdp.on(eventName, async event => {
+    const url = event.request?.url || event.response?.url || cdpRequestUrls.get(event.requestId) || "";
+    if (eventName === "Network.requestWillBeSent" && url) cdpRequestUrls.set(event.requestId, url);
     let pathname = "";
     try { pathname = new URL(url).pathname; } catch {}
-    if (!API_PATTERN.test(pathname)) return;
+    if (API_PATTERN.test(pathname)) apiRequestIds.add(event.requestId);
+    if (!API_PATTERN.test(pathname) && !apiRequestIds.has(event.requestId)) return;
     const item = {
       event: eventName,
       requestId: event.requestId,
-      url,
+      url: url || null,
       method: event.request?.method,
       status: event.response?.status,
       errorText: event.errorText,
+      encodedDataLength: event.encodedDataLength,
       timestamp: event.timestamp
     };
     apiLifecycle.push(item);
     mark("cdp_api_lifecycle", item);
+    if (eventName === "Network.loadingFinished" && apiRequestIds.has(event.requestId)) {
+      try {
+        const body = await cdp.send("Network.getResponseBody", { requestId: event.requestId });
+        const bodyText = body.base64Encoded ? Buffer.from(body.body, "base64").toString("utf8") : body.body;
+        const bodyRecord = {
+          requestId: event.requestId,
+          url: cdpRequestUrls.get(event.requestId) || null,
+          bodyChars: bodyText.length,
+          bodyPreview: bodyText.slice(0, 300)
+        };
+        apiResponseBodies.push(bodyRecord);
+        mark("cdp_api_response_body", bodyRecord);
+      } catch (error) {
+        const bodyRecord = { requestId: event.requestId, error: error.message };
+        apiResponseBodies.push(bodyRecord);
+        mark("cdp_api_response_body_error", bodyRecord);
+      }
+    }
   });
 }
 // ExtraInfo carries the actual CORS response headers and any browser-side
@@ -265,7 +289,7 @@ try {
       responsePromise,
       new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
     ]);
-    mark("response_outcome", { ...responseOutcome, apiResponses, apiLifecycle });
+    mark("response_outcome", { ...responseOutcome, apiResponses, apiLifecycle, apiResponseBodies });
 
     // Probe renderer responsiveness without making it a gate for collecting
     // network evidence. A timeout is diagnostic, not a new production claim.
