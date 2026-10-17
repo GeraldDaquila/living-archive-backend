@@ -150,7 +150,7 @@ try {
       pageErrors,
       consoleErrors
     });
-    process.exitCode = 1;
+    process.exit(1);
   } else {
     const requestOutcome = await Promise.race([
       page.waitForRequest(request => request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname), { timeout: 12_000 })
