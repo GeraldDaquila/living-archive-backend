@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.269 — native Catalogue resource-search handoff
+# USE PRODUCTION VERSION: v489.270 — Guide composition concision calibration
 import asyncio
 import hashlib
 from html import unescape
