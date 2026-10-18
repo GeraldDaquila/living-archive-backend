@@ -815,7 +815,7 @@ try {
     if (responseOutcome.kind === "response_observed" && responseOutcome.status >= 200 &&
         responseOutcome.status < 300 && uiOutcome.kind === "response_ui_present") {
       const root = page.locator(".archive-stage-wrapper[data-guide-instance='woody']");
-      const input = root.locator("#archive-search-input");
+      const input = root.locator("#archive-query-input");
       const submit = root.locator("#archive-submit-btn");
       const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
       const followupQuestion = "What is one practical example of stewardship in a community?";
