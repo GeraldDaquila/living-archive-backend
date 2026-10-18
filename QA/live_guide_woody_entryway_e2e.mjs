@@ -152,6 +152,27 @@ page.on("request", request => {
  * No production page or snippet is changed by this instrumentation.
  */
 await page.addInitScript(() => {
+  // QA-only isolation: identify the text-cleanup MutationObserver by callback
+  // source and suppress only its repeated observer callback. The script's
+  // initial cleanAnswer() invocation still runs. This is not a production edit.
+  const NativeMutationObserver = window.MutationObserver;
+  window.MutationObserver = class GuideQaMutationObserver extends NativeMutationObserver {
+    constructor(callback) {
+      const callbackSource = String(callback);
+      const isGuideCleanup = callback.name === "cleanAnswer" ||
+        (callbackSource.includes("archive-response-text") &&
+         callbackSource.includes("Stewardship Readiness") &&
+         callbackSource.includes("nodeValue"));
+      super(isGuideCleanup ? function guideQaCleanupObserverSuppressed() {} : callback);
+      if (isGuideCleanup) {
+        console.log("GUIDE_CLEANUP_OBSERVER_ISOLATION " + JSON.stringify({
+          callbackName: callback.name || null,
+          callbackSourcePreview: callbackSource.slice(0, 180),
+          suppressed: true
+        }));
+      }
+    }
+  };
   // Identify who dynamically installs the data-URL cleanAnswer script seen in
   // the call stack. QA-only instrumentation; no production source is changed.
   const reportDynamicScript = (node, operation) => {
