@@ -269,13 +269,16 @@ await page.addInitScript(() => {
         (callbackSource.includes("archive-response-text") &&
          callbackSource.includes("Stewardship Readiness") &&
          callbackSource.includes("nodeValue"));
+      const isCleanRootObserver = callbackSource.includes("clean(root)");
+      const suppressCallback = isCleanRootObserver;
       console.log("GUIDE_MUTATION_OBSERVER_ISOLATION " + JSON.stringify({
         callbackName: callback.name || null,
         isCleanupObserver,
+        isCleanRootObserver,
         callbackSourcePreview: callbackSource.slice(0, 140),
-        suppressed: isCleanupObserver
+        suppressed: suppressCallback
       }));
-      super(isCleanupObserver ? function guideQaCleanupObserverSuppressed() {} : callback);
+      super(suppressCallback ? function guideQaSelectedObserverSuppressed() {} : callback);
     }
   };
   // Identify who dynamically installs the data-URL cleanAnswer script seen in
