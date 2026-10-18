@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.274 — Align reading-request prose with canonical doorway
+# USE PRODUCTION VERSION: v489.275 — Separate reading requests from Guide Node discovery
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.274"
-DEPLOYMENT_FINGERPRINT = "USE-v489.274-align-reading-request-prose"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.274-align-reading-request-prose"
+APP_VERSION = "v489.275"
+DEPLOYMENT_FINGERPRINT = "USE-v489.275-separate-reading-and-node-discovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.275-separate-reading-and-node-discovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.274":
+if str(APP_VERSION) != "v489.275":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4642,6 +4642,24 @@ def _guide_subject_discovery_query(query):
     return ""
 
 
+def _guide_natural_reading_request_subject(query):
+    """Extract a reading-request subject without treating it as a Guide Node handoff."""
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
+    is_natural_reading_request = bool(re.match(
+        r"^(?:i want to understand|i would like to understand|i'd like to understand|"
+        r"i want to learn about|i would like to learn about|i'd like to learn about)\b",
+        q,
+        re.I,
+    ) or re.match(
+        r"^(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\s+(?:about|on|regarding)\b",
+        q,
+        re.I,
+    ))
+    if not is_natural_reading_request:
+        return ""
+    return _guide_subject_discovery_query(query)
+
+
 def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, discovery_subject):
     """Always supplement subject-finding requests with vetted canonical content."""
     return bool(archive_evidence_unavailable or str(discovery_subject or "").strip())
@@ -5066,6 +5084,52 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     )
 
 
+def _guide_selected_reading_evidence(subject, query, doorway, documents):
+    """Ground a natural reading recommendation in its selected canonical page.
+
+    This path is for ordinary canonical recommendations, not registered Guide
+    Node handoffs. The destination must already have passed the Guide's canonical
+    relevance selector; the page body must independently support the subject.
+    """
+    if not isinstance(doorway, dict) or not str(subject or "").strip():
+        return []
+    target_url = str(doorway.get("url") or "").strip().rstrip("/").casefold()
+    if not target_url:
+        return []
+    profile = _base._inquiry_profile(query)
+    subject_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", str(subject).casefold())
+        if len(token) >= 4 and token not in {"about", "what", "which", "should", "could", "would", "read", "want", "understand", "learn"}
+    }
+    for document in documents if isinstance(documents, list) else []:
+        if not isinstance(document, dict):
+            continue
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        title = str(document.get("title") or "").strip()
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if url.rstrip("/").casefold() != target_url or not title or len(body) < 80:
+            continue
+        if not _eligible_outward_doc(query, document, profile, min_relevance=2):
+            continue
+        if (
+            "political_dynasties" in _topic_anchor_groups(subject)
+            and "political_dynasties" not in _topic_anchor_groups(title)
+        ):
+            continue
+        source_tokens = set(re.findall(r"[a-z0-9]+", (title + " " + body).casefold()))
+        support = sorted(subject_tokens & source_tokens)
+        if len(support) < min(2, len(subject_tokens)):
+            continue
+        approved = dict(document)
+        approved["title"] = title
+        approved["url"] = url
+        approved["text"] = body
+        approved["_discovery_relevance"] = "direct"
+        approved["_discovery_support_terms"] = support
+        return [approved]
+    return []
+
+
 def _guide_subject_discovery_answer(response, subject, doorway, evidence):
     """Use a page-grounded direct/related answer or fall back without a false match."""
     if not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip():
@@ -5119,7 +5183,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     correction_subject = general_guide_composition.correction_subject(query)
     source_trace_request = general_guide_composition.is_exact_source_request(query)
     source_trace_claim = _history_text(history) if source_trace_request else ""
-    discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
+    extracted_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
+    reading_request_subject = _guide_natural_reading_request_subject(query) if not correction_subject and not source_trace_request else ""
+    # Explicit requests to find Archive materials use the registered Guide Node
+    # authority. Natural "what should I read?" requests remain ordinary canonical
+    # recommendations, while their prose is grounded in the selected page body.
+    discovery_subject = extracted_subject if not reading_request_subject else ""
     resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
@@ -5166,16 +5235,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     direct_selected_body = None
     registry_discovery_docs = []
     if _guide_requires_canonical_subject_supplement(
-        archive_evidence_unavailable, discovery_subject
+        archive_evidence_unavailable, discovery_subject or reading_request_subject
     ):
-        # Subject-finding requests always receive a bounded WordPress content
-        # supplement, even when the initial vector pass did not set an evidence-
-        # unavailable flag. A valid doorway alone is not enough: fetch the page
-        # text and re-run the same frame-neutral, sufficiency, and question-fit
-        # gates before allowing it into the answer composition.
+        # Subject-finding and natural reading requests receive bounded canonical
+        # content. Only explicit Guide Node discovery expands against the registry;
+        # ordinary reading recommendations use their already-selected doorway.
         try:
             recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                resource_query, limit=_guide_subject_supplement_limit(discovery_subject or reading_request_subject)
             )
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
@@ -5201,7 +5268,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
-            if discovery_subject and authoritative_doorway:
+            if (discovery_subject or reading_request_subject) and authoritative_doorway:
                 doorway_docs = _wordpress_search_canonical_candidates(
                     authoritative_doorway.get("title") or "", limit=3
                 )
@@ -5235,12 +5302,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
                 recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
             )
-            selected_support = (
-                _guide_selected_doorway_discovery_evidence(
+            if discovery_subject and authoritative_doorway:
+                selected_support = _guide_selected_doorway_discovery_evidence(
                     recovered_docs, resource_query, authoritative_doorway
                 )
-                if discovery_subject and authoritative_doorway else []
-            )
+            elif reading_request_subject and authoritative_doorway:
+                selected_support = _guide_selected_reading_evidence(
+                    reading_request_subject,
+                    query,
+                    authoritative_doorway,
+                    ([direct_selected_body] if direct_selected_body else []) + list(recovered_docs),
+                )
+            else:
+                selected_support = []
             # Resource discovery and answer synthesis have different contracts.
             # Once a canonical page body passes direct subject-fit validation,
             # align the destination to that exact body and retain it for the
@@ -5393,9 +5467,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
     # cannot drift into different descriptions or introduce unselected resources.
-    if discovery_subject and authoritative_doorway:
+    if (discovery_subject or reading_request_subject) and authoritative_doorway:
         grounded_discovery = _guide_subject_discovery_answer(
-            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
+            llm_output,
+            discovery_subject or reading_request_subject or resource_query,
+            authoritative_doorway,
+            discovery_selected_evidence,
         )
         if grounded_discovery != str(llm_output or "").strip():
             print(
@@ -5455,10 +5532,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Re-apply provider-independent discovery composition after sanitization, immediately
     # before payload assembly. This is intentionally deterministic even when a generated
     # answer passed the broad relevance validator above.
-    if discovery_subject and authoritative_doorway:
+    if (discovery_subject or reading_request_subject) and authoritative_doorway:
         response = _sanitize_basic_inquiry_response(
             _guide_subject_discovery_answer(
-                response, resource_query, authoritative_doorway, discovery_selected_evidence
+                response,
+                discovery_subject or reading_request_subject or resource_query,
+                authoritative_doorway,
+                discovery_selected_evidence,
             )
         )
 
