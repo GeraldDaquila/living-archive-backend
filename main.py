@@ -4754,7 +4754,28 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
             and len(early_hits) >= 2
         )
     )
-    direct = phrase_in_title or direct_body_fit
+
+    # Relational reading requests can include a verb or outcome not repeated in
+    # the title ("how political dynasties affect public accountability"). An
+    # active registered title is a strong subject anchor, but directness still
+    # requires page-level body evidence and near-complete support from approved
+    # registry metadata. This keeps broad related pages from passing on a shared
+    # keyword while allowing a dedicated study to answer a relationally phrased
+    # request about its established subject.
+    title_anchor_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", title)
+        if len(token) >= 4 and token not in stop
+    }
+    title_anchor_hits = title_anchor_tokens & subject_tokens
+    registered_title_anchor_fit = (
+        node is not None
+        and len(title_anchor_tokens) >= 2
+        and len(title_anchor_hits) >= min(3, len(title_anchor_tokens))
+        and len(early_hits) >= 2
+        and len(metadata_subject_hits) >= max(1, len(subject_tokens) - 1)
+        and direct_fit >= 2
+    )
+    direct = phrase_in_title or direct_body_fit or registered_title_anchor_fit
     if direct:
         support = sorted(early_hits or body_hits)
         return {"grade": "direct", "score": 100 + direct_fit + len(early_hits) * 4 + len(title_hits) * 3, "support": support}
