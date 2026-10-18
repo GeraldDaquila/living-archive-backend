@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.281 — Strip standalone WordPress author bylines
+# USE PRODUCTION VERSION: v489.282 — Restore explicit homepage navigation and reject malformed heading quotes
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.281"
-DEPLOYMENT_FINGERPRINT = "USE-v489.281-standalone-author-byline-cleanup"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.281-standalone-author-byline-cleanup"
+APP_VERSION = "v489.282"
+DEPLOYMENT_FINGERPRINT = "USE-v489.282-home-navigation-heading-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.282-home-navigation-heading-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.281":
+if str(APP_VERSION) != "v489.282":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5148,10 +5148,23 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold())
         if len(token) >= 4
     }
+    # WordPress excerpts can concatenate a title/subheading directly with the
+    # following sentence. If a complete question follows the heading, discard
+    # the heading prefix before considering the text as a source quotation.
     sentences = [
         re.sub(r"\s+", " ", sentence).strip(" \t-•")
         for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
+    for index, sentence in enumerate(sentences):
+        if "?" not in sentence:
+            continue
+        question_start = re.search(
+            r"\b(?:why|what|how|when|where|who|which|does|do|did|can|could|should|would|will|is|are|was|were)\s+",
+            sentence,
+            re.I,
+        )
+        if question_start and question_start.start() >= 24:
+            sentences[index] = sentence[question_start.start():].strip()
     candidates = []
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
@@ -5206,6 +5219,42 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
     query = str(query or "").strip()
+    # Explicit homepage navigation is a deterministic site-level destination,
+    # not a subject-discovery request. Resolve it before retrieval/composition
+    # so provider variance cannot suppress a clearly requested homepage.
+    home_request = bool(re.search(
+        r"\b(?:homepage|home page|site home|website home)\b", query, re.I
+    )) and bool(re.search(
+        r"\b(?:living archive|the archive|the website|the site|website|site)\b",
+        query, re.I
+    )) and bool(re.search(
+        r"\b(?:take me|go to|bring me|send me|navigate|open|show me|link me|please take|please go)\b",
+        query, re.I
+    ))
+    if home_request:
+        request_id = "home-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": request_id,
+            "query": query,
+            "intent": "NAVIGATION",
+            "response": "Here’s the Living Archive homepage.",
+            "recommendation": {
+                "title": "Living Archive",
+                "url": "https://geralddaquila.com/",
+            },
+            "answer_basis": {
+                "kind": "navigation",
+                "label": "Direct site navigation",
+                "explanation": "You explicitly asked to open the Living Archive homepage.",
+            },
+            "processing": "guide_navigation",
+            "route_source": "guide_explicit_home_navigation",
+            "visitor_boundary_version": APP_VERSION,
+        }
     clarification = general_guide_composition.clarification_response(
         query, _history_text(history)
     )
