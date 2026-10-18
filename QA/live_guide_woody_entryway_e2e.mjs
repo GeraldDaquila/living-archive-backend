@@ -393,6 +393,26 @@ await page.addInitScript(() => {
     }
     callback(timestamp);
   });
+  // QA-only: trace body consumption independently of the Guide's own code.
+  // The prior run reached fetch_resolved but never logged after res.json().
+  const originalResponseJson = Response.prototype.json;
+  Response.prototype.json = function() {
+    const response = this;
+    const isGuideApiResponse = /living-archive-backend\\.onrender\\.com\\/api\\/query/.test(String(response.url || ""));
+    if (isGuideApiResponse) console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_enter", status:response.status, bodyUsed:response.bodyUsed, time:performance.now()}));
+    const pending = originalResponseJson.call(response);
+    if (!isGuideApiResponse) return pending;
+    const timeoutId = setTimeout(() => console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_still_pending_2500ms", bodyUsed:response.bodyUsed, time:performance.now()})), 2500);
+    return pending.then(value => {
+      clearTimeout(timeoutId);
+      console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_resolved", keys:Object.keys(value || {}), responseLength:typeof value?.response==="string"?value.response.length:null, time:performance.now()}));
+      return value;
+    }, error => {
+      clearTimeout(timeoutId);
+      console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_rejected", name:error?.name || null, message:error?.message || String(error), time:performance.now()}));
+      throw error;
+    });
+  };
   const originalFetch = window.fetch.bind(window);
   window.fetch = (...args) => {
     const url = String(args[0]);
