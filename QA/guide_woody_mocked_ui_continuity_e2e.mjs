@@ -30,6 +30,9 @@ page.on("console", message => {
   const messageText = message.text();
   if (message.type() === "error") consoleErrors.push(messageText);
   if (messageText.startsWith("[Guide QA]")) mark("browser_event_trace", { message: messageText });
+  if (messageText.startsWith("[Guide QA API]")) {
+    try { apiRequests.push(JSON.parse(messageText.slice("[Guide QA API] ".length))); } catch {}
+  }
 });
 page.on("request", request => {
   if (request.url().includes("/api/query")) mark("api_request_event", { method: request.method(), url: request.url(), resourceType: request.resourceType() });
@@ -178,26 +181,43 @@ try {
         event.preventDefault();
       }
     }, true);
-    // Observe Promise settlement without changing the returned Promise.
-    // This distinguishes a fetch that never settles from a response that settles
-    // but whose controller continuation blocks or fails.
-    const originalFetch = window.fetch;
+    // Stub only the controller's API fetch in-page. The previous Playwright
+    // network-route mock reached route.fulfill(), but Chromium never surfaced a
+    // response to the page. This direct Promise-based mock isolates the live
+    // WordPress controller/UI contract from browser network plumbing.
+    window.__guideApiRequests = [];
+    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","What is one concrete way to practice this in a neighborhood?"];
+    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
+    const qaFollowup = "Can you explain your previous answer in simpler terms?";
+    const originalFetch = window.fetch.bind(window);
     window.fetch = function(...args) {
-      window.__guideTrace({ event: "fetch_call_enter", url: String(args[0]?.url || args[0]) });
-      try {
-        const result = originalFetch.apply(this, args);
-        window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
-        if (result && typeof result.then === "function") {
-          result.then(
-            response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }),
-            error => window.__guideTrace({ event: "fetch_promise_rejected", error: String(error) })
-          );
-        }
-        return result;
-      } catch (error) {
-        window.__guideTrace({ event: "fetch_call_threw", error: String(error) });
-        throw error;
-      }
+      const url = String(args[0]?.url || args[0] || "");
+      window.__guideTrace({ event: "fetch_call_enter", url });
+      if (!url.includes("/api/query")) return originalFetch(...args);
+      let body = {};
+      try { body = JSON.parse(args[1]?.body || "{}"); } catch {}
+      const query = String(body.query || "");
+      const index = qaQuestions.indexOf(query);
+      const answer = query === qaFollowup
+        ? "In simpler terms, stewardship means looking after what you and others depend on, without assuming you must control everything."
+        : qaAnswers[index];
+      const request = { body, postData: JSON.stringify(body), url };
+      window.__guideApiRequests.push(request);
+      console.log("[Guide QA API] " + JSON.stringify(request));
+      if (!answer) return Promise.resolve(new Response(JSON.stringify({ ok: false, error: "Unexpected QA query" }), { status: 400, headers: { "content-type": "application/json" } }));
+      const payload = {
+        ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
+        source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: null,
+        answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
+        processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
+      };
+      const result = Promise.resolve(new Response(JSON.stringify(payload), {
+        status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }
+      }));
+      window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
+      result.then(response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }));
+      return result;
     };
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
