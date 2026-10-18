@@ -828,21 +828,25 @@ try {
     if (responseOutcome.kind === "response_observed" && responseOutcome.status >= 200 &&
         responseOutcome.status < 300 && uiOutcome.kind === "response_ui_present") {
       const root = page.locator(".archive-stage-wrapper[data-guide-instance='woody']");
-      const input = root.locator("#archive-query-input");
-      const submit = root.locator("#archive-submit-btn");
+      const ordinaryInput = root.locator("#archive-ordinary-followup-input");
+      const ordinaryReply = root.getByRole("button", { name: /reply/i }).first();
       const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
       const followupQuestion = "Can you explain your previous answer in simpler terms?";
       let followupResponseOutcome = { kind: "not_attempted" };
       let followupUiOutcome = { kind: "not_attempted" };
       try {
-        await input.fill(followupQuestion, { timeout: 5_000 });
+        // Exercise the actual ordinary-conversation follow-up panel rendered
+        // after the first answer, not the main search form. The main form sends
+        // a standalone query and cannot validate conversation-history handling.
+        await ordinaryInput.waitFor({ state: "visible", timeout: 8_000 });
+        await ordinaryInput.fill(followupQuestion, { timeout: 5_000 });
         const followupResponsePromise = page.waitForResponse(
           response => response.request().method() === "POST" &&
             API_PATTERN.test(new URL(response.url()).pathname),
           { timeout: 35_000 }
         ).then(async response => {
           let bodyPreview = "";
-          try { bodyPreview = (await response.text()).slice(0, 1200); } catch (error) { bodyPreview = "body_read_error:" + error.message; }
+          try { bodyPreview = (await response.text()).slice(0, 1800); } catch (error) { bodyPreview = "body_read_error:" + error.message; }
           return {
             kind: "response_observed",
             status: response.status(),
@@ -851,7 +855,7 @@ try {
             bodyPreview
           };
         }).catch(error => ({ kind: "no_response", message: error.message }));
-        await submit.click({ timeout: 5_000 });
+        await ordinaryReply.click({ timeout: 5_000 });
         followupResponseOutcome = await Promise.race([
           followupResponsePromise,
           new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
