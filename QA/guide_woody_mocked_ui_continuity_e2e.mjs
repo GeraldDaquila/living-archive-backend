@@ -23,7 +23,11 @@ page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
 
 const pageErrors = [];
+const consoleErrors = [];
+const failedRequests = [];
 const apiRequests = [];
+page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
+page.on("requestfailed", request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || "unknown" }));
 let mainQueryIndex = 0;
 page.on("pageerror", error => pageErrors.push(error.message));
 
@@ -81,13 +85,41 @@ try {
   const input = root.locator("#archive-query-input");
   const submit = root.locator("#archive-submit-btn");
   const answer = root.locator("#archive-response-text");
+  await input.waitFor({ state: "visible" });
+  await submit.waitFor({ state: "visible" });
+  await page.waitForTimeout(1500);
+  mark("controller_ready_diagnostics", {
+    rootCount: await root.count(),
+    inputCount: await input.count(),
+    inputVisible: await input.isVisible().catch(() => false),
+    submitCount: await submit.count(),
+    submitVisible: await submit.isVisible().catch(() => false),
+    submitDisabled: await submit.isDisabled().catch(() => null),
+    answerCount: await answer.count(),
+    controllerScripts: await page.locator("script[src*='living-archive-guide']").evaluateAll(nodes => nodes.map(n => n.src)),
+    pageUrl: page.url(),
+    consoleErrors,
+    failedRequests
+  });
 
   for (let i = 0; i < QUESTIONS.length; i++) {
     const before = await answer.innerText().catch(() => "");
     await input.fill(QUESTIONS[i]);
     const responsePromise = page.waitForResponse(response =>
-      response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname)
-    );
+      response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname),
+      { timeout: 12_000 }
+    ).catch(error => {
+      mark("api_response_timeout_diagnostics", {
+        index: i + 1,
+        query: QUESTIONS[i],
+        apiRequests,
+        consoleErrors,
+        failedRequests,
+        pageErrors,
+        message: error.message
+      });
+      throw error;
+    });
     await submit.click();
     const response = await responsePromise;
     if (response.status() !== 200) throw new Error("Mock API response was not HTTP 200 for main query " + (i + 1));
@@ -142,7 +174,7 @@ try {
   if (apiRequests.length !== 4) throw new Error("Expected exactly 4 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
-  mark("test_passed", { requestCount: apiRequests.length, continuityPassed });
+  mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
   mark("test_failed", { message: error.message, requestCount: apiRequests.length, pageErrors });
   process.exitCode = 1;
