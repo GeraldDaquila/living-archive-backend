@@ -1075,25 +1075,23 @@ try {
         "What is a concrete way to practice this in a neighborhood?",
         "Explain stewardship in everyday life, and finish with one brief question inviting me to reflect on my own experience."
       ];
-      const mainFormHistoryEvidence = expectedMainFormPrompts.slice(1).map((currentPrompt, index) => {
-        const request = posts[index + 1];
+      const mainFormRequestIsolationEvidence = expectedMainFormPrompts.map((currentPrompt, index) => {
+        const request = posts[index];
         let parsed = null;
-        let serialized = "";
         try {
           parsed = JSON.parse(request?.postData || "");
-          serialized = JSON.stringify(parsed);
         } catch (_) {}
-        const priorPrompts = expectedMainFormPrompts.slice(0, index + 1);
         return {
           currentPrompt,
           requestCaptured: Boolean(request),
           jsonParsed: Boolean(parsed),
-          priorPromptsPresent: priorPrompts.every(prompt => serialized.includes(prompt)),
-          historyFieldPresent: Boolean(parsed) && /history|conversation|messages|turns/i.test(Object.keys(parsed).join(" ")),
+          currentPromptMatches: Boolean(parsed) && parsed.query === currentPrompt,
           bodyKeys: parsed ? Object.keys(parsed) : []
         };
       });
-      mark("main_form_conversation_continuity_contract", mainFormHistoryEvidence);
+      // Main-form Search intentionally starts a fresh inquiry. Conversation history
+      // belongs to the dedicated ordinary-reply handler and is asserted separately.
+      mark("main_form_independent_query_contract", mainFormRequestIsolationEvidence);
       mark("conversation_history_contract", continuityEvidence);
       if (!naturalInvitationPanelObserved ||
           secondQuestionOutcome.response?.kind !== "response_observed" ||
@@ -1109,7 +1107,7 @@ try {
           !continuityEvidence.priorVisitorTurnsPresent ||
           !continuityEvidence.priorAssistantAnswerPresent ||
           !continuityEvidence.assistantHistoryFieldPresent ||
-          mainFormHistoryEvidence.some(item => !item.requestCaptured || !item.jsonParsed || !item.priorPromptsPresent || !item.historyFieldPresent)) {
+          mainFormRequestIsolationEvidence.some(item => !item.requestCaptured || !item.jsonParsed || !item.currentPromptMatches)) {
         process.exitCode = 1;
       }
     }
