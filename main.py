@@ -4454,9 +4454,13 @@ def _general_guide_authoritative_doorway(query, context_data):
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
             # canonical candidates and subject them to the same relevance gate.
-            fallback_queries = [query]
+            fallback_docs = _wordpress_search_canonical_candidates(query)
             if require_dynasty_title:
-                fallback_queries.insert(0, "political dynasties")
+                # A distinctive subject query supplements the general search;
+                # it does not replace the visitor's original query.
+                fallback_docs.extend(
+                    _wordpress_search_canonical_candidates("political dynasties", limit=10)
+                )
             fallback_seen = {
                 (
                     str(item.get("title") or "").casefold(),
@@ -4464,18 +4468,14 @@ def _general_guide_authoritative_doorway(query, context_data):
                 )
                 for item in evidence_docs
             }
-            for fallback_query in fallback_queries:
-                fallback_docs = _wordpress_search_canonical_candidates(
-                    fallback_query, limit=10 if require_dynasty_title else 3
+            for item in fallback_docs:
+                key = (
+                    str(item.get("title") or "").casefold(),
+                    str(item.get("url") or item.get("canonical_url") or "").casefold(),
                 )
-                for item in fallback_docs:
-                    key = (
-                        str(item.get("title") or "").casefold(),
-                        str(item.get("url") or item.get("canonical_url") or "").casefold(),
-                    )
-                    if key not in fallback_seen:
-                        evidence_docs.append(item)
-                        fallback_seen.add(key)
+                if key not in fallback_seen:
+                    evidence_docs.append(item)
+                    fallback_seen.add(key)
 
             # Recovery is a candidate source, not authority: reapply every
             # subject-specific gate after it has contributed candidates.
