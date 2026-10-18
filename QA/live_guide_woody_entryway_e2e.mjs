@@ -156,13 +156,35 @@ await page.addInitScript(() => {
   // the call stack. QA-only instrumentation; no production source is changed.
   const reportDynamicScript = (node, operation) => {
     try {
-      if (node?.tagName === "SCRIPT" && String(node.src || "").startsWith("data:text/javascript")) {
-        console.log("GUIDE_DYNAMIC_SCRIPT " + JSON.stringify({
-          operation,
-          srcPrefix: String(node.src).slice(0, 180),
-          stack: new Error("Guide dynamic script insertion").stack
-        }));
+      if (node?.tagName !== "SCRIPT") return;
+      const src = String(node.src || "");
+      const prefix = "data:text/javascript;base64,";
+      if (!src.startsWith(prefix)) return;
+      let source = "";
+      try {
+        const binary = atob(src.slice(prefix.length));
+        const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+        source = new TextDecoder().decode(bytes);
+      } catch {}
+      let candidatePatched = false;
+      const unsafeWrite = "node.nodeValue = value.replace(titleMarker, '');";
+      if (source.includes("function cleanAnswer") && source.includes("titleMarker") && source.includes(unsafeWrite)) {
+        source = source.replace(
+          unsafeWrite,
+          "var cleanedValue = value.replace(titleMarker, '');\\n      if (cleanedValue !== value) node.nodeValue = cleanedValue;"
+        );
+        const bytes = new TextEncoder().encode(source);
+        let binary = "";
+        for (const byte of bytes) binary += String.fromCharCode(byte);
+        node.src = prefix + btoa(binary);
+        candidatePatched = true;
       }
+      console.log("GUIDE_DYNAMIC_SCRIPT " + JSON.stringify({
+        operation,
+        srcPrefix: String(node.src).slice(0, 180),
+        candidatePatched,
+        stack: new Error("Guide dynamic script insertion").stack
+      }));
     } catch {}
   };
   const originalAppendChild = Node.prototype.appendChild;
