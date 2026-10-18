@@ -26,7 +26,11 @@ const pageErrors = [];
 const consoleErrors = [];
 const failedRequests = [];
 const apiRequests = [];
-page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
+page.on("console", message => {
+  const messageText = message.text();
+  if (message.type() === "error") consoleErrors.push(messageText);
+  if (messageText.startsWith("[Guide QA]")) mark("browser_event_trace", { message: messageText });
+});
 page.on("requestfailed", request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || "unknown" }));
 let mainQueryIndex = 0;
 page.on("pageerror", error => pageErrors.push(error.message));
@@ -104,14 +108,26 @@ try {
 
   await page.evaluate(() => {
     window.__guideSubmitTrace = [];
+    window.__guideTrace = function(entry) {
+      window.__guideSubmitTrace.push(entry);
+      console.log("[Guide QA] " + JSON.stringify(entry));
+    };
+    const originalRAF = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = function(callback) {
+      window.__guideTrace({ event: "requestAnimationFrame_called" });
+      return originalRAF(function(timestamp) {
+        window.__guideTrace({ event: "requestAnimationFrame_callback" });
+        callback(timestamp);
+      });
+    };
     document.addEventListener("click", event => {
       if (event.target?.closest?.("#archive-submit-btn")) {
-        window.__guideSubmitTrace.push({ event: "submit_button_click_capture", defaultPrevented: event.defaultPrevented });
+        window.__guideTrace({ event: "submit_button_click_capture", defaultPrevented: event.defaultPrevented });
       }
     }, true);
     document.addEventListener("submit", event => {
       if (event.target?.querySelector?.("#archive-submit-btn")) {
-        window.__guideSubmitTrace.push({ event: "form_submit_capture", defaultPrevented: event.defaultPrevented, action: event.target.action, method: event.target.method });
+        window.__guideTrace({ event: "form_submit_capture", defaultPrevented: event.defaultPrevented, action: event.target.action, method: event.target.method });
         // Prevent only native document navigation so the test can observe whether
         // the live controller's submit handler issues the API request. Do not stop
         // propagation: the controller's normal handler must still run.
@@ -120,12 +136,12 @@ try {
     }, true);
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
-      window.__guideSubmitTrace.push({ event: "fetch_called", url: String(args[0]?.url || args[0]) });
+      window.__guideTrace({ event: "fetch_called", url: String(args[0]?.url || args[0]) });
       return originalFetch.apply(this, args);
     };
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      window.__guideSubmitTrace.push({ event: "xhr_open", method, url: String(url) });
+      window.__guideTrace({ event: "xhr_open", method, url: String(url) });
       return originalOpen.call(this, method, url, ...rest);
     };
   });
