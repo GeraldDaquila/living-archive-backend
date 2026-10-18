@@ -827,8 +827,17 @@ try {
           response => response.request().method() === "POST" &&
             API_PATTERN.test(new URL(response.url()).pathname),
           { timeout: 35_000 }
-        ).then(response => ({ kind: "response_observed", status: response.status(), url: response.url() }))
-         .catch(error => ({ kind: "no_response", message: error.message }));
+        ).then(async response => {
+          let bodyPreview = "";
+          try { bodyPreview = (await response.text()).slice(0, 1200); } catch (error) { bodyPreview = "body_read_error:" + error.message; }
+          return {
+            kind: "response_observed",
+            status: response.status(),
+            url: response.url(),
+            requestPostData: response.request().postData() || null,
+            bodyPreview
+          };
+        }).catch(error => ({ kind: "no_response", message: error.message }));
         await submit.click({ timeout: 5_000 });
         followupResponseOutcome = await Promise.race([
           followupResponsePromise,
@@ -847,10 +856,28 @@ try {
       } catch (error) {
         followupUiOutcome = { kind: "followup_interaction_error", message: error.message };
       }
+      const followupDomSnapshot = await page.evaluate(() => {
+        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+        const text = root?.querySelector("#archive-response-text");
+        const input = root?.querySelector("#archive-query-input");
+        const form = root?.querySelector("#archive-search-form");
+        return {
+          readyState: document.readyState,
+          rootFound: Boolean(root),
+          rootHtmlPreview: root?.innerHTML?.slice(0, 2400) || null,
+          responseTextFound: Boolean(text),
+          responseTextLength: text?.innerText?.trim()?.length ?? null,
+          inputFound: Boolean(input),
+          inputValue: input?.value ?? null,
+          formFound: Boolean(form),
+          bodyTextPreview: document.body?.innerText?.slice(-1600) || null
+        };
+      }).catch(error => ({ snapshotError: error.message }));
       mark("followup_e2e_outcome", {
         question: followupQuestion,
         response: followupResponseOutcome,
         ui: followupUiOutcome,
+        dom: followupDomSnapshot,
         responseCount: apiResponses.length,
         postCount: posts.length,
         answerLength: await root.locator("#archive-response-text").innerText().then(text => text.trim().length).catch(() => null),
