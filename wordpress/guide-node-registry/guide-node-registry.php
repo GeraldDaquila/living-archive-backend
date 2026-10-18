@@ -2,9 +2,10 @@
 /**
  * Plugin Name: Guide Node Registry
  * Description: Structural registry and navigation inspection boundary for The Guide.
- * Version: 0.2.0-draft
+ * Version: 0.2.1-draft
  * Author: Life.Understood.
  *
+ * RELEASE 0.2.1-draft: add a public canonical study for political-dynasty discovery.
  * This plugin is intentionally non-intelligent. WordPress remains the
  * authoritative structural source. The Guide/USE consumes approved nodes.
  */
@@ -77,6 +78,21 @@ function la_guide_node_registry_records() {
             'menu_depth'          => 3,
             'discovery_priority'  => 'high',
             'semantic_hints'      => array( 'Philippines', 'Filipino society', 'Philippine systems', 'culture', 'governance' ),
+        ),
+        array(
+            'discovery_level'    => 2,
+            'node_id'             => 'political-dynasties-philippines-study',
+            'title'               => 'Political Dynasties in the Philippines',
+            'branch'              => 'Core Pathways',
+            'parent'              => 'Philippine Systems, Society, and Culture',
+            'purpose'             => 'Provide a direct, source-grounded study of how political dynasties shape power structures, public accountability, governance, and socioeconomic outcomes in the Philippines.',
+            'asset_type'          => 'canonical_study',
+            'canonical_url'       => 'https://geralddaquila.com/2025/05/21/political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/',
+            'access_class'        => 'public',
+            'status'              => 'active',
+            'menu_depth'          => 4,
+            'discovery_priority'  => 'high',
+            'semantic_hints'      => array( 'political dynasties', 'political dynasty', 'dynastic politics', 'family networks', 'public accountability', 'governance', 'socioeconomic impacts', 'power structures', 'Philippines' ),
         ),
         array(
             'discovery_level'    => 1,
