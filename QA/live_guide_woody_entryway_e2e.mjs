@@ -103,6 +103,19 @@ for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.response
 page.on("requestfinished", request => {
   if (request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_finished", { url: request.url(), method: request.method() });
 });
+page.on("framenavigated", frame => {
+  mark("frame_navigated", { url: frame.url(), mainFrame: frame === page.mainFrame() });
+});
+page.on("request", request => {
+  if (request.isNavigationRequest()) {
+    mark("navigation_request", {
+      url: request.url(),
+      method: request.method(),
+      resourceType: request.resourceType(),
+      frameUrl: request.frame()?.url() || null
+    });
+  }
+});
 page.on("requestfailed", request => {
   if (request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_failed", { url: request.url(), method: request.method(), error: request.failure()?.errorText || "unknown" });
 });
