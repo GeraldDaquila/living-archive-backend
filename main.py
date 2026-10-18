@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.270"
-DEPLOYMENT_FINGERPRINT = "USE-v489.270-guide-composition-concision-calibration"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.270-guide-composition-concision-calibration"
+APP_VERSION = "v489.271"
+DEPLOYMENT_FINGERPRINT = "USE-v489.271-guide-reflection-fallback-question"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.271-guide-reflection-fallback-question"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.270":
+if str(APP_VERSION) != "v489.271":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3921,6 +3921,16 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
     }
 
 
+def _explicit_closing_question_requested(query):
+    """Recognize a visitor's explicit request for one closing or reflective question."""
+    q = re.sub(r"\\s+", " ", str(query or "")).strip()
+    return bool(
+        re.search(r"\\b(?:finish|end)\\b.{0,100}\\bquestion\\b", q, re.I)
+        or re.search(r"\\bquestion\\b.{0,100}\\b(?:invite|inviting|prompt|prompting)\\b", q, re.I)
+        or re.search(r"\\bask me\\b.{0,60}\\bquestion\\b", q, re.I)
+    )
+
+
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -3970,6 +3980,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\n"
             "Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."
         )
+        # The deterministic last-resort path must preserve an explicit visitor
+        # request for a reflective closing question just as the composition
+        # validator does on the provider-generated path.
+        if _explicit_closing_question_requested(question) and not response.rstrip().endswith("?"):
+            response += " What is one thing in your everyday life that you feel responsible for caring for?"
         return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
     if "burnout" in q and re.search(r"\b(manager|manage|leader|supervisor)\b", q):
