@@ -982,29 +982,17 @@ try {
       }).catch(error => ({ error: error.message }));
       mark("ordinary_panel_dom_diagnostics", ordinaryPanelDiagnostics);
 
-      // QA-only renderer fixture: independently exercise the dedicated reply
-      // handler even when the live answer did not naturally invite a reply.
-      // This does NOT count as a natural visitor-facing invitation pass.
+      // Release gate: only a panel created by the live visitor-facing response counts.
+      // Do not invoke the renderer synthetically; its closure scope is not a public API.
       const naturalInvitationPanelObserved = await root.locator("#archive-ordinary-followup-input").count().then(n => n > 0);
-      if (!naturalInvitationPanelObserved) {
-        const fixtureResult = await page.evaluate(() => {
-          if (typeof renderOrdinaryFollowupPanel !== "function") {
-            return { available: false, reason: "renderer_not_global" };
-          }
-          renderOrdinaryFollowupPanel("QA-only renderer fixture. What would you like to add from your own experience?");
-          return {
-            available: true,
-            panelCreated: Boolean(document.querySelector("#archive-ordinary-followup-input")),
-            fixtureOnly: true
-          };
-        });
-        mark("qa_only_followup_renderer_fixture", { naturalInvitationPanelObserved, ...fixtureResult });
-      } else {
-        mark("qa_only_followup_renderer_fixture", { naturalInvitationPanelObserved, fixtureOnly: false });
-      }
+      mark("natural_followup_panel_gate", {
+        naturalInvitationPanelObserved,
+        syntheticFixtureUsed: false,
+        reason: naturalInvitationPanelObserved ? "panel_created_by_live_response" : "live_response_did_not_create_panel"
+      });
 
-      // Exercise the dedicated reply handler. A synthetic renderer fixture is
-      // diagnostic only; the natural-invitation requirement remains a release gate.
+      // Exercise the dedicated reply handler only if the real live response created it.
+      // No synthetic DOM or renderer invocation is allowed to satisfy this gate.
       const ordinaryInput = root.locator("#archive-ordinary-followup-input");
       const ordinaryReply = root.getByRole("button", { name: /reply/i }).first();
       const answerBeforeOrdinary = await root.locator("#archive-response-text").innerText().catch(() => "");
@@ -1052,6 +1040,33 @@ try {
         consoleErrors
       });
       const ordinaryRequestBody = ordinaryFollowupOutcome.response?.requestPostData || "";
+      let ordinaryRequestJson = null;
+      let serializedOrdinaryRequest = "";
+      let continuityEvidence = {
+        jsonParsed: false,
+        priorVisitorTurnsPresent: false,
+        priorAssistantAnswerPresent: false,
+        priorVisitorTurnMatches: [],
+        assistantHistoryFieldPresent: false
+      };
+      try {
+        ordinaryRequestJson = JSON.parse(ordinaryRequestBody);
+        serializedOrdinaryRequest = JSON.stringify(ordinaryRequestJson);
+        continuityEvidence.jsonParsed = true;
+        continuityEvidence.priorVisitorTurnMatches = [
+          secondQuestion,
+          thirdQuestion,
+          invitationQuestion
+        ].filter(question => serializedOrdinaryRequest.includes(question));
+        continuityEvidence.priorVisitorTurnsPresent = continuityEvidence.priorVisitorTurnMatches.length === 3;
+        continuityEvidence.priorAssistantAnswerPresent =
+          Boolean(answerBeforeOrdinary.trim()) && serializedOrdinaryRequest.includes(answerBeforeOrdinary.trim());
+        continuityEvidence.assistantHistoryFieldPresent =
+          /history|conversation|messages|turns/i.test(Object.keys(ordinaryRequestJson || {}).join(" "));
+      } catch (_) {
+        // Invalid or absent JSON is evidence of a failed continuity contract.
+      }
+      mark("conversation_history_contract", continuityEvidence);
       if (!naturalInvitationPanelObserved ||
           secondQuestionOutcome.response?.kind !== "response_observed" ||
           secondQuestionOutcome.response.status < 200 || secondQuestionOutcome.response.status >= 300 ||
@@ -1062,7 +1077,10 @@ try {
           ordinaryFollowupOutcome.response?.kind !== "response_observed" ||
           ordinaryFollowupOutcome.response.status < 200 || ordinaryFollowupOutcome.response.status >= 300 ||
           ordinaryFollowupOutcome.ui?.kind !== "ordinary_followup_answer_updated" ||
-          !/history|conversation|messages|previous|assistant|context/i.test(ordinaryRequestBody)) {
+          !continuityEvidence.jsonParsed ||
+          !continuityEvidence.priorVisitorTurnsPresent ||
+          !continuityEvidence.priorAssistantAnswerPresent ||
+          !continuityEvidence.assistantHistoryFieldPresent) {
         process.exitCode = 1;
       }
     }
