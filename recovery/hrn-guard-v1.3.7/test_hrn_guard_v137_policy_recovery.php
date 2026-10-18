@@ -40,16 +40,14 @@ check(($payload['hrn_composition_recovery'] ?? '') === 'bounded_friendship_conve
 check(str_contains((string)$payload['response'], 'worried that naming what is on your mind could change the friendship'), 'recovery reflects the actual stated concern');
 check(str_contains((string)$payload['question'], 'What feels most important to protect'), 'follow-up explores the visitor concern without prescribing action');
 check(($payload['hrn_composition_recovery_version'] ?? '') === '1.3.7', 'candidate recovery version is recorded');
-foreach ([2 => 'What change are you most afraid of?', 3 => 'Has something in your friend’s past responses', 4 => 'Would it be more useful to explore'] as $turn => $expected) {
-    $laterRequest = new WP_REST_Request(['message'=>$input, 'unit_turns'=>$turn]);
-    $laterResponse = new WP_REST_Response([
-        'ok'=>false, 'version'=>'0.5.332', 'reason'=>'composition_policy_rejected',
-        'message'=>'The conversation could not be composed right now. Please try again.',
-        'status'=>503, 'meta'=>['policy_rejections'=>[['reason'=>'visitor_surface_policy_rejected']]]
-    ], 503);
-    $laterFixed = $guard($laterResponse, null, $laterRequest);
-    check(str_contains((string)($laterFixed->get_data()['question'] ?? ''), $expected), 'turn '.$turn.' advances to its distinct concern');
-}
+$laterRequest = new WP_REST_Request(['message'=>'I do not want to lose the closeness we have.', 'unit_turns'=>2]);
+$laterResponse = new WP_REST_Response([
+    'ok'=>false, 'version'=>'0.5.332', 'reason'=>'composition_policy_rejected',
+    'message'=>'The conversation could not be composed right now. Please try again.',
+    'status'=>503, 'meta'=>['policy_rejections'=>[['reason'=>'visitor_surface_policy_rejected']]]
+], 503);
+$laterFixed = $guard($laterResponse, null, $laterRequest);
+check(($laterFixed->get_data()['hrn_composition_recovery'] ?? '') === 'bounded_contextual_fallback_v9', 'later-turn short answer does not receive an opening-turn script');
 $safety = new WP_REST_Response(['ok'=>false,'safety'=>'red','safety_interrupt'=>true,'reason'=>'composition_policy_rejected','status'=>503,'meta'=>['policy_rejections'=>[['reason'=>'visitor_surface_policy_rejected']]]], 503);
 $safetyFixed = $guard($safety, null, $request);
 check($safetyFixed->get_status() === 503, 'safety interrupt is never replaced');
