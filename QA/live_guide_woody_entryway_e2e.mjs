@@ -393,26 +393,7 @@ await page.addInitScript(() => {
     }
     callback(timestamp);
   });
-  // QA-only: trace body consumption independently of the Guide's own code.
-  // The prior run reached fetch_resolved but never logged after res.json().
-  const originalResponseJson = Response.prototype.json;
-  Response.prototype.json = function() {
-    const response = this;
-    const isGuideApiResponse = /living-archive-backend\.onrender\.com\/api\/query/.test(String(response.url || ""));
-    if (isGuideApiResponse) console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_enter", status:response.status, bodyUsed:response.bodyUsed, time:performance.now()}));
-    const pending = originalResponseJson.call(response);
-    if (!isGuideApiResponse) return pending;
-    const timeoutId = setTimeout(() => console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_still_pending_2500ms", bodyUsed:response.bodyUsed, time:performance.now()})), 2500);
-    return pending.then(value => {
-      clearTimeout(timeoutId);
-      console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_resolved", keys:Object.keys(value || {}), responseLength:typeof value?.response==="string"?value.response.length:null, time:performance.now()}));
-      return value;
-    }, error => {
-      clearTimeout(timeoutId);
-      console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_rejected", name:error?.name || null, message:error?.message || String(error), time:performance.now()}));
-      throw error;
-    });
-  };
+  // QA-only response-instance tracing is installed in the fetch wrapper below.
   const originalFetch = window.fetch.bind(window);
   window.fetch = (...args) => {
     const url = String(args[0]);
@@ -422,6 +403,28 @@ await page.addInitScript(() => {
         console.log("GUIDE_EXEC_TRACE " + JSON.stringify({
           stage: "fetch_resolved", url, status: response.status, ok: response.ok, time: performance.now()
         }));
+      }
+      if (/\/api\/query(?:\?|$)/.test(url)) {
+        const originalInstanceJson = response.json.bind(response);
+        response.json = function() {
+          console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_enter", status:response.status, bodyUsed:response.bodyUsed, time:performance.now()}));
+          let pending;
+          try { pending = originalInstanceJson(); }
+          catch (error) {
+            console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_throw", name:error?.name||null, message:error?.message||String(error), time:performance.now()}));
+            throw error;
+          }
+          const timeoutId = setTimeout(() => console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_still_pending_2500ms", bodyUsed:response.bodyUsed, time:performance.now()})), 2500);
+          return pending.then(value => {
+            clearTimeout(timeoutId);
+            console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_resolved", keys:Object.keys(value||{}), responseLength:typeof value?.response==="string"?value.response.length:null, time:performance.now()}));
+            return value;
+          }, error => {
+            clearTimeout(timeoutId);
+            console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_rejected", name:error?.name||null, message:error?.message||String(error), time:performance.now()}));
+            throw error;
+          });
+        };
       }
       return response;
     }).catch(error => {
