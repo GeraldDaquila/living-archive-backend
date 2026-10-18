@@ -495,3 +495,58 @@ def test_reading_request_answer_stays_aligned_with_selected_canonical_page():
     assert "Political Dynasties in the Philippines" in answer
     assert "The Hidden Dance of Polarity" not in answer
     assert "public accountability" in answer
+
+def test_registered_title_anchor_can_be_direct_when_body_supports_requested_aspect(monkeypatch):
+    subject = "how political dynasties affect public accountability in the philippines"
+    node = {
+        "node_id": "political-dynasties-philippines-study",
+        "title": "Political Dynasties in the Philippines",
+        "purpose": (
+            "Provide a direct study of how political dynasties affect public "
+            "accountability, governance, and socioeconomic outcomes in the Philippines."
+        ),
+        "semantic_hints": [
+            "political dynasties",
+            "public accountability",
+            "governance",
+            "socioeconomic outcomes",
+            "Philippines",
+        ],
+        "status": "active",
+        "canonical_url": (
+            "https://geralddaquila.com/2025/05/21/"
+            "political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/"
+        ),
+    }
+    document = _doc(
+        "Political Dynasties in the Philippines",
+        node["canonical_url"],
+        (
+            "Political dynasties shape electoral competition and family networks. "
+            "The study examines how concentrated family influence affects public "
+            "accountability, governance, and socioeconomic outcomes in the Philippines."
+        ),
+    )
+    monkeypatch.setattr(
+        main.use_core,
+        "_question_evidence_fit_profile",
+        lambda _subject, _document: (0, 0, [], {}),
+    )
+
+    grade = main._guide_discovery_evidence_grade(subject, document, node=node)
+    evidence = dict(document)
+    evidence["_guide_node"] = node
+    evidence["_discovery_relevance"] = grade["grade"]
+    evidence["_discovery_support_terms"] = grade["support"]
+    doorway = {"title": node["title"], "url": node["canonical_url"]}
+    answer = main._guide_subject_discovery_answer(
+        "A generated answer that incorrectly calls this only a related page.",
+        subject,
+        doorway,
+        [evidence],
+    )
+
+    assert grade["grade"] == "direct"
+    assert "strongest direct match" in answer
+    assert "public accountability" in answer
+    assert "related place to explore" not in answer

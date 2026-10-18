@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.276 — Grade registered direct study evidence
+# USE PRODUCTION VERSION: v489.277 — Registered title-anchor directness with aspect evidence
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.276"
-DEPLOYMENT_FINGERPRINT = "USE-v489.276-grade-registered-direct-study"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.276-grade-registered-direct-study"
+APP_VERSION = "v489.277"
+DEPLOYMENT_FINGERPRINT = "USE-v489.277-registered-title-anchor-directness"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.277-registered-title-anchor-directness"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.276":
+if str(APP_VERSION) != "v489.277":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4754,7 +4754,29 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
             and len(early_hits) >= 2
         )
     )
-    direct = phrase_in_title or direct_body_fit
+
+    # Relational reading requests can include a verb or outcome not repeated in
+    # the title ("how political dynasties affect public accountability"). An
+    # active registered title is a strong subject anchor, but directness still
+    # requires page-level body evidence and near-complete support from approved
+    # registry metadata. This keeps broad related pages from passing on a shared
+    # keyword while allowing a dedicated study to answer a relationally phrased
+    # request about its established subject.
+    title_anchor_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", title)
+        if len(token) >= 4 and token not in stop
+    }
+    title_anchor_hits = title_anchor_tokens & subject_tokens
+    requested_aspect_hits = early_hits & (subject_tokens - title_anchor_tokens)
+    registered_title_anchor_fit = (
+        node is not None
+        and len(title_anchor_tokens) >= 2
+        and len(title_anchor_hits) >= min(3, len(title_anchor_tokens))
+        and len(early_hits) >= 2
+        and bool(requested_aspect_hits)
+        and len(metadata_subject_hits) >= max(1, len(subject_tokens) - 1)
+    )
+    direct = phrase_in_title or direct_body_fit or registered_title_anchor_fit
     if direct:
         support = sorted(early_hits or body_hits)
         return {"grade": "direct", "score": 100 + direct_fit + len(early_hits) * 4 + len(title_hits) * 3, "support": support}
