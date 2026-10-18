@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.272 — Preserve canonical primary doorway
+# USE PRODUCTION VERSION: v489.273 — Recover direct political-dynasty doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.272"
-DEPLOYMENT_FINGERPRINT = "USE-v489.272-preserve-canonical-primary-doorway"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.272-preserve-canonical-primary-doorway"
+APP_VERSION = "v489.273"
+DEPLOYMENT_FINGERPRINT = "USE-v489.273-recover-direct-political-dynasty-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.273-recover-direct-political-dynasty-doorway"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.272":
+if str(APP_VERSION) != "v489.273":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4434,22 +4434,58 @@ def _general_guide_authoritative_doorway(query, context_data):
         if comparative_subjects:
             evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
 
+        topic_groups = _topic_anchor_groups(query)
+        # When a visitor asks what to read about political dynasties, a broad
+        # essay that merely mentions the topic cannot displace the direct study.
+        # Require a title-level subject match for this recommendation task so
+        # that a missing direct candidate triggers bounded canonical recovery.
+        require_dynasty_title = (
+            profile.get("action") in {"recommendation", "navigation"}
+            and "political_dynasties" in topic_groups
+        )
+        if require_dynasty_title:
+            evidence_docs = [
+                item for item in evidence_docs
+                if "political_dynasties" in _topic_anchor_groups(item.get("title") or "")
+            ]
+
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         if not primary:
-            # Retrieval and doorway selection are separate. If vector retrieval
-            # supplies no relevant canonical candidate, recover public candidates
-            # through WordPress search and subject them to the same relevance gate.
+            # Retrieval and doorway selection are separate. If the retrieved
+            # candidate pool lacks a direct subject match, recover public
+            # canonical candidates and subject them to the same relevance gate.
             fallback_docs = _wordpress_search_canonical_candidates(query)
-            fallback_seen = {(item["title"].casefold(), item["url"].casefold()) for item in evidence_docs}
+            if require_dynasty_title:
+                # A distinctive subject query supplements the general search;
+                # it does not replace the visitor's original query.
+                fallback_docs.extend(
+                    _wordpress_search_canonical_candidates("political dynasties", limit=10)
+                )
+            fallback_seen = {
+                (
+                    str(item.get("title") or "").casefold(),
+                    str(item.get("url") or item.get("canonical_url") or "").casefold(),
+                )
+                for item in evidence_docs
+            }
             for item in fallback_docs:
-                key = (str(item.get("title") or "").casefold(), str(item.get("url") or "").casefold())
+                key = (
+                    str(item.get("title") or "").casefold(),
+                    str(item.get("url") or item.get("canonical_url") or "").casefold(),
+                )
                 if key not in fallback_seen:
                     evidence_docs.append(item)
                     fallback_seen.add(key)
-            # Recovery is a candidate source, not an authority: reapply the
-            # same comparative fit gate after it has contributed candidates.
+
+            # Recovery is a candidate source, not authority: reapply every
+            # subject-specific gate after it has contributed candidates.
             if comparative_subjects:
                 evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
+            if require_dynasty_title:
+                evidence_docs = [
+                    item for item in evidence_docs
+                    if "political_dynasties" in _topic_anchor_groups(item.get("title") or "")
+                ]
             asks_for_homepage = bool(re.search(
                 r"\b(?:homepage|home page|main page|site home|website home)\b",
                 str(query or ""),
@@ -4461,6 +4497,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                     if "/" in str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1] and str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1].split("/", 1)[1].strip("/")
                 ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
+
         if not primary:
             # A missing recommendation is preferable to an unrelated doorway.
             # The caller keeps the answer intact and serializes no recommendation.

@@ -403,3 +403,52 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
             # the separately selected canonical doorway to the final response.
             assert len(selected) == 2
             assert result["canonical_link_context"] == context["canonical_link_context"]
+
+def test_political_dynasty_recommendation_recovers_direct_title_match(monkeypatch):
+    query = (
+        "I want to understand how political dynasties affect public accountability "
+        "in the Philippines. What should I read?"
+    )
+    decoy = _doc(
+        "The Hidden Dance of Polarity",
+        "https://geralddaquila.com/hidden-dance-of-polarity/",
+        "Political dynasties in the Philippines can affect public accountability, "
+        "but this essay is about polarity, service-to-self, service-to-others, "
+        "and complementary forces in society. It does not analyze dynastic "
+        "networks, family control of elected office, or socioeconomic effects."
+    )
+    direct = _doc(
+        "Political Dynasties in the Philippines",
+        "https://geralddaquila.com/2025/05/21/political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/",
+        (
+            "Political dynasties in the Philippines shape electoral competition, "
+            "family networks, local political power, and access to public office. "
+            "The study examines how concentrated family influence can affect public "
+            "accountability, institutional checks, governance, and socioeconomic "
+            "outcomes. It considers the ability of citizens to scrutinize decisions "
+            "and hold elected officials responsible."
+        )
+    )
+    context_text = main._serialize_context_documents([decoy])
+    context = {"canonical_link_context": context_text, "context_blocks": context_text}
+    monkeypatch.setattr(
+        main._base,
+        "_inquiry_profile",
+        lambda _query: {
+            "action": "recommendation",
+            "risk": False,
+            "grief": False,
+            "ai_truth": False,
+        },
+    )
+    monkeypatch.setattr(
+        main,
+        "_wordpress_search_canonical_candidates",
+        lambda search_query, limit=3: [direct] if search_query == "political dynasties" else [],
+    )
+
+    doorway = main._general_guide_authoritative_doorway(query, context)
+
+    assert doorway is not None
+    assert doorway["title"] == "Political Dynasties in the Philippines"
+    assert doorway["url"] == direct["url"]
