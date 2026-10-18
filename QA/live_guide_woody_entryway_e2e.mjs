@@ -822,88 +822,107 @@ try {
     const finalDiagnostics = await diagnostics().catch(error => ({ diagnosticError: error.message }));
     mark("final_diagnostic", { finalDiagnostics, posts, apiResponses, pageErrors, consoleErrors });
 
-    // After the first visible answer, exercise a second real visitor interaction
-    // in the same browser session. The selected clean(root) observer remains
-    // suppressed by the QA-only response instrumentation above.
+    // After the first visible answer, ask a second main-form question because
+    // the visitor-facing design intentionally delays conversational controls
+    // until the conversation has progressed. Then test the dedicated ordinary
+    // follow-up panel rather than treating the main search box as conversation.
+    let secondQuestionOutcome = { kind: "not_attempted" };
+    let ordinaryFollowupOutcome = { kind: "not_attempted" };
     if (responseOutcome.kind === "response_observed" && responseOutcome.status >= 200 &&
         responseOutcome.status < 300 && uiOutcome.kind === "response_ui_present") {
       const root = page.locator(".archive-stage-wrapper[data-guide-instance='woody']");
+      const input = root.locator("#archive-query-input");
+      const submit = root.locator("#archive-submit-btn");
+      const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
+      const secondQuestion = "What is one practical example of stewardship in a community?";
+      try {
+        await input.fill(secondQuestion, { timeout: 5_000 });
+        const secondResponsePromise = page.waitForResponse(
+          response => response.request().method() === "POST" &&
+            API_PATTERN.test(new URL(response.url()).pathname),
+          { timeout: 35_000 }
+        ).then(async response => ({
+          kind: "response_observed",
+          status: response.status(),
+          url: response.url(),
+          requestPostData: response.request().postData() || null,
+          bodyPreview: await response.text().then(text => text.slice(0, 1600)).catch(error => "body_read_error:" + error.message)
+        })).catch(error => ({ kind: "no_response", message: error.message }));
+        await submit.click({ timeout: 5_000 });
+        const response = await Promise.race([
+          secondResponsePromise,
+          new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
+        ]);
+        const ui = await Promise.race([
+          page.waitForFunction(({ firstAnswer }) => {
+            const text = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text");
+            const answer = (text?.innerText || "").trim();
+            return answer.length > 80 && answer !== firstAnswer.trim();
+          }, { firstAnswer }, { timeout: 15_000 }).then(() => ({ kind: "second_answer_updated" }))
+            .catch(error => ({ kind: "second_answer_missing", message: error.message })),
+          new Promise(resolve => setTimeout(() => resolve({ kind: "second_answer_watchdog" }), 15_000))
+        ]);
+        secondQuestionOutcome = { question: secondQuestion, response, ui };
+      } catch (error) {
+        secondQuestionOutcome = { kind: "interaction_error", message: error.message };
+      }
+
+      // Now exercise the real follow-up panel, which should exist only after
+      // the conversation has progressed beyond its first answer.
       const ordinaryInput = root.locator("#archive-ordinary-followup-input");
       const ordinaryReply = root.getByRole("button", { name: /reply/i }).first();
-      const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
+      const answerBeforeOrdinary = await root.locator("#archive-response-text").innerText().catch(() => "");
       const followupQuestion = "Can you explain your previous answer in simpler terms?";
-      let followupResponseOutcome = { kind: "not_attempted" };
-      let followupUiOutcome = { kind: "not_attempted" };
       try {
-        // Exercise the actual ordinary-conversation follow-up panel rendered
-        // after the first answer, not the main search form. The main form sends
-        // a standalone query and cannot validate conversation-history handling.
         await ordinaryInput.waitFor({ state: "visible", timeout: 8_000 });
         await ordinaryInput.fill(followupQuestion, { timeout: 5_000 });
         const followupResponsePromise = page.waitForResponse(
           response => response.request().method() === "POST" &&
             API_PATTERN.test(new URL(response.url()).pathname),
           { timeout: 35_000 }
-        ).then(async response => {
-          let bodyPreview = "";
-          try { bodyPreview = (await response.text()).slice(0, 1800); } catch (error) { bodyPreview = "body_read_error:" + error.message; }
-          return {
-            kind: "response_observed",
-            status: response.status(),
-            url: response.url(),
-            requestPostData: response.request().postData() || null,
-            bodyPreview
-          };
-        }).catch(error => ({ kind: "no_response", message: error.message }));
+        ).then(async response => ({
+          kind: "response_observed",
+          status: response.status(),
+          url: response.url(),
+          requestPostData: response.request().postData() || null,
+          bodyPreview: await response.text().then(text => text.slice(0, 1800)).catch(error => "body_read_error:" + error.message)
+        })).catch(error => ({ kind: "no_response", message: error.message }));
         await ordinaryReply.click({ timeout: 5_000 });
-        followupResponseOutcome = await Promise.race([
+        const response = await Promise.race([
           followupResponsePromise,
           new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
         ]);
-        followupUiOutcome = await Promise.race([
-          page.waitForFunction(({ firstAnswer }) => {
-            const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
-            const text = root?.querySelector("#archive-response-text");
+        const ui = await Promise.race([
+          page.waitForFunction(({ answerBeforeOrdinary }) => {
+            const text = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text");
             const answer = (text?.innerText || "").trim();
-            return answer.length > 80 && answer !== firstAnswer.trim();
-          }, { firstAnswer }, { timeout: 15_000 }).then(() => ({ kind: "followup_ui_updated" }))
-           .catch(error => ({ kind: "followup_ui_missing", message: error.message })),
-          new Promise(resolve => setTimeout(() => resolve({ kind: "followup_ui_watchdog_15s" }), 15_000))
+            return answer.length > 80 && answer !== answerBeforeOrdinary.trim();
+          }, { answerBeforeOrdinary }, { timeout: 15_000 }).then(() => ({ kind: "ordinary_followup_answer_updated" }))
+            .catch(error => ({ kind: "ordinary_followup_answer_missing", message: error.message })),
+          new Promise(resolve => setTimeout(() => resolve({ kind: "ordinary_followup_watchdog" }), 15_000))
         ]);
+        ordinaryFollowupOutcome = { question: followupQuestion, response, ui };
       } catch (error) {
-        followupUiOutcome = { kind: "followup_interaction_error", message: error.message };
+        ordinaryFollowupOutcome = { kind: "interaction_error", message: error.message };
       }
-      const followupDomSnapshot = await page.evaluate(() => {
-        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
-        const text = root?.querySelector("#archive-response-text");
-        const input = root?.querySelector("#archive-query-input");
-        const form = root?.querySelector("#archive-search-form");
-        return {
-          readyState: document.readyState,
-          rootFound: Boolean(root),
-          rootHtmlPreview: root?.innerHTML?.slice(0, 2400) || null,
-          responseTextFound: Boolean(text),
-          responseTextLength: text?.innerText?.trim()?.length ?? null,
-          inputFound: Boolean(input),
-          inputValue: input?.value ?? null,
-          formFound: Boolean(form),
-          bodyTextPreview: document.body?.innerText?.slice(-1600) || null
-        };
-      }).catch(error => ({ snapshotError: error.message }));
-      mark("followup_e2e_outcome", {
-        question: followupQuestion,
-        response: followupResponseOutcome,
-        ui: followupUiOutcome,
-        dom: followupDomSnapshot,
+      mark("conversation_continuity_e2e_outcome", {
+        secondQuestionOutcome,
+        ordinaryFollowupOutcome,
+        requestCount: posts.length,
         responseCount: apiResponses.length,
-        postCount: posts.length,
-        answerLength: await root.locator("#archive-response-text").innerText().then(text => text.trim().length).catch(() => null),
         pageErrors,
         consoleErrors
       });
-      if (followupResponseOutcome.kind !== "response_observed" ||
-          followupResponseOutcome.status < 200 || followupResponseOutcome.status >= 300 ||
-          followupUiOutcome.kind !== "followup_ui_updated") process.exitCode = 1;
+      const ordinaryRequestBody = ordinaryFollowupOutcome.response?.requestPostData || "";
+      if (secondQuestionOutcome.response?.kind !== "response_observed" ||
+          secondQuestionOutcome.response.status < 200 || secondQuestionOutcome.response.status >= 300 ||
+          secondQuestionOutcome.ui?.kind !== "second_answer_updated" ||
+          ordinaryFollowupOutcome.response?.kind !== "response_observed" ||
+          ordinaryFollowupOutcome.response.status < 200 || ordinaryFollowupOutcome.response.status >= 300 ||
+          ordinaryFollowupOutcome.ui?.kind !== "ordinary_followup_answer_updated" ||
+          !/history|conversation|messages|previous|assistant|context/i.test(ordinaryRequestBody)) {
+        process.exitCode = 1;
+      }
     }
 
     if (responseOutcome.kind !== "response_observed" || responseOutcome.status < 200 || responseOutcome.status >= 300 || uiOutcome.kind !== "response_ui_present") process.exitCode = 1;
