@@ -4188,6 +4188,53 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     }
 
 
+
+def _guide_html_to_source_text(raw_html):
+    """Preserve WordPress block boundaries and omit only standalone author bylines."""
+    from html.parser import HTMLParser
+    import html
+
+    class SourceParser(HTMLParser):
+        BLOCKS = {"address", "article", "blockquote", "br", "dd", "div", "dl", "dt",
+                  "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6",
+                  "hr", "li", "main", "ol", "p", "section", "table", "td", "th", "tr", "ul"}
+        IGNORED = {"script", "style", "noscript", "svg"}
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.parts, self.ignored_depth = [], 0
+        def handle_starttag(self, tag, attrs):
+            tag = tag.casefold()
+            if tag in self.IGNORED:
+                self.ignored_depth += 1
+            elif not self.ignored_depth and tag in self.BLOCKS:
+                self.parts.append("\n")
+        def handle_endtag(self, tag):
+            tag = tag.casefold()
+            if tag in self.IGNORED and self.ignored_depth:
+                self.ignored_depth -= 1
+            elif not self.ignored_depth and tag in self.BLOCKS:
+                self.parts.append("\n")
+        def handle_data(self, data):
+            if not self.ignored_depth and data:
+                self.parts.append(data)
+
+    parser = SourceParser()
+    parser.feed(str(raw_html or ""))
+    parser.close()
+    blocks = []
+    for block in re.split(r"\n+", "".join(parser.parts)):
+        block = re.sub(r"\s+", " ", html.unescape(block)).strip()
+        if not block:
+            continue
+        if re.fullmatch(
+            r"(?:by\s+)?gerald\s+a?\.?\s+daquila\s*,?\s*"
+            r"(?:phd\s+candidate|ph\.?d\.?\s+candidate|author)",
+            block, flags=re.I,
+        ):
+            continue
+        blocks.append(block)
+    return "\n".join(blocks)
+
 def _wordpress_fetch_selected_canonical_body(url):
     """Fetch the selected public Archive page directly when search misses its body."""
     import html
@@ -4228,8 +4275,7 @@ def _wordpress_fetch_selected_canonical_body(url):
         main_match = re.search(r"(?is)<main\b[^>]*>(.*?)</main>", raw_html)
         article_match = re.search(r"(?is)<article\b[^>]*>(.*?)</article>", raw_html)
         content_html = (main_match or article_match).group(1) if (main_match or article_match) else raw_html
-        content = re.sub(r"(?s)<[^>]+>", " ", content_html)
-        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+        content = _guide_html_to_source_text(content_html)
         if len(content) < 80:
             return None
         return {
@@ -4324,8 +4370,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             excerpt_html = str(excerpt_obj.get("rendered") or "") if isinstance(excerpt_obj, dict) else str(excerpt_obj or "")
             raw_content = content_html or excerpt_html
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
-            content = re.sub(r"(?s)<[^>]+>", " ", raw_content)
-            content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+            content = _guide_html_to_source_text(raw_content)
             if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
                 return None
             return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
