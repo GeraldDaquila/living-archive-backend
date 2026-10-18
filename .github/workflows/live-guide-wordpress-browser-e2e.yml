@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - qa/live-guide-wordpress-browser-e2e
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "QA/live_guide_woody_entryway_e2e.mjs"
-      - ".github/workflows/live-guide-wordpress-browser-e2e.yml"
   workflow_dispatch:
 
 permissions:
