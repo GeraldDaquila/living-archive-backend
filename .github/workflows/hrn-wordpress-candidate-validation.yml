@@ -5,6 +5,7 @@ on:
     paths:
       - "wordpress/hrn/**"
       - "recovery/hrn-provider-bridge-deadline-v1.2.1/**"
+      - "recovery/hrn-provider-bridge-deadline-v1.2.2/**"
       - "QA/hrn_provider_bridge_deadline_recovery_test.php"
       - "QA/test_hrn_v05278_closure_evidence.py"
       - "QA/hrn_closure_evidence_runtime_test.php"
@@ -37,7 +38,7 @@ jobs:
       - name: PHP syntax validation
         run: php -l wordpress/hrn/human-relational-navigator.php
       - name: Provider bridge deadline guard syntax validation
-        run: php -l recovery/hrn-provider-bridge-deadline-v1.2.1/la-provider-bridge-deadline.php && php -l QA/hrn_provider_bridge_deadline_recovery_test.php
+        run: php -l recovery/hrn-provider-bridge-deadline-v1.2.1/la-provider-bridge-deadline.php && php -l recovery/hrn-provider-bridge-deadline-v1.2.2/la-provider-bridge-deadline.php && php -l QA/hrn_provider_bridge_deadline_recovery_test.php
       - name: Provider bridge bounded recovery retry runtime test
         run: php QA/hrn_provider_bridge_deadline_recovery_test.php
       - name: HRN closure evidence contract tests
