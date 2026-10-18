@@ -130,9 +130,33 @@ page.on("console", message => {
   }
   if (message.type() === "error") consoleErrors.push(line);
 });
-page.on("response", response => {
+page.on("response", async response => {
   if (/living-archive-guide|guide.*\.js/i.test(response.url())) {
     scriptResponses.push({ url: response.url(), status: response.status() });
+    if (/living-archive-guide-v489\.246-woody\.js/i.test(response.url())) {
+      try {
+        // Capture the served controller from the Node-side response object before
+        // clicking. This remains readable even if the page renderer later hangs.
+        const source = await response.text();
+        const sourceLines = source.split(/\r?\n/);
+        const interesting = [];
+        for (let i = 0; i < sourceLines.length; i++) {
+          if (/addEventListener|onsubmit|onclick|async|fetch\(|archive-search-form|archive-submit-btn|preventDefault|MutationObserver|cleanAnswer|while\s*\(|for\s*\(/i.test(sourceLines[i])) {
+            interesting.push({ line: i + 1, text: sourceLines[i].slice(0, 900) });
+          }
+        }
+        mark("controller_source_inspection", {
+          url: response.url(),
+          status: response.status(),
+          length: source.length,
+          lineCount: sourceLines.length,
+          interestingLines: interesting.slice(0, 140),
+          sourcePreview: sourceLines.length < 3 ? source.slice(0, 18000) : undefined
+        });
+      } catch (error) {
+        mark("controller_source_inspection_error", { url: response.url(), message: error.message });
+      }
+    }
   }
   if (response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname)) {
     apiResponses.push({ url: response.url(), method: response.request().method(), status: response.status() });
