@@ -34,4 +34,4 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test live Woody shortcode entryway only
         timeout-minutes: 2
-        run: node QA/live_guide_woody_entryway_e2e.mjs
+        run: timeout --signal=TERM --kill-after=5s 100s node QA/live_guide_woody_entryway_e2e.mjs
