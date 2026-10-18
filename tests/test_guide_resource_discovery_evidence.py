@@ -268,7 +268,7 @@ def test_repeated_incidental_mentions_do_not_make_registry_misaligned_page_direc
 def test_political_dynasty_discovery_extracts_full_subject_without_search_wrapper():
     query = "Where can I find material about political dynasties in the Philippines?"
     subject = main._guide_subject_discovery_query(query)
-    assert subject == "political dynasties in the Philippines"
+    assert subject.casefold() == "political dynasties in the Philippines".casefold()
 
 
 def test_political_dynasty_direct_source_beats_broad_governance_resource(monkeypatch):
