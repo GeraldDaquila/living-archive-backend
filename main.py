@@ -5152,14 +5152,14 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     # following sentence. If a complete question follows the heading, discard
     # the heading prefix before considering the text as a source quotation.
     sentences = [
-        re.sub(r"\\s+", " ", sentence).strip(" \\t-•")
-        for sentence in re.split(r"(?<=[.!?])\\s+", body)
+        re.sub(r"\s+", " ", sentence).strip(" \t-•")
+        for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
     for index, sentence in enumerate(sentences):
         if "?" not in sentence:
             continue
         question_start = re.search(
-            r"\\b(?:why|what|how|when|where|who|which|does|do|did|can|could|should|would|will|is|are|was|were)\\s+",
+            r"\b(?:why|what|how|when|where|who|which|does|do|did|can|could|should|would|will|is|are|was|were)\s+",
             sentence,
             re.I,
         )
@@ -5223,12 +5223,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # not a subject-discovery request. Resolve it before retrieval/composition
     # so provider variance cannot suppress a clearly requested homepage.
     home_request = bool(re.search(
-        r"\\b(?:homepage|home page|site home|website home)\\b", query, re.I
+        r"\b(?:homepage|home page|site home|website home)\b", query, re.I
     )) and bool(re.search(
-        r"\\b(?:living archive|the archive|the website|the site|website|site)\\b",
+        r"\b(?:living archive|the archive|the website|the site|website|site)\b",
         query, re.I
     )) and bool(re.search(
-        r"\\b(?:take me|go to|bring me|send me|navigate|open|show me|link me|please take|please go)\\b",
+        r"\b(?:take me|go to|bring me|send me|navigate|open|show me|link me|please take|please go)\b",
         query, re.I
     ))
     if home_request:
