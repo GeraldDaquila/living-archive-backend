@@ -122,6 +122,9 @@ page.on("console", message => {
   if (line.startsWith("GUIDE_CLEANUP_OBSERVER_ISOLATION ")) {
     mark("cleanup_observer_isolation", { item: line.slice("GUIDE_CLEANUP_OBSERVER_ISOLATION ".length) });
   }
+  if (line.startsWith("GUIDE_MUTATION_OBSERVER_ISOLATION ")) {
+    mark("mutation_observer_isolation", { item: line.slice("GUIDE_MUTATION_OBSERVER_ISOLATION ".length) });
+  }
   if (line.startsWith("GUIDE_DYNAMIC_SCRIPT ")) {
     mark("dynamic_script_insertion", { item: line.slice("GUIDE_DYNAMIC_SCRIPT ".length) });
   }
