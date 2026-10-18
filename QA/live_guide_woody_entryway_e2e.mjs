@@ -906,8 +906,48 @@ try {
         }
       }
 
-      // Capture actual DOM and the deployed renderer implementation before
-      // judging why the follow-up panel is absent.
+      // The deployed renderer only offers the reply panel when the answer ends
+      // with a question. Ask explicitly for a reflective closing question to test
+      // the actual visitor-facing invitation path without patching production.
+      let invitationQuestionOutcome = { kind: "not_attempted" };
+      if (thirdQuestionOutcome.ui?.kind === "third_answer_updated") {
+        const thirdAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
+        const invitationQuestion = "Explain stewardship in everyday life, and finish with one brief question inviting me to reflect on my own experience.";
+        try {
+          await input.fill(invitationQuestion, { timeout: 5_000 });
+          const invitationResponsePromise = page.waitForResponse(
+            response => response.request().method() === "POST" &&
+              API_PATTERN.test(new URL(response.url()).pathname),
+            { timeout: 35_000 }
+          ).then(async response => ({
+            kind: "response_observed",
+            status: response.status(),
+            url: response.url(),
+            requestPostData: response.request().postData() || null,
+            bodyPreview: await response.text().then(text => text.slice(0, 1800)).catch(error => "body_read_error:" + error.message)
+          })).catch(error => ({ kind: "no_response", message: error.message }));
+          await submit.click({ timeout: 5_000 });
+          const response = await Promise.race([
+            invitationResponsePromise,
+            new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
+          ]);
+          const ui = await Promise.race([
+            page.waitForFunction(({ thirdAnswer }) => {
+              const text = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text");
+              const answer = (text?.innerText || "").trim();
+              return answer.length > 80 && answer !== thirdAnswer.trim();
+            }, { thirdAnswer }, { timeout: 15_000 }).then(() => ({ kind: "invitation_answer_updated" }))
+              .catch(error => ({ kind: "invitation_answer_missing", message: error.message })),
+            new Promise(resolve => setTimeout(() => resolve({ kind: "invitation_answer_watchdog" }), 15_000))
+          ]);
+          invitationQuestionOutcome = { question: invitationQuestion, response, ui };
+        } catch (error) {
+          invitationQuestionOutcome = { kind: "interaction_error", message: error.message };
+        }
+      }
+
+      // Capture actual DOM and the deployed renderer implementation after the
+      // invitation attempt, including whether the answer met the renderer's condition.
       const ordinaryPanelDiagnostics = await page.evaluate(async () => {
         const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
         const input = document.querySelector("#archive-ordinary-followup-input");
@@ -979,6 +1019,7 @@ try {
       mark("conversation_continuity_e2e_outcome", {
         secondQuestionOutcome,
         thirdQuestionOutcome,
+        invitationQuestionOutcome,
         ordinaryFollowupOutcome,
         requestCount: posts.length,
         responseCount: apiResponses.length,
