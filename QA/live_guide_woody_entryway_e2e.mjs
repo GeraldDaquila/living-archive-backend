@@ -427,11 +427,57 @@ try {
   // dispatch the request and mutate the button before Playwright finishes its click.
   // Continue only when a real POST was observed; otherwise preserve the fail-closed stop.
   if ((clickOutcome.kind === "click_watchdog_5s" || clickOutcome.kind === "click_error") && posts.length === 0) {
-    mark("diagnostic_stop_no_request", {
-      reason: "Click did not complete and no API POST was observed.",
-      eventTrace, posts, apiResponses, scriptResponses, scriptFailures, pageErrors, consoleErrors
+    mark("diagnostic_grace_period_started", {
+      reason: "No POST observed yet; continue collecting network and renderer evidence instead of terminating."
     });
-    process.exit(1);
+    const graceOutcome = await Promise.race([
+      new Promise(resolve => setTimeout(() => resolve({ kind: "grace_elapsed_15s" }), 15_000)),
+      page.waitForRequest(request => request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname), { timeout: 15_000 })
+        .then(request => ({ kind: "post_observed_during_grace", url: request.url() }))
+        .catch(() => ({ kind: "no_post_during_grace" }))
+    ]);
+    mark("diagnostic_grace_period_result", { ...graceOutcome, posts, apiLifecycle, pageErrors, consoleErrors });
+    const graceRendererProbe = await Promise.race([
+      page.evaluate(() => ({
+        readyState: document.readyState,
+        activeElement: document.activeElement?.id || document.activeElement?.tagName || null,
+        buttonDisabled: document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-submit-btn")?.disabled ?? null,
+        responseTextLength: document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text")?.innerText?.trim()?.length ?? null,
+        now: performance.now()
+      })).then(value => ({ kind: "renderer_responsive", value })),
+      new Promise(resolve => setTimeout(() => resolve({ kind: "renderer_probe_timeout_5s" }), 5_000))
+    ]);
+    mark("grace_renderer_probe", { result: graceRendererProbe, apiLifecycle, posts, apiResponses });
+    if (cpuProfileStarted) {
+      const profileResult = await Promise.race([
+        cdp.send("Profiler.stop").then(result => ({ kind: "profile_captured", profile: result.profile })),
+        new Promise(resolve => setTimeout(() => resolve({ kind: "profile_stop_timeout_5s" }), 5_000))
+      ]);
+      if (profileResult.kind === "profile_captured") {
+        const profile = profileResult.profile;
+        const nodes = (profile.nodes || []).map(node => ({
+          functionName: node.callFrame?.functionName || "(anonymous)",
+          url: node.callFrame?.url || "",
+          lineNumber: node.callFrame?.lineNumber,
+          columnNumber: node.callFrame?.columnNumber,
+          selfSamples: node.hitCount || 0,
+          children: node.children?.length || 0
+        })).sort((a, b) => b.selfSamples - a.selfSamples).slice(0, 30);
+        mark("no_post_cpu_profile_summary", {
+          durationSeconds: ((profile.endTime || 0) - (profile.startTime || 0)) / 1_000_000,
+          sampleCount: profile.samples?.length || 0,
+          topNodes: nodes
+        });
+      } else {
+        mark("no_post_cpu_profile_summary", { kind: profileResult.kind });
+      }
+    }
+    mark("diagnostic_no_request_final", {
+      reason: "No API POST was observed after the 15-second evidence-collection window.",
+      clickOutcome, eventTrace, posts, apiResponses, apiLifecycle, apiResponseBodies,
+      scriptResponses, scriptFailures, pageErrors, consoleErrors
+    });
+    process.exitCode = 1;
   }
 
   const requestOutcome = posts.length
