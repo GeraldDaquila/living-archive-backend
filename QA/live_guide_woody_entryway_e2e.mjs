@@ -284,7 +284,7 @@ await page.addInitScript(() => {
         source = new TextDecoder().decode(bytes);
       } catch {}
       let candidatePatched = false;
-      const unsafeWrite = /node\\.nodeValue\\s*=\\s*node\\.nodeValue\\.replace\\(marker,\\s*''\\);/;
+      const unsafeWrite = /node\.nodeValue\s*=\s*node\.nodeValue\.replace\(marker,\s*''\);/;
       if (source.includes("function cleanAnswer") && source.includes("var marker=") && unsafeWrite.test(source)) {
         source = source.replace(
           unsafeWrite,
