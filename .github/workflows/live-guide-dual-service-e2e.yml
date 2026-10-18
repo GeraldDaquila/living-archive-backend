@@ -232,66 +232,66 @@ jobs:
               print(f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; final envelope preserved")
 
           # The Guide resource-discovery regression now respects the native Catalogue boundary.
-# A resource-finding question must cross into the Catalogue's own search surface;
-# USE must preserve the visitor's exact query instead of substituting a generic
-# page recommendation or duplicating Catalogue retrieval.
-discovery_query = "Where can I find material about institutional responsibility?"
-expected_catalogue_url = (
-    "https://geralddaquila.com/explore-the-stewardship-catalogue/"
-    + "?catalogue_query="
-    + urllib.parse.quote(discovery_query, safe="")
-)
-discovery_results = {}
-for name, base_url in services.items():
-    status, payload = post_query(base_url, discovery_query, timeout=120)
-    if status != 200 or payload.get("version") != expected_version:
-        raise SystemExit(
+          # A resource-finding question must cross into the Catalogue's own search surface;
+          # USE must preserve the visitor's exact query instead of substituting a generic
+          # page recommendation or duplicating Catalogue retrieval.
+          discovery_query = "Where can I find material about institutional responsibility?"
+          expected_catalogue_url = (
+              "https://geralddaquila.com/explore-the-stewardship-catalogue/"
+              + "?catalogue_query="
+              + urllib.parse.quote(discovery_query, safe="")
+          )
+          discovery_results = {}
+          for name, base_url in services.items():
+              status, payload = post_query(base_url, discovery_query, timeout=120)
+              if status != 200 or payload.get("version") != expected_version:
+                  raise SystemExit(
             f"{name}: discovery parity request failed: status={status}, "
             f"version={payload.get('version')}, expected={expected_version}"
-        )
-    if payload.get("intent") != "CATALOGUE_HANDOFF":
-        raise SystemExit(
+                  )
+              if payload.get("intent") != "CATALOGUE_HANDOFF":
+                  raise SystemExit(
             f"{name}: resource discovery did not use the native Catalogue boundary: "
             f"intent={payload.get('intent')!r}"
-        )
-    if (
-        payload.get("handoff") != "catalogue"
-        or payload.get("handoff_mode") != "direct"
-        or payload.get("handoff_pending") is not True
-        or payload.get("return_mode") != "native_catalogue_search"
-    ):
-        raise SystemExit(
+                  )
+              if (
+                  payload.get("handoff") != "catalogue"
+                  or payload.get("handoff_mode") != "direct"
+                  or payload.get("handoff_pending") is not True
+                  or payload.get("return_mode") != "native_catalogue_search"
+              ):
+                  raise SystemExit(
             f"{name}: Catalogue handoff contract is incomplete: "
             f"handoff={payload.get('handoff')!r}, mode={payload.get('handoff_mode')!r}, "
             f"pending={payload.get('handoff_pending')!r}, return_mode={payload.get('return_mode')!r}"
-        )
-    if payload.get("catalogue_query") != discovery_query:
-        raise SystemExit(
+                  )
+              if payload.get("catalogue_query") != discovery_query:
+                  raise SystemExit(
             f"{name}: original resource query was not preserved across Catalogue handoff: "
             f"{payload.get('catalogue_query')!r}"
-        )
-    actual_url = str(payload.get("catalogue_url") or "")
-    if actual_url != expected_catalogue_url:
-        raise SystemExit(
+                  )
+              actual_url = str(payload.get("catalogue_url") or "")
+              if actual_url != expected_catalogue_url:
+                  raise SystemExit(
             f"{name}: native Catalogue destination mismatch: {actual_url!r}; "
             f"expected {expected_catalogue_url!r}"
-        )
-    if payload.get("recommendation") is not None:
-        raise SystemExit(
+                  )
+              if payload.get("recommendation") is not None:
+                  raise SystemExit(
             f"{name}: Catalogue handoff duplicated native Catalogue retrieval with a separate recommendation"
-        )
-    discovery_results[name] = (
-        payload.get("intent"),
-        payload.get("handoff"),
-        payload.get("catalogue_query"),
-        actual_url,
-    )
-    print(
-        f"{name}: institutional-responsibility Catalogue handoff PASS; "
-        f"query preserved; url={actual_url}"
-    )
+                  )
+              discovery_results[name] = (
+                  payload.get("intent"),
+                  payload.get("handoff"),
+                  payload.get("catalogue_query"),
+                  actual_url,
+              )
+              print(
+                  f"{name}: institutional-responsibility Catalogue handoff PASS; "
+                  f"query preserved; url={actual_url}"
+              )
 
-if discovery_results.get("primary") != discovery_results.get("backup"):
-    raise SystemExit(f"Primary/mirror Catalogue handoff behavior diverged: {discovery_results}")
-print("primary/backup Catalogue handoff parity PASS: both preserve the same query and native destination")
+          if discovery_results.get("primary") != discovery_results.get("backup"):
+              raise SystemExit(f"Primary/mirror Catalogue handoff behavior diverged: {discovery_results}")
+          print("primary/backup Catalogue handoff parity PASS: both preserve the same query and native destination")
           PY
