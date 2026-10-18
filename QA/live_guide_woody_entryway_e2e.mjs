@@ -146,7 +146,7 @@ page.on("response", async response => {
           }
         }
         const sourceWindows = [];
-        for (const center of [300, 320, 330, 350, 370, 390, 1600, 1621, 1630, 1650, 2080, 2100, 2120, 2130, 2140, 2150, 2160, 2180, 2370]) {
+        for (const center of [300, 320, 330, 350, 370, 390, 1600, 1621, 1630, 1650, 1660, 1680, 1700, 1720, 1740, 1760, 1780, 1800, 1840, 1880, 1920, 1960, 2000, 2040, 2080, 2100, 2120, 2130, 2140, 2150, 2160, 2180, 2370]) {
           sourceWindows.push({
             centerLine: center,
             lines: sourceLines.slice(Math.max(0, center - 9), Math.min(sourceLines.length, center + 13))
