@@ -4639,6 +4639,10 @@ def _guide_subject_discovery_query(query):
         # rather than letting a broad generated explanation contradict the link.
         r"^(?:i want to understand|i would like to understand|i'd like to understand|i want to learn about|i would like to learn about|i'd like to learn about)\s+(.+?)(?:[.!?]\s*(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\b.*)?[?.!]*$",
         r"^(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\s+(?:about|on|regarding)\s+(.+?)[?.!]*$",
+        # A named title followed by a request for the study should retain the title as subject.
+        r"^(.+?)\s+[—–-]\s+i\s+(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+itself(?:,\s*please)?[?.!]*$",
+        r"^(?:i\s+)?(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:itself|on|about|regarding)\s+(.+?)[?.!]*$",
+        r"^(?:please\s+)?(?:recommend|find|show\s+me)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:called|titled|on|about|regarding)\s+(.+?)[?.!]*$",
         # Requests for the study/article itself are resource discovery, not generic Q&A.
         r"^(?:i\s+)?(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:itself|on|about|regarding)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?(?:recommend|find|show\s+me)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:called|titled|on|about|regarding)\s+(.+?)[?.!]*$",
@@ -4652,6 +4656,11 @@ def _guide_subject_discovery_query(query):
             subject = re.sub(r"\s+", " ", match.group(1)).strip(" \t.,;:?!")
             if subject and len(re.findall(r"[a-z0-9]+", subject, re.I)) >= 1:
                 return subject
+    # A short standalone noun phrase is a resource/topic lookup, not a request for general prose.
+    # Do not apply this fallback to sentences or explicit questions.
+    if not re.search(r"[?!.]", q) and 1 <= len(q.split()) <= 12:
+        if not re.search(r"\b(?:what|why|when|where|who|how|is|are|was|were|does|do|did|can|could|would|should|will|has|have|had)\b", q, re.I):
+            return q.strip(" \t.,;:")
     return ""
 
 
