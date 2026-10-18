@@ -135,6 +135,8 @@ try {
     submitDisabled: await submit.isDisabled().catch(() => null),
     answerCount: await answer.count(),
     controllerScripts: await page.locator("script[src*='living-archive-guide']").evaluateAll(nodes => nodes.map(n => n.src)),
+    fetchFunctionSource: await page.evaluate(() => String(window.fetch).slice(0, 500)),
+    fetchFunctionName: await page.evaluate(() => window.fetch?.name || null),
     pageUrl: page.url(),
     consoleErrors,
     failedRequests
