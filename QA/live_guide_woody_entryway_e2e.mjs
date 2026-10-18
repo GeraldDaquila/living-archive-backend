@@ -543,7 +543,9 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
   patchedSource = patchedSource.replace(prefetchPresentationBlock, "  // QA-only: bypass response presentation mutations before fetch");
   const prefetchControlBlock = /  resetGuideConversationHistory\(\);[\s\S]*?  try \{\s*var res =\s*await fetchUSE\(\s*\{\s*query: query\s*\},\s*'guide-submit'\s*\);/;
   const prefetchControlMatches = patchedSource.match(prefetchControlBlock) || [];
-  patchedSource = patchedSource.replace(prefetchControlBlock, "  // QA-only: bypass all pre-fetch state and UI work.\n  try {\n    var res = await fetchUSE({ query: query }, 'guide-submit');");
+  // Preserve the actual pre-fetch and request-building logic. Patching it would
+  // invalidate the conversation-continuity E2E evidence.
+
   const parseMarker = "    var data =\n      await res.json();";
   const parseMarkerCount = patchedSource.includes(parseMarker) ? 1 : 0;
   patchedSource = patchedSource.replace(parseMarker, parseMarker + "\n    console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'json_parsed', keys:Object.keys(data || {}), intent:data && data.intent || null, responseType:typeof (data && data.response), responseLength:typeof (data && data.response)==='string'?data.response.length:null}));");
@@ -567,7 +569,8 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
     buttonStateMatchCount: buttonStateMatches.length,
     prefetchPresentationBlockPatched: prefetchPresentationMatches.length === 1,
     prefetchPresentationMatchCount: prefetchPresentationMatches.length,
-    prefetchControlBlockPatched: prefetchControlMatches.length === 1,
+    prefetchControlBlockDetected: prefetchControlMatches.length === 1,
+    prefetchControlBlockPatched: false,
     prefetchControlMatchCount: prefetchControlMatches.length,
     responseParseMarkerCount: parseMarkerCount,
     responseStageInstrumentation: patchedSource.includes("GUIDE_POST_RESPONSE_STAGE"),
@@ -1066,6 +1069,31 @@ try {
       } catch (_) {
         // Invalid or absent JSON is evidence of a failed continuity contract.
       }
+      const expectedMainFormPrompts = [
+        "What does stewardship mean in everyday life, and why does it matter now more than ever?",
+        "How might this shape the way people make decisions together?",
+        "What is a concrete way to practice this in a neighborhood?",
+        "Explain stewardship in everyday life, and finish with one brief question inviting me to reflect on my own experience."
+      ];
+      const mainFormHistoryEvidence = expectedMainFormPrompts.slice(1).map((currentPrompt, index) => {
+        const request = posts[index + 1];
+        let parsed = null;
+        let serialized = "";
+        try {
+          parsed = JSON.parse(request?.postData || "");
+          serialized = JSON.stringify(parsed);
+        } catch (_) {}
+        const priorPrompts = expectedMainFormPrompts.slice(0, index + 1);
+        return {
+          currentPrompt,
+          requestCaptured: Boolean(request),
+          jsonParsed: Boolean(parsed),
+          priorPromptsPresent: priorPrompts.every(prompt => serialized.includes(prompt)),
+          historyFieldPresent: Boolean(parsed) && /history|conversation|messages|turns/i.test(Object.keys(parsed).join(" ")),
+          bodyKeys: parsed ? Object.keys(parsed) : []
+        };
+      });
+      mark("main_form_conversation_continuity_contract", mainFormHistoryEvidence);
       mark("conversation_history_contract", continuityEvidence);
       if (!naturalInvitationPanelObserved ||
           secondQuestionOutcome.response?.kind !== "response_observed" ||
@@ -1080,7 +1108,8 @@ try {
           !continuityEvidence.jsonParsed ||
           !continuityEvidence.priorVisitorTurnsPresent ||
           !continuityEvidence.priorAssistantAnswerPresent ||
-          !continuityEvidence.assistantHistoryFieldPresent) {
+          !continuityEvidence.assistantHistoryFieldPresent ||
+          mainFormHistoryEvidence.some(item => !item.requestCaptured || !item.jsonParsed || !item.priorPromptsPresent || !item.historyFieldPresent)) {
         process.exitCode = 1;
       }
     }
