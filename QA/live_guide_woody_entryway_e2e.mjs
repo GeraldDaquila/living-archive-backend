@@ -83,7 +83,7 @@ for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.response
     const requestMethod = cdpRequestMethods.get(event.requestId) || "";
     let requestPath = "";
     try { requestPath = new URL(requestUrl).pathname; } catch {}
-    const isGuideApi = /\\/api\\/query(?:\\?|$)/.test(requestPath);
+    const isGuideApi = /\/api\/query(?:\?|$)/.test(requestPath);
     const isGuideApiExtra = isGuideApi || apiRequestIds.has(event.requestId);
     if (!isGuideApiExtra) return;
     const item = {
@@ -268,7 +268,7 @@ await page.addInitScript(() => {
     const url = String(args[0]);
     console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "fetch_enter", url, time: performance.now() }));
     return originalFetch(...args).then(response => {
-      if (/\\/api\\/query(?:\\?|$)/.test(url)) {
+      if (/\/api\/query(?:\?|$)/.test(url)) {
         console.log("GUIDE_EXEC_TRACE " + JSON.stringify({
           stage: "fetch_resolved", url, status: response.status, ok: response.ok, time: performance.now()
         }));
