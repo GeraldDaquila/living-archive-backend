@@ -253,6 +253,41 @@ await page.addInitScript(() => {
   document.addEventListener("DOMContentLoaded", bindNodeTrace, { once: true });
 });
 
+// QA-only fault isolation: if the live HTML contains the deployed
+// title-cleanup script, patch only the test response so we can verify whether
+// its unconditional text-node writes are the cause. WordPress is not modified.
+await page.route("https://geralddaquila.com/the-guide-find-your-way2/", async route => {
+  const response = await route.fetch();
+  const html = await response.text();
+  let replacements = 0;
+  const patchedHtml = html.replace(/src=["']data:text\/javascript;base64,([^"']+)["']/g, (whole, encoded) => {
+    let source;
+    try { source = Buffer.from(encoded, "base64").toString("utf8"); }
+    catch { return whole; }
+    if (!source.includes("function cleanAnswer") ||
+        !source.includes("titleMarker") ||
+        !source.includes("node.nodeValue = value.replace(titleMarker, '')")) return whole;
+    source = source.replace(
+      "node.nodeValue = value.replace(titleMarker, '');",
+      "var cleanedValue = value.replace(titleMarker, '');\n      if (cleanedValue !== value) node.nodeValue = cleanedValue;"
+    );
+    replacements += 1;
+    return whole.replace(encoded, Buffer.from(source, "utf8").toString("base64"));
+  });
+  mark("qa_html_fault_isolation", {
+    url: route.request().url(),
+    bodyLength: html.length,
+    hasWoodyRoot: html.includes("archive-stage-wrapper"),
+    hasInlineCleanup: html.includes("titleMarker"),
+    patchedCleanupScriptCount: replacements
+  });
+  const headers = { ...response.headers() };
+  delete headers["content-encoding"];
+  delete headers["content-length"];
+  delete headers["etag"];
+  await route.fulfill({ status: response.status(), headers, body: patchedHtml });
+});
+
 async function diagnostics() {
   return page.evaluate(() => {
     const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
