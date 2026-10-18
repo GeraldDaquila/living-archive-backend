@@ -331,7 +331,7 @@ await page.addInitScript(() => {
             const binary = atob(nextValue.slice(prefix.length));
             const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
             let source = new TextDecoder().decode(bytes);
-            const unsafeWrite = /node\\.nodeValue\\s*=\\s*node\\.nodeValue\\.replace\\(marker,\\s*(['"]{2})\\s*\\);?/;
+            const unsafeWrite = /node[.]nodeValue[ ]*=[ ]*node[.]nodeValue[.]replace[(]marker,/;
             if (source.includes("function cleanAnswer") && source.includes("marker") && unsafeWrite.test(source)) {
               source = source.replace(unsafeWrite, "var currentValue = node.nodeValue; var cleanedValue = currentValue.replace(marker, ''); if (cleanedValue !== currentValue) node.nodeValue = cleanedValue;");
               const encodedBytes = new TextEncoder().encode(source);
