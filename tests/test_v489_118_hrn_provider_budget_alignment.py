@@ -286,3 +286,75 @@ def test_hrn_relational_tries_groq_120b_before_qwen_within_two_fallback_limit(mo
         ("openrouter", "google/gemma-4-31b-it:free"),
         ("groq", "openai/gpt-oss-120b"),
     ]
+
+def test_proven_workers_fast_fallback_keeps_groq_120b_inside_bounded_attempt_window(monkeypatch):
+    workers = _item("workers_ai", "@cf/zai-org/glm-4.7-flash")
+    # A half-open, recently successful lane is eligible for fast fallback but
+    # must not displace the primary candidate.
+    workers["health_state"] = "half_open"
+    candidates = [
+        _item("groq", "openai/gpt-oss-20b"),
+        _item("openrouter", "google/gemma-4-31b-it:free"),
+        _item("groq", "qwen/qwen3.8-27b"),
+        _item("groq", "openai/gpt-oss-120b"),
+        workers,
+    ]
+    _isolate_route(monkeypatch, candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+    good_response = json.dumps({
+        "response": (
+            "You said you feel unheard when you and your colleague disagree. "
+            "You want to understand what happens in those moments without assuming "
+            "what your colleague intends. The difference between disagreeing about "
+            "the topic and feeling unheard during the conversation is worth looking "
+            "at separately."
+        ),
+        "question": (
+            "When the disagreement starts, what do you notice first that tells you "
+            "you are feeling unheard?"
+        ),
+        "rest": False,
+        "use_resource": False,
+        "resource_intro": "",
+    })
+
+    def fail_until_groq_120b(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        candidate = (item["provider"], item["model"])
+        calls.append(candidate)
+        if candidate != ("groq", "openai/gpt-oss-120b"):
+            clock.value += 0.2
+            raise RuntimeError("simulated candidate failure")
+        return good_response
+
+    monkeypatch.setattr(provider_bank, "_call", fail_until_groq_120b)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{
+            "role": "user",
+            "content": (
+                "STRUCTURED MOVEMENT BRIEF\\n"
+                '{"working_hypothesis":"the visitor feels unheard during disagreement with a colleague",'
+                '"thread_summary":"the visitor wants to understand what happens during repeated disagreement",'
+                '"underlying_need":"understand the interaction without assigning blame",'
+                '"emerging_delta":"disagreeing about the topic differs from feeling unheard during the conversation",'
+                '"body_of_thought":"the visitor feels unheard during disagreement with a colleague"}'
+                "\\nReturn JSON only."
+            ),
+        }],
+        max_tokens=300,
+        parse=provider_bank._json_object,
+        operation="hrn_relational",
+    )
+
+    assert result is not None
+    assert calls == [
+        ("groq", "openai/gpt-oss-20b"),
+        ("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        ("groq", "openai/gpt-oss-120b"),
+    ]
