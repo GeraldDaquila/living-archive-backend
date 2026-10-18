@@ -152,7 +152,7 @@ page.on("response", async response => {
           }
         }
         const sourceWindows = [];
-        for (const center of [300, 320, 330, 350, 370, 390, 1600, 1621, 1630, 1650, 1660, 1680, 1700, 1720, 1740, 1760, 1780, 1800, 1840, 1880, 1920, 1960, 2000, 2040, 2080, 2100, 2120, 2130, 2140, 2150, 2160, 2180, 2370]) {
+        for (const center of [300, 320, 330, 350, 370, 390, 1600, 1621, 1630, 1650, 1660, 1680, 1700, 1720, 1740, 1760, 1780, 1800, 1840, 1880, 1920, 1960, 2000, 1980, 2040, 2080, 2100, 2120, 2130, 2140, 2150, 2160, 2180, 2370]) {
           sourceWindows.push({
             centerLine: center,
             lines: sourceLines.slice(Math.max(0, center - 9), Math.min(sourceLines.length, center + 13))
@@ -533,7 +533,11 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
   const markdownCall = "          renderedAnswer = marked.parse(data.response);";
   const markdownCallCount = patchedSource.includes(markdownCall) ? 1 : 0;
   patchedSource = patchedSource.replace(markdownCall, "          console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'qa_markdown_bypass_enter', responseLength:String(data.response || '').length}));\n          renderedAnswer = '<pre style=\"white-space:pre-wrap\">' + String(data.response || '').replace(/[&<>]/g, function (ch) { return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : '&gt;'; }) + '</pre>';\n          console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'qa_markdown_bypass_done', renderedLength:renderedAnswer.length}));");
-  patchedSource = patchedSource.replace("      responseText.innerHTML =\n        renderedAnswer;", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_answer_dom_write', renderedLength:renderedAnswer.length}));\n      responseText.innerHTML =\n        renderedAnswer;\n      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_answer_dom_write', renderedLength:renderedAnswer.length}));");
+  const answerWritePattern = /(\\s*)responseText\\.innerHTML\\s*=\\s*renderedAnswer\\s*;/;
+  const answerWriteMatchCount = (patchedSource.match(answerWritePattern) || []).length;
+  patchedSource = patchedSource.replace(answerWritePattern, function (match, indent) { return indent + "console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_answer_dom_write', renderedLength:renderedAnswer.length}));\\n" + indent + match.trim() + "\\n" + indent + "console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_answer_dom_write', renderedLength:renderedAnswer.length}));"; });
+  patchedSource = patchedSource.replace("      renderOrdinaryFollowupPanel(data.response);", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_optional_followup'}));\\n      renderOrdinaryFollowupPanel(data.response);\\n      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_optional_followup'}));");
+  patchedSource = patchedSource.replace("      configureResponseControl(data.response);", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_response_controls'}));\\n      configureResponseControl(data.response);\\n      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_response_controls'}));");
   mark("qa_controller_fault_isolation", {
     url: route.request().url(),
     status: response.status(),
@@ -549,7 +553,7 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
     responseParseMarkerCount: parseMarkerCount,
     responseStageInstrumentation: patchedSource.includes("GUIDE_POST_RESPONSE_STAGE"),
     markdownCallCount,
-    markdownBypassApplied: patchedSource.includes("qa_markdown_bypass_done")
+    markdownBypassApplied: patchedSource.includes("qa_markdown_bypass_done"),\n    answerWriteMatchCount
   });
   const headers = { ...response.headers() };
   delete headers["content-encoding"];
