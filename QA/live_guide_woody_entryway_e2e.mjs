@@ -254,9 +254,9 @@ await page.addInitScript(() => {
     return nativeAddEventListener.call(this, type, wrapped, options);
   };
 
-  // QA-only differential isolation: allow the identified cleanAnswer observer to run
-  // while suppressing all other MutationObserver callbacks. This determines whether
-  // the cleanup observer alone is sufficient to reproduce the browser hang.
+  // QA-only inverse differential: suppress the identified cleanAnswer observer
+  // while allowing all other MutationObserver callbacks to run. Compare against
+  // the prior passing run where cleanAnswer ran and other observers were suppressed.
   // No production or WordPress source is changed.
   const NativeMutationObserver = window.MutationObserver;
   window.MutationObserver = class GuideQaMutationObserver extends NativeMutationObserver {
@@ -270,9 +270,9 @@ await page.addInitScript(() => {
         callbackName: callback.name || null,
         isCleanupObserver,
         callbackSourcePreview: callbackSource.slice(0, 140),
-        suppressed: !isCleanupObserver
+        suppressed: isCleanupObserver
       }));
-      super(isCleanupObserver ? callback : function guideQaOtherObserverSuppressed() {});
+      super(isCleanupObserver ? function guideQaCleanupObserverSuppressed() {} : callback);
     }
   };
   // Identify who dynamically installs the data-URL cleanAnswer script seen in
