@@ -145,13 +145,21 @@ page.on("response", async response => {
             interesting.push({ line: i + 1, text: sourceLines[i].slice(0, 900) });
           }
         }
+        const sourceWindows = [];
+        for (const center of [300, 320, 330, 350, 370, 390, 1600, 1621, 1630, 1650, 2080, 2100, 2120, 2130, 2140, 2150, 2160, 2180, 2370]) {
+          sourceWindows.push({
+            centerLine: center,
+            lines: sourceLines.slice(Math.max(0, center - 9), Math.min(sourceLines.length, center + 13))
+              .map((text, index) => ({ line: Math.max(1, center - 8) + index, text: text.slice(0, 700) }))
+          });
+        }
         mark("controller_source_inspection", {
           url: response.url(),
           status: response.status(),
           length: source.length,
           lineCount: sourceLines.length,
           interestingLines: interesting.slice(0, 140),
-          sourcePreview: sourceLines.length < 3 ? source.slice(0, 18000) : undefined
+          sourceWindows
         });
       } catch (error) {
         mark("controller_source_inspection_error", { url: response.url(), message: error.message });
