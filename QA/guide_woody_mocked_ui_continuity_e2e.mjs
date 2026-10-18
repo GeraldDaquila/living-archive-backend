@@ -235,6 +235,35 @@ try {
     // Trace the first response-body read and prove whether the renderer's
     // event loop continues after fetch settles. These observers do not alter
     // the returned body or controller logic.
+    // Trace synchronous post-response work without changing the live controller.
+    // If the page stops progressing after mock_json_resolved, these markers identify
+    // whether Markdown parsing or the response container's HTML setter is the blocker.
+    if (window.marked && typeof window.marked.parse === "function") {
+      const originalMarkedParse = window.marked.parse.bind(window.marked);
+      window.marked.parse = function(...args) {
+        window.__guideTrace({ event: "marked_parse_enter", inputLength: String(args[0] || "").length });
+        const parsed = originalMarkedParse(...args);
+        window.__guideTrace({ event: "marked_parse_returned", outputLength: String(parsed || "").length });
+        return parsed;
+      };
+    } else {
+      window.__guideTrace({ event: "marked_parse_unavailable", markedType: typeof window.marked });
+    }
+    const innerHtmlDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+    if (innerHtmlDescriptor && innerHtmlDescriptor.get && innerHtmlDescriptor.set) {
+      Object.defineProperty(Element.prototype, "innerHTML", {
+        configurable: innerHtmlDescriptor.configurable,
+        enumerable: innerHtmlDescriptor.enumerable,
+        get: innerHtmlDescriptor.get,
+        set: function(value) {
+          const isGuideAnswer = this.id === "archive-response-text";
+          if (isGuideAnswer) window.__guideTrace({ event: "answer_innerHTML_set_enter", length: String(value || "").length });
+          const result = innerHtmlDescriptor.set.call(this, value);
+          if (isGuideAnswer) window.__guideTrace({ event: "answer_innerHTML_set_returned" });
+          return result;
+        }
+      });
+    }
     const originalResponseJson = Response.prototype.json;
     window.__guideTrace({
       event: "response_json_method_snapshot",
