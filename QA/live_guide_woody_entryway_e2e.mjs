@@ -157,6 +157,65 @@ page.on("request", request => {
  * No production page or snippet is changed by this instrumentation.
  */
 await page.addInitScript(() => {
+  // QA-only listener tracing: record synchronous entry/return for click and
+  // submit handlers on the live Woody page. If a handler blocks the renderer,
+  // its entry will be present without a matching sync-return record.
+  const nativeAddEventListener = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function(type, listener, options) {
+    if (!listener || !["click", "submit"].includes(String(type).toLowerCase())) {
+      return nativeAddEventListener.call(this, type, listener, options);
+    }
+    const targetDescription = this === window ? "window" :
+      this === document ? "document" :
+      this?.id ? "#" + this.id :
+      this?.tagName ? String(this.tagName).toLowerCase() : "other";
+    const listenerName = typeof listener === "function" ? (listener.name || "(anonymous)") :
+      (listener.handleEvent?.name || "object-handleEvent");
+    const listenerSource = (() => {
+      try { return String(typeof listener === "function" ? listener : listener.handleEvent).slice(0, 220); }
+      catch { return ""; }
+    })();
+    const wrapped = function(event) {
+      let relevant = false;
+      try { relevant = Boolean(event.target?.closest?.(".archive-stage-wrapper[data-guide-instance='woody']")); } catch {}
+      if (!relevant) {
+        return typeof listener === "function"
+          ? listener.call(this, event)
+          : listener.handleEvent.call(listener, event);
+      }
+      const traceId = Math.random().toString(36).slice(2, 9);
+      console.log("GUIDE_HANDLER_TRACE " + JSON.stringify({
+        phase: "enter", traceId, type, targetDescription, listenerName,
+        listenerSource, eventTarget: event.target?.id || event.target?.tagName || null,
+        eventPhase: event.eventPhase, time: performance.now()
+      }));
+      try {
+        const result = typeof listener === "function"
+          ? listener.call(this, event)
+          : listener.handleEvent.call(listener, event);
+        console.log("GUIDE_HANDLER_TRACE " + JSON.stringify({
+          phase: "sync_return", traceId, type, targetDescription, listenerName,
+          returnedPromise: Boolean(result && typeof result.then === "function"),
+          defaultPrevented: event.defaultPrevented, time: performance.now()
+        }));
+        if (result && typeof result.then === "function") {
+          result.then(
+            () => console.log("GUIDE_HANDLER_TRACE " + JSON.stringify({phase:"promise_resolved",traceId,type,targetDescription,listenerName,time:performance.now()})),
+            error => console.log("GUIDE_HANDLER_TRACE " + JSON.stringify({phase:"promise_rejected",traceId,type,targetDescription,listenerName,message:error?.message||String(error),time:performance.now()}))
+          );
+        }
+        return result;
+      } catch (error) {
+        console.log("GUIDE_HANDLER_TRACE " + JSON.stringify({
+          phase: "throw", traceId, type, targetDescription, listenerName,
+          message: error?.message || String(error), time: performance.now()
+        }));
+        throw error;
+      }
+    };
+    return nativeAddEventListener.call(this, type, wrapped, options);
+  };
+
   // QA-only isolation: identify the text-cleanup MutationObserver by callback
   // source and suppress only its repeated observer callback. The script's
   // initial cleanAnswer() invocation still runs. This is not a production edit.
