@@ -254,25 +254,19 @@ await page.addInitScript(() => {
     return nativeAddEventListener.call(this, type, wrapped, options);
   };
 
-  // QA-only isolation: identify the text-cleanup MutationObserver by callback
-  // source and suppress only its repeated observer callback. The script's
-  // initial cleanAnswer() invocation still runs. This is not a production edit.
+  // QA-only fault isolation: suppress MutationObserver callbacks to determine whether
+  // any page observer causes the main-thread hang after the answer DOM write.
+  // This affects only this browser test; no production code or WordPress is changed.
   const NativeMutationObserver = window.MutationObserver;
   window.MutationObserver = class GuideQaMutationObserver extends NativeMutationObserver {
     constructor(callback) {
       const callbackSource = String(callback);
-      const isGuideCleanup = callback.name === "cleanAnswer" ||
-        (callbackSource.includes("archive-response-text") &&
-         callbackSource.includes("Stewardship Readiness") &&
-         callbackSource.includes("nodeValue"));
-      super(isGuideCleanup ? function guideQaCleanupObserverSuppressed() {} : callback);
-      if (isGuideCleanup) {
-        console.log("GUIDE_CLEANUP_OBSERVER_ISOLATION " + JSON.stringify({
-          callbackName: callback.name || null,
-          callbackSourcePreview: callbackSource.slice(0, 180),
-          suppressed: true
-        }));
-      }
+      console.log("GUIDE_MUTATION_OBSERVER_ISOLATION " + JSON.stringify({
+        callbackName: callback.name || null,
+        callbackSourcePreview: callbackSource.slice(0, 140),
+        suppressed: true
+      }));
+      super(function guideQaObserverSuppressed() {});
     }
   };
   // Identify who dynamically installs the data-URL cleanAnswer script seen in
