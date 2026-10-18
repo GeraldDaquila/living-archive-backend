@@ -66,7 +66,8 @@ CANONICAL_POLITICAL_DYNASTIES_URL = (
 def test_registered_exact_title_beats_suffixed_duplicate(monkeypatch):
     """A title lookup must resolve the canonical study, not its decorated duplicate."""
     exact_node = {
-        "node_id": "wp-post-1524",
+        "node_id": "political-dynasties-philippines-study",
+        "asset_type": "canonical_study",
         "title": "Political Dynasties in the Philippines",
         "canonical_url": CANONICAL_POLITICAL_DYNASTIES_URL,
         "purpose": "Study of political dynasties and Philippine governance",
@@ -103,6 +104,8 @@ def test_registered_exact_title_beats_suffixed_duplicate(monkeypatch):
         "url": CANONICAL_POLITICAL_DYNASTIES_URL,
     }
     assert evidence and evidence[0]["url"] == CANONICAL_POLITICAL_DYNASTIES_URL
+    assert evidence[0]["_guide_node"]["node_id"] == "political-dynasties-philippines-study"
+    assert evidence[0]["_guide_node"]["asset_type"] == "canonical_study"
 
 
 def test_explicit_study_request_subject_matches_canonical_permalink():
