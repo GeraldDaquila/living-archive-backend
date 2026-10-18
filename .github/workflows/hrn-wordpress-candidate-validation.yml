@@ -1,4 +1,4 @@
-name: HRN WordPress Candidate Validation
+name: HRN WordPress and Provider Bridge Candidate Validation
 
 on:
   pull_request:
