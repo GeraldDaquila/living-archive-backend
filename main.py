@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.274 — Align reading-request prose with canonical doorway
+# USE PRODUCTION VERSION: v489.275 — Bust stale Guide Node Registry cache
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.274"
-DEPLOYMENT_FINGERPRINT = "USE-v489.274-align-reading-request-prose"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.274-align-reading-request-prose"
+APP_VERSION = "v489.275"
+DEPLOYMENT_FINGERPRINT = "USE-v489.275-guide-node-registry-cache-bust"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.275-guide-node-registry-cache-bust"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -92,9 +92,19 @@ _GUIDE_NODE_REGISTRY_STATE = {"state": "unavailable"}
 
 
 def _load_guide_node_registry():
+    # WordPress/CDN caches the bare registry URL and can keep serving an older
+    # node list after a governed registry update. This loader runs only when the
+    # local authority cache expires, so a timestamped query string safely busts
+    # the upstream cache without increasing the normal refresh frequency.
+    registry_url = f"{GUIDE_NODE_REGISTRY_URL}?registry_refresh={int(time.time())}"
     request = UrlRequest(
-        GUIDE_NODE_REGISTRY_URL,
-        headers={"Accept": "application/json", "User-Agent": "Living-Archive-The-Guide/1.0"},
+        registry_url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "Living-Archive-The-Guide/1.0",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        },
         method="GET",
     )
     with urlopen(request, timeout=4) as response:
@@ -204,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.274":
+if str(APP_VERSION) != "v489.275":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
