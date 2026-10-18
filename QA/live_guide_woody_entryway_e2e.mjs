@@ -314,6 +314,45 @@ await page.addInitScript(() => {
     reportDynamicScript(node, "insertBefore");
     return originalInsertBefore.call(this, node, referenceNode);
   };
+  // Some WordPress inline loaders assign script.src before insertion, bypassing
+  // appendChild/setAttribute hooks. Intercept the native src setter as well.
+  const scriptSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "src");
+  if (scriptSrcDescriptor && scriptSrcDescriptor.get && scriptSrcDescriptor.set && scriptSrcDescriptor.configurable) {
+    Object.defineProperty(HTMLScriptElement.prototype, "src", {
+      configurable: true,
+      enumerable: scriptSrcDescriptor.enumerable,
+      get: function() { return scriptSrcDescriptor.get.call(this); },
+      set: function(value) {
+        let nextValue = String(value);
+        let candidatePatched = false;
+        const prefix = "data:text/javascript;base64,";
+        if (nextValue.startsWith(prefix)) {
+          try {
+            const binary = atob(nextValue.slice(prefix.length));
+            const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+            let source = new TextDecoder().decode(bytes);
+            const unsafeWrite = /node\\.nodeValue\\s*=\\s*node\\.nodeValue\\.replace\\(marker,\\s*(['"]{2})\\s*\\);?/;
+            if (source.includes("function cleanAnswer") && source.includes("marker") && unsafeWrite.test(source)) {
+              source = source.replace(unsafeWrite, "var currentValue = node.nodeValue; var cleanedValue = currentValue.replace(marker, ''); if (cleanedValue !== currentValue) node.nodeValue = cleanedValue;");
+              const encodedBytes = new TextEncoder().encode(source);
+              let encodedBinary = "";
+              for (const byte of encodedBytes) encodedBinary += String.fromCharCode(byte);
+              nextValue = prefix + btoa(encodedBinary);
+              candidatePatched = true;
+            }
+          } catch (error) {
+            console.log("GUIDE_DYNAMIC_SCRIPT_PATCH_ERROR " + JSON.stringify({message:error.message}));
+          }
+          console.log("GUIDE_DYNAMIC_SCRIPT_SRC_SET " + JSON.stringify({
+            candidatePatched,
+            srcPrefix: nextValue.slice(0, 100),
+            stack: new Error("Guide dynamic script src assignment").stack
+          }));
+        }
+        return scriptSrcDescriptor.set.call(this, nextValue);
+      }
+    });
+  }
   const originalSetAttribute = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function(name, value) {
     if (this.tagName === "SCRIPT" && String(name).toLowerCase() === "src" && String(value).startsWith("data:text/javascript")) {
