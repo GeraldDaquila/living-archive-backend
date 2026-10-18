@@ -55,7 +55,7 @@ function check($condition, $message) {
 }
 
 $GLOBALS['mock_hooks'] = array();
-require __DIR__ . '/../recovery/hrn-provider-bridge-deadline-v1.2.1/la-provider-bridge-deadline.php';
+require __DIR__ . '/../recovery/hrn-provider-bridge-deadline-v1.2.2/la-provider-bridge-deadline.php';
 
 $primary_url = 'https://living-archive-backend.onrender.com/api/provider-capability';
 $mirror_url = 'https://living-archive-backend-mirror.onrender.com/api/provider-capability';
@@ -85,8 +85,13 @@ do_mock_action(
 // The existing single mirror replay remains available and is consumed once.
 $mirror_args = apply_mock_filter('http_request_args', $normal_args, $mirror_url);
 $mirror_result = apply_mock_filter('pre_http_request', false, $mirror_args, $mirror_url);
-check($mirror_result === false, 'The first bounded mirror replay should proceed.');
+check((float)$mirror_args['timeout'] <= 2.0, 'The relational mirror replay must be capped at two seconds.');
+check($mirror_result === false, 'The first bounded mirror replay should proceed when enough budget remains.');
 check(!empty($GLOBALS['lah_hrn_mirror_replay_used']), 'The mirror replay must be recorded as consumed.');
+
+// Simulate the mirror consuming two seconds: 2.6 seconds remain, enough for a
+// 2.0-second recovery request and the existing 350ms response buffer.
+$GLOBALS['lah_hrn_turn_deadline'] = microtime(true) + 2.6;
 
 // Only a server-authored system message identifies the bounded recovery writer.
 $recovery_payload = array(
@@ -101,7 +106,7 @@ $recovery_payload = array(
 );
 $recovery_args = array('body' => json_encode($recovery_payload), 'timeout' => 10.0);
 $recovery_args = apply_mock_filter('http_request_args', $recovery_args, $primary_url);
-check((float)$recovery_args['timeout'] <= 2.5, 'The recovery-only primary call must be capped at 2.5 seconds.');
+check((float)$recovery_args['timeout'] <= 2.0, 'The recovery-only primary call must be capped at two seconds.');
 $recovery_result = apply_mock_filter('pre_http_request', false, $recovery_args, $primary_url);
 check($recovery_result === false, 'One server-authored recovery-only primary call should proceed after the mirror replay.');
 check(!empty($GLOBALS['lah_hrn_recovery_attempt_used']), 'The recovery-only attempt must be consumed exactly once.');
@@ -131,4 +136,34 @@ $budget_result = apply_mock_filter('pre_http_request', false, $recovery_args, $p
 check($budget_result instanceof WP_Error, 'Recovery must be refused when less than the bounded budget remains.');
 check($budget_result->get_error_code() === 'la_provider_bridge_recovery_budget_exhausted', 'Unexpected error code for insufficient recovery budget.');
 
-echo "HRN provider bridge bounded recovery retry v1.2.1: PASS\n";
+
+
+// When the primary has failed but fewer than 4.35 seconds remain, the guard
+// skips mirror replay and leaves the remaining budget for the recovery writer.
+$GLOBALS['lah_hrn_mirror_replay_used'] = false;
+$GLOBALS['lah_hrn_recovery_attempt_used'] = false;
+$GLOBALS['la_hrn_fast_deadline_started_at'] = microtime(true) - 7.0;
+$GLOBALS['lah_hrn_turn_deadline'] = microtime(true) + 4.0;
+$primary_args_2 = apply_mock_filter('http_request_args', $normal_args, $primary_url);
+$GLOBALS['la_provider_bridge_primary_started_at'] = microtime(true) - 4.0;
+do_mock_action(
+    'http_api_debug',
+    new WP_Error('simulated_primary_failure', 'primary composition unavailable'),
+    'response',
+    'WP_Http',
+    $primary_args_2,
+    $primary_url
+);
+$mirror_args_2 = apply_mock_filter('http_request_args', $normal_args, $mirror_url);
+$mirror_result_2 = apply_mock_filter('pre_http_request', false, $mirror_args_2, $mirror_url);
+check($mirror_result_2 instanceof WP_Error, 'Mirror replay must be skipped when it would consume the recovery reservation.');
+check(empty($GLOBALS['lah_hrn_mirror_replay_used']), 'A skipped mirror replay must not consume the mirror budget.');
+
+$recovery_args_2 = array('body' => json_encode($recovery_payload), 'timeout' => 10.0);
+$recovery_args_2 = apply_mock_filter('http_request_args', $recovery_args_2, $primary_url);
+check((float)$recovery_args_2['timeout'] <= 2.0, 'Direct recovery after a skipped mirror must remain bounded to two seconds.');
+$recovery_result_2 = apply_mock_filter('pre_http_request', false, $recovery_args_2, $primary_url);
+check($recovery_result_2 === false, 'Recovery should proceed directly on primary when mirror replay is skipped.');
+check(!empty($GLOBALS['lah_hrn_recovery_attempt_used']), 'Direct recovery must consume the one recovery attempt.');
+
+echo "HRN provider bridge bounded recovery retry v1.2.2: PASS\n";
