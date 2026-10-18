@@ -460,7 +460,7 @@ def test_natural_language_reading_request_extracts_discovery_subject():
     )
 
     assert main._guide_subject_discovery_query(query) == (
-        "how political dynasties affect public accountability in the Philippines"
+        "how political dynasties affect public accountability in the philippines"
     )
 
 
