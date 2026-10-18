@@ -834,7 +834,7 @@ try {
       const input = root.locator("#archive-query-input");
       const submit = root.locator("#archive-submit-btn");
       const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
-      const secondQuestion = "What is one practical example of stewardship in a community?";
+      const secondQuestion = "How might this shape the way people make decisions together?";
       try {
         await input.fill(secondQuestion, { timeout: 5_000 });
         const secondResponsePromise = page.waitForResponse(
