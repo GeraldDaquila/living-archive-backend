@@ -4641,7 +4641,7 @@ def _guide_subject_discovery_query(query):
         r"^(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\s+(?:about|on|regarding)\s+(.+?)[?.!]*$",
         # A named title followed by a request for the study should retain the title as subject.
         r"^(.+?)\s+[—–-]\s+i\s+(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+itself(?:,\s*please)?[?.!]*$",
-        r"^(?:i\s+)?(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:itself|on|about|regarding)\s+(.+?)[?.!]*$",
+        r"^(?:i\s+)?(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:itself(?:\s+(?:on|about|regarding))?|on|about|regarding)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?(?:recommend|find|show\s+me)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:called|titled|on|about|regarding)\s+(.+?)[?.!]*$",
         # Requests for the study/article itself are resource discovery, not generic Q&A.
         r"^(?:please\s+)?where\s+(?:can|could|do)\s+i\s+find\s+(?:the\s+)?(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
