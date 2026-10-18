@@ -262,3 +262,78 @@ def test_repeated_incidental_mentions_do_not_make_registry_misaligned_page_direc
     )
     grade = main._guide_discovery_evidence_grade(SUBJECT, broad, node=node)
     assert grade["grade"] == "related"
+
+
+
+def test_political_dynasty_discovery_extracts_full_subject_without_search_wrapper():
+    query = "Where can I find material about political dynasties in the Philippines?"
+    subject = main._guide_subject_discovery_query(query)
+    assert subject == "political dynasties in the Philippines"
+
+
+def test_political_dynasty_direct_source_beats_broad_governance_resource(monkeypatch):
+    query = "Where can I find material about political dynasties in the Philippines?"
+    direct = _doc(
+        "Political Dynasties in the Philippines",
+        "https://geralddaquila.com/political-dynasties/",
+        "Political dynasties in the Philippines shape local power, electoral "
+        "competition, and access to public office. The concentration of family "
+        "power can affect public accountability, institutional checks, and "
+        "citizens' ability to hold elected officials responsible."
+    )
+    adjacent = _doc(
+        "Good Governance and Public Institutions",
+        "https://geralddaquila.com/good-governance/",
+        "Good governance depends on transparent institutions, public "
+        "accountability, fair processes, and effective oversight. These "
+        "principles help citizens assess how public institutions exercise power."
+    )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [
+        {
+            "node_id": "dynasties",
+            "status": "active",
+            "title": direct["title"],
+            "canonical_url": direct["url"],
+            "purpose": "Political dynasties in the Philippines, local power, elections, and accountability",
+            "semantic_hints": ["political dynasties", "Philippine politics", "public accountability"],
+        },
+        {
+            "node_id": "governance",
+            "status": "active",
+            "title": adjacent["title"],
+            "canonical_url": adjacent["url"],
+            "purpose": "Good governance and accountable public institutions",
+            "semantic_hints": ["good governance", "public institutions", "accountability"],
+        },
+    ])
+    subject = main._guide_subject_discovery_query(query)
+    doorway, evidence = main._guide_align_registered_discovery_doorway(
+        subject, [adjacent, direct]
+    )
+    assert doorway is not None
+    assert doorway["title"] == direct["title"]
+    assert evidence and evidence[0]["url"] == direct["url"]
+    assert evidence[0]["_discovery_relevance"] == "direct"
+
+
+def test_political_dynasty_query_rejects_governance_only_candidate():
+    query = "How do political dynasties affect public accountability in the Philippines?"
+    governance_only = _doc(
+        "Good Governance and Public Institutions",
+        "https://geralddaquila.com/good-governance/",
+        "Good governance depends on transparent institutions, public "
+        "accountability, fair processes, and effective oversight in the Philippines."
+    )
+    assert not main._topic_specific_candidate_fit(query, governance_only)
+
+
+def test_political_dynasty_query_accepts_opening_that_supports_distinctive_subject():
+    query = "How do political dynasties affect public accountability in the Philippines?"
+    direct = _doc(
+        "Political Dynasties in the Philippines",
+        "https://geralddaquila.com/political-dynasties/",
+        "Political dynasties in the Philippines shape local power and elections. "
+        "Public accountability and institutional checks affect how elected "
+        "officials are held responsible."
+    )
+    assert main._topic_specific_candidate_fit(query, direct)
