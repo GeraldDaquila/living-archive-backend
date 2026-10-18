@@ -5,6 +5,7 @@ on:
     paths:
       - "main.py"
       - "tests/test_guide_resource_discovery_evidence.py"
+      - "tests/test_guide_discovery_source_cleanup.py"
       - ".github/workflows/guide-resource-discovery-evidence.yml"
   push:
     branches: [main]
@@ -31,4 +32,4 @@ jobs:
       - name: Compile Guide runtime
         run: python -m py_compile main.py general_guide_composition.py
       - name: Run resource-discovery evidence regressions
-        run: PYTHONPATH=. python -m pytest -q tests/test_guide_resource_discovery_evidence.py tests/test_guide_topic_anchored_recommendation_fit.py tests/test_general_guide_preference_clarification.py tests/test_general_guide_perception_contract.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_guide_resource_discovery_evidence.py tests/test_guide_discovery_source_cleanup.py tests/test_guide_topic_anchored_recommendation_fit.py tests/test_general_guide_preference_clarification.py tests/test_general_guide_perception_contract.py
