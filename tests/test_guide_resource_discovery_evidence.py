@@ -341,9 +341,11 @@ def test_political_dynasty_query_accepts_opening_that_supports_distinctive_subje
 
 def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeypatch):
     """A later generic ranking pass must not replace an already selected doorway."""
-    query = (
+    queries = (
         "I want to understand how political dynasties affect public accountability "
-        "in the Philippines. What should I read?"
+        "in the Philippines. What should I read?",
+        "Political Dynasties in the Philippines: what does the study say about "
+        "accountability, governance, and socioeconomic effects?",
     )
     direct = _doc(
         "Political Dynasties in the Philippines: A Network Analysis of Power Structures and Their Socioeconomic Impacts",
@@ -378,10 +380,11 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
         lambda _query, _context: {"title": direct["title"], "url": direct["url"]},
     )
 
-    result = main._recommendation_first_fetch(query)
-    selected = main._parse_context_documents(result["canonical_link_context"])
+    for query in queries:
+        result = main._recommendation_first_fetch(query)
+        selected = main._parse_context_documents(result["canonical_link_context"])
 
-    assert len(selected) == 1
-    assert selected[0]["title"] == direct["title"]
-    assert selected[0]["url"] == direct["url"]
-    assert result["recommendation_canonical_boundary_mode"] == "primary"
+        assert len(selected) == 1
+        assert selected[0]["title"] == direct["title"]
+        assert selected[0]["url"] == direct["url"]
+        assert result["recommendation_canonical_boundary_mode"] == "primary"
