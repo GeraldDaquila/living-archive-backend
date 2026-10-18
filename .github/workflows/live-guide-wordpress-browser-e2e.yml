@@ -1,9 +1,6 @@
 name: Live Guide Woody Entryway E2E
 
 on:
-  push:
-    branches:
-      - qa/live-guide-wordpress-browser-e2e
   workflow_dispatch:
 
 permissions:
