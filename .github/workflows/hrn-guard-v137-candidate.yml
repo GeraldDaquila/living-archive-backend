@@ -1,0 +1,23 @@
+name: HRN Guard v1.3.7 Candidate
+on:
+  push:
+    branches:
+      - fix/hrn-guard-policy-rejection-recovery-v137
+    paths:
+      - 'recovery/hrn-guard-v1.3.7/**'
+      - '.github/workflows/hrn-guard-v137-candidate.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'recovery/hrn-guard-v1.3.7/**'
+      - '.github/workflows/hrn-guard-v137-candidate.yml'
+  workflow_dispatch:
+jobs:
+  php-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax check
+        run: php -l recovery/hrn-guard-v1.3.7/living-archive-hrn-composition-contract-guard.php
+      - name: Recovery and boundary regression
+        run: php recovery/hrn-guard-v1.3.7/test_hrn_guard_v137_policy_recovery.php
