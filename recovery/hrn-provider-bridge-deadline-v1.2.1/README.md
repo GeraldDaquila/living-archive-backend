@@ -1,37 +1,35 @@
-# Provider Bridge Deadline Guard v1.2.1 — recovery-only primary call candidate
+# Provider Bridge Deadline Guard v1.2.1 — live deployment record
 
-**Candidate only. Not installed on WordPress. Do not replace the live file until CI and live acceptance gates pass.**
+**Live status: installed on WordPress; acceptance failed. HRN remains NO-GO.**
 
-## Evidence
+## Provenance
 
-The current live file inventory reports:
+- WordPress path: `plugins/la-provider-bridge-deadline/la-provider-bridge-deadline.php`
+- Version: **1.2.1**
+- Installed through Cowboy MCP with a full-file replacement on **2026-10-18 13:32:34 UTC**
+- WordPress change journal ID: **7168**
+- Live file size after write: **11,885 bytes**
+- Source candidate: this branch's `la-provider-bridge-deadline.php` (11,881 characters / 11,885 UTF-8 bytes)
+- Prior version: v1.2.0, recovered from the successful source-write audit payload and matching live inventory size/time
 
-- Path: `plugins/la-provider-bridge-deadline/la-provider-bridge-deadline.php`
-- Version: **1.2.0**
-- Size: **8,582 bytes**
-- Modification time: **2026-10-15 09:41:01**
+## What v1.2.1 changed
 
-The recovered v1.2.0 snapshot at `recovery/wordpress-live-2026-10-16/la-provider-bridge-deadline.php` is 8,580 characters / 8,582 UTF-8 bytes and matches the live inventory size and modification record. Direct byte-for-byte readback is still unavailable through the current Cowboy MCP file reader, so exact identity is strongly indicated but not independently verified.
+It allowed one server-authored HRN recovery-only primary call after the single mirror replay, provided at least 2.85 seconds remained, and capped that call at 2.5 seconds. The frozen HRN writer, 11.5-second shared deadline, and response-quality gates were not changed.
 
-## Live defect
+## Live E2E result — FAIL
 
-The v1.2.0 guard allows one bounded mirror replay for `hrn_relational`, then blocks every further primary call for the rest of the WordPress request. The HRN v0.5.332 writer has an existing server-authored recovery-writer path that calls the same provider bridge after the initial composition cannot be used. The guard suppresses that recovery request as “whole-turn mirror replay already consumed,” leaving the response boundary to return a generic fallback.
+A fresh three-turn WordPress test returned HTTP 200 on all turns, but turns 2 and 3 still used the generic `bounded_contextual_fallback_v9` from composition guard v1.3.7, omitted `journey_ledger`, and did not preserve/advance the reported unit position.
 
-## Candidate change
+The PHP log showed the exact reason the new allowance did not activate:
 
-- Keep the 11.5-second shared visitor-turn deadline and existing one-mirror-replay rule.
-- Permit **one** additional primary call only when its system-role message contains the trusted, server-authored HRN recovery-writer marker and the operation is `hrn_relational`.
-- Cap this recovery-only request at 2.5 seconds and require at least 2.85 seconds of remaining turn budget, preserving the existing 350ms response buffer.
-- Refuse the exception if the marker appears only in visitor/user content, if the turn budget is too low, or if a recovery attempt has already been consumed.
-- Do not change the frozen HRN writer, provider quality gates, response-shape checks, fallback count, or provider timeouts.
+- Primary failure left about **4.6 seconds**.
+- The guard allowed the mirror replay, which used about **2.8 seconds**.
+- The subsequent recovery call was correctly refused because only **1.82–1.88 seconds** remained, below the 2.85-second requirement.
 
-## Acceptance
+This version is retained as the deployed, tested intermediate state. Do not revert it solely because acceptance failed; v1.2.2 is intended to fix the budget allocation without changing the writer.
 
-CI must pass the PHP syntax and runtime guard tests. After a reviewed full-file replacement via Cowboy MCP, live multi-turn E2E must show:
-- a non-generic, visitor-grounded response on turns 2 and 3;
-- a distinct, grounded follow-up question;
-- `journey_ledger` present and consistent;
-- `unit_position` advancing;
-- no second mirror replay or deadline overrun.
+## Next candidate
 
-Until then HRN remains **NO-GO**. This candidate has not modified the live WordPress file.
+See `recovery/hrn-provider-bridge-deadline-v1.2.2/README.md`. Version 1.2.2 reserves two seconds for the mirror and two seconds for the recovery writer, plus the existing 350ms response buffer. When there is insufficient time for both, it skips the mirror replay and preserves time for direct recovery on Primary.
+
+No frozen HRN writer changes were made.
