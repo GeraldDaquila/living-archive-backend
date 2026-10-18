@@ -171,7 +171,7 @@ await page.addInitScript(() => {
       if (source.includes("function cleanAnswer") && source.includes("titleMarker") && source.includes(unsafeWrite)) {
         source = source.replace(
           unsafeWrite,
-          "var cleanedValue = value.replace(titleMarker, '');\\n      if (cleanedValue !== value) node.nodeValue = cleanedValue;"
+          "var cleanedValue = value.replace(titleMarker, '');\n      if (cleanedValue !== value) node.nodeValue = cleanedValue;"
         );
         const bytes = new TextEncoder().encode(source);
         let binary = "";
