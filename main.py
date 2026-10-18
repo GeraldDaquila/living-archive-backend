@@ -1189,6 +1189,9 @@ def _recommendation_first_fetch(query_str):
     profile = _base._inquiry_profile(query_str)
     if profile["action"] not in {"recommendation", "navigation"} or profile.get("risk") or not isinstance(data, dict):
         return data
+    # Never accept a selected doorway carried in from retrieval/provider content.
+    data = dict(data)
+    data.pop("recommendation_canonical_primary", None)
     canonical_context = str(data.get("canonical_link_context") or "")
     if not canonical_context:
         return data
@@ -1200,6 +1203,7 @@ def _recommendation_first_fetch(query_str):
     # replace a directly selected resource with a semantically broad decoy before
     # the final response boundary sees it.
     authoritative = []
+    selected_doorway = None
     if not (profile.get("grief") or profile.get("ai_truth")):
         try:
             selected_doorway = _normalize_authoritative_recommendation(
@@ -1262,6 +1266,13 @@ def _recommendation_first_fetch(query_str):
         boundary_mode = "sanitized-context"
     narrowed_context = _serialize_context_documents(outward)
     data = dict(data)
+    if authoritative and selected_doorway:
+        # Carry the exact validated primary across the retrieval/composition seam.
+        # The final response must not rerank it from a broader candidate pool.
+        data["recommendation_canonical_primary"] = {
+            "title": selected_doorway["title"],
+            "url": selected_doorway["url"],
+        }
     data["canonical_link_context"] = narrowed_context
     data["context_blocks"] = narrowed_context
     data["recommendation_first_evidence_bridge"] = True
@@ -5069,7 +5080,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
     authoritative_doorway = _normalize_authoritative_recommendation(
-        _general_guide_authoritative_doorway(resource_query, context_data)
+        context_data.get("recommendation_canonical_primary")
+        or _general_guide_authoritative_doorway(resource_query, context_data)
     )
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
