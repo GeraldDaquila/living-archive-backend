@@ -957,8 +957,12 @@ try {
           const source = await response.text();
           const marker = "function renderOrdinaryFollowupPanel";
           const index = source.indexOf(marker);
+          const mainMarker = "async function useGuideSubmit";
+          const mainIndex = source.indexOf(mainMarker);
           renderer = { status: response.status, markerFound: index >= 0,
-            excerpt: index >= 0 ? source.slice(index, index + 3600) : null };
+            excerpt: index >= 0 ? source.slice(index, index + 3600) : null,
+            mainSubmissionFound: mainIndex >= 0,
+            mainSubmissionExcerpt: mainIndex >= 0 ? source.slice(mainIndex, mainIndex + 9500) : null };
         } catch (error) { renderer = { error: error.message }; }
         return {
           url: location.href,
