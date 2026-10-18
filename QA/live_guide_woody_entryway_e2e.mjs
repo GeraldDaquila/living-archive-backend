@@ -254,19 +254,25 @@ await page.addInitScript(() => {
     return nativeAddEventListener.call(this, type, wrapped, options);
   };
 
-  // QA-only fault isolation: suppress MutationObserver callbacks to determine whether
-  // any page observer causes the main-thread hang after the answer DOM write.
-  // This affects only this browser test; no production code or WordPress is changed.
+  // QA-only differential isolation: allow the identified cleanAnswer observer to run
+  // while suppressing all other MutationObserver callbacks. This determines whether
+  // the cleanup observer alone is sufficient to reproduce the browser hang.
+  // No production or WordPress source is changed.
   const NativeMutationObserver = window.MutationObserver;
   window.MutationObserver = class GuideQaMutationObserver extends NativeMutationObserver {
     constructor(callback) {
       const callbackSource = String(callback);
+      const isCleanupObserver = callback.name === "cleanAnswer" ||
+        (callbackSource.includes("archive-response-text") &&
+         callbackSource.includes("Stewardship Readiness") &&
+         callbackSource.includes("nodeValue"));
       console.log("GUIDE_MUTATION_OBSERVER_ISOLATION " + JSON.stringify({
         callbackName: callback.name || null,
+        isCleanupObserver,
         callbackSourcePreview: callbackSource.slice(0, 140),
-        suppressed: true
+        suppressed: !isCleanupObserver
       }));
-      super(function guideQaObserverSuppressed() {});
+      super(isCleanupObserver ? callback : function guideQaOtherObserverSuppressed() {});
     }
   };
   // Identify who dynamically installs the data-URL cleanAnswer script seen in
