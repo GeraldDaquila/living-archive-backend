@@ -21,13 +21,14 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "Preserve the visitor's agency" in prompt
     assert "Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy" in prompt
-    assert "A follow-up invitation is optional" in prompt
+    assert "A follow-up invitation is optional unless the visitor explicitly requests one" in prompt
+    assert "honor that request with exactly one natural, relevant question at the end" in prompt
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.19"
+    assert guide.CONTRACT_VERSION == "v1.20"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.19"
+    assert snapshot["contract_version"] == "v1.20"
     assert snapshot["provider_neutral"] is True
 
 
@@ -83,8 +84,8 @@ def test_conceptual_relationships_require_reasoning_but_allow_proportionate_leng
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.19"
-    assert guide.contract_snapshot()["contract_version"] == "v1.19"
+    assert guide.CONTRACT_VERSION == "v1.20"
+    assert guide.contract_snapshot()["contract_version"] == "v1.20"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -118,8 +119,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.19"
-    assert guide.contract_snapshot()["contract_version"] == "v1.19"
+    assert guide.CONTRACT_VERSION == "v1.20"
+    assert guide.contract_snapshot()["contract_version"] == "v1.20"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -165,3 +166,27 @@ def test_resource_discovery_answers_the_search_need_without_speculative_padding(
     assert "Never pad this explanation with speculative phrases" in prompt
     assert "Keep the canonical link separate from the answer" in prompt
 
+
+
+def test_explicit_closing_question_request_is_detected_and_enforced():
+    import json
+    import pytest
+
+    query = "Explain stewardship in everyday life, and finish with one brief question inviting me to reflect on my own experience."
+    assert guide._requires_explicit_followup_invitation(query)
+    parse = guide._parse_factory([], query)
+
+    missing_question = json.dumps({
+        "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for.",
+        "doorway_title": "",
+        "response_shape": "explanatory",
+    })
+    with pytest.raises(ValueError, match="requires a closing question"):
+        parse(missing_question)
+
+    valid_invitation = json.dumps({
+        "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for. What is one thing in your everyday life that you feel responsible for caring for?",
+        "doorway_title": "",
+        "response_shape": "explanatory",
+    })
+    assert parse(valid_invitation)["response"].endswith("?")
