@@ -867,8 +867,47 @@ try {
         secondQuestionOutcome = { kind: "interaction_error", message: error.message };
       }
 
-      // Now exercise the real follow-up panel, which should exist only after
-      // the conversation has progressed beyond its first answer.
+      // The interface may delay conversational controls until a third main-form
+      // question. Exercise that intended progression before declaring the panel missing.
+      let thirdQuestionOutcome = { kind: "not_attempted" };
+      if (secondQuestionOutcome.ui?.kind === "second_answer_updated") {
+        const secondAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
+        const thirdQuestion = "What is a concrete way to practice this in a neighborhood?";
+        try {
+          await input.fill(thirdQuestion, { timeout: 5_000 });
+          const thirdResponsePromise = page.waitForResponse(
+            response => response.request().method() === "POST" &&
+              API_PATTERN.test(new URL(response.url()).pathname),
+            { timeout: 35_000 }
+          ).then(async response => ({
+            kind: "response_observed",
+            status: response.status(),
+            url: response.url(),
+            requestPostData: response.request().postData() || null,
+            bodyPreview: await response.text().then(text => text.slice(0, 1600)).catch(error => "body_read_error:" + error.message)
+          })).catch(error => ({ kind: "no_response", message: error.message }));
+          await submit.click({ timeout: 5_000 });
+          const response = await Promise.race([
+            thirdResponsePromise,
+            new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
+          ]);
+          const ui = await Promise.race([
+            page.waitForFunction(({ secondAnswer }) => {
+              const text = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody'] #archive-response-text");
+              const answer = (text?.innerText || "").trim();
+              return answer.length > 80 && answer !== secondAnswer.trim();
+            }, { secondAnswer }, { timeout: 15_000 }).then(() => ({ kind: "third_answer_updated" }))
+              .catch(error => ({ kind: "third_answer_missing", message: error.message })),
+            new Promise(resolve => setTimeout(() => resolve({ kind: "third_answer_watchdog" }), 15_000))
+          ]);
+          thirdQuestionOutcome = { question: thirdQuestion, response, ui };
+        } catch (error) {
+          thirdQuestionOutcome = { kind: "interaction_error", message: error.message };
+        }
+      }
+
+      // Now exercise the real follow-up panel after allowing up to three main-form
+      // questions, rather than treating absence after question two as a defect.
       const ordinaryInput = root.locator("#archive-ordinary-followup-input");
       const ordinaryReply = root.getByRole("button", { name: /reply/i }).first();
       const answerBeforeOrdinary = await root.locator("#archive-response-text").innerText().catch(() => "");
@@ -907,6 +946,7 @@ try {
       }
       mark("conversation_continuity_e2e_outcome", {
         secondQuestionOutcome,
+        thirdQuestionOutcome,
         ordinaryFollowupOutcome,
         requestCount: posts.length,
         responseCount: apiResponses.length,
@@ -917,6 +957,9 @@ try {
       if (secondQuestionOutcome.response?.kind !== "response_observed" ||
           secondQuestionOutcome.response.status < 200 || secondQuestionOutcome.response.status >= 300 ||
           secondQuestionOutcome.ui?.kind !== "second_answer_updated" ||
+          thirdQuestionOutcome.ui?.kind !== "third_answer_updated" ||
+          thirdQuestionOutcome.response?.kind !== "response_observed" ||
+          thirdQuestionOutcome.response.status < 200 || thirdQuestionOutcome.response.status >= 300 ||
           ordinaryFollowupOutcome.response?.kind !== "response_observed" ||
           ordinaryFollowupOutcome.response.status < 200 || ordinaryFollowupOutcome.response.status >= 300 ||
           ordinaryFollowupOutcome.ui?.kind !== "ordinary_followup_answer_updated" ||
