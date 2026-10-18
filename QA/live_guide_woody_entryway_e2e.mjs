@@ -284,11 +284,11 @@ await page.addInitScript(() => {
         source = new TextDecoder().decode(bytes);
       } catch {}
       let candidatePatched = false;
-      const unsafeWrite = "node.nodeValue = value.replace(titleMarker, '');";
-      if (source.includes("function cleanAnswer") && source.includes("titleMarker") && source.includes(unsafeWrite)) {
+      const unsafeWrite = /node\\.nodeValue\\s*=\\s*node\\.nodeValue\\.replace\\(marker,\\s*''\\);/;
+      if (source.includes("function cleanAnswer") && source.includes("var marker=") && unsafeWrite.test(source)) {
         source = source.replace(
           unsafeWrite,
-          "var cleanedValue = value.replace(titleMarker, '');\n      if (cleanedValue !== value) node.nodeValue = cleanedValue;"
+          "var currentValue = node.nodeValue; var cleanedValue = currentValue.replace(marker, ''); if (cleanedValue !== currentValue) node.nodeValue = cleanedValue;"
         );
         const bytes = new TextEncoder().encode(source);
         let binary = "";
