@@ -204,17 +204,30 @@ try {
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
-      if (!answer) return Promise.resolve(new Response(JSON.stringify({ ok: false, error: "Unexpected QA query" }), { status: 400, headers: { "content-type": "application/json" } }));
-      const payload = {
+      const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
         query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: null,
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
-      };
-      const result = Promise.resolve(new Response(JSON.stringify(payload), {
-        status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }
-      }));
+      } : { ok: false, error: "Unexpected QA query" };
+      // The controller contract requires only an HTTP-like ok/status envelope
+      // and an asynchronous json() method. Avoid Chromium's native Response
+      // body stream here: diagnostics showed its json() Promise was returned,
+      // but the browser stopped processing all tasks before that Promise settled.
+      // This mock tests the controller/UI continuity without testing the browser's
+      // ReadableStream implementation.
+      const result = Promise.resolve({
+        ok: Boolean(answer),
+        status: answer ? 200 : 400,
+        json: function() {
+          window.__guideTrace({ event: "mock_json_called", query });
+          return Promise.resolve(payload).then(value => {
+            window.__guideTrace({ event: "mock_json_resolved", query });
+            return value;
+          });
+        }
+      });
       window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
       result.then(response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }));
       return result;
