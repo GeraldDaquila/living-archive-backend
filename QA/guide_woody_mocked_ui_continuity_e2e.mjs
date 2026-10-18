@@ -37,7 +37,29 @@ page.on("pageerror", error => pageErrors.push(error.message));
 
 await page.route("**/api/query**", async route => {
   const request = route.request();
-  if (request.method() !== "POST" || !API_PATTERN.test(new URL(request.url()).pathname)) {
+  if (!API_PATTERN.test(new URL(request.url()).pathname)) {
+    await route.continue();
+    return;
+  }
+
+  // The browser sends a CORS preflight before the JSON POST because the
+  // Guide page and Render API are on different origins. Fulfill OPTIONS here
+  // as well: allowing it through would contact the real Render service and
+  // make this supposedly mocked test depend on a cold start/network timeout.
+  if (request.method() === "OPTIONS") {
+    await route.fulfill({
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "https://geralddaquila.com",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-headers": "content-type",
+        "access-control-max-age": "600"
+      }
+    });
+    return;
+  }
+
+  if (request.method() !== "POST") {
     await route.continue();
     return;
   }
