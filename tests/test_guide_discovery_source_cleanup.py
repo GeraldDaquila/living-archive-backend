@@ -195,3 +195,36 @@ def test_explicit_study_and_title_only_queries_select_exact_registered_asset(mon
         assert evidence and evidence[0]["url"] == CANONICAL_POLITICAL_DYNASTIES_URL
         assert evidence[0]["_guide_node"]["node_id"] == "political-dynasties-philippines-study"
         assert evidence[0]["_guide_node"]["asset_type"] == "canonical_study"
+
+
+
+def test_discovery_doorway_requires_matching_selected_canonical_evidence():
+    doorway = {
+        "title": "Political Dynasties in the Philippines",
+        "url": CANONICAL_POLITICAL_DYNASTIES_URL,
+    }
+    matching_evidence = [{
+        "title": doorway["title"],
+        "url": CANONICAL_POLITICAL_DYNASTIES_URL,
+        "text": "Political dynasties shape Philippine governance and public accountability.",
+    }]
+    unrelated_evidence = [{
+        "title": "Living in the Barangay",
+        "url": "https://geralddaquila.com/living-in-the-barangay/",
+        "text": "A different subject.",
+    }]
+    assert main._guide_discovery_doorway_is_evidence_backed(doorway, matching_evidence)
+    assert not main._guide_discovery_doorway_is_evidence_backed(doorway, unrelated_evidence)
+    assert not main._guide_discovery_doorway_is_evidence_backed(doorway, [])
+    assert not main._guide_discovery_doorway_is_evidence_backed(None, matching_evidence)
+
+
+def test_discovery_fallback_is_used_when_final_doorway_is_missing():
+    result = main._guide_subject_discovery_answer(
+        "An unrelated provider-generated answer.",
+        "Political Dynasties in the Philippines",
+        None,
+        [],
+    )
+    assert "couldn’t verify a Living Archive page" in result
+    assert "unrelated provider-generated answer" not in result
