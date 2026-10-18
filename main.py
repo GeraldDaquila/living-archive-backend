@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.280 — Guide discovery and source excerpt cleanup
+# USE PRODUCTION VERSION: v489.281 — Strip standalone WordPress author bylines
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.280"
-DEPLOYMENT_FINGERPRINT = "USE-v489.280-guide-discovery-source-cleanup"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.280-guide-discovery-source-cleanup"
+APP_VERSION = "v489.281"
+DEPLOYMENT_FINGERPRINT = "USE-v489.281-standalone-author-byline-cleanup"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.281-standalone-author-byline-cleanup"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.280":
+if str(APP_VERSION) != "v489.281":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4227,6 +4227,7 @@ def _guide_html_to_source_text(raw_html):
         if not block:
             continue
         if re.fullmatch(
+            r"written\s+by\s+gerald\s+a\.?|"
             r"(?:by\s+)?gerald\s+a?\.?\s+daquila\s*,?\s*"
             r"(?:phd\s+candidate|ph\.?d\.?\s+candidate|author)",
             block, flags=re.I,
