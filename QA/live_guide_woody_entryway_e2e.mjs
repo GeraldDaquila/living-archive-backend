@@ -831,7 +831,7 @@ try {
       const input = root.locator("#archive-query-input");
       const submit = root.locator("#archive-submit-btn");
       const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
-      const followupQuestion = "What is one practical example of stewardship in a community?";
+      const followupQuestion = "Can you explain your previous answer in simpler terms?";
       let followupResponseOutcome = { kind: "not_attempted" };
       let followupUiOutcome = { kind: "not_attempted" };
       try {
