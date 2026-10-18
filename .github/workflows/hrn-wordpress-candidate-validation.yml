@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "wordpress/hrn/**"
+      - "recovery/hrn-provider-bridge-deadline-v1.2.1/**"
+      - "QA/hrn_provider_bridge_deadline_recovery_test.php"
       - "QA/test_hrn_v05278_closure_evidence.py"
       - "QA/hrn_closure_evidence_runtime_test.php"
       - ".github/workflows/hrn-wordpress-candidate-validation.yml"
@@ -11,6 +13,7 @@ on:
     branches:
       - "fix/hrn-v05278-closure-evidence"
       - "fix/hrn-natural-landing-local-recovery-v05279"
+      - "fix/hrn-bridge-bounded-recovery-v1-2-1"
     paths:
       - "wordpress/hrn/**"
       - "QA/test_hrn_v05278_closure_evidence.py"
@@ -31,6 +34,10 @@ jobs:
           python-version: "3.12"
       - name: PHP syntax validation
         run: php -l wordpress/hrn/human-relational-navigator.php
+      - name: Provider bridge deadline guard syntax validation
+        run: php -l recovery/hrn-provider-bridge-deadline-v1.2.1/la-provider-bridge-deadline.php && php -l QA/hrn_provider_bridge_deadline_recovery_test.php
+      - name: Provider bridge bounded recovery retry runtime test
+        run: php QA/hrn_provider_bridge_deadline_recovery_test.php
       - name: HRN closure evidence contract tests
         run: python -m unittest QA.test_hrn_v05278_closure_evidence -v
       - name: Execute HRN closure evidence behavior tests
