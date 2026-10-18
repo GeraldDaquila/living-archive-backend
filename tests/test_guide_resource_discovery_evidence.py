@@ -452,3 +452,46 @@ def test_political_dynasty_recommendation_recovers_direct_title_match(monkeypatc
     assert doorway is not None
     assert doorway["title"] == "Political Dynasties in the Philippines"
     assert doorway["url"] == direct["url"]
+
+def test_natural_language_reading_request_extracts_discovery_subject():
+    query = (
+        "I want to understand how political dynasties affect public accountability "
+        "in the Philippines. What should I read?"
+    )
+
+    assert main._guide_subject_discovery_query(query) == (
+        "how political dynasties affect public accountability in the philippines"
+    )
+
+
+def test_reading_request_answer_stays_aligned_with_selected_canonical_page():
+    subject = "how political dynasties affect public accountability in the Philippines"
+    doorway = {
+        "title": "Political Dynasties in the Philippines",
+        "url": (
+            "https://geralddaquila.com/2025/05/21/"
+            "political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/"
+        ),
+    }
+    evidence = [{
+        "title": doorway["title"],
+        "url": doorway["url"],
+        "text": (
+            "Political dynasties shape electoral competition and family networks. "
+            "The study examines how concentrated family influence can affect public "
+            "accountability, institutional checks, governance, and socioeconomic outcomes."
+        ),
+        "_discovery_relevance": "direct",
+        "_discovery_support_terms": ["political", "dynasties", "accountability"],
+    }]
+
+    answer = main._guide_subject_discovery_answer(
+        "A broad generated response about The Hidden Dance of Polarity.",
+        subject,
+        doorway,
+        evidence,
+    )
+
+    assert "Political Dynasties in the Philippines" in answer
+    assert "The Hidden Dance of Polarity" not in answer
+    assert "public accountability" in answer

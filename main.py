@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.273 — Recover direct political-dynasty doorway
+# USE PRODUCTION VERSION: v489.274 — Align reading-request prose with canonical doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.273"
-DEPLOYMENT_FINGERPRINT = "USE-v489.273-recover-direct-political-dynasty-doorway"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.273-recover-direct-political-dynasty-doorway"
+APP_VERSION = "v489.274"
+DEPLOYMENT_FINGERPRINT = "USE-v489.274-align-reading-request-prose"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.274-align-reading-request-prose"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.273":
+if str(APP_VERSION) != "v489.274":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4624,6 +4624,11 @@ def _guide_subject_discovery_query(query):
     """
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
     patterns = (
+        # Natural-language reading requests are still Archive discovery tasks.
+        # Extract their subject so the answer is grounded in the selected page,
+        # rather than letting a broad generated explanation contradict the link.
+        r"^(?:i want to understand|i would like to understand|i'd like to understand|i want to learn about|i would like to learn about|i'd like to learn about)\s+(.+?)(?:[.!?]\s*(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\b.*)?[?.!]*$",
+        r"^(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\s+(?:about|on|regarding)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?where\s+(?:can|could|do)\s+i\s+find\s+(?:the\s+)?(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?(?:find|show\s+me|help\s+me\s+find|locate|search\s+for)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
         r"^(?:i(?:'m|\s+am)\s+looking\s+for|i\s+need|can\s+you\s+find|could\s+you\s+find)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
