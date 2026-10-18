@@ -93,6 +93,7 @@ await page.route("**/api/query**", async route => {
   }
 
   mark("api_route_fulfilling_post", { query, requestCount: apiRequests.length });
+  mark("api_route_fulfill_call", { query, requestCount: apiRequests.length });
   await route.fulfill({
     status: 200,
     contentType: "application/json",
@@ -113,6 +114,7 @@ await page.route("**/api/query**", async route => {
       visitor_boundary_version: "qa"
     })
   });
+  mark("api_route_fulfill_completed", { query, requestCount: apiRequests.length });
 });
 
 try {
@@ -204,7 +206,10 @@ try {
       // Dispatch the real DOM click without Playwright waiting on a possible native
       // form navigation; the capture-phase submit guard above keeps the document
       // available while the controller handler and API request are observed.
-      await submit.evaluate(element => element.click());
+      // Schedule the DOM click and return from Playwright's evaluation first.
+      // If the live click handler blocks the renderer after fetch(), this keeps
+      // the harness alive long enough to collect route/response diagnostics.
+      await submit.evaluate(element => setTimeout(() => element.click(), 0));
     } catch (error) {
       clickError = error.message;
     }
