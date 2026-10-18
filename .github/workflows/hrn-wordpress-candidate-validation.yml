@@ -18,6 +18,7 @@ on:
     paths:
       - "wordpress/hrn/**"
       - "recovery/hrn-provider-bridge-deadline-v1.2.1/**"
+      - "recovery/hrn-provider-bridge-deadline-v1.2.2/**"
       - "QA/hrn_provider_bridge_deadline_recovery_test.php"
       - "QA/test_hrn_v05278_closure_evidence.py"
       - "QA/hrn_closure_evidence_runtime_test.php"
