@@ -451,6 +451,46 @@ try {
   const preClick = await diagnostics();
   mark("pre_click_diagnostic", preClick);
 
+  // Read native browser event-listener registrations through CDP before click.
+  // This also detects onclick/property handlers that addEventListener wrapping misses.
+  try {
+    const doc = await cdp.send("DOM.getDocument", { depth: -1, pierce: true });
+    const targets = [
+      ["document", doc.root.nodeId],
+      ["woody-root", (await cdp.send("DOM.querySelector", { nodeId: doc.root.nodeId, selector: ".archive-stage-wrapper[data-guide-instance='woody']" })).nodeId],
+      ["woody-form", (await cdp.send("DOM.querySelector", { nodeId: doc.root.nodeId, selector: ".archive-stage-wrapper[data-guide-instance='woody'] form#archive-search-form" })).nodeId],
+      ["woody-button", (await cdp.send("DOM.querySelector", { nodeId: doc.root.nodeId, selector: ".archive-stage-wrapper[data-guide-instance='woody'] #archive-submit-btn" })).nodeId]
+    ];
+    for (const [label, nodeId] of targets) {
+      if (!nodeId) {
+        mark("cdp_registered_listeners", { label, missingNode: true });
+        continue;
+      }
+      const resolved = await cdp.send("DOM.resolveNode", { nodeId });
+      if (!resolved.object?.objectId) {
+        mark("cdp_registered_listeners", { label, resolveFailed: true });
+        continue;
+      }
+      const result = await cdp.send("DOMDebugger.getEventListeners", { objectId: resolved.object.objectId, depth: 2, pierce: true });
+      const listeners = (result.listeners || []).map(listener => ({
+        type: listener.type,
+        useCapture: listener.useCapture,
+        passive: listener.passive,
+        once: listener.once,
+        handlerName: listener.handler?.description || listener.handler?.className || null,
+        location: listener.location ? {
+          scriptId: listener.location.scriptId,
+          lineNumber: listener.location.lineNumber,
+          columnNumber: listener.location.columnNumber
+        } : null,
+        originalHandler: listener.originalHandler?.description || null
+      }));
+      mark("cdp_registered_listeners", { label, count: listeners.length, listeners });
+    }
+  } catch (error) {
+    mark("cdp_registered_listeners_error", { message: error.message });
+  }
+
   // QA-only CPU profile: capture the renderer's sampled JavaScript stack during the freeze.
   // CDP operates outside page.evaluate, so this can still help when the page event loop stalls.
   let cpuProfileStarted = false;
