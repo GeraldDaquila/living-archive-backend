@@ -454,6 +454,9 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
   const prefetchPresentationBlock = /  if \(responseControls\) \{\s*responseControls\.style\.display =\s*'none';\s*\}\s*if \(responseBox\) \{\s*responseBox\.style\.display =\s*'block';\s*\}\s*if \(responseText\) \{\s*responseText\.innerHTML =\s*'<p><em>Giving this question a little more room\.\.\.<\/em><\/p>';\s*\}/;
   const prefetchPresentationMatches = patchedSource.match(prefetchPresentationBlock) || [];
   patchedSource = patchedSource.replace(prefetchPresentationBlock, "  // QA-only: bypass response presentation mutations before fetch");
+  const prefetchControlBlock = /  resetGuideConversationHistory\(\);[\s\S]*?  try \{\s*var res =\s*await fetchUSE\(\s*\{\s*query: query\s*\},\s*'guide-submit'\s*\);/;
+  const prefetchControlMatches = patchedSource.match(prefetchControlBlock) || [];
+  patchedSource = patchedSource.replace(prefetchControlBlock, "  // QA-only: bypass all pre-fetch state and UI work.\n  try {\n    var res = await fetchUSE({ query: query }, 'guide-submit');");
   mark("qa_controller_fault_isolation", {
     url: route.request().url(),
     status: response.status(),
@@ -463,7 +466,9 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
     buttonStateBlockPatched: buttonStateMatches.length === 1,
     buttonStateMatchCount: buttonStateMatches.length,
     prefetchPresentationBlockPatched: prefetchPresentationMatches.length === 1,
-    prefetchPresentationMatchCount: prefetchPresentationMatches.length
+    prefetchPresentationMatchCount: prefetchPresentationMatches.length,
+    prefetchControlBlockPatched: prefetchControlMatches.length === 1,
+    prefetchControlMatchCount: prefetchControlMatches.length
   });
   const headers = { ...response.headers() };
   delete headers["content-encoding"];
