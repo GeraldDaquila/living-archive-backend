@@ -29,6 +29,17 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
   $d['observer_so_what']='an observable moment can clarify the pattern without assigning blame'; $d['observer_delta']='attention moves from the repeated outcome to what happens between the two people';
   $d['observer_horizon']='notice what happens first when the familiar argument begins'; $d['observer_next_intention']='explore the interaction sequence without presuming whose fault it is'; $d['next_horizon']=$d['observer_horizon'];
   $d['hrn_composition_recovery']='humane_relational_opening_v5';
+ } elseif ($recoverable && preg_match('/\b(friend|friendship)\b/i',$m) && preg_match('/\b(afraid|fear|worried|scared|putting off|avoid|hesitat|change the friendship|damage the friendship|lose the friendship)\b/i',$m) && preg_match('/\b(conversation|talk|speak|bring it up|say something)\b/i',$m)) {
+  $t='You want to speak honestly with your friend, but you are worried that naming what is on your mind could change the friendship. That leaves you weighing the value of being open against the uncertainty of what the conversation might bring. We do not yet know how your friend would respond, or whether the friendship would change.';
+  $q='What feels most important to protect in the friendship as you imagine having this conversation?';
+  $d['working_hypothesis']='the visitor is balancing a wish for honesty with concern about the friendship; the specific risk is not yet established'; $d['underlying_need']='';
+  $d['emerging_delta']='move from predicting the outcome to identifying what the visitor most wants to preserve'; $d['perspective_delta']=$d['emerging_delta'];
+  $d['observer_intention']='understand the concern beneath the hesitation without assuming the conversation should happen';
+  $d['observer_contrast']='honesty and preserving the friendship may feel in tension, but the outcome is not yet known';
+  $d['observer_so_what']='clarifying what matters most can make the concern more specific without prescribing an action';
+  $d['observer_delta']='attention shifts from an uncertain future reaction to what the visitor values in the friendship';
+  $d['observer_horizon']='identify what feels most at risk in the imagined conversation'; $d['observer_next_intention']='explore the value being protected before deciding what the hesitation means';
+  $d['next_horizon']=$d['observer_horizon']; $d['hrn_composition_recovery']='bounded_friendship_conversation_fallback_v1';
  } elseif ($manager && $recoverable) {
   if ($turn<=1) { $t='Being told you are trusted while having each decision questioned sends two different messages. It makes sense that you would want to understand what your manager means by trust in practice, rather than trying to guess at their intentions.'; $q='When your manager questions a decision, what do they usually ask you to explain?'; }
   elseif ($turn===2) { $t='You are not only answering a question about the work; you are also being put in the position of proving that you are entitled to make the decision. That can quietly shift the exchange from discussing the merits of an approach to defending your competence.'; $q='When you explain your reasoning, does your manager engage with it, or do they move on to questioning another part of the decision?'; }
@@ -55,7 +66,7 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
  }
  if ($t!=='') $d['response']=$t;
  if ($q!=='') $d['question']=$q; else { unset($d['question']); }
- if ($recoverable) { $d['message']=$t; $d['hrn_composition_recovery_version']='1.3.6'; }
- if (!empty($d['hrn_composition_recovery'])) { $d['hrn_composition_recovery_version']='1.3.6'; $response->set_data($d); }
+ if ($recoverable) { $d['message']=$t; $d['hrn_composition_recovery_version']='1.3.7'; }
+ if (!empty($d['hrn_composition_recovery'])) { $d['hrn_composition_recovery_version']='1.3.7'; $response->set_data($d); }
  return $response;
 },1001,3);
