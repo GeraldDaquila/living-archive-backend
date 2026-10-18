@@ -447,13 +447,23 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
   const source = await response.text();
   const waitBlock = /  if \(\s*typeof requestAnimationFrame ===\s*'function'\s*\) \{\s*await new Promise\(function \(resolve\) \{\s*requestAnimationFrame\(resolve\);\s*\}\);\s*\}/;
   const matches = source.match(waitBlock) || [];
-  const patchedSource = source.replace(waitBlock, "  await Promise.resolve(); // QA-only: bypass animation-frame wait");
+  let patchedSource = source.replace(waitBlock, "  await Promise.resolve(); // QA-only: bypass animation-frame wait");
+  const buttonStateBlock = /  submitBtn\.disabled = true;[\s\S]*?  if \(submitLabel\) \{\s*submitLabel\.textContent = 'Searching…';\s*\}/;
+  const buttonStateMatches = patchedSource.match(buttonStateBlock) || [];
+  patchedSource = patchedSource.replace(buttonStateBlock, "  // QA-only: bypass submit-button DOM mutations");
+  const prefetchPresentationBlock = /  if \(responseControls\) \{\s*responseControls\.style\.display =\s*'none';\s*\}\s*if \(responseBox\) \{\s*responseBox\.style\.display =\s*'block';\s*\}\s*if \(responseText\) \{\s*responseText\.innerHTML =\s*'<p><em>Giving this question a little more room\.\.\.<\/em><\/p>';\s*\}/;
+  const prefetchPresentationMatches = patchedSource.match(prefetchPresentationBlock) || [];
+  patchedSource = patchedSource.replace(prefetchPresentationBlock, "  // QA-only: bypass response presentation mutations before fetch");
   mark("qa_controller_fault_isolation", {
     url: route.request().url(),
     status: response.status(),
     originalLength: source.length,
     patched: matches.length === 1,
-    matchCount: matches.length
+    matchCount: matches.length,
+    buttonStateBlockPatched: buttonStateMatches.length === 1,
+    buttonStateMatchCount: buttonStateMatches.length,
+    prefetchPresentationBlockPatched: prefetchPresentationMatches.length === 1,
+    prefetchPresentationMatchCount: prefetchPresentationMatches.length
   });
   const headers = { ...response.headers() };
   delete headers["content-encoding"];
