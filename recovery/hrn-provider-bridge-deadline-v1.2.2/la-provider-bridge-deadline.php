@@ -196,8 +196,8 @@ add_filter('pre_http_request', function ($preempt, $args, $url) {
     // accommodate the existing recovery writer. Otherwise return the primary
     // failure and let HRN spend the remaining bounded budget on recovery directly.
     $remaining_for_mirror = $deadline > 0 ? $deadline - microtime(true) : 0.0;
-    if ($deadline <= 0 || $remaining_for_mirror < 4.35) {
-        error_log('[LA Provider Bridge Deadline Guard] Mirror replay suppressed to reserve bounded recovery time; remaining=' . round($remaining_for_mirror, 2) . 's required=4.35s.');
+    if ($deadline <= 0 || $remaining_for_mirror < 4.4) {
+        error_log('[LA Provider Bridge Deadline Guard] Mirror replay suppressed to reserve bounded recovery time; remaining=' . round($remaining_for_mirror, 2) . 's required=4.4s.');
         return $primary instanceof WP_Error ? $primary : (is_array($primary) ? $primary : new WP_Error(
             'la_provider_bridge_mirror_budget_reserved', 'The mirror replay was skipped to preserve time for the bounded HRN recovery writer.',
             array('stage'=>'provider_bank_transport','retryable'=>true,'reason'=>'mirror_budget_reserved_for_recovery','remaining_seconds'=>round($remaining_for_mirror, 2))
@@ -209,7 +209,7 @@ add_filter('pre_http_request', function ($preempt, $args, $url) {
     if ($elapsed >= 2.5 && (is_wp_error($primary) || $status >= 500 || $status === 0)) {
         $remaining = $deadline > 0 ? $deadline - microtime(true) : 0.0;
         $ambiguous = is_wp_error($primary) || $status === 0;
-        $budget_exhausted = $deadline > 0 && $remaining < 4.35;
+        $budget_exhausted = $deadline > 0 && $remaining < 4.4;
         if ($budget_exhausted) {
             error_log('[LA Provider Bridge Deadline Guard] Mirror replay suppressed; insufficient turn budget remaining=' . round($remaining, 2) . 's.');
             return $primary instanceof WP_Error ? $primary : (is_array($primary) ? $primary : new WP_Error(
