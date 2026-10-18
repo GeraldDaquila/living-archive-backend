@@ -78,11 +78,22 @@ for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived"
 // status code even when page-level response callbacks never fire.
 for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.responseReceivedExtraInfo"]) {
   cdp.on(eventName, event => {
+    const headers = event.headers || {};
+    const contentType = String(headers["content-type"] || headers["Content-Type"] || "").toLowerCase();
+    const origin = String(headers.origin || headers.Origin || "");
+    const likelyGuidePost = eventName === "Network.requestWillBeSentExtraInfo" &&
+      contentType.includes("application/json") && origin === "https://geralddaquila.com";
+    const likelyGuideResponse = eventName === "Network.responseReceivedExtraInfo" &&
+      contentType.includes("application/json") &&
+      Boolean(headers["x-render-origin-server"] || headers["X-Render-Origin-Server"]);
+    // ExtraInfo also fires for hundreds of WordPress images/styles. Retain only
+    // the JSON request/response relevant to the Guide POST to keep traces bounded.
+    if (!likelyGuidePost && !likelyGuideResponse) return;
     const item = {
       event: eventName,
       requestId: event.requestId,
       statusCode: event.statusCode,
-      headers: event.headers ? Object.fromEntries(Object.entries(event.headers).filter(([k]) => /access-control|content-type|content-length|vary|origin/i.test(k))) : undefined,
+      headers: Object.fromEntries(Object.entries(headers).filter(([k]) => /access-control|content-type|content-length|vary|origin|x-render-origin-server/i.test(k))),
       associatedCookies: event.associatedCookies?.length
     };
     apiLifecycle.push(item);
@@ -145,9 +156,18 @@ await page.addInitScript(() => {
   // Bounded counters prevent diagnostic output from overwhelming the runner.
   const originalGetElementById = Document.prototype.getElementById;
   let lookupTraceCount = 0;
+  let responseTextStackCount = 0;
   Document.prototype.getElementById = function (id) {
-    if (lookupTraceCount++ < 35) {
-      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "getElementById", id: String(id), time: performance.now() }));
+    const normalizedId = String(id);
+    if (normalizedId === "archive-response-text" && responseTextStackCount++ < 5) {
+      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({
+        stage: "response_text_lookup_stack",
+        id: normalizedId,
+        time: performance.now(),
+        stack: new Error("Guide response-text lookup").stack
+      }));
+    } else if (lookupTraceCount++ < 10) {
+      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "getElementById", id: normalizedId, time: performance.now() }));
     }
     return originalGetElementById.call(this, id);
   };
