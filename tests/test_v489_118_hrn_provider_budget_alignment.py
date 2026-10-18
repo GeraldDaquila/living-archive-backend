@@ -338,13 +338,13 @@ def test_proven_workers_fast_fallback_keeps_groq_120b_inside_bounded_attempt_win
         messages=[{
             "role": "user",
             "content": (
-                "STRUCTURED MOVEMENT BRIEF\\n"
+                "STRUCTURED MOVEMENT BRIEF\n"
                 '{"working_hypothesis":"the visitor feels unheard during disagreement with a colleague",'
                 '"thread_summary":"the visitor wants to understand what happens during repeated disagreement",'
                 '"underlying_need":"understand the interaction without assigning blame",'
                 '"emerging_delta":"disagreeing about the topic differs from feeling unheard during the conversation",'
                 '"body_of_thought":"the visitor feels unheard during disagreement with a colleague"}'
-                "\\nReturn JSON only."
+                "\nReturn JSON only."
             ),
         }],
         max_tokens=300,
