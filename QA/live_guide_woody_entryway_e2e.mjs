@@ -113,6 +113,12 @@ page.on("pageerror", error => {
 });
 page.on("console", message => {
   const line = message.text();
+  if (line.startsWith("GUIDE_POST_RESPONSE_STAGE ")) {
+    mark("guide_post_response_stage", { item: line.slice("GUIDE_POST_RESPONSE_STAGE ".length) });
+  }
+  if (line.startsWith("GUIDE_HANDLER_TRACE ")) {
+    mark("guide_handler_trace", { item: line.slice("GUIDE_HANDLER_TRACE ".length) });
+  }
   if (line.startsWith("GUIDE_CLEANUP_OBSERVER_ISOLATION ")) {
     mark("cleanup_observer_isolation", { item: line.slice("GUIDE_CLEANUP_OBSERVER_ISOLATION ".length) });
   }
