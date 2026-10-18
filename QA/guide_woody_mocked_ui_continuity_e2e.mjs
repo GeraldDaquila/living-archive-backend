@@ -168,11 +168,10 @@ try {
         event.preventDefault();
       }
     }, true);
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-      window.__guideTrace({ event: "fetch_called", url: String(args[0]?.url || args[0]) });
-      return originalFetch.apply(this, args);
-    };
+    // Do not wrap window.fetch: the live page may already provide a fetch shim,
+    // and wrapping it can change the behavior being diagnosed. Browser-level
+    // request/response listeners and page.route capture network traffic without
+    // altering the page's fetch implementation.
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
       window.__guideTrace({ event: "xhr_open", method, url: String(url) });
