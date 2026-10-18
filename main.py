@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.271 — Guide reflection fallback question
+# USE PRODUCTION VERSION: v489.272 — Preserve canonical primary doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.271"
-DEPLOYMENT_FINGERPRINT = "USE-v489.271-guide-reflection-fallback-question"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.271-guide-reflection-fallback-question"
+APP_VERSION = "v489.272"
+DEPLOYMENT_FINGERPRINT = "USE-v489.272-preserve-canonical-primary-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.272-preserve-canonical-primary-doorway"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -1195,11 +1195,69 @@ def _recommendation_first_fetch(query_str):
     docs = _parse_context_documents(canonical_context)
     if not docs:
         return data
-    authoritative = [] if (profile.get("grief") or profile.get("ai_truth")) else _authoritative_recommendation_docs(query_str, docs, profile)
+    # Use the same canonical doorway authority as the final Guide response.
+    # A second generic ranking pass over canonical_link_context can otherwise
+    # replace a directly selected resource with a semantically broad decoy before
+    # the final response boundary sees it.
+    authoritative = []
+    if not (profile.get("grief") or profile.get("ai_truth")):
+        try:
+            selected_doorway = _normalize_authoritative_recommendation(
+                _general_guide_authoritative_doorway(query_str, data)
+            )
+        except Exception as exc:
+            selected_doorway = None
+            print(
+                "The Guide outward navigation boundary: canonical selector "
+                f"failed safely ({type(exc).__name__})."
+            )
+        if selected_doorway:
+            target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
+            candidate_docs = list(docs)
+            protected = (
+                data.get("generation_authority_protected_docs")
+                or data.get("question_authority_protected_docs")
+                or []
+            )
+            if isinstance(protected, list):
+                candidate_docs.extend(item for item in protected if isinstance(item, dict))
+            try:
+                supplied = general_guide_composition._documents_from_context(
+                    use_core, data
+                )
+            except Exception:
+                supplied = []
+            candidate_docs.extend(item for item in supplied if isinstance(item, dict))
+
+            # The selector returns only a title/URL contract. Reattach that
+            # authority to its actual evidence-bearing document by canonical URL;
+            # never trust a provider-generated title or invent a destination.
+            for candidate in candidate_docs:
+                candidate_url = str(
+                    candidate.get("url") or candidate.get("canonical_url") or ""
+                ).strip()
+                candidate_text = str(
+                    candidate.get("text") or candidate.get("content")
+                    or candidate.get("excerpt") or ""
+                ).strip()
+                if (
+                    candidate_url.rstrip("/").casefold() == target_url
+                    and candidate_text
+                    and str(candidate.get("title") or "").strip()
+                ):
+                    authoritative = [{
+                        "title": str(candidate.get("title") or "").strip(),
+                        "url": candidate_url,
+                        "text": candidate_text,
+                    }]
+                    break
+
     if authoritative:
         outward = authoritative
         boundary_mode = "primary"
     else:
+        # Fail closed when the canonical selector has no evidence-backed primary.
+        # The generic ranker is deliberately not allowed to invent one here.
         outward = _sanitize_outward_context(query_str, docs, profile)
         boundary_mode = "sanitized-context"
     narrowed_context = _serialize_context_documents(outward)
