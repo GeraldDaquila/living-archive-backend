@@ -3923,14 +3923,12 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
 
 def _explicit_closing_question_requested(query):
     """Recognize a visitor's explicit request for one closing or reflective question."""
-    q = re.sub(r"\\s+", " ", str(query or "")).strip()
+    q = re.sub(r"\s+", " ", str(query or "")).strip()
     return bool(
-        re.search(r"\\b(?:finish|end)\\b.{0,100}\\bquestion\\b", q, re.I)
-        or re.search(r"\\bquestion\\b.{0,100}\\b(?:invite|inviting|prompt|prompting)\\b", q, re.I)
-        or re.search(r"\\bask me\\b.{0,60}\\bquestion\\b", q, re.I)
+        re.search(r"\b(?:finish|end)\b.{0,100}\bquestion\b", q, re.I)
+        or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
+        or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
     )
-
-
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
