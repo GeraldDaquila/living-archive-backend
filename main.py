@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.275 — Bust stale Guide Node Registry cache
+# USE PRODUCTION VERSION: v489.276 — Grade registered direct study evidence
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.275"
-DEPLOYMENT_FINGERPRINT = "USE-v489.275-guide-node-registry-cache-bust"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.275-guide-node-registry-cache-bust"
+APP_VERSION = "v489.276"
+DEPLOYMENT_FINGERPRINT = "USE-v489.276-grade-registered-direct-study"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.276-grade-registered-direct-study"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.275":
+if str(APP_VERSION) != "v489.276":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4686,6 +4686,10 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
         "general", "information", "material", "materials", "public", "resource",
         "resources", "specific", "where", "find", "please", "useful", "relevant",
         "could", "would", "should", "from", "with", "into", "that", "this",
+        # Natural-language question wrappers are not subject anchors.
+        "how", "what", "why", "when", "does", "do", "did", "can", "in", "the",
+        "and", "to", "of", "for", "affect", "affects", "affecting", "read",
+        "want", "understand", "learn",
     }
     subject_tokens = {
         token for token in re.findall(r"[a-z0-9]+", str(subject).casefold())
@@ -4733,8 +4737,13 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
             and len(subject_tokens) >= 2
             and len(early_hits) >= 2
             and len(metadata_subject_hits) == len(subject_tokens)
-            and phrase_count >= 1
-            and direct_fit >= 2
+            and (
+                (phrase_count >= 1 and direct_fit >= 2)
+                # A registered node whose title names the subject and whose
+                # opening text corroborates it is direct even when the visitor's
+                # full natural-language question is not repeated verbatim.
+                or (len(title_hits) >= 2 and len(early_hits) >= 3)
+            )
         )
         or (
             node is None
