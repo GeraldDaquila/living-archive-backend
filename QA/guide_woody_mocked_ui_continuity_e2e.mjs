@@ -219,6 +219,34 @@ try {
       result.then(response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }));
       return result;
     };
+    // Trace the first response-body read and prove whether the renderer's
+    // event loop continues after fetch settles. These observers do not alter
+    // the returned body or controller logic.
+    const originalResponseJson = Response.prototype.json;
+    Response.prototype.json = function(...args) {
+      window.__guideTrace({ event: "response_json_called" });
+      const promise = originalResponseJson.apply(this, args);
+      promise.then(
+        value => window.__guideTrace({ event: "response_json_resolved", keys: Object.keys(value || {}) }),
+        error => window.__guideTrace({ event: "response_json_rejected", error: String(error) })
+      );
+      return promise;
+    };
+    const originalResponseText = Response.prototype.text;
+    Response.prototype.text = function(...args) {
+      window.__guideTrace({ event: "response_text_called" });
+      const promise = originalResponseText.apply(this, args);
+      promise.then(
+        value => window.__guideTrace({ event: "response_text_resolved", length: value.length }),
+        error => window.__guideTrace({ event: "response_text_rejected", error: String(error) })
+      );
+      return promise;
+    };
+    let heartbeatCount = 0;
+    window.__guideHeartbeat = setInterval(() => {
+      heartbeatCount += 1;
+      if (heartbeatCount <= 5) window.__guideTrace({ event: "event_loop_heartbeat", count: heartbeatCount });
+    }, 500);
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
       window.__guideTrace({ event: "xhr_open", method, url: String(url) });
