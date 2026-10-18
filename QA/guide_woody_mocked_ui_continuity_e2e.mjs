@@ -133,21 +133,40 @@ try {
     const responsePromise = page.waitForResponse(response =>
       response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname),
       { timeout: 12_000 }
-    ).catch(error => {
+    ).then(response => ({ response }), error => ({ error }));
+    let clickError = null;
+    try {
+      await submit.click({ timeout: 5_000, noWaitAfter: true });
+    } catch (error) {
+      clickError = error.message;
+    }
+    mark("post_click_diagnostics", {
+      index: i + 1,
+      query: QUESTIONS[i],
+      pageUrl: page.url(),
+      clickError,
+      submitTrace: await page.evaluate(() => window.__guideSubmitTrace || []).catch(error => [{ evaluationError: error.message }]),
+      apiRequests,
+      failedRequests,
+      pageErrors,
+      consoleErrors
+    });
+    const responseResult = await responsePromise;
+    if (responseResult.error) {
       mark("api_response_timeout_diagnostics", {
         index: i + 1,
         query: QUESTIONS[i],
+        clickError,
+        submitTrace: await page.evaluate(() => window.__guideSubmitTrace || []).catch(error => [{ evaluationError: error.message }]),
         apiRequests,
         consoleErrors,
         failedRequests,
         pageErrors,
-        message: error.message
+        message: responseResult.error.message
       });
-      throw error;
-    });
-    await submit.click({ noWaitAfter: true });
-    mark("post_click_diagnostics", { index: i + 1, pageUrl: page.url(), submitTrace: await page.evaluate(() => window.__guideSubmitTrace || []).catch(error => [{ evaluationError: error.message }]), apiRequests, failedRequests, pageErrors });
-    const response = await responsePromise;
+      throw new Error("No matching API response after submit interaction: " + responseResult.error.message);
+    }
+    const response = responseResult.response;
     if (response.status() !== 200) throw new Error("Mock API response was not HTTP 200 for main query " + (i + 1));
     await page.waitForFunction(({ selector, before }) => {
       const current = document.querySelector(selector)?.innerText?.trim() || "";
