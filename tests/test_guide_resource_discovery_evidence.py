@@ -388,3 +388,7 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
         assert selected[0]["title"] == direct["title"]
         assert selected[0]["url"] == direct["url"]
         assert result["recommendation_canonical_boundary_mode"] == "primary"
+        assert result["recommendation_canonical_primary"] == {
+            "title": direct["title"],
+            "url": direct["url"],
+        }
