@@ -112,6 +112,10 @@ try {
     document.addEventListener("submit", event => {
       if (event.target?.querySelector?.("#archive-submit-btn")) {
         window.__guideSubmitTrace.push({ event: "form_submit_capture", defaultPrevented: event.defaultPrevented, action: event.target.action, method: event.target.method });
+        // Prevent only native document navigation so the test can observe whether
+        // the live controller's submit handler issues the API request. Do not stop
+        // propagation: the controller's normal handler must still run.
+        event.preventDefault();
       }
     }, true);
     const originalFetch = window.fetch;
@@ -136,7 +140,10 @@ try {
     ).then(response => ({ response }), error => ({ error }));
     let clickError = null;
     try {
-      await submit.click({ timeout: 5_000, noWaitAfter: true });
+      // Dispatch the real DOM click without Playwright waiting on a possible native
+      // form navigation; the capture-phase submit guard above keeps the document
+      // available while the controller handler and API request are observed.
+      await submit.evaluate(element => element.click());
     } catch (error) {
       clickError = error.message;
     }
