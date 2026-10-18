@@ -2540,6 +2540,23 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 item for item in fallback_items
                 if str(item.get("provider") or "") != primary_provider
             ]
+            # Live HRN E2E on 2026-10-18 showed Groq gpt-oss-20b repeatedly
+            # failing the response-length contract, while Qwen was denied by the
+            # shared Groq TPM budget and gpt-oss-120b returned the required
+            # structured response. Preserve the independent-provider-first rule,
+            # but order Groq sibling probes so the proven 120B lane is not pushed
+            # beyond the two-candidate fallback ceiling by Qwen.
+            if primary_provider == "groq":
+                groq_sibling_priority = {
+                    "openai/gpt-oss-120b": 0,
+                    "openai/gpt-oss-20b": 1,
+                    "qwen/qwen3.8-27b": 2,
+                }
+                sibling_models.sort(
+                    key=lambda item: groq_sibling_priority.get(
+                        str(item.get("model") or ""), 99
+                    )
+                )
             # Keep one genuinely independent provider ahead of a sibling model,
             # then let a model-specific failure probe its sibling before the
             # remaining independent lanes. Provider-wide circuit state is still
