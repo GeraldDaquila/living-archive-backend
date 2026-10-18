@@ -4640,8 +4640,8 @@ def _guide_subject_discovery_query(query):
         r"^(?:i want to understand|i would like to understand|i'd like to understand|i want to learn about|i would like to learn about|i'd like to learn about)\s+(.+?)(?:[.!?]\s*(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\b.*)?[?.!]*$",
         r"^(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\s+(?:about|on|regarding)\s+(.+?)[?.!]*$",
         # Requests for the study/article itself are resource discovery, not generic Q&A.
-        r"^(?:i\\s+)?(?:want|need)\\s+(?:the\\s+)?(?:study|article|essay|paper|page|resource)\\s+(?:itself|on|about|regarding)\\s+(.+?)[?.!]*$",
-        r"^(?:please\\s+)?(?:recommend|find|show\\s+me)\\s+(?:the\\s+)?(?:study|article|essay|paper|page|resource)\\s+(?:called|titled|on|about|regarding)\\s+(.+?)[?.!]*$",
+        r"^(?:i\s+)?(?:want|need)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:itself|on|about|regarding)\s+(.+?)[?.!]*$",
+        r"^(?:please\s+)?(?:recommend|find|show\s+me)\s+(?:the\s+)?(?:study|article|essay|paper|page|resource)\s+(?:called|titled|on|about|regarding)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?where\s+(?:can|could|do)\s+i\s+find\s+(?:the\s+)?(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
         r"^(?:please\s+)?(?:find|show\s+me|help\s+me\s+find|locate|search\s+for)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
         r"^(?:i(?:'m|\s+am)\s+looking\s+for|i\s+need|can\s+you\s+find|could\s+you\s+find)\s+(?:(?:relevant|useful|specific)\s+)?(?:material|materials|information|resources?|content|articles?|essays?|documents?|entries)\s+(?:about|on|regarding|concerning|related\s+to)\s+(.+?)[?.!]*$",
@@ -5062,7 +5062,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     # Strip recognizable author/byline metadata accidentally concatenated into excerpts.
     # Preserve the remaining source text; never manufacture a quotation.
     body = re.sub(
-        r"^(?:[A-Z][A-Za-z .’\'-]{1,80},?\\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\\s+)+",
+        r"^(?:[A-Z][A-Za-z .’'-]{1,80},?\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\s+)+",
         "", body, flags=re.I,
     ).strip()
     if grade == "related":
