@@ -10,8 +10,8 @@ The live v1.2.1 test confirmed that allowing a recovery call only after the mirr
 
 - Keep the shared 11.5-second turn deadline and the single mirror-replay limit.
 - Cap an HRN relational mirror replay at **2.0 seconds**.
-- Permit the mirror replay only when at least **4.35 seconds** remain: 2.0 seconds for the mirror, 2.0 seconds for the recovery writer, and the existing 350ms response buffer.
-- If less than 4.35 seconds remain, skip the mirror replay without consuming its budget; preserve the remaining time for the existing recovery writer on Primary.
+- Permit the mirror replay only when at least **4.4 seconds** remain: 2.0 seconds for the mirror, 2.0 seconds for the recovery writer, and the existing 350ms response buffer.
+- If less than 4.4 seconds remain, skip the mirror replay without consuming its budget; preserve the remaining time for the existing recovery writer on Primary.
 - Permit one recovery-only primary call when at least **2.35 seconds** remain, capped at **2.0 seconds**, whether or not the mirror replay ran.
 - Consume the recovery attempt exactly once. Block further primary calls and any mirror replay after that recovery attempt.
 - Continue to require the exact recovery marker in a server-authored system-role message for the exception; visitor/user content cannot spoof it.
