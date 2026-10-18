@@ -1052,7 +1052,8 @@ try {
         consoleErrors
       });
       const ordinaryRequestBody = ordinaryFollowupOutcome.response?.requestPostData || "";
-      if (secondQuestionOutcome.response?.kind !== "response_observed" ||
+      if (!naturalInvitationPanelObserved ||
+          secondQuestionOutcome.response?.kind !== "response_observed" ||
           secondQuestionOutcome.response.status < 200 || secondQuestionOutcome.response.status >= 300 ||
           secondQuestionOutcome.ui?.kind !== "second_answer_updated" ||
           thirdQuestionOutcome.ui?.kind !== "third_answer_updated" ||
