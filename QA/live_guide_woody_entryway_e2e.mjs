@@ -982,8 +982,29 @@ try {
       }).catch(error => ({ error: error.message }));
       mark("ordinary_panel_dom_diagnostics", ordinaryPanelDiagnostics);
 
-      // Now exercise the real follow-up panel after allowing up to three main-form
-      // questions, rather than treating absence after question two as a defect.
+      // QA-only renderer fixture: independently exercise the dedicated reply
+      // handler even when the live answer did not naturally invite a reply.
+      // This does NOT count as a natural visitor-facing invitation pass.
+      const naturalInvitationPanelObserved = await root.locator("#archive-ordinary-followup-input").count().then(n => n > 0);
+      if (!naturalInvitationPanelObserved) {
+        const fixtureResult = await page.evaluate(() => {
+          if (typeof renderOrdinaryFollowupPanel !== "function") {
+            return { available: false, reason: "renderer_not_global" };
+          }
+          renderOrdinaryFollowupPanel("QA-only renderer fixture. What would you like to add from your own experience?");
+          return {
+            available: true,
+            panelCreated: Boolean(document.querySelector("#archive-ordinary-followup-input")),
+            fixtureOnly: true
+          };
+        });
+        mark("qa_only_followup_renderer_fixture", { naturalInvitationPanelObserved, ...fixtureResult });
+      } else {
+        mark("qa_only_followup_renderer_fixture", { naturalInvitationPanelObserved, fixtureOnly: false });
+      }
+
+      // Exercise the dedicated reply handler. A synthetic renderer fixture is
+      // diagnostic only; the natural-invitation requirement remains a release gate.
       const ordinaryInput = root.locator("#archive-ordinary-followup-input");
       const ordinaryReply = root.getByRole("button", { name: /reply/i }).first();
       const answerBeforeOrdinary = await root.locator("#archive-response-text").innerText().catch(() => "");
