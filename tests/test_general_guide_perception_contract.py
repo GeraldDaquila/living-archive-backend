@@ -177,7 +177,7 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
     parse = guide._parse_factory([], query)
 
     missing_question = json.dumps({
-        "response": "Stewardship means caring for what others rely on. It matters because ordinary choices affect people around us.",
+        "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for.",
         "doorway_title": "",
         "response_shape": "explanatory",
     })
@@ -185,7 +185,7 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
         parse(missing_question)
 
     valid_invitation = json.dumps({
-        "response": "Stewardship means caring for what others rely on. It matters because ordinary choices affect people around us. What is one thing in your everyday life that you feel responsible for caring for?",
+        "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for. What is one thing in your everyday life that you feel responsible for caring for?",
         "doorway_title": "",
         "response_shape": "explanatory",
     })
