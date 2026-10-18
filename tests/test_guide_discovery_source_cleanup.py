@@ -5,20 +5,20 @@ import main
 def test_study_itself_phrase_extracts_subject():
     assert main._guide_subject_discovery_query(
         "I want the study itself on Political Dynasties in the Philippines."
-    ) == "Political Dynasties in the Philippines"
+    ) == "political dynasties in the philippines"
 
 
 def test_recommend_named_article_extracts_subject():
     assert main._guide_subject_discovery_query(
         "Please recommend the article titled Political Dynasties in the Philippines."
-    ) == "Political Dynasties in the Philippines"
+    ) == "political dynasties in the philippines"
 
 
 def test_existing_broad_reading_query_remains_discovery():
     assert main._guide_subject_discovery_query(
         "I want to understand how political dynasties affect public accountability "
         "in the Philippines. What should I read?"
-    ) == "how political dynasties affect public accountability in the Philippines"
+    ) == "how political dynasties affect public accountability in the philippines"
 
 
 def test_unrelated_question_is_not_reclassified_as_archive_discovery():
@@ -48,13 +48,13 @@ def test_author_metadata_is_removed_before_quote_selection(monkeypatch):
 def test_exact_explicit_study_request_with_title_prefix_extracts_title():
     assert main._guide_subject_discovery_query(
         "Political Dynasties in the Philippines — I want the study itself, please."
-    ) == "Political Dynasties in the Philippines"
+    ) == "political dynasties in the philippines"
 
 
 def test_title_only_query_is_resource_discovery():
     assert main._guide_subject_discovery_query(
         "Political Dynasties in the Philippines"
-    ) == "Political Dynasties in the Philippines"
+    ) == "political dynasties in the philippines"
 
 
 CANONICAL_POLITICAL_DYNASTIES_URL = (
@@ -112,7 +112,7 @@ def test_explicit_study_request_subject_matches_canonical_permalink():
     subject = main._guide_subject_discovery_query(
         "Political Dynasties in the Philippines — I want the study itself, please."
     )
-    assert subject == "Political Dynasties in the Philippines"
+    assert subject == "political dynasties in the philippines"
     assert CANONICAL_POLITICAL_DYNASTIES_URL.endswith(
         "political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/"
     )
@@ -186,7 +186,7 @@ def test_explicit_study_and_title_only_queries_select_exact_registered_asset(mon
     )
     for query in queries:
         subject = main._guide_subject_discovery_query(query)
-        assert subject == "Political Dynasties in the Philippines"
+        assert subject == "political dynasties in the philippines"
         doorway, evidence = main._guide_align_discovery_doorway(subject, documents)
         assert doorway == {
             "title": "Political Dynasties in the Philippines",
