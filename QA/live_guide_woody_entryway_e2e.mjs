@@ -152,6 +152,41 @@ page.on("request", request => {
  * No production page or snippet is changed by this instrumentation.
  */
 await page.addInitScript(() => {
+  // Identify who dynamically installs the data-URL cleanAnswer script seen in
+  // the call stack. QA-only instrumentation; no production source is changed.
+  const reportDynamicScript = (node, operation) => {
+    try {
+      if (node?.tagName === "SCRIPT" && String(node.src || "").startsWith("data:text/javascript")) {
+        console.log("GUIDE_DYNAMIC_SCRIPT " + JSON.stringify({
+          operation,
+          srcPrefix: String(node.src).slice(0, 180),
+          stack: new Error("Guide dynamic script insertion").stack
+        }));
+      }
+    } catch {}
+  };
+  const originalAppendChild = Node.prototype.appendChild;
+  Node.prototype.appendChild = function(node) {
+    reportDynamicScript(node, "appendChild");
+    return originalAppendChild.call(this, node);
+  };
+  const originalInsertBefore = Node.prototype.insertBefore;
+  Node.prototype.insertBefore = function(node, referenceNode) {
+    reportDynamicScript(node, "insertBefore");
+    return originalInsertBefore.call(this, node, referenceNode);
+  };
+  const originalSetAttribute = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function(name, value) {
+    if (this.tagName === "SCRIPT" && String(name).toLowerCase() === "src" && String(value).startsWith("data:text/javascript")) {
+      console.log("GUIDE_DYNAMIC_SCRIPT " + JSON.stringify({
+        operation: "setAttribute-src",
+        srcPrefix: String(value).slice(0, 180),
+        stack: new Error("Guide dynamic script src").stack
+      }));
+    }
+    return originalSetAttribute.call(this, name, value);
+  };
+
   // Trace synchronous entry into the Woody controller's DOM and async boundaries.
   // Bounded counters prevent diagnostic output from overwhelming the runner.
   const originalGetElementById = Document.prototype.getElementById;
