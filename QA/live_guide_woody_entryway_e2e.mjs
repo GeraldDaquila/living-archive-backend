@@ -440,6 +440,28 @@ await page.route("https://geralddaquila.com/the-guide-find-your-way2/", async ro
   await route.fulfill({ status: response.status(), headers, body: patchedHtml });
 });
 
+// QA-only fault isolation: bypass the controller's requestAnimationFrame wait
+// in the served response. This does not alter WordPress or the live asset.
+await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-archive-guide-v489.246-woody.js?ver=5", async route => {
+  const response = await route.fetch();
+  const source = await response.text();
+  const waitBlock = /  if \(\s*typeof requestAnimationFrame ===\s*'function'\s*\) \{\s*await new Promise\(function \(resolve\) \{\s*requestAnimationFrame\(resolve\);\s*\}\);\s*\}/;
+  const matches = source.match(waitBlock) || [];
+  const patchedSource = source.replace(waitBlock, "  await Promise.resolve(); // QA-only: bypass animation-frame wait");
+  mark("qa_controller_fault_isolation", {
+    url: route.request().url(),
+    status: response.status(),
+    originalLength: source.length,
+    patched: matches.length === 1,
+    matchCount: matches.length
+  });
+  const headers = { ...response.headers() };
+  delete headers["content-encoding"];
+  delete headers["content-length"];
+  delete headers["etag"];
+  await route.fulfill({ status: response.status(), headers, body: patchedSource });
+});
+
 async function diagnostics() {
   return page.evaluate(() => {
     const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
