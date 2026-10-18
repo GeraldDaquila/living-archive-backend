@@ -17,7 +17,7 @@ const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext();
+const context = await browser.newContext({ serviceWorkers: "block" });
 const page = await context.newPage();
 page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
@@ -31,12 +31,22 @@ page.on("console", message => {
   if (message.type() === "error") consoleErrors.push(messageText);
   if (messageText.startsWith("[Guide QA]")) mark("browser_event_trace", { message: messageText });
 });
-page.on("requestfailed", request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || "unknown" }));
+page.on("request", request => {
+  if (request.url().includes("/api/query")) mark("api_request_event", { method: request.method(), url: request.url(), resourceType: request.resourceType() });
+});
+page.on("response", response => {
+  if (response.url().includes("/api/query")) mark("api_response_event", { status: response.status(), url: response.url(), method: response.request().method() });
+});
+page.on("requestfailed", request => {
+  failedRequests.push({ url: request.url(), error: request.failure()?.errorText || "unknown" });
+  if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
+});
 let mainQueryIndex = 0;
 page.on("pageerror", error => pageErrors.push(error.message));
 
 await page.route("**/api/query**", async route => {
   const request = route.request();
+  mark("api_route_handler_entered", { method: request.method(), url: request.url(), pathname: new URL(request.url()).pathname });
   if (!API_PATTERN.test(new URL(request.url()).pathname)) {
     await route.continue();
     return;
@@ -47,6 +57,7 @@ await page.route("**/api/query**", async route => {
   // as well: allowing it through would contact the real Render service and
   // make this supposedly mocked test depend on a cold start/network timeout.
   if (request.method() === "OPTIONS") {
+    mark("api_route_fulfilling_preflight", { url: request.url() });
     await route.fulfill({
       status: 204,
       headers: {
@@ -81,6 +92,7 @@ await page.route("**/api/query**", async route => {
     answer = ASSISTANT_ANSWERS[expectedIndex];
   }
 
+  mark("api_route_fulfilling_post", { query, requestCount: apiRequests.length });
   await route.fulfill({
     status: 200,
     contentType: "application/json",
