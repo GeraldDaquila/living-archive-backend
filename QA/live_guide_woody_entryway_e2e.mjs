@@ -808,6 +808,60 @@ try {
     }
     const finalDiagnostics = await diagnostics().catch(error => ({ diagnosticError: error.message }));
     mark("final_diagnostic", { finalDiagnostics, posts, apiResponses, pageErrors, consoleErrors });
+
+    // After the first visible answer, exercise a second real visitor interaction
+    // in the same browser session. The selected clean(root) observer remains
+    // suppressed by the QA-only response instrumentation above.
+    if (responseOutcome.kind === "response_observed" && responseOutcome.status >= 200 &&
+        responseOutcome.status < 300 && uiOutcome.kind === "response_ui_present") {
+      const root = page.locator(".archive-stage-wrapper[data-guide-instance='woody']");
+      const input = root.locator("#archive-search-input");
+      const submit = root.locator("#archive-submit-btn");
+      const firstAnswer = await root.locator("#archive-response-text").innerText().catch(() => "");
+      const followupQuestion = "What is one practical example of stewardship in a community?";
+      let followupResponseOutcome = { kind: "not_attempted" };
+      let followupUiOutcome = { kind: "not_attempted" };
+      try {
+        await input.fill(followupQuestion, { timeout: 5_000 });
+        const followupResponsePromise = page.waitForResponse(
+          response => response.request().method() === "POST" &&
+            API_PATTERN.test(new URL(response.url()).pathname),
+          { timeout: 35_000 }
+        ).then(response => ({ kind: "response_observed", status: response.status(), url: response.url() }))
+         .catch(error => ({ kind: "no_response", message: error.message }));
+        await submit.click({ timeout: 5_000 });
+        followupResponseOutcome = await Promise.race([
+          followupResponsePromise,
+          new Promise(resolve => setTimeout(() => resolve({ kind: "response_watchdog_35s" }), 35_000))
+        ]);
+        followupUiOutcome = await Promise.race([
+          page.waitForFunction(({ firstAnswer }) => {
+            const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+            const text = root?.querySelector("#archive-response-text");
+            const answer = (text?.innerText || "").trim();
+            return answer.length > 80 && answer !== firstAnswer.trim();
+          }, { firstAnswer }, { timeout: 15_000 }).then(() => ({ kind: "followup_ui_updated" }))
+           .catch(error => ({ kind: "followup_ui_missing", message: error.message })),
+          new Promise(resolve => setTimeout(() => resolve({ kind: "followup_ui_watchdog_15s" }), 15_000))
+        ]);
+      } catch (error) {
+        followupUiOutcome = { kind: "followup_interaction_error", message: error.message };
+      }
+      mark("followup_e2e_outcome", {
+        question: followupQuestion,
+        response: followupResponseOutcome,
+        ui: followupUiOutcome,
+        responseCount: apiResponses.length,
+        postCount: posts.length,
+        answerLength: await root.locator("#archive-response-text").innerText().then(text => text.trim().length).catch(() => null),
+        pageErrors,
+        consoleErrors
+      });
+      if (followupResponseOutcome.kind !== "response_observed" ||
+          followupResponseOutcome.status < 200 || followupResponseOutcome.status >= 300 ||
+          followupUiOutcome.kind !== "followup_ui_updated") process.exitCode = 1;
+    }
+
     if (responseOutcome.kind !== "response_observed" || responseOutcome.status < 200 || responseOutcome.status >= 300 || uiOutcome.kind !== "response_ui_present") process.exitCode = 1;
   } else {
     process.exitCode = 1;
