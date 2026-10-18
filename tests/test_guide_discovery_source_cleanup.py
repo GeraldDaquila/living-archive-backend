@@ -228,3 +228,65 @@ def test_discovery_fallback_is_used_when_final_doorway_is_missing():
     )
     assert "couldn’t verify a Living Archive page" in result
     assert "unrelated provider-generated answer" not in result
+
+
+
+def test_basic_inquiry_response_suppresses_stale_discovery_recommendation(monkeypatch):
+    """Exercise final response assembly when initial doorway lacks selected evidence."""
+    stale_url = "https://geralddaquila.com/living-in-the-barangay/"
+    stale_node = {
+        "node_id": "living-in-the-barangay",
+        "asset_type": "canonical_article",
+        "title": "Living in the Barangay",
+        "canonical_url": stale_url,
+        "status": "active",
+        "purpose": "A guide to barangay life",
+        "semantic_hints": ["barangay", "community life"],
+    }
+    monkeypatch.setattr(main.general_guide_composition, "clarification_response", lambda *a, **k: None)
+    monkeypatch.setattr(main.general_guide_composition, "correction_subject", lambda *a, **k: "")
+    monkeypatch.setattr(main.general_guide_composition, "is_exact_source_request", lambda *a, **k: False)
+    monkeypatch.setattr(
+        main.use_core, "fetch_canonical_context",
+        lambda query: {
+            "intent": "TOPICAL_INQUIRY",
+            "recommendation_canonical_primary": {
+                "title": stale_node["title"], "url": stale_url
+            },
+            "frame_neutral_evidence_unavailable": True,
+            "context_blocks": "",
+        },
+    )
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [stale_node])
+    monkeypatch.setattr(main, "_guide_requires_canonical_subject_supplement", lambda *a, **k: True)
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", lambda *a, **k: [])
+    monkeypatch.setattr(main, "_wordpress_fetch_selected_canonical_body", lambda *a, **k: None)
+    monkeypatch.setattr(main, "_guide_registered_discovery_nodes", lambda *a, **k: [])
+    monkeypatch.setattr(
+        main.use_core, "_frame_neutral_generation_documents",
+        lambda docs, *a, **k: (docs, False),
+    )
+    monkeypatch.setattr(
+        main.use_core, "_evidence_sufficiency_gate",
+        lambda docs, *a, **k: (docs, False),
+    )
+    monkeypatch.setattr(
+        main.use_core, "_v208_question_evidence_fit_gate",
+        lambda docs, *a, **k: (docs, False),
+    )
+    monkeypatch.setattr(
+        main.general_guide_composition, "compose",
+        lambda **kwargs: {"response": "Here is a general overview of political dynasties.", "provider": "test", "model": "test"},
+    )
+
+    result = main._basic_inquiry_response(
+        "Political Dynasties in the Philippines"
+    )
+
+    assert result["ok"] is True
+    assert result["processing"] == "basic_inquiry"
+    assert result["intent"] == "TOPICAL_INQUIRY"
+    assert result["recommendation"] is None
+    assert result["answer_basis"]["kind"] == "general_knowledge"
+    assert "couldn’t verify a Living Archive page" in result["response"]
+    assert "Living in the Barangay" not in result["response"]
