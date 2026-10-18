@@ -266,13 +266,13 @@ def test_hrn_relational_tries_groq_120b_before_qwen_within_two_fallback_limit(mo
         messages=[{
             "role": "user",
             "content": (
-                "STRUCTURED MOVEMENT BRIEF\\n"
+                "STRUCTURED MOVEMENT BRIEF\n"
                 '{"working_hypothesis":"the visitor feels unheard during disagreement with a colleague",'
                 '"thread_summary":"the visitor wants to understand what happens during repeated disagreement",'
                 '"underlying_need":"understand the interaction without assigning blame",'
                 '"emerging_delta":"disagreeing about the topic differs from feeling unheard during the conversation",'
                 '"body_of_thought":"the visitor feels unheard during disagreement with a colleague"}'
-                "\\nReturn JSON only."
+                "\nReturn JSON only."
             ),
         }],
         max_tokens=300,
