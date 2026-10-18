@@ -79,21 +79,20 @@ for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived"
 for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.responseReceivedExtraInfo"]) {
   cdp.on(eventName, event => {
     const headers = event.headers || {};
-    const contentType = String(headers["content-type"] || headers["Content-Type"] || "").toLowerCase();
-    const origin = String(headers.origin || headers.Origin || "");
-    const likelyGuidePost = eventName === "Network.requestWillBeSentExtraInfo" &&
-      contentType.includes("application/json") && origin === "https://geralddaquila.com";
-    const likelyGuideResponse = eventName === "Network.responseReceivedExtraInfo" &&
-      contentType.includes("application/json") &&
-      Boolean(headers["x-render-origin-server"] || headers["X-Render-Origin-Server"]);
-    // ExtraInfo also fires for hundreds of WordPress images/styles. Retain only
-    // the JSON request/response relevant to the Guide POST to keep traces bounded.
-    if (!likelyGuidePost && !likelyGuideResponse) return;
+    const requestUrl = cdpRequestUrls.get(event.requestId) || "";
+    const requestMethod = cdpRequestMethods.get(event.requestId) || "";
+    let requestPath = "";
+    try { requestPath = new URL(requestUrl).pathname; } catch {}
+    const isGuideApi = /\\/api\\/query(?:\\?|$)/.test(requestPath);
+    const isGuideApiExtra = isGuideApi || apiRequestIds.has(event.requestId);
+    if (!isGuideApiExtra) return;
     const item = {
       event: eventName,
       requestId: event.requestId,
+      url: requestUrl || null,
+      method: requestMethod || null,
       statusCode: event.statusCode,
-      headers: Object.fromEntries(Object.entries(headers).filter(([k]) => /access-control|content-type|content-length|vary|origin|x-render-origin-server/i.test(k))),
+      headers: Object.fromEntries(Object.entries(headers).filter(([k]) => /access-control|content-type|content-length|vary|origin|x-render-origin-server|allow|method/i.test(k))),
       associatedCookies: event.associatedCookies?.length
     };
     apiLifecycle.push(item);
@@ -114,6 +113,12 @@ page.on("pageerror", error => {
 });
 page.on("console", message => {
   const line = message.text();
+  if (line.startsWith("GUIDE_CLEANUP_OBSERVER_ISOLATION ")) {
+    mark("cleanup_observer_isolation", { item: line.slice("GUIDE_CLEANUP_OBSERVER_ISOLATION ".length) });
+  }
+  if (line.startsWith("GUIDE_DYNAMIC_SCRIPT ")) {
+    mark("dynamic_script_insertion", { item: line.slice("GUIDE_DYNAMIC_SCRIPT ".length) });
+  }
   if (line.startsWith("GUIDE_EXEC_TRACE ")) {
     const item = line.slice("GUIDE_EXEC_TRACE ".length);
     mark("execution_trace", { item });
@@ -260,8 +265,21 @@ await page.addInitScript(() => {
   });
   const originalFetch = window.fetch.bind(window);
   window.fetch = (...args) => {
-    console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "fetch_enter", url: String(args[0]), time: performance.now() }));
-    return originalFetch(...args);
+    const url = String(args[0]);
+    console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "fetch_enter", url, time: performance.now() }));
+    return originalFetch(...args).then(response => {
+      if (/\\/api\\/query(?:\\?|$)/.test(url)) {
+        console.log("GUIDE_EXEC_TRACE " + JSON.stringify({
+          stage: "fetch_resolved", url, status: response.status, ok: response.ok, time: performance.now()
+        }));
+      }
+      return response;
+    }).catch(error => {
+      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({
+        stage: "fetch_rejected", url, name: error?.name || null, message: error?.message || String(error), time: performance.now()
+      }));
+      throw error;
+    });
   };
   const trace = label => event => {
     if (event.type !== "click" || !event.target?.closest?.(".archive-stage-wrapper[data-guide-instance='woody']")) return;
