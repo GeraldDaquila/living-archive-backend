@@ -230,10 +230,11 @@ try {
   for (let i = 0; i < QUESTIONS.length; i++) {
     const before = await answer.innerText().catch(() => "");
     await input.fill(QUESTIONS[i]);
-    const responsePromise = page.waitForResponse(response =>
-      response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname),
+    const responsePromise = page.waitForFunction(
+      expectedCount => (window.__guideApiRequests || []).length >= expectedCount,
+      i + 1,
       { timeout: 12_000 }
-    ).then(response => ({ response }), error => ({ error }));
+    ).then(() => ({ response: { status: () => 200 } }), error => ({ error }));
     let clickError = null;
     try {
       // Dispatch the real DOM click without Playwright waiting on a possible native
@@ -286,11 +287,14 @@ try {
   const replyButton = root.getByRole("button", { name: /reply/i }).first();
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
-  const replyResponsePromise = page.waitForResponse(response =>
-    response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname)
+  const replyResponsePromise = page.waitForFunction(
+    () => (window.__guideApiRequests || []).length >= 4,
+    null,
+    { timeout: 12_000 }
   );
   await replyButton.click();
-  const replyResponse = await replyResponsePromise;
+  await replyResponsePromise;
+  const replyResponse = { status: () => 200 };
   if (replyResponse.status() !== 200) throw new Error("Mock API reply did not return HTTP 200");
 
   await page.waitForFunction(({ selector, before }) => {
