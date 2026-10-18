@@ -2590,13 +2590,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 and int(item.get("quality_failures", 0) or 0) == 0
             ), None)
             if fast_fallback is not None:
+                # Use the proven Workers AI model as the one independent-provider
+                # fallback, then probe the best same-provider sibling before any
+                # remaining independent lanes. Promoting Workers AI to index zero
+                # without rebuilding this order used to let a second independent
+                # candidate consume the final fallback slot before Groq 120B.
                 fallback_items = [fast_fallback] + [
-                    item for item in fallback_items if item is not fast_fallback
+                    item for item in fallback_items
+                    if item is not fast_fallback
+                    and str(item.get("provider") or "") == primary_provider
+                ] + [
+                    item for item in fallback_items
+                    if item is not fast_fallback
+                    and str(item.get("provider") or "") != primary_provider
                 ]
                 print(
                     "USE provider bank HRN fallback priority: "
-                    f"promoted proven Workers AI {fast_fallback['model']} "
-                    "ahead of free-router fallbacks for operation=" + operation + "."
+                    f"selected proven Workers AI {fast_fallback['model']} as the independent fallback, "
+                    "then same-provider sibling models before remaining independent lanes for operation="
+                    + operation + "."
                 )
         for item in fallback_items:
             candidate_provider = str(item.get("provider") or "")
