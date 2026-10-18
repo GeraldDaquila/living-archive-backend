@@ -20,7 +20,7 @@ def test_homepage_rule_does_not_trigger_for_topic_discovery():
     # language; ordinary subject discovery must continue through canonical retrieval.
     query = "What should I read about political dynasties in the Philippines?"
     assert not main.re.search(
-        r"\\b(?:homepage|home page|site home|website home)\\b", query, main.re.I
+        r"\b(?:homepage|home page|site home|website home)\b", query, main.re.I
     )
 
 
