@@ -117,7 +117,10 @@ try {
 
   const replyRequest = apiRequests[apiRequests.length - 1];
   const serialized = JSON.stringify(replyRequest?.body || {});
-  // Main-form Search is intentionally a fresh inquiry and resets older turns.\n  // The dedicated Reply should carry the immediately preceding question and answer,\n  // not unrelated questions submitted as separate main-form searches.\n  const expectedHistoryItems = [QUESTIONS[2], ASSISTANT_ANSWERS[2]];
+  // Main-form Search is intentionally a fresh inquiry and resets older turns.
+  // The dedicated Reply should carry the immediately preceding question and answer,
+  // not unrelated questions submitted as separate main-form searches.
+  const expectedHistoryItems = [QUESTIONS[2], ASSISTANT_ANSWERS[2]];
   const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
   const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
   const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
