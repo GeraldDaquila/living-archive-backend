@@ -170,10 +170,20 @@ try {
         event.preventDefault();
       }
     }, true);
-    // Do not wrap window.fetch: the live page may already provide a fetch shim,
-    // and wrapping it can change the behavior being diagnosed. Browser-level
-    // request/response listeners and page.route capture network traffic without
-    // altering the page's fetch implementation.
+    // Instrument the native fetch boundary to determine whether the call
+    // returns control to JavaScript. Keep the original function and arguments.
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      window.__guideTrace({ event: "fetch_call_enter", url: String(args[0]?.url || args[0]) });
+      try {
+        const result = originalFetch.apply(this, args);
+        window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
+        return result;
+      } catch (error) {
+        window.__guideTrace({ event: "fetch_call_threw", error: String(error) });
+        throw error;
+      }
+    };
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
       window.__guideTrace({ event: "xhr_open", method, url: String(url) });
