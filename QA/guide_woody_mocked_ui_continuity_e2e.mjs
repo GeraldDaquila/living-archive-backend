@@ -37,6 +37,12 @@ page.on("request", request => {
 page.on("response", response => {
   if (response.url().includes("/api/query")) mark("api_response_event", { status: response.status(), url: response.url(), method: response.request().method() });
 });
+page.on("requestfinished", request => {
+  if (request.url().includes("/api/query")) mark("api_request_finished_event", { method: request.method(), url: request.url() });
+});
+page.on("crash", () => mark("page_crash_event", { url: page.url() }));
+page.on("close", () => mark("page_close_event", { url: page.url() }));
+browser.on("disconnected", () => mark("browser_disconnected_event"));
 page.on("requestfailed", request => {
   failedRequests.push({ url: request.url(), error: request.failure()?.errorText || "unknown" });
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
