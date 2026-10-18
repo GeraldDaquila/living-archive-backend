@@ -1187,8 +1187,9 @@ def _sanitize_outward_context(query, docs, profile):
 def _recommendation_first_fetch(query_str):
     data = _original_fetch_canonical_context(query_str)
     profile = _base._inquiry_profile(query_str)
-    if profile["action"] not in {"recommendation", "navigation"} or profile.get("risk") or not isinstance(data, dict):
+    if not isinstance(data, dict) or profile.get("risk"):
         return data
+
     # Never accept a selected doorway carried in from retrieval/provider content.
     data = dict(data)
     data.pop("recommendation_canonical_primary", None)
@@ -1198,10 +1199,10 @@ def _recommendation_first_fetch(query_str):
     docs = _parse_context_documents(canonical_context)
     if not docs:
         return data
-    # Use the same canonical doorway authority as the final Guide response.
-    # A second generic ranking pass over canonical_link_context can otherwise
-    # replace a directly selected resource with a semantically broad decoy before
-    # the final response boundary sees it.
+
+    # Resolve doorway authority once against the complete retrieved context.
+    # The final response must not independently rerank the same evidence and
+    # replace an already selected direct resource with a broad conceptual decoy.
     authoritative = []
     selected_doorway = None
     if not (profile.get("grief") or profile.get("ai_truth")):
@@ -1233,9 +1234,9 @@ def _recommendation_first_fetch(query_str):
                 supplied = []
             candidate_docs.extend(item for item in supplied if isinstance(item, dict))
 
-            # The selector returns only a title/URL contract. Reattach that
-            # authority to its actual evidence-bearing document by canonical URL;
-            # never trust a provider-generated title or invent a destination.
+            # Reattach the validated title/URL contract to its evidence-bearing
+            # document. The URL is matched against retrieved canonical evidence;
+            # no provider-generated or hardcoded destination is trusted.
             for candidate in candidate_docs:
                 candidate_url = str(
                     candidate.get("url") or candidate.get("canonical_url") or ""
@@ -1256,23 +1257,29 @@ def _recommendation_first_fetch(query_str):
                     }]
                     break
 
-    if authoritative:
-        outward = authoritative
-        boundary_mode = "primary"
-    else:
-        # Fail closed when the canonical selector has no evidence-backed primary.
-        # The generic ranker is deliberately not allowed to invent one here.
-        outward = _sanitize_outward_context(query_str, docs, profile)
-        boundary_mode = "sanitized-context"
-    narrowed_context = _serialize_context_documents(outward)
-    data = dict(data)
     if authoritative and selected_doorway:
-        # Carry the exact validated primary across the retrieval/composition seam.
-        # The final response must not rerank it from a broader candidate pool.
+        # Carry the exact validated primary across the retrieval/composition seam
+        # for every ordinary query, including conceptual questions that should not
+        # have their evidence context narrowed.
         data["recommendation_canonical_primary"] = {
             "title": selected_doorway["title"],
             "url": selected_doorway["url"],
         }
+
+    # Preserve the complete evidence pool for non-navigation questions. Their
+    # composition may need multiple sources, but the canonical primary remains
+    # separately pinned for the outward recommendation field.
+    if profile["action"] not in {"recommendation", "navigation"}:
+        return data
+
+    if authoritative:
+        outward = authoritative
+        boundary_mode = "primary"
+    else:
+        # Fail closed when no evidence-backed primary passed canonical selection.
+        outward = _sanitize_outward_context(query_str, docs, profile)
+        boundary_mode = "sanitized-context"
+    narrowed_context = _serialize_context_documents(outward)
     data["canonical_link_context"] = narrowed_context
     data["context_blocks"] = narrowed_context
     data["recommendation_first_evidence_bridge"] = True
