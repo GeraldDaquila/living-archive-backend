@@ -145,3 +145,53 @@ def test_html_extraction_preserves_author_name_inside_substantive_prose():
     text = main._guide_html_to_source_text(source_html)
     assert text.count("Gerald A. Daquila, PhD Candidate") == 1
     assert "The study was prepared by Gerald A. Daquila, PhD Candidate and discusses public accountability." in text
+
+
+
+def test_explicit_study_and_title_only_queries_select_exact_registered_asset(monkeypatch):
+    exact_node = {
+        "node_id": "political-dynasties-philippines-study",
+        "asset_type": "canonical_study",
+        "title": "Political Dynasties in the Philippines",
+        "canonical_url": CANONICAL_POLITICAL_DYNASTIES_URL,
+        "purpose": "Study of political dynasties and Philippine governance",
+        "semantic_hints": ["political dynasties", "public accountability", "Philippines"],
+        "status": "active",
+    }
+    duplicate_node = {
+        "node_id": "duplicate-display-node",
+        "title": "Political Dynasties in the Philippines • Life.Understood.",
+        "canonical_url": "https://geralddaquila.com/political-dynasties-overview/",
+        "purpose": "Overview of political dynasties, accountability, and governance",
+        "semantic_hints": ["political dynasties", "public accountability", "Philippines", "governance"],
+        "status": "active",
+    }
+    monkeypatch.setattr(main, "_guide_registered_discovery_nodes", lambda subject, limit=3: [exact_node, duplicate_node])
+    monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [exact_node, duplicate_node])
+    documents = [
+        {
+            "title": exact_node["title"], "url": exact_node["canonical_url"],
+            "text": "Political dynasties shape Philippine governance and public accountability. " * 5,
+            "_guide_node": exact_node,
+        },
+        {
+            "title": duplicate_node["title"], "url": duplicate_node["canonical_url"],
+            "text": "Political dynasties shape Philippine governance, public accountability, institutions. " * 8,
+            "_guide_node": duplicate_node,
+        },
+    ]
+    queries = (
+        "Political Dynasties in the Philippines — I want the study itself, please.",
+        "Political Dynasties in the Philippines",
+    )
+    for query in queries:
+        subject = main._guide_subject_discovery_query(query)
+        assert subject == "Political Dynasties in the Philippines"
+        doorway, evidence = main._guide_align_discovery_doorway(subject, documents)
+        assert doorway == {
+            "title": "Political Dynasties in the Philippines",
+            "url": CANONICAL_POLITICAL_DYNASTIES_URL,
+        }
+        assert evidence and evidence[0]["url"] == CANONICAL_POLITICAL_DYNASTIES_URL
+        assert evidence[0]["_guide_node"]["node_id"] == "political-dynasties-philippines-study"
+        assert evidence[0]["_guide_node"]["asset_type"] == "canonical_study"
