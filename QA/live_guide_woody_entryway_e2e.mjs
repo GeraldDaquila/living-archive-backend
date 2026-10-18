@@ -906,6 +906,38 @@ try {
         }
       }
 
+      // Capture actual DOM and the deployed renderer implementation before
+      // judging why the follow-up panel is absent.
+      const ordinaryPanelDiagnostics = await page.evaluate(async () => {
+        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+        const input = document.querySelector("#archive-ordinary-followup-input");
+        let renderer = null;
+        try {
+          const response = await fetch("/wp-content/uploads/2026/10/living-archive-guide-v489.246-woody.js?ver=5");
+          const source = await response.text();
+          const marker = "function renderOrdinaryFollowupPanel";
+          const index = source.indexOf(marker);
+          renderer = { status: response.status, markerFound: index >= 0,
+            excerpt: index >= 0 ? source.slice(index, index + 3600) : null };
+        } catch (error) { renderer = { error: error.message }; }
+        return {
+          url: location.href,
+          rootFound: !!root,
+          inputFoundGlobally: !!input,
+          inputVisible: !!input && !!(input.offsetWidth || input.offsetHeight || input.getClientRects().length),
+          inputOuterHTML: input?.outerHTML || null,
+          inputParentHTML: input?.parentElement?.outerHTML?.slice(0, 2200) || null,
+          matchingIds: Array.from(document.querySelectorAll("[id]"))
+            .filter(el => /ordinary|followup|conversation/i.test(el.id))
+            .map(el => ({ id: el.id, tag: el.tagName, display: getComputedStyle(el).display,
+              visibility: getComputedStyle(el).visibility, outerHTML: el.outerHTML.slice(0, 700) }))
+            .slice(0, 30),
+          rootHtmlEnd: root?.innerHTML?.slice(-3500) || null,
+          renderer
+        };
+      }).catch(error => ({ error: error.message }));
+      mark("ordinary_panel_dom_diagnostics", ordinaryPanelDiagnostics);
+
       // Now exercise the real follow-up panel after allowing up to three main-form
       // questions, rather than treating absence after question two as a defect.
       const ordinaryInput = root.locator("#archive-ordinary-followup-input");
