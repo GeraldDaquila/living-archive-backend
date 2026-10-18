@@ -43,3 +43,15 @@ def test_author_metadata_is_removed_before_quote_selection(monkeypatch):
     )
     assert "Daquila, PhD Candidate" not in result
     assert "Its page states:" in result
+
+
+def test_exact_explicit_study_request_with_title_prefix_extracts_title():
+    assert main._guide_subject_discovery_query(
+        "Political Dynasties in the Philippines — I want the study itself, please."
+    ) == "Political Dynasties in the Philippines"
+
+
+def test_title_only_query_is_resource_discovery():
+    assert main._guide_subject_discovery_query(
+        "Political Dynasties in the Philippines"
+    ) == "Political Dynasties in the Philippines"
