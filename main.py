@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.271 — Guide reflection fallback question
+# USE PRODUCTION VERSION: v489.272 — Preserve canonical primary doorway
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.271"
-DEPLOYMENT_FINGERPRINT = "USE-v489.271-guide-reflection-fallback-question"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.271-guide-reflection-fallback-question"
+APP_VERSION = "v489.272"
+DEPLOYMENT_FINGERPRINT = "USE-v489.272-preserve-canonical-primary-doorway"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.272-preserve-canonical-primary-doorway"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -204,7 +204,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.271":
+if str(APP_VERSION) != "v489.272":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -1187,23 +1187,99 @@ def _sanitize_outward_context(query, docs, profile):
 def _recommendation_first_fetch(query_str):
     data = _original_fetch_canonical_context(query_str)
     profile = _base._inquiry_profile(query_str)
-    if profile["action"] not in {"recommendation", "navigation"} or profile.get("risk") or not isinstance(data, dict):
+    if not isinstance(data, dict) or profile.get("risk"):
         return data
+
+    # Never accept a selected doorway carried in from retrieval/provider content.
+    data = dict(data)
+    data.pop("recommendation_canonical_primary", None)
     canonical_context = str(data.get("canonical_link_context") or "")
     if not canonical_context:
         return data
     docs = _parse_context_documents(canonical_context)
     if not docs:
         return data
-    authoritative = [] if (profile.get("grief") or profile.get("ai_truth")) else _authoritative_recommendation_docs(query_str, docs, profile)
+
+    # Resolve doorway authority once against the complete retrieved context.
+    # The final response must not independently rerank the same evidence and
+    # replace an already selected direct resource with a broad conceptual decoy.
+    authoritative = []
+    selected_doorway = None
+    if not (profile.get("grief") or profile.get("ai_truth")):
+        try:
+            selected_doorway = _normalize_authoritative_recommendation(
+                _general_guide_authoritative_doorway(query_str, data)
+            )
+        except Exception as exc:
+            selected_doorway = None
+            print(
+                "The Guide outward navigation boundary: canonical selector "
+                f"failed safely ({type(exc).__name__})."
+            )
+        if selected_doorway:
+            target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
+            candidate_docs = list(docs)
+            protected = (
+                data.get("generation_authority_protected_docs")
+                or data.get("question_authority_protected_docs")
+                or []
+            )
+            if isinstance(protected, list):
+                candidate_docs.extend(item for item in protected if isinstance(item, dict))
+            try:
+                supplied = general_guide_composition._documents_from_context(
+                    use_core, data
+                )
+            except Exception:
+                supplied = []
+            candidate_docs.extend(item for item in supplied if isinstance(item, dict))
+
+            # Reattach the validated title/URL contract to its evidence-bearing
+            # document. The URL is matched against retrieved canonical evidence;
+            # no provider-generated or hardcoded destination is trusted.
+            for candidate in candidate_docs:
+                candidate_url = str(
+                    candidate.get("url") or candidate.get("canonical_url") or ""
+                ).strip()
+                candidate_text = str(
+                    candidate.get("text") or candidate.get("content")
+                    or candidate.get("excerpt") or ""
+                ).strip()
+                if (
+                    candidate_url.rstrip("/").casefold() == target_url
+                    and candidate_text
+                    and str(candidate.get("title") or "").strip()
+                ):
+                    authoritative = [{
+                        "title": str(candidate.get("title") or "").strip(),
+                        "url": candidate_url,
+                        "text": candidate_text,
+                    }]
+                    break
+
+    if authoritative and selected_doorway:
+        # Carry the exact validated primary across the retrieval/composition seam
+        # for every ordinary query, including conceptual questions that should not
+        # have their evidence context narrowed.
+        data["recommendation_canonical_primary"] = {
+            "title": selected_doorway["title"],
+            "url": selected_doorway["url"],
+        }
+
+    # Preserve the complete evidence pool for non-navigation questions. Their
+    # composition may need multiple sources, but the canonical primary remains
+    # separately pinned for the outward recommendation field.
+    if profile["action"] not in {"recommendation", "navigation"}:
+        return data
+
     if authoritative:
         outward = authoritative
         boundary_mode = "primary"
     else:
+        # Fail closed when no evidence-backed primary passed canonical selection.
         outward = _sanitize_outward_context(query_str, docs, profile)
         boundary_mode = "sanitized-context"
     narrowed_context = _serialize_context_documents(outward)
-    data = dict(data)
     data["canonical_link_context"] = narrowed_context
     data["context_blocks"] = narrowed_context
     data["recommendation_first_evidence_bridge"] = True
@@ -5011,7 +5087,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
     authoritative_doorway = _normalize_authoritative_recommendation(
-        _general_guide_authoritative_doorway(resource_query, context_data)
+        context_data.get("recommendation_canonical_primary")
+        or _general_guide_authoritative_doorway(resource_query, context_data)
     )
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.

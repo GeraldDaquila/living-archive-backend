@@ -337,3 +337,69 @@ def test_political_dynasty_query_accepts_opening_that_supports_distinctive_subje
         "officials are held responsible."
     )
     assert main._topic_specific_candidate_fit(query, direct)
+
+
+def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeypatch):
+    """A later generic ranking pass must not replace an already selected doorway."""
+    queries = (
+        "I want to understand how political dynasties affect public accountability "
+        "in the Philippines. What should I read?",
+        "Political Dynasties in the Philippines: what does the study say about "
+        "accountability, governance, and socioeconomic effects?",
+    )
+    direct = _doc(
+        "Political Dynasties in the Philippines: A Network Analysis of Power Structures and Their Socioeconomic Impacts",
+        "https://geralddaquila.com/2025/05/21/political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/",
+        "Political dynasties shape political power and public accountability in the Philippines."
+    )
+    decoy = _doc(
+        "The Hidden Dance of Polarity",
+        "https://geralddaquila.com/hidden-dance-of-polarity/",
+        "A broad conceptual essay about polarity and complementary forces."
+    )
+    context = {
+        "canonical_link_context": main._serialize_context_documents([decoy, direct]),
+        "context_blocks": main._serialize_context_documents([decoy, direct]),
+    }
+    monkeypatch.setattr(
+        main,
+        "_original_fetch_canonical_context",
+        lambda _query: dict(context),
+    )
+    monkeypatch.setattr(
+        main._base,
+        "_inquiry_profile",
+        lambda query: {
+            "action": "conceptual" if query.startswith("Political Dynasties") else "recommendation",
+            "risk": False,
+            "grief": False,
+            "ai_truth": False,
+        },
+    )
+    # This is the already-validated result of the Guide's canonical doorway
+    # selector. The evidence bridge must preserve it rather than independently
+    # re-ranking the same candidates into an unrelated recommendation.
+    monkeypatch.setattr(
+        main,
+        "_general_guide_authoritative_doorway",
+        lambda _query, _context: {"title": direct["title"], "url": direct["url"]},
+    )
+
+    for query in queries:
+        result = main._recommendation_first_fetch(query)
+        selected = main._parse_context_documents(result["canonical_link_context"])
+
+        assert result["recommendation_canonical_primary"] == {
+            "title": direct["title"],
+            "url": direct["url"],
+        }
+        if query.startswith("I want"):
+            assert len(selected) == 1
+            assert selected[0]["title"] == direct["title"]
+            assert selected[0]["url"] == direct["url"]
+            assert result["recommendation_canonical_boundary_mode"] == "primary"
+        else:
+            # Conceptual synthesis keeps its full evidence pool while carrying
+            # the separately selected canonical doorway to the final response.
+            assert len(selected) == 2
+            assert result["canonical_link_context"] == context["canonical_link_context"]
