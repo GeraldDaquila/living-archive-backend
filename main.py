@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.270 — Guide composition concision calibration
+# USE PRODUCTION VERSION: v489.271 — Guide reflection fallback question
 import asyncio
 import hashlib
 from html import unescape
