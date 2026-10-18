@@ -102,6 +102,31 @@ try {
     failedRequests
   });
 
+  await page.evaluate(() => {
+    window.__guideSubmitTrace = [];
+    document.addEventListener("click", event => {
+      if (event.target?.closest?.("#archive-submit-btn")) {
+        window.__guideSubmitTrace.push({ event: "submit_button_click_capture", defaultPrevented: event.defaultPrevented });
+      }
+    }, true);
+    document.addEventListener("submit", event => {
+      if (event.target?.querySelector?.("#archive-submit-btn")) {
+        window.__guideSubmitTrace.push({ event: "form_submit_capture", defaultPrevented: event.defaultPrevented, action: event.target.action, method: event.target.method });
+      }
+    }, true);
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      window.__guideSubmitTrace.push({ event: "fetch_called", url: String(args[0]?.url || args[0]) });
+      return originalFetch.apply(this, args);
+    };
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      window.__guideSubmitTrace.push({ event: "xhr_open", method, url: String(url) });
+      return originalOpen.call(this, method, url, ...rest);
+    };
+  });
+  mark("submit_trace_installed", { note: "Capture click, form-submit, fetch and XHR before first interaction." });
+
   for (let i = 0; i < QUESTIONS.length; i++) {
     const before = await answer.innerText().catch(() => "");
     await input.fill(QUESTIONS[i]);
@@ -120,7 +145,8 @@ try {
       });
       throw error;
     });
-    await submit.click();
+    await submit.click({ noWaitAfter: true });
+    mark("post_click_diagnostics", { index: i + 1, pageUrl: page.url(), submitTrace: await page.evaluate(() => window.__guideSubmitTrace || []).catch(error => [{ evaluationError: error.message }]), apiRequests, failedRequests, pageErrors });
     const response = await responsePromise;
     if (response.status() !== 200) throw new Error("Mock API response was not HTTP 200 for main query " + (i + 1));
     await page.waitForFunction(({ selector, before }) => {
