@@ -15,6 +15,7 @@ on:
       - "provider_bank.py"
       - "main.py"
       - "tests/test_general_guide_provider_budget.py"
+      - "tests/test_v489_118_hrn_provider_budget_alignment.py"
       - ".github/workflows/guide-provider-bank.yml"
 
 jobs:
