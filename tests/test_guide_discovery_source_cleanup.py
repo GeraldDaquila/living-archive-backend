@@ -116,3 +116,32 @@ def test_explicit_study_request_subject_matches_canonical_permalink():
     assert CANONICAL_POLITICAL_DYNASTIES_URL.endswith(
         "political-dynasties-in-the-philippines-a-network-analysis-of-power-structures-and-their-socioeconomic-impacts/"
     )
+
+
+
+def test_html_extraction_preserves_blocks_and_removes_standalone_byline():
+    source_html = """
+    <article>
+      <hr>
+      <h2>A Network Analysis of Power Structures and Their Socioeconomic Impacts</h2>
+      <p>Gerald A. Daquila, PhD Candidate</p>
+      <p>Why do political dynasties remain deeply embedded in Philippine governance despite ongoing calls for reform?</p>
+      <p>Political dynasties influence institutions and public accountability.</p>
+    </article>
+    """
+    text = main._guide_html_to_source_text(source_html)
+    assert "Gerald A. Daquila, PhD Candidate" not in text
+    assert "A Network Analysis of Power Structures and Their Socioeconomic Impacts" in text
+    assert "Why do political dynasties remain deeply embedded in Philippine governance despite ongoing calls for reform?" in text
+    assert "Political dynasties influence institutions and public accountability." in text
+    assert text.index("A Network Analysis") < text.index("Why do political dynasties") < text.index("Political dynasties influence")
+
+
+def test_html_extraction_preserves_author_name_inside_substantive_prose():
+    source_html = (
+        "<p>Gerald A. Daquila, PhD Candidate</p>"
+        "<p>The study was prepared by Gerald A. Daquila, PhD Candidate and discusses public accountability.</p>"
+    )
+    text = main._guide_html_to_source_text(source_html)
+    assert text.count("Gerald A. Daquila, PhD Candidate") == 1
+    assert "The study was prepared by Gerald A. Daquila, PhD Candidate and discusses public accountability." in text
