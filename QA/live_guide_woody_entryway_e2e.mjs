@@ -152,8 +152,12 @@ await page.addInitScript(() => {
     return originalGetElementById.call(this, id);
   };
   const originalRAF = window.requestAnimationFrame.bind(window);
+  let rafTraceCount = 0;
   window.requestAnimationFrame = callback => originalRAF(timestamp => {
-    console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "animation_frame_enter", time: performance.now() }));
+    // Keep this instrumentation bounded: never emit a console record per frame.
+    if (rafTraceCount++ < 5) {
+      console.log("GUIDE_EXEC_TRACE " + JSON.stringify({ stage: "animation_frame_enter", time: performance.now() }));
+    }
     callback(timestamp);
   });
   const originalFetch = window.fetch.bind(window);
