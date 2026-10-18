@@ -138,7 +138,7 @@ check($budget_result->get_error_code() === 'la_provider_bridge_recovery_budget_e
 
 
 
-// When the primary has failed but fewer than 4.35 seconds remain, the guard
+// When the primary has failed but fewer than 4.4 seconds remain, the guard
 // skips mirror replay and leaves the remaining budget for the recovery writer.
 $GLOBALS['lah_hrn_mirror_replay_used'] = false;
 $GLOBALS['lah_hrn_recovery_attempt_used'] = false;
