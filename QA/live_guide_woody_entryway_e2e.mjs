@@ -21,6 +21,7 @@ const posts = [];
 const apiResponses = [];
 const apiLifecycle = [];
 const cdpRequestUrls = new Map();
+const cdpRequestMethods = new Map();
 const apiRequestIds = new Set();
 const apiResponseBodies = [];
 
@@ -32,16 +33,20 @@ await cdp.send("Network.enable");
 for (const eventName of ["Network.requestWillBeSent", "Network.responseReceived", "Network.loadingFinished", "Network.loadingFailed"]) {
   cdp.on(eventName, async event => {
     const url = event.request?.url || event.response?.url || cdpRequestUrls.get(event.requestId) || "";
-    if (eventName === "Network.requestWillBeSent" && url) cdpRequestUrls.set(event.requestId, url);
+    if (eventName === "Network.requestWillBeSent" && url) {
+      cdpRequestUrls.set(event.requestId, url);
+      cdpRequestMethods.set(event.requestId, event.request?.method || "");
+    }
     let pathname = "";
     try { pathname = new URL(url).pathname; } catch {}
-    if (API_PATTERN.test(pathname)) apiRequestIds.add(event.requestId);
+    const method = event.request?.method || cdpRequestMethods.get(event.requestId) || "";
+    if (API_PATTERN.test(pathname) && method === "POST") apiRequestIds.add(event.requestId);
     if (!API_PATTERN.test(pathname) && !apiRequestIds.has(event.requestId)) return;
     const item = {
       event: eventName,
       requestId: event.requestId,
       url: url || null,
-      method: event.request?.method,
+      method: event.request?.method || cdpRequestMethods.get(event.requestId),
       status: event.response?.status,
       errorText: event.errorText,
       encodedDataLength: event.encodedDataLength,
@@ -86,10 +91,10 @@ for (const eventName of ["Network.requestWillBeSentExtraInfo", "Network.response
 }
 
 page.on("requestfinished", request => {
-  if (API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_finished", { url: request.url() });
+  if (request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_finished", { url: request.url(), method: request.method() });
 });
 page.on("requestfailed", request => {
-  if (API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_failed", { url: request.url(), error: request.failure()?.errorText || "unknown" });
+  if (request.method() === "POST" && API_PATTERN.test(new URL(request.url()).pathname)) mark("api_request_failed", { url: request.url(), method: request.method(), error: request.failure()?.errorText || "unknown" });
 });
 
 page.on("pageerror", error => {
@@ -113,9 +118,9 @@ page.on("response", response => {
   if (/living-archive-guide|guide.*\.js/i.test(response.url())) {
     scriptResponses.push({ url: response.url(), status: response.status() });
   }
-  if (API_PATTERN.test(new URL(response.url()).pathname)) {
-    apiResponses.push({ url: response.url(), status: response.status() });
-    mark("api_response_observed", { url: response.url(), status: response.status() });
+  if (response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname)) {
+    apiResponses.push({ url: response.url(), method: response.request().method(), status: response.status() });
+    mark("api_response_observed", { url: response.url(), method: response.request().method(), status: response.status() });
   }
 });
 page.on("requestfailed", request => {
@@ -248,7 +253,7 @@ try {
   // Arm the response listener BEFORE clicking. A fast response may arrive
   // before the click promise settles; registering after the click loses it.
   const responsePromise = page.waitForResponse(
-    response => API_PATTERN.test(new URL(response.url()).pathname),
+    response => response.request().method() === "POST" && API_PATTERN.test(new URL(response.url()).pathname),
     { timeout: 35_000 }
   ).then(response => ({ kind: "response_observed", url: response.url(), status: response.status() }))
    .catch(error => ({ kind: "no_response", message: error.message }));
