@@ -1,0 +1,29 @@
+name: Guide Woody Mocked UI Continuity Contract
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-woody-mocked-ui-continuity-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mocked-ui-continuity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test live WordPress controller with intercepted mock API
+        timeout-minutes: 2
+        run: timeout --signal=TERM --kill-after=5s 100s node QA/guide_woody_mocked_ui_continuity_e2e.mjs

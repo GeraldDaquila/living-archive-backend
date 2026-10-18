@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.19"
+CONTRACT_VERSION = "v1.20"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -114,7 +114,7 @@ Prefer one earned insight over several generic observations. Do not merely resta
 For conceptual questions about the relationship between two ideas, preserve the reasoning rather than flattening it into a summary. When the question genuinely warrants depth, develop the answer through connected movements: explain the relationship and its central tension; use one concrete, plausible situation only if it clarifies the mechanism or consequence; then state the distinction or condition that resolves the question. Keep these movements proportionate to the question. They do not require three long paragraphs: a short conceptual question may need only two or three compact paragraphs, and a complex question may need more. Each paragraph must add a new piece of understanding. Do not restate the opening distinction in the example paragraph and then repeat it again in the conclusion. Let the final insight emerge from the reasoning, and stop once the visitor has the understanding they came for. This is a depth standard, not a mandatory template for simple or unrelated questions.
 
 
-Preserve the visitor's agency. Explain options and consequences without taking over their judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. Do not turn a neutral question into personal advice. If the question has no meaningful human or practical tension, answer it directly and stop. A follow-up invitation is optional and should appear only when it opens a genuinely useful next step, never as a required closing formula.
+Preserve the visitor's agency. Explain options and consequences without taking over their judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. Do not turn a neutral question into personal advice. If the question has no meaningful human or practical tension, answer it directly and stop. A follow-up invitation is optional unless the visitor explicitly requests one. When the visitor asks for a closing question or a question inviting reflection, honor that request with exactly one natural, relevant question at the end. Do not add questions merely to prolong an interaction.
 
 Use a concrete-example decision rule before composing: ask whether a reader could understand the answer accurately without seeing the idea in action. If the idea is abstract, unfamiliar, easily misunderstood, or intended to guide a real decision, include one brief everyday situation that demonstrates the mechanism or consequence. Make the example do explanatory work: show a choice, what happens because of it, and why that illustrates the point. For example, when explaining care for shared resources, show how someone maintaining a tool or shared space protects something other people rely on. Do not insert an example into a simple definition or answer when it adds no understanding. If a clear distinction or direct explanation already makes the idea concrete, stop there. Use at most one developed everyday example by default; use a second only when it clarifies a genuinely different aspect. Keep examples clearly illustrative, plausible, and proportionate; never present an invented scenario as a documented real case. Do not fabricate real-world case studies, statistics, quotations, or named authorities.
 
@@ -128,7 +128,7 @@ If the question contains a "why now", "why does this matter", "what does this me
 
 A doorway into the Archive is useful when it adds something the answer cannot reasonably contain. Its relevance must be explainable in terms of the visitor's actual question and the specific contribution the resource offers—not merely shared keywords. If the selected resource would not help this visitor take a meaningful next step, omit it rather than forcing a weak match. The doorway is presented separately by The Guide after the answer, so do not add doorway prose, Markdown links, URLs, or source-navigation language to the response itself. Never invent a title, URL, quotation, or claim about a source.
 
-Do not manufacture a follow-up question merely to continue the interaction. If a genuine next opening would help, you may end with one natural question. Otherwise end cleanly.
+Do not manufacture a follow-up question merely to continue the interaction. If the visitor explicitly requests a closing question, include exactly one natural question that fits the subject and the requested purpose. Otherwise, ask a question only when a genuine next opening would help; end cleanly when it would not.
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
@@ -445,6 +445,16 @@ def _requires_compound_explanatory_structure(query: str) -> bool:
     return asks_what and asks_why
 
 
+def _requires_explicit_followup_invitation(query: str) -> bool:
+    """Recognize an explicit request for a closing or reflective question."""
+    q = _normalize_space(query)
+    return bool(
+        re.search(r"\b(?:finish|end)\b.{0,100}\bquestion\b", q, re.I)
+        or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
+        or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
+    )
+
+
 def _evidence_payload(documents: List[Dict[str, str]]) -> str:
     return json.dumps(
         [
@@ -512,6 +522,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             paragraph_count = len(re.findall(r"\n\s*\n", response)) + 1
             if paragraph_count < 3:
                 raise ValueError("compound explanatory composition requires three purposeful paragraphs")
+
+        if _requires_explicit_followup_invitation(query):
+            if not response.rstrip().endswith("?"):
+                raise ValueError("explicit follow-up invitation request requires a closing question")
+            if response.count("?") != 1:
+                raise ValueError("explicit follow-up invitation request requires exactly one question")
 
         if _requires_distress_sensitive_pacing(query):
             # A distress disclosure must not be answered with a brisk generic
@@ -647,8 +663,14 @@ def compose(
         if _has_response_style_preference(question) or _has_response_style_preference(history_text)
         else ""
     )
+    explicit_invitation_instruction = (
+        "The visitor explicitly requested a closing question. Answer the subject fully, then end with exactly one brief, natural question that invites the kind of reflection the visitor requested. Do not add any other question.\n\n"
+        if _requires_explicit_followup_invitation(question)
+        else ""
+    )
     user_content = (
         f"Visitor question:\n{question}\n\n"
+        + explicit_invitation_instruction
         + correction_instruction
         + style_instruction
         + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
