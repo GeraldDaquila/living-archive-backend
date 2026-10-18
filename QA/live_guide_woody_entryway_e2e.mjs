@@ -456,7 +456,15 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
   patchedSource = patchedSource.replace(prefetchPresentationBlock, "  // QA-only: bypass response presentation mutations before fetch");
   const prefetchControlBlock = /  resetGuideConversationHistory\(\);[\s\S]*?  try \{\s*var res =\s*await fetchUSE\(\s*\{\s*query: query\s*\},\s*'guide-submit'\s*\);/;
   const prefetchControlMatches = patchedSource.match(prefetchControlBlock) || [];
+  patchedSource = patchedSource.replace(prefetchControlBlock, "  // QA-only: bypass all pre-fetch state and UI work.\\n  try {\\n    var res = await fetchUSE({ query: query }, 'guide-submit');");
+  const parseMarker = "    var data =\\n      await res.json();";
+  const parseMarkerCount = (patchedSource.match(new RegExp(parseMarker.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\  const prefetchControlMatches = patchedSource.match(prefetchControlBlock) || [];
   patchedSource = patchedSource.replace(prefetchControlBlock, "  // QA-only: bypass all pre-fetch state and UI work.\n  try {\n    var res = await fetchUSE({ query: query }, 'guide-submit');");
+  mark("qa_controller_fault_isolation", {"), "g")) || []).length;
+  patchedSource = patchedSource.replace(parseMarker, parseMarker + "\\n    console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'json_parsed', keys:Object.keys(data || {}), intent:data && data.intent || null, responseType:typeof (data && data.response), responseLength:typeof (data && data.response)==='string'?data.response.length:null}));");
+  patchedSource = patchedSource.replace("      assertVisitorLanguageBoundary(data);", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_language_boundary'}));\\n      assertVisitorLanguageBoundary(data);\\n      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_language_boundary'}));");
+  patchedSource = patchedSource.replace("      var renderedAnswer = '';", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_markdown_render'}));\\n      var renderedAnswer = '';");
+  patchedSource = patchedSource.replace("      responseText.innerHTML =\\n        renderedAnswer;", "      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'before_answer_dom_write', renderedLength:renderedAnswer.length}));\\n      responseText.innerHTML =\\n        renderedAnswer;\\n      console.log('GUIDE_POST_RESPONSE_STAGE ' + JSON.stringify({stage:'after_answer_dom_write', renderedLength:renderedAnswer.length}));");
   mark("qa_controller_fault_isolation", {
     url: route.request().url(),
     status: response.status(),
@@ -468,7 +476,9 @@ await page.route("https://geralddaquila.com/wp-content/uploads/2026/10/living-ar
     prefetchPresentationBlockPatched: prefetchPresentationMatches.length === 1,
     prefetchPresentationMatchCount: prefetchPresentationMatches.length,
     prefetchControlBlockPatched: prefetchControlMatches.length === 1,
-    prefetchControlMatchCount: prefetchControlMatches.length
+    prefetchControlMatchCount: prefetchControlMatches.length,
+    responseParseMarkerCount: parseMarkerCount,
+    responseStageInstrumentation: patchedSource.includes("GUIDE_POST_RESPONSE_STAGE")
   });
   const headers = { ...response.headers() };
   delete headers["content-encoding"];
