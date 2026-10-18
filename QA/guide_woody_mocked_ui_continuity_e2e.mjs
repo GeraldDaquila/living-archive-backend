@@ -178,14 +178,21 @@ try {
         event.preventDefault();
       }
     }, true);
-    // Instrument the native fetch boundary to determine whether the call
-    // returns control to JavaScript. Keep the original function and arguments.
+    // Observe Promise settlement without changing the returned Promise.
+    // This distinguishes a fetch that never settles from a response that settles
+    // but whose controller continuation blocks or fails.
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
       window.__guideTrace({ event: "fetch_call_enter", url: String(args[0]?.url || args[0]) });
       try {
         const result = originalFetch.apply(this, args);
         window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
+        if (result && typeof result.then === "function") {
+          result.then(
+            response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }),
+            error => window.__guideTrace({ event: "fetch_promise_rejected", error: String(error) })
+          );
+        }
         return result;
       } catch (error) {
         window.__guideTrace({ event: "fetch_call_threw", error: String(error) });
