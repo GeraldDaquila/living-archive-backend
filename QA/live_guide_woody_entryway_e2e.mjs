@@ -398,7 +398,7 @@ await page.addInitScript(() => {
   const originalResponseJson = Response.prototype.json;
   Response.prototype.json = function() {
     const response = this;
-    const isGuideApiResponse = /living-archive-backend\\.onrender\\.com\\/api\\/query/.test(String(response.url || ""));
+    const isGuideApiResponse = /living-archive-backend\.onrender\.com\/api\/query/.test(String(response.url || ""));
     if (isGuideApiResponse) console.log("GUIDE_BODY_CONSUMPTION " + JSON.stringify({stage:"json_enter", status:response.status, bodyUsed:response.bodyUsed, time:performance.now()}));
     const pending = originalResponseJson.call(response);
     if (!isGuideApiResponse) return pending;
