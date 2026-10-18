@@ -5177,6 +5177,21 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     )
 
 
+def _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+    """Require the selected canonical body to match the final discovery doorway URL."""
+    if not isinstance(doorway, dict):
+        return False
+    doorway_url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip().rstrip("/").casefold()
+    if not doorway_url or not isinstance(evidence, list) or not evidence:
+        return False
+    return any(
+        isinstance(item, dict)
+        and str(item.get("url") or item.get("canonical_url") or "").strip().rstrip("/").casefold() == doorway_url
+        and bool(str(item.get("text") or "").strip())
+        for item in evidence
+    )
+
+
 def _guide_subject_discovery_answer(response, subject, doorway, evidence):
     """Use a page-grounded direct/related answer or fall back without a false match."""
     if not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip():
@@ -5455,6 +5470,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
 
+    # Discovery is fail-closed at the final selection boundary. An initial
+    # retrieval recommendation is not sufficient: the final selected canonical
+    # page body must support the exact doorway being returned. This also keeps
+    # answer_basis from claiming Archive support when discovery fell back.
+    if discovery_subject and not _guide_discovery_doorway_is_evidence_backed(
+        authoritative_doorway, discovery_selected_evidence
+    ):
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        print(
+            "The Guide discovery contract: no evidence-backed selected doorway; "
+            "recommendation suppressed."
+        )
+
     if archive_evidence_unavailable:
         for key in (
             "context_blocks",
@@ -5504,7 +5533,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
     # cannot drift into different descriptions or introduce unselected resources.
-    if discovery_subject and authoritative_doorway:
+    if discovery_subject:
         grounded_discovery = _guide_subject_discovery_answer(
             llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
         )
@@ -5566,7 +5595,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Re-apply provider-independent discovery composition after sanitization, immediately
     # before payload assembly. This is intentionally deterministic even when a generated
     # answer passed the broad relevance validator above.
-    if discovery_subject and authoritative_doorway:
+    if discovery_subject:
         response = _sanitize_basic_inquiry_response(
             _guide_subject_discovery_answer(
                 response, resource_query, authoritative_doorway, discovery_selected_evidence
