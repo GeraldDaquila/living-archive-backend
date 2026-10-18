@@ -369,7 +369,12 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
     monkeypatch.setattr(
         main._base,
         "_inquiry_profile",
-        lambda _query: {"action": "recommendation", "risk": False, "grief": False, "ai_truth": False},
+        lambda query: {
+            "action": "conceptual" if query.startswith("Political Dynasties") else "recommendation",
+            "risk": False,
+            "grief": False,
+            "ai_truth": False,
+        },
     )
     # This is the already-validated result of the Guide's canonical doorway
     # selector. The evidence bridge must preserve it rather than independently
@@ -384,11 +389,17 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
         result = main._recommendation_first_fetch(query)
         selected = main._parse_context_documents(result["canonical_link_context"])
 
-        assert len(selected) == 1
-        assert selected[0]["title"] == direct["title"]
-        assert selected[0]["url"] == direct["url"]
-        assert result["recommendation_canonical_boundary_mode"] == "primary"
         assert result["recommendation_canonical_primary"] == {
             "title": direct["title"],
             "url": direct["url"],
         }
+        if query.startswith("I want"):
+            assert len(selected) == 1
+            assert selected[0]["title"] == direct["title"]
+            assert selected[0]["url"] == direct["url"]
+            assert result["recommendation_canonical_boundary_mode"] == "primary"
+        else:
+            # Conceptual synthesis keeps its full evidence pool while carrying
+            # the separately selected canonical doorway to the final response.
+            assert len(selected) == 2
+            assert result["canonical_link_context"] == context["canonical_link_context"]
