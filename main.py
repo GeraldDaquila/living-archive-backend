@@ -4977,7 +4977,16 @@ def _guide_align_discovery_doorway(subject, documents):
         approved["_discovery_relevance"] = grade["grade"]
         approved["_discovery_relevance_score"] = grade["score"]
         approved["_discovery_support_terms"] = grade["support"]
+        # When the visitor names a resource title, prefer the exact registered
+        # title over a suffixed/duplicate display node even if the duplicate has
+        # a slightly higher body-evidence score. Directness still outranks related
+        # matches whenever there is no exact title identity match.
+        normalize_title = lambda value: re.sub(
+            r"[^a-z0-9]+", " ", str(value or "").casefold()
+        ).strip()
+        exact_title_match = normalize_title(node.get("title")) == normalize_title(subject)
         graded.append((
+            0 if exact_title_match else 1,
             0 if grade["grade"] == "direct" else 1,
             -int(grade["score"]),
             str(node.get("title") or "").casefold(),
