@@ -1054,9 +1054,9 @@ try {
         serializedOrdinaryRequest = JSON.stringify(ordinaryRequestJson);
         continuityEvidence.jsonParsed = true;
         continuityEvidence.priorVisitorTurnMatches = [
-          secondQuestion,
-          thirdQuestion,
-          invitationQuestion
+          "How might this shape the way people make decisions together?",
+          "What is a concrete way to practice this in a neighborhood?",
+          "Explain stewardship in everyday life, and finish with one brief question inviting me to reflect on my own experience."
         ].filter(question => serializedOrdinaryRequest.includes(question));
         continuityEvidence.priorVisitorTurnsPresent = continuityEvidence.priorVisitorTurnMatches.length === 3;
         continuityEvidence.priorAssistantAnswerPresent =
