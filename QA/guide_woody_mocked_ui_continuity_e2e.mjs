@@ -223,9 +223,29 @@ try {
     // event loop continues after fetch settles. These observers do not alter
     // the returned body or controller logic.
     const originalResponseJson = Response.prototype.json;
+    window.__guideTrace({
+      event: "response_json_method_snapshot",
+      name: originalResponseJson?.name || null,
+      source: String(originalResponseJson).slice(0, 180)
+    });
     Response.prototype.json = function(...args) {
-      window.__guideTrace({ event: "response_json_called" });
-      const promise = originalResponseJson.apply(this, args);
+      window.__guideTrace({
+        event: "response_json_called",
+        bodyUsedBefore: this.bodyUsed,
+        bodyType: this.body?.constructor?.name || null
+      });
+      let promise;
+      try {
+        promise = originalResponseJson.apply(this, args);
+        window.__guideTrace({
+          event: "response_json_native_returned",
+          promiseType: promise?.constructor?.name || typeof promise,
+          bodyUsedAfter: this.bodyUsed
+        });
+      } catch (error) {
+        window.__guideTrace({ event: "response_json_native_threw", error: String(error) });
+        throw error;
+      }
       promise.then(
         value => window.__guideTrace({ event: "response_json_resolved", keys: Object.keys(value || {}) }),
         error => window.__guideTrace({ event: "response_json_rejected", error: String(error) })
