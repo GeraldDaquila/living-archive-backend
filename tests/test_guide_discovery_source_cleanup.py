@@ -290,3 +290,19 @@ def test_basic_inquiry_response_suppresses_stale_discovery_recommendation(monkey
     assert result["answer_basis"]["kind"] == "general_knowledge"
     assert "couldn’t verify a Living Archive page" in result["response"]
     assert "Living in the Barangay" not in result["response"]
+
+
+def test_standalone_written_byline_is_removed_but_title_and_body_are_preserved():
+    raw_html = (
+        "<article>"
+        "<h1>Political Dynasties in the Philippines</h1>"
+        "<p>Written by Gerald A.</p>"
+        "<p>A Network Analysis of Power Structures and Their Socioeconomic Impacts.</p>"
+        "<p>Gerald A. Daquila argues that accountability matters in this study.</p>"
+        "</article>"
+    )
+    cleaned = main._guide_html_to_source_text(raw_html)
+    assert "Political Dynasties in the Philippines" in cleaned
+    assert "A Network Analysis of Power Structures and Their Socioeconomic Impacts." in cleaned
+    assert "Written by Gerald A." not in cleaned
+    assert "Gerald A. Daquila argues that accountability matters in this study." in cleaned
