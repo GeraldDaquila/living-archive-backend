@@ -92,7 +92,7 @@ _RULES = (
         reason="explicit bounded definition or meaning request",
         source="deterministic-glossary-lookup",
         patterns=(
-            r"\b(?:define|definition of|what is|what does .{1,70} mean|meaning of)\b",
+            r"\b(?:define|definition of|what does .{1,70} mean|meaning of)\b",
         ),
         exclusions=(
             r"\b(?:stewardship)\b.{0,100}\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b",
