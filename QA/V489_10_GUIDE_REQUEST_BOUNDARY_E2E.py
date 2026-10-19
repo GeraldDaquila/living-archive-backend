@@ -484,3 +484,37 @@ def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(m
     assert "For example" in payload["response"]
     assert len(payload["response"].split("\n\n")) == 3
     assert r"\n\n" not in payload["response"]
+
+def test_practical_stewardship_request_bypasses_oversized_composition_envelope(monkeypatch):
+    query = "How can a community practice stewardship in its everyday decisions and responsibilities?"
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "auto")
+    composer_calls = []
+
+    def forbidden_composer(**kwargs):
+        composer_calls.append(kwargs)
+        raise RuntimeError("simulated fixed-envelope token-budget failure")
+
+    monkeypatch.setattr(general_guide_composition, "compose", forbidden_composer)
+    monkeypatch.setattr(
+        use_main,
+        "_guide_capability_route",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("practical question must remain in direct Guide response")
+        ),
+    )
+
+    status, payload = asyncio.run(_post_query(query))
+
+    assert status == 200
+    answer = payload["response"].casefold()
+    assert "people who rely on it" in answer
+    assert "clear criteria" in answer
+    assert "review the outcome" in answer
+    assert "general practical suggestions" in answer
+    assert "could not complete this request" not in answer
+    assert composer_calls == []
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert payload["processing"] == "basic_inquiry"
+
