@@ -76,3 +76,34 @@ def test_simple_factual_question_is_not_forced_into_concept_template():
 
     assert not _requires_concrete_concept_explanation("What is the capital of the Philippines?")
     assert not _requires_concrete_concept_explanation("List the forms of reciprocity.")
+
+
+def test_reciprocity_definition_has_bounded_everyday_fallback_when_provider_bank_is_empty(monkeypatch):
+    import main
+
+    monkeypatch.setattr(main.use_core, "context_blocks_to_documents", lambda _text: [])
+    result = main._basic_inquiry_round1_deterministic_response(
+        "What does reciprocity mean in the Living Archive?",
+        {},
+        {"context_blocks": ""},
+        recommendation_available=False,
+    )
+    response = result["response"]
+    assert "Reciprocity means a relationship of mutual response" in response
+    assert "For example, neighbors" in response
+    assert response.count("\n\n") >= 2
+    assert "debt ledger" in response
+    assert result["provider"] == "bounded_general_knowledge_recovery"
+
+
+def test_reciprocity_fallback_does_not_claim_archive_source_authority():
+    import main
+
+    result = main._basic_inquiry_round1_deterministic_response(
+        "What does reciprocity mean in the Living Archive?",
+        {},
+        {"context_blocks": ""},
+        recommendation_available=False,
+    )
+    assert "useful starting definition" in result["response"]
+    assert "canonical definition" not in result["response"]
