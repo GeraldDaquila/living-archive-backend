@@ -57,3 +57,45 @@ def test_non_conflict_stewardship_question_is_not_overfiltered():
         "text": "Stewardship means caring for what has been entrusted to us.",
     }
     assert use_main._stewardship_conflict_candidate_has_direct_fit(query, generic)
+
+
+FUNDING_QUERY = "How should a community decide which of two competing priorities deserves funding when neither can be fully supported?"
+
+
+def test_funding_priority_query_rejects_architecture_of_identity():
+    unrelated = {
+        "title": "The Architecture of Identity",
+        "text": "An exploration of identity, belonging, and the formation of personal and collective meaning.",
+        "url": "https://geralddaquila.com/the-architecture-of-identity/",
+    }
+    assert not use_main._resource_allocation_candidate_has_direct_fit(FUNDING_QUERY, unrelated)
+
+
+def test_funding_priority_query_accepts_direct_allocation_resource():
+    relevant = {
+        "title": "Funding Priorities and Resource Allocation",
+        "text": (
+            "When resources are limited, communities can compare competing needs, "
+            "set transparent decision criteria, weigh trade-offs, and allocate funding "
+            "through a fair process."
+        ),
+        "url": "https://geralddaquila.com/funding-priorities/",
+    }
+    assert use_main._resource_allocation_candidate_has_direct_fit(FUNDING_QUERY, relevant)
+
+
+def test_funding_priority_gate_does_not_filter_unrelated_queries():
+    query = "What does identity mean?"
+    unrelated = {
+        "title": "The Architecture of Identity",
+        "text": "An exploration of identity and belonging.",
+    }
+    assert use_main._resource_allocation_candidate_has_direct_fit(query, unrelated)
+
+
+def test_stewardship_conflict_guard_uses_real_word_boundaries():
+    generic = {
+        "title": "Core Structure",
+        "text": "An overview of the foundations of the Living Archive.",
+    }
+    assert not use_main._stewardship_conflict_candidate_has_direct_fit(QUERY, generic)
