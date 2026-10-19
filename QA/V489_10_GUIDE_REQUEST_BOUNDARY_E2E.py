@@ -460,8 +460,8 @@ def test_deterministic_only_stewardship_disagreement_answers_the_actual_question
     assert "what each person is trying to protect" in response
     assert "handle disagreement responsibly" in response
     assert "Stewardship means taking care of something entrusted to you" not in response
-    assert len(response.split("\\n\\n")) == 3
-    assert r"\\n\\n" not in response
+    assert len(response.split("\n\n")) == 3
+    assert r"\n\n" not in response
 
 
 def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(monkeypatch):
