@@ -1,4 +1,4 @@
-"""In-memory HRN request-pipeline simulation for safety and E2E contract tests.
+""""In-memory HRN request-pipeline simulation for safety and E2E contract tests.
 
 This is a test harness only. It does not call WordPress, network providers, or any
 persistent store. It must never be wired into the production request path.
@@ -34,6 +34,7 @@ class SimulatedHRNPipeline:
         self.fallback = fallback
         self.ledgers: dict[str, dict[str, Any]] = {}
         self.receipts: dict[str, dict[str, Any]] = {}
+        self.receipt_message_hashes: dict[str, str] = {}
         self.events: list[dict[str, Any]] = []
         self.commit_count = 0
 
@@ -42,15 +43,18 @@ class SimulatedHRNPipeline:
         session_id = str(original.get("session_id") or "")
         request_id = str(original.get("request_id") or "")
         turn_id = str(original.get("visitor_turn_id") or "")
-        if not session_id or not request_id or not turn_id or not str(original.get("visitor_message") or "").strip():
-            self.events.append(_safe_event("entrance", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, outcome="rejected", reason="missing_identity_or_message"))
+        message = str(original.get("visitor_message") or "").strip()
+        if not session_id or not request_id or not turn_id or not message:
+            self.events.append(_safe_event("entrance", outcome="rejected", reason="missing_identity_or_message"))
             return {"status": "retryable_failure", "committed": False, "reason": "invalid_request"}
 
         receipt_key = sha256(f"{session_id}|{turn_id}".encode()).hexdigest()
+        message_hash = sha256(message.encode()).hexdigest()
         if receipt_key in self.receipts:
-            self.events.append(_safe_event("idempotency", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, outcome="replayed"))
+            if self.receipt_message_hashes.get(receipt_key) != message_hash:
+                self.events.append(_safe_event("idempotency", outcome="rejected", reason="idempotency_conflict"))
+                return {"status": "retryable_failure", "committed": False, "reason": "idempotency_conflict"}
+            self.events.append(_safe_event("idempotency", outcome="replayed"))
             return deepcopy(self.receipts[receipt_key])
 
         committed = deepcopy(self.ledgers.get(session_id, {
@@ -58,17 +62,14 @@ class SimulatedHRNPipeline:
             "responses": [], "moves": [], "questions": [], "pending_visitor_evidence": None, "closed": False,
         }))
         if committed.get("closed"):
-            self.events.append(_safe_event("snapshot", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, outcome="rejected", reason="journey_already_closed"))
+            self.events.append(_safe_event("snapshot", outcome="rejected", reason="journey_already_closed"))
             return {"status": "retryable_failure", "committed": False, "reason": "journey_closed"}
 
         expected_turn = int(committed["turn_number"]) + 1
         if int(original.get("turn_number") or 0) != expected_turn:
-            self.events.append(_safe_event("snapshot", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, outcome="rejected", reason="turn_conflict"))
+            self.events.append(_safe_event("snapshot", outcome="rejected", reason="turn_conflict"))
             return {"status": "retryable_failure", "committed": False, "reason": "turn_conflict"}
 
-        # The current turn is staged separately. Neither provider can mutate committed state.
         staged = deepcopy(original)
         staged["committed_ledger"] = deepcopy(committed)
         staged["prior_responses"] = list(committed["responses"])
@@ -76,57 +77,47 @@ class SimulatedHRNPipeline:
         staged["prior_questions"] = list(committed["questions"])
         staged["current_evidence_delta"] = {
             "turn_id": turn_id,
-            "visitor_message_sha256": sha256(str(original["visitor_message"]).encode()).hexdigest(),
+            "visitor_message_sha256": message_hash,
         }
         immutable_before = deepcopy(staged)
 
-        self.events.append(_safe_event("provider_select", request_id=request_id, session_id=session_id,
-                                       turn_id=turn_id, provider_id="primary", outcome="selected"))
+        self.events.append(_safe_event("provider_select", provider_id="primary", outcome="selected"))
         try:
             result = self.primary(deepcopy(staged))
         except Exception:
             result = None
         provider_id = "primary"
         if not self._valid(result, staged, committed):
-            self.events.append(_safe_event("provider_validate", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, provider_id="primary", outcome="rejected",
+            self.events.append(_safe_event("provider_validate", provider_id="primary", outcome="rejected",
                                            reason="provider_failure_or_invalid_result"))
-            self.events.append(_safe_event("provider_select", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, provider_id="fallback", outcome="selected"))
+            self.events.append(_safe_event("provider_select", provider_id="fallback", outcome="selected"))
             try:
                 result = self.fallback(deepcopy(immutable_before))
             except Exception:
                 result = None
             provider_id = "fallback"
 
-        # Provider input must remain stable even if a provider tried to mutate its copy.
         if staged != immutable_before:
-            self.events.append(_safe_event("snapshot_integrity", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, outcome="failed"))
+            self.events.append(_safe_event("snapshot_integrity", outcome="failed"))
             return {"status": "retryable_failure", "committed": False, "reason": "snapshot_integrity_failure"}
 
         if not self._valid(result, immutable_before, committed):
-            # Preserve the current visitor contribution for retry without advancing
-            # the turn, writing assistant synthesis, or logging raw visitor content.
             pending_ledger = deepcopy(committed)
             pending_ledger["pending_visitor_evidence"] = {
                 "turn_id": turn_id,
-                "message_sha256": immutable_before["current_evidence_delta"]["visitor_message_sha256"],
+                "message_sha256": message_hash,
             }
             self.ledgers[session_id] = pending_ledger
-            self.events.append(_safe_event("commit", request_id=request_id, session_id=session_id,
-                                           turn_id=turn_id, provider_id=provider_id, outcome="refused",
+            self.events.append(_safe_event("commit", provider_id=provider_id, outcome="refused",
                                            reason="no_valid_nonrepeating_response"))
             return {"status": "retryable_failure", "committed": False, "reason": "no_valid_result"}
 
         response = str(result["response_draft"]).strip()
-        # A provider's proposed state is never authoritative; the pipeline owns the commit.
         next_ledger = deepcopy(committed)
         next_ledger["turn_number"] = expected_turn
         next_ledger["pending_visitor_evidence"] = None
         next_ledger["visitor_evidence"] = (next_ledger["visitor_evidence"] + [{
-            "turn_id": turn_id,
-            "message_sha256": immutable_before["current_evidence_delta"]["visitor_message_sha256"],
+            "turn_id": turn_id, "message_sha256": message_hash,
         }])[-8:]
         next_ledger["responses"] = (next_ledger["responses"] + [response])[-8:]
         next_ledger["moves"] = (next_ledger["moves"] + [str(result["next_move"])])[-8:]
@@ -141,8 +132,8 @@ class SimulatedHRNPipeline:
             "move": str(result["next_move"]), "closed": next_ledger["closed"],
         }
         self.receipts[receipt_key] = deepcopy(envelope)
-        self.events.append(_safe_event("commit", request_id=request_id, session_id=session_id,
-                                       turn_id=turn_id, provider_id=provider_id, outcome="committed"))
+        self.receipt_message_hashes[receipt_key] = message_hash
+        self.events.append(_safe_event("commit", provider_id=provider_id, outcome="committed"))
         return envelope
 
     @staticmethod
@@ -167,9 +158,6 @@ class SimulatedHRNPipeline:
         signature = _signature(response)
         if not signature or any(signature == _signature(previous) for previous in committed["responses"]):
             return False
-        # Question novelty is independent of response novelty: changing the prose
-        # while asking the same question must not be treated as journey movement.
-        question = result.get("question")
         if question is not None and str(question).strip():
             question_signature = _signature(str(question))
             if any(question_signature == _signature(str(previous))
