@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.284 — Refine source-grounded Guide discovery voice
+# USE PRODUCTION VERSION: v489.284 — Concrete everyday explanations for abstract concepts
 import asyncio
 import hashlib
 from html import unescape
