@@ -54,3 +54,44 @@ def test_empty_query_requests_clarification():
     decision = resolve_route("  ")
     assert decision.route == "guide"
     assert decision.mode == "clarify"
+
+
+
+def test_explicit_fsd_request_uses_diagnostic_route():
+    decision = resolve_route("Please run the Fractal Systems Diagnostic.")
+    assert decision.route == "fsd"
+    assert decision.mode == "direct"
+
+
+def test_explicit_glyph_lookup_uses_lookup_route():
+    decision = resolve_route("Show me the meaning of this glyph.")
+    assert decision.route == "glyph"
+    assert decision.mode == "lookup"
+
+
+def test_explicit_atlas_lookup_uses_lookup_route():
+    decision = resolve_route("Show me the archive reference map.")
+    assert decision.route == "atlas"
+    assert decision.mode == "lookup"
+
+
+def test_definition_request_can_use_glossary():
+    decision = resolve_route("What is reciprocity?")
+    assert decision.route == "glossary"
+    assert decision.mode == "lookup"
+
+
+def test_practical_stewardship_question_is_not_glossary_routed():
+    decision = resolve_route("What is stewardship in everyday community decisions?")
+    assert decision.route == "guide"
+
+
+def test_safety_precedence_over_new_bounded_routes():
+    for query in (
+        "Please run the Fractal Systems Diagnostic",
+        "Show me the meaning of this glyph",
+        "What is reciprocity?",
+    ):
+        decision = resolve_route(query, safety_active=True)
+        assert decision.route == "safety"
+        assert decision.mode == "safety"
