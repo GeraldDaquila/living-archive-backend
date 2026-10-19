@@ -142,3 +142,25 @@ Corrective commit: `29a87c46c3eadd5eaaba68ddadce37a20ffdccfb`.
 The registry tests had previously failed because a stale parity-gap test still expected the first-person projection fixture to remain in Guide after the narrow relational rule had been added. The stale test has been corrected to assert the intended relationship route. The three workflows above passed after that correction.
 
 These are CI results, not a production release. PR #712 remains open and unmerged. No production wiring, WordPress change, or Render deployment is authorized by this work. Remaining gates include route/mode parity across all production route families, history-dependent relational cases, live Guide Node freshness/access, specialist availability, protected safety integration, and a curated production-versus-registry shadow comparison.
+
+
+## Latest full CI checkpoint — 2026-10-20
+
+On documentation checkpoint commit `447c59e2271e80e8a40593659560c06824883de3`, all three triggered workflows have now completed successfully:
+
+- Deterministic routing registry tests, run #90.
+- v487 production validation, run #2307.
+- Guide Woody mocked UI continuity contract, run #216.
+
+This is a green CI checkpoint for the isolated PR head. It does not convert the remaining parity gaps into passes and does not establish live visitor E2E success.
+
+## Release-blocking gaps still open
+
+1. **Protected safety authority:** the registry only accepts `safety_active=True`; it does not derive or connect to the protected-core safety boundary. Keep the authoritative production safety path unchanged.
+2. **Guide Node arbitration:** the registry does not query the live/fresh WordPress Guide Node registry or reproduce access and availability checks.
+3. **History-aware relationship handling:** the narrow projection fixture is covered, but the registry does not reproduce production relational history/context signals. The SH-15 fixture must come from a real existing production regression test; a synthetic query alone is insufficient.
+4. **Specialist parity:** FSD, Formation, relationship, Atlas, glossary, Navigator, systems lens, and case rules remain bounded approximations rather than proven production-equivalent route/mode contracts.
+5. **Shadow comparison:** no executed production-versus-registry shadow corpus is recorded here. The fixture table is a plan until both sides' actual decisions are captured.
+6. **Live visitor E2E:** mocked UI continuity is a regression workflow, not proof that a real visitor request traverses the live WordPress frontend, backend, retrieval, and response path successfully.
+
+Disposition: continue isolated test and parity work only. Do not wire the registry into `main.py`, merge PR #712, or deploy until these release gates are addressed and independently verified.
