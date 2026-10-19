@@ -76,6 +76,7 @@ _RULES = (
         patterns=(
             r"\b(?:glyph|symbol|icon|mark)\b.{0,80}\b(?:find|show|lookup|look up|meaning|what does)\b",
             r"\b(?:find|show|lookup|look up)\b.{0,80}\b(?:glyph|symbol|icon|mark)\b",
+            r"\bwhat does\b.{0,60}\b(?:glyph|symbol|icon|mark)\b.{0,30}\bmean\b",
         ),
     ),
     RouteRule(
