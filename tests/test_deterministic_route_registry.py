@@ -367,6 +367,37 @@ def test_known_production_hrn_projection_fixture_is_a_parity_gap_not_silently_re
     assert decision.source == "deterministic-guide-default"
 
 
+def test_production_lived_projection_fixture_routes_to_relationship_specialist():
+    query = (
+        "I can't tell whether what I'm sensing in a relationship is real "
+        "or something I'm projecting."
+    )
+    decision = resolve_route(query)
+    assert decision.route == "relationship"
+    assert decision.mode == "delegated_journey"
+    assert decision.source == "deterministic-lived-relational-projection"
+
+
+def test_bounded_archive_projection_article_search_stays_outside_relationship_route():
+    query = (
+        "Can you find an article in the Living Archive about projection in relationships?"
+    )
+    decision = resolve_route(query)
+    assert decision.route == "catalogue"
+    assert decision.mode == "lookup"
+
+
+def test_projection_topic_without_first_person_uncertainty_stays_in_guide():
+    for query in (
+        "What is projection in relationships?",
+        "Projection can affect how people interpret conflict.",
+        "I read about projection in relationships.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+
+
 def test_production_catalogue_resource_search_fixtures_route_to_catalogue():
     # Mirrors the positive cases in tests/test_catalogue_resource_search_routing.py.
     for query in (
