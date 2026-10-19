@@ -164,3 +164,14 @@ This is a green CI checkpoint for the isolated PR head. It does not convert the 
 6. **Live visitor E2E:** mocked UI continuity is a regression workflow, not proof that a real visitor request traverses the live WordPress frontend, backend, retrieval, and response path successfully.
 
 Disposition: continue isolated test and parity work only. Do not wire the registry into `main.py`, merge PR #712, or deploy until these release gates are addressed and independently verified.
+
+
+## SH-15 source verification — 2026-10-20
+
+The SH-15 wording is grounded in the existing production regression fixture in `tests/test_v489_226_relational_return_workplace_doorway_parity.py`. Its original query is:
+
+> I keep returning to the agreed deadline because the project scope changed afterward. My colleague says I'm making too much of it. I want to understand what is happening between us.
+
+That test family verifies workplace-change fit, a verified canonical Conflict & Trust Arc candidate, and rejection of an unqualified generic Orientation page. Related coverage exists in `tests/test_v489_86_relational_return_topic_fit.py` and `tests/test_v489_89_relational_return_clustered_topic_evidence.py`, including recurring-argument repair-resource recovery and rejection of broad decoys.
+
+**Important distinction:** this is a real production regression fixture with workplace/context-sensitive relational intent, but the quoted query is itself a single-turn input. It does not, by itself, prove history-dependent routing. The registry currently routes it through the broad explicit relationship pattern, but that is not equivalent to production's full relational-return resource-selection and conversation-history behavior. SH-15 must therefore remain a parity blocker until actual multi-turn history/context input and route/mode outcomes are captured on both sides. Do not mark the history gate passed based on this fixture alone.
