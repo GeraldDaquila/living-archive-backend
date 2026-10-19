@@ -87,6 +87,29 @@ def test_malformed_primary_result_falls_back_without_partial_commit():
     assert pipeline.ledgers["simulation-session"]["turn_number"] == 1
 
 
+def test_wrong_request_identity_or_missing_question_is_rejected_before_commit():
+    pipeline = SimulatedHRNPipeline(
+        lambda snap: {
+            **scripted_provider("clarify", "A response for the wrong request.", "evidence",
+                                question="What would clarify this?")(snap),
+            "request_id": "another-request",
+        },
+        scripted_provider("clarify", "A valid fallback response.", "evidence",
+                          question="What would help clarify this?"),
+    )
+    first = pipeline.process(snapshot(1, MESSAGES[0]))
+    assert first["status"] == "success"
+    assert first["provider_id"] == "fallback"
+    assert pipeline.commit_count == 1
+
+    pipeline.primary = scripted_provider("clarify", "A response with no next question.", "evidence-2")
+    pipeline.fallback = scripted_provider("clarify", "Fallback with no next question.", "evidence-2")
+    second = pipeline.process(snapshot(2, MESSAGES[1]))
+    assert second == {"status": "retryable_failure", "committed": False, "reason": "no_valid_result"}
+    assert pipeline.ledgers["simulation-session"]["turn_number"] == 1
+    assert pipeline.commit_count == 1
+
+
 def test_repeated_response_from_both_providers_is_refused_without_commit():
     same = "We do not have to settle on an explanation yet. What do you notice?"
     primary = scripted_provider("clarify", same, "current_evidence")
