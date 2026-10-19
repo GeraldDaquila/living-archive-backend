@@ -352,20 +352,16 @@ def test_authoritative_safety_precedes_negated_task_guard():
     assert decision.source == "deterministic-safety-precedence"
 
 
-def test_known_production_hrn_projection_fixture_is_a_parity_gap_not_silently_reclassified():
-    # Production's _relational_boundary_decision opens HRN for this lived,
-    # first-person projection question. The isolated registry currently
-    # defaults it to Guide; keep this as an explicit known gap until a
-    # multi-signal deterministic rule is reviewed against production guards.
+def test_known_production_hrn_projection_fixture_matches_production_relational_boundary():
+    # This production fixture is now covered by the narrow multi-signal rule below.
     query = (
         "I can't tell whether what I'm sensing in a relationship is real "
         "or something I'm projecting."
     )
     decision = resolve_route(query)
-    assert decision.route == "guide"
-    assert decision.mode == "direct"
-    assert decision.source == "deterministic-guide-default"
-
+    assert decision.route == "relationship"
+    assert decision.mode == "delegated_journey"
+    assert decision.source == "deterministic-lived-relational-projection"
 
 def test_production_lived_projection_fixture_routes_to_relationship_specialist():
     query = (
