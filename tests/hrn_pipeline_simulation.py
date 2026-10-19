@@ -189,6 +189,7 @@ def scripted_provider(move: str, response: str, evidence: str,
             snapshot["committed_ledger"]["turn_number"] = 999
         return {
             "status": status,
+            "request_id": snapshot.get("request_id"),
             "session_id": session_override if session_override is not None else snapshot.get("session_id"),
             "visitor_turn_id": snapshot.get("visitor_turn_id"),
             "evidence_delta": [evidence],
