@@ -14,12 +14,30 @@ def _snapshot(session, turn, message, request=None):
     }
 
 
-def test_interleaved_sessions_do_not_share_turns_responses_or_evidence():
-    pipeline = SimulatedHRNPipeline(
-        scripted_provider("clarify", "A response for this session.", "session_evidence"),
-        scripted_provider("clarify", "Fallback response for this session.", "session_evidence"),
-    )
+def _session_provider(snapshot):
+    session = snapshot["session_id"]
+    turn = snapshot["turn_number"]
+    return {
+        "status": "success",
+        "request_id": snapshot["request_id"],
+        "session_id": session,
+        "visitor_turn_id": snapshot["visitor_turn_id"],
+        "evidence_delta": [f"{session}_turn_{turn}_evidence"],
+        "next_move": "clarify",
+        "response_draft": f"Response for session {session}, turn {turn}.",
+        "question": f"What matters most in session {session}, turn {turn}?",
+    }
 
+
+def _fallback(snapshot):
+    return {
+        **_session_provider(snapshot),
+        "response_draft": f"Fallback response for session {snapshot['session_id']}, turn {snapshot['turn_number']}.",
+    }
+
+
+def test_interleaved_sessions_do_not_share_turns_responses_or_evidence():
+    pipeline = SimulatedHRNPipeline(_session_provider, _fallback)
     a1 = pipeline.process(_snapshot("A", 1, "I am thinking about a friendship."))
     b1 = pipeline.process(_snapshot("B", 1, "I am thinking about a workplace issue."))
     a2 = pipeline.process(_snapshot("A", 2, "The silence began after a disagreement."))
