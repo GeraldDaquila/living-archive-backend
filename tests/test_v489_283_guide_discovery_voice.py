@@ -91,7 +91,7 @@ def test_reciprocity_definition_has_bounded_everyday_fallback_when_provider_bank
     response = result["response"]
     assert "Reciprocity means a relationship of mutual response" in response
     assert "For example, neighbors" in response
-    assert "\\n\\n" in response
+    assert response.count("\n\n") >= 2
     assert "debt ledger" in response
     assert result["provider"] == "bounded_general_knowledge_recovery"
 
