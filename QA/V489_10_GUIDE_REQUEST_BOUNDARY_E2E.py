@@ -525,11 +525,11 @@ def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity():
             case["query"], {}, {}
         )
         response = result["response"]
-        paragraphs = [part for part in response.split("\\n\\n") if part.strip()]
+        paragraphs = [part for part in response.split("\n\n") if part.strip()]
 
         assert result["provider"] == case["provider"], case["query"]
         assert len(paragraphs) == case["paragraphs"], case["query"]
         for marker in case["markers"]:
             assert marker.casefold() in response.casefold(), (case["query"], marker)
         assert "I couldn't verify a reliable answer" not in response, case["query"]
-        assert r"\\n\\n" not in response, case["query"]
+        assert r"\n\n" not in response, case["query"]
