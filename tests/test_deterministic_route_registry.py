@@ -119,3 +119,70 @@ def test_unknown_mixed_question_remains_in_guide():
     decision = resolve_route("Compare public trust, stewardship, and institutional change.")
     assert decision.route == "guide"
     assert decision.mode == "direct"
+
+
+
+def test_route_modes_stay_within_registry_contract():
+    allowed_modes = {
+        "guide": {"direct", "clarify"},
+        "safety": {"safety"},
+        "catalogue": {"lookup"},
+        "formation": {"delegated_journey"},
+        "fsd": {"direct"},
+        "glyph": {"lookup"},
+        "atlas": {"lookup"},
+        "glossary": {"lookup"},
+        "relationship": {"delegated_journey"},
+    }
+    queries = (
+        "What makes a public institution trustworthy?",
+        "Find case studies in the stewardship catalogue",
+        "Open the Stewardship Formation Navigator",
+        "Please run the Fractal Systems Diagnostic.",
+        "Show me the meaning of this glyph.",
+        "Show me the archive reference map.",
+        "Define reciprocity.",
+        "Help me understand the conflict in this relationship",
+    )
+    for query in queries:
+        decision = resolve_route(query)
+        assert decision.route in allowed_modes
+        assert decision.mode in allowed_modes[decision.route]
+
+
+def test_glossary_accepts_explicit_what_does_term_mean_form():
+    decision = resolve_route("What does reciprocity mean?")
+    assert decision.route == "glossary"
+    assert decision.mode == "lookup"
+
+
+def test_glossary_exclusion_keeps_practical_stewardship_in_guide():
+    decision = resolve_route("Define stewardship in everyday community decisions.")
+    assert decision.route == "guide"
+
+
+def test_safety_override_precedes_every_registered_specialist_route():
+    queries = (
+        "Find case studies in the stewardship catalogue",
+        "Open the Stewardship Formation Navigator",
+        "Please run the Fractal Systems Diagnostic.",
+        "Show me the meaning of this glyph.",
+        "Show me the archive reference map.",
+        "Define reciprocity.",
+        "Help me understand the conflict in this relationship",
+    )
+    for query in queries:
+        decision = resolve_route(query, safety_active=True)
+        assert decision.route == "safety"
+        assert decision.mode == "safety"
+
+
+def test_registry_snapshot_matches_registered_route_families():
+    snapshot = registry_snapshot()
+    assert snapshot["version"] == "v1"
+    assert snapshot["rules"] == 7
+    assert set(snapshot["routes"]) == {
+        "guide", "safety", "catalogue", "formation", "fsd",
+        "glyph", "atlas", "glossary", "relationship",
+    }
+    assert snapshot["uses_llm_for_routing"] is False
