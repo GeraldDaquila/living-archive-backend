@@ -156,6 +156,36 @@ def _matches(patterns: tuple[str, ...], query: str) -> bool:
     return any(re.search(pattern, query, re.I) for pattern in patterns)
 
 
+def _is_lived_relational_projection_query(query: str) -> bool:
+    """Recognize a narrow first-person relational-uncertainty pattern, not topic mentions."""
+    if not query:
+        return False
+    bounded_resource_request = re.search(
+        r"\b(?:find|search|browse|recommend|show me|locate)\b.{0,100}"
+        r"\b(?:article|articles|resources?|materials?|works?|readings?)\b",
+        query,
+    )
+    archive_resource_request = re.search(r"\b(?:living archive|archive|catalogue|catalog)\b", query)
+    if bounded_resource_request and archive_resource_request:
+        return False
+
+    first_person = re.search(r"\b(?:i|i'm|i am|i can't|i cannot|i don't|i do not|my)\b", query)
+    relational_term = re.search(
+        r"\b(?:relationship|between us|partner|colleague|friendship|family|we)\b", query
+    )
+    dynamic_term = re.search(
+        r"\b(?:sensing|projecting|projection|what i'm feeling|what i'm sensing|"
+        r"what is happening|what's happening|misreading|reacting)\b",
+        query,
+    )
+    inquiry_term = re.search(
+        r"\b(?:can't tell|cannot tell|not sure|wonder|trying to understand|"
+        r"trying to make sense|whether|is real|am i|could be)\b",
+        query,
+    )
+    return bool(first_person and relational_term and dynamic_term and inquiry_term)
+
+
 def _is_catalogue_resource_search(query: str) -> bool:
     """Mirror the bounded production Catalogue task boundary without importing main."""
     if not query:
@@ -239,6 +269,15 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             route=chosen.route, mode=chosen.mode, confidence=chosen.confidence,
             reason=chosen.reason, source=chosen.source,
             alternatives=("guide",),
+        )
+
+    # Preserve the production relational boundary's multi-signal character:
+    # first-person + relational context + dynamic interpretation + inquiry.
+    if _is_lived_relational_projection_query(q):
+        return RouteDecision(
+            route="relationship", mode="delegated_journey", confidence=0.93,
+            reason="first-person relational uncertainty with projection/dynamic signals",
+            source="deterministic-lived-relational-projection", alternatives=("guide",),
         )
 
     # Specific bounded specialist rules take precedence over this broader
