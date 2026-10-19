@@ -317,3 +317,14 @@ def test_systems_lens_explicit_invocation_routes_to_specialist():
         decision = resolve_route(query)
         assert decision.route == "systems_ph"
         assert decision.mode == "lookup"
+
+
+def test_negated_systems_lens_invocation_stays_in_guide():
+    for query in (
+        "Do not open the Philippine Systems Lens.",
+        "Don't apply the Philippine Systems Lens to this question.",
+        "Never use the Philippine Systems Lens here.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
