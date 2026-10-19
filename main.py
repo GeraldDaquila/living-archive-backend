@@ -3438,9 +3438,9 @@ def _guide_capability_route(query, history=None):
     # asks to enter or prepare for the Formation pathway.
     explicit_formation_entry = _explicit_formation_entry_route(query)
     practical_stewardship_question = bool(
-        re.search(r"\\b(?:how|what|which|when|where)\\b", _normalize_query(query), re.I)
-        and re.search(r"\\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\\b", _normalize_query(query), re.I)
-        and re.search(r"\\bstewardship\\b", _normalize_query(query), re.I)
+        re.search(r"\b(?:how|what|which|when|where)\b", _normalize_query(query), re.I)
+        and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", _normalize_query(query), re.I)
+        and re.search(r"\bstewardship\b", _normalize_query(query), re.I)
     )
     if route == "formation" and practical_stewardship_question and not explicit_formation_entry:
         route = "guide"
