@@ -337,6 +337,10 @@ try {
     } catch (error) {
       clickError = error.message;
     }
+    const responseResult = await responsePromise;
+    // Capture diagnostics only after the asynchronous submit callback has had
+    // time to issue the mocked request; an immediate snapshot falsely reported
+    // an empty request list on the first click even though the request followed.
     mark("post_click_diagnostics", {
       index: i + 1,
       query: QUESTIONS[i],
@@ -348,7 +352,6 @@ try {
       pageErrors,
       consoleErrors
     });
-    const responseResult = await responsePromise;
     if (responseResult.error) {
       mark("api_response_timeout_diagnostics", {
         index: i + 1,
