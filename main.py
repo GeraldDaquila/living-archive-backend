@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.293 — Practical stewardship provider-exhaustion recovery
+# USE PRODUCTION VERSION: v489.294 — Practical stewardship provider-exhaustion recovery
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.293"
-DEPLOYMENT_FINGERPRINT = "USE-v489.293-practical-stewardship-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.293-practical-stewardship-recovery"
+APP_VERSION = "v489.294"
+DEPLOYMENT_FINGERPRINT = "USE-v489.294-practical-stewardship-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.294-practical-stewardship-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.293":
+if str(APP_VERSION) != "v489.294":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5789,6 +5789,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
             except Exception:
                 llm_output = ""
+
+    if _is_practical_stewardship_question(query):
+        # This bounded recovery has no canonical source body selected as direct
+        # evidence for the exact question. Suppress any incidental doorway from
+        # broad initial retrieval rather than attach an unrelated recommendation.
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
 
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
