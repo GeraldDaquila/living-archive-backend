@@ -100,6 +100,33 @@ def test_repeated_response_from_both_providers_is_refused_without_commit():
     assert pipeline.ledgers["simulation-session"]["pending_visitor_evidence"]["turn_id"] == "turn-2"
 
 
+
+def test_novel_response_with_repeated_question_is_refused_without_commit():
+    pipeline = SimulatedHRNPipeline(
+        scripted_provider("clarify", "A first, concrete observation.", "evidence-1",
+                          question="What do you notice when this happens?"),
+        scripted_provider("clarify", "A fallback first-turn observation.", "evidence-1",
+                          question="What else do you notice?"),
+    )
+    first = pipeline.process(snapshot(1, MESSAGES[0]))
+    assert first["status"] == "success"
+
+    pipeline.primary = scripted_provider(
+        "deepen", "A new response, but the same question.", "evidence-2",
+        question="What do you notice when this happens?",
+    )
+    pipeline.fallback = scripted_provider(
+        "deepen", "A different fallback, but still the same question.", "evidence-2",
+        question="What do you notice when this happens?",
+    )
+    second = pipeline.process(snapshot(2, MESSAGES[1]))
+    assert second == {"status": "retryable_failure", "committed": False, "reason": "no_valid_result"}
+    ledger = pipeline.ledgers["simulation-session"]
+    assert ledger["turn_number"] == 1
+    assert ledger["questions"] == ["What do you notice when this happens?"]
+    assert ledger["pending_visitor_evidence"]["turn_id"] == "turn-2"
+    assert pipeline.commit_count == 1
+
 def test_duplicate_submission_is_idempotent_and_does_not_commit_twice():
     pipeline = SimulatedHRNPipeline(
         scripted_provider("clarify", "A fresh, supported observation.", "evidence"),
