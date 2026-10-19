@@ -43,8 +43,10 @@ def test_explicit_formation_entry_remains_formation():
 
 
 def test_funding_priority_query_is_not_reclassified_as_practical_stewardship():
+    import re
     query = "How should a community decide which of two competing priorities deserves funding when neither can be fully supported?"
+    normalized = use_main._normalize_query(query)
     assert not (
-        __import__("re").search(r"\\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\\b", use_main._normalize_query(query), __import__("re").I)
-        and __import__("re").search(r"\\bstewardship\\b", use_main._normalize_query(query), __import__("re").I)
+        re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", normalized, re.I)
+        and re.search(r"\bstewardship\b", normalized, re.I)
     )
