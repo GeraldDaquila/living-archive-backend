@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.287 — Direct-fit stewardship conflict recommendations
+# USE PRODUCTION VERSION: v489.288 — Direct-fit funding priority recommendations
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.287"
-DEPLOYMENT_FINGERPRINT = "USE-v489.287-stewardship-conflict-recommendation-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.287-stewardship-conflict-recommendation-fit"
+APP_VERSION = "v489.288"
+DEPLOYMENT_FINGERPRINT = "USE-v489.288-funding-priority-recommendation-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.288-funding-priority-recommendation-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.287":
+if str(APP_VERSION) != "v489.288":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4466,24 +4466,35 @@ def _stewardship_conflict_candidate_has_direct_fit(query, document):
     omitted; the visitor's answer is preserved by the caller.
     """
     q = _normalize_query(query)
-    if not re.search(r"\\bstewardship\\b", q, re.I):
+    if not re.search(r"\bstewardship\b", q, re.I):
         return True
     conflict = bool(re.search(
-        r"\\b(?:disagree|disagreement|conflict|competing|opposing|different priorities|"
-        r"what is worth protecting|worth protecting|trade[- ]?offs?)\\b", q, re.I
+        r"\b(?:disagree|disagreement|conflict|competing|opposing|different priorities|"
+        r"what is worth protecting|worth protecting|trade[- ]?offs?)\b", q, re.I
     ))
     if not conflict:
         return True
     title = str(document.get("title") or "").casefold()
     body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
-    title_fit = bool(re.search(r"\\b(?:stewardship|governance|decision|conflict|values|ethic)\\b", title))
+    title_fit = bool(re.search(r"\b(?:stewardship|governance|decision|conflict|values|ethic)\b", title))
     body_fit = bool(re.search(
-        r"\\b(?:disagree|disagreement|conflict|competing values|different values|"
+        r"\b(?:disagree|disagreement|conflict|competing values|different values|"
         r"trade[- ]?offs?|what each protects|protecting|decision[- ]making|"
-        r"fair process|resolve|reconcile)\\b", body
+        r"fair process|resolve|reconcile)\b", body
     ))
     return title_fit and body_fit
 
+
+def _resource_allocation_candidate_has_direct_fit(query, document):
+    """Reject generic resources for questions about funding competing priorities."""
+    q = _normalize_query(query)
+    if not re.search(r"\b(?:funding|fund|budget|allocate|allocation|priorit(?:y|ies|ize|ise|ization)|limited resources|competing priorities)\b", q, re.I):
+        return True
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    title_fit = bool(re.search(r"\b(?:funding|budget|allocation|allocate|priorit(?:y|ies|ization|ize|ise)|resource management|decision[- ]making|trade[- ]offs?|governance)\b", title))
+    body_fit = bool(re.search(r"\b(?:fund(?:ing|s)?|budget(?:s|ing)?|allocat(?:e|es|ed|ing|ion)|priorit(?:y|ies|ization|ize|ise)|limited resources|competing needs|decision criteria|trade[- ]offs?|scarce resources|resource allocation|fair process|weigh competing)\b", body))
+    return title_fit and body_fit
 
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
@@ -4555,6 +4566,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             item for item in evidence_docs
             if _stewardship_conflict_candidate_has_direct_fit(query, item)
         ]
+        evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
 
         topic_groups = _topic_anchor_groups(query)
         # When a visitor asks what to read about political dynasties, a broad
@@ -4607,6 +4619,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                 item for item in evidence_docs
                 if _stewardship_conflict_candidate_has_direct_fit(query, item)
             ]
+            evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
             if require_dynasty_title:
                 evidence_docs = [
                     item for item in evidence_docs
