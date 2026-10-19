@@ -232,3 +232,19 @@ def test_archive_specific_map_request_routes_to_atlas():
         decision = resolve_route(query)
         assert decision.route == "atlas"
         assert decision.mode == "lookup"
+
+
+def test_existential_meaning_of_life_question_stays_in_guide():
+    for query in (
+        "What is the meaning of life?",
+        "What is the meaning of a good life?",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+
+
+def test_specific_term_meaning_request_still_uses_glossary():
+    decision = resolve_route("What is the meaning of reciprocity?")
+    assert decision.route == "glossary"
+    assert decision.mode == "lookup"
