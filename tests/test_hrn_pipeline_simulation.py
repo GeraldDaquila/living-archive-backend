@@ -163,6 +163,8 @@ def test_logs_never_contain_visitor_text_or_secret_like_values():
     assert secret not in rendered
     assert all("visitor_message" not in event for event in pipeline.events)
     assert all("api_key" not in event and "provider_secret" not in event for event in pipeline.events)
+    assert all("session_id" not in event and "request_id" not in event and "turn_id" not in event for event in pipeline.events)
+    assert "simulation-session" not in rendered
 
 
 def test_provider_input_mutation_does_not_mutate_staged_or_committed_state():
