@@ -124,7 +124,7 @@ _RULES = (
         confidence=0.98,
     ),
     RouteRule(
-        route="case", mode="lookup", priority=82,
+        route="case", mode="lookup", priority=75,
         reason="explicit case-study discovery request",
         source="deterministic-case-study-lookup",
         patterns=(
