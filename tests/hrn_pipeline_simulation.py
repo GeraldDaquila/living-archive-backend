@@ -151,13 +151,18 @@ class SimulatedHRNPipeline:
             return False
         if result.get("session_id") != snapshot.get("session_id"):
             return False
+        if result.get("request_id") != snapshot.get("request_id"):
+            return False
         if result.get("visitor_turn_id") != snapshot.get("visitor_turn_id"):
             return False
         response = result.get("response_draft")
         move = result.get("next_move")
+        question = result.get("question")
         if not isinstance(response, str) or not response.strip():
             return False
         if move not in {"clarify", "distinguish", "deepen", "reflect", "close"}:
+            return False
+        if move != "close" and (not isinstance(question, str) or not question.strip()):
             return False
         signature = _signature(response)
         if not signature or any(signature == _signature(previous) for previous in committed["responses"]):
