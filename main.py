@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.288 — Direct-fit funding priority recommendations
+# USE PRODUCTION VERSION: v489.289 — Bounded funding-priority answer recovery
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.288"
-DEPLOYMENT_FINGERPRINT = "USE-v489.288-funding-priority-recommendation-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.288-funding-priority-recommendation-fit"
+APP_VERSION = "v489.289"
+DEPLOYMENT_FINGERPRINT = "USE-v489.289-bounded-funding-priority-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.289-bounded-funding-priority-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.288":
+if str(APP_VERSION) != "v489.289":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4177,6 +4177,31 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "response": response,
             "doorway_title": title,
             "provider": "calibrated_general_knowledge_recovery",
+            "model": "",
+        }
+
+    # Funding-priority questions remain answerable when retrieval has no directly
+    # relevant canonical resource. Keep the general decision framework separate
+    # from doorway selection: never cite or recommend an unrelated Archive asset
+    # as a substitute for answering the question.
+    if (
+        re.search(r"\\b(?:funding|fund|budget|allocate|allocation)\\b", q, re.I)
+        and re.search(r"\\b(?:competing priorities|two priorities|limited resources|neither can be fully supported|cannot fully fund|can't fully fund|trade[- ]?offs?)\\b", q, re.I)
+    ):
+        response = (
+            "When a community cannot fully fund both priorities, it should agree on transparent criteria before choosing. "
+            "Compare the urgency of each need, the consequences of delaying it, who would be affected, and whether a smaller "
+            "or phased option could protect the most important outcomes.\n\n"
+            "Make the trade-offs explicit: what each option would protect, what it would leave unmet, and who would carry the cost. "
+            "Use the same criteria for both options, include the people most affected, and record the reasons for the decision. "
+            "Where uncertainty remains, consider a time-limited allocation with a clear review point rather than presenting the choice as permanent.\n\n"
+            "This is a general decision framework, not a claim that the Archive supplied a definitive answer. I did not identify "
+            "a sufficiently direct Archive resource to recommend for this question."
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_funding_priority_recovery",
             "model": "",
         }
 
