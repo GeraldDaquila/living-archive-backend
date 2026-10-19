@@ -11,6 +11,8 @@ on:
 jobs:
   funding-priority-recovery:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -26,4 +28,4 @@ jobs:
       - name: Compile production entry point
         run: python -m py_compile main.py
       - name: Run funding-priority relevance and answer-recovery regressions
-        run: pytest -q QA/V489_11_GUIDE_CONFLICT_RECOMMENDATION_FIT.py
+        run: python -m pytest -q QA/V489_11_GUIDE_CONFLICT_RECOMMENDATION_FIT.py
