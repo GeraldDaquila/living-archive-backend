@@ -58,9 +58,9 @@ The registry currently has explicit rules for catalogue, formation, FSD, glyph, 
 
 ## Verified isolated-test result
 
-GitHub Actions run 7 for the deterministic routing registry completed successfully after commit `e0cb763f3c27ca415f9e9a9d222bf22b75b3de46`. The job completed the `Run isolated registry tests` step successfully. This confirms the isolated registry tests passed in that run; it does **not** establish production parity or visitor-facing end-to-end success.
+GitHub Actions run 47 for the deterministic routing registry completed successfully on commit `d142e5be449a154d0a9cbe5add7e8a74ecf0b4f5`. The job completed the `Run isolated registry tests` step successfully. The suite includes explicit regression coverage for glyph-meaning questions versus generic glossary matching, Catalogue-versus-case-study precedence, and case-study retrieval without a Catalogue mention. This confirms the isolated registry tests passed in that run; it does **not** establish production parity or visitor-facing end-to-end success.
 
-The earlier run failed because `What is stewardship and why does it matter?` was classified as `glossary` rather than `guide`. A bounded exclusion was added to keep explanatory stewardship questions in the general Guide lane. The passing run is associated with the correction.
+An earlier run failed because `What is stewardship and why does it matter?` was classified as `glossary` rather than `guide`. A bounded exclusion was added to keep explanatory stewardship questions in the general Guide lane. Subsequent isolated CI runs have passed, including the latest run noted above.
 
 ## Non-negotiable integration gates
 
