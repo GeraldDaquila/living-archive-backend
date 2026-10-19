@@ -460,5 +460,5 @@ def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(m
     assert status == 200
     assert "workload and recovery problem" in payload["response"]
     assert "For example" in payload["response"]
-    assert len(payload["response"].split("\\n\\n")) == 3
-    assert r"\\n\\n" not in payload["response"]
+    assert len(payload["response"].split("\n\n")) == 3
+    assert r"\n\n" not in payload["response"]
