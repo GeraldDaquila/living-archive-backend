@@ -55,7 +55,7 @@ class SimulatedHRNPipeline:
 
         committed = deepcopy(self.ledgers.get(session_id, {
             "session_id": session_id, "turn_number": 0, "visitor_evidence": [],
-            "responses": [], "moves": [], "questions": [], "closed": False,
+            "responses": [], "moves": [], "questions": [], "pending_visitor_evidence": None, "closed": False,
         }))
         expected_turn = int(committed["turn_number"]) + 1
         if int(original.get("turn_number") or 0) != expected_turn:
@@ -101,6 +101,14 @@ class SimulatedHRNPipeline:
             return {"status": "retryable_failure", "committed": False, "reason": "snapshot_integrity_failure"}
 
         if not self._valid(result, immutable_before, committed):
+            # Preserve the current visitor contribution for retry without advancing
+            # the turn, writing assistant synthesis, or logging raw visitor content.
+            pending_ledger = deepcopy(committed)
+            pending_ledger["pending_visitor_evidence"] = {
+                "turn_id": turn_id,
+                "message_sha256": immutable_before["current_evidence_delta"]["visitor_message_sha256"],
+            }
+            self.ledgers[session_id] = pending_ledger
             self.events.append(_safe_event("commit", request_id=request_id, session_id=session_id,
                                            turn_id=turn_id, provider_id=provider_id, outcome="refused",
                                            reason="no_valid_nonrepeating_response"))
@@ -110,6 +118,7 @@ class SimulatedHRNPipeline:
         # A provider's proposed state is never authoritative; the pipeline owns the commit.
         next_ledger = deepcopy(committed)
         next_ledger["turn_number"] = expected_turn
+        next_ledger["pending_visitor_evidence"] = None
         next_ledger["visitor_evidence"] = (next_ledger["visitor_evidence"] + [{
             "turn_id": turn_id,
             "message_sha256": immutable_before["current_evidence_delta"]["visitor_message_sha256"],
