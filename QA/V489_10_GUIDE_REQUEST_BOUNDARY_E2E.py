@@ -521,6 +521,14 @@ def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity(monk
     ]
 
     for case in cases:
+        deterministic = use_main._basic_inquiry_round1_deterministic_response(
+            case["query"], {}, {}, recommendation_available=False
+        )
+        assert deterministic is not None, case["query"]
+        assert deterministic["provider"] == case["provider"], (
+            case["query"], deterministic.get("provider")
+        )
+
         _install_controlled_provider_and_retrieval(
             monkeypatch, {"evidence_sufficiency_unavailable": True}
         )
