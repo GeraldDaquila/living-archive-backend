@@ -36,7 +36,9 @@ The current `_GUIDE_ROUTE_IDS` set in production `main.py` contains:
 - `fsd`
 - `guide_node`
 
-The registry currently has explicit rules for catalogue, formation, FSD, glyph, Atlas, glossary, a high-signal subset of relationship navigation, and bounded initial rules for `navigator`, `systems_ph`, and `case`. These new rules are only explicit-surface subsets, not equivalents of production behavior. It still does not implement live `guide_node` arbitration. The safety override is not connected to the protected-core safety authority.
+The registry currently has explicit rules for catalogue, formation, FSD, glyph, Atlas, glossary, a high-signal subset of relationship navigation, and bounded initial rules for `navigator`, `systems_ph`, and `case`.
+
+The `systems_ph` rule was tightened after review: naming the Philippine Systems Lens is not sufficient by itself. The query must contain an explicit invocation verb (for example, open/use/apply/run) adjacent to the surface name. Tests now assert that mention-only questions remain in Guide and explicit invocation selects the specialist. This is a conservative routing contract, not proof of production parity. These new rules are only explicit-surface subsets, not equivalents of production behavior. It still does not implement live `guide_node` arbitration. The safety override is not connected to the protected-core safety authority.
 
 ## Deterministic fallback route families observed
 
