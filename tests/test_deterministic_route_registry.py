@@ -132,7 +132,7 @@ def test_route_modes_stay_within_registry_contract():
         "glyph": {"lookup"},
         "atlas": {"lookup"},
         "glossary": {"lookup"},
-        "relationship": {"delegated_journey"},
+        "relationship": {"delegated_journey"},\n        "navigator": {"lookup"},\n        "systems_ph": {"lookup"},\n        "case": {"lookup"},
     }
     queries = (
         "What makes a public institution trustworthy?",
@@ -142,7 +142,7 @@ def test_route_modes_stay_within_registry_contract():
         "Show me the meaning of this glyph.",
         "Show me the archive reference map.",
         "Define reciprocity.",
-        "Help me understand the conflict in this relationship",
+        "Help me understand the conflict in this relationship",\n        "Where do I begin in the Living Archive?",\n        "Open the Philippine Systems Lens.",\n        "Find relevant case studies.",
     )
     for query in queries:
         decision = resolve_route(query)
@@ -180,7 +180,7 @@ def test_safety_override_precedes_every_registered_specialist_route():
 def test_registry_snapshot_matches_registered_route_families():
     snapshot = registry_snapshot()
     assert snapshot["version"] == "v1"
-    assert snapshot["rules"] == 7
+    assert snapshot["rules"] == 10
     assert set(snapshot["routes"]) == {
         "guide", "safety", "catalogue", "formation", "fsd",
         "glyph", "atlas", "glossary", "relationship",
@@ -248,3 +248,27 @@ def test_specific_term_meaning_request_still_uses_glossary():
     decision = resolve_route("What is the meaning of reciprocity?")
     assert decision.route == "glossary"
     assert decision.mode == "lookup"
+
+
+def test_explicit_archive_orientation_routes_to_navigator():
+    decision = resolve_route("Where do I begin in the Living Archive?")
+    assert decision.route == "navigator"
+    assert decision.mode == "lookup"
+
+
+def test_explicit_philippine_systems_lens_routes_to_specialist():
+    decision = resolve_route("Open the Philippine Systems Lens.")
+    assert decision.route == "systems_ph"
+    assert decision.mode == "lookup"
+
+
+def test_explicit_case_study_search_routes_to_case_navigator():
+    decision = resolve_route("Find relevant case studies.")
+    assert decision.route == "case"
+    assert decision.mode == "lookup"
+
+
+def test_case_study_mention_without_retrieval_intent_stays_in_guide():
+    decision = resolve_route("Why are case studies useful for learning?")
+    assert decision.route == "guide"
+    assert decision.mode == "direct"
