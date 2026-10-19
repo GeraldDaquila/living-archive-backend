@@ -5,12 +5,14 @@ import main as use_main
 QUERY = "How can a community practice stewardship in its everyday decisions and responsibilities?"
 
 
-def test_practical_stewardship_route_fallback_survives_provider_exhaustion(monkeypatch):
-    monkeypatch.setattr(use_main, "route_with_model_bank", lambda **kwargs: None)
+def test_practical_stewardship_route_is_authoritative_before_model_routing(monkeypatch):
+    def forbidden_model_call(**kwargs):
+        raise AssertionError("model routing must not override the practical-question boundary")
+    monkeypatch.setattr(use_main, "route_with_model_bank", forbidden_model_call)
     route = use_main._guide_capability_route(QUERY)
     assert route["route"] == "guide"
     assert route["mode"] == "direct"
-    assert route["source"] == "deterministic-practical-stewardship-fallback"
+    assert route["source"] == "deterministic-practical-stewardship-final-route"
 
 
 def test_practical_stewardship_recovery_returns_substantive_answer_without_archive_claim(monkeypatch):

@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.291 — Practical stewardship provider-exhaustion recovery
+# USE PRODUCTION VERSION: v489.292 — Practical stewardship provider-exhaustion recovery
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.291"
-DEPLOYMENT_FINGERPRINT = "USE-v489.291-practical-stewardship-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.291-practical-stewardship-recovery"
+APP_VERSION = "v489.292"
+DEPLOYMENT_FINGERPRINT = "USE-v489.292-practical-stewardship-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.292-practical-stewardship-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.291":
+if str(APP_VERSION) != "v489.292":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3400,6 +3400,19 @@ def _guide_node_semantic_activation(query, interpretation, route):
 
 def _guide_capability_route(query, history=None):
     """Interpret the opening inquiry through the provider-neutral intelligence bank."""
+    # The final route must be decided here, before any model candidate can
+    # redirect this known practical-question class into a delegated journey.
+    # The outer request boundary and the FastAPI app can each invoke routing;
+    # therefore this guard belongs at the shared routing entry point itself.
+    if _is_practical_stewardship_question(query):
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.99,
+            "reason": "practical stewardship question requires a direct Guide answer; model routing cannot override this intent",
+            "alternatives": ["guide"],
+            "source": "deterministic-practical-stewardship-final-route",
+        }
     fallback = _guide_route_fallback(query, history)
     history_text = _guide_route_history_text(history)
     user_content = (
