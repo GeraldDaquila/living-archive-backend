@@ -175,3 +175,16 @@ The SH-15 wording is grounded in the existing production regression fixture in `
 That test family verifies workplace-change fit, a verified canonical Conflict & Trust Arc candidate, and rejection of an unqualified generic Orientation page. Related coverage exists in `tests/test_v489_86_relational_return_topic_fit.py` and `tests/test_v489_89_relational_return_clustered_topic_evidence.py`, including recurring-argument repair-resource recovery and rejection of broad decoys.
 
 **Important distinction:** this is a real production regression fixture with workplace/context-sensitive relational intent, but the quoted query is itself a single-turn input. It does not, by itself, prove history-dependent routing. The registry currently routes it through the broad explicit relationship pattern, but that is not equivalent to production's full relational-return resource-selection and conversation-history behavior. SH-15 must therefore remain a parity blocker until actual multi-turn history/context input and route/mode outcomes are captured on both sides. Do not mark the history gate passed based on this fixture alone.
+
+
+## Workplace-return fixture contract test — 2026-10-20
+
+The isolated registry now has a contract test for the exact single-turn workplace-return query sourced from `tests/test_v489_226_relational_return_workplace_doorway_parity.py`. It asserts the bounded relationship/delegated-journey route and its rule source. This is a route-level regression check only: it does not assert canonical resource selection, multi-turn history, or the production relational-return pipeline.
+
+On commit `73a6c2eb900ad297a7b6f152560114c5bd93e785`, all three triggered workflows completed successfully:
+
+- Deterministic routing registry tests, run #94 — success.
+- v487 production validation, run #2310 — success.
+- Guide Woody mocked UI continuity contract, run #219 — success.
+
+These results validate the isolated registry tests and the existing production/UI regression suites on this commit. They do not establish production-versus-registry shadow parity, live visitor end-to-end success, or release readiness. PR #712 remains open and unmerged; production routing and protected files remain unchanged.
