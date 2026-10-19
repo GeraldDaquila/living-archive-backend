@@ -156,6 +156,14 @@ def _matches(patterns: tuple[str, ...], query: str) -> bool:
     return any(re.search(pattern, query, re.I) for pattern in patterns)
 
 
+_NEGATED_TASK_PATTERN = re.compile(
+    r"\b(?:do not|don't|never|please do not|please don't)\s+"
+    r"(?:please\s+)?(?:find|search|look for|discover|open|launch|enter|start|begin|"
+    r"join|access|use|take me to|run|apply|invoke|show|explore|lookup|look up|browse|define)\b",
+    re.I,
+)
+
+
 def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
     """Resolve a high-precision route without any model call.
 
@@ -175,6 +183,12 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             route="guide", mode="clarify", confidence=1.0,
             reason="empty query requires clarification",
             source="deterministic-empty-query", alternatives=(),
+        )
+    if _NEGATED_TASK_PATTERN.search(q):
+        return RouteDecision(
+            route="guide", mode="direct", confidence=0.90,
+            reason="negated task intent is not delegated to a specialist",
+            source="deterministic-negated-task-guard", alternatives=(),
         )
 
     candidates = [
