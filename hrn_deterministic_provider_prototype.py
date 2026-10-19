@@ -32,8 +32,8 @@ def reason(snapshot: dict[str, Any]) -> dict[str, Any]:
             limitations=["empty_visitor_message"],
         )
 
-    prior_evidence = original.get("known_observations") or []
     prior_questions = original.get("prior_questions") or []
+    prior_moves = original.get("prior_moves") or []
     turn = int(original.get("turn_number") or 1)
     lower = message.casefold()
 
@@ -82,7 +82,7 @@ def reason(snapshot: dict[str, Any]) -> dict[str, Any]:
         rationale = "Separate the reported timing from an unverified causal explanation."
         limitations = ["temporal_association_is_not_causation"]
         status = "success"
-    elif silence_pattern and turn >= 3:
+    elif silence_pattern and turn >= 3 and "distinguish" in prior_moves:
         evidence = ["ongoing_silence", "evasive_answers", "uncertain_trigger"]
         observations = [
             "The visitor describes continued silence and answers that do not address the concern.",
