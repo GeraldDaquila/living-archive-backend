@@ -70,6 +70,11 @@ class SimulatedHRNPipeline:
             self.events.append(_safe_event("snapshot", outcome="rejected", reason="turn_conflict"))
             return {"status": "retryable_failure", "committed": False, "reason": "turn_conflict"}
 
+        pending = committed.get("pending_visitor_evidence")
+        if pending and pending.get("turn_id") == turn_id and pending.get("message_sha256") != message_hash:
+            self.events.append(_safe_event("snapshot", outcome="rejected", reason="pending_evidence_conflict"))
+            return {"status": "retryable_failure", "committed": False, "reason": "pending_evidence_conflict"}
+
         staged = deepcopy(original)
         staged["committed_ledger"] = deepcopy(committed)
         staged["prior_responses"] = list(committed["responses"])
