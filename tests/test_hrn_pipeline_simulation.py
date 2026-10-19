@@ -97,6 +97,7 @@ def test_repeated_response_from_both_providers_is_refused_without_commit():
     assert result == {"status": "retryable_failure", "committed": False, "reason": "no_valid_result"}
     assert pipeline.commit_count == 1
     assert pipeline.ledgers["simulation-session"]["turn_number"] == 1
+    assert pipeline.ledgers["simulation-session"]["pending_visitor_evidence"]["turn_id"] == "turn-2"
 
 
 def test_duplicate_submission_is_idempotent_and_does_not_commit_twice():
@@ -217,9 +218,13 @@ def test_failed_turn_preserves_committed_state_and_can_retry_same_turn():
     pipeline.fallback = lambda snap: {"status": "insufficient_context"}
     failed = pipeline.process(snapshot(2, MESSAGES[1]))
     assert failed["status"] == "retryable_failure"
-    assert pipeline.ledgers["simulation-session"] == before
+    after_failure = pipeline.ledgers["simulation-session"]
+    assert after_failure["turn_number"] == before["turn_number"]
+    assert after_failure["responses"] == before["responses"]
+    assert after_failure["pending_visitor_evidence"]["turn_id"] == "turn-2"
     pipeline.primary = scripted_provider("distinguish", "The timing is relevant but not proof.", "loan_timing")
     retried = pipeline.process(snapshot(2, MESSAGES[1], request_id="request-2-retry"))
     assert retried["status"] == "success"
     assert retried["turn_number"] == 2
+    assert pipeline.ledgers["simulation-session"]["pending_visitor_evidence"] is None
     assert pipeline.commit_count == 2
