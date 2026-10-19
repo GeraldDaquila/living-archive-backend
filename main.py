@@ -72,7 +72,7 @@ app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.283"
 DEPLOYMENT_FINGERPRINT = "USE-v489.283-guide-discovery-voice"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.282-home-navigation-heading-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.283-guide-discovery-voice"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
