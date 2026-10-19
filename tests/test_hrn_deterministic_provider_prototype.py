@@ -138,3 +138,46 @@ def test_three_turn_sequence_carries_provider_state_without_mutating_prior_resul
     assert len({item["response_draft"] for item in results}) == 3
     assert "timing" in results[1]["response_draft"].casefold()
     assert "willing to talk" in results[2]["response_draft"].casefold()
+
+
+
+def test_repeated_response_is_not_accepted_as_progress_even_with_a_new_turn_id():
+    message = (
+        "The long silence, evaded answers, and ghosting my texts leave me "
+        "wondering what triggered it."
+    )
+    repeated_response = (
+        "We do not have to settle on an explanation yet. We can start with "
+        "one concrete moment and look at what happened, without assuming "
+        "what either person meant."
+    )
+    result = reason(_snapshot(
+        3,
+        message,
+        prior_moves=["clarify", "distinguish"],
+        prior_questions=["What is the first thing you notice when this situation begins to feel difficult?"],
+        prior_responses=[repeated_response],
+    ))
+    assert result["status"] == "insufficient_context"
+    assert "response_progression_guard_triggered" in result["limitations"]
+    assert "cannot be committed as progress" in result["move_rationale"]
+
+
+def test_response_progression_guard_ignores_whitespace_and_case_only_changes():
+    message = (
+        "The long silence, evaded answers, and ghosting my texts leave me "
+        "wondering what triggered it."
+    )
+    repeated_response = (
+        "WE DO NOT HAVE TO SETTLE ON AN EXPLANATION YET.  We can start with "
+        "one concrete moment and look at what happened, without assuming "
+        "what either person meant."
+    )
+    result = reason(_snapshot(
+        3,
+        message,
+        prior_moves=["clarify", "distinguish"],
+        prior_responses=[repeated_response],
+    ))
+    assert result["status"] == "insufficient_context"
+    assert "response_progression_guard_triggered" in result["limitations"]
