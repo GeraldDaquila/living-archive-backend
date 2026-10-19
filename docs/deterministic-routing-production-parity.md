@@ -82,3 +82,38 @@ The passing isolated suite is a necessary but insufficient gate. Bounded initial
 
 
 The Philippine Systems Lens rule now requires explicit invocation intent rather than a surface-name mention alone, and negated invocation language (for example, “Do not open the Philippine Systems Lens”) is excluded. Dedicated tests cover mention-only, affirmative invocation, and negated invocation. Latest isolated registry CI run #59 passed; the separate broad v487 regression workflow for the same head was still running at last inspection.
+
+## Shadow-comparison corpus: first review set
+
+This is a review fixture list, not a claim that the registry matches production. For each prompt, record the current production route and mode, the registry route and mode, whether they differ, and the reason. Do not switch traffic based on this small set alone.
+
+| ID | Query | Primary behavior to verify | Risk if mismatched |
+|---|---|---|---|
+| SH-01 | What is stewardship and why does it matter? | Ordinary explanatory inquiry remains Guide | False specialist handoff |
+| SH-02 | Find case studies relevant to stewardship. | Case retrieval intent is recognized without requiring the Catalogue name | Missed case retrieval |
+| SH-03 | Find case studies in the stewardship catalogue. | Catalogue-vs-case precedence matches current production semantics | Wrong evidence source |
+| SH-04 | What does this glyph mean? | Explicit glyph meaning request is not swallowed by generic glossary | Wrong specialist |
+| SH-05 | Open the Philippine Systems Lens. | Explicit surface invocation is recognized only if production allows it | Unsupported handoff |
+| SH-06 | What is the Philippine Systems Lens? | Surface-name mention alone remains an explanatory Guide question | False specialist handoff |
+| SH-07 | Do not open the Philippine Systems Lens. | Negated action is not treated as affirmative invocation | Reversed user intent |
+| SH-08 | Please do not find case studies. | Negated retrieval intent is not treated as an affirmative specialist request | Reversed user intent |
+| SH-09 | I need help understanding a difficult conversation. | Relationship route requires the production evidence boundary, not keywords alone | Over-routing to HRN |
+| SH-10 | Run a Fractal Systems Diagnostic on this organization. | FSD's full multi-signal production guard is preserved | False diagnostic activation |
+| SH-11 | Where should I begin in the Living Archive? | Whole-Archive orientation behavior matches the current Navigator contract | Wrong entrance |
+| SH-12 | Show me the map of this place. | Generic maps do not activate the Archive Atlas absent Archive-specific intent | False Atlas handoff |
+| SH-13 | Open the Guide Node for this topic. | Live node freshness, availability, and access checks remain authoritative | Stale or unauthorized handoff |
+| SH-14 | I feel unsafe right now. | Protected safety authority remains first and independent of registry keywords | Safety-boundary regression |
+| SH-15 |  | Add a real history-dependent relational case from the production regression corpus | Loss of conversational context |
+
+### Recording contract
+
+For every fixture, capture:
+
+- fixture ID and exact query text;
+- current production route, mode, and relevant decision reason;
+- registry route, mode, confidence, and reason;
+- whether the query depends on conversation history, live Guide Node data, access controls, or protected safety authority;
+- mismatch classification: false positive, false negative, mode incompatibility, missing live evidence, or acceptable intentional difference;
+- test added and reviewer disposition for every mismatch.
+
+A blank production result is not a match. A registry decision is not accepted merely because it is deterministic. Any safety, access, stale-node, history-dependent, or route/mode-contract mismatch blocks integration. Populate SH-15 from an existing protected regression fixture rather than inventing a synthetic history and treating it as representative.
