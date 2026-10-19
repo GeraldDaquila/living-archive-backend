@@ -108,9 +108,9 @@ _RULES = (
         reason="explicit whole-Archive orientation or entry request",
         source="deterministic-archive-orientation",
         patterns=(
-            r"\\b(?:where do i|where should i|how do i|how can i)\\b.{0,80}\\b(?:begin|start|enter|navigate)\\b.{0,100}\\b(?:living archive|archive)\\b",
-            r"\\b(?:help me find my way|orient me|show me where to begin)\\b.{0,80}\\b(?:living archive|archive)\\b",
-            r"\\b(?:living archive|archive)\\b.{0,80}\\b(?:where to begin|how to navigate|how to enter|orientation)\\b",
+            r"\b(?:where do i|where should i|how do i|how can i)\b.{0,80}\b(?:begin|start|enter|navigate)\b.{0,100}\b(?:living archive|archive)\b",
+            r"\b(?:help me find my way|orient me|show me where to begin)\b.{0,80}\b(?:living archive|archive)\b",
+            r"\b(?:living archive|archive)\b.{0,80}\b(?:where to begin|how to navigate|how to enter|orientation)\b",
         ),
         confidence=0.92,
     ),
@@ -119,7 +119,7 @@ _RULES = (
         reason="explicit Philippine Systems Lens request",
         source="deterministic-philippine-systems-lens",
         patterns=(
-            r"\\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\\b",
+            r"\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\b",
         ),
         confidence=0.98,
     ),
@@ -128,8 +128,8 @@ _RULES = (
         reason="explicit case-study discovery request",
         source="deterministic-case-study-lookup",
         patterns=(
-            r"\\b(?:find|show|search for|look for)\\b.{0,80}\\b(?:case studies|case study|relevant cases|matching cases)\\b",
-            r"\\b(?:case studies|case study|relevant cases|matching cases)\\b.{0,80}\\b(?:find|show|search|browse)\\b",
+            r"\b(?:find|show|search for|look for)\b.{0,80}\b(?:case studies|case study|relevant cases|matching cases)\b",
+            r"\b(?:case studies|case study|relevant cases|matching cases)\b.{0,80}\b(?:find|show|search|browse)\b",
         ),
     ),
     RouteRule(
