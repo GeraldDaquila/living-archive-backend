@@ -367,18 +367,32 @@ def test_known_production_hrn_projection_fixture_is_a_parity_gap_not_silently_re
     assert decision.source == "deterministic-guide-default"
 
 
-def test_known_production_catalogue_resource_queries_are_explicit_parity_gaps():
-    # These are asserted as Catalogue searches by
-    # tests/test_catalogue_resource_search_routing.py on production main.
-    # The isolated registry currently defaults them to Guide because it
-    # recognizes only a narrower subset of resource-discovery language.
+def test_production_catalogue_resource_search_fixtures_route_to_catalogue():
+    # Mirrors the positive cases in tests/test_catalogue_resource_search_routing.py.
     for query in (
         "Where can I find material about institutional responsibility?",
         "Find resources about governance and shared stewardship.",
         "Please recommend resources on stewardship.",
+        "Can you help me find resources about institutional responsibility?",
+        "Please search the archive for resources on stewardship.",
+        "I'd like to browse works about stewardship.",
+        "Show me works about institutional responsibility.",
         "What resources are available on stewardship?",
         "I'm looking for materials about shared governance.",
+        "I want to explore the Catalogue for readings about stewardship.",
     ):
         decision = resolve_route(query)
-        assert decision.route == "guide"
-        assert decision.source == "deterministic-guide-default"
+        assert decision.route == "catalogue", query
+        assert decision.mode == "lookup", query
+        assert decision.source == "deterministic-catalogue-resource-search", query
+
+
+def test_explanatory_questions_and_explanatory_first_mixed_queries_stay_in_guide():
+    for query in (
+        "What is stewardship and why does it matter now more than ever?",
+        "Why is institutional responsibility important?",
+        "What is stewardship? Where can I find material about it?",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide", query
+        assert decision.mode == "direct", query
