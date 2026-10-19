@@ -120,9 +120,9 @@ A blank production result is not a match. A registry decision is not accepted me
 
 ## Confirmed known mismatch from production regression fixture
 
-The production test `tests/test_v489_85_relational_projection_routing.py` asserts that the query in SH-09 opens the relational boundary with reason `lived_relational_structure`, while a bounded Archive article search about projection stays outside HRN. The registry's current rule does not match the SH-09 wording and defaults it to `guide/direct`. A dedicated registry test now pins this as a known parity gap rather than allowing it to be mistaken for a pass.
+The production test `tests/test_v489_85_relational_projection_routing.py` asserts that the query in SH-09 opens the relational boundary with reason `lived_relational_structure`, while a bounded Archive article search about projection stays outside HRN. The registry now has a narrow multi-signal rule requiring first-person language, a relational term, a dynamic interpretation/projection signal, and uncertainty/inquiry language. A paired bounded Archive-resource suppressor keeps the known article-search fixture out of the relationship route.
 
-This is an evidence-based mismatch, not a reason to add a broad relationship keyword rule. Any repair must preserve the production boundary's first-person, counterpart/relational, dynamic, inquiry, and bounded-resource suppression signals. SH-15 is sourced from the existing workplace-return regression family; it still requires a true history-dependent fixture from the relevant production tests before the history gate can be considered covered.
+Dedicated registry tests cover the production positive fixture, the bounded Archive article-search negative fixture, and topic-only projection mentions. The rule is an intentionally narrow parity improvement, not a claim that it reproduces the full production `_relational_boundary_decision()`: counterpart signals, history-aware cases, and other relational patterns still require shadow fixtures. SH-15 is sourced from the existing workplace-return regression family; it still requires a true history-dependent fixture from the relevant production tests before the history gate can be considered covered.
 
 ## Catalogue resource-search parity: bounded rule added, pending CI
 
