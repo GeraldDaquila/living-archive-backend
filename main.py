@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.290 — Practical stewardship routing
+# USE PRODUCTION VERSION: v489.291 — Practical stewardship provider-exhaustion recovery
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.290"
-DEPLOYMENT_FINGERPRINT = "USE-v489.290-stewardship-practice-routing"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.290-stewardship-practice-routing"
+APP_VERSION = "v489.291"
+DEPLOYMENT_FINGERPRINT = "USE-v489.291-practical-stewardship-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.291-practical-stewardship-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.290":
+if str(APP_VERSION) != "v489.291":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3103,10 +3103,31 @@ def _is_explicit_atlas_request(query):
     return bool(re.search(atlas_context, q, re.I))
 
 
+def _is_practical_stewardship_question(query):
+    """Recognize everyday application questions without invoking a model."""
+    q = _normalize_query(query)
+    return bool(
+        re.search(r"\b(?:how|what|which|when|where)\b", q, re.I)
+        and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", q, re.I)
+        and re.search(r"\bstewardship\b", q, re.I)
+        and not _explicit_formation_entry_route(query)
+    )
+
+
 def _guide_route_fallback(query, history=None):
     """Conservative fallback when the early LLM route cannot execute."""
     q = _normalize_query(query)
     combined = " ".join(part for part in (q, _guide_route_history_text(history)) if part)
+
+    if _is_practical_stewardship_question(query):
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.90,
+            "reason": "practical stewardship question stays in direct Guide response even when routing providers are unavailable",
+            "alternatives": ["guide"],
+            "source": "deterministic-practical-stewardship-fallback",
+        }
 
     # Safety remains the highest deterministic boundary.
     try:
@@ -4049,6 +4070,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
+
+    if _is_practical_stewardship_question(query):
+        response = (
+            "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
+            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\n\n"
+            "Agree on clear criteria, use the same criteria for everyone, name who will maintain the result, and make the reasons for the decision accessible. "
+            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\n\n"
+            "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
 
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
