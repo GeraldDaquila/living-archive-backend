@@ -186,3 +186,26 @@ def test_registry_snapshot_matches_registered_route_families():
         "glyph", "atlas", "glossary", "relationship",
     }
     assert snapshot["uses_llm_for_routing"] is False
+
+
+
+def test_mentioning_formation_surface_is_not_enough_to_delegate():
+    for query in (
+        "Tell me about the Stewardship Formation Navigator.",
+        "I saw the Formation Pathway mentioned in a document.",
+        "What does the Stewardship Formation Navigator do?",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+
+
+def test_formation_entry_language_still_delegates():
+    for query in (
+        "Open the Stewardship Formation Navigator.",
+        "Please launch the Formation Pathway.",
+        "Take me to the Stewardship Formation Navigator.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "formation"
+        assert decision.mode == "delegated_journey"
