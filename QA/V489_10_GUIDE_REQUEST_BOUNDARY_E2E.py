@@ -440,3 +440,34 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
     }
+
+def test_provider_bank_exhaustion_reuses_frozen_reciprocity_gold_standard(monkeypatch):
+    """Exercise the frozen approved answer through the existing ASGI request boundary."""
+    from pathlib import Path
+
+    fixture = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "tests"
+            / "fixtures"
+            / "general_guide_reciprocity_gold_standard.json"
+        ).read_text(encoding="utf-8")
+    )
+    _install_controlled_provider_and_retrieval(
+        monkeypatch, {"evidence_sufficiency_unavailable": True}
+    )
+    monkeypatch.setattr(
+        use_main.general_guide_composition, "compose", lambda **kwargs: None
+    )
+    monkeypatch.setattr(use_main, "_guide_capability_route", lambda *args, **kwargs: {})
+
+    status, payload = asyncio.run(_post_query(fixture["query"]))
+
+    assert status == 200
+    assert payload["response"] == fixture["expected_response"]
+    assert len(payload["response"].split("\\n\\n")) == 3
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert "provider" not in payload["response"].casefold()
+    assert "canonical evidence" not in payload["response"].casefold()
+
