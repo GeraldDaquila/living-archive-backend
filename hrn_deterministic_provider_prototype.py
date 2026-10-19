@@ -128,6 +128,27 @@ def reason(snapshot: dict[str, Any]) -> dict[str, Any]:
             limitations=["outside_supported_deterministic_scope"],
         )
 
+    # Response progression is a separate invariant from question novelty.
+    # A new question cannot make a repeated generic response count as movement.
+    prior_responses = original.get("prior_responses") or []
+    current_response_signature = _normalize_response(response)
+    if any(
+        current_response_signature == _normalize_response(str(previous))
+        for previous in prior_responses
+        if str(previous).strip()
+    ):
+        return _result(
+            status="insufficient_context",
+            snapshot=original,
+            move="clarify",
+            evidence=evidence,
+            observations=observations,
+            interpretation=interpretation,
+            rationale="The proposed response repeats prior visitor-facing prose and cannot be committed as progress.",
+            response="I don't want to repeat myself or pretend the conversation has moved. The latest detail needs to be reconsidered before we continue.",
+            limitations=limitations + ["response_progression_guard_triggered"],
+        )
+
     current_signature = _normalize_question(response)
     if any(current_signature == _normalize_question(str(q)) for q in prior_questions):
         return _result(
@@ -159,6 +180,15 @@ def _normalize_question(value: str) -> str:
     import re
 
     return " ".join(re.sub(r"[^a-z0-9 ]+", " ", value.casefold()).split())
+
+
+def _normalize_response(value: str) -> str:
+    """Normalize visitor-facing prose for a conservative exact-loop guard."""
+    import re
+
+    text = value.casefold()
+    text = re.sub(r"[^a-z0-9 ]+", " ", text)
+    return " ".join(text.split())
 
 
 def _result(
