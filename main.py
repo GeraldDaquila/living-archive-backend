@@ -5168,7 +5168,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
             continue
-        if not re.search(r"[.!?][\\"')\]]?$", sentence):
+        if not re.search(r"[.!?]$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
         if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
