@@ -64,7 +64,7 @@ _RULES = (
         reason="explicit Fractal Systems Diagnostic request",
         source="deterministic-fsd-task",
         patterns=(
-            r"\\b(?:fractal systems diagnostic|fsd diagnostic|run an fsd|use fsd)\\b",
+            r"\b(?:fractal systems diagnostic|fsd diagnostic|run an fsd|use fsd)\b",
         ),
         confidence=0.98,
     ),
@@ -73,8 +73,8 @@ _RULES = (
         reason="explicit glyph or symbol lookup request",
         source="deterministic-glyph-lookup",
         patterns=(
-            r"\\b(?:glyph|symbol|icon|mark)\\b.{0,80}\\b(?:find|show|lookup|look up|meaning|what does)\\b",
-            r"\\b(?:find|show|lookup|look up)\\b.{0,80}\\b(?:glyph|symbol|icon|mark)\\b",
+            r"\b(?:glyph|symbol|icon|mark)\b.{0,80}\b(?:find|show|lookup|look up|meaning|what does)\b",
+            r"\b(?:find|show|lookup|look up)\b.{0,80}\b(?:glyph|symbol|icon|mark)\b",
         ),
     ),
     RouteRule(
@@ -82,21 +82,21 @@ _RULES = (
         reason="explicit Atlas/reference-map discovery request",
         source="deterministic-atlas-lookup",
         patterns=(
-            r"\\b(?:atlas|reference map|maps of the archive)\\b.{0,80}\\b(?:find|show|explore|lookup|look up|browse)\\b",
-            r"\\b(?:find|show|explore|lookup|look up|browse)\\b.{0,90}\\b(?:visual )?maps?\\b",
+            r"\b(?:atlas|reference map|maps of the archive)\b.{0,80}\b(?:find|show|explore|lookup|look up|browse)\b",
+            r"\b(?:find|show|explore|lookup|look up|browse)\b.{0,90}\b(?:visual )?maps?\b",
         ),
-        exclusions=(r"\\b(?:google maps|directions to|route to)\\b",),
+        exclusions=(r"\b(?:google maps|directions to|route to)\b",),
     ),
     RouteRule(
         route="glossary", mode="lookup", priority=50,
         reason="explicit bounded definition or meaning request",
         source="deterministic-glossary-lookup",
         patterns=(
-            r"\\b(?:define|definition of|what is|what does .{1,70} mean|meaning of)\\b",
+            r"\b(?:define|definition of|what is|what does .{1,70} mean|meaning of)\b",
         ),
         exclusions=(
-            r"\\b(?:stewardship)\\b.{0,100}\\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\\b",
-            r"\\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\\b.{0,100}\\bstewardship\\b",
+            r"\b(?:stewardship)\b.{0,100}\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b",
+            r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b.{0,100}\bstewardship\b",
         ),
     ),
     RouteRule(
