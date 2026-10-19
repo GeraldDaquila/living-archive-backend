@@ -109,8 +109,8 @@ def test_wrong_request_identity_or_missing_question_is_rejected_before_commit():
     assert first["provider_id"] == "fallback"
     assert pipeline.commit_count == 1
 
-    pipeline.primary = scripted_provider("clarify", "A response with no next question.", "evidence-2")
-    pipeline.fallback = scripted_provider("clarify", "Fallback with no next question.", "evidence-2")
+    pipeline.primary = lambda snap: {**scripted_provider("clarify", "A response with no next question.", "evidence-2")(snap), "question": ""}
+    pipeline.fallback = lambda snap: {**scripted_provider("clarify", "Fallback with no next question.", "evidence-2")(snap), "question": ""}
     second = pipeline.process(snapshot(2, MESSAGES[1]))
     assert second == {"status": "retryable_failure", "committed": False, "reason": "no_valid_result"}
     assert pipeline.ledgers["simulation-session"]["turn_number"] == 1
