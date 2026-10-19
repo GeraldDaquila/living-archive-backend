@@ -132,7 +132,10 @@ def test_route_modes_stay_within_registry_contract():
         "glyph": {"lookup"},
         "atlas": {"lookup"},
         "glossary": {"lookup"},
-        "relationship": {"delegated_journey"},\n        "navigator": {"lookup"},\n        "systems_ph": {"lookup"},\n        "case": {"lookup"},
+        "relationship": {"delegated_journey"},
+        "navigator": {"lookup"},
+        "systems_ph": {"lookup"},
+        "case": {"lookup"},
     }
     queries = (
         "What makes a public institution trustworthy?",
@@ -142,7 +145,10 @@ def test_route_modes_stay_within_registry_contract():
         "Show me the meaning of this glyph.",
         "Show me the archive reference map.",
         "Define reciprocity.",
-        "Help me understand the conflict in this relationship",\n        "Where do I begin in the Living Archive?",\n        "Open the Philippine Systems Lens.",\n        "Find relevant case studies.",
+        "Help me understand the conflict in this relationship",
+        "Where do I begin in the Living Archive?",
+        "Open the Philippine Systems Lens.",
+        "Find relevant case studies.",
     )
     for query in queries:
         decision = resolve_route(query)
