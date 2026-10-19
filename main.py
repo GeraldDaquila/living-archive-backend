@@ -5110,7 +5110,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     body = str(
         source.get("text") or source.get("content") or source.get("excerpt") or ""
     )
-    body = re.sub(r"\\s+", " ", body).strip()
+    body = re.sub(r"\s+", " ", body).strip()
     grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
     support_terms = [
         str(term).strip()
@@ -5120,11 +5120,11 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     if not title:
         return ""
 
-    normalized_subject = re.sub(r"\\s+", " ", str(subject or "")).strip()
+    normalized_subject = re.sub(r"\s+", " ", str(subject or "")).strip()
     # Strip recognizable author/byline metadata accidentally concatenated into excerpts.
     # Preserve the remaining source text; never manufacture a quotation.
     body = re.sub(
-        r"^(?:[A-Z][A-Za-z .’'-]{1,80},?\\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\\s+)+",
+        r"^(?:[A-Z][A-Za-z .’'-]{1,80},?\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\s+)+",
         "", body, flags=re.I,
     ).strip()
     if grade == "related":
@@ -5151,14 +5151,14 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     # following sentence. If a complete question follows the heading, discard
     # the heading prefix before considering the text as a source quotation.
     sentences = [
-        re.sub(r"\\s+", " ", sentence).strip(" \\t-•")
-        for sentence in re.split(r"(?<=[.!?])\\s+", body)
+        re.sub(r"\s+", " ", sentence).strip(" \t-•")
+        for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
     for index, sentence in enumerate(sentences):
         if "?" not in sentence:
             continue
         question_start = re.search(
-            r"\\b(?:why|what|how|when|where|who|which|does|do|did|can|could|should|would|will|is|are|was|were)\\s+",
+            r"\b(?:why|what|how|when|where|who|which|does|do|did|can|could|should|would|will|is|are|was|were)\s+",
             sentence,
             re.I,
         )
@@ -5168,12 +5168,12 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
             continue
-        if not re.search(r"[.!?][\\\"')\\]]?$", sentence):
+        if not re.search(r"[.!?][\\"')\]]?$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
         if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
             continue
-        if re.search(r"\\b(?:governing question|meta description|read more)\\b", sentence, re.I):
+        if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
             continue
         candidates.append(sentence)
     if not candidates:
