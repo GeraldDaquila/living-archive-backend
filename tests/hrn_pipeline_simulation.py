@@ -57,6 +57,11 @@ class SimulatedHRNPipeline:
             "session_id": session_id, "turn_number": 0, "visitor_evidence": [],
             "responses": [], "moves": [], "questions": [], "pending_visitor_evidence": None, "closed": False,
         }))
+        if committed.get("closed"):
+            self.events.append(_safe_event("snapshot", request_id=request_id, session_id=session_id,
+                                           turn_id=turn_id, outcome="rejected", reason="journey_already_closed"))
+            return {"status": "retryable_failure", "committed": False, "reason": "journey_closed"}
+
         expected_turn = int(committed["turn_number"]) + 1
         if int(original.get("turn_number") or 0) != expected_turn:
             self.events.append(_safe_event("snapshot", request_id=request_id, session_id=session_id,
