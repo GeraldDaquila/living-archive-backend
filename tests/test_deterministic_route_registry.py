@@ -183,7 +183,7 @@ def test_registry_snapshot_matches_registered_route_families():
     assert snapshot["rules"] == 10
     assert set(snapshot["routes"]) == {
         "guide", "safety", "catalogue", "formation", "fsd",
-        "glyph", "atlas", "glossary", "relationship",
+        "glyph", "atlas", "glossary", "relationship", "navigator", "systems_ph", "case",
     }
     assert snapshot["uses_llm_for_routing"] is False
 
