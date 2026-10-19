@@ -5795,7 +5795,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # evidence for the exact question. Suppress any incidental doorway from
         # broad initial retrieval rather than attach an unrelated recommendation.
         authoritative_doorway = None
+        archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
 
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
