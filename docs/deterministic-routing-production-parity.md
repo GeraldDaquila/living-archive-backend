@@ -36,7 +36,7 @@ The current `_GUIDE_ROUTE_IDS` set in production `main.py` contains:
 - `fsd`
 - `guide_node`
 
-The registry currently has explicit rules for catalogue, formation, FSD, glyph, Atlas, glossary, and a high-signal subset of relationship navigation. It defaults unknown requests to Guide and has an optional safety override input. It does not yet implement `navigator`, `systems_ph`, `case`, or live `guide_node` arbitration. The safety override is not connected to the protected-core safety authority.
+The registry currently has explicit rules for catalogue, formation, FSD, glyph, Atlas, glossary, a high-signal subset of relationship navigation, and bounded initial rules for `navigator`, `systems_ph`, and `case`. These new rules are only explicit-surface subsets, not equivalents of production behavior. It still does not implement live `guide_node` arbitration. The safety override is not connected to the protected-core safety authority.
 
 ## Deterministic fallback route families observed
 
@@ -52,9 +52,9 @@ The registry currently has explicit rules for catalogue, formation, FSD, glyph, 
 | formation | `_explicit_formation_entry_route(query)` plus post-model guard | Added high-signal subset only; exact preparation and entry language differ |
 | catalogue | explicit resource-discovery task | Added; must be checked against the current catalogue route and access class |
 | guide_node | active WordPress node registry + semantic arbitration | Not implemented in this registry |
-| case | case navigator / case request guards | Not implemented in this registry |
-| navigator | supported production route ID | Not implemented in this registry |
-| systems_ph | supported production route ID | Not implemented in this registry |
+| case | case navigator / case request guards | Explicit case-study retrieval subset added; production guards and access behavior unverified |
+| navigator | supported production route ID; whole-Archive orientation intent | Explicit orientation-language subset added; production parity unverified |
+| systems_ph | supported production route ID; Philippine systems inquiry | Explicit surface-name subset added; natural-language parity unverified |
 
 ## Verified isolated-test result
 
@@ -76,4 +76,4 @@ The earlier run failed because `What is stewardship and why does it matter?` was
 
 ## Current disposition
 
-The passing isolated suite is a necessary but insufficient gate. Continue with route/mode compatibility tests, production-vs-registry shadow fixtures, and a review of all 13 production route IDs. Do not import the registry into `main.py`, merge the PR, or deploy it until the gaps above are addressed.
+The passing isolated suite is a necessary but insufficient gate. Bounded initial rules now exist for 12 of the 13 production route IDs; `guide_node` still requires live/fresh registry arbitration. The added rules for `navigator`, `systems_ph`, and `case` do not establish parity. Continue with route/mode compatibility tests, production-vs-registry shadow fixtures, and collision/precedence review. Do not import the registry into `main.py`, merge the PR, or deploy it until the gaps above are addressed.
