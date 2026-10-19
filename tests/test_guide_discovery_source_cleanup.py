@@ -42,7 +42,7 @@ def test_author_metadata_is_removed_before_quote_selection(monkeypatch):
         "political dynasties in the Philippines", doorway, evidence
     )
     assert "Daquila, PhD Candidate" not in result
-    assert "Its page states:" in result
+    assert "The essay asks:" in result
 
 
 def test_exact_explicit_study_request_with_title_prefix_extracts_title():
