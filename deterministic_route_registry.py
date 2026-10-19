@@ -53,7 +53,8 @@ _RULES = (
         reason="explicit Formation entry or preparation request",
         source="deterministic-formation-entry",
         patterns=(
-            r"\b(?:stewardship formation|formation navigator|formation pathway)\b",
+            r"\b(?:open|launch|enter|start|begin|join|access|use|take me to)\b.{0,80}\b(?:stewardship formation|formation navigator|formation pathway)\b",
+            r"\b(?:stewardship formation|formation navigator|formation pathway)\b.{0,60}\b(?:open|launch|enter|start|begin|join|access|use)\b",
             r"\b(?:prepare|preparing|training|readiness|learning|learn|develop)\b.{0,100}\b(?:stewardship|steward|governance|shared responsibility)\b.{0,100}\b(?:enter|start|begin|join|access|open|launch|pathway)\b",
         ),
         confidence=0.96,
