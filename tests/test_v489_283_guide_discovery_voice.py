@@ -1,4 +1,4 @@
-"""Regression tests for the v489.283 Guide discovery response voice."""
+"""Regression tests for Guide discovery voice and concrete concept explanations."""
 
 import main
 
@@ -57,3 +57,22 @@ def test_related_discovery_does_not_overstate_relevance():
     assert "couldn’t verify a page that directly covers" in answer
     assert "A related place to explore is Governance in the Philippines." in answer
     assert "does not establish that it directly addresses your question" in answer
+
+
+def test_abstract_archive_definition_requires_everyday_example_and_paragraph_breaks():
+    from general_guide_composition import _has_everyday_example, _requires_concrete_concept_explanation
+
+    query = "What does reciprocity mean in the Living Archive?"
+    assert _requires_concrete_concept_explanation(query)
+    assert _has_everyday_example(
+        "Reciprocity is mutual support, not a tally of favors.\\n\\n"
+        "Imagine neighbors taking turns checking on an older resident.\\n\\n"
+        "Contributions need not be equal every time."
+    )
+
+
+def test_simple_factual_question_is_not_forced_into_concept_template():
+    from general_guide_composition import _requires_concrete_concept_explanation
+
+    assert not _requires_concrete_concept_explanation("What is the capital of the Philippines?")
+    assert not _requires_concrete_concept_explanation("List the forms of reciprocity.")
