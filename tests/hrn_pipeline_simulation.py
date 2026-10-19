@@ -157,6 +157,14 @@ class SimulatedHRNPipeline:
         signature = _signature(response)
         if not signature or any(signature == _signature(previous) for previous in committed["responses"]):
             return False
+        # Question novelty is independent of response novelty: changing the prose
+        # while asking the same question must not be treated as journey movement.
+        question = result.get("question")
+        if question is not None and str(question).strip():
+            question_signature = _signature(str(question))
+            if any(question_signature == _signature(str(previous))
+                   for previous in committed["questions"] if str(previous).strip()):
+                return False
         if not isinstance(result.get("evidence_delta"), list) or not result["evidence_delta"]:
             return False
         return True
@@ -164,7 +172,7 @@ class SimulatedHRNPipeline:
 
 def scripted_provider(move: str, response: str, evidence: str,
                       *, status: str = "success", session_override: str | None = None,
-                      mutate_input: bool = False) -> Callable[[dict[str, Any]], dict[str, Any]]:
+                      mutate_input: bool = False, question: str = "") -> Callable[[dict[str, Any]], dict[str, Any]]:
     """Build a deterministic provider fixture for pipeline simulations."""
     def provider(snapshot: dict[str, Any]) -> dict[str, Any]:
         if mutate_input:
@@ -176,7 +184,7 @@ def scripted_provider(move: str, response: str, evidence: str,
             "evidence_delta": [evidence],
             "next_move": move,
             "response_draft": response,
-            "question": "What would help clarify this next?",
+            "question": question,
             "proposed_state_delta": {"turn_number": 999999, "session_id": "provider-must-not-own-commit"},
         }
     return provider
