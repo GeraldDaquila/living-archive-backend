@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.290 — Bounded funding-priority answer recovery
+# USE PRODUCTION VERSION: v489.290 — Practical stewardship routing
 import asyncio
 import hashlib
 from html import unescape
@@ -72,8 +72,8 @@ use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.290"
-DEPLOYMENT_FINGERPRINT = "USE-v489.290-bounded-funding-priority-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.290-bounded-funding-priority-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v489.290-stewardship-practice-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.290-stewardship-practice-routing"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
