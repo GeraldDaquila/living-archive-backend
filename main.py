@@ -5,6 +5,7 @@ from html import unescape
 import ipaddress
 import re
 import json
+import os
 import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
@@ -4644,10 +4645,12 @@ def _basic_inquiry_contains_html_markup(text):
 def _basic_inquiry_markup_recovery(query, history=None, intent="TOPICAL_INQUIRY"):
     """Recompose once without Archive snippets after untrusted markup is rejected.
 
-    This recovery preserves useful general-answer behavior without allowing
-    retrieved HTML or a provider-supplied doorway to leak into the visitor prose.
-    Navigation remains separately selected by the canonical authority gate.
+    In deterministic-only calibration mode, never re-enter the LLM composer
+    through this secondary recovery seam.
     """
+    if str(os.getenv("USE_REASONING_PROVIDER_MODE", "auto") or "auto").strip().casefold() == "deterministic_only":
+        print("The Guide contextless markup recovery: skipped because deterministic-only mode is active.")
+        return ""
     clean_context = {
         "intent": str(intent or "TOPICAL_INQUIRY"),
         "context_blocks": "",
@@ -5560,37 +5563,56 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # selected, relevant canonical doorway. The doorway is returned as a
         # separate field and is not passed into the composition context.
 
-    # All ordinary questions use the same provider-neutral composition path,
-    # including when no suitable Archive evidence is available. The composer
-    # is explicitly instructed to answer from general knowledge where suitable
-    # and to state source limitations only when the question actually requires it.
+    # One controlled reasoning-provider seam. AUTO preserves the existing LLM-first
+    # provider bank and bounded deterministic fallback. DETERMINISTIC_ONLY bypasses
+    # the composer entirely for isolated calibration and is intentionally configured
+    # at service scope (for example, on the mirror), never by an untrusted visitor field.
+    reasoning_mode = str(os.getenv("USE_REASONING_PROVIDER_MODE", "auto") or "auto").strip().casefold()
+    if reasoning_mode not in {"auto", "deterministic_only"}:
+        print("The Guide reasoning provider mode: invalid value; using auto.")
+        reasoning_mode = "auto"
+
     composition_result = None
-    try:
-        composition_result = general_guide_composition.compose(
-            use_core=use_core,
-            query=query,
-            context_data=composition_context,
-            history_text=_history_text(history),
+    if reasoning_mode == "deterministic_only":
+        deterministic_result = _basic_inquiry_round1_deterministic_response(
+            correction_subject or query, {}, composition_context,
+            recommendation_available=bool(authoritative_doorway),
         )
-        if composition_result:
-            llm_output = composition_result.get("response", "")
-            print(
-                "The Guide General Composition: "
-                f"provider={composition_result.get('provider') or 'unknown'}, "
-                f"model={composition_result.get('model') or 'unknown'}, "
-                f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
-                f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
-            )
-        else:
-            print("The Guide General Composition: provider bank exhausted; using conservative deterministic recovery.")
-            llm_output = _basic_inquiry_round1_deterministic_response(correction_subject or query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
-    except Exception as exc:
-        print(f"The Guide General Composition failed safely; using conservative deterministic recovery: {exc}")
+        llm_output = str((deterministic_result or {}).get("response") or "")
+        print(
+            "The Guide General Composition: "
+            f"mode=deterministic_only, provider={(deterministic_result or {}).get('provider') or 'unknown'}, "
+            "model=none, llm_composer_invoked=false, "
+            f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+            f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+        )
+    else:
         try:
-            llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
-        except Exception:
-            llm_output = ""
+            composition_result = general_guide_composition.compose(
+                use_core=use_core,
+                query=query,
+                context_data=composition_context,
+                history_text=_history_text(history),
+            )
+            if composition_result:
+                llm_output = composition_result.get("response", "")
+                print(
+                    "The Guide General Composition: "
+                    f"mode=auto, provider={composition_result.get('provider') or 'unknown'}, "
+                    f"model={composition_result.get('model') or 'unknown'}, "
+                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
+                    f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+                    f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                )
+            else:
+                print("The Guide General Composition: mode=auto; provider bank exhausted; using conservative deterministic recovery.")
+                llm_output = _basic_inquiry_round1_deterministic_response(correction_subject or query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
+        except Exception as exc:
+            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
+            try:
+                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
+            except Exception:
+                llm_output = ""
 
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
