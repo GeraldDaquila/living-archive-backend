@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import re
-from typing import Optional
 
 
 ROUTING_REGISTRY_VERSION = "v1"
@@ -37,16 +36,15 @@ class RouteRule:
     exclusions: tuple[str, ...] = ()
 
 
-# These are intentionally high-precision entry signals, not broad topic matches.
-# New rules must be added with tests and must not supersede safety or explicit tasks.
+# High-precision task signals only. Broad topic matching is intentionally avoided.
 _RULES = (
     RouteRule(
         route="catalogue", mode="lookup", priority=80,
         reason="explicit Catalogue/resource discovery request",
         source="deterministic-catalogue-task",
         patterns=(
-            r"\\b(?:find|search for|look for|discover)\\b.{0,100}\\b(?:catalogue|catalog|case studies|cases|archive resources|stewardship resources)\\b",
-            r"\\b(?:catalogue|catalog)\\b.{0,80}\\b(?:search|find|discover|browse)\\b",
+            r"\b(?:find|search for|look for|discover)\b.{0,100}\b(?:catalogue|catalog|case studies|cases|archive resources|stewardship resources)\b",
+            r"\b(?:catalogue|catalog)\b.{0,80}\b(?:search|find|discover|browse)\b",
         ),
         confidence=0.97,
     ),
@@ -55,19 +53,19 @@ _RULES = (
         reason="explicit Formation entry or preparation request",
         source="deterministic-formation-entry",
         patterns=(
-            r"\\b(?:stewardship formation|formation navigator|formation pathway)\\b",
-            r"\\b(?:prepare|preparing|training|readiness|learning|learn|develop)\\b.{0,100}\\b(?:stewardship|steward|governance|shared responsibility)\\b.{0,100}\\b(?:enter|start|begin|join|access|open|launch|pathway)\\b",
+            r"\b(?:stewardship formation|formation navigator|formation pathway)\b",
+            r"\b(?:prepare|preparing|training|readiness|learning|learn|develop)\b.{0,100}\b(?:stewardship|steward|governance|shared responsibility)\b.{0,100}\b(?:enter|start|begin|join|access|open|launch|pathway)\b",
         ),
         confidence=0.96,
-        exclusions=(r"\\b(?:what is|explain|define|meaning of)\\b",),
+        exclusions=(r"\b(?:what is|explain|define|meaning of)\b",),
     ),
     RouteRule(
         route="relationship", mode="specialist", priority=60,
         reason="explicit relational situation or relationship interpretation request",
         source="deterministic-relational-intent",
         patterns=(
-            r"\\b(?:help me understand|make sense of|navigate|work through)\\b.{0,100}\\b(?:relationship|conflict between|tension with|misunderstanding with|trust between)\\b",
-            r"\\b(?:what is happening between us|why do we keep arguing|different perspectives in this relationship)\\b",
+            r"\b(?:help me understand|make sense of|navigate|work through)\b.{0,100}\b(?:relationship|conflict between|tension with|misunderstanding with|trust between)\b",
+            r"\b(?:what is happening between us|why do we keep arguing|different perspectives in this relationship)\b",
         ),
         confidence=0.91,
     ),
@@ -75,7 +73,7 @@ _RULES = (
 
 
 def _normalize(value: str) -> str:
-    return re.sub(r"\\s+", " ", str(value or "").casefold()).strip()
+    return re.sub(r"\s+", " ", str(value or "").casefold()).strip()
 
 
 def _matches(patterns: tuple[str, ...], query: str) -> bool:
@@ -83,11 +81,11 @@ def _matches(patterns: tuple[str, ...], query: str) -> bool:
 
 
 def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
-    """Resolve a high-precision deterministic route without any model call.
+    """Resolve a high-precision route without any model call.
 
-    Unrecognized, mixed, or low-signal queries default to Guide. The existing
-    authoritative safety boundary must run before ordinary routing; safety_active
-    lets callers preserve that decision here without duplicating risk inference.
+    The existing authoritative safety boundary must run before ordinary routing.
+    Unknown or mixed queries default to the Guide rather than triggering a
+    second model call solely for classification.
     """
     q = _normalize(query)
     if safety_active:
@@ -103,16 +101,16 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             source="deterministic-empty-query", alternatives=(),
         )
 
-    candidates = []
-    for rule in _RULES:
-        if _matches(rule.patterns, q) and not _matches(rule.exclusions, q):
-            candidates.append(rule)
+    candidates = [
+        rule for rule in _RULES
+        if _matches(rule.patterns, q) and not _matches(rule.exclusions, q)
+    ]
     if candidates:
         chosen = sorted(candidates, key=lambda item: (-item.priority, item.route))[0]
         return RouteDecision(
             route=chosen.route, mode=chosen.mode, confidence=chosen.confidence,
             reason=chosen.reason, source=chosen.source,
-            alternatives=("guide",) if chosen.route != "guide" else (),
+            alternatives=("guide",),
         )
 
     return RouteDecision(
