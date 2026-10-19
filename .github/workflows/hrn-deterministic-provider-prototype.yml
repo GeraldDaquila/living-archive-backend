@@ -1,10 +1,12 @@
-name: HRN Deterministic Provider Prototype
+name: HRN Simulated Pipeline Contract
 
 on:
   pull_request:
     paths:
       - "hrn_deterministic_provider_prototype.py"
       - "tests/test_hrn_deterministic_provider_prototype.py"
+      - "tests/hrn_pipeline_simulation.py"
+      - "tests/test_hrn_pipeline_simulation.py"
       - ".github/workflows/hrn-deterministic-provider-prototype.yml"
   workflow_dispatch:
 
@@ -12,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  prototype-contract:
+  isolated-simulation:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -24,5 +26,5 @@ jobs:
           python-version: "3.12"
       - name: Install test runner
         run: python -m pip install --disable-pip-version-check pytest
-      - name: Test isolated HRN provider contract
-        run: python -m pytest -q tests/test_hrn_deterministic_provider_prototype.py
+      - name: Run provider contract and simulated pipeline E2E
+        run: python -m pytest -q tests/test_hrn_deterministic_provider_prototype.py tests/test_hrn_pipeline_simulation.py
