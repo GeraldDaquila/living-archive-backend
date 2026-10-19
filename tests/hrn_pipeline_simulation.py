@@ -17,7 +17,7 @@ def _signature(value: str) -> str:
 
 def _safe_event(stage: str, **fields: Any) -> dict[str, Any]:
     """Allow only non-content diagnostics; never accept visitor text or secrets."""
-    allowed = {"request_id", "session_id", "turn_id", "provider_id", "outcome", "reason"}
+    allowed = {"provider_id", "outcome", "reason"}
     event = {"stage": stage}
     for key, value in fields.items():
         if key in allowed and isinstance(value, (str, int, bool)):
