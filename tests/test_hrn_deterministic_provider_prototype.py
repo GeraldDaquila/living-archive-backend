@@ -1,0 +1,91 @@
+"""Acceptance tests for the isolated HRN deterministic reasoning prototype."""
+from copy import deepcopy
+
+from hrn_deterministic_provider_prototype import reason
+
+
+def _snapshot(turn, message, **overrides):
+    value = {
+        "contract_version": "hrn-reasoning-input/0.1",
+        "request_id": "req-fixed",
+        "session_id": "session-fixed",
+        "visitor_turn_id": f"turn-{turn}",
+        "turn_number": turn,
+        "visitor_message": message,
+        "committed_ledger": {"turn_number": turn - 1},
+        "known_observations": [],
+        "prior_questions": [],
+        "prior_moves": [],
+        "allowed_moves": ["clarify", "distinguish", "deepen", "reflect", "close"],
+    }
+    value.update(overrides)
+    return value
+
+
+def test_first_turn_starts_with_observable_behavior():
+    result = reason(_snapshot(
+        1,
+        "I keep initiating contact with a friend, and I want to understand what is happening between us.",
+    ))
+    assert result["status"] == "success"
+    assert result["next_move"] == "clarify"
+    assert "What has changed most noticeably" in result["response_draft"]
+    assert result["session_id"] == "session-fixed"
+
+
+def test_second_turn_acknowledges_loan_timing_without_claiming_causation():
+    result = reason(_snapshot(
+        2,
+        "Lately, they have been aloof, even ghosting my texts without explanation. "
+        "I noticed this behavioral change last when I declined loaning them some money.",
+    ))
+    assert result["status"] == "success"
+    assert result["next_move"] == "distinguish"
+    response = result["response_draft"].casefold()
+    assert "timing" in response
+    assert "cannot tell us whether that caused" in response
+    assert "did your friend connect" in response
+    assert "temporal_association_is_not_causation" in result["limitations"]
+
+
+def test_third_turn_advances_from_trigger_to_willingness_to_engage():
+    result = reason(_snapshot(
+        3,
+        "The long silence, evaded answers, and as mentioned ghosting my texts. "
+        "Since there's no clear cut time as to when this behavior started, I keep wondering as to what triggered it.",
+    ))
+    assert result["status"] == "success"
+    assert result["next_move"] == "deepen"
+    response = result["response_draft"].casefold()
+    assert "silence and evasive answers" in response
+    assert "whether your friend is willing to talk" in response
+    assert "how have they responded" in response
+    assert "outside_supported_deterministic_scope" not in result["limitations"]
+
+
+def test_unsupported_scenario_returns_limited_status_not_fake_success():
+    result = reason(_snapshot(4, "My colleague has been acting strangely at work."))
+    assert result["status"] == "insufficient_context"
+    assert "outside_supported_deterministic_scope" in result["limitations"]
+
+
+def test_provider_does_not_mutate_input_snapshot():
+    snapshot = _snapshot(2, "I noticed this after I declined to lend them some money.")
+    before = deepcopy(snapshot)
+    reason(snapshot)
+    assert snapshot == before
+
+
+def test_session_and_turn_identity_are_preserved():
+    result = reason(_snapshot(2, "I declined lending money and then my friend became aloof."))
+    assert result["session_id"] == "session-fixed"
+    assert result["visitor_turn_id"] == "turn-2"
+    assert result["proposed_state_delta"]["turn_number"] == 2
+
+
+def test_repeat_guard_does_not_silently_accept_a_repeated_question():
+    message = "I declined lending money and then my friend became aloof."
+    prior_response = reason(_snapshot(2, message))["response_draft"]
+    result = reason(_snapshot(2, message, prior_questions=[prior_response]))
+    assert result["status"] == "insufficient_context"
+    assert "repetition_guard_triggered" in result["limitations"]
