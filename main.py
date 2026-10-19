@@ -4047,12 +4047,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # for materially different questions about disagreement and competing obligations.
     if (
         "stewardship" in q
-        and re.search(r"\\b(?:disagree|disagreement|conflict|competing|opposing|different priorities)\\b", q)
-        and re.search(r"\\b(?:protect|protecting|preserve|preserving|worth|values)\\b", q)
+        and re.search(r"\b(?:disagree|disagreement|conflict|competing|opposing|different priorities)\\b", q)
+        and re.search(r"\b(?:protect|protecting|preserve|preserving|worth|values)\\b", q)
     ):
         response = (
-            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\\n\\n"
-            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\\n\\n"
+            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\n"
+            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\n"
             "People may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it."
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_conflict_stewardship_recovery", "model": ""}
