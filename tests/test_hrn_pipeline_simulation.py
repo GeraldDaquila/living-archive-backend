@@ -220,6 +220,22 @@ def test_closure_is_committed_once_and_replay_does_not_reopen_it():
     assert pipeline.commit_count == 1
 
 
+def test_new_turn_cannot_reopen_a_closed_journey():
+    pipeline = SimulatedHRNPipeline(
+        scripted_provider("close", "We can leave this here without forcing an answer.", "closure_evidence"),
+        scripted_provider("close", "A safe closure.", "closure_evidence"),
+    )
+    closed = pipeline.process(snapshot(1, "I would like to stop here."))
+    assert closed["status"] == "success" and closed["closed"] is True
+
+    after_close = pipeline.process(snapshot(2, "Actually, one more thing."))
+    assert after_close == {"status": "retryable_failure", "committed": False, "reason": "journey_closed"}
+    ledger = pipeline.ledgers["simulation-session"]
+    assert ledger["turn_number"] == 1
+    assert ledger["closed"] is True
+    assert pipeline.commit_count == 1
+
+
 def test_new_session_is_isolated_from_previous_session_state():
     pipeline = SimulatedHRNPipeline(
         scripted_provider("clarify", "A response for this new session.", "evidence"),
