@@ -79,3 +79,6 @@ An earlier run failed because `What is stewardship and why does it matter?` was 
 ## Current disposition
 
 The passing isolated suite is a necessary but insufficient gate. Bounded initial rules now exist for 12 of the 13 production route IDs; `guide_node` still requires live/fresh registry arbitration. The added rules for `navigator`, `systems_ph`, and `case` do not establish parity. Continue with route/mode compatibility tests, production-vs-registry shadow fixtures, and collision/precedence review. Do not import the registry into `main.py`, merge the PR, or deploy it until the gaps above are addressed.
+
+
+The Philippine Systems Lens rule now requires explicit invocation intent rather than a surface-name mention alone, and negated invocation language (for example, “Do not open the Philippine Systems Lens”) is excluded. Dedicated tests cover mention-only, affirmative invocation, and negated invocation. Latest isolated registry CI run #59 passed; the separate broad v487 regression workflow for the same head was still running at last inspection.
