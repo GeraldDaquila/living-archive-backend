@@ -53,6 +53,7 @@ def test_third_turn_advances_from_trigger_to_willingness_to_engage():
         3,
         "The long silence, evaded answers, and as mentioned ghosting my texts. "
         "Since there's no clear cut time as to when this behavior started, I keep wondering as to what triggered it.",
+        prior_moves=["clarify", "distinguish"],
     ))
     assert result["status"] == "success"
     assert result["next_move"] == "deepen"
@@ -89,3 +90,13 @@ def test_repeat_guard_does_not_silently_accept_a_repeated_question():
     result = reason(_snapshot(2, message, prior_questions=[prior_response]))
     assert result["status"] == "insufficient_context"
     assert "repetition_guard_triggered" in result["limitations"]
+
+
+
+def test_third_turn_needs_prior_journey_state_to_advance():
+    result = reason(_snapshot(
+        3,
+        "The long silence, evaded answers, and ghosting my texts leave me wondering what triggered it.",
+    ))
+    assert result["status"] == "insufficient_context"
+    assert "outside_supported_deterministic_scope" in result["limitations"]
