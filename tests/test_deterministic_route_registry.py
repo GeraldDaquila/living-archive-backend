@@ -328,3 +328,18 @@ def test_negated_systems_lens_invocation_stays_in_guide():
         decision = resolve_route(query)
         assert decision.route == "guide"
         assert decision.mode == "direct"
+
+
+def test_negated_specialist_tasks_default_to_guide_across_route_families():
+    for query in (
+        "Do not find case studies.",
+        "Don't search for archive resources.",
+        "Never open the Stewardship Formation Navigator.",
+        "Please do not run the Fractal Systems Diagnostic.",
+        "Don't show me the archive reference map.",
+        "Never define reciprocity for me.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+        assert decision.source == "deterministic-negated-task-guard"
