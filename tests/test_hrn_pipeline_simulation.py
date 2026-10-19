@@ -301,3 +301,41 @@ def test_failed_turn_preserves_committed_state_and_can_retry_same_turn():
     assert retried["turn_number"] == 2
     assert pipeline.ledgers["simulation-session"]["pending_visitor_evidence"] is None
     assert pipeline.commit_count == 2
+
+
+
+def test_fallback_receives_pristine_identical_snapshot_after_primary_mutation_and_failure():
+    from copy import deepcopy
+
+    observed = []
+
+    def primary(snapshot):
+        observed.append(("primary", deepcopy(snapshot)))
+        # A provider is allowed to mutate only its private copy. It then fails.
+        snapshot["committed_ledger"]["turn_number"] = 700
+        snapshot["current_evidence_delta"]["visitor_message_sha256"] = "tampered"
+        raise TimeoutError("controlled primary exhaustion")
+
+    def fallback(snapshot):
+        observed.append(("fallback", deepcopy(snapshot)))
+        return scripted_provider(
+            "distinguish",
+            "The timing stands out, but it does not establish the cause.",
+            "loan_decision_timing",
+            question="Did your friend connect the distance to your decision?",
+        )(snapshot)
+
+    pipeline = SimulatedHRNPipeline(primary, fallback)
+    request = snapshot(1, MESSAGES[1], session_id="stable-session")
+    result = pipeline.process(request)
+
+    assert result["status"] == "success"
+    assert result["provider_id"] == "fallback"
+    assert observed[0][1] == observed[1][1]
+    assert observed[1][1]["session_id"] == "stable-session"
+    assert observed[1][1]["visitor_turn_id"] == "turn-1"
+    assert observed[1][1]["committed_ledger"]["turn_number"] == 0
+    assert observed[1][1]["current_evidence_delta"]["visitor_message_sha256"] != "tampered"
+    assert pipeline.commit_count == 1
+    assert pipeline.ledgers["stable-session"]["turn_number"] == 1
+    assert pipeline.ledgers["stable-session"]["visitor_evidence"][0]["turn_id"] == "turn-1"
