@@ -209,3 +209,26 @@ def test_formation_entry_language_still_delegates():
         decision = resolve_route(query)
         assert decision.route == "formation"
         assert decision.mode == "delegated_journey"
+
+
+
+def test_generic_maps_request_does_not_route_to_archive_atlas():
+    for query in (
+        "Show me maps of Manila.",
+        "How do I get directions to the airport?",
+        "Find a map of the Philippines.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+
+
+def test_archive_specific_map_request_routes_to_atlas():
+    for query in (
+        "Show me the archive reference map.",
+        "Open the Archive Atlas.",
+        "Find maps of the archive.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "atlas"
+        assert decision.mode == "lookup"
