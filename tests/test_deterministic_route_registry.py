@@ -8,9 +8,19 @@ def test_explicit_catalogue_discovery_routes_without_model():
     assert decision.source == "deterministic-catalogue-task"
 
 
+def test_catalogue_request_is_case_and_whitespace_insensitive():
+    decision = resolve_route("  SEARCH   FOR archive resources  ")
+    assert decision.route == "catalogue"
+
+
 def test_explicit_formation_entry_routes_without_model():
     decision = resolve_route("Open the Stewardship Formation Navigator")
     assert decision.route == "formation"
+
+
+def test_ordinary_stewardship_definition_is_not_misrouted_to_formation():
+    decision = resolve_route("What is stewardship and why does it matter?")
+    assert decision.route == "guide"
 
 
 def test_explicit_relational_navigation_routes_to_relationship_specialist():
@@ -27,7 +37,7 @@ def test_practical_stewardship_question_stays_in_general_guide():
 
 
 def test_safety_precedence_is_preserved_when_authoritative_boundary_is_active():
-    decision = resolve_route("I need help", safety_active=True)
+    decision = resolve_route("Find case studies in the catalogue", safety_active=True)
     assert decision.route == "safety"
     assert decision.confidence == 1.0
 
@@ -37,6 +47,7 @@ def test_unknown_question_defaults_to_guide_without_classification_call():
     snapshot = registry_snapshot()
     assert decision.route == "guide"
     assert snapshot["uses_llm_for_routing"] is False
+    assert snapshot["fallback"] == "guide"
 
 
 def test_empty_query_requests_clarification():
