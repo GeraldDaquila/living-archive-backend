@@ -229,15 +229,6 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             source="deterministic-negated-task-guard", alternatives=(),
         )
 
-    # Match the production's bounded resource-discovery intent before
-    # generic specialist rules; preserve explanatory-first mixed questions in Guide.
-    if _is_catalogue_resource_search(q):
-        return RouteDecision(
-            route="catalogue", mode="lookup", confidence=0.96,
-            reason="explicit natural-language resource discovery request",
-            source="deterministic-catalogue-resource-search", alternatives=("guide",),
-        )
-
     candidates = [
         rule for rule in _RULES
         if _matches(rule.patterns, q) and not _matches(rule.exclusions, q)
@@ -248,6 +239,15 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             route=chosen.route, mode=chosen.mode, confidence=chosen.confidence,
             reason=chosen.reason, source=chosen.source,
             alternatives=("guide",),
+        )
+
+    # Specific bounded specialist rules take precedence over this broader
+    # resource-discovery predicate; unknown/explanatory queries remain Guide.
+    if _is_catalogue_resource_search(q):
+        return RouteDecision(
+            route="catalogue", mode="lookup", confidence=0.96,
+            reason="explicit natural-language resource discovery request",
+            source="deterministic-catalogue-resource-search", alternatives=("guide",),
         )
 
     return RouteDecision(
