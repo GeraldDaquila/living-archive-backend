@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.288 — Direct-fit stewardship conflict recommendations
+# USE PRODUCTION VERSION: v489.288 — Direct-fit funding priority recommendations
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.287"
-DEPLOYMENT_FINGERPRINT = "USE-v489.287-funding-priority-recommendation-fit"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.287-stewardship-conflict-recommendation-fit"
+APP_VERSION = "v489.288"
+DEPLOYMENT_FINGERPRINT = "USE-v489.288-funding-priority-recommendation-fit"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.288-funding-priority-recommendation-fit"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
