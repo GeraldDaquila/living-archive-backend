@@ -4466,7 +4466,7 @@ def _stewardship_conflict_candidate_has_direct_fit(query, document):
     omitted; the visitor's answer is preserved by the caller.
     """
     q = _normalize_query(query)
-    if not re.search(r"\bstewardship\\b", q, re.I):
+    if not re.search(r"\bstewardship\b", q, re.I):
         return True
     conflict = bool(re.search(
         r"\b(?:disagree|disagreement|conflict|competing|opposing|different priorities|"
