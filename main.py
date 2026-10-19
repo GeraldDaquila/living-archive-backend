@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.289 — Bounded funding-priority answer recovery
+# USE PRODUCTION VERSION: v489.290 — Practical stewardship routing
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.289"
-DEPLOYMENT_FINGERPRINT = "USE-v489.289-bounded-funding-priority-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.289-bounded-funding-priority-recovery"
+APP_VERSION = "v489.290"
+DEPLOYMENT_FINGERPRINT = "USE-v489.290-stewardship-practice-routing"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.290-stewardship-practice-routing"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.289":
+if str(APP_VERSION) != "v489.290":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3430,6 +3430,25 @@ def _guide_capability_route(query, history=None):
         "glossary_term": str(parsed.get("glossary_term") or "").strip(),
         "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
+
+    # Keep ordinary practical questions in the Guide. Formation is a distinct
+    # delegated journey, not a substitute for answering a concrete public question
+    # merely because it mentions stewardship, practice, or responsibility.
+    # Only preserve a model-selected Formation route when the visitor explicitly
+    # asks to enter or prepare for the Formation pathway.
+    explicit_formation_entry = _explicit_formation_entry_route(query)
+    practical_stewardship_question = bool(
+        re.search(r"\b(?:how|what|which|when|where)\b", _normalize_query(query), re.I)
+        and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", _normalize_query(query), re.I)
+        and re.search(r"\bstewardship\b", _normalize_query(query), re.I)
+    )
+    if route == "formation" and practical_stewardship_question and not explicit_formation_entry:
+        route = "guide"
+        mode = "direct"
+        reason = (
+            "A practical stewardship question requires a direct Guide answer; "
+            "Formation is reserved for explicit pathway entry or preparation."
+        )
 
     if route == "guide" and _relational_boundary_decision(query).get("open"):
         route = "relationship"
