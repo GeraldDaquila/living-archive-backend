@@ -195,7 +195,7 @@ def scripted_provider(move: str, response: str, evidence: str,
             "evidence_delta": [evidence],
             "next_move": move,
             "response_draft": response,
-            "question": question,
+            "question": question or (f"What would help clarify {str(evidence).replace('_', ' ')}?" if move != "close" else ""),
             "proposed_state_delta": {"turn_number": 999999, "session_id": "provider-must-not-own-commit"},
         }
     return provider
