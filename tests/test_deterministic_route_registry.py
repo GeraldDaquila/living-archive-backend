@@ -350,3 +350,18 @@ def test_authoritative_safety_precedes_negated_task_guard():
     assert decision.route == "safety"
     assert decision.mode == "safety"
     assert decision.source == "deterministic-safety-precedence"
+
+
+def test_known_production_hrn_projection_fixture_is_a_parity_gap_not_silently_reclassified():
+    # Production's _relational_boundary_decision opens HRN for this lived,
+    # first-person projection question. The isolated registry currently
+    # defaults it to Guide; keep this as an explicit known gap until a
+    # multi-signal deterministic rule is reviewed against production guards.
+    query = (
+        "I can't tell whether what I'm sensing in a relationship is real "
+        "or something I'm projecting."
+    )
+    decision = resolve_route(query)
+    assert decision.route == "guide"
+    assert decision.mode == "direct"
+    assert decision.source == "deterministic-guide-default"
