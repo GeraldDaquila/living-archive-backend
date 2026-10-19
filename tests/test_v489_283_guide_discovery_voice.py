@@ -65,8 +65,8 @@ def test_abstract_archive_definition_requires_everyday_example_and_paragraph_bre
     query = "What does reciprocity mean in the Living Archive?"
     assert _requires_concrete_concept_explanation(query)
     assert _has_everyday_example(
-        "Reciprocity is mutual support, not a tally of favors.\\n\\n"
-        "Imagine neighbors taking turns checking on an older resident.\\n\\n"
+        "Reciprocity is mutual support, not a tally of favors.\n\n"
+        "Imagine neighbors taking turns checking on an older resident.\n\n"
         "Contributions need not be equal every time."
     )
 
