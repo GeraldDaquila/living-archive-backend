@@ -465,7 +465,7 @@ def test_provider_bank_exhaustion_reuses_frozen_reciprocity_gold_standard(monkey
 
     assert status == 200
     assert payload["response"] == fixture["expected_response"]
-    assert len(payload["response"].split("\\n\\n")) == 3
+    assert len(payload["response"].split("\n\n")) == 3
     assert payload.get("recommendation") is None
     assert payload["answer_basis"]["kind"] == "general_knowledge"
     assert "provider" not in payload["response"].casefold()
