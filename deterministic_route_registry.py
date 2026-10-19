@@ -100,6 +100,7 @@ _RULES = (
             r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b.{0,100}\bstewardship\b",
             r"\bstewardship\b.{0,80}\b(?:and why|why does|why it matters|and how|in practice)\b",
             r"\b(?:and why|why does|why it matters|and how|in practice)\b.{0,80}\bstewardship\b",
+            r"\bmeaning of (?:a )?(?:good )?life\b",
         ),
     ),
     RouteRule(
