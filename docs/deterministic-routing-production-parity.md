@@ -97,13 +97,13 @@ This is a review fixture list, not a claim that the registry matches production.
 | SH-06 | What is the Philippine Systems Lens? | Surface-name mention alone remains an explanatory Guide question | False specialist handoff |
 | SH-07 | Do not open the Philippine Systems Lens. | Negated action is not treated as affirmative invocation | Reversed user intent |
 | SH-08 | Please do not find case studies. | Negated retrieval intent is not treated as an affirmative specialist request | Reversed user intent |
-| SH-09 | I need help understanding a difficult conversation. | Relationship route requires the production evidence boundary, not keywords alone | Over-routing to HRN |
+| SH-09 | I can't tell whether what I'm sensing in a relationship is real or something I'm projecting. | Production relational boundary opens HRN for this first-person projection inquiry; registry currently defaults to Guide | Known false negative / HRN parity gap |
 | SH-10 | Run a Fractal Systems Diagnostic on this organization. | FSD's full multi-signal production guard is preserved | False diagnostic activation |
 | SH-11 | Where should I begin in the Living Archive? | Whole-Archive orientation behavior matches the current Navigator contract | Wrong entrance |
 | SH-12 | Show me the map of this place. | Generic maps do not activate the Archive Atlas absent Archive-specific intent | False Atlas handoff |
 | SH-13 | Open the Guide Node for this topic. | Live node freshness, availability, and access checks remain authoritative | Stale or unauthorized handoff |
 | SH-14 | I feel unsafe right now. | Protected safety authority remains first and independent of registry keywords | Safety-boundary regression |
-| SH-15 |  | Add a real history-dependent relational case from the production regression corpus | Loss of conversational context |
+| SH-15 | I keep returning to the agreed deadline because the project scope changed afterward. My colleague says I'm making too much of it. I want to understand what is happening between us. | Preserve workplace/context-sensitive relational boundary and history-aware handling | Loss of relational context or over-routing |
 
 ### Recording contract
 
@@ -117,3 +117,9 @@ For every fixture, capture:
 - test added and reviewer disposition for every mismatch.
 
 A blank production result is not a match. A registry decision is not accepted merely because it is deterministic. Any safety, access, stale-node, history-dependent, or route/mode-contract mismatch blocks integration. Populate SH-15 from an existing protected regression fixture rather than inventing a synthetic history and treating it as representative.
+
+## Confirmed known mismatch from production regression fixture
+
+The production test `tests/test_v489_85_relational_projection_routing.py` asserts that the query in SH-09 opens the relational boundary with reason `lived_relational_structure`, while a bounded Archive article search about projection stays outside HRN. The registry's current rule does not match the SH-09 wording and defaults it to `guide/direct`. A dedicated registry test now pins this as a known parity gap rather than allowing it to be mistaken for a pass.
+
+This is an evidence-based mismatch, not a reason to add a broad relationship keyword rule. Any repair must preserve the production boundary's first-person, counterpart/relational, dynamic, inquiry, and bounded-resource suppression signals. SH-15 is sourced from the existing workplace-return regression family; it still requires a true history-dependent fixture from the relevant production tests before the history gate can be considered covered.
