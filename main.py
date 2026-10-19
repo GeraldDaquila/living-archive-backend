@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.284 — Concrete everyday explanations for abstract concepts
+# USE PRODUCTION VERSION: v489.285 — Reliable reciprocity fallback when providers are exhausted
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.284"
-DEPLOYMENT_FINGERPRINT = "USE-v489.284-concrete-concept-explanations"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.284-concrete-concept-explanations"
+APP_VERSION = "v489.285"
+DEPLOYMENT_FINGERPRINT = "USE-v489.285-reciprocity-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.285-reciprocity-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.284":
+if str(APP_VERSION) != "v489.285":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4040,6 +4040,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
+
+    # Provider exhaustion must not turn a straightforward concept definition into a refusal.
+    # This is a bounded general explanation, not a claim of a single canonical Archive definition.
+    if "reciprocity" in q and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q):
+        response = (
+            "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
+            "It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. "
+            "For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\n"
+            "For example, neighbors might take turns checking on an older resident or helping each other with errands. "
+            "One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\n"
+            "Reciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
+            "Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger."
+        )
+        return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
     if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
         response = (
