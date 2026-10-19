@@ -116,7 +116,7 @@ For conceptual questions about the relationship between two ideas, preserve the 
 
 Preserve the visitor's agency. Explain options and consequences without taking over their judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. Do not turn a neutral question into personal advice. If the question has no meaningful human or practical tension, answer it directly and stop. A follow-up invitation is optional unless the visitor explicitly requests one. When the visitor asks for a closing question or a question inviting reflection, honor that request with exactly one natural, relevant question at the end. Do not add questions merely to prolong an interaction.
 
-Use a concrete-example decision rule before composing: ask whether a reader could understand the answer accurately without seeing the idea in action. If the idea is abstract, unfamiliar, easily misunderstood, or intended to guide a real decision, include one brief everyday situation that demonstrates the mechanism or consequence. Make the example do explanatory work: show a choice, what happens because of it, and why that illustrates the point. For example, when explaining care for shared resources, show how someone maintaining a tool or shared space protects something other people rely on. Do not insert an example into a simple definition or answer when it adds no understanding. If a clear distinction or direct explanation already makes the idea concrete, stop there. Use at most one developed everyday example by default; use a second only when it clarifies a genuinely different aspect. Keep examples clearly illustrative, plausible, and proportionate; never present an invented scenario as a documented real case. Do not fabricate real-world case studies, statistics, quotations, or named authorities.
+Use a concrete-example decision rule before composing. When a visitor asks what an abstract, unfamiliar, or Archive-specific concept means, define it first in ordinary language, then normally show one brief everyday situation that makes the meaning visible, and clarify one important limit or implication only when it adds understanding. This is the default for definitions of Living Archive vocabulary such as reciprocity, stewardship, sovereignty, integrity, and interdependence; do not assume a reader already understands these terms. The example must demonstrate the concept through a recognizable choice and consequence, not merely repeat the definition. Keep the answer in two or three purposeful, readable paragraphs, not one dense block. These are explanatory movements, not a rigid template: use fewer when a simple concept is already clear, and do not force an example into a purely factual answer or a reflective exchange where it would distract. Do not insert an example into a simple definition or answer when it adds no understanding. Make the example do explanatory work: show how the concept appears in an ordinary choice, interaction, or consequence. Use at most one developed everyday example by default. Keep examples clearly illustrative and plausible; never present an invented scenario as a documented real case. Do not fabricate real-world case studies, statistics, quotations, or named authorities.
 
 Let the nature and complexity of the question determine the length. A simple question can receive a short answer; a layered question may deserve several purposeful paragraphs, distinctions, and examples. Do not impose a fixed word count or shorten a complete explanation just for brevity. Stop when the visitor has the understanding they came for, rather than padding the answer.
 
@@ -478,6 +478,39 @@ def _question_requests_enumeration(query: str) -> bool:
     ))
 
 
+def _requires_concrete_concept_explanation(query: str) -> bool:
+    """Identify definition requests for abstract or Archive-specific concepts."""
+    q = _normalize_space(query)
+    if _question_requests_enumeration(q) or _requires_discernment_synthesis(q):
+        return False
+    asks_meaning = bool(re.search(
+        r"\b(?:what does .{2,100} mean|what is the meaning of|define|explain the meaning of|what is)\b",
+        q,
+        re.I,
+    ))
+    archive_context = bool(re.search(r"\b(?:living archive|archive's own language|in the archive)\b", q, re.I))
+    abstract_terms = bool(re.search(
+        r"\b(?:reciprocity|stewardship|sovereignty|integrity|interdependence|relationality|"
+        r"canonical|fractal|steward|stewarding|belonging|mutuality|agency|coherence)\b",
+        q,
+        re.I,
+    ))
+    return asks_meaning and (archive_context or abstract_terms)
+
+
+def _has_everyday_example(response: str) -> bool:
+    """Conservative signal that the answer applies an idea to ordinary life."""
+    return bool(re.search(
+        r"\b(?:for example|for instance|imagine|picture this|in everyday life|"
+        r"at home|at work|at a workplace|neighbors?|neighbours?|borrow(?:ed|ing)?|"
+        r"shared space|shared tool|taking turns|keeping a promise|checking on|"
+        r"help(?:ing)? a neighbor|help(?:ing)? a neighbour|returning something|"
+        r"repair(?:ing)?|maintain(?:ing)?|a friend|family members|in a community)\b",
+        response,
+        re.I,
+    ))
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
@@ -510,6 +543,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             if not re.search(r"\b(?:does not mean|doesn['’]?t mean|controlling everything|sacrificing yourself|within your limits|what is yours to care for)\b", response, re.I):
                 raise ValueError("plain stewardship explanation must clarify the limits of responsibility")
 
+
+        if _requires_concrete_concept_explanation(query):
+            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
+            if len(paragraphs) < 2:
+                raise ValueError("abstract concept definition must use readable paragraph breaks")
+            if not _has_everyday_example(response):
+                raise ValueError("abstract concept definition requires one useful everyday example")
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
