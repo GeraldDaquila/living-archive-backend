@@ -176,6 +176,20 @@ def reason(snapshot: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+
+def _follow_up_question(move: str, evidence: list[str], observations: list[str]) -> str:
+    """Return one concrete, non-closure question as part of the provider contract."""
+    if move == "close":
+        return ""
+    joined = " ".join(str(item) for item in observations).casefold()
+    if "loan" in joined or "money" in joined or "declin" in joined or "timing" in joined:
+        return "Did your friend connect their distance to your decision about the loan, or has that link remained unspoken?"
+    if move == "deepen":
+        return "When you have asked directly about the distance, how have they responded?"
+    if move == "distinguish":
+        return "What changed first, and what remains uncertain about why it changed?"
+    return "What has changed most noticeably in how your friend responds to you?"
+
 def _normalize_question(value: str) -> str:
     import re
 
@@ -220,6 +234,7 @@ def _result(
         "next_move": move,
         "move_rationale": rationale,
         "response_draft": response,
+        "question": _follow_up_question(move, evidence, observations),
         "proposed_state_delta": {
             "turn_number": snapshot.get("turn_number"),
             "last_move": move,
