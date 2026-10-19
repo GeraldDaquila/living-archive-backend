@@ -4185,8 +4185,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # from doorway selection: never cite or recommend an unrelated Archive asset
     # as a substitute for answering the question.
     if (
-        re.search(r"\\b(?:funding|fund|budget|allocate|allocation)\\b", q, re.I)
-        and re.search(r"\\b(?:competing priorities|two priorities|limited resources|neither can be fully supported|cannot fully fund|can't fully fund|trade[- ]?offs?)\\b", q, re.I)
+        re.search(r"\b(?:funding|fund|budget|allocate|allocation)\b", q, re.I)
+        and re.search(r"\b(?:competing priorities|two priorities|limited resources|neither can be fully supported|cannot fully fund|can't fully fund|trade[- ]?offs?)\b", q, re.I)
     ):
         response = (
             "When a community cannot fully fund both priorities, it should agree on transparent criteria before choosing. "
