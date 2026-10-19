@@ -440,3 +440,25 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
     }
+
+
+def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(monkeypatch):
+    """The explicit mode switch isolates deterministic recovery without provider calls."""
+    monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "deterministic_only")
+    _install_controlled_provider_and_retrieval(
+        monkeypatch, {"evidence_sufficiency_unavailable": True}
+    )
+
+    def forbidden_composer(**kwargs):
+        raise AssertionError("LLM composer must not run in deterministic-only mode")
+
+    monkeypatch.setattr(use_main.general_guide_composition, "compose", forbidden_composer)
+    status, payload = asyncio.run(
+        _post_query("How do I handle burnout as a manager?")
+    )
+
+    assert status == 200
+    assert "workload and recovery problem" in payload["response"]
+    assert "For example" in payload["response"]
+    assert len(payload["response"].split("\\n\\n")) == 3
+    assert r"\\n\\n" not in payload["response"]
