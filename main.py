@@ -5571,7 +5571,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # One controlled reasoning-provider seam. AUTO preserves the existing LLM-first
     # provider bank and bounded deterministic fallback. DETERMINISTIC_ONLY bypasses
     # the composer entirely for isolated calibration and is intentionally configured
-    # at service scope (for example, on the mirror), never by an untrusted visitor field.
+    # only on a service receiving no normal visitor traffic, never by an untrusted visitor field.
     reasoning_mode = str(os.getenv("USE_REASONING_PROVIDER_MODE", "auto") or "auto").strip().casefold()
     if reasoning_mode not in {"auto", "deterministic_only"}:
         print("The Guide reasoning provider mode: invalid value; using auto.")
