@@ -87,6 +87,13 @@ def test_malformed_primary_result_falls_back_without_partial_commit():
     assert pipeline.ledgers["simulation-session"]["turn_number"] == 1
 
 
+def test_scripted_provider_echoes_request_identity():
+    provider = scripted_provider("clarify", "A valid response.", "evidence",
+                                 question="What would clarify this?")
+    result = provider(snapshot(1, MESSAGES[0]))
+    assert result["request_id"] == "request-1"
+
+
 def test_wrong_request_identity_or_missing_question_is_rejected_before_commit():
     pipeline = SimulatedHRNPipeline(
         lambda snap: {
