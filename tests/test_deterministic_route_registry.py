@@ -95,3 +95,27 @@ def test_safety_precedence_over_new_bounded_routes():
         decision = resolve_route(query, safety_active=True)
         assert decision.route == "safety"
         assert decision.mode == "safety"
+
+
+def test_explicit_diagnostic_route_wins_over_generic_definition_language():
+    decision = resolve_route("What is the Fractal Systems Diagnostic and can you run it?")
+    assert decision.route == "fsd"
+    assert decision.mode == "direct"
+
+
+def test_relationship_topic_mention_alone_does_not_trigger_specialist():
+    decision = resolve_route("What is a healthy relationship?")
+    assert decision.route == "glossary"
+    assert decision.mode == "lookup"
+
+
+def test_formation_surface_name_without_entry_intent_does_not_override_definition():
+    decision = resolve_route("What is the Stewardship Formation Navigator?")
+    assert decision.route == "glossary"
+    assert decision.mode == "lookup"
+
+
+def test_unknown_mixed_question_remains_in_guide():
+    decision = resolve_route("Compare public trust, stewardship, and institutional change.")
+    assert decision.route == "guide"
+    assert decision.mode == "direct"
