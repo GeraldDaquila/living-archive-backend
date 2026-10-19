@@ -43,7 +43,7 @@ _RULES = (
         reason="explicit Catalogue/resource discovery request",
         source="deterministic-catalogue-task",
         patterns=(
-            r"\b(?:find|search for|look for|discover)\b.{0,100}\b(?:catalogue|catalog|case studies|cases|archive resources|stewardship resources)\b",
+            r"\b(?:find|search for|look for|discover)\b.{0,100}\b(?:catalogue|catalog|archive resources|stewardship resources)\b",
             r"\b(?:catalogue|catalog)\b.{0,80}\b(?:search|find|discover|browse)\b",
         ),
         confidence=0.97,
