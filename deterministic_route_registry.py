@@ -156,6 +156,45 @@ def _matches(patterns: tuple[str, ...], query: str) -> bool:
     return any(re.search(pattern, query, re.I) for pattern in patterns)
 
 
+def _is_catalogue_resource_search(query: str) -> bool:
+    """Mirror the bounded production Catalogue task boundary without importing main."""
+    if not query:
+        return False
+
+    resource_noun = (
+        r"(?:resources?|materials?|sources?|works?|essays?|articles?|cases?|"
+        r"readings?|publications?|texts?|information|content)"
+    )
+    if re.search(rf"^(?:what|which)\\s+{resource_noun}\\b", query):
+        return True
+
+    search_pattern = re.compile(
+        rf"\\b(?:where can i find|where do i find|how can i find|"
+        rf"find(?: me)?|search(?: for| the archive| the catalogue| the catalog)|"
+        rf"browse|explore|look(?:ing)? for|locate|recommend|suggest|"
+        rf"show me|list|give me|provide|surface|open)\\b"
+        rf".{{0,120}}\\b{resource_noun}\\b"
+    )
+    catalogue_pattern = re.compile(
+        r"\\b(?:browse|explore|search|open)\\s+(?:the\\s+)?"
+        r"(?:catalogue|catalog|archive)\\b"
+    )
+    match = search_pattern.search(query)
+    if not match and not catalogue_pattern.search(query):
+        return False
+
+    explanatory_pattern = re.compile(
+        r"\\b(?:what is|what are|why is|why are|why does|why do|"
+        r"explain|how does|how do|how is|how are)\\b"
+    )
+    explanatory = explanatory_pattern.search(query)
+    if explanatory and match and explanatory.start() < match.start():
+        return False
+    if explanatory and not match:
+        return False
+    return True
+
+
 _NEGATED_TASK_PATTERN = re.compile(
     r"\b(?:do not|don't|never|please do not|please don't)\s+"
     r"(?:please\s+)?(?:find|search|look for|discover|open|launch|enter|start|begin|"
@@ -189,6 +228,15 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             route="guide", mode="direct", confidence=0.90,
             reason="negated task intent is not delegated to a specialist",
             source="deterministic-negated-task-guard", alternatives=(),
+        )
+
+    # Match the production's bounded resource-discovery intent before
+    # generic specialist rules; preserve explanatory-first mixed questions in Guide.
+    if _is_catalogue_resource_search(q):
+        return RouteDecision(
+            route="catalogue", mode="lookup", confidence=0.96,
+            reason="explicit natural-language resource discovery request",
+            source="deterministic-catalogue-resource-search", alternatives=("guide",),
         )
 
     candidates = [
