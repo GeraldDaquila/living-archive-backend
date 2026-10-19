@@ -104,6 +104,35 @@ _RULES = (
         ),
     ),
     RouteRule(
+        route="navigator", mode="lookup", priority=65,
+        reason="explicit whole-Archive orientation or entry request",
+        source="deterministic-archive-orientation",
+        patterns=(
+            r"\\b(?:where do i|where should i|how do i|how can i)\\b.{0,80}\\b(?:begin|start|enter|navigate)\\b.{0,100}\\b(?:living archive|archive)\\b",
+            r"\\b(?:help me find my way|orient me|show me where to begin)\\b.{0,80}\\b(?:living archive|archive)\\b",
+            r"\\b(?:living archive|archive)\\b.{0,80}\\b(?:where to begin|how to navigate|how to enter|orientation)\\b",
+        ),
+        confidence=0.92,
+    ),
+    RouteRule(
+        route="systems_ph", mode="lookup", priority=85,
+        reason="explicit Philippine Systems Lens request",
+        source="deterministic-philippine-systems-lens",
+        patterns=(
+            r"\\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\\b",
+        ),
+        confidence=0.98,
+    ),
+    RouteRule(
+        route="case", mode="lookup", priority=82,
+        reason="explicit case-study discovery request",
+        source="deterministic-case-study-lookup",
+        patterns=(
+            r"\\b(?:find|show|search for|look for)\\b.{0,80}\\b(?:case studies|case study|relevant cases|matching cases)\\b",
+            r"\\b(?:case studies|case study|relevant cases|matching cases)\\b.{0,80}\\b(?:find|show|search|browse)\\b",
+        ),
+    ),
+    RouteRule(
         route="relationship", mode="delegated_journey", priority=60,
         reason="explicit relational situation or relationship interpretation request",
         source="deterministic-relational-intent",
