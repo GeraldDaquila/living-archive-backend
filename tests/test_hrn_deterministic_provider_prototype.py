@@ -107,6 +107,7 @@ def test_three_turn_sequence_carries_provider_state_without_mutating_prior_resul
     session_id = "one-session-for-all-three-turns"
     prior_moves = []
     prior_questions = []
+    prior_responses = []
     messages = [
         "I keep initiating contact with a friend, and I want to understand what is happening between us.",
         "Lately, they have been aloof, even ghosting my texts without explanation. I noticed this behavioral change last when I declined loaning them some money.",
@@ -120,6 +121,7 @@ def test_three_turn_sequence_carries_provider_state_without_mutating_prior_resul
             session_id=session_id,
             prior_moves=list(prior_moves),
             prior_questions=list(prior_questions),
+            prior_responses=list(prior_responses),
             known_observations=[
                 observation
                 for prior in results
@@ -133,6 +135,7 @@ def test_three_turn_sequence_carries_provider_state_without_mutating_prior_resul
         assert result["status"] == "success"
         prior_moves.append(result["next_move"])
         prior_questions.append(result["response_draft"])
+        prior_responses.append(result["response_draft"])
 
     assert [item["next_move"] for item in results] == ["clarify", "distinguish", "deepen"]
     assert len({item["response_draft"] for item in results}) == 3
