@@ -4456,6 +4456,35 @@ def _comparative_candidate_has_direct_fit(query, document):
     return any(subject in title for subject in subjects) and all(subject in body for subject in subjects)
 
 
+def _stewardship_conflict_candidate_has_direct_fit(query, document):
+    """Require direct evidence for stewardship questions about competing values.
+
+    Broad stewardship resources are not automatically relevant to conflict
+    questions. The title must signal a stewardship/governance/decision topic and
+    the body must substantively address disagreement, competing values, or
+    resolving trade-offs. If evidence is insufficient, the recommendation is
+    omitted; the visitor's answer is preserved by the caller.
+    """
+    q = _normalize_query(query)
+    if not re.search(r"\\bstewardship\\b", q, re.I):
+        return True
+    conflict = bool(re.search(
+        r"\\b(?:disagree|disagreement|conflict|competing|opposing|different priorities|"
+        r"what is worth protecting|worth protecting|trade[- ]?offs?)\\b", q, re.I
+    ))
+    if not conflict:
+        return True
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    title_fit = bool(re.search(r"\\b(?:stewardship|governance|decision|conflict|values|ethic)\\b", title))
+    body_fit = bool(re.search(
+        r"\\b(?:disagree|disagreement|conflict|competing values|different values|"
+        r"trade[- ]?offs?|what each protects|protecting|decision[- ]making|"
+        r"fair process|resolve|reconcile)\\b", body
+    ))
+    return title_fit and body_fit
+
+
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
@@ -4520,6 +4549,13 @@ def _general_guide_authoritative_doorway(query, context_data):
         if comparative_subjects:
             evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
 
+        # Conflict-specific relevance is independent of general stewardship
+        # topic overlap. Apply it before ranking and again after bounded recovery.
+        evidence_docs = [
+            item for item in evidence_docs
+            if _stewardship_conflict_candidate_has_direct_fit(query, item)
+        ]
+
         topic_groups = _topic_anchor_groups(query)
         # When a visitor asks what to read about political dynasties, a broad
         # essay that merely mentions the topic cannot displace the direct study.
@@ -4567,6 +4603,10 @@ def _general_guide_authoritative_doorway(query, context_data):
             # subject-specific gate after it has contributed candidates.
             if comparative_subjects:
                 evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
+            evidence_docs = [
+                item for item in evidence_docs
+                if _stewardship_conflict_candidate_has_direct_fit(query, item)
+            ]
             if require_dynasty_title:
                 evidence_docs = [
                     item for item in evidence_docs
