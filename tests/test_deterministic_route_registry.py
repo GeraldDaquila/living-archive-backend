@@ -278,3 +278,21 @@ def test_case_study_mention_without_retrieval_intent_stays_in_guide():
     decision = resolve_route("Why are case studies useful for learning?")
     assert decision.route == "guide"
     assert decision.mode == "direct"
+
+
+def test_glyph_meaning_question_is_not_captured_by_generic_glossary():
+    decision = resolve_route("What does this glyph mean?")
+    assert decision.route == "glyph"
+    assert decision.mode == "lookup"
+
+
+def test_explicit_catalogue_wins_when_case_study_is_also_requested():
+    decision = resolve_route("Find case studies in the stewardship catalogue")
+    assert decision.route == "catalogue"
+    assert decision.mode == "lookup"
+
+
+def test_case_study_search_does_not_require_catalogue_word():
+    decision = resolve_route("Search for relevant case studies")
+    assert decision.route == "case"
+    assert decision.mode == "lookup"
