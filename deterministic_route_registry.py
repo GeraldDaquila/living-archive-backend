@@ -83,8 +83,8 @@ _RULES = (
         reason="explicit Atlas/reference-map discovery request",
         source="deterministic-atlas-lookup",
         patterns=(
-            r"\b(?:atlas|reference map|maps of the archive)\b.{0,80}\b(?:find|show|explore|lookup|look up|browse)\b",
-            r"\b(?:find|show|explore|lookup|look up|browse)\b.{0,90}\b(?:visual )?maps?\b",
+            r"\b(?:atlas|archive reference map|reference map of the archive|maps of the archive|archive map)\b.{0,80}\b(?:find|show|explore|lookup|look up|browse|open)\b",
+            r"\b(?:find|show|explore|lookup|look up|browse|open)\b.{0,90}\b(?:archive atlas|archive reference map|reference map of the archive|maps of the archive|archive map)\b",
         ),
         exclusions=(r"\b(?:google maps|directions to|route to)\b",),
     ),
