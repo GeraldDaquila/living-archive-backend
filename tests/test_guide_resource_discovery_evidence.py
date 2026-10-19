@@ -94,9 +94,9 @@ def test_related_resource_can_be_offered_only_with_related_grade(monkeypatch):
     assert doorway["title"] == "Stewardship Readiness"
     assert evidence and evidence[0]["_discovery_relevance"] == "related"
     response = main._guide_deterministic_discovery_response(SUBJECT, doorway, evidence)
-    assert "didn’t verify a page that directly covers institutional responsibility" in response
-    assert "related starting point" in response
-    assert "does not establish that the page directly treats institutional responsibility" in response
+    assert "couldn’t verify a page that directly covers institutional responsibility" in response
+    assert "A related place to explore is Stewardship Readiness." in response
+    assert "does not establish that it directly addresses your question" in response
 
 
 def test_weak_resource_fails_closed_when_only_title_or_metadata_overlaps(monkeypatch):
@@ -547,6 +547,6 @@ def test_registered_title_anchor_can_be_direct_when_body_supports_requested_aspe
     )
 
     assert grade["grade"] == "direct"
-    assert "strongest direct match" in answer
+    assert "is a useful place to begin" in answer
     assert "public accountability" in answer
     assert "related place to explore" not in answer

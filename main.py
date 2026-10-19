@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.282 — Restore explicit homepage navigation and reject malformed heading quotes
+# USE PRODUCTION VERSION: v489.283 — Refine source-grounded Guide discovery voice
 import asyncio
 import hashlib
 from html import unescape
@@ -70,9 +70,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.282"
-DEPLOYMENT_FINGERPRINT = "USE-v489.282-home-navigation-heading-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.282-home-navigation-heading-boundary"
+APP_VERSION = "v489.283"
+DEPLOYMENT_FINGERPRINT = "USE-v489.283-guide-discovery-voice"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.283-guide-discovery-voice"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -214,7 +214,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.282":
+if str(APP_VERSION) != "v489.283":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -5130,18 +5130,17 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     if grade == "related":
         overlap = ", ".join(support_terms[:4]) if support_terms else "some related terms"
         return (
-            f"I didn’t verify a page that directly covers {normalized_subject}. "
-            f"The closest verified related starting point I found is {title}. "
-            f"Its own content and description overlap through {overlap}. "
-            "That makes it a related place to explore, but it does not establish "
-            f"that the page directly treats {normalized_subject}."
+            f"I couldn’t verify a page that directly covers {normalized_subject}. "
+            f"A related place to explore is {title}. "
+            f"Its content and description overlap with {overlap}, "
+            "but that does not establish that it directly addresses your question."
         )
 
     if not body:
         return (
-            f"The strongest direct match I could verify is {title}. "
-            f"I could confirm the destination, but not enough page content to describe "
-            f"how it treats {normalized_subject}."
+            f"{title} appears to be the closest direct match I could verify. "
+            f"I confirmed the destination, but not enough page text to explain "
+            f"how it addresses {normalized_subject}."
         )
 
     subject_tokens = {
@@ -5169,7 +5168,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
             continue
-        if not re.search(r"[.!?][\"')\]]?$", sentence):
+        if not re.search(r"[.!?]$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
         if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
@@ -5179,15 +5178,14 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         candidates.append(sentence)
     if not candidates:
         return (
-            f"The strongest direct match I found is {title}. The page passed the "
-            f"subject-fit check for {normalized_subject}, but I could not isolate a "
-            "complete sentence that describes its contribution reliably."
+            f"{title} is a promising starting point for {normalized_subject}. "
+            "I couldn’t isolate a complete source sentence that I can quote reliably, "
+            "so I won’t manufacture one."
         )
     sentence = candidates[0]
     return (
-        f"The strongest direct match I found is {title}. Its page states: "
-        f"“{sentence}” This gives you a source-grounded place to begin exploring "
-        f"{normalized_subject}."
+        f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+        f"That gives you a focused entry point for exploring {normalized_subject}."
     )
 
 
