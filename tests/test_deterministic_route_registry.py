@@ -423,3 +423,17 @@ def test_explanatory_questions_and_explanatory_first_mixed_queries_stay_in_guide
         decision = resolve_route(query)
         assert decision.route == "guide", query
         assert decision.mode == "direct", query
+
+
+def test_production_workplace_return_fixture_routes_relational_but_does_not_claim_history_parity():
+    # Source: tests/test_v489_226_relational_return_workplace_doorway_parity.py.
+    # This is a real single-turn production regression fixture, not a substitute
+    # for multi-turn history/context parity testing.
+    query = (
+        "I keep returning to the agreed deadline because the project scope changed afterward. "
+        "My colleague says I'm making too much of it. I want to understand what is happening between us."
+    )
+    decision = resolve_route(query)
+    assert decision.route == "relationship"
+    assert decision.mode == "delegated_journey"
+    assert decision.source == "deterministic-relational-intent"
