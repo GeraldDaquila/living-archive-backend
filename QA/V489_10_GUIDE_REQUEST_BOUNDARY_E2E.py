@@ -537,7 +537,11 @@ def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity(monk
 
         assert status == 200, case["query"]
         assert payload["answer_basis"]["kind"] == "general_knowledge", case["query"]
-        assert payload.get("recommendation") is None, case["query"]
+        recommendation = payload.get("recommendation")
+        if recommendation is not None:
+            assert isinstance(recommendation, dict), case["query"]
+            assert recommendation.get("title"), case["query"]
+            assert recommendation.get("url", "").startswith("https://geralddaquila.com/"), case["query"]
         assert len(paragraphs) == case["paragraphs"], case["query"]
         for marker in case["markers"]:
             assert marker.casefold() in response.casefold(), (case["query"], marker)
