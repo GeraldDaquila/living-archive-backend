@@ -339,3 +339,39 @@ def test_fallback_receives_pristine_identical_snapshot_after_primary_mutation_an
     assert pipeline.commit_count == 1
     assert pipeline.ledgers["stable-session"]["turn_number"] == 1
     assert pipeline.ledgers["stable-session"]["visitor_evidence"][0]["turn_id"] == "turn-1"
+
+
+
+def test_failed_turn_rejects_changed_message_on_retry_and_preserves_original_pending_evidence():
+    pipeline = SimulatedHRNPipeline(
+        scripted_provider("clarify", "A first-turn observation.", "relationship_distance"),
+        scripted_provider("clarify", "A first-turn fallback.", "relationship_distance"),
+    )
+    first = pipeline.process(snapshot(1, MESSAGES[0]))
+    assert first["status"] == "success"
+
+    pipeline.primary = lambda snap: {"status": "failure"}
+    pipeline.fallback = lambda snap: {"status": "insufficient_context"}
+    failed = pipeline.process(snapshot(2, MESSAGES[1]))
+    assert failed["status"] == "retryable_failure"
+
+    ledger_before_conflict = dict(pipeline.ledgers["simulation-session"])
+    altered = snapshot(2, "Actually, this is about a different relationship.", request_id="request-2-altered")
+    rejected = pipeline.process(altered)
+
+    assert rejected == {
+        "status": "retryable_failure",
+        "committed": False,
+        "reason": "pending_evidence_conflict",
+    }
+    assert pipeline.ledgers["simulation-session"] == ledger_before_conflict
+    assert pipeline.commit_count == 1
+
+    pipeline.primary = scripted_provider("distinguish", "The timing stands out, but it does not prove cause.", "loan_timing")
+    retried = pipeline.process(snapshot(2, MESSAGES[1], request_id="request-2-retry"))
+    assert retried["status"] == "success"
+    assert pipeline.ledgers["simulation-session"]["turn_number"] == 2
+    assert pipeline.ledgers["simulation-session"]["visitor_evidence"][-1]["message_sha256"] == (
+        ledger_before_conflict["pending_visitor_evidence"]["message_sha256"]
+    )
+    assert pipeline.commit_count == 2
