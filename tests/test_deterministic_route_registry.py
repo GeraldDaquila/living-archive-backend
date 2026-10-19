@@ -352,17 +352,6 @@ def test_authoritative_safety_precedes_negated_task_guard():
     assert decision.source == "deterministic-safety-precedence"
 
 
-def test_known_production_hrn_projection_fixture_matches_production_relational_boundary():
-    # This production fixture is now covered by the narrow multi-signal rule below.
-    query = (
-        "I can't tell whether what I'm sensing in a relationship is real "
-        "or something I'm projecting."
-    )
-    decision = resolve_route(query)
-    assert decision.route == "relationship"
-    assert decision.mode == "delegated_journey"
-    assert decision.source == "deterministic-lived-relational-projection"
-
 def test_production_lived_projection_fixture_routes_to_relationship_specialist():
     query = (
         "I can't tell whether what I'm sensing in a relationship is real "
@@ -437,3 +426,36 @@ def test_production_workplace_return_fixture_routes_relational_but_does_not_clai
     assert decision.route == "relationship"
     assert decision.mode == "delegated_journey"
     assert decision.source == "deterministic-relational-intent"
+
+
+
+def test_collision_precedence_keeps_specific_task_over_generic_language():
+    cases = (
+        (
+            "What is the Fractal Systems Diagnostic and can you run it?",
+            "fsd",
+            "direct",
+        ),
+        (
+            "What does this glyph mean?",
+            "glyph",
+            "lookup",
+        ),
+        (
+            "Find case studies in the stewardship catalogue",
+            "catalogue",
+            "lookup",
+        ),
+    )
+    for query, expected_route, expected_mode in cases:
+        decision = resolve_route(query)
+        assert (decision.route, decision.mode) == (expected_route, expected_mode), query
+
+
+def test_negated_mixed_request_never_activates_specialist_even_with_positive_keywords():
+    decision = resolve_route(
+        "Please do not open the Philippine Systems Lens or find case studies."
+    )
+    assert decision.route == "guide"
+    assert decision.mode == "direct"
+    assert decision.source == "deterministic-negated-task-guard"
