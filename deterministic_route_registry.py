@@ -100,7 +100,7 @@ _RULES = (
         ),
     ),
     RouteRule(
-        route="relationship", mode="specialist", priority=60,
+        route="relationship", mode="delegated_journey", priority=60,
         reason="explicit relational situation or relationship interpretation request",
         source="deterministic-relational-intent",
         patterns=(
