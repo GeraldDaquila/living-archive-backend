@@ -97,7 +97,7 @@ This is a review fixture list, not a claim that the registry matches production.
 | SH-06 | What is the Philippine Systems Lens? | Surface-name mention alone remains an explanatory Guide question | False specialist handoff |
 | SH-07 | Do not open the Philippine Systems Lens. | Negated action is not treated as affirmative invocation | Reversed user intent |
 | SH-08 | Please do not find case studies. | Negated retrieval intent is not treated as an affirmative specialist request | Reversed user intent |
-| SH-09 | I can't tell whether what I'm sensing in a relationship is real or something I'm projecting. | Production relational boundary opens HRN for this first-person projection inquiry; registry currently defaults to Guide | Known false negative / HRN parity gap |
+| SH-09 | I can't tell whether what I'm sensing in a relationship is real or something I'm projecting. | Production relational boundary opens HRN; registry now matches this narrow fixture | Narrow fixture covered; broader relational parity remains open |
 | SH-10 | Run a Fractal Systems Diagnostic on this organization. | FSD's full multi-signal production guard is preserved | False diagnostic activation |
 | SH-11 | Where should I begin in the Living Archive? | Whole-Archive orientation behavior matches the current Navigator contract | Wrong entrance |
 | SH-12 | Show me the map of this place. | Generic maps do not activate the Archive Atlas absent Archive-specific intent | False Atlas handoff |
@@ -124,8 +124,21 @@ The production test `tests/test_v489_85_relational_projection_routing.py` assert
 
 Dedicated registry tests cover the production positive fixture, the bounded Archive article-search negative fixture, and topic-only projection mentions. The rule is an intentionally narrow parity improvement, not a claim that it reproduces the full production `_relational_boundary_decision()`: counterpart signals, history-aware cases, and other relational patterns still require shadow fixtures. SH-15 is sourced from the existing workplace-return regression family; it still requires a true history-dependent fixture from the relevant production tests before the history gate can be considered covered.
 
-## Catalogue resource-search parity: bounded rule added, pending CI
+## Catalogue resource-search parity: bounded rule added; latest CI passed
 
 Production `tests/test_catalogue_resource_search_routing.py` treats broad explicit resource-discovery requests such as “Where can I find material about institutional responsibility?”, “Please recommend resources on stewardship,” and “What resources are available on stewardship?” as Catalogue searches. The registry now has a bounded task-intent predicate that mirrors the production predicate's resource nouns and retrieval verbs, including its explanatory-first exclusion. It does not route on the word `resources` alone.
 
-The registry tests now cover all ten positive examples from the production fixture plus the three negative/explanatory examples. This is a targeted parity improvement, not proof that all Catalogue behavior is equivalent: native handoff payloads, history, access, and the production request boundary remain outside this isolated registry. Wait for CI on the current head and continue the full shadow comparison before considering integration.
+The registry tests cover all ten positive examples from the production fixture plus the three negative/explanatory examples. On corrective commit `29a87c46c3eadd5eaaba68ddadce37a20ffdccfb`, the isolated registry workflow, broad v487 production-validation workflow, and mocked UI continuity workflow all completed successfully. These results verify those CI workflows on that commit; they do not prove route-by-route production parity or live visitor success. Native handoff payloads, history, access, live Guide Node arbitration, and the protected safety authority remain outside this isolated registry. Continue the full shadow comparison before considering integration.
+
+
+## Current verified CI checkpoint — 2026-10-20
+
+Corrective commit: `29a87c46c3eadd5eaaba68ddadce37a20ffdccfb`.
+
+- Deterministic routing registry tests: run #89 — **success**.
+- v487 production validation: run #2306 — **success**.
+- Guide Woody mocked UI continuity contract: run #215 — **success**.
+
+The registry tests had previously failed because a stale parity-gap test still expected the first-person projection fixture to remain in Guide after the narrow relational rule had been added. The stale test has been corrected to assert the intended relationship route. The three workflows above passed after that correction.
+
+These are CI results, not a production release. PR #712 remains open and unmerged. No production wiring, WordPress change, or Render deployment is authorized by this work. Remaining gates include route/mode parity across all production route families, history-dependent relational cases, live Guide Node freshness/access, specialist availability, protected safety integration, and a curated production-versus-registry shadow comparison.
