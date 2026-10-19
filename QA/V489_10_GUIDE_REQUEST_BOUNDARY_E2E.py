@@ -440,3 +440,118 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
     }
+
+def test_provider_bank_exhaustion_reuses_frozen_reciprocity_gold_standard(monkeypatch):
+    """Exercise the frozen approved answer through the existing ASGI request boundary."""
+    from pathlib import Path
+
+    fixture = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "tests"
+            / "fixtures"
+            / "general_guide_reciprocity_gold_standard.json"
+        ).read_text(encoding="utf-8")
+    )
+    _install_controlled_provider_and_retrieval(
+        monkeypatch, {"evidence_sufficiency_unavailable": True}
+    )
+    monkeypatch.setattr(
+        use_main.general_guide_composition, "compose", lambda **kwargs: None
+    )
+    monkeypatch.setattr(use_main, "_guide_capability_route", lambda *args, **kwargs: {})
+
+    status, payload = asyncio.run(_post_query(fixture["query"]))
+
+    assert status == 200
+    assert payload["response"] == fixture["expected_response"]
+    assert len(payload["response"].split("\n\n")) == 3
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert "provider" not in payload["response"].casefold()
+    assert "canonical evidence" not in payload["response"].casefold()
+
+
+
+def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity(monkeypatch):
+    """Exercise topic-aware fallback through the ASGI request boundary, offline."""
+    cases = [
+        {
+            "query": "What does reciprocity mean in the Living Archive?",
+            "provider": "bounded_general_knowledge_recovery",
+            "paragraphs": 3,
+            "markers": ("mutual response", "neighbors might take turns", "debt ledger"),
+        },
+        {
+            "query": "Explain stewardship in everyday life.",
+            "provider": "bounded_general_knowledge_recovery",
+            "paragraphs": 3,
+            "markers": ("keeping a promise", "ordinary choices accumulate", "within your limits"),
+        },
+        {
+            "query": "How do I handle burnout as a manager?",
+            "provider": "bounded_general_knowledge_recovery",
+            "paragraphs": 3,
+            "markers": ("workload and recovery problem", "For example", "structural workload problem"),
+        },
+        {
+            "query": "What is institutional responsibility?",
+            "provider": "bounded_general_knowledge_recovery",
+            "paragraphs": 3,
+            "markers": ("organization", "public office repeatedly loses applications", "appropriate oversight"),
+        },
+        {
+            "query": "What are political dynasties and what risks can they create?",
+            "provider": "bounded_public_governance_recovery",
+            "paragraphs": 3,
+            "markers": ("families", "accountability can weaken", "those are claims that require evidence"),
+        },
+        {
+            "query": "What is the relationship between personal agency and responsibility to others?",
+            "provider": "calibrated_general_knowledge_recovery",
+            "paragraphs": 3,
+            "markers": ("interdependent aspects", "manager who exercises agency", "freedom meaningful"),
+        },
+        {
+            "query": "How can I understand a difficult situation without rushing to judge?",
+            "provider": "bounded_reflective_general_knowledge_recovery",
+            "paragraphs": 2,
+            "markers": ("separate what you know from what you think it means", "your own boundaries"),
+        },
+    ]
+
+    for case in cases:
+        deterministic = use_main._basic_inquiry_round1_deterministic_response(
+            case["query"], {}, {}, recommendation_available=False
+        )
+        assert deterministic is not None, case["query"]
+        assert deterministic["provider"] == case["provider"], (
+            case["query"], deterministic.get("provider")
+        )
+
+        _install_controlled_provider_and_retrieval(
+            monkeypatch, {"evidence_sufficiency_unavailable": True}
+        )
+        monkeypatch.setattr(
+            use_main.general_guide_composition, "compose", lambda **kwargs: None
+        )
+        monkeypatch.setattr(
+            use_main, "_guide_capability_route", lambda *args, **kwargs: {}
+        )
+
+        status, payload = asyncio.run(_post_query(case["query"]))
+        response = payload["response"]
+        paragraphs = [part for part in response.split("\n\n") if part.strip()]
+
+        assert status == 200, case["query"]
+        assert payload["answer_basis"]["kind"] == "general_knowledge", case["query"]
+        recommendation = payload.get("recommendation")
+        if recommendation is not None:
+            assert isinstance(recommendation, dict), case["query"]
+            assert recommendation.get("title"), case["query"]
+            assert recommendation.get("url", "").startswith("https://geralddaquila.com/"), case["query"]
+        assert len(paragraphs) == case["paragraphs"], case["query"]
+        for marker in case["markers"]:
+            assert marker.casefold() in response.casefold(), (case["query"], marker)
+        assert "I couldn't verify a reliable answer" not in response, case["query"]
+        assert r"\n\n" not in response, case["query"]

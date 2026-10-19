@@ -1,0 +1,26 @@
+{
+  "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+  "status": "FROZEN_REFERENCE_ONLY",
+  "purpose": "Regression benchmark for the General Purpose Guide composition. User-approved visitor-facing response shown in the Search UI on 2026-10-19 after provider-exhaustion recovery.",
+  "query": "What does reciprocity mean in the Living Archive?",
+  "expected_response": "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\nFor example, neighbors might take turns checking on an older resident or helping each other with errands. One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\nReciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger.",
+  "expected_doorway_title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+  "invariants": [
+    "Answer is complete before the optional doorway is presented.",
+    "Three connected paragraphs: plain-language meaning; everyday neighbor example; boundary against coercion and debt-ledger thinking.",
+    "Concrete, everyday language; humane and restrained voice.",
+    "The example demonstrates reciprocity without implying that every contribution must be equal or immediately repaid.",
+    "The answer does not claim to be the sole canonical definition of reciprocity in the Living Archive.",
+    "The doorway is relevant and separate; it does not replace or delay the answer.",
+    "A single Search submission renders the substantive answer without requiring a second click.",
+    "The answer remains useful when the general-Guide provider bank is exhausted."
+  ],
+  "freeze_policy": [
+    "This fixture is a read-only reference benchmark, not a prompt to rewrite the frozen gold-standard response.",
+    "Do not edit the expected response to accommodate a regression.",
+    "Do not alter protected use_core.py.",
+    "Any future change to this gold standard requires explicit user authorization and a separately documented benchmark-version change.",
+    "Evaluate structural and semantic parity, not only HTTP status or response length.",
+    "Backend JSON/SSE tests do not substitute for browser-level Search submission and render verification."
+  ]
+}
