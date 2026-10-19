@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.285 — Reliable reciprocity fallback when providers are exhausted
+# USE PRODUCTION VERSION: v489.286 — Reliable reciprocity fallback when providers are exhausted
 import asyncio
 import hashlib
 from html import unescape
@@ -71,9 +71,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.285"
-DEPLOYMENT_FINGERPRINT = "USE-v489.285-reciprocity-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.285-reciprocity-fallback"
+APP_VERSION = "v489.286"
+DEPLOYMENT_FINGERPRINT = "USE-v489.286-question-aware-stewardship-conflict"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.286-question-aware-stewardship-conflict"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -215,7 +215,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.285":
+if str(APP_VERSION) != "v489.286":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -4041,6 +4041,21 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
+
+    # Resolve the question's actual conflict before the broad stewardship-definition rule.
+    # This prevents deterministic-only mode from returning the same generic definition
+    # for materially different questions about disagreement and competing obligations.
+    if (
+        "stewardship" in q
+        and re.search(r"\b(?:disagree|disagreement|conflict|competing|opposing|different priorities)\b", q)
+        and re.search(r"\b(?:protect|protecting|preserve|preserving|worth|values)\b", q)
+    ):
+        response = (
+            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\n"
+            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\n"
+            "People may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it."
+        )
+        return {"response": response, "doorway_title": title, "provider": "bounded_conflict_stewardship_recovery", "model": ""}
 
     # Provider exhaustion must not turn a straightforward concept definition into a refusal.
     # This is a bounded general explanation, not a claim of a single canonical Archive definition.

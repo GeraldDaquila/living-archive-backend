@@ -442,6 +442,28 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
     }
 
 
+def test_deterministic_only_stewardship_disagreement_answers_the_actual_question(monkeypatch):
+    """A conflict question must not fall through to the generic stewardship definition."""
+    monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "deterministic_only")
+    _install_controlled_provider_and_retrieval(monkeypatch, {"evidence_sufficiency_unavailable": True})
+
+    def forbidden_composer(**kwargs):
+        raise AssertionError("LLM composer must not run in deterministic-only mode")
+
+    monkeypatch.setattr(use_main.general_guide_composition, "compose", forbidden_composer)
+    query = "What does stewardship look like when people disagree about what is worth protecting?"
+    status, payload = asyncio.run(_post_query(query))
+
+    response = payload.get("response", "")
+    assert status == 200
+    assert "different values" in response
+    assert "what each person is trying to protect" in response
+    assert "handle disagreement responsibly" in response
+    assert "Stewardship means taking care of something entrusted to you" not in response
+    assert len(response.split("\n\n")) == 3
+    assert r"\n\n" not in response
+
+
 def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(monkeypatch):
     """The explicit mode switch isolates deterministic recovery without provider calls."""
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "deterministic_only")
