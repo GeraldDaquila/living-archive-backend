@@ -473,8 +473,8 @@ def test_provider_bank_exhaustion_reuses_frozen_reciprocity_gold_standard(monkey
 
 
 
-def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity():
-    """Exercise topic-aware fallback branches without external providers or production quotas."""
+def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity(monkeypatch):
+    """Exercise topic-aware fallback through the ASGI request boundary, offline."""
     cases = [
         {
             "query": "What does reciprocity mean in the Living Archive?",
@@ -521,13 +521,23 @@ def test_deterministic_fallback_semantic_matrix_preserves_topic_specificity():
     ]
 
     for case in cases:
-        result = use_main._basic_inquiry_round1_deterministic_response(
-            case["query"], {}, {}
+        _install_controlled_provider_and_retrieval(
+            monkeypatch, {"evidence_sufficiency_unavailable": True}
         )
-        response = result["response"]
+        monkeypatch.setattr(
+            use_main.general_guide_composition, "compose", lambda **kwargs: None
+        )
+        monkeypatch.setattr(
+            use_main, "_guide_capability_route", lambda *args, **kwargs: {}
+        )
+
+        status, payload = asyncio.run(_post_query(case["query"]))
+        response = payload["response"]
         paragraphs = [part for part in response.split("\n\n") if part.strip()]
 
-        assert result["provider"] == case["provider"], case["query"]
+        assert status == 200, case["query"]
+        assert payload["answer_basis"]["kind"] == "general_knowledge", case["query"]
+        assert payload.get("recommendation") is None, case["query"]
         assert len(paragraphs) == case["paragraphs"], case["query"]
         for marker in case["markers"]:
             assert marker.casefold() in response.casefold(), (case["query"], marker)
