@@ -188,3 +188,15 @@ On commit `73a6c2eb900ad297a7b6f152560114c5bd93e785`, all three triggered workfl
 - Guide Woody mocked UI continuity contract, run #219 — success.
 
 These results validate the isolated registry tests and the existing production/UI regression suites on this commit. They do not establish production-versus-registry shadow parity, live visitor end-to-end success, or release readiness. PR #712 remains open and unmerged; production routing and protected files remain unchanged.
+
+## Latest verified CI checkpoint — 2026-10-20 (commit `7e94643a6d919837a3447340c019e51032183c1c`)
+
+All three workflows have now completed successfully on the current registry code/test commit:
+
+- Deterministic routing registry tests, run #97 — **success**.
+- v487 production validation, run #2312 — **success**.
+- Guide Woody mocked UI continuity contract, run #221 — **success**.
+
+The registry test update adds explicit collision-precedence coverage for FSD, glyph meaning, and Catalogue/case-study requests, plus a mixed-negation request that must remain in Guide; it also removes a duplicate relational projection test.
+
+This checkpoint establishes that these workflows passed on this commit. It does **not** establish route-by-route production parity, protected safety integration, live Guide Node arbitration, multi-turn history parity, or live visitor E2E success. The shadow comparison remains unexecuted. PR #712 remains open and unmerged; no production wiring or deployment is authorized.
