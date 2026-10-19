@@ -18,34 +18,62 @@ The current `_guide_capability_route()` performs the following work, in order or
 
 The isolated registry does not yet reproduce steps 5–9. It is therefore not production-parity complete.
 
+## Complete route-ID inventory from production
+
+The current `_GUIDE_ROUTE_IDS` set in production `main.py` contains:
+
+- `guide`
+- `relationship`
+- `formation`
+- `catalogue`
+- `atlas`
+- `navigator`
+- `systems_ph`
+- `safety`
+- `glossary`
+- `glyph`
+- `case`
+- `fsd`
+- `guide_node`
+
+The registry currently has explicit rules for catalogue, formation, FSD, glyph, Atlas, glossary, and a high-signal subset of relationship navigation. It defaults unknown requests to Guide and has an optional safety override input. It does not yet implement `navigator`, `systems_ph`, `case`, or live `guide_node` arbitration. The safety override is not connected to the protected-core safety authority.
+
 ## Deterministic fallback route families observed
 
 | Route | Existing bounded trigger / guard | Current registry status |
 |---|---|---|
 | safety | Protected-core inquiry risk profile and safety guards | Only accepts an explicit `safety_active=True`; not wired to protected core |
-| fsd | `_is_fsd_request(query)` | Added; parity tests still required |
+| fsd | `_is_fsd_request(query)` | Explicit-name subset only; natural-language diagnostic boundary not equivalent |
 | glyph | explicit glyph/symbol/icon/mark plus lookup language | Added; parity tests still required |
 | atlas | `_is_explicit_atlas_request(query)` | Added; current patterns are only an approximation |
 | glossary | definition/meaning language | Added; target-term and ambiguity behavior need review |
 | guide | conservative fallback for unbounded/open-ended inquiry | Added as default |
-| relationship | `_relational_boundary_decision(query)` and model-route arbitration | Added high-signal subset only; not equivalent |
-| formation | `_explicit_formation_entry_route(query)` plus post-model guard | Added high-signal subset only; not equivalent |
+| relationship | `_relational_boundary_decision(query)` and model-route arbitration | Added high-signal subset only; does not implement production multi-signal boundary |
+| formation | `_explicit_formation_entry_route(query)` plus post-model guard | Added high-signal subset only; exact preparation and entry language differ |
 | catalogue | explicit resource-discovery task | Added; must be checked against the current catalogue route and access class |
 | guide_node | active WordPress node registry + semantic arbitration | Not implemented in this registry |
 | case | case navigator / case request guards | Not implemented in this registry |
-| other supported route IDs | `_GUIDE_ROUTE_IDS` in `main.py` | Must be enumerated and mapped before integration |
+| navigator | supported production route ID | Not implemented in this registry |
+| systems_ph | supported production route ID | Not implemented in this registry |
+
+## Verified isolated-test result
+
+GitHub Actions run 7 for the deterministic routing registry completed successfully after commit `e0cb763f3c27ca415f9e9a9d222bf22b75b3de46`. The job completed the `Run isolated registry tests` step successfully. This confirms the isolated registry tests passed in that run; it does **not** establish production parity or visitor-facing end-to-end success.
+
+The earlier run failed because `What is stewardship and why does it matter?` was classified as `glossary` rather than `guide`. A bounded exclusion was added to keep explanatory stewardship questions in the general Guide lane. The passing run is associated with the correction.
 
 ## Non-negotiable integration gates
 
 - Preserve protected safety authority; never infer safety solely from this registry's optional flag.
 - Preserve Guide Node freshness and Level I/II arbitration. Do not replace live node evidence with hard-coded topic rules.
 - Preserve current specialist availability/access controls, including the planned/not-available distinction.
+- Preserve the full production FSD and relational boundaries, including multi-signal evidence and history-aware cases.
 - Keep route selection separate from answer generation and canonical retrieval.
 - Unknown or mixed requests stay in the Guide or ask for clarification; no second LLM call solely to classify.
 - Shadow-compare registry decisions against current routing on a curated representative corpus before enabling it.
 - Add tests for route/mode compatibility, precedence collisions, history-dependent cases, missing nodes, protected-risk behavior, and no-regression of ordinary Guide questions.
-- Do not merge/deploy until tests execute and results are inspected.
+- Do not merge/deploy until tests execute and results are inspected and the parity gaps are resolved.
 
-## Verification note
+## Current disposition
 
-The current registry unit tests and workflow are committed on the feature branch. A workflow run or green status has not yet been confirmed by the available GitHub status/run query. Do not represent the tests as passing until a real run is visible and successful.
+The passing isolated suite is a necessary but insufficient gate. Continue with route/mode compatibility tests, production-vs-registry shadow fixtures, and a review of all 13 production route IDs. Do not import the registry into `main.py`, merge the PR, or deploy it until the gaps above are addressed.
