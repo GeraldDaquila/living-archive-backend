@@ -365,3 +365,20 @@ def test_known_production_hrn_projection_fixture_is_a_parity_gap_not_silently_re
     assert decision.route == "guide"
     assert decision.mode == "direct"
     assert decision.source == "deterministic-guide-default"
+
+
+def test_known_production_catalogue_resource_queries_are_explicit_parity_gaps():
+    # These are asserted as Catalogue searches by
+    # tests/test_catalogue_resource_search_routing.py on production main.
+    # The isolated registry currently defaults them to Guide because it
+    # recognizes only a narrower subset of resource-discovery language.
+    for query in (
+        "Where can I find material about institutional responsibility?",
+        "Find resources about governance and shared stewardship.",
+        "Please recommend resources on stewardship.",
+        "What resources are available on stewardship?",
+        "I'm looking for materials about shared governance.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.source == "deterministic-guide-default"
