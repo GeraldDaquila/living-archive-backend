@@ -120,7 +120,8 @@ _RULES = (
         reason="explicit Philippine Systems Lens request",
         source="deterministic-philippine-systems-lens",
         patterns=(
-            r"\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\b",
+            r"\\b(?:open|launch|enter|use|run|apply|invoke)\\b.{0,80}\\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\\b",
+            r"\\b(?:philippine systems lens|systems lens for the philippines|philippines systems lens)\\b.{0,80}\\b(?:open|launch|enter|use|run|apply|invoke)\\b",
         ),
         confidence=0.98,
     ),
