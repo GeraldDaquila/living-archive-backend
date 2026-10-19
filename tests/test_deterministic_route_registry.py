@@ -296,3 +296,24 @@ def test_case_study_search_does_not_require_catalogue_word():
     decision = resolve_route("Search for relevant case studies")
     assert decision.route == "case"
     assert decision.mode == "lookup"
+
+
+def test_systems_lens_mention_without_task_intent_stays_in_guide():
+    for query in (
+        "What is the Philippine Systems Lens?",
+        "I read about the Philippine Systems Lens.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "guide"
+        assert decision.mode == "direct"
+
+
+def test_systems_lens_explicit_invocation_routes_to_specialist():
+    for query in (
+        "Open the Philippine Systems Lens.",
+        "Use the Philippine Systems Lens to examine this issue.",
+        "Apply the Philippine Systems Lens to this policy question.",
+    ):
+        decision = resolve_route(query)
+        assert decision.route == "systems_ph"
+        assert decision.mode == "lookup"
