@@ -343,3 +343,10 @@ def test_negated_specialist_tasks_default_to_guide_across_route_families():
         assert decision.route == "guide"
         assert decision.mode == "direct"
         assert decision.source == "deterministic-negated-task-guard"
+
+
+def test_authoritative_safety_precedes_negated_task_guard():
+    decision = resolve_route("Do not show me resources; I feel unsafe right now.", safety_active=True)
+    assert decision.route == "safety"
+    assert decision.mode == "safety"
+    assert decision.source == "deterministic-safety-precedence"
