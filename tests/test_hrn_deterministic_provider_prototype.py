@@ -100,3 +100,41 @@ def test_third_turn_needs_prior_journey_state_to_advance():
     ))
     assert result["status"] == "insufficient_context"
     assert "outside_supported_deterministic_scope" in result["limitations"]
+
+
+
+def test_three_turn_sequence_carries_provider_state_without_mutating_prior_results():
+    session_id = "one-session-for-all-three-turns"
+    prior_moves = []
+    prior_questions = []
+    messages = [
+        "I keep initiating contact with a friend, and I want to understand what is happening between us.",
+        "Lately, they have been aloof, even ghosting my texts without explanation. I noticed this behavioral change last when I declined loaning them some money.",
+        "The long silence, evaded answers, and as mentioned ghosting my texts. Since there's no clear cut time as to when this behavior started, I keep wondering as to what triggered it.",
+    ]
+    results = []
+    for turn, message in enumerate(messages, start=1):
+        snapshot = _snapshot(
+            turn,
+            message,
+            session_id=session_id,
+            prior_moves=list(prior_moves),
+            prior_questions=list(prior_questions),
+            known_observations=[
+                observation
+                for prior in results
+                for observation in prior["observations"]
+            ],
+        )
+        result = reason(snapshot)
+        results.append(result)
+        assert result["session_id"] == session_id
+        assert result["visitor_turn_id"] == f"turn-{turn}"
+        assert result["status"] == "success"
+        prior_moves.append(result["next_move"])
+        prior_questions.append(result["response_draft"])
+
+    assert [item["next_move"] for item in results] == ["clarify", "distinguish", "deepen"]
+    assert len({item["response_draft"] for item in results}) == 3
+    assert "timing" in results[1]["response_draft"].casefold()
+    assert "willing to talk" in results[2]["response_draft"].casefold()
