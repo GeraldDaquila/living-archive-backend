@@ -129,7 +129,7 @@ def test_lived_workplace_credit_omission_routes_to_hrn():
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
-    assert decision["signals"]["role_context"] is True
+    assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["dynamic"] is True
     assert decision["signals"]["inquiry"] is True
 
