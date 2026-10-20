@@ -252,7 +252,13 @@ def resolve_route(query: str, *, safety_active: bool = False) -> RouteDecision:
             reason="empty query requires clarification",
             source="deterministic-empty-query", alternatives=(),
         )
-    if _NEGATED_TASK_PATTERN.search(q):
+    # A contrastive clause can reject one action while affirming another.
+    # Keep the conservative whole-query guard for coordinated negation ("... or ..."),
+    # but evaluate the affirmative clause after an explicit "but" independently.
+    contrastive = re.split(r"\\s+but\\s+", q, maxsplit=1)
+    if len(contrastive) == 2 and _NEGATED_TASK_PATTERN.search(contrastive[0]):
+        q = contrastive[1].strip()
+    elif _NEGATED_TASK_PATTERN.search(q):
         return RouteDecision(
             route="guide", mode="direct", confidence=0.90,
             reason="negated task intent is not delegated to a specialist",
