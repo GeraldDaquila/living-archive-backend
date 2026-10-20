@@ -6551,7 +6551,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # cannot drift into different descriptions or introduce unselected resources.
     if discovery_subject:
         grounded_discovery = _guide_subject_discovery_answer(
-            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
+            llm_output, query if comparison_intent else resource_query,
+            authoritative_doorway, discovery_selected_evidence
         )
         if grounded_discovery != str(llm_output or "").strip():
             print(
@@ -6638,7 +6639,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if discovery_subject:
         response = _sanitize_basic_inquiry_response(
             _guide_subject_discovery_answer(
-                response, resource_query, authoritative_doorway, discovery_selected_evidence
+                response, query if comparison_intent else resource_query,
+                authoritative_doorway, discovery_selected_evidence
             )
         )
 
