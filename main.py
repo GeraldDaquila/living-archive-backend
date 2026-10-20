@@ -6215,37 +6215,46 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
             if discovery_subject and authoritative_doorway:
-                doorway_docs = _wordpress_search_canonical_candidates(
-                    authoritative_doorway.get("title") or "", limit=3
-                )
-                # Search may rank around a destination without returning that
-                # exact page in its bounded slice. Fetch the already-authorized
-                # URL directly, then let the same URL/body/subject-fit checks
-                # decide whether it can support the discovery answer.
-                direct_body = _wordpress_fetch_selected_canonical_body(
-                    authoritative_doorway.get("url") or ""
-                )
-                direct_selected_body = direct_body if isinstance(direct_body, dict) else None
-                recovered_docs = (
-                    ([direct_body] if isinstance(direct_body, dict) else [])
-                    + list(doorway_docs)
-                    + list(recovered_docs)
-                )
                 if comparison_intent:
-                    # This is a bounded complementary-source recovery for an
-                    # explicit two-class comparison only. The visitor's primary
-                    # doorway remains the Document Types article; the second
-                    # body is fetched only from the dedicated canonical page
-                    # already identified by the normalized class name.
+                    # Explicit two-class comparisons already identify their
+                    # two canonical page identities. Fetch those two sources
+                    # directly instead of depending on broad WordPress search
+                    # rankings and per-candidate body fetches.
+                    direct_body = _wordpress_fetch_selected_canonical_body(
+                        "https://geralddaquila.com/document-types-of-the-living-archive/"
+                    )
                     witness_body = _wordpress_fetch_selected_canonical_body(
                         "https://geralddaquila.com/constitutional-witnesses/"
                     )
-                    if isinstance(witness_body, dict):
-                        recovered_docs.append(witness_body)
+                    direct_selected_body = direct_body if isinstance(direct_body, dict) else None
+                    recovered_docs = (
+                        ([direct_body] if isinstance(direct_body, dict) else [])
+                        + ([witness_body] if isinstance(witness_body, dict) else [])
+                        + list(recovered_docs)
+                    )
+                    if isinstance(direct_body, dict) and isinstance(witness_body, dict):
                         print(
-                            "The Guide comparison evidence: added separately fetched "
-                            "canonical Constitutional Witnesses source."
+                            "The Guide comparison evidence: both dedicated canonical sources fetched."
                         )
+                    else:
+                        print(
+                            "The Guide comparison evidence: incomplete direct fetch; fail-closed answer retained."
+                        )
+                else:
+                    doorway_docs = _wordpress_search_canonical_candidates(
+                        authoritative_doorway.get("title") or "", limit=3
+                    )
+                    # Fetch the selected destination directly; related search
+                    # candidates remain subject to the existing relevance gates.
+                    direct_body = _wordpress_fetch_selected_canonical_body(
+                        authoritative_doorway.get("url") or ""
+                    )
+                    direct_selected_body = direct_body if isinstance(direct_body, dict) else None
+                    recovered_docs = (
+                        ([direct_body] if isinstance(direct_body, dict) else [])
+                        + list(doorway_docs)
+                        + list(recovered_docs)
+                    )
             normalized_recovered_docs = []
             seen_recovered_urls = set()
             for item in recovered_docs:
