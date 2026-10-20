@@ -160,7 +160,7 @@ jobs:
               case = str(item.get("case", "unknown")).replace("|", "\\|")
               status = str(item.get("http_status", "ERR"))
               intent = str(item.get("intent", item.get("transport_error", "n/a"))).replace("|", "\\|")
-              response = str(item.get("response", item.get("raw", ""))).replace("\\n", " ").replace("|", "\\|")[:420]
+              response = str(item.get("response", item.get("raw", ""))).replace("\n", " ").replace("|", "\\|")[:420]
               recommendation = item.get("recommendation")
               if isinstance(recommendation, dict):
                   destination = str(recommendation.get("title") or "") + " — " + str(recommendation.get("url") or "")
@@ -169,7 +169,7 @@ jobs:
               destination = destination.replace("|", "\\|")[:240]
               lines.append(f"| {case} | {status} | {intent} | {response} | {destination} |")
           lines.extend(["", "**Smoke failures:** " + json.dumps(report.get("failures", []), ensure_ascii=False)])
-          body = "\\n".join(lines)
+          body = "\n".join(lines)
           request = urllib.request.Request(
               "https://api.github.com/repos/GeraldDaquila/living-archive-backend/issues/727/comments",
               data=json.dumps({"body": body}).encode("utf-8"),
