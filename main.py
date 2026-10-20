@@ -5278,7 +5278,7 @@ if _guide_subject_discovery_query("What is the difference between a Cornerstone 
 
 
 def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
-    """Validate the chosen doorway while preserving bounded complementary canonical evidence."""
+    """Validate the selected doorway and retain a bounded set of complementary canonical evidence."""
     if not isinstance(doorway, dict) or not str(subject or "").strip():
         return []
     selected_url = str(doorway.get("url") or "").strip().rstrip("/").casefold()
@@ -5295,19 +5295,43 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
         ).strip().rstrip("/").casefold()
         if not candidate_url:
             continue
+
         node = document.get("_guide_node") if isinstance(document.get("_guide_node"), dict) else None
         grade = _guide_discovery_evidence_grade(subject, document, node=node)
         is_selected_doorway = candidate_url == selected_url
-        # The actual selected destination must be directly or honestly related to
-        # the subject. Complementary pages may be retained only as on-site,
-        # separately titled, fetched sources with substantive relevant text.
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        title = str(document.get("title") or "").strip()
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+
+        # A dedicated Constitutional Witnesses page can support an explicit
+        # document-class comparison even though its page-level subject is
+        # narrower than the normalized destination subject ("document types").
+        # This identity-and-body bound exception grants support evidence only.
+        comparison_support = bool(
+            not is_selected_doorway
+            and str(subject or "").strip().casefold() == "document types"
+            and candidate_url == "https://geralddaquila.com/constitutional-witnesses"
+            and "constitutional witnesses" in title.casefold()
+            and len(body) >= 120
+            and re.search(r"\bconstitutional witnesses?\b", body, re.I)
+            and re.search(r"\blived encounters\b", body, re.I)
+            and re.search(r"\bconstitutional realities\b", body, re.I)
+            and re.search(r"\b(?:became visible|constitutional provenance)\b", body, re.I)
+        )
+
         if is_selected_doorway:
             if grade["grade"] not in {"direct", "related"}:
                 continue
+        elif comparison_support:
+            grade = {
+                "grade": "direct",
+                "score": 100,
+                "support": [
+                    "constitutional witnesses", "lived encounters",
+                    "constitutional realities", "became visible"
+                ],
+            }
         else:
-            url = str(document.get("url") or document.get("canonical_url") or "").strip()
-            title = str(document.get("title") or "").strip()
-            body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
             if not (
                 title and len(body) >= 120
                 and re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I)
@@ -5330,12 +5354,8 @@ def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
             not item.get("_is_selected_discovery_doorway", False),
             item.get("_discovery_relevance") == "direct",
             int(item.get("_discovery_relevance_score") or 0),
-        ),
-        reverse=False,
+        )
     )
-
-    # A hard small cap keeps evidence bounded. The selected doorway always stays
-    # first; at most two additional direct canonical sources may supplement it.
     selected = [item for item in accepted if item.get("_is_selected_discovery_doorway")]
     complementary = [item for item in accepted if not item.get("_is_selected_discovery_doorway")]
     return (selected[:1] + complementary[:2]) if selected else []
@@ -6178,8 +6198,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     discovery_selected_evidence = []
     direct_selected_body = None
     registry_discovery_docs = []
-    if _guide_requires_canonical_subject_supplement(
-        archive_evidence_unavailable, discovery_subject
+    if (
+        _guide_requires_canonical_subject_supplement(
+            archive_evidence_unavailable, discovery_subject
+        )
+        or comparison_intent
     ):
         # Subject-finding requests always receive a bounded WordPress content
         # supplement, even when the initial vector pass did not set an evidence-
