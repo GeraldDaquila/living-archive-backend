@@ -111,10 +111,10 @@ def test_generic_workplace_credit_taking_recognizes_common_general_phrasings():
 
 def test_generic_workplace_credit_taking_excludes_specific_lived_cases():
     lived_questions = [
-        "What patterns explain why my manager keeps taking credit for my work?",
-        "What are common patterns when my teammate presents our project as theirs?",
-        "What are examples of someone on my team taking credit for my idea?",
-        "What are common patterns of taking credit? This happened to me last week.",
+        "What are common patterns of taking credit at work when my manager keeps taking credit for my work?",
+        "What are common patterns of taking credit in workplace relationships when my teammate presents our project as theirs?",
+        "What are examples of taking credit at work by someone on my team for my idea?",
+        "What are common patterns of taking credit at work? This happened to me last week.",
     ]
     for question in lived_questions:
         assert main._is_generic_workplace_credit_taking_question(question) is False
