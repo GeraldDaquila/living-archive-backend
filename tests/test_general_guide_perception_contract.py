@@ -1,7 +1,26 @@
 """Regression contract preserving the established General Guide writer."""
 
+import ast
+from pathlib import Path
+import re
+
 import general_guide_composition as guide
-import main
+
+
+# Load the pure response-boundary helper without importing the FastAPI app.
+_SOURCE_PATH = Path(__file__).resolve().parents[1] / "main.py"
+_SOURCE_TREE = ast.parse(_SOURCE_PATH.read_text(encoding="utf-8"))
+_HELPER_NODE = next(
+    node for node in _SOURCE_TREE.body
+    if isinstance(node, ast.FunctionDef)
+    and node.name == "_guide_reconcile_resource_language"
+)
+_HELPER_NAMESPACE = {"re": re}
+exec(
+    compile(ast.Module(body=[_HELPER_NODE], type_ignores=[]), str(_SOURCE_PATH), "exec"),
+    _HELPER_NAMESPACE,
+)
+_reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_language"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -199,7 +218,7 @@ def test_unavailable_recommendation_cannot_be_promised_in_visitor_text():
         "If you would like to explore this further, the Archive resource below "
         "may offer a useful next step."
     )
-    result = main._guide_reconcile_resource_language(response, recommendation_available=False)
+    result = _reconcile_resource_language(response, recommendation_available=False)
     assert "resource below" not in result.lower()
     assert "I could not identify a sufficiently relevant Archive resource to recommend here." in result
 
@@ -210,18 +229,18 @@ def test_unavailable_recommendation_does_not_duplicate_existing_boundary_sentenc
         "The Archive resource below may offer a useful next step. "
         "I could not identify a sufficiently relevant Archive resource to recommend here."
     )
-    result = main._guide_reconcile_resource_language(response, recommendation_available=False)
+    result = _reconcile_resource_language(response, recommendation_available=False)
     assert "resource below" not in result.lower()
     assert result.count("I could not identify a sufficiently relevant Archive resource to recommend here.") == 1
 
 
 def test_available_recommendation_preserves_proportionate_resource_language():
     response = "The Archive resource below may offer a useful next step."
-    result = main._guide_reconcile_resource_language(response, recommendation_available=True)
+    result = _reconcile_resource_language(response, recommendation_available=True)
     assert result == response
 
 
 def test_unrelated_answer_is_not_rewritten_when_no_recommendation_exists():
     response = "Keep one reading list and review it once a week."
-    result = main._guide_reconcile_resource_language(response, recommendation_available=False)
+    result = _reconcile_resource_language(response, recommendation_available=False)
     assert result == response
