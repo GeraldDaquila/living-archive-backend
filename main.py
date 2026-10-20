@@ -5156,14 +5156,14 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     # is conservative. This exception is title-bound and body-bound; it is not
     # available to related pages or arbitrary unregistered URLs.
     canonical_document_types_body = (
-        "cornerstone" in early_tokens
+        bool({"cornerstone", "cornerstones"} & early_tokens)
         and "constitutional" in early_tokens
-        and "witness" in early_tokens
+        and bool({"witness", "witnesses"} & early_tokens)
     ) or (
         "document" in early_tokens
         and (
-            "cornerstone" in early_tokens
-            or ("constitutional" in early_tokens and "witness" in early_tokens)
+            bool({"cornerstone", "cornerstones"} & early_tokens)
+            or ("constitutional" in early_tokens and bool({"witness", "witnesses"} & early_tokens))
             or (
                 "publication" in early_tokens
                 and bool({"class", "classes", "type", "types"} & early_tokens)
@@ -5436,15 +5436,15 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
             normalized_subject == "document types"
             and (
                 (
-                    "cornerstone" in opening_tokens
+                    bool({"cornerstone", "cornerstones"} & opening_tokens)
                     and "constitutional" in opening_tokens
-                    and "witness" in opening_tokens
+                    and bool({"witness", "witnesses"} & opening_tokens)
                 )
                 or (
                     "document" in opening_tokens
                     and (
-                        "cornerstone" in opening_tokens
-                        or ("constitutional" in opening_tokens and "witness" in opening_tokens)
+                        bool({"cornerstone", "cornerstones"} & opening_tokens)
+                        or ("constitutional" in opening_tokens and bool({"witness", "witnesses"} & opening_tokens))
                         or (
                             "publication" in opening_tokens
                             and bool({"class", "classes", "type", "types"} & opening_tokens)
