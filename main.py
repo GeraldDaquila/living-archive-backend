@@ -5582,22 +5582,6 @@ def _guide_assert_canonical_discovery_contracts():
         doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
         if not doorway or not evidence or doorway.get("title") != direct["title"]:
             raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
-        grounded_excerpt = _guide_deterministic_discovery_response(
-            "document types",
-            {"title": direct["title"], "url": direct["url"]},
-            [{
-                "title": direct["title"],
-                "url": direct["url"],
-                "text": (
-                    "Cornerstones establish foundational principles for the Living Archive. "
-                    "Constitutional Witnesses preserve the commitments that give those principles continuity. "
-                    "The two publication classes serve distinct roles."
-                ),
-                "_discovery_relevance": "direct",
-            }],
-        )
-        if "couldn’t isolate a complete source sentence" in grounded_excerpt or "Cornerstones" not in grounded_excerpt:
-            raise RuntimeError("Guide discovery contract failed: canonical publication-class prose did not ground the deterministic answer.")
         low_fit_body = {
             "title": "Document Types of the Living Archive",
             "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
@@ -5804,6 +5788,32 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         f"{title} is a useful place to begin. The essay asks: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
+
+
+def _guide_assert_document_types_answer_contract():
+    """Check source-grounded document-type output after the response helper exists."""
+    answer = _guide_deterministic_discovery_response(
+        "document types",
+        {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        },
+        [{
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "Cornerstones establish foundational principles for the Living Archive. "
+                "Constitutional Witnesses preserve the commitments that give those principles continuity. "
+                "The two publication classes serve distinct roles."
+            ),
+            "_discovery_relevance": "direct",
+        }],
+    )
+    if "couldn’t isolate a complete source sentence" in answer or "Cornerstones" not in answer:
+        raise RuntimeError("Guide discovery contract failed: canonical publication-class prose did not ground the deterministic answer.")
+
+
+_guide_assert_document_types_answer_contract()
 
 
 def _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
