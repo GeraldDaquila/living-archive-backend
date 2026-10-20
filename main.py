@@ -5780,16 +5780,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if _is_practical_stewardship_question(query):
+    if _is_practical_stewardship_question(query) or _is_generic_workplace_credit_taking_question(query):
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
         )
         llm_output = str((deterministic_result or {}).get("response") or "").strip()
         if not llm_output:
-            raise RuntimeError("Practical stewardship recovery returned no answer.")
+            raise RuntimeError("Bounded general-knowledge recovery returned no answer.")
+        recovery_mode = (
+            "bounded_practical_stewardship_recovery"
+            if _is_practical_stewardship_question(query)
+            else "bounded_workplace_credit_taking_general_knowledge"
+        )
         print(
             "The Guide General Composition: "
-            "mode=bounded_practical_stewardship_recovery, "
+            f"mode={recovery_mode}, "
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
