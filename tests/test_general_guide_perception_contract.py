@@ -376,7 +376,7 @@ def test_unregistered_canonical_article_requires_direct_evidence_match(monkeypat
     evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "fetched"}, {})
 
     assert len(evidence) == 1
-    assert evidence[0]["url"] == doorway["url"]
+    assert evidence[0]["url"] == doorway["url"].rstrip("/")
     assert evidence[0]["_discovery_relevance"] == "direct"
     assert "_guide_node" not in evidence[0]
 
