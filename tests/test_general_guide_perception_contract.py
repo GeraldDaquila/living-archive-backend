@@ -16,6 +16,7 @@ _HELPER_NODES = [
     and node.name in {
         "_guide_reconcile_resource_language",
         "_guide_bounded_community_archive_answer",
+        "_guide_bounded_friendship_expectations_answer",
     }
 ]
 _HELPER_NAMESPACE = {"re": re}
@@ -25,6 +26,7 @@ exec(
 )
 _reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_language"]
 _community_archive_answer = _HELPER_NAMESPACE["_guide_bounded_community_archive_answer"]
+_friendship_expectations_answer = _HELPER_NAMESPACE["_guide_bounded_friendship_expectations_answer"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -266,3 +268,20 @@ def test_community_archive_responsibility_question_gets_bounded_general_answer()
 
 def test_community_archive_recovery_does_not_capture_unrelated_questions():
     assert _community_archive_answer("How should I organize a reading list?") is None
+
+
+def test_generic_friendship_expectations_question_does_not_need_people_or_we():
+    answer = _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in friendships?"
+    )
+    assert answer is not None
+    assert answer["provider"] == "bounded_friendship_expectations_recovery"
+    assert "how often people expect to be in touch" in answer["response"]
+    assert "whether they want advice or simply to be heard" in answer["response"]
+    assert answer["response"].endswith("Which expectation tends to be hardest for people to read accurately?")
+
+
+def test_friendship_expectations_recovery_does_not_capture_lived_questions():
+    assert _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in my friendship?"
+    ) is None
