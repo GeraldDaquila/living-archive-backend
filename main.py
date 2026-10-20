@@ -5630,7 +5630,7 @@ def _guide_discovery_html_recovery(
     context_data=None, composition_context=None,
 ):
     """Prefer verified canonical evidence over a refusal when generated prose is malformed."""
-    subject = re.sub(r"[.!?]+$", "", re.sub(r"\\s+", " ", str(discovery_subject or query).strip()))
+    subject = re.sub(r"[.!?]+$", "", re.sub(r"\s+", " ", str(discovery_subject or query).strip()))
     if doorway and not _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
         evidence = _guide_verified_doorway_evidence_for_query(
             subject, doorway, context_data or {}, composition_context or {}
