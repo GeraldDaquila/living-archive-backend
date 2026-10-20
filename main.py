@@ -5501,6 +5501,51 @@ def _guide_align_discovery_doorway(subject, documents):
     return candidate, evidence
 
 
+def _guide_assert_canonical_discovery_contracts():
+    """Exercise direct, related-only, and off-site discovery candidates without network access."""
+    original_nodes = _guide_registered_discovery_nodes
+    original_fit = use_core._question_evidence_fit_profile
+    body = (
+        "The Living Archive document types include Cornerstones and Constitutional Witnesses. "
+        "These document types serve distinct publication purposes. The document types are "
+        "described in the Archive's canonical publication guide."
+    )
+    direct = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        "text": body,
+    }
+    related_only = {
+        "title": "Public Vocabulary",
+        "url": "https://geralddaquila.com/public-vocabulary/",
+        "text": body + " This page also mentions document types in passing.",
+    }
+    off_site = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://example.org/document-types/",
+        "text": body,
+    }
+    try:
+        # Keep this contract deterministic and isolated from live WordPress data.
+        _guide_registered_discovery_nodes = lambda subject, limit=3: []
+        use_core._question_evidence_fit_profile = lambda question, document: (3, 3, 3, 3)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
+        if not doorway or not evidence or doorway.get("title") != direct["title"]:
+            raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [related_only])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: related-only article gained direct authority.")
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [off_site])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: off-site article gained canonical authority.")
+    finally:
+        _guide_registered_discovery_nodes = original_nodes
+        use_core._question_evidence_fit_profile = original_fit
+
+
+_guide_assert_canonical_discovery_contracts()
+
+
 def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     """Reject discovery prose that ignores or contradicts its selected Archive evidence."""
     text = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
