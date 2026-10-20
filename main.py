@@ -4327,6 +4327,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     # Bounded everyday task recovery: answer common practical questions without
     # requiring Archive retrieval to manufacture a useful response.
+    if (
+        re.search(r"\b(?:common ways|common patterns|typical ways)\b", q)
+        and re.search(r"\b(?:people|we)\b", q)
+        and re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", q)
+        and re.search(r"\bfriendships?\b", q)
+        and not re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", q)
+    ):
+        response = (
+            "Friendship expectations can differ in several ordinary ways: how often people expect to be in touch, whether they want advice or simply to be heard, how much help is reasonable to ask for, what they consider private, and how directly they prefer to address hurt or disagreement. "
+            "Because these expectations are often unspoken, one person may read less contact as distance while the other sees it as normal busyness.\n\n"
+            "A useful starting point is to separate the observable event from the meaning assigned to it. Rather than assuming that a friend does not care, ask what each person expected and whether those expectations were ever discussed. Which expectation tends to be hardest for people to read accurately?"
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_friendship_expectations_recovery", "model": ""}
+
     if re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", q) and re.search(r"\b(?:organize|organise|track|manage|plan|keep)\b", q):
         response = (
             "Keep one reading list and give each item a simple status: want to read, reading, paused, or finished. "
@@ -5885,6 +5899,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if _is_generic_workplace_credit_taking_question(query):
         # This general answer is not grounded in a sufficiently direct canonical
         # source. Do not attach an incidental resource selected by broad retrieval.
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
+    # These everyday deterministic recoveries answer from general knowledge, not
+    # Archive evidence. Broad retrieval must not attach a coincidental doorway.
+    if not discovery_subject and (
+        re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", _normalize_query(query), re.I)
+        or re.search(r"\b(?:cleaning schedule|household cleaning|weekly cleaning)\b", _normalize_query(query), re.I)
+        or (
+            re.search(r"\b(?:common ways|common patterns|typical ways)\b", _normalize_query(query), re.I)
+            and re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", _normalize_query(query), re.I)
+            and re.search(r"\bfriendships?\b", _normalize_query(query), re.I)
+            and not re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", _normalize_query(query), re.I)
+        )
+    ):
         authoritative_doorway = None
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
