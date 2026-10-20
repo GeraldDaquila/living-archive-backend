@@ -5503,6 +5503,7 @@ def _guide_align_discovery_doorway(subject, documents):
 
 def _guide_assert_canonical_discovery_contracts():
     """Exercise direct, related-only, and off-site discovery candidates without network access."""
+    global _guide_registered_discovery_nodes
     original_nodes = _guide_registered_discovery_nodes
     original_fit = use_core._question_evidence_fit_profile
     body = (
