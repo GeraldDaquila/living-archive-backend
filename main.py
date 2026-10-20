@@ -5550,6 +5550,36 @@ def _guide_align_discovery_doorway(subject, documents):
     return candidate, evidence
 
 
+def _guide_prefer_fuller_direct_canonical_body(documents, direct_selected_body):
+    """Replace a same-URL search excerpt with the fuller body fetched from that exact canonical URL."""
+    merged = list(documents) if isinstance(documents, list) else []
+    if not isinstance(direct_selected_body, dict):
+        return merged
+    direct_url = str(
+        direct_selected_body.get("url") or direct_selected_body.get("canonical_url") or ""
+    ).strip().rstrip("/").casefold()
+    direct_body = str(
+        direct_selected_body.get("text")
+        or direct_selected_body.get("content")
+        or direct_selected_body.get("excerpt")
+        or ""
+    ).strip()
+    if not direct_url or not direct_body:
+        return merged
+    for index, item in enumerate(merged):
+        if not isinstance(item, dict):
+            continue
+        item_url = str(item.get("url") or item.get("canonical_url") or "").strip().rstrip("/").casefold()
+        if item_url != direct_url:
+            continue
+        item_body = str(item.get("text") or item.get("content") or item.get("excerpt") or "").strip()
+        if len(direct_body) > len(item_body):
+            merged[index] = direct_selected_body
+        return merged
+    merged.append(direct_selected_body)
+    return merged
+
+
 def _guide_assert_canonical_discovery_contracts():
     """Exercise direct, related-only, and off-site discovery candidates without network access."""
     global _guide_registered_discovery_nodes
@@ -5582,6 +5612,11 @@ def _guide_assert_canonical_discovery_contracts():
         doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
         if not doorway or not evidence or doorway.get("title") != direct["title"]:
             raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
+        short_excerpt = {"title": direct["title"], "url": direct["url"], "text": "Cornerstones"}
+        fuller_body = {"title": direct["title"], "url": direct["url"], "text": body + " Additional full canonical body text."}
+        merged_candidates = _guide_prefer_fuller_direct_canonical_body([short_excerpt], fuller_body)
+        if merged_candidates[0].get("text") != fuller_body["text"]:
+            raise RuntimeError("Guide discovery contract failed: full canonical body did not replace same-URL excerpt.")
         low_fit_body = {
             "title": "Document Types of the Living Archive",
             "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
@@ -6169,12 +6204,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         discovery_candidate_docs.append(item)
                         known_discovery_urls.add(item_url)
                 if direct_selected_body:
-                    direct_url_key = str(direct_selected_body.get("url") or "").rstrip("/").casefold()
-                    if not any(
-                        str(item.get("url") or "").rstrip("/").casefold() == direct_url_key
-                        for item in discovery_candidate_docs if isinstance(item, dict)
-                    ):
-                        discovery_candidate_docs.append(direct_selected_body)
+                    discovery_candidate_docs = _guide_prefer_fuller_direct_canonical_body(
+                        discovery_candidate_docs, direct_selected_body
+                    )
                 evidence_doorway, evidence_for_doorway = _guide_align_canonical_discovery_doorway(
                     resource_query, discovery_candidate_docs
                 )
