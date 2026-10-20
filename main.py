@@ -4078,8 +4078,16 @@ def _is_generic_workplace_credit_taking_question(query):
     q = _normalize_query(query)
     asks_for_patterns = bool(re.search(r"\b(?:common patterns|typical patterns|patterns|examples|ways)\b", q))
     about_credit = bool(re.search(r"\b(?:taking credit|claiming credit|credit for work|workplace credit)\b", q))
-    workplace_context = bool(re.search(r"\b(?:workplace|workplace relationships|colleagues|coworkers|professional relationships)\b", q))
-    lived_case = bool(re.search(r"\b(?:i feel|my colleague|my coworker|happened to me|in my team|we worked together)\b", q))
+    workplace_context = bool(re.search(r"\b(?:workplace|at work|workplace relationships|colleagues|coworkers|professional relationships|on a team|team settings)\b", q))
+    # A question can be phrased generally while still asking about a specific
+    # lived case. Keep those cases out of the general-knowledge recovery path.
+    lived_case = bool(re.search(
+        r"\b(?:i feel|i am|i'm|my colleague|my coworker|my teammate|my manager|my boss|"
+        r"my contribution|my idea|my work|someone on my team|a colleague of mine|"
+        r"happened to me|in my team|on my team|our project|we worked together|"
+        r"my team keeps|my manager keeps|my boss keeps)\b",
+        q,
+    ))
     return asks_for_patterns and about_credit and workplace_context and not lived_case
 
 
