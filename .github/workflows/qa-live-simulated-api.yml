@@ -6,6 +6,7 @@ on:
       - fix/relational-credit-taking-route
     paths:
       - ".github/workflows/qa-live-simulated-api.yml"
+      - "main.py"
   workflow_dispatch:
 
 permissions:
