@@ -118,3 +118,39 @@ def test_generic_workplace_credit_taking_excludes_specific_lived_cases():
     ]
     for question in lived_questions:
         assert main._is_generic_workplace_credit_taking_question(question) is False
+
+
+def test_lived_workplace_credit_omission_routes_to_hrn():
+    question = (
+        "My teammate presented our project results without mentioning my contribution. "
+        "What might I be missing about the relationship?"
+    )
+    decision = main._relational_boundary_decision(question)
+    assert decision["open"] is True
+    assert decision["reason"] == "lived_relational_structure"
+    assert decision["signals"]["first_person"] is True
+    assert decision["signals"]["counterpart"] is True
+    assert decision["signals"]["dynamic"] is True
+    assert decision["signals"]["inquiry"] is True
+
+
+def test_reading_list_provider_exhaustion_has_bounded_general_answer_without_doorway():
+    question = "What are some ways to organize a personal reading list?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        question, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert "one reading list" in result["response"]
+    assert "want to read" in result["response"]
+    assert result["doorway_title"] == ""
+    assert result["provider"] == "bounded_reading_list_recovery"
+
+
+def test_household_cleaning_schedule_provider_exhaustion_has_bounded_answer_without_doorway():
+    question = "How can I make a weekly household cleaning schedule?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        question, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert "daily resets" in result["response"]
+    assert "two weeks" in result["response"]
+    assert result["doorway_title"] == ""
+    assert result["provider"] == "bounded_household_schedule_recovery"
