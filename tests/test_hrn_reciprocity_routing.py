@@ -32,6 +32,8 @@ def test_everyday_stewardship_deterministic_answer_does_not_attach_unrelated_arc
         question, {}, {"context_blocks": ""}
     )
     assert "could not verify a sufficiently direct Archive resource" in result["response"]
+    assert "keeping a promise" in result["response"]
+    assert "At work, it could mean sharing credit fairly" in result["response"]
     assert result["doorway_title"] == ""
 
 
