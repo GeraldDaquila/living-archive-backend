@@ -6,16 +6,10 @@ on:
       - fix/relational-credit-taking-route
     paths:
       - ".github/workflows/qa-live-simulated-api.yml"
-  pull_request:
-    branches:
-      - fix/relational-credit-taking-route
-    paths:
-      - ".github/workflows/qa-live-simulated-api.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
   simulated-api-smoke:
@@ -62,6 +56,7 @@ jobs:
               ("document_types", "Explain the Living Archive's document types."),
               ("publication_classes", "What kinds of documents does the Living Archive publish?"),
               ("distinction", "What is the difference between a Cornerstone and a Constitutional Witness?"),
+              ("comparison_depth", "Compare the roles of Cornerstones and Constitutional Witnesses. Explain what each kind of publication contributes, not merely their names."),
               ("direct_general_answer", "What is stewardship in everyday life? Please answer directly and do not send me to another page."),
               ("explicit_resource_search", "Find a Living Archive article about document types, not a general page about spirituality."),
               ("specialist_routing", "How can our community understand why the same systems problems keep repeating?"),
@@ -142,6 +137,12 @@ jobs:
                       failures.append(f"{name}: canonical Document Types destination was not returned")
                   if (data.get("answer_basis") or {}).get("kind") != "archive_supported":
                       failures.append(f"{name}: answer basis does not identify canonical Archive support")
+              if name in ("document_types", "publication_classes", "distinction", "comparison_depth"):
+                  # Publication-class names alone are insufficient: each role needs source-derived substance.
+                  has_witness_definition = any(term in response_folded for term in ("lived encounters", "constitutional realities", "became visible"))
+                  has_cornerstone_definition = any(term in response_folded for term in ("integrative essays", "foundational perspectives"))
+                  if not ("cornerstone" in response_folded and "constitutional witness" in response_folded and has_witness_definition and has_cornerstone_definition):
+                      failures.append(f"{name}: names/classes do not include both distinct, source-derived role descriptions")
               if name == "direct_general_answer":
                   if not response_text.strip():
                       failures.append("direct_general_answer: no visitor-facing answer")
@@ -178,58 +179,26 @@ jobs:
           print("PRIVACY PROBE: the attacker query deliberately does not contain the seed canary.")
           PY
 
-      - name: Publish simulated response summary to QA PR
+      - name: Report results in workflow summary
         if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
-          import json, os, urllib.error, urllib.request
+          import json
           from pathlib import Path
-          report_path = Path("qa_live_simulated_api_summary.json")
-          if not report_path.exists():
-              print("No API summary file was produced; skipping PR comment.")
+          path = Path("qa_live_simulated_api_summary.json")
+          if not path.exists():
+              print("No simulated API summary was produced.")
               raise SystemExit(0)
-          report = json.loads(report_path.read_text(encoding="utf-8"))
-          lines = [
-              "## QA live simulated API smoke results",
-              "",
-              "QA-only automated POST /api/query probes. These are simulated questions, not browser visitor sessions.",
-              "",
-              "| Case | HTTP | Intent | Response excerpt | Recommendation / handoff |",
-              "|---|---:|---|---|---|",
-          ]
+          report = json.loads(path.read_text(encoding="utf-8"))
+          print("### Simulated API QA results")
+          print()
           for item in report.get("results", []):
-              case = str(item.get("case", "unknown")).replace("|", "\\|")
-              status = str(item.get("http_status", "ERR"))
-              intent = str(item.get("intent", item.get("transport_error", "n/a"))).replace("|", "\\|")
-              response = str(item.get("response", item.get("raw", ""))).replace("\n", " ").replace("|", "\\|")[:420]
-              recommendation = item.get("recommendation")
-              if isinstance(recommendation, dict):
-                  destination = str(recommendation.get("title") or "") + " — " + str(recommendation.get("url") or "")
-              else:
-                  destination = str(item.get("handoff") or "")
-              destination = destination.replace("|", "\\|")[:240]
-              lines.append(f"| {case} | {status} | {intent} | {response} | {destination} |")
-          lines.extend(["", "**Smoke failures:** " + json.dumps(report.get("failures", []), ensure_ascii=False)])
-          body = "\n".join(lines)
-          request = urllib.request.Request(
-              "https://api.github.com/repos/GeraldDaquila/living-archive-backend/issues/727/comments",
-              data=json.dumps({"body": body}).encode("utf-8"),
-              headers={
-                  "Authorization": "Bearer " + os.environ["GH_TOKEN"],
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "Content-Type": "application/json",
-              },
-              method="POST",
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=20) as response:
-                  print("QA report comment status:", response.status)
-          except urllib.error.HTTPError as exc:
-              print("QA report comment failed:", exc.code, exc.read().decode("utf-8", "replace")[:1000])
-              raise
+              print(f"- **{item.get('case','unknown')}** — HTTP {item.get('http_status','ERR')} — {item.get('intent','n/a')}")
+              response = str(item.get("response") or "").replace("\\n", " ")
+              if response:
+                  print("  - " + response[:300])
+          print()
+          print("Failures: " + json.dumps(report.get("failures", []), ensure_ascii=False))
           PY
 
       - name: Save QA report in the QA branch
