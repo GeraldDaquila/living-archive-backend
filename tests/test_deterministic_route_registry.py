@@ -452,10 +452,19 @@ def test_collision_precedence_keeps_specific_task_over_generic_language():
         assert (decision.route, decision.mode) == (expected_route, expected_mode), query
 
 
-def test_negated_mixed_request_never_activates_specialist_even_with_positive_keywords():
+def test_coordinated_negation_does_not_activate_any_negated_specialist_task():
     decision = resolve_route(
         "Please do not open the Philippine Systems Lens or find case studies."
     )
     assert decision.route == "guide"
     assert decision.mode == "direct"
     assert decision.source == "deterministic-negated-task-guard"
+
+
+def test_contrastive_affirmative_task_survives_separate_negated_action():
+    decision = resolve_route(
+        "Do not open the Philippine Systems Lens, but find case studies."
+    )
+    assert decision.route == "case"
+    assert decision.mode == "lookup"
+    assert decision.source == "deterministic-case-study-lookup"
