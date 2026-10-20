@@ -55,14 +55,17 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "I couldn’t verify a Living Archive page that directly covers document types. I’d rather leave the link out than point you to a page on the strength of a shared word alone.",
-      "recommendation": null,
+      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
+      "recommendation": {
+        "title": "Document Types of the Living Archive • Life.Understood.",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive"
+      },
       "handoff": null,
       "handoff_pending": null,
       "answer_basis": {
-        "kind": "general_knowledge",
-        "label": "General knowledge",
-        "explanation": "No suitable Archive evidence was available to ground this answer."
+        "kind": "archive_supported",
+        "label": "Informed by the Living Archive",
+        "explanation": "A relevant Archive resource is available to explore the ideas behind this answer."
       },
       "route_source": "guide_basic_inquiry",
       "processing": "basic_inquiry",
