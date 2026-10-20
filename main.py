@@ -3879,6 +3879,23 @@ def _sanitize_basic_inquiry_response(text):
     for pattern, replacement in replacements:
         raw = re.sub(pattern, replacement, raw, flags=re.I)
 
+    # Final fail-closed cleanup for legacy provider payloads that append the
+    # evidence marker without brackets or after a truncated excerpt. The browser
+    # rejects this phrase by design; remove the internal annotation server-side
+    # so a recoverable answer is not turned into a generic UI failure.
+    raw = re.sub(
+        r"(?i)(?:\s*[.…]{0,3}\s*)?\[?\s*evidence excerpt bounded by USE\s*\]?",
+        "",
+        raw,
+    )
+    raw = re.sub(
+        r"(?i)\s*\[?(?:canonical evidence|supplied evidence|bounded by USE|"
+        r"bounded by the Guide|internal interpretation|retrieval layer|"
+        r"synthesis layer|processing layer|machine-facing metadata)\]?\s*",
+        " ",
+        raw,
+    )
+
     # The final visitor boundary must not undo Markdown normalization performed
     # by General Guide Composition. Providers vary in list style and may emit
     # numbered actions inline, so apply the same bounded structural repair here.
@@ -3945,6 +3962,23 @@ if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_I
     raise RuntimeError("USE v489.206 invariant failed: formulaic explanatory labels escaped the visitor boundary.")
 if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE or "consider who will live with the consequences" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE:
     raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
+
+
+def _basic_inquiry_has_internal_annotation(response):
+    """Detect internal evidence/processing annotations that invalidate visitor prose."""
+    return bool(re.search(
+        r"(?i)(?:evidence excerpt bounded by USE|canonical evidence|supplied evidence|"
+        r"bounded by USE|bounded by the Guide|internal interpretation|"
+        r"retrieval layer|synthesis layer|processing layer|machine-facing metadata)",
+        str(response or ""),
+    ))
+
+
+_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
+    "A partial source sentence … [evidence excerpt bounded by USE]"
+)
+if not _basic_inquiry_has_internal_annotation(_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE):
+    raise RuntimeError("USE visitor boundary invariant failed: internal evidence annotation was not detected.")
 
 
 def _basic_inquiry_has_source_dump(response):
@@ -5819,6 +5853,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # recover without reusing that text. This prevents malformed markup and
     # unsupported title/URL pairs from crossing the API boundary.
     raw_visitor_text = str(llm_output or "").strip()
+    if _basic_inquiry_has_internal_annotation(raw_visitor_text):
+        print(
+            "The Guide visitor boundary: rejected generated prose with internal "
+            "evidence annotations; using query-grounded deterministic recovery."
+        )
+        deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+            query, {}, {"context_blocks": ""}, recommendation_available=False
+        )
+        llm_output = str(deterministic_recovery.get("response") or "").strip()
+        raw_visitor_text = llm_output
     if _basic_inquiry_contains_html_markup(raw_visitor_text):
         print(
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
