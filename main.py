@@ -5033,11 +5033,11 @@ def _guide_subject_discovery_query(query):
     # Plain explanatory questions about Archive publication classes are also
     # discovery requests. Preserve the topic, not the full question wrapper.
     if re.match(
-        r"^(?:please\\s+)?(?:explain|describe|tell\\s+me\\s+about)\\s+(?:the\\s+)?living archive(?:'s|’s)?\\s+(?:document types|types of documents|publication classes|document classes)(?:\\s+and\\s+give\\s+examples)?[?.!]*$",
+        r"^(?:please\s+)?(?:explain|describe|tell\s+me\s+about)\s+(?:the\s+)?living archive(?:'s|’s)?\s+(?:document types|types of documents|publication classes|document classes)(?:\s+and\s+give\s+examples)?[?.!]*$",
         q,
         re.I,
     ) or re.match(
-        r"^(?:what|which)\\s+(?:kinds|types)\\s+of\\s+documents\\s+does\\s+the\\s+living archive\\s+publish[?.!]*$",
+        r"^(?:what|which)\s+(?:kinds|types)\s+of\s+documents\s+does\s+the\s+living archive\s+publish[?.!]*$",
         q,
         re.I,
     ):
@@ -5390,7 +5390,7 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
         if not isinstance(document, dict):
             continue
         url = str(document.get("url") or document.get("canonical_url") or "").strip()
-        if not re.match(r"^https://geralddaquila\\.com/[A-Za-z0-9/_-]+/?$", url, re.I):
+        if not re.match(r"^https://geralddaquila\.com/[A-Za-z0-9/_-]+/?$", url, re.I):
             continue
         title = str(document.get("title") or "").strip()
         normalized_title = re.sub(r"[^a-z0-9]+", " ", title.casefold()).strip()
