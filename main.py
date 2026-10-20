@@ -3864,19 +3864,17 @@ def _guide_reconcile_resource_language(response, recommendation_available):
 
     unavailable = "I could not identify a sufficiently relevant Archive resource to recommend here."
     unbacked_resource_phrases = (
-        r"(?i)(?:if you would like to explore this further,\\s*)?the Archive resource below may offer a useful next step\\.? ",
-        r"(?i)the separately selected Archive resource offers a place to explore further\\.? ",
-        r"(?i)the linked Archive source may offer a more specific framing\\.? ",
+        r"(?i)(?:if you would like to explore this further,\s*)?the Archive resource below may offer a useful next step\.?",
+        r"(?i)the separately selected Archive resource offers a place to explore further\.?",
+        r"(?i)the linked Archive source may offer a more specific framing\.?",
     )
     for pattern in unbacked_resource_phrases:
-        # Trailing spaces are optional in the source, so consume punctuation only.
-        pattern = pattern.rstrip(" ")
         if re.search(pattern, text):
             if re.search(re.escape(unavailable), text, re.I):
                 text = re.sub(pattern, "", text)
             else:
                 text = re.sub(pattern, unavailable, text)
-    return re.sub(r"\\n{3,}", "\\n\\n", text).strip()
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def _sanitize_basic_inquiry_response(text):
