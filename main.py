@@ -5375,9 +5375,13 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
     term, and the existing question/evidence fit score is strong. Related-only
     pages and metadata-only matches never gain destination authority here.
     """
-    doorway, evidence = _guide_align_registered_discovery_doorway(subject, documents)
-    if doorway and evidence:
-        return doorway, evidence
+    registered_doorway, registered_evidence = _guide_align_registered_discovery_doorway(subject, documents)
+    if (
+        registered_doorway
+        and registered_evidence
+        and str(registered_evidence[0].get("_discovery_relevance") or "").casefold() == "direct"
+    ):
+        return registered_doorway, registered_evidence
     normalized_subject = re.sub(r"[^a-z0-9]+", " ", str(subject or "").casefold()).strip()
     subject_terms = {
         token for token in re.findall(r"[a-z0-9]+", normalized_subject)
@@ -5426,10 +5430,16 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
         approved["_guide_node"] = node
         approved["_canonical_article_direct_match"] = True
         eligible.append((direct_fit, len(subject_terms), -index, approved))
-    if not eligible:
-        return None, []
-    eligible.sort(key=lambda item: item[:3], reverse=True)
-    return _guide_align_discovery_doorway(subject, [eligible[0][-1]])
+    if eligible:
+        eligible.sort(key=lambda item: item[:3], reverse=True)
+        direct_doorway, direct_evidence = _guide_align_discovery_doorway(subject, [eligible[0][-1]])
+        if direct_doorway and direct_evidence:
+            return direct_doorway, direct_evidence
+    # A registered related resource is an honest fallback only when no direct
+    # canonical article passed the stricter title/body/evidence contract.
+    if registered_doorway and registered_evidence:
+        return registered_doorway, registered_evidence
+    return None, []
 
 
 def _guide_align_discovery_doorway(subject, documents):
