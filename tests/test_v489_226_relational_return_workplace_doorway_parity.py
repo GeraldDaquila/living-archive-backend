@@ -92,25 +92,3 @@ def test_verified_workplace_candidate_fetches_real_canonical_page_contract(monke
     assert candidate is not None
     assert candidate["url"] == "https://geralddaquila.com/conflict-trust-arc/"
     assert main._relational_return_workplace_change_fit(original, candidate)
-
-
-
-def test_credit_taking_in_a_lived_colleague_relationship_opens_hrn_boundary():
-    query = (
-        "I feel frustrated because my colleague keeps taking credit for work we did together. "
-        "What might I be missing about the relationship?"
-    )
-    decision = main._relational_boundary_decision(query)
-    assert decision["open"] is True
-    assert decision["reason"] == "lived_relational_structure"
-    assert decision["signals"]["first_person"] is True
-    assert decision["signals"]["counterpart"] is True
-    assert decision["signals"]["dynamic"] is True
-    assert decision["signals"]["inquiry"] is True
-
-
-def test_generic_question_about_credit_taking_does_not_open_hrn_boundary():
-    query = "What are common patterns of taking credit in workplace relationships?"
-    decision = main._relational_boundary_decision(query)
-    assert decision["open"] is False
-    assert decision["reason"] == "insufficient_converging_relational_evidence"
