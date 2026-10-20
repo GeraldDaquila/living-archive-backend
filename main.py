@@ -5564,6 +5564,15 @@ def _guide_subject_discovery_answer(response, subject, doorway, evidence):
         )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
 
+def _guide_discovery_html_recovery(query, history, intent, discovery_subject, doorway, evidence):
+    """Prefer verified canonical discovery over a refusal when generated prose is malformed."""
+    if discovery_subject and _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+        return _guide_subject_discovery_answer(
+            "", discovery_subject, doorway, evidence
+        )
+    return _basic_inquiry_markup_recovery(query, history, intent)
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -6032,8 +6041,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
             "using query-grounded deterministic recovery."
         )
-        llm_output = _basic_inquiry_markup_recovery(
-            query, history, context_data.get("intent", "TOPICAL_INQUIRY")
+        llm_output = _guide_discovery_html_recovery(
+            query, history, context_data.get("intent", "TOPICAL_INQUIRY"),
+            discovery_subject, authoritative_doorway, discovery_selected_evidence,
         )
         if not llm_output:
             try:
