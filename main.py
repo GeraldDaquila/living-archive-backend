@@ -5572,6 +5572,7 @@ def _guide_recovery_subject_for_resource(query):
         "", original, flags=re.I,
     )
     subject = re.sub(r"^(?:the\s+)?living archive(?:'s)?\s+", "", subject, flags=re.I)
+    subject = re.sub(r"[.!?]+$", "", subject).strip()
     subject = re.sub(r"\s+(?:of|for)\s+(?:the\s+)?living archive$", "", subject, flags=re.I)
     subject = re.sub(r"[.!?]+$", "", subject).strip()
     return subject or original
