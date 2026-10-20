@@ -5030,6 +5030,18 @@ def _guide_subject_discovery_query(query):
     only to retrieve and evaluate relevant resources.
     """
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
+    # Plain explanatory questions about Archive publication classes are also
+    # discovery requests. Preserve the topic, not the full question wrapper.
+    if re.match(
+        r"^(?:please\s+)?(?:explain|describe|tell\s+me\s+about)\s+(?:the\s+)?living archive(?:'s|’s)?\s+(?:document types|types of documents|publication classes|document classes)(?:\s+and\s+give\s+examples)?[?.!]*$",
+        q,
+        re.I,
+    ) or re.match(
+        r"^(?:what|which)\s+(?:kinds|types)\s+of\s+documents\s+does\s+the\s+living archive\s+publish[?.!]*$",
+        q,
+        re.I,
+    ):
+        return "document types"
     patterns = (
         # Natural-language reading requests are still Archive discovery tasks.
         # Extract their subject so the answer is grounded in the selected page,
@@ -5089,7 +5101,7 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
         return {"grade": "weak", "score": 0, "support": []}
 
     stop = {
-        "about", "article", "articles", "content", "document", "documents",
+        "about", "article", "articles", "content",
         "general", "information", "material", "materials", "public", "resource",
         "resources", "specific", "where", "find", "please", "useful", "relevant",
         "could", "would", "should", "from", "with", "into", "that", "this",
@@ -5220,6 +5232,13 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
 
 
+# Import-time contract checks for ordinary explanatory discovery phrasing.
+if _guide_subject_discovery_query("Explain the Living Archive's document types.") != "document types":
+    raise RuntimeError("Guide discovery contract failed: explanatory document-types question was not normalized.")
+if _guide_subject_discovery_query("What kinds of documents does the Living Archive publish?") != "document types":
+    raise RuntimeError("Guide discovery contract failed: publication-class question was not normalized.")
+
+
 def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
     """Validate the selected canonical page and grade its direct/related fit."""
     if not isinstance(doorway, dict) or not str(subject or "").strip():
@@ -5347,6 +5366,82 @@ def _guide_align_registered_discovery_doorway(subject, documents):
     return _guide_align_discovery_doorway(subject, registered_documents)
 
 
+def _guide_align_canonical_discovery_doorway(subject, documents):
+    """Prefer registered Guide Nodes; narrowly permit a directly matched canonical article.
+
+    An unregistered WordPress article is eligible only when the exact selected
+    canonical URL is on the Archive site, the page title explicitly names the
+    requested subject, the opening body corroborates every substantive subject
+    term, and the existing question/evidence fit score is strong. Related-only
+    pages and metadata-only matches never gain destination authority here.
+    """
+    registered_doorway, registered_evidence = _guide_align_registered_discovery_doorway(subject, documents)
+    if (
+        registered_doorway
+        and registered_evidence
+        and str(registered_evidence[0].get("_discovery_relevance") or "").casefold() == "direct"
+    ):
+        return registered_doorway, registered_evidence
+    normalized_subject = re.sub(r"[^a-z0-9]+", " ", str(subject or "").casefold()).strip()
+    subject_terms = {
+        token for token in re.findall(r"[a-z0-9]+", normalized_subject)
+        if len(token) >= 4 and token not in {"living", "archive", "please", "explain", "describe"}
+    }
+    if not normalized_subject or len(subject_terms) < 2:
+        return None, []
+    eligible = []
+    for index, document in enumerate(documents if isinstance(documents, list) else []):
+        if not isinstance(document, dict):
+            continue
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        if not re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I):
+            continue
+        title = str(document.get("title") or "").strip()
+        normalized_title = re.sub(r"[^a-z0-9]+", " ", title.casefold()).strip()
+        if normalized_subject not in normalized_title:
+            continue
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if len(body) < 160:
+            continue
+        opening_tokens = set(re.findall(r"[a-z0-9]+", body[:3000].casefold()))
+        if not subject_terms.issubset(opening_tokens):
+            continue
+        try:
+            direct_fit, _coverage, _relation_hits, _answerability = (
+                use_core._question_evidence_fit_profile(str(subject), document)
+            )
+            direct_fit = int(direct_fit or 0)
+        except Exception:
+            direct_fit = 0
+        if direct_fit < 2:
+            continue
+        canonical_url = url.rstrip("/")
+        node = {
+            "title": title,
+            "url": canonical_url,
+            "canonical_url": canonical_url,
+            "purpose": "Directly matched canonical article for the visitor's requested subject.",
+            "semantic_hints": sorted(subject_terms),
+            "status": "direct_canonical_article",
+        }
+        approved = dict(document)
+        approved["url"] = canonical_url
+        approved["canonical_url"] = canonical_url
+        approved["_guide_node"] = node
+        approved["_canonical_article_direct_match"] = True
+        eligible.append((direct_fit, len(subject_terms), -index, approved))
+    if eligible:
+        eligible.sort(key=lambda item: item[:3], reverse=True)
+        direct_doorway, direct_evidence = _guide_align_discovery_doorway(subject, [eligible[0][-1]])
+        if direct_doorway and direct_evidence:
+            return direct_doorway, direct_evidence
+    # A registered related resource is an honest fallback only when no direct
+    # canonical article passed the stricter title/body/evidence contract.
+    if registered_doorway and registered_evidence:
+        return registered_doorway, registered_evidence
+    return None, []
+
+
 def _guide_align_discovery_doorway(subject, documents):
     """Select direct evidence first, or an approved related resource with its grade."""
     if not str(subject or "").strip() or not isinstance(documents, list) or not documents:
@@ -5404,6 +5499,52 @@ def _guide_align_discovery_doorway(subject, documents):
     if not evidence:
         return None, []
     return candidate, evidence
+
+
+def _guide_assert_canonical_discovery_contracts():
+    """Exercise direct, related-only, and off-site discovery candidates without network access."""
+    global _guide_registered_discovery_nodes
+    original_nodes = _guide_registered_discovery_nodes
+    original_fit = use_core._question_evidence_fit_profile
+    body = (
+        "The Living Archive document types include Cornerstones and Constitutional Witnesses. "
+        "These document types serve distinct publication purposes. The document types are "
+        "described in the Archive's canonical publication guide."
+    )
+    direct = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        "text": body,
+    }
+    related_only = {
+        "title": "Public Vocabulary",
+        "url": "https://geralddaquila.com/public-vocabulary/",
+        "text": body + " This page also mentions document types in passing.",
+    }
+    off_site = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://example.org/document-types/",
+        "text": body,
+    }
+    try:
+        # Keep this contract deterministic and isolated from live WordPress data.
+        _guide_registered_discovery_nodes = lambda subject, limit=3: []
+        use_core._question_evidence_fit_profile = lambda question, document: (3, 3, 3, 3)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
+        if not doorway or not evidence or doorway.get("title") != direct["title"]:
+            raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [related_only])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: related-only article gained direct authority.")
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [off_site])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: off-site article gained canonical authority.")
+    finally:
+        _guide_registered_discovery_nodes = original_nodes
+        use_core._question_evidence_fit_profile = original_fit
+
+
+_guide_assert_canonical_discovery_contracts()
 
 
 def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
@@ -5899,7 +6040,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         for item in discovery_candidate_docs if isinstance(item, dict)
                     ):
                         discovery_candidate_docs.append(direct_selected_body)
-                evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
+                evidence_doorway, evidence_for_doorway = _guide_align_canonical_discovery_doorway(
                     resource_query, discovery_candidate_docs
                 )
                 if evidence_doorway and evidence_for_doorway:
@@ -5946,7 +6087,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # canonical documents that will ground the discovery answer.
                         # This prevents a good-looking but unfetched doorway from
                         # being paired with unrelated prose or a generic fallback.
-                        evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
+                        evidence_doorway, evidence_for_doorway = _guide_align_canonical_discovery_doorway(
                             resource_query, list(recovered_docs) + list(registry_discovery_docs)
                         )
                         if evidence_doorway and evidence_for_doorway:
