@@ -367,13 +367,13 @@ def test_unregistered_canonical_article_requires_direct_evidence_match(monkeypat
     namespace = _HELPER_NAMESPACE
     doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
     document = {"title": doorway["title"], "url": doorway["url"], "text": "Document Types of the Living Archive explains the Archive's document classes."}
-    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [document])})()
+    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [])})()
     monkeypatch.setitem(namespace, "use_core", fake_core)
     monkeypatch.setitem(namespace, "_guide_node_registry_snapshot", lambda: [])
     monkeypatch.setitem(namespace, "_guide_discovery_evidence_grade", lambda subject, item, node=None: {"grade": "direct", "score": 100, "support": ["document", "types"]})
     monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: bool(items) and selected["url"].rstrip("/") == items[0]["url"].rstrip("/") and bool(items[0].get("text")))
 
-    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "fetched"}, {})
+    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "", "generation_authority_protected_docs": [document]}, {})
 
     assert len(evidence) == 1
     assert evidence[0]["url"] == doorway["url"].rstrip("/")
@@ -385,12 +385,12 @@ def test_unregistered_canonical_article_rejects_related_only_match(monkeypatch):
     namespace = _HELPER_NAMESPACE
     doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
     document = {"title": doorway["title"], "url": doorway["url"], "text": "A broadly related page."}
-    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [document])})()
+    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [])})()
     monkeypatch.setitem(namespace, "use_core", fake_core)
     monkeypatch.setitem(namespace, "_guide_node_registry_snapshot", lambda: [])
     monkeypatch.setitem(namespace, "_guide_discovery_evidence_grade", lambda subject, item, node=None: {"grade": "related", "score": 30, "support": ["archive"]})
     monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: bool(items))
 
-    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "fetched"}, {})
+    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "", "generation_authority_protected_docs": [document]}, {})
 
     assert evidence == []
