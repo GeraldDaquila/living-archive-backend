@@ -5719,6 +5719,52 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         )
         if question_start and question_start.start() >= 24:
             sentences[index] = sentence[question_start.start():].strip()
+    # "Document types" is often explained through the names and roles of the
+    # classes rather than by repeating the literal phrase in each sentence.
+    # When the exact canonical article and its body have already passed the
+    # strict discovery contract, allow class-naming sentences to ground a short
+    # excerpt. Do not synthesize definitions from the labels themselves.
+    if normalized_subject.casefold() == "document types":
+        class_sentences = []
+        for sentence in sentences:
+            if len(sentence) < 35 or len(sentence) > 320:
+                continue
+            if not re.search(r"[.!?]$", sentence):
+                continue
+            if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
+                continue
+            words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
+            has_cornerstone = bool({"cornerstone", "cornerstones"} & words)
+            has_witness = "constitutional" in words and bool({"witness", "witnesses"} & words)
+            if has_cornerstone or has_witness:
+                class_sentences.append((int(has_cornerstone and has_witness), int(has_cornerstone) + int(has_witness), sentence))
+        if class_sentences:
+            class_sentences.sort(key=lambda item: (item[0], item[1], -len(item[2])), reverse=True)
+            selected_sentences = [class_sentences[0][2]]
+            if not (class_sentences[0][0] and class_sentences[0][1] == 2):
+                for _both, _count, sentence in class_sentences[1:]:
+                    if sentence not in selected_sentences:
+                        selected_sentences.append(sentence)
+                    if len(selected_sentences) >= 2:
+                        break
+            quote_words = []
+            remaining = 25
+            for sentence in selected_sentences:
+                words = sentence.split()
+                if not remaining:
+                    break
+                excerpt = " ".join(words[:remaining])
+                if len(words) > remaining:
+                    excerpt += "…"
+                quote_words.append(excerpt)
+                remaining -= min(len(words), remaining)
+            source_excerpt = " … ".join(quote_words)
+            return (
+                f"The canonical article “{title}” identifies Cornerstones and Constitutional Witnesses "
+                f"as Living Archive publication classes. Its text says: “{source_excerpt}” "
+                "The article below is the source for the full descriptions."
+            )
+
     candidates = []
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
@@ -5742,6 +5788,32 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         f"{title} is a useful place to begin. The essay asks: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
+
+
+def _guide_assert_document_types_answer_contract():
+    """Check source-grounded document-type output after the response helper exists."""
+    answer = _guide_deterministic_discovery_response(
+        "document types",
+        {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        },
+        [{
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "Cornerstones establish foundational principles for the Living Archive. "
+                "Constitutional Witnesses preserve the commitments that give those principles continuity. "
+                "The two publication classes serve distinct roles."
+            ),
+            "_discovery_relevance": "direct",
+        }],
+    )
+    if "couldn’t isolate a complete source sentence" in answer or "Cornerstones" not in answer:
+        raise RuntimeError("Guide discovery contract failed: canonical publication-class prose did not ground the deterministic answer.")
+
+
+_guide_assert_document_types_answer_contract()
 
 
 def _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
