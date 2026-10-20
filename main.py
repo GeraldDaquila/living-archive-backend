@@ -6126,6 +6126,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
     resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    # Preserve the visitor's full comparison question separately from its
+    # normalized doorway subject. A normalized "document types" destination
+    # must not erase the distinct canonical subject of a complementary source.
+    comparison_intent = bool(
+        discovery_subject == "document types"
+        and re.search(r"\\b(?:difference|distinction|compare|comparison|versus|vs)\\b", query, re.I)
+        and re.search(r"\\b(?:cornerstones?|constitutional witnesses?)\\b", query, re.I)
+    )
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
@@ -6223,6 +6231,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     + list(doorway_docs)
                     + list(recovered_docs)
                 )
+                if comparison_intent:
+                    # This is a bounded complementary-source recovery for an
+                    # explicit two-class comparison only. The visitor's primary
+                    # doorway remains the Document Types article; the second
+                    # body is fetched only from the dedicated canonical page
+                    # already identified by the normalized class name.
+                    witness_body = _wordpress_fetch_selected_canonical_body(
+                        "https://geralddaquila.com/constitutional-witnesses/"
+                    )
+                    if isinstance(witness_body, dict):
+                        recovered_docs.append(witness_body)
+                        print(
+                            "The Guide comparison evidence: added separately fetched "
+                            "canonical Constitutional Witnesses source."
+                        )
             normalized_recovered_docs = []
             seen_recovered_urls = set()
             for item in recovered_docs:
