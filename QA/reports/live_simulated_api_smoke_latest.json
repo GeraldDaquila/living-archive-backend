@@ -7,9 +7,9 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
+      "response": "The Living Archive uses these two publication classes for different purposes. **Cornerstones** are described as: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” **Constitutional Witnesses** are described as: “👁️ Constitutional Witnesses Preserving the lived provenance through which constitutional realities first became visible.” Put simply, Cornerstones articulate foundational perspectives; Constitutional Witnesses preserve the lived provenance of how a constitutional reality first became visible. The distinction is about the work each publication performs, not which one is more authoritative.",
       "recommendation": {
-        "title": "Document Types of the Living Archive",
+        "title": "Document Types of the Living Archive • Life.Understood.",
         "url": "https://geralddaquila.com/document-types-of-the-living-archive"
       },
       "handoff": null,
@@ -31,9 +31,9 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
+      "response": "The Living Archive uses these two publication classes for different purposes. **Cornerstones** are described as: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” **Constitutional Witnesses** are described as: “👁️ Constitutional Witnesses Preserving the lived provenance through which constitutional realities first became visible.” Put simply, Cornerstones articulate foundational perspectives; Constitutional Witnesses preserve the lived provenance of how a constitutional reality first became visible. The distinction is about the work each publication performs, not which one is more authoritative.",
       "recommendation": {
-        "title": "Document Types of the Living Archive",
+        "title": "Document Types of the Living Archive • Life.Understood.",
         "url": "https://geralddaquila.com/document-types-of-the-living-archive"
       },
       "handoff": null,
@@ -79,14 +79,17 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "Your question asks: compare the roles of cornerstones and constitutional witnesses. explain what each kind of publication contributes, not merely their names.\n\nI couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact.\n\nI could not identify a sufficiently relevant Archive resource to recommend here.",
-      "recommendation": null,
+      "response": "The Living Archive uses these two publication classes for different purposes. **Cornerstones** are described as: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” **Constitutional Witnesses** are described as: “👁️ Constitutional Witnesses Preserving the lived provenance through which constitutional realities first became visible.” Put simply, Cornerstones articulate foundational perspectives; Constitutional Witnesses preserve the lived provenance of how a constitutional reality first became visible. The distinction is about the work each publication performs, not which one is more authoritative.",
+      "recommendation": {
+        "title": "Document Types of the Living Archive • Life.Understood.",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive"
+      },
       "handoff": null,
       "handoff_pending": null,
       "answer_basis": {
-        "kind": "general_knowledge",
-        "label": "General knowledge",
-        "explanation": "No suitable Archive evidence was available to ground this answer."
+        "kind": "archive_supported",
+        "label": "Informed by the Living Archive",
+        "explanation": "A relevant Archive resource is available to explore the ideas behind this answer."
       },
       "route_source": "guide_basic_inquiry",
       "processing": "basic_inquiry",
@@ -191,9 +194,5 @@
       "fsd_url": null
     }
   ],
-  "failures": [
-    "document_types: names/classes do not include both distinct, source-derived role descriptions",
-    "publication_classes: names/classes do not include both distinct, source-derived role descriptions",
-    "comparison_depth: names/classes do not include both distinct, source-derived role descriptions"
-  ]
+  "failures": []
 }
