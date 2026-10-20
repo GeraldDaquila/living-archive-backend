@@ -7077,6 +7077,23 @@ async def _use_request_boundary(scope, receive, send):
     if _is_catalogue_resource_search_query(query):
         return await _use_send_json(send, _catalogue_handoff_payload(query, history))
 
+    # Practical stewardship questions are ordinary explanatory inquiries, not glossary or delegated journeys.
+    # This must be enforced at the HTTP boundary because macro routing can otherwise
+    # bypass the bounded, provider-independent response already defined below.
+    if _is_practical_stewardship_question(query):
+        try:
+            practical_result = _basic_inquiry_response(
+                query=query,
+                history=history,
+                raw_body=parsed_body,
+            )
+            return await _use_send_json(send, practical_result)
+        except Exception as exc:
+            print(
+                "The Guide practical-stewardship response failed safely; "
+                f"continuing through the ordinary recovery boundary: {type(exc).__name__}"
+            )
+
     if not _basic_inquiry_requires_macro_routing(query):
         try:
             basic_result = _basic_inquiry_response(
