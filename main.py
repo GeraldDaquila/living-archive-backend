@@ -6244,7 +6244,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
-            if discovery_subject and authoritative_doorway:
+            if discovery_subject and (authoritative_doorway or comparison_intent):
                 if comparison_intent:
                     # Explicit two-class comparisons already identify their
                     # two canonical page identities. Fetch those two sources
