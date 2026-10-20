@@ -17,6 +17,7 @@ _HELPER_NODES = [
         "_guide_reconcile_resource_language",
         "_guide_bounded_community_archive_answer",
         "_guide_bounded_friendship_expectations_answer",
+        "_guide_response_disclaims_archive_recommendation",
     }
 ]
 _HELPER_NAMESPACE = {"re": re}
@@ -27,6 +28,7 @@ exec(
 _reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_language"]
 _community_archive_answer = _HELPER_NAMESPACE["_guide_bounded_community_archive_answer"]
 _friendship_expectations_answer = _HELPER_NAMESPACE["_guide_bounded_friendship_expectations_answer"]
+_response_disclaims_archive_recommendation = _HELPER_NAMESPACE["_guide_response_disclaims_archive_recommendation"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -285,3 +287,16 @@ def test_friendship_expectations_recovery_does_not_capture_lived_questions():
     assert _friendship_expectations_answer(
         "What are common patterns of misunderstandings in my friendship?"
     ) is None
+
+
+def test_answer_that_disclaims_direct_archive_fit_suppresses_doorway():
+    response = (
+        "These are general archival principles. "
+        "I did not identify a sufficiently direct Archive resource to recommend for this question."
+    )
+    assert _response_disclaims_archive_recommendation(response)
+
+
+def test_general_answer_without_resource_disclaimer_does_not_suppress_doorway():
+    response = "A community archive should preserve records with care and document their provenance."
+    assert not _response_disclaims_archive_recommendation(response)
