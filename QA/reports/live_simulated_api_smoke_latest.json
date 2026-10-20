@@ -7,7 +7,7 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "The canonical article “Document Types of the Living Archive” identifies Cornerstones and Constitutional Witnesses as Living Archive publication classes. Its text says: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” The article below is the source for the full descriptions.",
+      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
       "recommendation": {
         "title": "Document Types of the Living Archive",
         "url": "https://geralddaquila.com/document-types-of-the-living-archive"
@@ -31,7 +31,7 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "The canonical article “Document Types of the Living Archive” identifies Cornerstones and Constitutional Witnesses as Living Archive publication classes. Its text says: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” The article below is the source for the full descriptions.",
+      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
       "recommendation": {
         "title": "Document Types of the Living Archive",
         "url": "https://geralddaquila.com/document-types-of-the-living-archive"
@@ -55,7 +55,7 @@
       "version": "v489.294",
       "fingerprint": "USE-v489.294-practical-stewardship-recovery",
       "intent": "TOPICAL_INQUIRY",
-      "response": "The canonical article “Document Types of the Living Archive” identifies Cornerstones and Constitutional Witnesses as Living Archive publication classes. Its text says: “Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive.” The article below is the source for the full descriptions.",
+      "response": "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives within the Living Archive. I could not verify the full source text needed to explain both publication classes together, so I won’t fill in the missing distinction by guessing. Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions.",
       "recommendation": {
         "title": "Document Types of the Living Archive",
         "url": "https://geralddaquila.com/document-types-of-the-living-archive"
@@ -74,8 +74,24 @@
     },
     {
       "case": "comparison_depth",
-      "http_status": 502,
-      "raw": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:font/woff2;base64,d09GMk9UVE8AAKewAAwAAAABa6QAAKdfAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAADYKmehqCHhuC4UocpRQGYACLBgE2AiQDkygEBgWFRwcgW8pqkQKZcr0u0nk2H+gc25rBL5CqkDOqYXNqo87dNmL1mgByHi4yIGwcgLFJz2f/////f/pSkaHKgl52HEgorIWX0m0/lzuLglQtUxbMiGh9qonlnolc+1JbmihzmbbylQ/Xs2Knu/rUH62ibhOWZkpgVpo4nLnvzMOZ87/06Lk2hMnbe1EpM1cUezJlZtqCZIKYIPYeoS6VhFPJXNa5j7Y8LmH67MF2qJYI49/FNzQbwX7cqeRUbzyDffdLybw5cxRTIbdy4y5BVskcP6vu3uo+6GtnQl/up3nkVnDZmKlEpYHB1w/usr46inVsWjdEIE2gBgoC36WYsC4qXJjwYb9YbH9vayYROp/tXkp72nOEOvigu6g0+gsN/z6hg7+Ga7wNb8j2p2kypxDmhZipdHuzSaKxAmIassxsPiDbztOUdESnEj+YhrsptpjfP0Hqxu9m0n7j/zGR6I7LbDy56KLRVoGx6yFqcqyz6j2en9u998cYY4wxBowxxhjRI2rAqBAp6RKUahWwULEQCwsLURAJI7GwEBUQEbERFaMoFbH8cO4rM0neNG3/64f8LjCoVbsH5AAVoJck1Am96tS5Ewp5/mF/fL/2uW8SlSAksKRJEJMRiTj+oOqP9PRt+r2XqlLltmKcWHH6TePrrCjDuW1E1+Rwc7uLp0Y7RKah1PglWKQC0fXMo55+7/+vZ+37yMGHaBE2ZfcLB44vHEqhQSjQOuQzQG775+BYcg6W4IKTebAdEwfgWicJolLiRrRt23qkaT71l61FtqRhYy5t+Bpr/6is9/jn+3t+a58//z6NEs6TBPNAm0QSSNOE0oAiPfrfsmXq3t38JLtDK7IIzUNV4QROoVAoFMbd/Jr66cnLNcf+5VNw3oqIye6cBFBpEfIEs25//m2OYpvurr26vKLeojZnH4tFsYCH4AkeIWITm8iI2icKxtruvRkk0WyNELuGEpipmlpOXUlOtfelKy3MVHcvIARtmSVFHAuALQOHwRAwYiwzhMhaIGy5ZuH//5+uv1lZ3Zd18tes5OlJEC0qBSZATfEiNdSD2B06npEy42UkmK0KNbkVjzU1Uk/Loh3TfcMuM8PP+XnALQcQXl4x1PYzpz0A8HdDSXJ2akaTFIuAq5raTs/MomAlk+Q1gRxgVOV1P347ukv9dRTgx8+v"
+      "http_status": 200,
+      "ok": true,
+      "version": "v489.294",
+      "fingerprint": "USE-v489.294-practical-stewardship-recovery",
+      "intent": "TOPICAL_INQUIRY",
+      "response": "Your question asks: compare the roles of cornerstones and constitutional witnesses. explain what each kind of publication contributes, not merely their names.\n\nI couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact.\n\nI could not identify a sufficiently relevant Archive resource to recommend here.",
+      "recommendation": null,
+      "handoff": null,
+      "handoff_pending": null,
+      "answer_basis": {
+        "kind": "general_knowledge",
+        "label": "General knowledge",
+        "explanation": "No suitable Archive evidence was available to ground this answer."
+      },
+      "route_source": "guide_basic_inquiry",
+      "processing": "basic_inquiry",
+      "catalogue_url": null,
+      "fsd_url": null
     },
     {
       "case": "direct_general_answer",
@@ -179,7 +195,6 @@
     "document_types: names/classes do not include both distinct, source-derived role descriptions",
     "publication_classes: names/classes do not include both distinct, source-derived role descriptions",
     "distinction: names/classes do not include both distinct, source-derived role descriptions",
-    "comparison_depth: HTTP 502",
-    "comparison_depth: response was not a JSON object"
+    "comparison_depth: names/classes do not include both distinct, source-derived role descriptions"
   ]
 }
