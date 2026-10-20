@@ -120,6 +120,20 @@ def test_generic_workplace_credit_taking_excludes_specific_lived_cases():
         assert main._is_generic_workplace_credit_taking_question(question) is False
 
 
+def test_lived_credit_variants_route_to_hrn_even_when_framed_as_pattern_questions():
+    lived_questions = [
+        "What are common patterns of taking credit at work when my manager keeps taking credit for my work?",
+        "What are common patterns of taking credit in workplace relationships when my teammate presents our project as theirs?",
+        "What are examples of taking credit at work by someone on my team for my idea?",
+        "What are common patterns of taking credit at work? This happened to me last week.",
+    ]
+    for question in lived_questions:
+        decision = main._relational_boundary_decision(question)
+        assert decision["open"] is True
+        assert decision["reason"] == "lived_relational_structure"
+        assert decision["signals"]["specific_lived_credit"] is True
+
+
 def test_lived_workplace_credit_omission_routes_to_hrn():
     question = (
         "My teammate presented our project results without mentioning my contribution. "

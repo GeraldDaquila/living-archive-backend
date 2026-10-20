@@ -650,6 +650,14 @@ def _relational_boundary_decision(query):
     inquiry = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INQUIRY_PATTERNS)
     relational_term = bool(re.search(r"\b(?:relationship|relationships|interpersonal|relational)\b", q, re.I))
     explicit_between = bool(re.search(r"\b(?:between us|between me and|between you and)\b", q, re.I))
+    # A lived credit-taking case can be phrased as a general-pattern question
+    # while still naming a personal contribution or an actual event. Preserve
+    # the specialist boundary for those specific first-person cases.
+    specific_lived_credit = bool(
+        first_person
+        and re.search(r"\b(?:my (?:manager|teammate|colleague|coworker|co-worker|idea|work|contribution|analysis)|someone on my team|this happened to me|our project)\b", q, re.I)
+        and re.search(r"\b(?:taking credit|takes credit|took credit|claiming credit|present(?:s|ed|ing)? .{0,80}\b(?:as theirs|as their own)|without mentioning my contribution|without acknowledging my contribution)\b", q, re.I)
+    )
 
     score = 0
     if counterpart or relational_term or explicit_between:
@@ -664,10 +672,13 @@ def _relational_boundary_decision(query):
     # Strong lived relational structure: counterpart + dynamic + inquiry/first
     # person. This is the normal path for natural visitor language.
     open_boundary = bool(
-        first_person
-        and (counterpart or relational_term or explicit_between)
-        and dynamic
-        and (inquiry or first_person)
+        specific_lived_credit
+        or (
+            first_person
+            and (counterpart or relational_term or explicit_between)
+            and dynamic
+            and (inquiry or first_person)
+        )
     )
 
     # A compact relational sentence may omit an explicit counterpart while
@@ -688,6 +699,7 @@ def _relational_boundary_decision(query):
             "inquiry": inquiry,
             "relational_term": relational_term,
             "explicit_between": explicit_between,
+            "specific_lived_credit": specific_lived_credit,
             "bounded": bounded,
             "definition": definition,
         },
