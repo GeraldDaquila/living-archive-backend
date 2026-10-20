@@ -6151,8 +6151,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # must not erase the distinct canonical subject of a complementary source.
     comparison_intent = bool(
         discovery_subject == "document types"
-        and re.search(r"\\b(?:difference|distinction|compare|comparison|versus|vs)\\b", query, re.I)
-        and re.search(r"\\b(?:cornerstones?|constitutional witnesses?)\\b", query, re.I)
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs)\b", query, re.I)
+        and re.search(r"\b(?:cornerstones?|constitutional witnesses?)\b", query, re.I)
     )
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
