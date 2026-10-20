@@ -3974,6 +3974,46 @@ def _basic_inquiry_has_internal_annotation(response):
     ))
 
 
+def _guide_finalize_visitor_payload(payload, query):
+    """Replace contaminated ordinary Guide responses at the shared outer API boundary."""
+    if not isinstance(payload, dict):
+        return payload
+    if not _basic_inquiry_has_internal_annotation(payload.get("response")):
+        return payload
+
+    recovered = _basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
+    if (
+        not response
+        or _basic_inquiry_has_internal_annotation(response)
+        or _basic_inquiry_has_source_dump(response)
+    ):
+        response = _sanitize_basic_inquiry_response(_basic_inquiry_source_dump_recovery(query))
+
+    safe = dict(payload)
+    safe.update({
+        "ok": True,
+        "response": response,
+        "recommendation": None,
+        "answer_basis": {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": "The response was recovered without relying on a direct Archive source.",
+        },
+        "processing": "final_visitor_boundary_recovery",
+        "route_source": "guide_final_visitor_boundary",
+        "visitor_boundary_version": APP_VERSION,
+    })
+    safe.pop("error_type", None)
+    print(
+        "The Guide shared final visitor boundary: discarded contaminated response "
+        "and any incidental recommendation; deterministic recovery used."
+    )
+    return safe
+
+
 _BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
     "A partial source sentence … [evidence excerpt bounded by USE]"
 )
@@ -7531,7 +7571,68 @@ async def _use_request_boundary(scope, receive, send):
             }, 503)
 
     # Exactly one fallback into the original protected application.
-    await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
+    # Intercept its ordinary JSON response at the shared outer boundary. This
+    # covers legacy macro-routed Guide questions too, without modifying the
+    # protected core or specialist-owned handoff responses above.
+    capture_json = str(scope.get("path") or "") == "/api/query" and str(scope.get("method") or "").upper() == "POST"
+    captured_start = None
+    captured_chunks = []
+
+    async def _send_with_final_visitor_boundary(message):
+        nonlocal captured_start, captured_chunks, capture_json
+        message_type = message.get("type")
+        if message_type == "http.response.start" and capture_json:
+            headers = message.get("headers") or []
+            content_type = next(
+                (value.lower() for key, value in headers if key.lower() == b"content-type"),
+                b"",
+            )
+            if b"application/json" in content_type:
+                captured_start = message
+                captured_chunks = []
+                return
+            await send(message)
+            return
+
+        if message_type == "http.response.body" and captured_start is not None:
+            captured_chunks.append(message.get("body") or b"")
+            if message.get("more_body", False):
+                return
+
+            raw_response = b"".join(captured_chunks)
+            try:
+                payload = json.loads(raw_response.decode("utf-8"))
+            except Exception:
+                payload = None
+
+            safe_payload = _guide_finalize_visitor_payload(payload, query)
+            if safe_payload is not payload and isinstance(safe_payload, dict):
+                encoded = json.dumps(
+                    safe_payload, ensure_ascii=False, separators=(",", ":")
+                ).encode("utf-8")
+                headers = [
+                    (key, value)
+                    for key, value in (captured_start.get("headers") or [])
+                    if key.lower() not in {b"content-length", b"content-encoding", b"etag"}
+                ]
+                headers.append((b"content-length", str(len(encoded)).encode("ascii")))
+                start = dict(captured_start)
+                start["status"] = 200
+                start["headers"] = headers
+                await send(start)
+                await send({"type": "http.response.body", "body": encoded, "more_body": False})
+            else:
+                await send(captured_start)
+                await send({"type": "http.response.body", "body": raw_response, "more_body": False})
+
+            captured_start = None
+            captured_chunks = []
+            capture_json = False
+            return
+
+        await send(message)
+
+    await _FASTAPI_APP(scope, _use_replay_receive(raw_body), _send_with_final_visitor_boundary)
 
 
 PROVIDER_GATEWAY_RUNTIME_VERSION = "v1"
