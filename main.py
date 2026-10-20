@@ -6394,7 +6394,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         if evidence_doorway and evidence_for_doorway:
                             authoritative_doorway = evidence_doorway
-                            discovery_selected_evidence = evidence_for_doorway
+                            discovery_selected_evidence = recovered_docs if comparison_intent else evidence_for_doorway
                             composition_context["authoritative_doorway"] = evidence_doorway
                             print(
                                 "The Guide discovery contract: doorway and answer evidence "
