@@ -5030,6 +5030,18 @@ def _guide_subject_discovery_query(query):
     only to retrieve and evaluate relevant resources.
     """
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
+    # Multi-sentence comparison requests still need the same canonical pair.
+    # Match only when both public publication classes are named.
+    has_both_publication_classes = bool(
+        re.search(r"\bcornerstones?\b", q, re.I)
+        and re.search(r"\bconstitutional witnesses?\b", q, re.I)
+    )
+    asks_publication_class_comparison = bool(
+        has_both_publication_classes
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs|roles?)\b", q, re.I)
+    )
+    if asks_publication_class_comparison:
+        return "document types"
     # Plain explanatory questions about Archive publication classes are also
     # discovery requests. Preserve the topic, not the full question wrapper.
     if re.match(
@@ -6149,10 +6161,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Preserve the visitor's full comparison question separately from its
     # normalized doorway subject. A normalized "document types" destination
     # must not erase the distinct canonical subject of a complementary source.
+    publication_class_intent = bool(discovery_subject == "document types")
     comparison_intent = bool(
-        discovery_subject == "document types"
-        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs)\b", query, re.I)
-        and re.search(r"\b(?:cornerstones?|constitutional witnesses?)\b", query, re.I)
+        publication_class_intent
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs|roles?)\b", query, re.I)
+        and re.search(r"\bcornerstones?\b", query, re.I)
+        and re.search(r"\bconstitutional witnesses?\b", query, re.I)
     )
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
@@ -6215,7 +6229,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # time out before the direct, bounded source fetches below execute.
             recovered_docs = (
                 []
-                if comparison_intent
+                if publication_class_intent
                 else _wordpress_search_canonical_candidates(
                     resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
                 )
@@ -6223,7 +6237,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
             # page bodies can subsequently authorize a recommendation.
-            if discovery_subject and not comparison_intent:
+            if discovery_subject and not publication_class_intent:
                 known_urls = {
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
@@ -6244,8 +6258,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
-            if discovery_subject and (authoritative_doorway or comparison_intent):
-                if comparison_intent:
+            if discovery_subject and (authoritative_doorway or publication_class_intent):
+                if publication_class_intent:
                     # Explicit two-class comparisons already identify their
                     # two canonical page identities. Fetch those two sources
                     # directly instead of depending on broad WordPress search
@@ -6343,7 +6357,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     # canonical source bodies as its answer evidence.
                     discovery_selected_evidence = (
                         list(discovery_candidate_docs)
-                        if comparison_intent else evidence_for_doorway
+                        if publication_class_intent else evidence_for_doorway
                     )
                     composition_context["authoritative_doorway"] = evidence_doorway
                     print(
@@ -6376,7 +6390,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # doorway separate from the evidence used to explain
                         # the two publication classes.
                         recovered_docs
-                        if comparison_intent
+                        if publication_class_intent
                         else (
                             selected_support
                             or (
@@ -6399,7 +6413,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         if evidence_doorway and evidence_for_doorway:
                             authoritative_doorway = evidence_doorway
-                            discovery_selected_evidence = recovered_docs if comparison_intent else evidence_for_doorway
+                            discovery_selected_evidence = recovered_docs if publication_class_intent else evidence_for_doorway
                             composition_context["authoritative_doorway"] = evidence_doorway
                             print(
                                 "The Guide discovery contract: doorway and answer evidence "
