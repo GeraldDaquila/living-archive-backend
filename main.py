@@ -6366,12 +6366,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
                 if not recovery_question_unavailable and recovered_docs:
                     discovery_selected_evidence = (
-                        selected_support
-                        or (
-                            _guide_selected_doorway_discovery_evidence(
-                                recovered_docs, resource_query, authoritative_doorway
+                        # A comparison answer needs both independently vetted
+                        # canonical source bodies. Keep the single selected
+                        # doorway separate from the evidence used to explain
+                        # the two publication classes.
+                        recovered_docs
+                        if comparison_intent
+                        else (
+                            selected_support
+                            or (
+                                _guide_selected_doorway_discovery_evidence(
+                                    recovered_docs, resource_query, authoritative_doorway
+                                )
+                                if discovery_subject and authoritative_doorway else []
                             )
-                            if discovery_subject and authoritative_doorway else []
                         )
                     )
                     composition_context["generation_authority_protected_docs"] = recovered_docs
