@@ -60,6 +60,7 @@ from provider_bank import (
     refresh_shared_health_state,
 )
 import general_guide_composition
+from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
@@ -4157,6 +4158,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
+
+    relational_fractal = compose_relational_fractal(query)
+    if relational_fractal is not None:
+        return relational_fractal
 
     if _is_practical_stewardship_question(query):
         response = (
