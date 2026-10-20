@@ -5564,8 +5564,22 @@ def _guide_subject_discovery_answer(response, subject, doorway, evidence):
         )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
 
+def _guide_recovery_subject_for_resource(query):
+    """Remove ordinary request framing before grading a selected canonical page against the subject."""
+    original = re.sub(r"\s+", " ", str(query or "")).strip()
+    subject = re.sub(
+        r"^(?:please\s+)?(?:explain|describe|outline|summarize|tell me about|what are|what is|show me|find|locate|recommend)\s+",
+        "", original, flags=re.I,
+    )
+    subject = re.sub(r"^(?:the\s+)?living archive(?:'s)?\s+", "", subject, flags=re.I)
+    subject = re.sub(r"\s+(?:of|for)\s+(?:the\s+)?living archive$", "", subject, flags=re.I)
+    subject = re.sub(r"[.!?]+$", "", subject).strip()
+    return subject or original
+
+
 def _guide_verified_doorway_evidence_for_query(subject, doorway, context_data, composition_context):
     """Find fetched canonical body evidence matching a selected doorway and the visitor's subject."""
+    subject = _guide_recovery_subject_for_resource(subject)
     if not isinstance(doorway, dict):
         return []
     selected_url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip().rstrip("/").casefold()
