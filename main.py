@@ -5150,8 +5150,36 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     metadata_tokens = set(re.findall(r"[a-z0-9]+", node_metadata))
     metadata_subject_hits = subject_tokens & metadata_tokens
     phrase_count = len(re.findall(re.escape(normalized_subject), body))
+    # A canonical publication-class article can establish "document types"
+    # by naming the actual classes in its opening body, even if the prose does
+    # not repeat the exact phrase "document types" or the short query-fit score
+    # is conservative. This exception is title-bound and body-bound; it is not
+    # available to related pages or arbitrary unregistered URLs.
+    canonical_document_types_body = (
+        bool({"cornerstone", "cornerstones"} & early_tokens)
+        and "constitutional" in early_tokens
+        and bool({"witness", "witnesses"} & early_tokens)
+    ) or (
+        "document" in early_tokens
+        and (
+            bool({"cornerstone", "cornerstones"} & early_tokens)
+            or ("constitutional" in early_tokens and bool({"witness", "witnesses"} & early_tokens))
+            or (
+                "publication" in early_tokens
+                and bool({"class", "classes", "type", "types"} & early_tokens)
+            )
+        )
+    )
+    direct_canonical_document_types = bool(
+        node is not None
+        and str(node.get("status") or "") == "direct_canonical_article"
+        and normalized_subject == "document types"
+        and phrase_in_title
+        and canonical_document_types_body
+    )
     direct_body_fit = (
-        (
+        direct_canonical_document_types
+        or (
             node is not None
             and len(subject_tokens) >= 2
             and len(early_hits) >= 2
@@ -5404,7 +5432,28 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
         if len(body) < 160:
             continue
         opening_tokens = set(re.findall(r"[a-z0-9]+", body[:3000].casefold()))
-        if not subject_terms.issubset(opening_tokens):
+        canonical_document_types_body = (
+            normalized_subject == "document types"
+            and (
+                (
+                    bool({"cornerstone", "cornerstones"} & opening_tokens)
+                    and "constitutional" in opening_tokens
+                    and bool({"witness", "witnesses"} & opening_tokens)
+                )
+                or (
+                    "document" in opening_tokens
+                    and (
+                        bool({"cornerstone", "cornerstones"} & opening_tokens)
+                        or ("constitutional" in opening_tokens and bool({"witness", "witnesses"} & opening_tokens))
+                        or (
+                            "publication" in opening_tokens
+                            and bool({"class", "classes", "type", "types"} & opening_tokens)
+                        )
+                    )
+                )
+            )
+        )
+        if not subject_terms.issubset(opening_tokens) and not canonical_document_types_body:
             continue
         try:
             direct_fit, _coverage, _relation_hits, _answerability = (
@@ -5413,7 +5462,7 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
             direct_fit = int(direct_fit or 0)
         except Exception:
             direct_fit = 0
-        if direct_fit < 2:
+        if direct_fit < 2 and not canonical_document_types_body:
             continue
         canonical_url = url.rstrip("/")
         node = {
@@ -5533,6 +5582,20 @@ def _guide_assert_canonical_discovery_contracts():
         doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
         if not doorway or not evidence or doorway.get("title") != direct["title"]:
             raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
+        low_fit_body = {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "The Living Archive publishes Cornerstones and Constitutional Witnesses as "
+                "distinct publication classes. Each class has a different role in the public "
+                "knowledge commons and is described by the Archive's canonical publication material."
+            ),
+        }
+        use_core._question_evidence_fit_profile = lambda question, document: (1, 1, 1, 1)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [low_fit_body])
+        if not doorway or not evidence:
+            raise RuntimeError("Guide discovery contract failed: canonical publication classes were rejected when the short-query score was conservative.")
+        use_core._question_evidence_fit_profile = lambda question, document: (3, 3, 3, 3)
         doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [related_only])
         if doorway or evidence:
             raise RuntimeError("Guide discovery contract failed: related-only article gained direct authority.")
