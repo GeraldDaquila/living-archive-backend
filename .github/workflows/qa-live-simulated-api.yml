@@ -1,4 +1,5 @@
 name: QA live simulated API smoke
+# Diagnostic run branch: capture full simulated response summaries in CI logs.
 
 on:
   push:
