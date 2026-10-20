@@ -6062,7 +6062,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
 
-    response = _guide_reconcile_resource_language(response, bool(authoritative_doorway))\n\n    request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    response = _guide_reconcile_resource_language(response, bool(authoritative_doorway))
+
+    request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
