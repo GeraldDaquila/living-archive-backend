@@ -3926,6 +3926,16 @@ def _guide_bounded_friendship_expectations_answer(query):
     }
 
 
+def _guide_response_disclaims_archive_recommendation(response):
+    """Detect visitor prose that explicitly says no suitable Archive resource was identified."""
+    text = str(response or "")
+    return bool(re.search(
+        r"\b(?:I did not identify a sufficiently direct Archive resource to recommend for this question|I could not identify a sufficiently relevant Archive resource to recommend here)\b",
+        text,
+        re.I,
+    ))
+
+
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -6108,6 +6118,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _guide_reconcile_resource_language(response, bool(authoritative_doorway))
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    if _guide_response_disclaims_archive_recommendation(response):
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
