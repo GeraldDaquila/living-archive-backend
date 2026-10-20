@@ -5619,22 +5619,29 @@ def _guide_verified_doorway_evidence_for_query(subject, doorway, context_data, c
         if url != selected_url:
             continue
         node = nodes_by_url.get(url)
-        if not node:
-            continue
         body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
         if not body:
             continue
         grade = _guide_discovery_evidence_grade(subject, document, node=node)
-        if grade.get("grade") not in {"direct", "related"}:
+        # Registered nodes may qualify as direct or explicitly related. An
+        # unregistered canonical article is eligible only for a direct match;
+        # shared vocabulary alone must never authorize an incidental doorway.
+        if node is None and grade.get("grade") != "direct":
+            continue
+        if node is not None and grade.get("grade") not in {"direct", "related"}:
             continue
         approved = dict(document)
         approved["url"] = url
         approved["text"] = body
-        approved["_guide_node"] = node
+        if node is not None:
+            approved["_guide_node"] = node
         approved["_discovery_relevance"] = grade["grade"]
         approved["_discovery_relevance_score"] = grade.get("score", 0)
         approved["_discovery_support_terms"] = grade.get("support", [])
-        evidence = _guide_selected_doorway_discovery_evidence([approved], subject, doorway)
+        if node is not None:
+            evidence = _guide_selected_doorway_discovery_evidence([approved], subject, doorway)
+        else:
+            evidence = [approved] if _guide_discovery_doorway_is_evidence_backed(doorway, [approved]) else []
         if evidence:
             return evidence
     return []
