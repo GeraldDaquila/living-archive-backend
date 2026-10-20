@@ -547,3 +547,30 @@ def test_registered_discovery_requires_matching_canonical_body(monkeypatch):
     )
 
     assert selected == [registered]
+
+
+
+def test_expanded_publication_class_comparison_extracts_document_types_subject():
+    query = (
+        "Compare the roles of Cornerstones and Constitutional Witnesses. "
+        "Explain what each kind of publication contributes, not merely their names."
+    )
+    assert main._guide_subject_discovery_query(query) == "document types"
+
+
+def test_author_metadata_is_removed_before_quote_selection():
+    doorway = {"title": "Political Dynasties in the Philippines"}
+    evidence = [{
+        "_discovery_relevance": "direct",
+        "text": (
+            "Daquila, PhD Candidate Why do political dynasties remain deeply "
+            "embedded in Philippine governance despite ongoing calls for reform? "
+            "This is a complete source sentence about political dynasties and "
+            "public accountability in the Philippines."
+        ),
+    }]
+    result = main._guide_deterministic_discovery_response(
+        "political dynasties in the Philippines", doorway, evidence
+    )
+    assert "Daquila, PhD Candidate" not in result
+    assert "Why do political dynasties remain deeply embedded" in result
