@@ -334,3 +334,14 @@ def test_final_visitor_boundary_removes_unbracketed_internal_annotations():
     ):
         assert phrase not in cleaned
     assert "The Archive material offers a starting point." in cleaned
+
+
+def test_internal_evidence_annotation_is_rejected_as_unsafe_visitor_prose():
+    contaminated = (
+        "A useful place to begin is the Archive. This source says something partial "
+        "… [evidence excerpt bounded by USE]"
+    )
+    assert main._basic_inquiry_has_internal_annotation(contaminated)
+    assert not main._basic_inquiry_has_internal_annotation(
+        "A community can practice stewardship by making responsibilities visible."
+    )
