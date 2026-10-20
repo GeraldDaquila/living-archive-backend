@@ -74,6 +74,24 @@ def test_credit_taking_in_a_lived_colleague_relationship_opens_hrn_boundary():
     assert decision["signals"]["inquiry"] is True
 
 
+def test_generic_workplace_credit_taking_question_gets_bounded_answer_without_doorway():
+    question = "What are common patterns of taking credit in workplace relationships?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        question, {}, {"context_blocks": ""}
+    )
+    assert "presenting shared work as an individual achievement" in result["response"]
+    assert "does not establish intent" in result["response"]
+    assert result["doorway_title"] == ""
+    assert result["provider"] == "bounded_workplace_credit_taking_general_knowledge"
+
+
+def test_generic_workplace_credit_taking_is_not_confused_with_lived_hrn_case():
+    generic = "What are common patterns of taking credit in workplace relationships?"
+    lived = "I feel frustrated because my colleague keeps taking credit for work we did together. What might I be missing about the relationship?"
+    assert main._is_generic_workplace_credit_taking_question(generic) is True
+    assert main._is_generic_workplace_credit_taking_question(lived) is False
+
+
 def test_generic_question_about_credit_taking_does_not_open_hrn_boundary():
     question = "What are common patterns of taking credit in workplace relationships?"
     decision = main._relational_boundary_decision(question)
