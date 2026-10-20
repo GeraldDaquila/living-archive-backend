@@ -3877,6 +3877,30 @@ def _guide_reconcile_resource_language(response, recommendation_available):
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
+def _guide_bounded_community_archive_answer(query):
+    """Provide a modest general answer to direct community-archive responsibility questions."""
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+    if not re.search(r"\bcommunity archives?\b", question):
+        return None
+    if not re.search(
+        r"\b(?:responsibilit(?:y|ies)|preserv(?:e|es|ing|ation)|public knowledge|public memory)\b",
+        question,
+    ):
+        return None
+
+    response = (
+        "A community archive has responsibilities beyond storing material safely. It should preserve records with care, document where they came from and how they have been described, and explain the choices that shape what is collected, retained, or left out.\\n\\n"
+        "It also needs to balance public access with privacy, consent, rights, and the risk of exposing people to harm. Clear descriptions, accessible formats, transparent correction practices, and meaningful involvement from the communities represented help people understand both what the archive holds and what may be missing.\\n\\n"
+        "These are general archival principles, not a claim that a specific Living Archive text prescribes this list. I did not identify a sufficiently direct Archive resource to recommend for this question."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "provider": "bounded_community_archive_responsibility_recovery",
+        "model": "",
+    }
+
+
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
