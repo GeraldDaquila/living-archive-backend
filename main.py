@@ -5564,11 +5564,80 @@ def _guide_subject_discovery_answer(response, subject, doorway, evidence):
         )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
 
-def _guide_discovery_html_recovery(query, history, intent, discovery_subject, doorway, evidence):
-    """Prefer verified canonical discovery over a refusal when generated prose is malformed."""
-    if discovery_subject and _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+def _guide_verified_doorway_evidence_for_query(subject, doorway, context_data, composition_context):
+    """Find fetched canonical body evidence matching a selected doorway and the visitor's subject."""
+    if not isinstance(doorway, dict):
+        return []
+    selected_url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip().rstrip("/").casefold()
+    if not selected_url:
+        return []
+
+    documents = []
+    if isinstance(composition_context, dict):
+        for key in ("generation_authority_protected_docs", "question_authority_protected_docs"):
+            value = composition_context.get(key)
+            if isinstance(value, list):
+                documents.extend(item for item in value if isinstance(item, dict))
+    try:
+        blocks = str((context_data or {}).get("context_blocks") or "")
+        if blocks:
+            documents.extend(
+                item for item in use_core.context_blocks_to_documents(blocks)
+                if isinstance(item, dict)
+            )
+    except Exception as exc:
+        print(f"The Guide selected-doorway recovery: context parsing failed safely ({type(exc).__name__}).")
+
+    try:
+        nodes = _guide_node_registry_snapshot()
+    except Exception as exc:
+        print(f"The Guide selected-doorway recovery: registry unavailable ({type(exc).__name__}).")
+        return []
+    nodes_by_url = {
+        str(node.get("canonical_url") or "").strip().rstrip("/").casefold(): node
+        for node in nodes if isinstance(node, dict)
+        and str(node.get("status") or "") == "active"
+    }
+
+    for document in documents:
+        url = str(document.get("url") or document.get("canonical_url") or "").strip().rstrip("/").casefold()
+        if url != selected_url:
+            continue
+        node = nodes_by_url.get(url)
+        if not node:
+            continue
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if not body:
+            continue
+        grade = _guide_discovery_evidence_grade(subject, document, node=node)
+        if grade.get("grade") not in {"direct", "related"}:
+            continue
+        approved = dict(document)
+        approved["url"] = url
+        approved["text"] = body
+        approved["_guide_node"] = node
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade.get("score", 0)
+        approved["_discovery_support_terms"] = grade.get("support", [])
+        evidence = _guide_selected_doorway_discovery_evidence([approved], subject, doorway)
+        if evidence:
+            return evidence
+    return []
+
+
+def _guide_discovery_html_recovery(
+    query, history, intent, discovery_subject, doorway, evidence,
+    context_data=None, composition_context=None,
+):
+    """Prefer verified canonical evidence over a refusal when generated prose is malformed."""
+    subject = discovery_subject or query
+    if doorway and not _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+        evidence = _guide_verified_doorway_evidence_for_query(
+            subject, doorway, context_data or {}, composition_context or {}
+        )
+    if doorway and _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
         return _guide_subject_discovery_answer(
-            "", discovery_subject, doorway, evidence
+            "", subject, doorway, evidence
         )
     return _basic_inquiry_markup_recovery(query, history, intent)
 
@@ -6044,6 +6113,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         llm_output = _guide_discovery_html_recovery(
             query, history, context_data.get("intent", "TOPICAL_INQUIRY"),
             discovery_subject, authoritative_doorway, discovery_selected_evidence,
+            context_data, composition_context,
         )
         if not llm_output:
             try:
