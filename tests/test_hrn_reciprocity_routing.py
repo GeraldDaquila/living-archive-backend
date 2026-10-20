@@ -97,3 +97,24 @@ def test_generic_question_about_credit_taking_does_not_open_hrn_boundary():
     decision = main._relational_boundary_decision(question)
     assert decision["open"] is False
     assert decision["reason"] == "insufficient_converging_relational_evidence"
+
+
+def test_generic_workplace_credit_taking_recognizes_common_general_phrasings():
+    general_questions = [
+        "What are common patterns of taking credit at work?",
+        "What are examples of claiming credit for work in professional relationships?",
+        "What are typical patterns of workplace credit?",
+    ]
+    for question in general_questions:
+        assert main._is_generic_workplace_credit_taking_question(question) is True
+
+
+def test_generic_workplace_credit_taking_excludes_specific_lived_cases():
+    lived_questions = [
+        "What patterns explain why my manager keeps taking credit for my work?",
+        "What are common patterns when my teammate presents our project as theirs?",
+        "What are examples of someone on my team taking credit for my idea?",
+        "What are common patterns of taking credit? This happened to me last week.",
+    ]
+    for question in lived_questions:
+        assert main._is_generic_workplace_credit_taking_question(question) is False
