@@ -3964,6 +3964,23 @@ if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PRO
     raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
 
 
+def _basic_inquiry_has_internal_annotation(response):
+    """Detect internal evidence/processing annotations that invalidate visitor prose."""
+    return bool(re.search(
+        r"(?i)(?:evidence excerpt bounded by USE|canonical evidence|supplied evidence|"
+        r"bounded by USE|bounded by the Guide|internal interpretation|"
+        r"retrieval layer|synthesis layer|processing layer|machine-facing metadata)",
+        str(response or ""),
+    ))
+
+
+_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
+    "A partial source sentence … [evidence excerpt bounded by USE]"
+)
+if not _basic_inquiry_has_internal_annotation(_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE):
+    raise RuntimeError("USE visitor boundary invariant failed: internal evidence annotation was not detected.")
+
+
 def _basic_inquiry_has_source_dump(response):
     """Detect copied source fragments that are not safe as a visitor-facing answer."""
     text = str(response or "")
@@ -5836,6 +5853,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # recover without reusing that text. This prevents malformed markup and
     # unsupported title/URL pairs from crossing the API boundary.
     raw_visitor_text = str(llm_output or "").strip()
+    if _basic_inquiry_has_internal_annotation(raw_visitor_text):
+        print(
+            "The Guide visitor boundary: rejected generated prose with internal "
+            "evidence annotations; using query-grounded deterministic recovery."
+        )
+        deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+            query, {}, {"context_blocks": ""}, recommendation_available=False
+        )
+        llm_output = str(deterministic_recovery.get("response") or "").strip()
+        raw_visitor_text = llm_output
     if _basic_inquiry_contains_html_markup(raw_visitor_text):
         print(
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
