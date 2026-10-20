@@ -200,3 +200,16 @@ All three workflows have now completed successfully on the current registry code
 The registry test update adds explicit collision-precedence coverage for FSD, glyph meaning, and Catalogue/case-study requests, plus a mixed-negation request that must remain in Guide; it also removes a duplicate relational projection test.
 
 This checkpoint establishes that these workflows passed on this commit. It does **not** establish route-by-route production parity, protected safety integration, live Guide Node arbitration, multi-turn history parity, or live visitor E2E success. The shadow comparison remains unexecuted. PR #712 remains open and unmerged; no production wiring or deployment is authorized.
+
+
+## Negation-scope correction and latest CI checkpoint — 2026-10-20
+
+On registry/test commit `9659d20dbb6bdba6081bdf928a11a70706de90ab`, all three workflows completed successfully:
+
+- Deterministic routing registry tests, run #104 — **success**.
+- v487 production validation, run #2312-equivalent workflow for this head (run ID `39345101421`) — **success**.
+- Guide Woody mocked UI continuity contract, run #225 — **success**.
+
+The registry now distinguishes a coordinated negated task from an explicit contrastive clause. “Please do not open the Philippine Systems Lens or find case studies” stays in Guide, while “Do not open the Philippine Systems Lens, but find case studies” routes to case-study lookup. This is a bounded English-pattern correction, not complete natural-language negation handling; other clause structures still need fixtures.
+
+These CI results do not establish production-versus-registry shadow parity or live visitor E2E success. The shadow comparison has not been executed. Protected safety authority, live Guide Node freshness/access, history-aware relational handling, specialist availability, and complete route/mode parity remain release blockers. PR #712 stays open and unmerged; production wiring and deployment remain prohibited until those gates are addressed.
