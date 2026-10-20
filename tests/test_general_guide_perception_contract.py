@@ -347,6 +347,6 @@ def test_malformed_ordinary_answer_recovers_from_selected_relevant_canonical_res
         "", doorway, [], {"context_blocks": "fetched context"}, {"generation_authority_protected_docs": []}
     )
 
-    assert calls and calls[0][0] == "Explain the Living Archive's document types."
+    assert calls and calls[0][0] == "Explain the Living Archive's document types"
     assert result == "Grounded orientation for Document Types of the Living Archive about Explain the Living Archive's document types."
     assert "couldn't verify" not in result.lower()
