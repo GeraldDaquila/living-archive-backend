@@ -3856,6 +3856,27 @@ Return ONLY valid JSON with exactly:
 """.strip()
 
 
+def _guide_reconcile_resource_language(response, recommendation_available):
+    """Keep visitor-facing resource language consistent with the structured doorway."""
+    text = str(response or "")
+    if recommendation_available:
+        return text
+
+    unavailable = "I could not identify a sufficiently relevant Archive resource to recommend here."
+    unbacked_resource_phrases = (
+        r"(?i)(?:if you would like to explore this further,\s*)?the Archive resource below may offer a useful next step\.?",
+        r"(?i)the separately selected Archive resource offers a place to explore further\.?",
+        r"(?i)the linked Archive source may offer a more specific framing\.?",
+    )
+    for pattern in unbacked_resource_phrases:
+        if re.search(pattern, text):
+            if re.search(re.escape(unavailable), text, re.I):
+                text = re.sub(pattern, "", text)
+            else:
+                text = re.sub(pattern, unavailable, text)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -6040,6 +6061,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError(
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
+
+    response = _guide_reconcile_resource_language(response, bool(authoritative_doorway))
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Expose a small, deterministic provenance contract for the visitor UI.
