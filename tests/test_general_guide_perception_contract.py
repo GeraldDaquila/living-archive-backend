@@ -19,6 +19,7 @@ _HELPER_NODES = [
         "_guide_bounded_friendship_expectations_answer",
         "_guide_response_disclaims_archive_recommendation",
         "_guide_discovery_html_recovery",
+        "_guide_recovery_subject_for_resource",
     }
 ]
 _HELPER_NAMESPACE = {"re": re}
@@ -30,6 +31,7 @@ _reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_lang
 _community_archive_answer = _HELPER_NAMESPACE["_guide_bounded_community_archive_answer"]
 _friendship_expectations_answer = _HELPER_NAMESPACE["_guide_bounded_friendship_expectations_answer"]
 _response_disclaims_archive_recommendation = _HELPER_NAMESPACE["_guide_response_disclaims_archive_recommendation"]
+_recovery_subject_for_resource = _HELPER_NAMESPACE["_guide_recovery_subject_for_resource"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -350,3 +352,10 @@ def test_malformed_ordinary_answer_recovers_from_selected_relevant_canonical_res
     assert calls and calls[0][0] == "Explain the Living Archive's document types"
     assert result == "Grounded orientation for Document Types of the Living Archive about Explain the Living Archive's document types."
     assert "couldn't verify" not in result.lower()
+
+
+
+def test_recovery_subject_strips_archive_request_framing_before_relevance_grading():
+    assert _recovery_subject_for_resource("Explain the Living Archive's document types.") == "document types"
+    assert _recovery_subject_for_resource("What are the canonical document types of the Living Archive?") == "the canonical document types"
+    assert _recovery_subject_for_resource("Why do familiar solutions stop working when circumstances change?") == "Why do familiar solutions stop working when circumstances change"
