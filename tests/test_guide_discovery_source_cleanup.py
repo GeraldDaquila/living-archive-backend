@@ -345,3 +345,20 @@ def test_internal_evidence_annotation_is_rejected_as_unsafe_visitor_prose():
     assert not main._basic_inquiry_has_internal_annotation(
         "A community can practice stewardship by making responsibilities visible."
     )
+
+
+def test_final_discovery_boundary_rejects_reintroduced_internal_annotations():
+    contaminated = (
+        "A useful place to begin is a resource. The material points to this: "
+        "a partial source sentence … [evidence excerpt bounded by USE]"
+    )
+    assert main._basic_inquiry_has_internal_annotation(contaminated)
+    recovery = main._basic_inquiry_round1_deterministic_response(
+        "How can a community practice stewardship in its everyday decisions and responsibilities?",
+        {},
+        {"context_blocks": ""},
+        recommendation_available=False,
+    )["response"]
+    assert "evidence excerpt bounded by USE" not in recovery
+    assert "The material points to this" not in recovery
+    assert "A community can practice stewardship" in recovery
