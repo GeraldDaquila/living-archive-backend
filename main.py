@@ -5278,37 +5278,67 @@ if _guide_subject_discovery_query("What is the difference between a Cornerstone 
 
 
 def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
-    """Validate the selected canonical page and grade its direct/related fit."""
+    """Validate the chosen doorway while preserving bounded complementary canonical evidence."""
     if not isinstance(doorway, dict) or not str(subject or "").strip():
         return []
     selected_url = str(doorway.get("url") or "").strip().rstrip("/").casefold()
     if not selected_url:
         return []
+
     accepted = []
+    seen_urls = set()
     for document in documents if isinstance(documents, list) else []:
         if not isinstance(document, dict):
             continue
         candidate_url = str(
             document.get("url") or document.get("canonical_url") or ""
         ).strip().rstrip("/").casefold()
-        if candidate_url != selected_url:
+        if not candidate_url:
             continue
         node = document.get("_guide_node") if isinstance(document.get("_guide_node"), dict) else None
         grade = _guide_discovery_evidence_grade(subject, document, node=node)
-        if grade["grade"] in {"direct", "related"}:
-            approved = dict(document)
-            approved["_discovery_relevance"] = grade["grade"]
-            approved["_discovery_relevance_score"] = grade["score"]
-            approved["_discovery_support_terms"] = grade["support"]
-            accepted.append(approved)
+        is_selected_doorway = candidate_url == selected_url
+        # The actual selected destination must be directly or honestly related to
+        # the subject. Complementary pages may be retained only as on-site,
+        # separately titled, fetched sources with substantive relevant text.
+        if is_selected_doorway:
+            if grade["grade"] not in {"direct", "related"}:
+                continue
+        else:
+            url = str(document.get("url") or document.get("canonical_url") or "").strip()
+            title = str(document.get("title") or "").strip()
+            body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+            if not (
+                title and len(body) >= 120
+                and re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I)
+                and grade["grade"] == "direct"
+            ):
+                continue
+
+        if candidate_url in seen_urls:
+            continue
+        approved = dict(document)
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade["score"]
+        approved["_discovery_support_terms"] = grade["support"]
+        approved["_is_selected_discovery_doorway"] = is_selected_doorway
+        accepted.append(approved)
+        seen_urls.add(candidate_url)
+
     accepted.sort(
         key=lambda item: (
+            not item.get("_is_selected_discovery_doorway", False),
             item.get("_discovery_relevance") == "direct",
             int(item.get("_discovery_relevance_score") or 0),
         ),
-        reverse=True,
+        reverse=False,
     )
-    return accepted[:1]
+
+    # A hard small cap keeps evidence bounded. The selected doorway always stays
+    # first; at most two additional direct canonical sources may supplement it.
+    selected = [item for item in accepted if item.get("_is_selected_discovery_doorway")]
+    complementary = [item for item in accepted if not item.get("_is_selected_discovery_doorway")]
+    return (selected[:1] + complementary[:2]) if selected else []
 
 def _guide_registered_discovery_nodes(subject, limit=3):
     """Rank active, WordPress-authorized Guide Nodes for a discovery subject.
