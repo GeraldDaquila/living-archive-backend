@@ -5588,11 +5588,15 @@ def _guide_verified_doorway_evidence_for_query(subject, doorway, context_data, c
         return []
 
     documents = []
-    if isinstance(composition_context, dict):
-        for key in ("generation_authority_protected_docs", "question_authority_protected_docs"):
-            value = composition_context.get(key)
-            if isinstance(value, list):
-                documents.extend(item for item in value if isinstance(item, dict))
+    # The original fetch result retains the adjudicated doorway in its protected
+    # evidence list. The mutable composition context may later narrow its own
+    # protected documents to the smaller synthesis set, so inspect both sources.
+    for source in (context_data, composition_context):
+        if isinstance(source, dict):
+            for key in ("generation_authority_protected_docs", "question_authority_protected_docs"):
+                value = source.get(key)
+                if isinstance(value, list):
+                    documents.extend(item for item in value if isinstance(item, dict))
     try:
         blocks = str((context_data or {}).get("context_blocks") or "")
         if blocks:
