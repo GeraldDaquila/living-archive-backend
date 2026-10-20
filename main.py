@@ -5804,6 +5804,22 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
                 quote_words.append(excerpt)
                 remaining -= min(len(words), remaining)
             source_excerpt = " … ".join(quote_words)
+            has_witness_definition = bool(
+                re.search(r"\bconstitutional\s+witness(?:es)?\b", body, re.I)
+            )
+            if not has_witness_definition:
+                named_classes = []
+                if re.search(r"\bcornerstones?\b", body, re.I):
+                    named_classes.append("Cornerstones")
+                if re.search(r"\b(?:foundational essays|t4 codices|reference maps|navigators)\b", body, re.I):
+                    named_classes.append("other listed document types")
+                class_summary = " and ".join(named_classes) if named_classes else "some document classes"
+                return (
+                    f"The selected article “{title}” provides source text about {class_summary}: "
+                    f"“{source_excerpt}” The selected page text does not define Constitutional Witnesses, "
+                    "so I can’t make a source-grounded comparison between those classes from this page alone. "
+                    "The article below provides the available source context."
+                )
             return (
                 f"The canonical article “{title}” identifies Cornerstones and Constitutional Witnesses "
                 f"as Living Archive publication classes. Its text says: “{source_excerpt}” "
@@ -5837,6 +5853,24 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
 
 def _guide_assert_document_types_answer_contract():
     """Check source-grounded document-type output after the response helper exists."""
+    incomplete_source_answer = _guide_deterministic_discovery_response(
+        "document types",
+        {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        },
+        [{
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "Cornerstones Major integrative essays that articulate foundational perspectives within the Living Archive. "
+                "Foundational Essays explore enduring human questions through reflection."
+            ),
+            "_discovery_relevance": "direct",
+        }],
+    )
+    if "does not define Constitutional Witnesses" not in incomplete_source_answer:
+        raise RuntimeError("Guide discovery contract failed: incomplete source was presented as a complete class comparison.")
     answer = _guide_deterministic_discovery_response(
         "document types",
         {
