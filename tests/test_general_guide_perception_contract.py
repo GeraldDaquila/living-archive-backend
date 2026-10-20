@@ -1,6 +1,7 @@
 """Regression contract preserving the established General Guide writer."""
 
 import general_guide_composition as guide
+import main
 
 
 def test_perception_is_a_universal_composition_requirement():
