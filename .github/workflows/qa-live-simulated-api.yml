@@ -6,6 +6,11 @@ on:
       - fix/relational-credit-taking-route
     paths:
       - ".github/workflows/qa-live-simulated-api.yml"
+  pull_request:
+    branches:
+      - fix/relational-credit-taking-route
+    paths:
+      - ".github/workflows/qa-live-simulated-api.yml"
   workflow_dispatch:
 
 permissions:
