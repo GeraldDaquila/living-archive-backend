@@ -5930,6 +5930,11 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             "I couldn’t isolate a complete source sentence that I can quote reliably, so I won’t manufacture one."
         )
     sentence = candidates[0]
+    if "?" in sentence:
+        return (
+            f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+            f"That gives you a focused entry point for exploring {normalized_subject}."
+        )
     return (
         f"{title} is a useful place to begin. The source says: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
