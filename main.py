@@ -6210,13 +6210,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+            # Explicit two-class comparisons have known canonical source
+            # identities; avoid broad WordPress search here because it can
+            # time out before the direct, bounded source fetches below execute.
+            recovered_docs = (
+                []
+                if comparison_intent
+                else _wordpress_search_canonical_candidates(
+                    resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                )
             )
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
             # page bodies can subsequently authorize a recommendation.
-            if discovery_subject:
+            if discovery_subject and not comparison_intent:
                 known_urls = {
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
