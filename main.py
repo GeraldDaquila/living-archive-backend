@@ -4088,6 +4088,21 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
 
+    if _is_practical_stewardship_question(query) and re.search(
+        r"\b(?:everyday|ordinary|personal)\b", q
+    ) and re.search(r"\b(?:responsibilities|responsibility|life)\b", q) and not re.search(
+        r"\b(?:community|communities|shared space|public budget)\b", q
+    ):
+        response = (
+            "Stewardship in everyday life means taking care of the people, resources, roles, and commitments entrusted to you, while considering how your choices affect others. "
+            "It is less about having a special title and more about how you handle what is in your care.\n\n"
+            "In ordinary responsibilities, that might mean keeping a promise, using shared resources carefully, maintaining something instead of leaving the burden to someone else, being honest when a mistake affects other people, or making a decision with its longer-term consequences in mind. "
+            "At work, it could mean sharing credit fairly and leaving clear records; at home, looking after a shared space; in a group, making sure responsibilities are understood rather than quietly falling on one person.\n\n"
+            "A useful check is: What has been entrusted to me, who else is affected, what needs care or repair, and what should I leave in good condition for the next person? "
+            "This is a general practical explanation, not a claim that a specific Archive text prescribes these examples. I could not verify a sufficiently direct Archive resource to recommend for this question."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_everyday_stewardship_recovery", "model": ""}
+
     if _is_practical_stewardship_question(query):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
