@@ -3,6 +3,38 @@
 import main
 
 
+def test_everyday_stewardship_question_stays_on_the_bounded_guide_path():
+    import inspect
+
+    question = (
+        "What does stewardship mean in everyday life, and how might it show up "
+        "in a person's ordinary responsibilities?"
+    )
+    assert main._is_practical_stewardship_question(question) is True
+    boundary_source = inspect.getsource(main._use_request_boundary)
+    practical_guard = boundary_source.find(
+        "if _is_practical_stewardship_question(query):"
+    )
+    macro_gate = boundary_source.find(
+        "if not _basic_inquiry_requires_macro_routing(query):"
+    )
+    assert practical_guard >= 0
+    assert macro_gate >= 0
+    assert practical_guard < macro_gate
+
+
+def test_everyday_stewardship_deterministic_answer_does_not_attach_unrelated_archive_resource():
+    question = (
+        "What does stewardship mean in everyday life, and how might it show up "
+        "in a person's ordinary responsibilities?"
+    )
+    result = main._basic_inquiry_round1_deterministic_response(
+        question, {}, {"context_blocks": ""}
+    )
+    assert "could not verify a sufficiently direct Archive resource" in result["response"]
+    assert result["doorway_title"] == ""
+
+
 def test_friendship_uneven_effort_question_routes_to_hrn():
     question = (
         "I care about a friend, but lately I feel I'm always the one making "
