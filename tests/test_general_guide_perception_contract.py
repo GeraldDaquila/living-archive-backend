@@ -10,17 +10,23 @@ import general_guide_composition as guide
 # Load the pure response-boundary helper without importing the FastAPI app.
 _SOURCE_PATH = Path(__file__).resolve().parents[1] / "main.py"
 _SOURCE_TREE = ast.parse(_SOURCE_PATH.read_text(encoding="utf-8"))
-_HELPER_NODE = next(
+_HELPER_NODES = [
     node for node in _SOURCE_TREE.body
     if isinstance(node, ast.FunctionDef)
-    and node.name == "_guide_reconcile_resource_language"
-)
+    and node.name in {
+        "_guide_reconcile_resource_language",
+        "_guide_bounded_community_archive_answer",
+        "_guide_bounded_friendship_expectations_answer",
+    }
+]
 _HELPER_NAMESPACE = {"re": re}
 exec(
-    compile(ast.Module(body=[_HELPER_NODE], type_ignores=[]), str(_SOURCE_PATH), "exec"),
+    compile(ast.Module(body=_HELPER_NODES, type_ignores=[]), str(_SOURCE_PATH), "exec"),
     _HELPER_NAMESPACE,
 )
 _reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_language"]
+_community_archive_answer = _HELPER_NAMESPACE["_guide_bounded_community_archive_answer"]
+_friendship_expectations_answer = _HELPER_NAMESPACE["_guide_bounded_friendship_expectations_answer"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -244,3 +250,38 @@ def test_unrelated_answer_is_not_rewritten_when_no_recommendation_exists():
     response = "Keep one reading list and review it once a week."
     result = _reconcile_resource_language(response, recommendation_available=False)
     assert result == response
+
+
+def test_community_archive_responsibility_question_gets_bounded_general_answer():
+    answer = _community_archive_answer(
+        "What are the responsibilities of a community archive in preserving public knowledge?"
+    )
+    assert answer is not None
+    assert answer["doorway_title"] == ""
+    assert answer["provider"] == "bounded_community_archive_responsibility_recovery"
+    assert "preserve records with care" in answer["response"]
+    assert "privacy, consent, rights" in answer["response"]
+    assert "transparent correction practices" in answer["response"]
+    assert "general archival principles" in answer["response"]
+    assert "resource below" not in answer["response"].lower()
+
+
+def test_community_archive_recovery_does_not_capture_unrelated_questions():
+    assert _community_archive_answer("How should I organize a reading list?") is None
+
+
+def test_generic_friendship_expectations_question_does_not_need_people_or_we():
+    answer = _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in friendships?"
+    )
+    assert answer is not None
+    assert answer["provider"] == "bounded_friendship_expectations_recovery"
+    assert "how often people expect to be in touch" in answer["response"]
+    assert "whether they want advice or simply to be heard" in answer["response"]
+    assert answer["response"].endswith("Which expectation tends to be hardest for people to read accurately?")
+
+
+def test_friendship_expectations_recovery_does_not_capture_lived_questions():
+    assert _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in my friendship?"
+    ) is None

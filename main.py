@@ -3877,6 +3877,55 @@ def _guide_reconcile_resource_language(response, recommendation_available):
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
+def _guide_bounded_community_archive_answer(query):
+    """Provide a modest general answer to direct community-archive responsibility questions."""
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+    if not re.search(r"\bcommunity archives?\b", question):
+        return None
+    if not re.search(
+        r"\b(?:responsibilit(?:y|ies)|preserv(?:e|es|ing|ation)|public knowledge|public memory)\b",
+        question,
+    ):
+        return None
+
+    response = (
+        "A community archive has responsibilities beyond storing material safely. It should preserve records with care, document where they came from and how they have been described, and explain the choices that shape what is collected, retained, or left out.\n\n"
+        "It also needs to balance public access with privacy, consent, rights, and the risk of exposing people to harm. Clear descriptions, accessible formats, transparent correction practices, and meaningful involvement from the communities represented help people understand both what the archive holds and what may be missing.\n\n"
+        "These are general archival principles, not a claim that a specific Living Archive text prescribes this list. I did not identify a sufficiently direct Archive resource to recommend for this question."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "provider": "bounded_community_archive_responsibility_recovery",
+        "model": "",
+    }
+
+
+def _guide_bounded_friendship_expectations_answer(query):
+    """Answer general friendship-expectation questions without requiring a 'people/we' subject."""
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+    if not re.search(r"\b(?:common ways|common patterns|typical ways)\b", question):
+        return None
+    if not re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", question):
+        return None
+    if not re.search(r"\bfriendships?\b", question):
+        return None
+    if re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", question):
+        return None
+
+    response = (
+        "Friendship expectations can differ in several ordinary ways: how often people expect to be in touch, whether they want advice or simply to be heard, how much help is reasonable to ask for, what they consider private, and how directly they prefer to address hurt or disagreement. "
+        "Because these expectations are often unspoken, one person may read less contact as distance while the other sees it as normal busyness.\n\n"
+        "A useful starting point is to separate the observable event from the meaning assigned to it. Rather than assuming that a friend does not care, ask what each person expected and whether those expectations were ever discussed. Which expectation tends to be hardest for people to read accurately?"
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "provider": "bounded_friendship_expectations_recovery",
+        "model": "",
+    }
+
+
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -4144,6 +4193,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
+    if not content:
+        community_archive_recovery = _guide_bounded_community_archive_answer(query)
+        if community_archive_recovery:
+            return community_archive_recovery
 
     if _is_practical_stewardship_question(query) and re.search(
         r"\b(?:everyday|ordinary|personal)\b", q
@@ -4360,19 +4413,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     # Bounded everyday task recovery: answer common practical questions without
     # requiring Archive retrieval to manufacture a useful response.
-    if (
-        re.search(r"\b(?:common ways|common patterns|typical ways)\b", q)
-        and re.search(r"\b(?:people|we)\b", q)
-        and re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", q)
-        and re.search(r"\bfriendships?\b", q)
-        and not re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", q)
-    ):
-        response = (
-            "Friendship expectations can differ in several ordinary ways: how often people expect to be in touch, whether they want advice or simply to be heard, how much help is reasonable to ask for, what they consider private, and how directly they prefer to address hurt or disagreement. "
-            "Because these expectations are often unspoken, one person may read less contact as distance while the other sees it as normal busyness.\n\n"
-            "A useful starting point is to separate the observable event from the meaning assigned to it. Rather than assuming that a friend does not care, ask what each person expected and whether those expectations were ever discussed. Which expectation tends to be hardest for people to read accurately?"
-        )
-        return {"response": response, "doorway_title": "", "provider": "bounded_friendship_expectations_recovery", "model": ""}
+    friendship_expectations_recovery = _guide_bounded_friendship_expectations_answer(query)
+    if friendship_expectations_recovery:
+        return friendship_expectations_recovery
 
     if re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", q) and re.search(r"\b(?:organize|organise|track|manage|plan|keep)\b", q):
         response = (
