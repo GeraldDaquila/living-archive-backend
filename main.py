@@ -5888,6 +5888,19 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         re.sub(r"\s+", " ", sentence).strip(" \t-•")
         for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
+    cleaned_sentences = []
+    for sentence in sentences:
+        # WordPress excerpts may prepend author/credential metadata to the
+        # first sentence. Remove those header fragments before quote selection.
+        sentence = re.sub(
+            r"^(?:[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+)*,\s*(?:PhD Candidate|PhD|Ph\.D\.|M\.A\.|MSc|MA|Author)\s+)+",
+            "",
+            sentence,
+        ).strip()
+        sentence = re.sub(r"^(?:by\s+[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+)*\s+)","",sentence,flags=re.I).strip()
+        if sentence:
+            cleaned_sentences.append(sentence)
+    sentences = cleaned_sentences
     for index, sentence in enumerate(sentences):
         if "?" not in sentence:
             continue
