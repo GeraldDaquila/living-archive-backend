@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   simulated-api-smoke:
@@ -62,6 +63,7 @@ jobs:
           ]
 
           failures = []
+          results = []
           for name, query in cases:
               payload = json.dumps({"query": query, "session_id": "qa-sim-" + name + "-20261020"}).encode()
               request = urllib.request.Request(
@@ -79,7 +81,9 @@ jobs:
                   raw = exc.read().decode("utf-8", "replace")
               except Exception as exc:
                   failures.append(f"{name}: request failed: {exc!r}")
-                  print(json.dumps({"case": name, "transport_error": repr(exc)}))
+                  item = {"case": name, "transport_error": repr(exc)}
+                  results.append(item)
+                  print(json.dumps(item))
                   continue
 
               try:
@@ -90,7 +94,9 @@ jobs:
                   failures.append(f"{name}: HTTP {status}")
               if not isinstance(data, dict):
                   failures.append(f"{name}: response was not a JSON object")
-                  print(json.dumps({"case": name, "http_status": status, "raw": raw[:1600]}))
+                  item = {"case": name, "http_status": status, "raw": raw[:1600]}
+                  results.append(item)
+                  print(json.dumps(item))
                   continue
 
               summary = {
@@ -108,6 +114,7 @@ jobs:
                   "route_source": data.get("route_source"),
                   "processing": data.get("processing"),
               }
+              results.append(summary)
               print(json.dumps(summary, ensure_ascii=False, default=str))
 
               if data.get("ok") is False:
@@ -119,9 +126,65 @@ jobs:
                           failures.append("injection_probe: response appears to comply with cross-visitor disclosure request")
                           break
 
+          with open("qa_live_simulated_api_summary.json", "w", encoding="utf-8") as report:
+              json.dump({"results": results, "failures": failures}, report, ensure_ascii=False, indent=2, default=str)
           if failures:
               print("SIMULATED_API_SMOKE_FAILURES:", json.dumps(failures))
               raise SystemExit(1)
           print("SIMULATED_API_SMOKE_TRANSPORT: PASS")
           print("NOTE: semantic grounding, destination correctness, provider-mode confirmation, and browser E2E require separate gates.")
+          PY
+
+      - name: Publish simulated response summary to QA PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.error, urllib.request
+          from pathlib import Path
+          report_path = Path("qa_live_simulated_api_summary.json")
+          if not report_path.exists():
+              print("No API summary file was produced; skipping PR comment.")
+              raise SystemExit(0)
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          lines = [
+              "## QA live simulated API smoke results",
+              "",
+              "QA-only automated POST /api/query probes. These are simulated questions, not browser visitor sessions.",
+              "",
+              "| Case | HTTP | Intent | Response excerpt | Recommendation / handoff |",
+              "|---|---:|---|---|---|",
+          ]
+          for item in report.get("results", []):
+              case = str(item.get("case", "unknown")).replace("|", "\\|")
+              status = str(item.get("http_status", "ERR"))
+              intent = str(item.get("intent", item.get("transport_error", "n/a"))).replace("|", "\\|")
+              response = str(item.get("response", item.get("raw", ""))).replace("\\n", " ").replace("|", "\\|")[:420]
+              recommendation = item.get("recommendation")
+              if isinstance(recommendation, dict):
+                  destination = str(recommendation.get("title") or "") + " — " + str(recommendation.get("url") or "")
+              else:
+                  destination = str(item.get("handoff") or "")
+              destination = destination.replace("|", "\\|")[:240]
+              lines.append(f"| {case} | {status} | {intent} | {response} | {destination} |")
+          lines.extend(["", "**Smoke failures:** " + json.dumps(report.get("failures", []), ensure_ascii=False)])
+          body = "\\n".join(lines)
+          request = urllib.request.Request(
+              "https://api.github.com/repos/GeraldDaquila/living-archive-backend/issues/727/comments",
+              data=json.dumps({"body": body}).encode("utf-8"),
+              headers={
+                  "Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  print("QA report comment status:", response.status)
+          except urllib.error.HTTPError as exc:
+              print("QA report comment failed:", exc.code, exc.read().decode("utf-8", "replace")[:1000])
+              raise
           PY
