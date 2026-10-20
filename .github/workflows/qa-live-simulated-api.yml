@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -22,6 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Check out QA branch for auditable test results
+        uses: actions/checkout@v4
+        with:
+          ref: fix/relational-credit-taking-route
+          persist-credentials: true
+
       - name: Check QA health
         run: |
           python - <<'PY'
@@ -224,3 +230,24 @@ jobs:
               print("QA report comment failed:", exc.code, exc.read().decode("utf-8", "replace")[:1000])
               raise
           PY
+
+      - name: Save QA report in the QA branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f qa_live_simulated_api_summary.json ]; then
+            echo "No simulated API report was produced; skipping report commit."
+            exit 0
+          fi
+          mkdir -p QA/reports
+          cp qa_live_simulated_api_summary.json QA/reports/live_simulated_api_smoke_latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add QA/reports/live_simulated_api_smoke_latest.json
+          if git diff --cached --quiet; then
+            echo "QA report is unchanged; no commit required."
+            exit 0
+          fi
+          git commit -m "Record QA simulated API smoke results"
+          git push origin HEAD:fix/relational-credit-taking-route
