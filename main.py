@@ -3889,8 +3889,8 @@ def _guide_bounded_community_archive_answer(query):
         return None
 
     response = (
-        "A community archive has responsibilities beyond storing material safely. It should preserve records with care, document where they came from and how they have been described, and explain the choices that shape what is collected, retained, or left out.\\n\\n"
-        "It also needs to balance public access with privacy, consent, rights, and the risk of exposing people to harm. Clear descriptions, accessible formats, transparent correction practices, and meaningful involvement from the communities represented help people understand both what the archive holds and what may be missing.\\n\\n"
+        "A community archive has responsibilities beyond storing material safely. It should preserve records with care, document where they came from and how they have been described, and explain the choices that shape what is collected, retained, or left out.\n\n"
+        "It also needs to balance public access with privacy, consent, rights, and the risk of exposing people to harm. Clear descriptions, accessible formats, transparent correction practices, and meaningful involvement from the communities represented help people understand both what the archive holds and what may be missing.\n\n"
         "These are general archival principles, not a claim that a specific Living Archive text prescribes this list. I did not identify a sufficiently direct Archive resource to recommend for this question."
     )
     return {
@@ -4168,6 +4168,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
+    if not content:
+        community_archive_recovery = _guide_bounded_community_archive_answer(query)
+        if community_archive_recovery:
+            return community_archive_recovery
 
     if _is_practical_stewardship_question(query) and re.search(
         r"\b(?:everyday|ordinary|personal)\b", q
