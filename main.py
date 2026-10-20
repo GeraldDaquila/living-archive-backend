@@ -5040,6 +5040,14 @@ def _guide_subject_discovery_query(query):
         r"^(?:what|which)\s+(?:kinds|types)\s+of\s+documents\s+does\s+the\s+living archive\s+publish[?.!]*$",
         q,
         re.I,
+    ) or re.match(
+        r"^(?:what(?:\s+is|['’]s)|explain|describe)\s+(?:the\s+)?difference\s+between\s+(?:a\s+)?cornerstone(?:s)?\s+and\s+(?:a\s+)?constitutional\s+witness(?:es)?[?.!]*$",
+        q,
+        re.I,
+    ) or re.match(
+        r"^how\s+do\s+(?:the\s+)?cornerstone(?:s)?\s+differ\s+from\s+(?:the\s+)?constitutional\s+witness(?:es)?[?.!]*$",
+        q,
+        re.I,
     ):
         return "document types"
     patterns = (
@@ -5265,6 +5273,8 @@ if _guide_subject_discovery_query("Explain the Living Archive's document types."
     raise RuntimeError("Guide discovery contract failed: explanatory document-types question was not normalized.")
 if _guide_subject_discovery_query("What kinds of documents does the Living Archive publish?") != "document types":
     raise RuntimeError("Guide discovery contract failed: publication-class question was not normalized.")
+if _guide_subject_discovery_query("What is the difference between a Cornerstone and a Constitutional Witness?") != "document types":
+    raise RuntimeError("Guide discovery contract failed: document-class comparison was not normalized.")
 
 
 def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
