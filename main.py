@@ -5390,7 +5390,7 @@ def _guide_align_canonical_discovery_doorway(subject, documents):
         if not isinstance(document, dict):
             continue
         url = str(document.get("url") or document.get("canonical_url") or "").strip()
-        if not re.match(r"^https://geralddaquila\.com/[A-Za-z0-9/_-]+/?$", url, re.I):
+        if not re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I):
             continue
         title = str(document.get("title") or "").strip()
         normalized_title = re.sub(r"[^a-z0-9]+", " ", title.casefold()).strip()
