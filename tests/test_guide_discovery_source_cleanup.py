@@ -362,3 +362,40 @@ def test_final_discovery_boundary_rejects_reintroduced_internal_annotations():
     assert "evidence excerpt bounded by USE" not in recovery
     assert "The material points to this" not in recovery
     assert "A community can practice stewardship" in recovery
+
+
+def test_shared_final_visitor_boundary_replaces_macro_route_leak_and_drops_incidental_link():
+    payload = {
+        "ok": True,
+        "intent": "TOPICAL_INQUIRY",
+        "request_id": "simulated-request",
+        "response": (
+            "A useful place to begin is [Unrelated Resource](https://geralddaquila.com/unrelated/). "
+            "The material points to this: a partial sentence … [evidence excerpt bounded by USE]"
+        ),
+        "recommendation": {
+            "title": "Unrelated Resource",
+            "url": "https://geralddaquila.com/unrelated/",
+        },
+    }
+    safe = main._guide_finalize_visitor_payload(
+        payload,
+        "How can a community practice stewardship in its everyday decisions and responsibilities?",
+    )
+    assert safe["ok"] is True
+    assert safe["processing"] == "final_visitor_boundary_recovery"
+    assert safe["route_source"] == "guide_final_visitor_boundary"
+    assert safe["recommendation"] is None
+    assert safe["answer_basis"]["kind"] == "general_knowledge"
+    assert "evidence excerpt bounded by USE" not in safe["response"]
+    assert "Unrelated Resource" not in safe["response"]
+    assert "A community can practice stewardship" in safe["response"]
+    assert payload["response"].endswith("[evidence excerpt bounded by USE]")
+
+
+def test_shared_final_visitor_boundary_leaves_clean_payload_unchanged():
+    payload = {
+        "ok": True,
+        "response": "A community can practice stewardship by making responsibilities visible.",
+    }
+    assert main._guide_finalize_visitor_payload(payload, "What is stewardship?") is payload
