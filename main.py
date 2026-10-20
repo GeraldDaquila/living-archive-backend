@@ -4073,6 +4073,16 @@ def _explicit_closing_question_requested(query):
         or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
         or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
     )
+def _is_generic_workplace_credit_taking_question(query):
+    """Recognize general workplace-credit questions that lack a lived relational case."""
+    q = _normalize_query(query)
+    asks_for_patterns = bool(re.search(r"\b(?:common patterns|typical patterns|patterns|examples|ways)\b", q))
+    about_credit = bool(re.search(r"\b(?:taking credit|claiming credit|credit for work|workplace credit)\b", q))
+    workplace_context = bool(re.search(r"\b(?:workplace|workplace relationships|colleagues|coworkers|professional relationships)\b", q))
+    lived_case = bool(re.search(r"\b(?:i feel|my colleague|my coworker|happened to me|in my team|we worked together)\b", q))
+    return asks_for_patterns and about_credit and workplace_context and not lived_case
+
+
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -4112,6 +4122,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
+
+    if _is_generic_workplace_credit_taking_question(query):
+        response = (
+            "Common workplace credit-taking patterns can include presenting shared work as an individual achievement, leaving collaborators out of updates or presentations, describing a team's result without naming contributors, or repeating another person's idea without acknowledging its source. "
+            "A single instance does not establish intent; roles, meeting habits, and unclear ownership can also affect who gets recognized. "
+            "A fair assessment looks at the specific contribution, how it was represented, whether the pattern repeats, and whether attribution can be clarified. "
+            "Which of these patterns, if any, are you trying to understand?"
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_workplace_credit_taking_general_knowledge",
+            "model": "",
+        }
 
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
@@ -5813,6 +5837,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # This bounded recovery has no canonical source body selected as direct
         # evidence for the exact question. Suppress any incidental doorway from
         # broad initial retrieval rather than attach an unrelated recommendation.
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
+    if _is_generic_workplace_credit_taking_question(query):
+        # This general answer is not grounded in a sufficiently direct canonical
+        # source. Do not attach an incidental resource selected by broad retrieval.
         authoritative_doorway = None
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
