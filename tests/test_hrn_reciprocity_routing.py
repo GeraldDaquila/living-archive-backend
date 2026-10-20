@@ -154,3 +154,14 @@ def test_household_cleaning_schedule_provider_exhaustion_has_bounded_answer_with
     assert "two weeks" in result["response"]
     assert result["doorway_title"] == ""
     assert result["provider"] == "bounded_household_schedule_recovery"
+
+
+def test_generic_friendship_expectations_has_bounded_answer_without_doorway():
+    question = "What are common ways people misunderstand expectations in friendships?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        question, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert "how often people expect to be in touch" in result["response"]
+    assert "unspoken" in result["response"]
+    assert result["doorway_title"] == ""
+    assert result["provider"] == "bounded_friendship_expectations_recovery"
