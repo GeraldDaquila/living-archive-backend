@@ -470,6 +470,9 @@ _RELATIONAL_ROLE_PATTERNS = (
 
 _RELATIONAL_INTERACTION_PATTERNS = (
     r"\b(?:trust|trusted|trusts|distrust|check(?:s|ed|ing)?|monitor(?:s|ed|ing)?|control(?:s|led|ling)?|micromanag(?:e|es|ed|ing)|report(?:s|ed|ing)?|update(?:s|d|ing)?|approve(?:s|d|ing)?|question(?:s|ed|ing)?|watch(?:es|ed|ing)?|expect(?:s|ed|ation|ations)?|ask(?:s|ed|ing)?|tell(?:s|ing)?|listen(?:s|ed|ing)?|ignore(?:s|d|ing)?|respect(?:s|ed|ing)?|dismiss(?:es|ed|ing)?)\b",
+    # Lived workplace credit omissions are interactional evidence even when
+    # the visitor does not use the phrase "taking credit".
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
 )
 
 def _lived_relational_structure(query):
@@ -480,8 +483,8 @@ def _lived_relational_structure(query):
     role_context = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ROLE_PATTERNS)
     relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS) or any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INTERACTION_PATTERNS)
     tension = bool(re.search(
-        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|"
-        r"same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
+        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|without|"
+        r"instead of|rather than|same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
         r"overwhelmed|want to|need to|have to|part of me|i wish|i don't know)\b",
         q,
         re.I,
@@ -4319,6 +4322,27 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Bounded everyday task recovery: answer common practical questions without
+    # requiring Archive retrieval to manufacture a useful response.
+    if re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", q) and re.search(r"\b(?:organize|organise|track|manage|plan|keep)\b", q):
+        response = (
+            "Keep one reading list and give each item a simple status: want to read, reading, paused, or finished. "
+            "Record the title and author, why it interests you, and the next step—such as borrowing it or reading the next chapter. "
+            "If the list grows long, add a few broad categories rather than building a complicated system.\n\n"
+            "Once a week, choose one or two books that fit your current time and energy, and move the rest to a later list. "
+            "That keeps the list useful as a guide rather than turning it into another obligation."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_reading_list_recovery", "model": ""}
+
+    if re.search(r"\b(?:cleaning schedule|household cleaning|weekly cleaning)\b", q):
+        response = (
+            "Start with a short list of recurring tasks and group them by frequency: daily resets, weekly cleaning, and occasional deeper jobs. "
+            "Assign a few manageable tasks to specific days, and keep the daily list small enough to finish in about 10–20 minutes.\n\n"
+            "If more than one person shares the home, agree who owns each task and rotate the less popular jobs. "
+            "Try the schedule for two weeks, then adjust it to the time you actually have rather than treating it as a test of discipline."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_household_schedule_recovery", "model": ""}
+
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
     if content:
@@ -5903,6 +5927,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if _basic_inquiry_contains_html_markup(llm_output):
             llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
+    # A provider refusal must never be paired with an incidental retrieval
+    # doorway. Replace it with a bounded deterministic answer where available;
+    # otherwise fail closed by suppressing the recommendation and attribution.
+    if re.search(r"\bI couldn't verify a reliable answer from the material available in this request\b", response, re.I):
+        try:
+            deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                query, {}, {"context_blocks": ""}, recommendation_available=False
+            )
+            recovered_text = _sanitize_basic_inquiry_response(
+                str(deterministic_recovery.get("response") or "").strip()
+            )
+            if recovered_text and not re.search(
+                r"\bI couldn't verify a reliable answer from the material available in this request\b",
+                recovered_text, re.I
+            ):
+                response = recovered_text
+        except Exception as exc:
+            print(f"The Guide unverified-answer recovery failed safely: {type(exc).__name__}.")
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        print("The Guide relevance boundary: unverified provider answer detected; unrelated doorway suppressed.")
     if _basic_inquiry_has_source_dump(response):
         print(
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
