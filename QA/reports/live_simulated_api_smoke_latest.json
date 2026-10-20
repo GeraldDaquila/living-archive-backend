@@ -63,9 +63,9 @@
       "handoff": null,
       "handoff_pending": null,
       "answer_basis": {
-        "kind": "archive_supported",
-        "label": "Informed by the Living Archive",
-        "explanation": "A relevant Archive resource is available to explore the ideas behind this answer."
+        "kind": "general_knowledge",
+        "label": "General knowledge",
+        "explanation": "No suitable Archive evidence was available to ground this answer."
       },
       "route_source": "guide_basic_inquiry",
       "processing": "basic_inquiry",
