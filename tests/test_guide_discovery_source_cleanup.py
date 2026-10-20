@@ -306,3 +306,32 @@ def test_standalone_written_byline_is_removed_but_title_and_body_are_preserved()
     assert "A Network Analysis of Power Structures and Their Socioeconomic Impacts." in cleaned
     assert "Written by Gerald A." not in cleaned
     assert "Gerald A. Daquila argues that accountability matters in this study." in cleaned
+
+
+
+def test_final_visitor_boundary_removes_legacy_evidence_marker_without_brackets():
+    raw = (
+        "A useful place to begin is the Archive. The material points to this: "
+        "community resources circulate over time … [evidence excerpt bounded by USE]"
+    )
+    cleaned = main._sanitize_basic_inquiry_response(raw)
+    assert "evidence excerpt bounded by USE" not in cleaned
+    assert "bounded by USE" not in cleaned
+    assert "A useful place to begin is the Archive." in cleaned
+    assert "community resources circulate over time" in cleaned
+
+
+def test_final_visitor_boundary_removes_unbracketed_internal_annotations():
+    raw = (
+        "The Archive material offers a starting point. canonical evidence "
+        "retrieval layer machine-facing metadata"
+    )
+    cleaned = main._sanitize_basic_inquiry_response(raw)
+    for phrase in (
+        "canonical evidence",
+        "retrieval layer",
+        "machine-facing metadata",
+        "bounded by USE",
+    ):
+        assert phrase not in cleaned
+    assert "The Archive material offers a starting point." in cleaned

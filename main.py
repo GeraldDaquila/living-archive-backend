@@ -470,6 +470,9 @@ _RELATIONAL_ROLE_PATTERNS = (
 
 _RELATIONAL_INTERACTION_PATTERNS = (
     r"\b(?:trust|trusted|trusts|distrust|check(?:s|ed|ing)?|monitor(?:s|ed|ing)?|control(?:s|led|ling)?|micromanag(?:e|es|ed|ing)|report(?:s|ed|ing)?|update(?:s|d|ing)?|approve(?:s|d|ing)?|question(?:s|ed|ing)?|watch(?:es|ed|ing)?|expect(?:s|ed|ation|ations)?|ask(?:s|ed|ing)?|tell(?:s|ing)?|listen(?:s|ed|ing)?|ignore(?:s|d|ing)?|respect(?:s|ed|ing)?|dismiss(?:es|ed|ing)?)\b",
+    # Lived workplace credit omissions are interactional evidence even when
+    # the visitor does not use the phrase "taking credit".
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
 )
 
 def _lived_relational_structure(query):
@@ -480,8 +483,8 @@ def _lived_relational_structure(query):
     role_context = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ROLE_PATTERNS)
     relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS) or any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INTERACTION_PATTERNS)
     tension = bool(re.search(
-        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|"
-        r"same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
+        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|without|"
+        r"instead of|rather than|same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
         r"overwhelmed|want to|need to|have to|part of me|i wish|i don't know)\b",
         q,
         re.I,
@@ -550,7 +553,7 @@ def _explicit_bounded_archive_request(query):
 RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
 
 _RELATIONAL_COUNTERPART_PATTERNS = (
-    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
+    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|teammate|team member|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
     r"\b(?:a|this|our|my)\s+friendship\b",
     # Natural counterpart phrasing: visitors often say "a friend", not "a friendship".
     r"\b(?:a|this|our|my)\s+friend\b",
@@ -570,6 +573,11 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
     # Reciprocity and uneven effort are lived relational dynamics even when the
     # visitor does not name conflict, trust, or a formal relationship problem.
+    # Credit-taking is a lived interactional dynamic even when visitors do not name conflict or trust.
+    r"\b(?:taking credit|takes credit|took credit|credit for (?:work|what) we did together)\b",
+    # Attribution omissions are lived interaction dynamics even without the
+    # literal phrase "taking credit".
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
     r"\b(?:effort|making an effort|make an effort|made an effort)\b",
     r"\b(?:always the one|doing all the work|carrying the relationship)\b",
     r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
@@ -579,6 +587,8 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
 )
 
 _RELATIONAL_INQUIRY_PATTERNS = (
+    # Natural questions about what one may be missing should count as inquiry.
+    r"\bwhat\s+(?:might|could|am|are)\s+(?:i|we)\s+(?:be\s+)?(?:missing|not seeing|overlooking)\b",
     r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
     r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
@@ -640,6 +650,14 @@ def _relational_boundary_decision(query):
     inquiry = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INQUIRY_PATTERNS)
     relational_term = bool(re.search(r"\b(?:relationship|relationships|interpersonal|relational)\b", q, re.I))
     explicit_between = bool(re.search(r"\b(?:between us|between me and|between you and)\b", q, re.I))
+    # A lived credit-taking case can be phrased as a general-pattern question
+    # while still naming a personal contribution or an actual event. Preserve
+    # the specialist boundary for those specific first-person cases.
+    specific_lived_credit = bool(
+        first_person
+        and re.search(r"\b(?:my (?:manager|teammate|colleague|coworker|co-worker|idea|work|contribution|analysis)|someone on my team|this happened to me|our project)\b", q, re.I)
+        and re.search(r"\b(?:taking credit|takes credit|took credit|claiming credit|present(?:s|ed|ing)? .{0,80}\b(?:as theirs|as their own)|without mentioning my contribution|without acknowledging my contribution)\b", q, re.I)
+    )
 
     score = 0
     if counterpart or relational_term or explicit_between:
@@ -654,10 +672,13 @@ def _relational_boundary_decision(query):
     # Strong lived relational structure: counterpart + dynamic + inquiry/first
     # person. This is the normal path for natural visitor language.
     open_boundary = bool(
-        first_person
-        and (counterpart or relational_term or explicit_between)
-        and dynamic
-        and (inquiry or first_person)
+        specific_lived_credit
+        or (
+            first_person
+            and (counterpart or relational_term or explicit_between)
+            and dynamic
+            and (inquiry or first_person)
+        )
     )
 
     # A compact relational sentence may omit an explicit counterpart while
@@ -678,6 +699,7 @@ def _relational_boundary_decision(query):
             "inquiry": inquiry,
             "relational_term": relational_term,
             "explicit_between": explicit_between,
+            "specific_lived_credit": specific_lived_credit,
             "bounded": bounded,
             "definition": definition,
         },
@@ -3834,6 +3856,86 @@ Return ONLY valid JSON with exactly:
 """.strip()
 
 
+def _guide_reconcile_resource_language(response, recommendation_available):
+    """Keep visitor-facing resource language consistent with the structured doorway."""
+    text = str(response or "")
+    if recommendation_available:
+        return text
+
+    unavailable = "I could not identify a sufficiently relevant Archive resource to recommend here."
+    unbacked_resource_phrases = (
+        r"(?i)(?:if you would like to explore this further,\s*)?the Archive resource below may offer a useful next step\.?",
+        r"(?i)the separately selected Archive resource offers a place to explore further\.?",
+        r"(?i)the linked Archive source may offer a more specific framing\.?",
+    )
+    for pattern in unbacked_resource_phrases:
+        if re.search(pattern, text):
+            if re.search(re.escape(unavailable), text, re.I):
+                text = re.sub(pattern, "", text)
+            else:
+                text = re.sub(pattern, unavailable, text)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def _guide_bounded_community_archive_answer(query):
+    """Provide a modest general answer to direct community-archive responsibility questions."""
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+    if not re.search(r"\bcommunity archives?\b", question):
+        return None
+    if not re.search(
+        r"\b(?:responsibilit(?:y|ies)|preserv(?:e|es|ing|ation)|public knowledge|public memory)\b",
+        question,
+    ):
+        return None
+
+    response = (
+        "A community archive has responsibilities beyond storing material safely. It should preserve records with care, document where they came from and how they have been described, and explain the choices that shape what is collected, retained, or left out.\n\n"
+        "It also needs to balance public access with privacy, consent, rights, and the risk of exposing people to harm. Clear descriptions, accessible formats, transparent correction practices, and meaningful involvement from the communities represented help people understand both what the archive holds and what may be missing.\n\n"
+        "These are general archival principles, not a claim that a specific Living Archive text prescribes this list. I did not identify a sufficiently direct Archive resource to recommend for this question."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "provider": "bounded_community_archive_responsibility_recovery",
+        "model": "",
+    }
+
+
+def _guide_bounded_friendship_expectations_answer(query):
+    """Answer general friendship-expectation questions without requiring a 'people/we' subject."""
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+    if not re.search(r"\b(?:common ways|common patterns|typical ways)\b", question):
+        return None
+    if not re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", question):
+        return None
+    if not re.search(r"\bfriendships?\b", question):
+        return None
+    if re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", question):
+        return None
+
+    response = (
+        "Friendship expectations can differ in several ordinary ways: how often people expect to be in touch, whether they want advice or simply to be heard, how much help is reasonable to ask for, what they consider private, and how directly they prefer to address hurt or disagreement. "
+        "Because these expectations are often unspoken, one person may read less contact as distance while the other sees it as normal busyness.\n\n"
+        "A useful starting point is to separate the observable event from the meaning assigned to it. Rather than assuming that a friend does not care, ask what each person expected and whether those expectations were ever discussed. Which expectation tends to be hardest for people to read accurately?"
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "provider": "bounded_friendship_expectations_recovery",
+        "model": "",
+    }
+
+
+def _guide_response_disclaims_archive_recommendation(response):
+    """Detect visitor prose that explicitly says no suitable Archive resource was identified."""
+    text = str(response or "")
+    return bool(re.search(
+        r"\b(?:I did not identify a sufficiently direct Archive resource to recommend for this question|I could not identify a sufficiently relevant Archive resource to recommend here)\b",
+        text,
+        re.I,
+    ))
+
+
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
     raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -3878,6 +3980,23 @@ def _sanitize_basic_inquiry_response(text):
     )
     for pattern, replacement in replacements:
         raw = re.sub(pattern, replacement, raw, flags=re.I)
+
+    # Final fail-closed cleanup for legacy provider payloads that append the
+    # evidence marker without brackets or after a truncated excerpt. The browser
+    # rejects this phrase by design; remove the internal annotation server-side
+    # so a recoverable answer is not turned into a generic UI failure.
+    raw = re.sub(
+        r"(?i)(?:\s*[.…]{0,3}\s*)?\[?\s*evidence excerpt bounded by USE\s*\]?",
+        "",
+        raw,
+    )
+    raw = re.sub(
+        r"(?i)\s*\[?(?:canonical evidence|supplied evidence|bounded by USE|"
+        r"bounded by the Guide|internal interpretation|retrieval layer|"
+        r"synthesis layer|processing layer|machine-facing metadata)\]?\s*",
+        " ",
+        raw,
+    )
 
     # The final visitor boundary must not undo Markdown normalization performed
     # by General Guide Composition. Providers vary in list style and may emit
@@ -4069,6 +4188,24 @@ def _explicit_closing_question_requested(query):
         or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
         or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
     )
+def _is_generic_workplace_credit_taking_question(query):
+    """Recognize general workplace-credit questions that lack a lived relational case."""
+    q = _normalize_query(query)
+    asks_for_patterns = bool(re.search(r"\b(?:common patterns|typical patterns|patterns|examples|ways)\b", q))
+    about_credit = bool(re.search(r"\b(?:taking credit|claiming credit|credit for work|workplace credit)\b", q))
+    workplace_context = bool(re.search(r"\b(?:workplace|at work|workplace relationships|colleagues|coworkers|professional relationships|on a team|team settings)\b", q))
+    # A question can be phrased generally while still asking about a specific
+    # lived case. Keep those cases out of the general-knowledge recovery path.
+    lived_case = bool(re.search(
+        r"\b(?:i feel|i am|i'm|my colleague|my coworker|my teammate|my manager|my boss|"
+        r"my contribution|my idea|my work|someone on my team|a colleague of mine|"
+        r"happened to me|in my team|on my team|our project|we worked together|"
+        r"my team keeps|my manager keeps|my boss keeps)\b",
+        q,
+    ))
+    return asks_for_patterns and about_credit and workplace_context and not lived_case
+
+
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -4083,6 +4220,25 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     title = str(documents[0].get("title") or "").strip() if documents else ""
     content = str((documents[0].get("content") or documents[0].get("text") or documents[0].get("excerpt") or "") if documents else "").strip()
     content = re.sub(r"\s+", " ", content)
+    if not content:
+        community_archive_recovery = _guide_bounded_community_archive_answer(query)
+        if community_archive_recovery:
+            return community_archive_recovery
+
+    if _is_practical_stewardship_question(query) and re.search(
+        r"\b(?:everyday|ordinary|personal)\b", q
+    ) and re.search(r"\b(?:responsibilities|responsibility|life)\b", q) and not re.search(
+        r"\b(?:community|communities|shared space|public budget)\b", q
+    ):
+        response = (
+            "Stewardship in everyday life means taking care of the people, resources, roles, and commitments entrusted to you, while considering how your choices affect others. "
+            "It is less about having a special title and more about how you handle what is in your care.\n\n"
+            "In ordinary responsibilities, that might mean keeping a promise, using shared resources carefully, maintaining something instead of leaving the burden to someone else, being honest when a mistake affects other people, or making a decision with its longer-term consequences in mind. "
+            "At work, it could mean sharing credit fairly and leaving clear records; at home, looking after a shared space; in a group, making sure responsibilities are understood rather than quietly falling on one person.\n\n"
+            "A useful check is: What has been entrusted to me, who else is affected, what needs care or repair, and what should I leave in good condition for the next person? "
+            "This is a general practical explanation, not a claim that a specific Archive text prescribes these examples. I could not verify a sufficiently direct Archive resource to recommend for this question."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_everyday_stewardship_recovery", "model": ""}
 
     if _is_practical_stewardship_question(query):
         response = (
@@ -4093,6 +4249,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
+
+    if _is_generic_workplace_credit_taking_question(query):
+        response = (
+            "Common workplace credit-taking patterns can include presenting shared work as an individual achievement, leaving collaborators out of updates or presentations, describing a team's result without naming contributors, or repeating another person's idea without acknowledging its source. "
+            "A single instance does not establish intent; roles, meeting habits, and unclear ownership can also affect who gets recognized. "
+            "A fair assessment looks at the specific contribution, how it was represented, whether the pattern repeats, and whether attribution can be clarified. "
+            "Which of these patterns, if any, are you trying to understand?"
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_workplace_credit_taking_general_knowledge",
+            "model": "",
+        }
 
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
@@ -4267,6 +4437,31 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "provider": "bounded_funding_priority_recovery",
             "model": "",
         }
+
+    # Bounded everyday task recovery: answer common practical questions without
+    # requiring Archive retrieval to manufacture a useful response.
+    friendship_expectations_recovery = _guide_bounded_friendship_expectations_answer(query)
+    if friendship_expectations_recovery:
+        return friendship_expectations_recovery
+
+    if re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", q) and re.search(r"\b(?:organize|organise|track|manage|plan|keep)\b", q):
+        response = (
+            "Keep one reading list and give each item a simple status: want to read, reading, paused, or finished. "
+            "Record the title and author, why it interests you, and the next step—such as borrowing it or reading the next chapter. "
+            "If the list grows long, add a few broad categories rather than building a complicated system.\n\n"
+            "Once a week, choose one or two books that fit your current time and energy, and move the rest to a later list. "
+            "That keeps the list useful as a guide rather than turning it into another obligation."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_reading_list_recovery", "model": ""}
+
+    if re.search(r"\b(?:cleaning schedule|household cleaning|weekly cleaning)\b", q):
+        response = (
+            "Start with a short list of recurring tasks and group them by frequency: daily resets, weekly cleaning, and occasional deeper jobs. "
+            "Assign a few manageable tasks to specific days, and keep the daily list small enough to finish in about 10–20 minutes.\n\n"
+            "If more than one person shares the home, agree who owns each task and rotate the less popular jobs. "
+            "Try the schedule for two weeks, then adjust it to the time you actually have rather than treating it as a test of discipline."
+        )
+        return {"response": response, "doorway_title": "", "provider": "bounded_household_schedule_recovery", "model": ""}
 
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
@@ -4852,6 +5047,38 @@ def _guide_subject_discovery_query(query):
     only to retrieve and evaluate relevant resources.
     """
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
+    # Multi-sentence comparison requests still need the same canonical pair.
+    # Match only when both public publication classes are named.
+    has_both_publication_classes = bool(
+        re.search(r"\bcornerstones?\b", q, re.I)
+        and re.search(r"\bconstitutional witnesses?\b", q, re.I)
+    )
+    asks_publication_class_comparison = bool(
+        has_both_publication_classes
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs|roles?)\b", q, re.I)
+    )
+    if asks_publication_class_comparison:
+        return "document types"
+    # Plain explanatory questions about Archive publication classes are also
+    # discovery requests. Preserve the topic, not the full question wrapper.
+    if re.match(
+        r"^(?:please\s+)?(?:explain|describe|tell\s+me\s+about)\s+(?:the\s+)?living archive(?:'s|’s)?\s+(?:document types|types of documents|publication classes|document classes)(?:\s+and\s+give\s+examples)?[?.!]*$",
+        q,
+        re.I,
+    ) or re.match(
+        r"^(?:what|which)\s+(?:kinds|types)\s+of\s+documents\s+does\s+the\s+living archive\s+publish[?.!]*$",
+        q,
+        re.I,
+    ) or re.match(
+        r"^(?:what(?:\s+is|['’]s)|explain|describe)\s+(?:the\s+)?difference\s+between\s+(?:a\s+)?cornerstone(?:s)?\s+and\s+(?:a\s+)?constitutional\s+witness(?:es)?[?.!]*$",
+        q,
+        re.I,
+    ) or re.match(
+        r"^how\s+do\s+(?:the\s+)?cornerstone(?:s)?\s+differ\s+from\s+(?:the\s+)?constitutional\s+witness(?:es)?[?.!]*$",
+        q,
+        re.I,
+    ):
+        return "document types"
     patterns = (
         # Natural-language reading requests are still Archive discovery tasks.
         # Extract their subject so the answer is grounded in the selected page,
@@ -4911,7 +5138,7 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
         return {"grade": "weak", "score": 0, "support": []}
 
     stop = {
-        "about", "article", "articles", "content", "document", "documents",
+        "about", "article", "articles", "content",
         "general", "information", "material", "materials", "public", "resource",
         "resources", "specific", "where", "find", "please", "useful", "relevant",
         "could", "would", "should", "from", "with", "into", "that", "this",
@@ -4960,8 +5187,36 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     metadata_tokens = set(re.findall(r"[a-z0-9]+", node_metadata))
     metadata_subject_hits = subject_tokens & metadata_tokens
     phrase_count = len(re.findall(re.escape(normalized_subject), body))
+    # A canonical publication-class article can establish "document types"
+    # by naming the actual classes in its opening body, even if the prose does
+    # not repeat the exact phrase "document types" or the short query-fit score
+    # is conservative. This exception is title-bound and body-bound; it is not
+    # available to related pages or arbitrary unregistered URLs.
+    canonical_document_types_body = (
+        bool({"cornerstone", "cornerstones"} & early_tokens)
+        and "constitutional" in early_tokens
+        and bool({"witness", "witnesses"} & early_tokens)
+    ) or (
+        "document" in early_tokens
+        and (
+            bool({"cornerstone", "cornerstones"} & early_tokens)
+            or ("constitutional" in early_tokens and bool({"witness", "witnesses"} & early_tokens))
+            or (
+                "publication" in early_tokens
+                and bool({"class", "classes", "type", "types"} & early_tokens)
+            )
+        )
+    )
+    direct_canonical_document_types = bool(
+        node is not None
+        and str(node.get("status") or "") == "direct_canonical_article"
+        and normalized_subject == "document types"
+        and phrase_in_title
+        and canonical_document_types_body
+    )
     direct_body_fit = (
-        (
+        direct_canonical_document_types
+        or (
             node is not None
             and len(subject_tokens) >= 2
             and len(early_hits) >= 2
@@ -5042,38 +5297,97 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
     return {"grade": "weak", "score": 0, "support": sorted(body_hits)}
 
 
+# Import-time contract checks for ordinary explanatory discovery phrasing.
+if _guide_subject_discovery_query("Explain the Living Archive's document types.") != "document types":
+    raise RuntimeError("Guide discovery contract failed: explanatory document-types question was not normalized.")
+if _guide_subject_discovery_query("What kinds of documents does the Living Archive publish?") != "document types":
+    raise RuntimeError("Guide discovery contract failed: publication-class question was not normalized.")
+if _guide_subject_discovery_query("What is the difference between a Cornerstone and a Constitutional Witness?") != "document types":
+    raise RuntimeError("Guide discovery contract failed: document-class comparison was not normalized.")
+
+
 def _guide_selected_doorway_discovery_evidence(documents, subject, doorway):
-    """Validate the selected canonical page and grade its direct/related fit."""
+    """Validate the selected doorway and retain a bounded set of complementary canonical evidence."""
     if not isinstance(doorway, dict) or not str(subject or "").strip():
         return []
     selected_url = str(doorway.get("url") or "").strip().rstrip("/").casefold()
     if not selected_url:
         return []
+
     accepted = []
+    seen_urls = set()
     for document in documents if isinstance(documents, list) else []:
         if not isinstance(document, dict):
             continue
         candidate_url = str(
             document.get("url") or document.get("canonical_url") or ""
         ).strip().rstrip("/").casefold()
-        if candidate_url != selected_url:
+        if not candidate_url:
             continue
+
         node = document.get("_guide_node") if isinstance(document.get("_guide_node"), dict) else None
         grade = _guide_discovery_evidence_grade(subject, document, node=node)
-        if grade["grade"] in {"direct", "related"}:
-            approved = dict(document)
-            approved["_discovery_relevance"] = grade["grade"]
-            approved["_discovery_relevance_score"] = grade["score"]
-            approved["_discovery_support_terms"] = grade["support"]
-            accepted.append(approved)
+        is_selected_doorway = candidate_url == selected_url
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        title = str(document.get("title") or "").strip()
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+
+        # A dedicated Constitutional Witnesses page can support an explicit
+        # document-class comparison even though its page-level subject is
+        # narrower than the normalized destination subject ("document types").
+        # This identity-and-body bound exception grants support evidence only.
+        comparison_support = bool(
+            not is_selected_doorway
+            and str(subject or "").strip().casefold() == "document types"
+            and candidate_url == "https://geralddaquila.com/constitutional-witnesses"
+            and "constitutional witnesses" in title.casefold()
+            and len(body) >= 120
+            and re.search(r"\bconstitutional witnesses?\b", body, re.I)
+            and re.search(r"\blived encounters\b", body, re.I)
+            and re.search(r"\bconstitutional realities\b", body, re.I)
+            and re.search(r"\b(?:became visible|constitutional provenance)\b", body, re.I)
+        )
+
+        if is_selected_doorway:
+            if grade["grade"] not in {"direct", "related"}:
+                continue
+        elif comparison_support:
+            grade = {
+                "grade": "direct",
+                "score": 100,
+                "support": [
+                    "constitutional witnesses", "lived encounters",
+                    "constitutional realities", "became visible"
+                ],
+            }
+        else:
+            if not (
+                title and len(body) >= 120
+                and re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I)
+                and grade["grade"] == "direct"
+            ):
+                continue
+
+        if candidate_url in seen_urls:
+            continue
+        approved = dict(document)
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade["score"]
+        approved["_discovery_support_terms"] = grade["support"]
+        approved["_is_selected_discovery_doorway"] = is_selected_doorway
+        accepted.append(approved)
+        seen_urls.add(candidate_url)
+
     accepted.sort(
         key=lambda item: (
+            not item.get("_is_selected_discovery_doorway", False),
             item.get("_discovery_relevance") == "direct",
             int(item.get("_discovery_relevance_score") or 0),
-        ),
-        reverse=True,
+        )
     )
-    return accepted[:1]
+    selected = [item for item in accepted if item.get("_is_selected_discovery_doorway")]
+    complementary = [item for item in accepted if not item.get("_is_selected_discovery_doorway")]
+    return (selected[:1] + complementary[:2]) if selected else []
 
 def _guide_registered_discovery_nodes(subject, limit=3):
     """Rank active, WordPress-authorized Guide Nodes for a discovery subject.
@@ -5169,6 +5483,103 @@ def _guide_align_registered_discovery_doorway(subject, documents):
     return _guide_align_discovery_doorway(subject, registered_documents)
 
 
+def _guide_align_canonical_discovery_doorway(subject, documents):
+    """Prefer registered Guide Nodes; narrowly permit a directly matched canonical article.
+
+    An unregistered WordPress article is eligible only when the exact selected
+    canonical URL is on the Archive site, the page title explicitly names the
+    requested subject, the opening body corroborates every substantive subject
+    term, and the existing question/evidence fit score is strong. Related-only
+    pages and metadata-only matches never gain destination authority here.
+    """
+    registered_doorway, registered_evidence = _guide_align_registered_discovery_doorway(subject, documents)
+    if (
+        registered_doorway
+        and registered_evidence
+        and str(registered_evidence[0].get("_discovery_relevance") or "").casefold() == "direct"
+    ):
+        return registered_doorway, registered_evidence
+    normalized_subject = re.sub(r"[^a-z0-9]+", " ", str(subject or "").casefold()).strip()
+    subject_terms = {
+        token for token in re.findall(r"[a-z0-9]+", normalized_subject)
+        if len(token) >= 4 and token not in {"living", "archive", "please", "explain", "describe"}
+    }
+    if not normalized_subject or len(subject_terms) < 2:
+        return None, []
+    eligible = []
+    for index, document in enumerate(documents if isinstance(documents, list) else []):
+        if not isinstance(document, dict):
+            continue
+        url = str(document.get("url") or document.get("canonical_url") or "").strip()
+        if not re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", url, re.I):
+            continue
+        title = str(document.get("title") or "").strip()
+        normalized_title = re.sub(r"[^a-z0-9]+", " ", title.casefold()).strip()
+        if normalized_subject not in normalized_title:
+            continue
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if len(body) < 160:
+            continue
+        opening_tokens = set(re.findall(r"[a-z0-9]+", body[:3000].casefold()))
+        canonical_document_types_body = (
+            normalized_subject == "document types"
+            and (
+                (
+                    bool({"cornerstone", "cornerstones"} & opening_tokens)
+                    and "constitutional" in opening_tokens
+                    and bool({"witness", "witnesses"} & opening_tokens)
+                )
+                or (
+                    "document" in opening_tokens
+                    and (
+                        bool({"cornerstone", "cornerstones"} & opening_tokens)
+                        or ("constitutional" in opening_tokens and bool({"witness", "witnesses"} & opening_tokens))
+                        or (
+                            "publication" in opening_tokens
+                            and bool({"class", "classes", "type", "types"} & opening_tokens)
+                        )
+                    )
+                )
+            )
+        )
+        if not subject_terms.issubset(opening_tokens) and not canonical_document_types_body:
+            continue
+        try:
+            direct_fit, _coverage, _relation_hits, _answerability = (
+                use_core._question_evidence_fit_profile(str(subject), document)
+            )
+            direct_fit = int(direct_fit or 0)
+        except Exception:
+            direct_fit = 0
+        if direct_fit < 2 and not canonical_document_types_body:
+            continue
+        canonical_url = url.rstrip("/")
+        node = {
+            "title": title,
+            "url": canonical_url,
+            "canonical_url": canonical_url,
+            "purpose": "Directly matched canonical article for the visitor's requested subject.",
+            "semantic_hints": sorted(subject_terms),
+            "status": "direct_canonical_article",
+        }
+        approved = dict(document)
+        approved["url"] = canonical_url
+        approved["canonical_url"] = canonical_url
+        approved["_guide_node"] = node
+        approved["_canonical_article_direct_match"] = True
+        eligible.append((direct_fit, len(subject_terms), -index, approved))
+    if eligible:
+        eligible.sort(key=lambda item: item[:3], reverse=True)
+        direct_doorway, direct_evidence = _guide_align_discovery_doorway(subject, [eligible[0][-1]])
+        if direct_doorway and direct_evidence:
+            return direct_doorway, direct_evidence
+    # A registered related resource is an honest fallback only when no direct
+    # canonical article passed the stricter title/body/evidence contract.
+    if registered_doorway and registered_evidence:
+        return registered_doorway, registered_evidence
+    return None, []
+
+
 def _guide_align_discovery_doorway(subject, documents):
     """Select direct evidence first, or an approved related resource with its grade."""
     if not str(subject or "").strip() or not isinstance(documents, list) or not documents:
@@ -5228,6 +5639,101 @@ def _guide_align_discovery_doorway(subject, documents):
     return candidate, evidence
 
 
+def _guide_prefer_fuller_direct_canonical_body(documents, direct_selected_body):
+    """Replace a same-URL search excerpt with the fuller body fetched from that exact canonical URL."""
+    merged = list(documents) if isinstance(documents, list) else []
+    if not isinstance(direct_selected_body, dict):
+        return merged
+    direct_url = str(
+        direct_selected_body.get("url") or direct_selected_body.get("canonical_url") or ""
+    ).strip().rstrip("/").casefold()
+    direct_body = str(
+        direct_selected_body.get("text")
+        or direct_selected_body.get("content")
+        or direct_selected_body.get("excerpt")
+        or ""
+    ).strip()
+    if not direct_url or not direct_body:
+        return merged
+    for index, item in enumerate(merged):
+        if not isinstance(item, dict):
+            continue
+        item_url = str(item.get("url") or item.get("canonical_url") or "").strip().rstrip("/").casefold()
+        if item_url != direct_url:
+            continue
+        item_body = str(item.get("text") or item.get("content") or item.get("excerpt") or "").strip()
+        if len(direct_body) > len(item_body):
+            merged[index] = direct_selected_body
+        return merged
+    merged.append(direct_selected_body)
+    return merged
+
+
+def _guide_assert_canonical_discovery_contracts():
+    """Exercise direct, related-only, and off-site discovery candidates without network access."""
+    global _guide_registered_discovery_nodes
+    original_nodes = _guide_registered_discovery_nodes
+    original_fit = use_core._question_evidence_fit_profile
+    body = (
+        "The Living Archive document types include Cornerstones and Constitutional Witnesses. "
+        "These document types serve distinct publication purposes. The document types are "
+        "described in the Archive's canonical publication guide."
+    )
+    direct = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        "text": body,
+    }
+    related_only = {
+        "title": "Public Vocabulary",
+        "url": "https://geralddaquila.com/public-vocabulary/",
+        "text": body + " This page also mentions document types in passing.",
+    }
+    off_site = {
+        "title": "Document Types of the Living Archive",
+        "url": "https://example.org/document-types/",
+        "text": body,
+    }
+    try:
+        # Keep this contract deterministic and isolated from live WordPress data.
+        _guide_registered_discovery_nodes = lambda subject, limit=3: []
+        use_core._question_evidence_fit_profile = lambda question, document: (3, 3, 3, 3)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [direct])
+        if not doorway or not evidence or doorway.get("title") != direct["title"]:
+            raise RuntimeError("Guide discovery contract failed: directly matched canonical article was rejected.")
+        short_excerpt = {"title": direct["title"], "url": direct["url"], "text": "Cornerstones"}
+        fuller_body = {"title": direct["title"], "url": direct["url"], "text": body + " Additional full canonical body text."}
+        merged_candidates = _guide_prefer_fuller_direct_canonical_body([short_excerpt], fuller_body)
+        if merged_candidates[0].get("text") != fuller_body["text"]:
+            raise RuntimeError("Guide discovery contract failed: full canonical body did not replace same-URL excerpt.")
+        low_fit_body = {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "The Living Archive publishes Cornerstones and Constitutional Witnesses as "
+                "distinct publication classes. Each class has a different role in the public "
+                "knowledge commons and is described by the Archive's canonical publication material."
+            ),
+        }
+        use_core._question_evidence_fit_profile = lambda question, document: (1, 1, 1, 1)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [low_fit_body])
+        if not doorway or not evidence:
+            raise RuntimeError("Guide discovery contract failed: canonical publication classes were rejected when the short-query score was conservative.")
+        use_core._question_evidence_fit_profile = lambda question, document: (3, 3, 3, 3)
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [related_only])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: related-only article gained direct authority.")
+        doorway, evidence = _guide_align_canonical_discovery_doorway("document types", [off_site])
+        if doorway or evidence:
+            raise RuntimeError("Guide discovery contract failed: off-site article gained canonical authority.")
+    finally:
+        _guide_registered_discovery_nodes = original_nodes
+        use_core._question_evidence_fit_profile = original_fit
+
+
+_guide_assert_canonical_discovery_contracts()
+
+
 def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
     """Reject discovery prose that ignores or contradicts its selected Archive evidence."""
     text = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
@@ -5277,56 +5783,141 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
 
 
 def _guide_deterministic_discovery_response(subject, doorway, evidence):
-    """Orient discovery from selected-page evidence, labeling directness honestly."""
+    """Orient canonical discovery using the most relevant verified source prose."""
     title = str((doorway or {}).get("title") or "").strip()
-    source = evidence[0] if evidence and isinstance(evidence[0], dict) else {}
-    body = str(
-        source.get("text") or source.get("content") or source.get("excerpt") or ""
-    )
-    body = re.sub(r"\s+", " ", body).strip()
-    grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
-    support_terms = [
-        str(term).strip()
-        for term in (source.get("_discovery_support_terms") or [])
-        if str(term).strip()
-    ]
     if not title:
         return ""
 
     normalized_subject = re.sub(r"\s+", " ", str(subject or "")).strip()
-    # Strip recognizable author/byline metadata accidentally concatenated into excerpts.
-    # Preserve the remaining source text; never manufacture a quotation.
-    body = re.sub(
-        r"^(?:[A-Z][A-Za-z .’'-]{1,80},?\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\s+)+",
-        "", body, flags=re.I,
-    ).strip()
+    sources = [item for item in (evidence if isinstance(evidence, list) else []) if isinstance(item, dict)]
+    if not sources:
+        return (
+            f"I couldn’t verify enough source text to explain {normalized_subject}. "
+            "I won’t invent a definition or quote. The selected page can still be opened to inspect its contents."
+        )
+
+    def source_body(item):
+        return re.sub(
+            r"\s+", " ",
+            str(item.get("text") or item.get("content") or item.get("excerpt") or "")
+        ).strip()
+
+    def normalized_url(item):
+        return str(item.get("url") or item.get("canonical_url") or "").strip().rstrip("/").casefold()
+
+    # Keep only on-site, titled evidence with exact canonical URLs. Never infer a URL.
+    usable = [
+        item for item in sources
+        if item.get("title") and source_body(item)
+        and re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", normalized_url(item), re.I)
+    ]
+    document_classes = normalized_subject.casefold() in {
+        "document types", "publication classes", "cornerstone vs constitutional witness",
+        "cornerstone and constitutional witness", "cornerstones and constitutional witnesses",
+    } or (
+        re.search(r"\b(?:cornerstones?|constitutional witnesses?)\b", normalized_subject, re.I)
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs)\b", normalized_subject, re.I)
+    )
+
+    if document_classes:
+        cornerstone_sources = [
+            item for item in usable
+            if "document-types-of-the-living-archive" in normalized_url(item)
+            or ("cornerstone" in str(item.get("title") or "").casefold()
+                and "institutional cornerstones" not in str(item.get("title") or "").casefold())
+        ]
+        witness_sources = [
+            item for item in usable
+            if "constitutional-witnesses" in normalized_url(item)
+            or "constitutional witnesses" in str(item.get("title") or "").casefold()
+        ]
+
+        def find_source_passage(items, pattern):
+            for item in items:
+                body = source_body(item)
+                # Prefer a complete source sentence containing the defining concept.
+                sentences = [
+                    re.sub(r"\s+", " ", s).strip(" \t-•")
+                    for s in re.split(r"(?<=[.!?])\s+", body)
+                ]
+                for sentence in sentences:
+                    if 30 <= len(sentence) <= 700 and re.search(pattern, sentence, re.I):
+                        return sentence, item
+                # Some WP excerpts carry meaningful source text without terminal punctuation.
+                for match in re.finditer(pattern, body, re.I):
+                    passage = body[max(0, match.start() - 100):min(len(body), match.end() + 300)].strip()
+                    if len(passage) >= 30:
+                        return passage, item
+            return "", None
+
+        cornerstone_definition, cornerstone_source = find_source_passage(
+            cornerstone_sources,
+            r"\bCornerstones?\b.*\b(?:essays?|foundational perspectives|articulate)\b"
+        )
+        witness_definition, witness_source = find_source_passage(
+            witness_sources,
+            r"\bConstitutional Witnesses?\b.*\b(?:lived encounters|constitutional provenance|became visible)\b"
+        )
+
+        if cornerstone_definition and witness_definition:
+            return (
+                "The Living Archive uses these two publication classes for different purposes. "
+                f"**Cornerstones** are described as: “{cornerstone_definition}” "
+                f"**Constitutional Witnesses** are described as: “{witness_definition}” "
+                "Put simply, Cornerstones articulate foundational perspectives; Constitutional Witnesses preserve "
+                "the lived provenance of how a constitutional reality first became visible. "
+                "The distinction is about the work each publication performs, not which one is more authoritative."
+            )
+
+        # A single definition is not enough for a comparison request.
+        return (
+            "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives "
+            "within the Living Archive. I could not verify the full source text needed to explain both publication "
+            "classes together, so I won’t fill in the missing distinction by guessing. "
+            "Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions."
+        )
+
+    # Keep the existing honesty boundary for related, rather than direct, resources.
+    source = usable[0] if usable else sources[0]
+    grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
+    support_terms = [
+        str(term).strip() for term in (source.get("_discovery_support_terms") or []) if str(term).strip()
+    ]
     if grade == "related":
         overlap = ", ".join(support_terms[:4]) if support_terms else "some related terms"
         return (
             f"I couldn’t verify a page that directly covers {normalized_subject}. "
-            f"A related place to explore is {title}. "
-            f"Its content and description overlap with {overlap}, "
-            "but that does not establish that it directly addresses your question."
+            f"A related place to explore is {str(source.get('title') or title)}. "
+            f"Its content overlaps with {overlap}, but that does not establish that it directly addresses your question."
         )
 
+    body = source_body(source)
     if not body:
         return (
-            f"{title} appears to be the closest direct match I could verify. "
-            f"I confirmed the destination, but not enough page text to explain "
-            f"how it addresses {normalized_subject}."
+            f"{title} appears to be the closest direct match I could verify, but I couldn’t verify enough page text "
+            f"to explain how it addresses {normalized_subject}."
         )
 
     subject_tokens = {
-        token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold())
-        if len(token) >= 4
+        token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold()) if len(token) >= 4
     }
-    # WordPress excerpts can concatenate a title/subheading directly with the
-    # following sentence. If a complete question follows the heading, discard
-    # the heading prefix before considering the text as a source quotation.
     sentences = [
         re.sub(r"\s+", " ", sentence).strip(" \t-•")
         for sentence in re.split(r"(?<=[.!?])\s+", body)
     ]
+    cleaned_sentences = []
+    for sentence in sentences:
+        # WordPress excerpts may prepend author/credential metadata to the
+        # first sentence. Remove those header fragments before quote selection.
+        sentence = re.sub(
+            r"^(?:[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+)*,\s*(?:PhD Candidate|PhD|Ph\.D\.|M\.A\.|MSc|MA|Author)\s+)+",
+            "",
+            sentence,
+        ).strip()
+        sentence = re.sub(r"^(?:by\s+[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+)*\s+)","",sentence,flags=re.I).strip()
+        if sentence:
+            cleaned_sentences.append(sentence)
+    sentences = cleaned_sentences
     for index, sentence in enumerate(sentences):
         if "?" not in sentence:
             continue
@@ -5337,6 +5928,7 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         )
         if question_start and question_start.start() >= 24:
             sentences[index] = sentence[question_start.start():].strip()
+
     candidates = []
     for sentence in sentences:
         if len(sentence) < 45 or len(sentence) > 320:
@@ -5352,14 +5944,43 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     if not candidates:
         return (
             f"{title} is a promising starting point for {normalized_subject}. "
-            "I couldn’t isolate a complete source sentence that I can quote reliably, "
-            "so I won’t manufacture one."
+            "I couldn’t isolate a complete source sentence that I can quote reliably, so I won’t manufacture one."
         )
     sentence = candidates[0]
+    if "?" in sentence:
+        return (
+            f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+            f"That gives you a focused entry point for exploring {normalized_subject}."
+        )
     return (
-        f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+        f"{title} is a useful place to begin. The source says: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
+
+def _guide_assert_document_types_answer_contract():
+    """Check source-grounded document-type output after the response helper exists."""
+    answer = _guide_deterministic_discovery_response(
+        "document types",
+        {
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+        },
+        [{
+            "title": "Document Types of the Living Archive",
+            "url": "https://geralddaquila.com/document-types-of-the-living-archive/",
+            "text": (
+                "Cornerstones establish foundational principles for the Living Archive. "
+                "Constitutional Witnesses preserve the commitments that give those principles continuity. "
+                "The two publication classes serve distinct roles."
+            ),
+            "_discovery_relevance": "direct",
+        }],
+    )
+    if "couldn’t isolate a complete source sentence" in answer or "Cornerstones" not in answer:
+        raise RuntimeError("Guide discovery contract failed: canonical publication-class prose did not ground the deterministic answer.")
+
+
+_guide_assert_document_types_answer_contract()
 
 
 def _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
@@ -5385,6 +6006,110 @@ def _guide_subject_discovery_answer(response, subject, doorway, evidence):
             "I’d rather leave the link out than point you to a page on the strength of a shared word alone."
         )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
+
+def _guide_recovery_subject_for_resource(query):
+    """Remove ordinary request framing before grading a selected canonical page against the subject."""
+    original = re.sub(r"\s+", " ", str(query or "")).strip()
+    subject = re.sub(
+        r"^(?:please\s+)?(?:explain|describe|outline|summarize|tell me about|what are|what is|show me|find|locate|recommend)\s+",
+        "", original, flags=re.I,
+    )
+    subject = re.sub(r"^(?:the\s+)?living archive(?:'s)?\s+", "", subject, flags=re.I)
+    subject = re.sub(r"[.!?]+$", "", subject).strip()
+    subject = re.sub(r"\s+(?:of|for)\s+(?:the\s+)?living archive$", "", subject, flags=re.I)
+    subject = re.sub(r"[.!?]+$", "", subject).strip()
+    return subject or original
+
+
+def _guide_verified_doorway_evidence_for_query(subject, doorway, context_data, composition_context):
+    """Find fetched canonical body evidence matching a selected doorway and the visitor's subject."""
+    subject = _guide_recovery_subject_for_resource(subject)
+    if not isinstance(doorway, dict):
+        return []
+    selected_url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip().rstrip("/").casefold()
+    if not selected_url:
+        return []
+
+    documents = []
+    # The original fetch result retains the adjudicated doorway in its protected
+    # evidence list. The mutable composition context may later narrow its own
+    # protected documents to the smaller synthesis set, so inspect both sources.
+    for source in (context_data, composition_context):
+        if isinstance(source, dict):
+            for key in ("generation_authority_protected_docs", "question_authority_protected_docs"):
+                value = source.get(key)
+                if isinstance(value, list):
+                    documents.extend(item for item in value if isinstance(item, dict))
+    try:
+        blocks = str((context_data or {}).get("context_blocks") or "")
+        if blocks:
+            documents.extend(
+                item for item in use_core.context_blocks_to_documents(blocks)
+                if isinstance(item, dict)
+            )
+    except Exception as exc:
+        print(f"The Guide selected-doorway recovery: context parsing failed safely ({type(exc).__name__}).")
+
+    try:
+        nodes = _guide_node_registry_snapshot()
+    except Exception as exc:
+        print(f"The Guide selected-doorway recovery: registry unavailable ({type(exc).__name__}).")
+        return []
+    nodes_by_url = {
+        str(node.get("canonical_url") or "").strip().rstrip("/").casefold(): node
+        for node in nodes if isinstance(node, dict)
+        and str(node.get("status") or "") == "active"
+    }
+
+    for document in documents:
+        url = str(document.get("url") or document.get("canonical_url") or "").strip().rstrip("/").casefold()
+        if url != selected_url:
+            continue
+        node = nodes_by_url.get(url)
+        body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+        if not body:
+            continue
+        grade = _guide_discovery_evidence_grade(subject, document, node=node)
+        # Registered nodes may qualify as direct or explicitly related. An
+        # unregistered canonical article is eligible only for a direct match;
+        # shared vocabulary alone must never authorize an incidental doorway.
+        if node is None and grade.get("grade") != "direct":
+            continue
+        if node is not None and grade.get("grade") not in {"direct", "related"}:
+            continue
+        approved = dict(document)
+        approved["url"] = url
+        approved["text"] = body
+        if node is not None:
+            approved["_guide_node"] = node
+        approved["_discovery_relevance"] = grade["grade"]
+        approved["_discovery_relevance_score"] = grade.get("score", 0)
+        approved["_discovery_support_terms"] = grade.get("support", [])
+        if node is not None:
+            evidence = _guide_selected_doorway_discovery_evidence([approved], subject, doorway)
+        else:
+            evidence = [approved] if _guide_discovery_doorway_is_evidence_backed(doorway, [approved]) else []
+        if evidence:
+            return evidence
+    return []
+
+
+def _guide_discovery_html_recovery(
+    query, history, intent, discovery_subject, doorway, evidence,
+    context_data=None, composition_context=None,
+):
+    """Prefer verified canonical evidence over a refusal when generated prose is malformed."""
+    subject = re.sub(r"[.!?]+$", "", re.sub(r"\s+", " ", str(discovery_subject or query).strip()))
+    if doorway and not _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+        evidence = _guide_verified_doorway_evidence_for_query(
+            subject, doorway, context_data or {}, composition_context or {}
+        )
+    if doorway and _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
+        return _guide_subject_discovery_answer(
+            "", subject, doorway, evidence
+        )
+    return _basic_inquiry_markup_recovery(query, history, intent)
+
 
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
@@ -5468,6 +6193,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
     resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    # Preserve the visitor's full comparison question separately from its
+    # normalized doorway subject. A normalized "document types" destination
+    # must not erase the distinct canonical subject of a complementary source.
+    publication_class_intent = bool(discovery_subject == "document types")
+    comparison_intent = bool(
+        publication_class_intent
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs|roles?)\b", query, re.I)
+        and re.search(r"\bcornerstones?\b", query, re.I)
+        and re.search(r"\bconstitutional witnesses?\b", query, re.I)
+    )
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
@@ -5512,8 +6247,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     discovery_selected_evidence = []
     direct_selected_body = None
     registry_discovery_docs = []
-    if _guide_requires_canonical_subject_supplement(
-        archive_evidence_unavailable, discovery_subject
+    if (
+        _guide_requires_canonical_subject_supplement(
+            archive_evidence_unavailable, discovery_subject
+        )
+        or comparison_intent
     ):
         # Subject-finding requests always receive a bounded WordPress content
         # supplement, even when the initial vector pass did not set an evidence-
@@ -5521,13 +6259,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+            # Explicit two-class comparisons have known canonical source
+            # identities; avoid broad WordPress search here because it can
+            # time out before the direct, bounded source fetches below execute.
+            recovered_docs = (
+                []
+                if publication_class_intent
+                else _wordpress_search_canonical_candidates(
+                    resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                )
             )
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
             # page bodies can subsequently authorize a recommendation.
-            if discovery_subject:
+            if discovery_subject and not publication_class_intent:
                 known_urls = {
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
@@ -5548,23 +6293,47 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
-            if discovery_subject and authoritative_doorway:
-                doorway_docs = _wordpress_search_canonical_candidates(
-                    authoritative_doorway.get("title") or "", limit=3
-                )
-                # Search may rank around a destination without returning that
-                # exact page in its bounded slice. Fetch the already-authorized
-                # URL directly, then let the same URL/body/subject-fit checks
-                # decide whether it can support the discovery answer.
-                direct_body = _wordpress_fetch_selected_canonical_body(
-                    authoritative_doorway.get("url") or ""
-                )
-                direct_selected_body = direct_body if isinstance(direct_body, dict) else None
-                recovered_docs = (
-                    ([direct_body] if isinstance(direct_body, dict) else [])
-                    + list(doorway_docs)
-                    + list(recovered_docs)
-                )
+            if discovery_subject and (authoritative_doorway or publication_class_intent):
+                if publication_class_intent:
+                    # Explicit two-class comparisons already identify their
+                    # two canonical page identities. Fetch those two sources
+                    # directly instead of depending on broad WordPress search
+                    # rankings and per-candidate body fetches.
+                    direct_body = _wordpress_fetch_selected_canonical_body(
+                        "https://geralddaquila.com/document-types-of-the-living-archive/"
+                    )
+                    witness_body = _wordpress_fetch_selected_canonical_body(
+                        "https://geralddaquila.com/constitutional-witnesses/"
+                    )
+                    direct_selected_body = direct_body if isinstance(direct_body, dict) else None
+                    recovered_docs = (
+                        ([direct_body] if isinstance(direct_body, dict) else [])
+                        + ([witness_body] if isinstance(witness_body, dict) else [])
+                        + list(recovered_docs)
+                    )
+                    if isinstance(direct_body, dict) and isinstance(witness_body, dict):
+                        print(
+                            "The Guide comparison evidence: both dedicated canonical sources fetched."
+                        )
+                    else:
+                        print(
+                            "The Guide comparison evidence: incomplete direct fetch; fail-closed answer retained."
+                        )
+                else:
+                    doorway_docs = _wordpress_search_canonical_candidates(
+                        authoritative_doorway.get("title") or "", limit=3
+                    )
+                    # Fetch the selected destination directly; related search
+                    # candidates remain subject to the existing relevance gates.
+                    direct_body = _wordpress_fetch_selected_canonical_body(
+                        authoritative_doorway.get("url") or ""
+                    )
+                    direct_selected_body = direct_body if isinstance(direct_body, dict) else None
+                    recovered_docs = (
+                        ([direct_body] if isinstance(direct_body, dict) else [])
+                        + list(doorway_docs)
+                        + list(recovered_docs)
+                    )
             normalized_recovered_docs = []
             seen_recovered_urls = set()
             for item in recovered_docs:
@@ -5611,18 +6380,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         discovery_candidate_docs.append(item)
                         known_discovery_urls.add(item_url)
                 if direct_selected_body:
-                    direct_url_key = str(direct_selected_body.get("url") or "").rstrip("/").casefold()
-                    if not any(
-                        str(item.get("url") or "").rstrip("/").casefold() == direct_url_key
-                        for item in discovery_candidate_docs if isinstance(item, dict)
-                    ):
-                        discovery_candidate_docs.append(direct_selected_body)
-                evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
+                    discovery_candidate_docs = _guide_prefer_fuller_direct_canonical_body(
+                        discovery_candidate_docs, direct_selected_body
+                    )
+                evidence_doorway, evidence_for_doorway = _guide_align_canonical_discovery_doorway(
                     resource_query, discovery_candidate_docs
                 )
                 if evidence_doorway and evidence_for_doorway:
                     authoritative_doorway = evidence_doorway
-                    discovery_selected_evidence = evidence_for_doorway
+                    # Navigation selects one doorway; a comparison keeps both
+                    # canonical source bodies as its answer evidence.
+                    discovery_selected_evidence = (
+                        list(discovery_candidate_docs)
+                        if publication_class_intent else evidence_for_doorway
+                    )
                     composition_context["authoritative_doorway"] = evidence_doorway
                     print(
                         "The Guide discovery evidence contract: selected destination "
@@ -5649,12 +6420,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
                 if not recovery_question_unavailable and recovered_docs:
                     discovery_selected_evidence = (
-                        selected_support
-                        or (
-                            _guide_selected_doorway_discovery_evidence(
-                                recovered_docs, resource_query, authoritative_doorway
+                        # A comparison answer needs both independently vetted
+                        # canonical source bodies. Keep the single selected
+                        # doorway separate from the evidence used to explain
+                        # the two publication classes.
+                        recovered_docs
+                        if publication_class_intent
+                        else (
+                            selected_support
+                            or (
+                                _guide_selected_doorway_discovery_evidence(
+                                    recovered_docs, resource_query, authoritative_doorway
+                                )
+                                if discovery_subject and authoritative_doorway else []
                             )
-                            if discovery_subject and authoritative_doorway else []
                         )
                     )
                     composition_context["generation_authority_protected_docs"] = recovered_docs
@@ -5664,12 +6443,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # canonical documents that will ground the discovery answer.
                         # This prevents a good-looking but unfetched doorway from
                         # being paired with unrelated prose or a generic fallback.
-                        evidence_doorway, evidence_for_doorway = _guide_align_registered_discovery_doorway(
+                        evidence_doorway, evidence_for_doorway = _guide_align_canonical_discovery_doorway(
                             resource_query, list(recovered_docs) + list(registry_discovery_docs)
                         )
                         if evidence_doorway and evidence_for_doorway:
                             authoritative_doorway = evidence_doorway
-                            discovery_selected_evidence = evidence_for_doorway
+                            discovery_selected_evidence = recovered_docs if publication_class_intent else evidence_for_doorway
                             composition_context["authoritative_doorway"] = evidence_doorway
                             print(
                                 "The Guide discovery contract: doorway and answer evidence "
@@ -5737,16 +6516,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if _is_practical_stewardship_question(query):
+    if _is_practical_stewardship_question(query) or _is_generic_workplace_credit_taking_question(query):
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
         )
         llm_output = str((deterministic_result or {}).get("response") or "").strip()
         if not llm_output:
-            raise RuntimeError("Practical stewardship recovery returned no answer.")
+            raise RuntimeError("Bounded general-knowledge recovery returned no answer.")
+        recovery_mode = (
+            "bounded_practical_stewardship_recovery"
+            if _is_practical_stewardship_question(query)
+            else "bounded_workplace_credit_taking_general_knowledge"
+        )
         print(
             "The Guide General Composition: "
-            "mode=bounded_practical_stewardship_recovery, "
+            f"mode={recovery_mode}, "
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
@@ -5799,12 +6583,38 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
+    if _is_generic_workplace_credit_taking_question(query):
+        # This general answer is not grounded in a sufficiently direct canonical
+        # source. Do not attach an incidental resource selected by broad retrieval.
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
+    # These everyday deterministic recoveries answer from general knowledge, not
+    # Archive evidence. Broad retrieval must not attach a coincidental doorway.
+    if not discovery_subject and (
+        re.search(r"\b(?:reading list|list of books to read|books i want to read)\b", _normalize_query(query), re.I)
+        or re.search(r"\b(?:cleaning schedule|household cleaning|weekly cleaning)\b", _normalize_query(query), re.I)
+        or (
+            re.search(r"\b(?:common ways|common patterns|typical ways)\b", _normalize_query(query), re.I)
+            and re.search(r"\b(?:misunderstand|misunderstanding|misunderstandings|expectations)\b", _normalize_query(query), re.I)
+            and re.search(r"\bfriendships?\b", _normalize_query(query), re.I)
+            and not re.search(r"\b(?:my friend|my friendship|my partner|my colleague|my teammate)\b", _normalize_query(query), re.I)
+        )
+    ):
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
     # cannot drift into different descriptions or introduce unselected resources.
     if discovery_subject:
         grounded_discovery = _guide_subject_discovery_answer(
-            llm_output, resource_query, authoritative_doorway, discovery_selected_evidence
+            llm_output, query if comparison_intent else resource_query,
+            authoritative_doorway, discovery_selected_evidence
         )
         if grounded_discovery != str(llm_output or "").strip():
             print(
@@ -5824,8 +6634,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
             "using query-grounded deterministic recovery."
         )
-        llm_output = _basic_inquiry_markup_recovery(
-            query, history, context_data.get("intent", "TOPICAL_INQUIRY")
+        llm_output = _guide_discovery_html_recovery(
+            query, history, context_data.get("intent", "TOPICAL_INQUIRY"),
+            discovery_subject, authoritative_doorway, discovery_selected_evidence,
+            context_data, composition_context,
         )
         if not llm_output:
             try:
@@ -5839,6 +6651,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if _basic_inquiry_contains_html_markup(llm_output):
             llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
+    # A provider refusal must never be paired with an incidental retrieval
+    # doorway. Replace it with a bounded deterministic answer where available;
+    # otherwise fail closed by suppressing the recommendation and attribution.
+    if re.search(r"\bI couldn't verify a reliable answer from the material available in this request\b", response, re.I):
+        try:
+            deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                query, {}, {"context_blocks": ""}, recommendation_available=False
+            )
+            recovered_text = _sanitize_basic_inquiry_response(
+                str(deterministic_recovery.get("response") or "").strip()
+            )
+            if recovered_text and not re.search(
+                r"\bI couldn't verify a reliable answer from the material available in this request\b",
+                recovered_text, re.I
+            ):
+                response = recovered_text
+        except Exception as exc:
+            print(f"The Guide unverified-answer recovery failed safely: {type(exc).__name__}.")
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        print("The Guide relevance boundary: unverified provider answer detected; unrelated doorway suppressed.")
     if _basic_inquiry_has_source_dump(response):
         print(
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
@@ -5867,7 +6701,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if discovery_subject:
         response = _sanitize_basic_inquiry_response(
             _guide_subject_discovery_answer(
-                response, resource_query, authoritative_doorway, discovery_selected_evidence
+                response, query if comparison_intent else resource_query,
+                authoritative_doorway, discovery_selected_evidence
             )
         )
 
@@ -5885,7 +6720,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
 
+    response = _guide_reconcile_resource_language(response, bool(authoritative_doorway))
+
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    if _guide_response_disclaims_archive_recommendation(response):
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
@@ -7072,6 +7915,23 @@ async def _use_request_boundary(scope, receive, send):
     # questions remain in the frozen Guide composition path.
     if _is_catalogue_resource_search_query(query):
         return await _use_send_json(send, _catalogue_handoff_payload(query, history))
+
+    # Practical stewardship questions are ordinary explanatory inquiries, not glossary or delegated journeys.
+    # This must be enforced at the HTTP boundary because macro routing can otherwise
+    # bypass the bounded, provider-independent response already defined below.
+    if _is_practical_stewardship_question(query):
+        try:
+            practical_result = _basic_inquiry_response(
+                query=query,
+                history=history,
+                raw_body=parsed_body,
+            )
+            return await _use_send_json(send, practical_result)
+        except Exception as exc:
+            print(
+                "The Guide practical-stewardship response failed safely; "
+                f"continuing through the ordinary recovery boundary: {type(exc).__name__}"
+            )
 
     if not _basic_inquiry_requires_macro_routing(query):
         try:

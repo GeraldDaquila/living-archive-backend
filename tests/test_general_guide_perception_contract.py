@@ -1,6 +1,38 @@
 """Regression contract preserving the established General Guide writer."""
 
+import ast
+from pathlib import Path
+import re
+
 import general_guide_composition as guide
+
+
+# Load the pure response-boundary helper without importing the FastAPI app.
+_SOURCE_PATH = Path(__file__).resolve().parents[1] / "main.py"
+_SOURCE_TREE = ast.parse(_SOURCE_PATH.read_text(encoding="utf-8"))
+_HELPER_NODES = [
+    node for node in _SOURCE_TREE.body
+    if isinstance(node, ast.FunctionDef)
+    and node.name in {
+        "_guide_reconcile_resource_language",
+        "_guide_bounded_community_archive_answer",
+        "_guide_bounded_friendship_expectations_answer",
+        "_guide_response_disclaims_archive_recommendation",
+        "_guide_discovery_html_recovery",
+        "_guide_verified_doorway_evidence_for_query",
+        "_guide_recovery_subject_for_resource",
+    }
+]
+_HELPER_NAMESPACE = {"re": re}
+exec(
+    compile(ast.Module(body=_HELPER_NODES, type_ignores=[]), str(_SOURCE_PATH), "exec"),
+    _HELPER_NAMESPACE,
+)
+_reconcile_resource_language = _HELPER_NAMESPACE["_guide_reconcile_resource_language"]
+_community_archive_answer = _HELPER_NAMESPACE["_guide_bounded_community_archive_answer"]
+_friendship_expectations_answer = _HELPER_NAMESPACE["_guide_bounded_friendship_expectations_answer"]
+_response_disclaims_archive_recommendation = _HELPER_NAMESPACE["_guide_response_disclaims_archive_recommendation"]
+_recovery_subject_for_resource = _HELPER_NAMESPACE["_guide_recovery_subject_for_resource"]
 
 
 def test_perception_is_a_universal_composition_requirement():
@@ -190,3 +222,175 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
         "response_shape": "explanatory",
     })
     assert parse(valid_invitation)["response"].endswith("?")
+
+
+def test_unavailable_recommendation_cannot_be_promised_in_visitor_text():
+    response = (
+        "Your question asks about a community archive. "
+        "If you would like to explore this further, the Archive resource below "
+        "may offer a useful next step."
+    )
+    result = _reconcile_resource_language(response, recommendation_available=False)
+    assert "resource below" not in result.lower()
+    assert "I could not identify a sufficiently relevant Archive resource to recommend here." in result
+
+
+def test_unavailable_recommendation_does_not_duplicate_existing_boundary_sentence():
+    response = (
+        "The answer is based on general knowledge. "
+        "The Archive resource below may offer a useful next step. "
+        "I could not identify a sufficiently relevant Archive resource to recommend here."
+    )
+    result = _reconcile_resource_language(response, recommendation_available=False)
+    assert "resource below" not in result.lower()
+    assert result.count("I could not identify a sufficiently relevant Archive resource to recommend here.") == 1
+
+
+def test_available_recommendation_preserves_proportionate_resource_language():
+    response = "The Archive resource below may offer a useful next step."
+    result = _reconcile_resource_language(response, recommendation_available=True)
+    assert result == response
+
+
+def test_unrelated_answer_is_not_rewritten_when_no_recommendation_exists():
+    response = "Keep one reading list and review it once a week."
+    result = _reconcile_resource_language(response, recommendation_available=False)
+    assert result == response
+
+
+def test_community_archive_responsibility_question_gets_bounded_general_answer():
+    answer = _community_archive_answer(
+        "What are the responsibilities of a community archive in preserving public knowledge?"
+    )
+    assert answer is not None
+    assert answer["doorway_title"] == ""
+    assert answer["provider"] == "bounded_community_archive_responsibility_recovery"
+    assert "preserve records with care" in answer["response"]
+    assert "privacy, consent, rights" in answer["response"]
+    assert "transparent correction practices" in answer["response"]
+    assert "general archival principles" in answer["response"]
+    assert "resource below" not in answer["response"].lower()
+
+
+def test_community_archive_recovery_does_not_capture_unrelated_questions():
+    assert _community_archive_answer("How should I organize a reading list?") is None
+
+
+def test_generic_friendship_expectations_question_does_not_need_people_or_we():
+    answer = _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in friendships?"
+    )
+    assert answer is not None
+    assert answer["provider"] == "bounded_friendship_expectations_recovery"
+    assert "how often people expect to be in touch" in answer["response"]
+    assert "whether they want advice or simply to be heard" in answer["response"]
+    assert answer["response"].endswith("Which expectation tends to be hardest for people to read accurately?")
+
+
+def test_friendship_expectations_recovery_does_not_capture_lived_questions():
+    assert _friendship_expectations_answer(
+        "What are common patterns of misunderstandings in my friendship?"
+    ) is None
+
+
+def test_answer_that_disclaims_direct_archive_fit_suppresses_doorway():
+    response = (
+        "These are general archival principles. "
+        "I did not identify a sufficiently direct Archive resource to recommend for this question."
+    )
+    assert _response_disclaims_archive_recommendation(response)
+
+
+def test_general_answer_without_resource_disclaimer_does_not_suppress_doorway():
+    response = "A community archive should preserve records with care and document their provenance."
+    assert not _response_disclaims_archive_recommendation(response)
+
+
+
+def test_malformed_discovery_prose_recovers_from_verified_canonical_evidence(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    evidence = [{"url": doorway["url"], "text": "Document Types of the Living Archive"}]
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: selected == doorway and items == evidence)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda response, subject, selected, items: f"Grounded orientation for {selected['title']} about {subject}.")
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: "I couldn't verify a reliable answer from the material available in this request.")
+    recover = namespace["_guide_discovery_html_recovery"]
+
+    result = recover("Explain the Living Archive's document types.", [], "TOPICAL_INQUIRY", "document types", doorway, evidence)
+
+    assert result == "Grounded orientation for Document Types of the Living Archive about document types."
+    assert "couldn't verify" not in result.lower()
+
+
+def test_malformed_discovery_prose_fails_closed_without_verified_canonical_evidence(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: False)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda *args: (_ for _ in ()).throw(AssertionError("must not use unverified evidence")))
+    fallback = "I couldn't verify a reliable answer from the material available in this request."
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: fallback)
+
+    result = namespace["_guide_discovery_html_recovery"]("Explain a topic.", [], "TOPICAL_INQUIRY", "", None, [])
+
+    assert result == fallback
+
+
+
+def test_malformed_ordinary_answer_recovers_from_selected_relevant_canonical_resource(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    evidence = [{"url": doorway["url"], "text": "Document Types of the Living Archive explains the Archive's document classes."}]
+    calls = []
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: selected == doorway and items == evidence)
+    monkeypatch.setitem(namespace, "_guide_verified_doorway_evidence_for_query", lambda subject, selected, context, composition: calls.append((subject, selected)) or evidence)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda response, subject, selected, items: f"Grounded orientation for {selected['title']} about {subject}.")
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: "I couldn't verify a reliable answer from the material available in this request.")
+
+    result = namespace["_guide_discovery_html_recovery"](
+        "Explain the Living Archive's document types.", [], "TOPICAL_INQUIRY",
+        "", doorway, [], {"context_blocks": "fetched context"}, {"generation_authority_protected_docs": []}
+    )
+
+    assert calls and calls[0][0] == "Explain the Living Archive's document types"
+    assert result == "Grounded orientation for Document Types of the Living Archive about Explain the Living Archive's document types."
+    assert "couldn't verify" not in result.lower()
+
+
+
+def test_recovery_subject_strips_archive_request_framing_before_relevance_grading():
+    assert _recovery_subject_for_resource("Explain the Living Archive's document types.") == "document types"
+    assert _recovery_subject_for_resource("What are the canonical document types of the Living Archive?") == "the canonical document types"
+    assert _recovery_subject_for_resource("Why do familiar solutions stop working when circumstances change?") == "Why do familiar solutions stop working when circumstances change"
+
+
+
+def test_unregistered_canonical_article_requires_direct_evidence_match(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    document = {"title": doorway["title"], "url": doorway["url"], "text": "Document Types of the Living Archive explains the Archive's document classes."}
+    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [])})()
+    monkeypatch.setitem(namespace, "use_core", fake_core)
+    monkeypatch.setitem(namespace, "_guide_node_registry_snapshot", lambda: [])
+    monkeypatch.setitem(namespace, "_guide_discovery_evidence_grade", lambda subject, item, node=None: {"grade": "direct", "score": 100, "support": ["document", "types"]})
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: bool(items) and selected["url"].rstrip("/") == items[0]["url"].rstrip("/") and bool(items[0].get("text")))
+
+    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "", "generation_authority_protected_docs": [document]}, {})
+
+    assert len(evidence) == 1
+    assert evidence[0]["url"] == doorway["url"].rstrip("/")
+    assert evidence[0]["_discovery_relevance"] == "direct"
+    assert "_guide_node" not in evidence[0]
+
+
+def test_unregistered_canonical_article_rejects_related_only_match(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    document = {"title": doorway["title"], "url": doorway["url"], "text": "A broadly related page."}
+    fake_core = type("FakeCore", (), {"context_blocks_to_documents": staticmethod(lambda blocks: [])})()
+    monkeypatch.setitem(namespace, "use_core", fake_core)
+    monkeypatch.setitem(namespace, "_guide_node_registry_snapshot", lambda: [])
+    monkeypatch.setitem(namespace, "_guide_discovery_evidence_grade", lambda subject, item, node=None: {"grade": "related", "score": 30, "support": ["archive"]})
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: bool(items))
+
+    evidence = namespace["_guide_verified_doorway_evidence_for_query"]("document types", doorway, {"context_blocks": "", "generation_authority_protected_docs": [document]}, {})
+
+    assert evidence == []
