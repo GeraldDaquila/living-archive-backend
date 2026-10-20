@@ -329,3 +329,24 @@ def test_malformed_discovery_prose_fails_closed_without_verified_canonical_evide
     result = namespace["_guide_discovery_html_recovery"]("Explain a topic.", [], "TOPICAL_INQUIRY", "", None, [])
 
     assert result == fallback
+
+
+
+def test_malformed_ordinary_answer_recovers_from_selected_relevant_canonical_resource(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    evidence = [{"url": doorway["url"], "text": "Document Types of the Living Archive explains the Archive's document classes."}]
+    calls = []
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: selected == doorway and items == evidence)
+    monkeypatch.setitem(namespace, "_guide_verified_doorway_evidence_for_query", lambda subject, selected, context, composition: calls.append((subject, selected)) or evidence)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda response, subject, selected, items: f"Grounded orientation for {selected['title']} about {subject}.")
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: "I couldn't verify a reliable answer from the material available in this request.")
+
+    result = namespace["_guide_discovery_html_recovery"](
+        "Explain the Living Archive's document types.", [], "TOPICAL_INQUIRY",
+        "", doorway, [], {"context_blocks": "fetched context"}, {"generation_authority_protected_docs": []}
+    )
+
+    assert calls and calls[0][0] == "Explain the Living Archive's document types."
+    assert result == "Grounded orientation for Document Types of the Living Archive about Explain the Living Archive's document types."
+    assert "couldn't verify" not in result.lower()
