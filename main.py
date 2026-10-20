@@ -3879,6 +3879,23 @@ def _sanitize_basic_inquiry_response(text):
     for pattern, replacement in replacements:
         raw = re.sub(pattern, replacement, raw, flags=re.I)
 
+    # Final fail-closed cleanup for legacy provider payloads that append the
+    # evidence marker without brackets or after a truncated excerpt. The browser
+    # rejects this phrase by design; remove the internal annotation server-side
+    # so a recoverable answer is not turned into a generic UI failure.
+    raw = re.sub(
+        r"(?i)(?:\s*[.…]{0,3}\s*)?\[?\s*evidence excerpt bounded by USE\s*\]?",
+        "",
+        raw,
+    )
+    raw = re.sub(
+        r"(?i)\s*\[?(?:canonical evidence|supplied evidence|bounded by USE|"
+        r"bounded by the Guide|internal interpretation|retrieval layer|"
+        r"synthesis layer|processing layer|machine-facing metadata)\]?\s*",
+        " ",
+        raw,
+    )
+
     # The final visitor boundary must not undo Markdown normalization performed
     # by General Guide Composition. Providers vary in list style and may emit
     # numbered actions inline, so apply the same bounded structural repair here.
