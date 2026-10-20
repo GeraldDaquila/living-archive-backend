@@ -18,6 +18,7 @@ _HELPER_NODES = [
         "_guide_bounded_community_archive_answer",
         "_guide_bounded_friendship_expectations_answer",
         "_guide_response_disclaims_archive_recommendation",
+        "_guide_discovery_html_recovery",
     }
 ]
 _HELPER_NAMESPACE = {"re": re}
@@ -300,3 +301,31 @@ def test_answer_that_disclaims_direct_archive_fit_suppresses_doorway():
 def test_general_answer_without_resource_disclaimer_does_not_suppress_doorway():
     response = "A community archive should preserve records with care and document their provenance."
     assert not _response_disclaims_archive_recommendation(response)
+
+
+
+def test_malformed_discovery_prose_recovers_from_verified_canonical_evidence(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    doorway = {"title": "Document Types of the Living Archive", "url": "https://geralddaquila.com/document-types/"}
+    evidence = [{"url": doorway["url"], "text": "Document Types of the Living Archive"}]
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: selected == doorway and items == evidence)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda response, subject, selected, items: f"Grounded orientation for {selected['title']} about {subject}.")
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: "I couldn't verify a reliable answer from the material available in this request.")
+    recover = namespace["_guide_discovery_html_recovery"]
+
+    result = recover("Explain the Living Archive's document types.", [], "TOPICAL_INQUIRY", "document types", doorway, evidence)
+
+    assert result == "Grounded orientation for Document Types of the Living Archive about document types."
+    assert "couldn't verify" not in result.lower()
+
+
+def test_malformed_discovery_prose_fails_closed_without_verified_canonical_evidence(monkeypatch):
+    namespace = _HELPER_NAMESPACE
+    monkeypatch.setitem(namespace, "_guide_discovery_doorway_is_evidence_backed", lambda selected, items: False)
+    monkeypatch.setitem(namespace, "_guide_subject_discovery_answer", lambda *args: (_ for _ in ()).throw(AssertionError("must not use unverified evidence")))
+    fallback = "I couldn't verify a reliable answer from the material available in this request."
+    monkeypatch.setitem(namespace, "_basic_inquiry_markup_recovery", lambda query, history, intent: fallback)
+
+    result = namespace["_guide_discovery_html_recovery"]("Explain a topic.", [], "TOPICAL_INQUIRY", "", None, [])
+
+    assert result == fallback
