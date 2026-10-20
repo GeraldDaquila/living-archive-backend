@@ -553,7 +553,7 @@ def _explicit_bounded_archive_request(query):
 RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
 
 _RELATIONAL_COUNTERPART_PATTERNS = (
-    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
+    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|teammate|team member|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
     r"\b(?:a|this|our|my)\s+friendship\b",
     # Natural counterpart phrasing: visitors often say "a friend", not "a friendship".
     r"\b(?:a|this|our|my)\s+friend\b",
@@ -575,6 +575,9 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     # visitor does not name conflict, trust, or a formal relationship problem.
     # Credit-taking is a lived interactional dynamic even when visitors do not name conflict or trust.
     r"\b(?:taking credit|takes credit|took credit|credit for (?:work|what) we did together)\b",
+    # Attribution omissions are lived interaction dynamics even without the
+    # literal phrase "taking credit".
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
     r"\b(?:effort|making an effort|make an effort|made an effort)\b",
     r"\b(?:always the one|doing all the work|carrying the relationship)\b",
     r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
