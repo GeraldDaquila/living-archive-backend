@@ -5704,52 +5704,124 @@ def _guide_discovery_response_is_grounded(response, subject, doorway, evidence):
 
 
 def _guide_deterministic_discovery_response(subject, doorway, evidence):
-    """Orient discovery from selected-page evidence, labeling directness honestly."""
+    """Orient canonical discovery using the most relevant verified source prose."""
     title = str((doorway or {}).get("title") or "").strip()
-    source = evidence[0] if evidence and isinstance(evidence[0], dict) else {}
-    body = str(
-        source.get("text") or source.get("content") or source.get("excerpt") or ""
-    )
-    body = re.sub(r"\s+", " ", body).strip()
-    grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
-    support_terms = [
-        str(term).strip()
-        for term in (source.get("_discovery_support_terms") or [])
-        if str(term).strip()
-    ]
     if not title:
         return ""
 
     normalized_subject = re.sub(r"\s+", " ", str(subject or "")).strip()
-    # Strip recognizable author/byline metadata accidentally concatenated into excerpts.
-    # Preserve the remaining source text; never manufacture a quotation.
-    body = re.sub(
-        r"^(?:[A-Z][A-Za-z .’'-]{1,80},?\s+(?:PhD Candidate|PhD student|doctoral candidate|author)\s+)+",
-        "", body, flags=re.I,
-    ).strip()
+    sources = [item for item in (evidence if isinstance(evidence, list) else []) if isinstance(item, dict)]
+    if not sources:
+        return (
+            f"I couldn’t verify enough source text to explain {normalized_subject}. "
+            "I won’t invent a definition or quote. The selected page can still be opened to inspect its contents."
+        )
+
+    def source_body(item):
+        return re.sub(
+            r"\s+", " ",
+            str(item.get("text") or item.get("content") or item.get("excerpt") or "")
+        ).strip()
+
+    def normalized_url(item):
+        return str(item.get("url") or item.get("canonical_url") or "").strip().rstrip("/").casefold()
+
+    # Keep only on-site, titled evidence with exact canonical URLs. Never infer a URL.
+    usable = [
+        item for item in sources
+        if item.get("title") and source_body(item)
+        and re.match(r"^https://geralddaquila\.com/[A-Za-z0-9._/-]+/?$", normalized_url(item), re.I)
+    ]
+    document_classes = normalized_subject.casefold() in {
+        "document types", "publication classes", "cornerstone vs constitutional witness",
+        "cornerstone and constitutional witness", "cornerstones and constitutional witnesses",
+    } or (
+        re.search(r"\b(?:cornerstones?|constitutional witnesses?)\b", normalized_subject, re.I)
+        and re.search(r"\b(?:difference|distinction|compare|comparison|versus|vs)\b", normalized_subject, re.I)
+    )
+
+    if document_classes:
+        cornerstone_sources = [
+            item for item in usable
+            if "document-types-of-the-living-archive" in normalized_url(item)
+            or ("cornerstone" in str(item.get("title") or "").casefold()
+                and "institutional cornerstones" not in str(item.get("title") or "").casefold())
+        ]
+        witness_sources = [
+            item for item in usable
+            if "constitutional-witnesses" in normalized_url(item)
+            or "constitutional witnesses" in str(item.get("title") or "").casefold()
+        ]
+
+        def find_source_passage(items, pattern):
+            for item in items:
+                body = source_body(item)
+                # Prefer a complete source sentence containing the defining concept.
+                sentences = [
+                    re.sub(r"\s+", " ", s).strip(" \t-•")
+                    for s in re.split(r"(?<=[.!?])\s+", body)
+                ]
+                for sentence in sentences:
+                    if 30 <= len(sentence) <= 700 and re.search(pattern, sentence, re.I):
+                        return sentence, item
+                # Some WP excerpts carry meaningful source text without terminal punctuation.
+                for match in re.finditer(pattern, body, re.I):
+                    passage = body[max(0, match.start() - 100):min(len(body), match.end() + 300)].strip()
+                    if len(passage) >= 30:
+                        return passage, item
+            return "", None
+
+        cornerstone_definition, cornerstone_source = find_source_passage(
+            cornerstone_sources,
+            r"\bCornerstones?\b.*\b(?:essays?|foundational perspectives|articulate)\b"
+        )
+        witness_definition, witness_source = find_source_passage(
+            witness_sources,
+            r"\bConstitutional Witnesses?\b.*\b(?:lived encounters|constitutional provenance|became visible)\b"
+        )
+
+        if cornerstone_definition and witness_definition:
+            return (
+                "The Living Archive uses these two publication classes for different purposes. "
+                f"**Cornerstones** are described as: “{cornerstone_definition}” "
+                f"**Constitutional Witnesses** are described as: “{witness_definition}” "
+                "Put simply, Cornerstones articulate foundational perspectives; Constitutional Witnesses preserve "
+                "the lived provenance of how a constitutional reality first became visible. "
+                "The distinction is about the work each publication performs, not which one is more authoritative."
+            )
+
+        # A single definition is not enough for a comparison request.
+        return (
+            "I can verify that Cornerstones are major integrative essays that articulate foundational perspectives "
+            "within the Living Archive. I could not verify the full source text needed to explain both publication "
+            "classes together, so I won’t fill in the missing distinction by guessing. "
+            "Please consult the canonical document-types and Constitutional Witnesses pages for the complete definitions."
+        )
+
+    # Keep the existing honesty boundary for related, rather than direct, resources.
+    source = usable[0] if usable else sources[0]
+    grade = str(source.get("_discovery_relevance") or "direct").strip().casefold()
+    support_terms = [
+        str(term).strip() for term in (source.get("_discovery_support_terms") or []) if str(term).strip()
+    ]
     if grade == "related":
         overlap = ", ".join(support_terms[:4]) if support_terms else "some related terms"
         return (
             f"I couldn’t verify a page that directly covers {normalized_subject}. "
-            f"A related place to explore is {title}. "
-            f"Its content and description overlap with {overlap}, "
-            "but that does not establish that it directly addresses your question."
+            f"A related place to explore is {str(source.get('title') or title)}. "
+            f"Its content overlaps with {overlap}, but that does not establish that it directly addresses your question."
         )
 
+    body = source_body(source)
     if not body:
         return (
-            f"{title} appears to be the closest direct match I could verify. "
-            f"I confirmed the destination, but not enough page text to explain "
-            f"how it addresses {normalized_subject}."
+            f"{title} appears to be the closest direct match I could verify, but I couldn’t verify enough page text "
+            f"to explain how it addresses {normalized_subject}."
         )
 
     subject_tokens = {
-        token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold())
-        if len(token) >= 4
+        token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold()) if len(token) >= 4
     }
-    # WordPress excerpts can concatenate a title/subheading directly with the
-    # following sentence. If a complete question follows the heading, discard
-    # the heading prefix before considering the text as a source quotation.
     sentences = [
         re.sub(r"\s+", " ", sentence).strip(" \t-•")
         for sentence in re.split(r"(?<=[.!?])\s+", body)
@@ -5764,51 +5836,6 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         )
         if question_start and question_start.start() >= 24:
             sentences[index] = sentence[question_start.start():].strip()
-    # "Document types" is often explained through the names and roles of the
-    # classes rather than by repeating the literal phrase in each sentence.
-    # When the exact canonical article and its body have already passed the
-    # strict discovery contract, allow class-naming sentences to ground a short
-    # excerpt. Do not synthesize definitions from the labels themselves.
-    if normalized_subject.casefold() == "document types":
-        class_sentences = []
-        for sentence in sentences:
-            if len(sentence) < 35 or len(sentence) > 320:
-                continue
-            if not re.search(r"[.!?]$", sentence):
-                continue
-            if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
-                continue
-            words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
-            has_cornerstone = bool({"cornerstone", "cornerstones"} & words)
-            has_witness = "constitutional" in words and bool({"witness", "witnesses"} & words)
-            if has_cornerstone or has_witness:
-                class_sentences.append((int(has_cornerstone and has_witness), int(has_cornerstone) + int(has_witness), sentence))
-        if class_sentences:
-            class_sentences.sort(key=lambda item: (item[0], item[1], -len(item[2])), reverse=True)
-            selected_sentences = [class_sentences[0][2]]
-            if not (class_sentences[0][0] and class_sentences[0][1] == 2):
-                for _both, _count, sentence in class_sentences[1:]:
-                    if sentence not in selected_sentences:
-                        selected_sentences.append(sentence)
-                    if len(selected_sentences) >= 2:
-                        break
-            quote_words = []
-            remaining = 25
-            for sentence in selected_sentences:
-                words = sentence.split()
-                if not remaining:
-                    break
-                excerpt = " ".join(words[:remaining])
-                if len(words) > remaining:
-                    excerpt += "…"
-                quote_words.append(excerpt)
-                remaining -= min(len(words), remaining)
-            source_excerpt = " … ".join(quote_words)
-            return (
-                f"The canonical article “{title}” identifies Cornerstones and Constitutional Witnesses "
-                f"as Living Archive publication classes. Its text says: “{source_excerpt}” "
-                "The article below is the source for the full descriptions."
-            )
 
     candidates = []
     for sentence in sentences:
@@ -5825,15 +5852,13 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     if not candidates:
         return (
             f"{title} is a promising starting point for {normalized_subject}. "
-            "I couldn’t isolate a complete source sentence that I can quote reliably, "
-            "so I won’t manufacture one."
+            "I couldn’t isolate a complete source sentence that I can quote reliably, so I won’t manufacture one."
         )
     sentence = candidates[0]
     return (
-        f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+        f"{title} is a useful place to begin. The source says: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
-
 
 def _guide_assert_document_types_answer_contract():
     """Check source-grounded document-type output after the response helper exists."""
