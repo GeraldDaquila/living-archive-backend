@@ -570,6 +570,8 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
     # Reciprocity and uneven effort are lived relational dynamics even when the
     # visitor does not name conflict, trust, or a formal relationship problem.
+    # Credit-taking is a lived interactional dynamic even when visitors do not name conflict or trust.
+    r"\b(?:taking credit|takes credit|took credit|credit for (?:work|what) we did together)\b",
     r"\b(?:effort|making an effort|make an effort|made an effort)\b",
     r"\b(?:always the one|doing all the work|carrying the relationship)\b",
     r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
@@ -579,6 +581,8 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
 )
 
 _RELATIONAL_INQUIRY_PATTERNS = (
+    # Natural questions about what one may be missing should count as inquiry.
+    r"\bwhat\s+(?:might|could|am|are)\s+(?:i|we)\s+(?:be\s+)?(?:missing|not seeing|overlooking)\b",
     r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
     r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
