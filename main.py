@@ -6339,7 +6339,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
                 if evidence_doorway and evidence_for_doorway:
                     authoritative_doorway = evidence_doorway
-                    discovery_selected_evidence = evidence_for_doorway
+                    # Navigation selects one doorway; a comparison keeps both
+                    # canonical source bodies as its answer evidence.
+                    discovery_selected_evidence = (
+                        list(discovery_candidate_docs)
+                        if comparison_intent else evidence_for_doorway
+                    )
                     composition_context["authoritative_doorway"] = evidence_doorway
                     print(
                         "The Guide discovery evidence contract: selected destination "
