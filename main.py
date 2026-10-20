@@ -5915,6 +5915,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
         )
 
+    # Discovery composition is allowed to replace a draft after the earlier
+    # visitor boundary. Re-validate the final composed text here as well; if
+    # that last step reintroduces internal annotations, discard it and recover
+    # from the visitor's question without reusing contaminated prose or links.
+    if _basic_inquiry_has_internal_annotation(response):
+        print(
+            "The Guide final discovery boundary: rejected reintroduced internal "
+            "annotations; using query-grounded deterministic recovery."
+        )
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        response = _sanitize_basic_inquiry_response(
+            str(
+                _basic_inquiry_round1_deterministic_response(
+                    query, {}, {"context_blocks": ""}, recommendation_available=False
+                ).get("response") or ""
+            ).strip()
+        )
+        if _basic_inquiry_has_internal_annotation(response):
+            response = _sanitize_basic_inquiry_response(
+                _basic_inquiry_source_dump_recovery(query)
+            )
+
     if re.search(r"\bUSE\b", response) or re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|"
