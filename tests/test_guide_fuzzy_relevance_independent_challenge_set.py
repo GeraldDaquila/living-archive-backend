@@ -117,6 +117,17 @@ def test_independent_challenge_pairwise_accuracy_floor_and_diagnostic_report():
         f"ties={evaluable_ties}; losses={evaluable_losses}; "
         f"candidate_set_underspecified={underspecified_ids}"
     )
+    correlation_groups = {}
+    for case in _cases():
+        group = case.get("correlation_group")
+        if group:
+            correlation_groups.setdefault(group, []).append(case["id"])
+    print(
+        "INDEPENDENT CHALLENGE CORRELATION AUDIT: "
+        f"case_count={total}; unique_candidate_pairs="
+        f"{len({(case['direct']['title'], case['distractor']['title']) for case in _cases()})}; "
+        f"correlated_groups={correlation_groups}"
+    )
     print(f"INDEPENDENT CHALLENGE PER-DIMENSION SUMMARY: {dimension_summary}")
     print(f"INDEPENDENT CHALLENGE FULL SCORE VECTORS: {outcomes}")
 
