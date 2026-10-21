@@ -199,9 +199,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
 
     movement = _clean(desired_movement)
-    if movement and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
+    if movement and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    elif not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
+    elif not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += " What detail or context would make this question most concrete for you?"
     return answer
 
