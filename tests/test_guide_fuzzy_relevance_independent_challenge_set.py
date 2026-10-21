@@ -56,12 +56,28 @@ def test_independent_challenge_fixture_is_additive_and_distinct():
 
 def test_independent_challenge_pairwise_accuracy_floor_and_diagnostic_report():
     outcomes = [_score_case(case) for case in _cases()]
+    case_by_id = {case["id"]: case for case in _cases()}
     total = len(outcomes)
     wins = sum(item["correct"] for item in outcomes)
     ties = sum(item["tie"] for item in outcomes)
     losses = total - wins - ties
     accuracy = wins / total if total else 0.0
     failures = [item for item in outcomes if not item["correct"]]
+    # Preserve raw pairwise outcomes for all cases, while separating cases
+    # explicitly adjudicated as underspecified candidate sets. This avoids
+    # presenting a forced choice between two unsuitable resources as ground truth.
+    evaluable = [
+        item for item in outcomes
+        if case_by_id[item["case"]].get("evaluation_role") != "candidate_set_underspecified"
+    ]
+    evaluable_wins = sum(item["correct"] for item in evaluable)
+    evaluable_ties = sum(item["tie"] for item in evaluable)
+    evaluable_losses = len(evaluable) - evaluable_wins - evaluable_ties
+    evaluable_accuracy = evaluable_wins / len(evaluable) if evaluable else 0.0
+    underspecified_ids = [
+        item["case"] for item in outcomes
+        if case_by_id[item["case"]].get("evaluation_role") == "candidate_set_underspecified"
+    ]
 
     # Per-dimension aggregates help reveal whether a category is consistently
     # unobserved, rather than treating the aggregate score as a black box.
@@ -83,14 +99,25 @@ def test_independent_challenge_pairwise_accuracy_floor_and_diagnostic_report():
         f"wins={wins}/{total} ({accuracy:.1%}); ties={ties}; losses={losses}; "
         f"failures={[{'case': item['case'], 'direct': item['direct'], 'distractor': item['distractor'], 'margin': item['margin']} for item in failures]}"
     )
+    print(
+        "INDEPENDENT CHALLENGE EVALUABLE-PAIR SUMMARY: "
+        f"wins={evaluable_wins}/{len(evaluable)} ({evaluable_accuracy:.1%}); "
+        f"ties={evaluable_ties}; losses={evaluable_losses}; "
+        f"candidate_set_underspecified={underspecified_ids}"
+    )
     print(f"INDEPENDENT CHALLENGE PER-DIMENSION SUMMARY: {dimension_summary}")
     print(f"INDEPENDENT CHALLENGE FULL SCORE VECTORS: {outcomes}")
 
     # This is an evaluation floor, not a production-readiness threshold. All
     # ties/failures are still printed and preserved as visible evidence.
     assert accuracy >= 0.60, (
-        f"Independent challenge accuracy {wins}/{total} ({accuracy:.1%}); "
+        f"Raw independent challenge accuracy {wins}/{total} ({accuracy:.1%}); "
         f"ties={ties}; losses={losses}; failures={failures}"
+    )
+    assert evaluable_accuracy >= 0.60, (
+        f"Evaluable-pair accuracy {evaluable_wins}/{len(evaluable)} "
+        f"({evaluable_accuracy:.1%}); ties={evaluable_ties}; "
+        f"losses={evaluable_losses}; underspecified={underspecified_ids}"
     )
 
 
@@ -147,3 +174,12 @@ def test_procedure_and_broad_governance_intents_are_distinguished():
         broad_case["query"], broad_case["distractor"]
     )["procedural_specificity"]
     assert broad_direct >= broad_distractor
+
+
+def test_procedural_pair_adjudications_remain_explicit_and_reported():
+    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    cases = {case["id"]: case for case in fixture["cases"]}
+    for case_id in ("same-topic-permit-rules", "same-topic-public-notice"):
+        case = cases[case_id]
+        assert case["evaluation_role"] == "candidate_set_underspecified"
+        assert "Neither candidate directly" in case["adjudication_note"]
