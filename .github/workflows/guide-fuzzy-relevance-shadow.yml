@@ -20,6 +20,7 @@ on:
       - "tests/test_guide_fuzzy_relevance_heldout_paraphrases.py"
       - "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json"
       - "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json"
+      - "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json"
       - ".github/workflows/guide-fuzzy-relevance-shadow.yml"
 jobs:
   fuzzy-relevance-shadow:
