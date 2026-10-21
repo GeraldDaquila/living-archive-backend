@@ -513,6 +513,34 @@ def _has_everyday_example(response: str) -> bool:
     ))
 
 
+def _requires_actionable_next_step(query: str) -> bool:
+    """Identify complete practical questions that explicitly ask what to do next."""
+    q = _normalize_space(query).casefold()
+    asks_next_step = bool(re.search(
+        r"\b(?:constructive next step|useful next step|what to do first|what should .{0,80} do first|how should .{0,80} begin|how to begin|what would be a next step)\b",
+        q,
+    ))
+    collective_disagreement = bool(re.search(
+        r"\b(?:group|team|members|people|everyone|they)\b", q
+    )) and bool(re.search(
+        r"\b(?:disagree|disagreement|different views|different priorities|cannot agree|can't agree|conflict|what to do first)\b",
+        q,
+    ))
+    return asks_next_step and collective_disagreement
+
+
+def _has_concrete_next_step(response: str) -> bool:
+    """Conservative output check for an actual action, not analysis alone."""
+    return bool(re.search(
+        r"\b(?:ask each|invite each|have each|agree on|choose one|select one|"
+        r"try one|test one|start with|begin by|set a time to|compare the proposals|"
+        r"identify the shared|name the common|each person (?:can|should|gets to)|"
+        r"write down (?:the|each)|decide together|run a small|take one small)\b",
+        response,
+        re.I,
+    ))
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
@@ -530,6 +558,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        # A complete practical next-step question must receive an actionable
+        # move, not only abstract analysis or a request for more context. If the
+        # provider misses this, reject the candidate so Provider Bank can retry.
+        if _requires_actionable_next_step(query) and not _has_concrete_next_step(response):
+            raise ValueError("practical next-step answer must include one concrete action")
 
         # Reject compressed numbered advice so the provider bank can retry
         # rather than silently accepting a visually dense answer.
