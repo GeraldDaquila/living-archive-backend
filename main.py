@@ -5018,6 +5018,11 @@ def _general_guide_authoritative_doorway(query, context_data):
                     evidence_docs.append(item)
                     fallback_seen.add(key)
 
+            # Refresh shadow scores for fallback candidates too. These scores
+            # remain diagnostic only and do not affect candidate eligibility.
+            for _candidate in evidence_docs:
+                _candidate["_fuzzy_relevance_shadow"] = _score_guide_fuzzy_relevance_shadow(query, _candidate)
+
             # Recovery is a candidate source, not authority: reapply every
             # subject-specific gate after it has contributed candidates.
             if comparative_subjects:
