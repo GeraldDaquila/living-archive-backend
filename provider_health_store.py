@@ -15,7 +15,9 @@ from urllib.request import Request, urlopen
 
 CONTRACT_VERSION = "v1"
 DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
-TIMEOUT_SECONDS = 1.2
+# Shared WordPress health state is advisory. Keep network stalls from consuming an inference attempt.
+# Local circuit state remains authoritative when the shared bridge is slow or unavailable.
+TIMEOUT_SECONDS = 0.25
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
