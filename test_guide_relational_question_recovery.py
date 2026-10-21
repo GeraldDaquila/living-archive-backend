@@ -26,6 +26,7 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
             "re": re,
             "_normalize_query": lambda value: " ".join(str(value or "").split()),
             "compose_relational_fractal": lambda query: None,
+            "_topic_anchor_groups": lambda query: [],
             "use_core": SimpleNamespace(
                 context_blocks_to_documents=lambda value: [{"title": value, "content": ""}] if value else []
             ),
