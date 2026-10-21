@@ -60,6 +60,7 @@ from provider_bank import (
     refresh_shared_health_state,
 )
 import general_guide_composition
+from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -4144,6 +4145,23 @@ def _explicit_closing_question_requested(query):
         or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
         or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
     )
+def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_data, *, recommendation_available=False):
+    """Keep specialist recoveries; improve only the generic provider-exhaustion answer."""
+    result = _basic_inquiry_round1_deterministic_response(
+        query, interpretation, context_data,
+        recommendation_available=recommendation_available,
+    )
+    if isinstance(result, dict) and result.get("provider") == "deterministic_question_preserving_recovery":
+        result = dict(result)
+        result["response"] = _compose_provider_exhaustion_recovery(
+            query,
+            underlying_question=str((interpretation or {}).get("underlying_question") or ""),
+            desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+        )
+        result["provider"] = "bounded_provider_exhaustion_recovery"
+    return result
+
+
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -5981,12 +5999,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             else:
                 print("The Guide General Composition: mode=auto; provider bank exhausted; using conservative deterministic recovery.")
                 print("The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=provider_bank_exhausted")
-                llm_output = _basic_inquiry_round1_deterministic_response(correction_subject or query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
+                deterministic_result = _basic_inquiry_provider_exhaustion_response(
+                    correction_subject or query, {}, composition_context,
+                    recommendation_available=bool(authoritative_doorway),
+                )
+                llm_output = str(deterministic_result.get("response") or "")
         except Exception as exc:
             print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
             print(f"The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
             try:
-                llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
+                deterministic_result = _basic_inquiry_provider_exhaustion_response(
+                    query, {}, composition_context,
+                    recommendation_available=bool(authoritative_doorway),
+                )
+                llm_output = str(deterministic_result.get("response") or "")
             except Exception:
                 llm_output = ""
 
