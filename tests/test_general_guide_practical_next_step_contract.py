@@ -83,3 +83,38 @@ def test_concrete_action_response_passes_practical_next_step_validation():
     })
     result = parse(actionable)
     assert "Ask each person" in result["response"]
+
+
+
+def test_final_recovery_replaces_analysis_only_answer_with_action():
+    query = (
+        "If the group agrees that something must change but its members disagree "
+        "about what to do first, what would be a constructive next step?"
+    )
+    analysis_only = (
+        "The group should identify the claim at issue, separate facts from assumptions, "
+        "and examine what evidence would distinguish plausible explanations. "
+        "I don't have enough verified context to assert a case-specific conclusion."
+    )
+    result = composition.enforce_actionable_next_step(query, analysis_only)
+    assert result != analysis_only
+    assert composition._has_concrete_next_step(result)
+    assert "Ask each person" in result
+
+
+def test_final_recovery_preserves_already_actionable_answer():
+    query = (
+        "If the group agrees that something must change but its members disagree "
+        "about what to do first, what would be a constructive next step?"
+    )
+    actionable = (
+        "Ask each person to explain what they believe is most urgent and why. "
+        "Then agree on one small action the group can try together."
+    )
+    assert composition.enforce_actionable_next_step(query, actionable) == actionable
+
+
+def test_final_recovery_does_not_rewrite_unrelated_questions():
+    query = "Why does collective sense-making matter?"
+    response = "Collective sense-making helps people compare perspectives and understand a shared situation."
+    assert composition.enforce_actionable_next_step(query, response) == response
