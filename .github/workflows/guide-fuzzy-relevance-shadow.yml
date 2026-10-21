@@ -1,0 +1,25 @@
+name: Guide Fuzzy Relevance Shadow
+on:
+  pull_request:
+    paths:
+      - "guide_fuzzy_relevance.py"
+      - "tests/test_guide_fuzzy_relevance_shadow.py"
+      - ".github/workflows/guide-fuzzy-relevance-shadow.yml"
+  push:
+    branches: [main]
+    paths:
+      - "guide_fuzzy_relevance.py"
+      - "tests/test_guide_fuzzy_relevance_shadow.py"
+      - ".github/workflows/guide-fuzzy-relevance-shadow.yml"
+jobs:
+  fuzzy-relevance-shadow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Test fuzzy relevance shadow scorer
+        run: python -m pytest -q tests/test_guide_fuzzy_relevance_shadow.py
