@@ -39,6 +39,8 @@ def test_simulated_question_battery_reports_pairwise_accuracy_and_failures():
     ties = sum(item["tie"] for item in outcomes)
     accuracy = correct / len(outcomes)
     failures = [item for item in outcomes if not item["correct"]]
+    print(f"SIMULATED FUZZY EVALUATION: {correct}/{len(outcomes)} correct ({accuracy:.0%}); ties={ties}; failures={failures}")
+    print(f"SIMULATED FUZZY SCORES: {outcomes}")
     # Broad diagnostic threshold, not a claim of production readiness.
     assert accuracy >= 0.70, (
         f"Simulated pairwise accuracy {correct}/{len(outcomes)} ({accuracy:.0%}); "
