@@ -1,0 +1,128 @@
+{
+  "evaluation_id": "guide-fuzzy-simulated-question-battery-2026-10-22",
+  "status": "ADDITIVE_SIMULATED_EVALUATION",
+  "purpose": "A broader simulated battery of paraphrased questions and plausible hard distractors. Labels are authored expectations for testing, not independent ground truth or proof of semantic understanding.",
+  "frozen_benchmark_modified": false,
+  "cases": [
+    {
+      "id": "tradeoff-cost-distribution",
+      "query": "How do we choose a solution when fixing one problem shifts the burden onto a different community?",
+      "direct": {
+        "title": "Ethical Trade-offs When Repairing Harm",
+        "text": "Compare alternatives when remedies create competing harms. Identify who bears each burden, protect rights, listen to affected people, and explain the decision."
+      },
+      "distractor": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore identity, authenticity, and how people maintain belonging while navigating group expectations."
+      }
+    },
+    {
+      "id": "repair-missed-needs",
+      "query": "The people affected say the compensation doesn't make up for what they actually lost. What now?",
+      "direct": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Meaningful repair starts by listening to harmed people, understanding actual losses, and revising restitution or redress when it fails to meet their needs."
+      },
+      "distractor": {
+        "title": "Transparent Governance",
+        "text": "Institutions document decisions, publish reasons, and report governance outcomes to the public."
+      }
+    },
+    {
+      "id": "group-priority-stalemate",
+      "query": "Everyone wants progress, but nobody agrees which proposal should be tried first. How can the group get unstuck?",
+      "direct": {
+        "title": "Collective Sense-making SOP: Decentralized Consensus",
+        "text": "Make each person's reasons visible, identify a shared outcome, compare proposals, and choose a small reversible action to test together."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "foreseeable-harm-response",
+      "query": "A decision turned out badly in a way people had warned about. What should those responsible do?",
+      "direct": {
+        "title": "Accountability After Harmful Decisions",
+        "text": "Review evidence and warnings, acknowledge responsibility for foreseeable harm, explain what went wrong, hear affected people, and revise safeguards."
+      },
+      "distractor": {
+        "title": "Ethical Trade-offs and Decision Criteria",
+        "text": "Decision-makers weigh competing values, compare alternatives, and explain difficult choices when priorities conflict."
+      }
+    },
+    {
+      "id": "fair-voice-power",
+      "query": "How can a process be fair when some participants have much more influence than others?",
+      "direct": {
+        "title": "Power, Fairness, and Meaningful Participation",
+        "text": "Notice unequal power, protect the voice and rights of less powerful participants, create meaningful opportunities to contribute, and make decisions transparent."
+      },
+      "distractor": {
+        "title": "Personal Productivity and Morning Routines",
+        "text": "Build a daily routine, organize tasks, and maintain personal productivity habits."
+      }
+    },
+    {
+      "id": "identity-group-pressure",
+      "query": "How can someone remain genuine while their community expects them to conform?",
+      "direct": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore belonging, authenticity, identity, and tensions between personal integrity and group expectations."
+      },
+      "distractor": {
+        "title": "Institutional Budget Forecasting",
+        "text": "Estimate revenue, operating costs, and budget variances for the next financial year."
+      }
+    },
+    {
+      "id": "governance-public-reasons",
+      "query": "What should an institution provide so people can understand and scrutinize how a decision was made?",
+      "direct": {
+        "title": "Accountability and Transparent Governance",
+        "text": "Document the evidence and reasoning behind decisions, publish explanations, and make review and accountability possible."
+      },
+      "distractor": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Repair should address the actual losses experienced by people harmed and revise restitution or redress when needed."
+      }
+    },
+    {
+      "id": "consent-and-rights",
+      "query": "Before acting on behalf of a community, how should decision-makers handle the wishes and rights of the people affected?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs the decision."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "reversible-experiment",
+      "query": "We can't settle the whole disagreement today. Is there a small safe way to learn what works before committing?",
+      "direct": {
+        "title": "Collective Sense-making SOP: Decentralized Consensus",
+        "text": "Identify a shared outcome and test a small reversible action, then review what the group learns before making a larger commitment."
+      },
+      "distractor": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore identity, authenticity, and how people maintain belonging while navigating group expectations."
+      }
+    },
+    {
+      "id": "ethical-alternatives",
+      "query": "When every available option has a downside, how should leaders compare the choices?",
+      "direct": {
+        "title": "Ethical Trade-offs and Decision Criteria",
+        "text": "Compare alternatives, identify who bears the burdens, protect rights, listen to affected people, and explain the reasons for the choice."
+      },
+      "distractor": {
+        "title": "Individual Identity and Authenticity",
+        "text": "Explore personal authenticity, identity, belonging, and group affiliation."
+      }
+    }
+  ]
+}
