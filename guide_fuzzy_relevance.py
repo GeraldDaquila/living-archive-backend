@@ -28,7 +28,8 @@ CONCEPTS = {
     "governance": (
         "governance", "decision-making", "stewardship", "institutions",
         "policy", "collective decision", "public decision",
-        "which proposal", "proposal to try first", "stuck choosing", "what to do first",
+        "which proposal", "which proposal should", "proposal to try first", "stuck choosing", "what to do first",
+        "everyone wants progress", "nobody agrees", "tried first", "get unstuck", "what should happen first",
         "shared outcome", "small reversible action", "choose a small reversible action",
         "compare proposals", "move forward", "priorities",
         "how a decision was made", "scrutinize", "document decisions", "publish reasons",
