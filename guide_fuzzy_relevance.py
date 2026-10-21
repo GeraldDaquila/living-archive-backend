@@ -63,6 +63,20 @@ CONCEPTS = {
          "opportunities to contribute", "contribute"),
         ("being heard", "heard", "listened to", "listen to", "voice", "voices"),
     ),
+    # Distinguish concrete procedural lookup from broad governance discussion.
+    # Every group uses observable cues; no live routing depends on this score.
+    "procedural_specificity": (
+        ("official notices", "official notice", "public notices", "public notice"),
+        ("deadlines", "deadline", "timelines", "timeline"),
+        ("required documents", "filing steps", "filing requirements",
+         "application procedure", "administrative procedure", "step-by-step",
+         "filing deadline", "application timelines", "procedural steps"),
+        ("where can people find", "where can i find", "find the official",
+         "locate the official", "obtain the official", "look up"),
+        ("municipal planning application", "planning application",
+         "development permit", "planning permit", "permit approval",
+         "application for a permit"),
+    ),
 }
 
 
