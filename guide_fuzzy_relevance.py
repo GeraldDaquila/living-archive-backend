@@ -10,7 +10,8 @@ import re
 CONCEPTS = {
     "ethical_tradeoff": (
         "tradeoff", "trade-offs", "trade off", "conflicting harms", "competing harms",
-        "ethical conflict", "competing values", "sacrifice", "burden", "consequences",
+        "ethical conflict", "conflict", "different harm", "another group", "repairing harm",
+        "competing values", "sacrifice", "burden", "consequences",
         "fair process", "alternatives", "decision criteria", "who bears",
     ),
     "harm_repair": (
