@@ -1,7 +1,7 @@
 {
   "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22-calibration-2",
   "status": "ADDITIVE_CHALLENGE_EVALUATION",
-  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing.",
+  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged.",
   "frozen_benchmark_modified": false,
   "cases": [
     {
@@ -170,6 +170,30 @@
       "distractor": {
         "title": "Rights, Consent, and Affected People",
         "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "specific-procedure-over-broad-governance",
+      "query": "Where can residents find the official notices, deadlines, required documents, and filing steps for a municipal planning application?",
+      "direct": {
+        "title": "Municipal Planning Notices and Application Procedures",
+        "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures for planning applications."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "broad-governance-over-procedure-manual",
+      "query": "What principles help institutions make public decisions transparently and explain their reasoning to the people affected?",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance principles help institutions make transparent public decisions, document reasons, explain their reasoning, and support public scrutiny."
+      },
+      "distractor": {
+        "title": "Municipal Planning Notices and Application Procedures",
+        "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures for planning applications."
       }
     }
   ]
