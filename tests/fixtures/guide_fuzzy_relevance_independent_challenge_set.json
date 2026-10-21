@@ -1,7 +1,7 @@
 {
-  "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22-calibration-2",
+  "evaluation_id": "guide-fuzzy-challenge-set-2026-10-22-correlation-audit",
   "status": "ADDITIVE_CHALLENGE_EVALUATION",
-  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged. Two same-topic procedural-lookup pairs are explicitly marked candidate_set_underspecified because neither supplied candidate answers the concrete administrative-information request. Their raw pairwise outcomes remain reported, but they are not treated as valid semantic ground truth. This adjudication is a fixture-quality caveat, not a scorer pass claim; independent human review remains pending.",
+  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged. Two same-topic procedural-lookup pairs are explicitly marked candidate_set_underspecified because neither supplied candidate answers the concrete administrative-information request. Their raw pairwise outcomes remain reported, but they are not treated as valid semantic ground truth. This adjudication is a fixture-quality caveat, not a scorer pass claim; independent human review remains pending. Correlation audit: neighborhood-not-consulted, park-redevelopment-resident-voice, and school-route-consultation share the same direct/distractor resources and form one paraphrase family. Case-level counts are descriptive and must not be interpreted as three independent demonstrations of generalization.",
   "frozen_benchmark_modified": false,
   "cases": [
     {
@@ -98,7 +98,8 @@
       "distractor": {
         "title": "General Governance Principles",
         "text": "Governance describes institutions, policies, and broad principles for public decision-making."
-      }
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
     },
     {
       "id": "park-redevelopment-resident-voice",
@@ -110,7 +111,8 @@
       "distractor": {
         "title": "General Governance Principles",
         "text": "Governance describes institutions, policies, and broad principles for public decision-making."
-      }
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
     },
     {
       "id": "school-route-consultation",
@@ -122,7 +124,8 @@
       "distractor": {
         "title": "General Governance Principles",
         "text": "Governance describes institutions, policies, and broad principles for public decision-making."
-      }
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
     },
     {
       "id": "same-topic-permit-rules",
