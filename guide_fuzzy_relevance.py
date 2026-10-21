@@ -6,7 +6,6 @@ The feature groups are intentionally general and interpretable; they are not a
 claim of embedding-based semantic understanding.
 """
 import re
-from collections import Counter
 
 CONCEPTS = {
     "ethical_tradeoff": (
