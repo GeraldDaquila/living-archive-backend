@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.20"
+CONTRACT_VERSION = "v1.21"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -95,7 +95,7 @@ Choose the response shape that fits the question:
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
 - For a resource-discovery question (for example, “Where can I find material about X?”), treat finding material as the visitor’s primary task. Give a concise, direct answer naming the strongest source-supported destination, and explain its specific contribution to the subject in ordinary language. Do not merely quote a generic page description, repeat the query in different words, or claim a page covers the exact subject unless the supplied source content supports that claim. Distinguish a broad entry point from a resource that directly addresses the subject. If only a broad entry point is verified, say plainly that it is a starting point and why it is relevant; do not imply that a more direct resource was found. Never pad this explanation with speculative phrases such as “the page may also lead to related material.” Keep the canonical link separate from the answer.
 
-Use relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
+For questions asking whether a revised approach, intervention, or group action is genuinely reducing harm or improving outcomes, answer the evaluation question directly rather than merely recommending a next step. Explain a practical evidence test: define the harm or desired outcome in observable terms; establish a baseline or starting point; compare observations over time; include feedback from the people most affected; and check for unintended consequences or people whose experience has not improved. Do not invent numbers, claim causation from a single observation, or treat the group's confidence as evidence. Keep the explanation proportionate and conversational; use the parts that fit rather than presenting a mandatory checklist. If context is limited, give this general method before asking one optional, focused follow-up.\n\nUse relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
 
 Use ordinary language for ordinary public questions. Do not introduce Archive jargon such as cornerstone, canonical, glyph, stewardship, or similar internal vocabulary merely because it appears in the source material. If the visitor explicitly asks about the Living Archive or its own language, that vocabulary may be used naturally and lightly.
 
@@ -555,6 +555,53 @@ def enforce_actionable_next_step(query: str, response: str) -> str:
     )
 
 
+def _requires_outcome_evaluation_guidance(query: str) -> bool:
+    """Recognize questions asking whether a change is producing real-world results."""
+    q = _normalize_space(query).casefold()
+    asks_to_assess = bool(re.search(
+        r"\b(?:how can|how do|how does|how would|how should|what evidence|what signs|how to)\b.{0,100}\b(?:tell|know|measure|assess|evaluate|determine|track|verify|evidence|signs|whether|if)\b",
+        q,
+    )) or bool(re.search(r"\b(?:whether|if)\b.{0,120}\b(?:working|effective|genuinely|actually|really|reducing|improving)\b", q))
+    asks_about_outcome = bool(re.search(
+        r"\b(?:harm|safety|outcomes?|impact|improv(?:e|ement|ing)|reduc(?:e|ing|tion)|approach|intervention|change|problem|affected people|unintended consequences)\b",
+        q,
+    ))
+    return asks_to_assess and asks_about_outcome
+
+
+def _has_outcome_evaluation_guidance(response: str) -> bool:
+    """Require observable evidence, comparison over time, and a countercheck."""
+    has_measure = bool(re.search(
+        r"\b(?:observable|measur\w*|indicator|signs? of|track|record|count|frequency|reports?|feedback|what people experience|affected people|people most affected|baseline|starting point)\b",
+        response, re.I,
+    ))
+    has_comparison = bool(re.search(
+        r"\b(?:before|baseline|starting point|compare|compared|over time|afterward|after the change|persist\w*)\b",
+        response, re.I,
+    ))
+    has_countercheck = bool(re.search(
+        r"\b(?:unintended|new harm|who is still|still being harmed|challenge that belief|evidence .* against|disconfirm|side effect|trade-off|tradeoff|worse for|not everyone)\b",
+        response, re.I,
+    ))
+    return has_measure and has_comparison and has_countercheck
+
+
+def _outcome_evaluation_recovery() -> str:
+    """Fallback when no provider can satisfy the outcome-evaluation contract."""
+    return (
+        "To tell whether the revised approach is reducing harm, first describe what the harm looked "
+        "like before the change and choose a few observable signs to track. These might include how "
+        "often the problem occurs, what affected people report, or whether people feel safer in the "
+        "specific situation. Compare those observations with the starting point over time rather than "
+        "relying on the group’s confidence or a single encouraging example.\n\n"
+        "Ask the people most affected whether their experience has changed, and check for unintended "
+        "consequences or people who may still be harmed. If the evidence is mixed, treat that as a reason "
+        "to adjust and keep observing—not as proof of success or failure. The key test is whether the "
+        "change improves real experiences and whether that improvement holds up when the group looks "
+        "for evidence that could challenge its own belief."
+    )
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
@@ -578,6 +625,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # provider misses this, reject the candidate so Provider Bank can retry.
         if _requires_actionable_next_step(query) and not _has_concrete_next_step(response):
             raise ValueError("practical next-step answer must include one concrete action")
+
+        if _requires_outcome_evaluation_guidance(query) and not _has_outcome_evaluation_guidance(response):
+            raise ValueError(
+                "outcome-evaluation answer must include observable evidence, comparison, and a countercheck"
+            )
 
         # Reject compressed numbered advice so the provider bank can retry
         # rather than silently accepting a visually dense answer.
