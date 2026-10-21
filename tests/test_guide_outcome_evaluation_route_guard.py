@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import main
+import general_guide_composition as composition
 
 
 OBSERVED_QUESTION = (
@@ -57,3 +58,28 @@ def test_registry_unavailability_defers_data_dependent_startup_invariant():
     assert "if _guide_node_registry_is_fresh():" in block
     assert "startup continues with registry-dependent destination routing degraded" in block
     assert "raise RuntimeError(" in block
+
+
+def test_outcome_evaluation_question_requires_evidence_not_only_next_steps():
+    assert composition._requires_outcome_evaluation_guidance(OBSERVED_QUESTION) is True
+
+
+def test_current_shallow_answer_fails_outcome_evidence_contract():
+    shallow_answer = (
+        "A practical way to approach a group is to define the outcome you want, "
+        "identify the main constraint, and choose one step small enough to test. "
+        "Before acting, consider who else is affected and what could go wrong. "
+        "Check the result against the original goal and adjust rather than assuming "
+        "the first attempt must be final."
+    )
+    assert composition._has_outcome_evaluation_guidance(shallow_answer) is False
+
+
+def test_outcome_evaluation_recovery_includes_baseline_comparison_and_countercheck():
+    recovery = composition._outcome_evaluation_recovery()
+    assert composition._has_outcome_evaluation_guidance(recovery) is True
+
+
+def test_outcome_evaluation_guidance_is_part_of_composition_prompt():
+    assert "establish a baseline or starting point" in composition._GENERAL_GUIDE_SYSTEM
+    assert "check for unintended consequences" in composition._GENERAL_GUIDE_SYSTEM
