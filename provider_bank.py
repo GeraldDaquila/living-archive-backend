@@ -2971,12 +2971,23 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # failures so poor outputs lose priority and can be cooled down.
             last_error = str(exc)
             _record_quality_rejection(provider, model, operation, last_error)
+            # Emit a bounded, stable rejection class as well as the validator
+            # reason. This separates parse, surface, grounding, and shape defects
+            # without logging visitor prompts or generated response bodies.
+            rejection_class = (
+                "json_or_parse" if re.search(r"invalid JSON|non-object", last_error, re.I)
+                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", last_error, re.I)
+                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", last_error, re.I)
+                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", last_error, re.I)
+                else "other_contract"
+            )
             print(
                 "USE provider composition contract rejection: "
                 + "operation=" + operation
                 + ", provider=" + provider
                 + ", model=" + model
-                + ", error=" + last_error[:300]
+                + ", rejection_class=" + rejection_class
+                + ", error=" + re.sub(r"\\s+", " ", last_error)[:220]
             )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
