@@ -2870,6 +2870,32 @@ def _philippine_systems_handoff_url(query):
     return "https://geralddaquila.com/understanding-the-philippines-culture-society-history-and-systemic-transformation/"
 
 
+def _is_outcome_evaluation_query(query):
+    """Identify questions evaluating whether a change is producing real outcomes.
+
+    Evidence-seeking evaluation is Guide navigation, not an automatic invitation
+    to the full diagnostic questionnaire. This must run before early FSD routing.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+    evaluation_language = bool(re.search(
+        r"\b(?:how can we tell|how do we know|how can (?:a|the) group tell|"
+        r"what evidence|what measures?|how to measure|whether|is .* actually|"
+        r"are .* actually|genuinely|really)\b",
+        q,
+        re.I,
+    ))
+    outcome_language = bool(re.search(
+        r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
+        r"outcomes?|intervention|revised approach|approach|addressed the problem|"
+        r"working|effective|improvement|improved|unintended harm|affected people)\b",
+        q,
+        re.I,
+    ))
+    return evaluation_language and outcome_language
+
+
 def _is_fsd_request(query):
     """Recognize explicit or high-confidence natural-language FSD doorway requests.
 
@@ -7210,7 +7236,7 @@ async def _use_request_boundary(scope, receive, send):
     # Immediate FSD handoff: FSD is a native standalone diagnostic
     # surface. Do not spend a routing-model call; send the visitor directly
     # to the canonical landing page and let FSD own the complete experience.
-    if _is_fsd_request(query):
+    if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
             (query + "|" + _history_text(history)).encode("utf-8")
