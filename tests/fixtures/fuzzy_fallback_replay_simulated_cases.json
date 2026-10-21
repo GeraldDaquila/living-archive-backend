@@ -1,0 +1,105 @@
+{
+  "evaluation_id": "simulated-fallback-replay-v1",
+  "status": "SIMULATED_DIAGNOSTIC_ONLY",
+  "purpose": "Offline replay of deliberately simulated fallback-path scenarios. Candidate relevance labels are author-authored expectations, not independent human ground truth or observed production cases.",
+  "production_data_present": false,
+  "independent_human_review": "pending",
+  "cases": [
+    {
+      "case_id": "sim-exhaustion-consultation",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "The council planned a project affecting residents without asking them first. What should happen before approval?",
+      "expected_relevant_candidate_id": "affected-people",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "affected-people",
+          "title": "Rights, Consent, and Affected People",
+          "text": "Listen to affected people, seek meaningful consent where appropriate, and explain how their input informs decisions.",
+          "url": "https://geralddaquila.com/evaluation/fallback/affected-people/"
+        },
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance/"
+        }
+      ],
+      "correlation_group": "simulated-consultation-family",
+      "notes": "Simulated case; do not count as independent human-reviewed evidence."
+    },
+    {
+      "case_id": "sim-exhaustion-procedure",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "Where can residents find official notices, filing deadlines, required documents, and steps for a municipal planning application?",
+      "expected_relevant_candidate_id": "procedure-manual",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "procedure-manual",
+          "title": "Municipal Planning Notices and Application Procedures",
+          "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures.",
+          "url": "https://geralddaquila.com/evaluation/fallback/procedure-manual/"
+        },
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated case; intentionally concrete procedural request."
+    },
+    {
+      "case_id": "sim-composition-exception-repair",
+      "pathway": "composition_exception",
+      "case_origin": "simulated",
+      "query": "A settlement closes a case but leaves the affected people with losses that were never repaired. What should happen next?",
+      "expected_relevant_candidate_id": "meaningful-repair",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "meaningful-repair",
+          "title": "Restorative Justice and Meaningful Repair",
+          "text": "Meaningful repair listens to harmed people, understands actual losses, and revises restitution or redress when the proposed remedy does not meet their needs.",
+          "url": "https://geralddaquila.com/evaluation/fallback/meaningful-repair/"
+        },
+        {
+          "candidate_id": "budget-forecast",
+          "title": "Institutional Budget Forecasting",
+          "text": "Estimate revenue, operating costs, and budget variances for the next financial year.",
+          "url": "https://geralddaquila.com/evaluation/fallback/budget-forecast/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated composition-exception recovery; no real provider exception was observed."
+    },
+    {
+      "case_id": "sim-individual-provider-failure-budget",
+      "pathway": "individual_provider_failure",
+      "case_origin": "simulated",
+      "query": "How should a small organization prepare a quarterly cash-flow forecast and monitor spending against its budget?",
+      "expected_relevant_candidate_id": "budget-forecast",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "budget-forecast",
+          "title": "Institutional Budget Forecasting",
+          "text": "Estimate revenue, operating costs, cash flow, and budget variances for the upcoming quarter.",
+          "url": "https://geralddaquila.com/evaluation/fallback/budget-forecast-2/"
+        },
+        {
+          "candidate_id": "affected-people",
+          "title": "Rights, Consent, and Affected People",
+          "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions.",
+          "url": "https://geralddaquila.com/evaluation/fallback/affected-people-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Reported separately; individual provider failure is not equivalent to provider-bank exhaustion."
+    }
+  ]
+}
