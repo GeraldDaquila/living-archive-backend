@@ -9,6 +9,18 @@ FIXTURE = Path(__file__).parent / "fixtures" / "fuzzy_fallback_replay_simulated_
 FALLBACK_METRIC_PATHWAYS = {"provider_bank_exhausted", "composition_exception"}
 
 
+def _classify(baseline_correct, shadow_correct, tied):
+    if tied:
+        return "tie_or_ambiguous"
+    if baseline_correct and shadow_correct:
+        return "correct_unchanged_baseline"
+    if not baseline_correct and shadow_correct:
+        return "potential_recovery"
+    if baseline_correct and not shadow_correct:
+        return "potential_regression"
+    return "both_miss_simulated_expectation"
+
+
 def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     assert fixture["status"] == "SIMULATED_DIAGNOSTIC_ONLY"
@@ -36,6 +48,8 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
         shadow_id, shadow_score = max(scored, key=lambda pair: pair[1])
         tied = sum(score == shadow_score for _, score in scored) > 1
         expected_id = case["expected_relevant_candidate_id"]
+        baseline_correct = baseline_id == expected_id
+        shadow_correct = not tied and shadow_id == expected_id
         outcome = {
             "case_id": case["case_id"],
             "pathway": case["pathway"],
@@ -43,13 +57,20 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
             "shadow_counterfactual": None if tied else shadow_id,
             "shadow_tie": tied,
             "expected_relevant_candidate_id": expected_id,
-            "baseline_matches_simulated_expectation": baseline_id == expected_id,
-            "shadow_matches_simulated_expectation": (not tied and shadow_id == expected_id),
+            "baseline_matches_simulated_expectation": baseline_correct,
+            "shadow_matches_simulated_expectation": shadow_correct,
+            "diagnostic_classification": _classify(baseline_correct, shadow_correct, tied),
             "eligible_for_fallback_cohort_summary": case["pathway"] in FALLBACK_METRIC_PATHWAYS,
             "candidate_set_sufficient_author_assumption": case["candidate_set_sufficient"],
         }
         outcomes.append(outcome)
         assert candidates == before, "scoring or selector must not mutate candidate records"
+
+    classifications = {}
+    for item in outcomes:
+        key = item["diagnostic_classification"]
+        classifications[key] = classifications.get(key, 0) + 1
+    print(f"SIMULATED FALLBACK REPLAY CLASSIFICATIONS: {classifications}")
 
     for pathway in sorted({case["pathway"] for case in fixture["cases"]}):
         cohort = [item for item in outcomes if item["pathway"] == pathway]
@@ -69,4 +90,13 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
                for item in outcomes if item["pathway"] == "individual_provider_failure")
     assert all(item["eligible_for_fallback_cohort_summary"] is True
                for item in outcomes if item["pathway"] in FALLBACK_METRIC_PATHWAYS)
-    # These are schema and observability guards, not efficacy thresholds.
+
+    # Keep the known consultation miss visible; this guards observability, not
+    # a requirement that future scorer versions continue to fail this case.
+    consultation = next(
+        item for item in outcomes if item["case_id"] == "sim-exhaustion-consultation"
+    )
+    assert consultation["diagnostic_classification"] == "tie_or_ambiguous"
+    assert consultation["baseline_selected"] is None
+    assert consultation["shadow_counterfactual"] is None
+    # Expectations are author-authored simulations, not independent ground truth.
