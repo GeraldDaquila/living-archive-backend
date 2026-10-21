@@ -541,6 +541,20 @@ def _has_concrete_next_step(response: str) -> bool:
     ))
 
 
+
+def enforce_actionable_next_step(query: str, response: str) -> str:
+    """Ensure practical collective-next-step questions do not end in analysis-only recovery."""
+    text = _sanitize_candidate(response)
+    if not _requires_actionable_next_step(query) or _has_concrete_next_step(text):
+        return text
+    return (
+        "Ask each person to explain what they believe is most urgent and why. "
+        "Then identify the outcome everyone agrees they want, and choose one small, "
+        "reversible action the group can try before deciding on a larger plan. "
+        "Afterward, compare what the group learned and use that to decide what should come next."
+    )
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse(raw: str) -> Dict[str, Any]:
