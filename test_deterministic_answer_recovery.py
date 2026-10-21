@@ -42,9 +42,10 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("What detail or context", answer)
 
     def test_ethical_tradeoff_does_not_trigger_for_ordinary_practical_question(self):
-        answer = compose_recovery("How can a team make a fair decision?")
+        answer = compose_recovery("How can a team coordinate a project rollout?")
         self.assertIn("define the outcome you want", answer)
         self.assertIn("choose one step small enough to test", answer)
+        self.assertNotIn("least power", answer)
 
     def test_never_claims_archive_source_or_provider_success(self):
         answer = compose_recovery("What is institutional responsibility?")
