@@ -17,6 +17,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "deterministic_answer_recovery.py"
+      - "test_deterministic_answer_recovery.py"
       - "tests/test_general_guide_perception_contract.py"
       - "tests/test_general_guide_preference_clarification.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
