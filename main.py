@@ -6045,16 +6045,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # must not be reattached after the bounded fallback has rejected it.
     _relational_burden_final_gate = bool(
         re.search(
-            r"\\b(?:responsible one|everyone depends on me|nobody asks how i am|"
+            r"\b(?:responsible one|everyone depends on me|nobody asks how i am|"
             r"no one asks how i am|carry(?:ing)? (?:the )?(?:whole )?family|"
             r"always there for everyone|take care of everyone|look after everyone|"
-            r"no one checks on me|nobody checks on me|feel unseen|feel overlooked)\\b",
+            r"no one checks on me|nobody checks on me|feel unseen|feel overlooked)\b",
             _normalize_query(query).casefold(),
             re.I,
         )
         and re.search(
-            r"\\b(?:people rely on you|own needs may be going unnoticed|"
-            r"being dependable and feeling cared for)\\b",
+            r"\b(?:people rely on you|own needs may be going unnoticed|"
+            r"being dependable and feeling cared for)\b",
             response,
             re.I,
         )
