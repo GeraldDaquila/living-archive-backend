@@ -2387,6 +2387,29 @@ Important routing principles:
   route.
 - If the visitor explicitly seeks a definition, glyph, catalogue item, or
   bounded systems/formation task, honor that clear intent.
+- Distinguish outcome evaluation from systems-pattern diagnosis. When the
+  visitor asks whether an intervention, revised approach, policy, or response
+  is actually reducing harm or improving outcomes, the first need is usually
+  evidence-oriented evaluation: observable outcomes, comparison over time,
+  feedback from affected people, unintended or displaced harms, and
+  accountability for interpreting results. Keep the Guide in control and
+  prefer relevant canonical resources or a clarifying move; do not route
+  directly to fsd solely because the question mentions a group, organization,
+  harm, a system, or change.
+- Examples of outcome-evaluation intent include: "How can we tell whether our
+  revised approach is genuinely reducing harm rather than making us feel we
+  addressed it?", "How do we know this intervention is working?", and "What
+  evidence would show that conditions improved for the people affected?"
+  These are not automatically FSD requests.
+- FSD is appropriate when the visitor's primary need is to map or diagnose
+  recurring system patterns, feedback loops, authority gaps, incentives,
+  information flow, resistance to change, or possible leverage points. It may
+  be a useful second step when outcome evidence is missing or contradictory,
+  but must not substitute for evaluating outcomes.
+- When outcome-evaluation and systems-diagnosis intent are both plausible,
+  preserve the distinction in the interpretation and prefer the least
+  committal useful next move (Guide orientation, evidence-oriented resources,
+  or one clarifying question) rather than starting a ten-question diagnostic.
 - When the visitor is asking where to begin, how to enter, or how to find a
   useful way into the Living Archive or site as a whole, prefer navigator when
   that orientation need is central. Do not require the visitor to name the
