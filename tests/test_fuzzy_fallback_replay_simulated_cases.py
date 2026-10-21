@@ -9,7 +9,9 @@ FIXTURE = Path(__file__).parent / "fixtures" / "fuzzy_fallback_replay_simulated_
 FALLBACK_METRIC_PATHWAYS = {"provider_bank_exhausted", "composition_exception"}
 
 
-def _classify(baseline_correct, shadow_correct, tied):
+def _classify(baseline_correct, shadow_correct, tied, candidate_set_sufficient):
+    if not candidate_set_sufficient:
+        return "insufficient_candidate_set"
     if tied:
         return "tie_or_ambiguous"
     if baseline_correct and shadow_correct:
@@ -59,7 +61,9 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
             "expected_relevant_candidate_id": expected_id,
             "baseline_matches_simulated_expectation": baseline_correct,
             "shadow_matches_simulated_expectation": shadow_correct,
-            "diagnostic_classification": _classify(baseline_correct, shadow_correct, tied),
+            "diagnostic_classification": _classify(
+                baseline_correct, shadow_correct, tied, case["candidate_set_sufficient"]
+            ),
             "eligible_for_fallback_cohort_summary": case["pathway"] in FALLBACK_METRIC_PATHWAYS,
             "candidate_set_sufficient_author_assumption": case["candidate_set_sufficient"],
         }
@@ -99,4 +103,17 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
     assert consultation["diagnostic_classification"] == "tie_or_ambiguous"
     assert consultation["baseline_selected"] is None
     assert consultation["shadow_counterfactual"] is None
+    insufficient = next(
+        item for item in outcomes if item["case_id"] == "sim-exhaustion-no-sufficient-candidate"
+    )
+    assert insufficient["diagnostic_classification"] == "insufficient_candidate_set"
+    assert insufficient["candidate_set_sufficient_author_assumption"] is False
+    # Do not assert either selector returns no candidate here: record the observed
+    # behavior as a potential false-positive signal if either recommends one.
+    print(
+        "INSUFFICIENT-CANDIDATE SAFETY AUDIT: "
+        f"case={insufficient['case_id']}; baseline_selected={insufficient['baseline_selected']}; "
+        f"shadow_counterfactual={insufficient['shadow_counterfactual']}; "
+        "review_required=True"
+    )
     # Expectations are author-authored simulations, not independent ground truth.
