@@ -1,0 +1,28 @@
+name: Guide Relational Question Recovery
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "test_guide_relational_question_recovery.py"
+      - ".github/workflows/guide-relational-question-recovery.yml"
+  push:
+    branches:
+      - "fix/guide-relational-question-recovery"
+    paths:
+      - "main.py"
+      - "test_guide_relational_question_recovery.py"
+      - ".github/workflows/guide-relational-question-recovery.yml"
+jobs:
+  targeted-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile production Guide runtime
+        run: python -m py_compile main.py
+      - name: Run relational recovery regressions
+        run: python -m unittest -v test_guide_relational_question_recovery.py
+      - name: Run deterministic relational fractal regressions
+        run: python -m unittest -v test_deterministic_relational_fractal.py

@@ -4163,6 +4163,47 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_fractal is not None:
         return relational_fractal
 
+    # Relational burden / invisible-care recovery. This must run before the
+    # generic retrieval fallback: when a visitor shares a lived relational
+    # concern, do not answer with a factual-evidence refusal or a broad asset.
+    burden_signal = bool(re.search(
+        r"\b(?:responsible one|everyone depends on me|nobody asks how i am|"
+        r"no one asks how i am|carry(?:ing)? (?:the )?(?:whole )?family|"
+        r"always there for everyone|take care of everyone|look after everyone|"
+        r"no one checks on me|nobody checks on me|feel unseen|feel overlooked)\b",
+        q,
+        re.I,
+    ))
+    family_or_care_context = bool(re.search(
+        r"\b(?:family|everyone|nobody|no one|responsible|depend|care|"
+        r"look after|take care|asks how|checks on|overlooked|unseen)\b",
+        q,
+        re.I,
+    ))
+    if burden_signal and family_or_care_context:
+        response = (
+            "It sounds as though people rely on you, while your own needs may be going unnoticed. "
+            "Being dependable and feeling cared for are not the same thing, and carrying that gap can be lonely. "
+            "I don't want to assume how your family sees the situation from one sentence.\n\n"
+            "When you say nobody asks how you are, what do you most wish someone in your family would notice or understand?"
+        )
+        # A broad resource such as a general flourishing page is not a grounded
+        # match. Only expose a resource when its title directly signals the
+        # visitor's stated topic; otherwise leave the doorway empty.
+        directly_relevant_title = bool(re.search(
+            r"\b(?:family caregiving|caregiver burden|invisible labor|emotional labor|"
+            r"family responsibility|being overlooked|feeling unseen|care and reciprocity)\b",
+            title,
+            re.I,
+        ))
+        return {
+            "response": response,
+            "doorway_title": title if directly_relevant_title else "",
+            "provider": "bounded_relational_burden_recovery",
+            "model": "",
+        }
+
+
     if _is_practical_stewardship_question(query):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
