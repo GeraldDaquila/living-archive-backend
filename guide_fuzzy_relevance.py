@@ -22,10 +22,17 @@ CONCEPTS = {
     "accountability": (
         "accountability", "responsibility", "evidence", "warnings", "dissent",
         "review the outcome", "learn from", "foreseeable risks",
+        "warned about", "predictably hurt", "foreseeable harm", "acknowledge responsibility",
+        "review evidence", "what went wrong", "affected people", "explain what went wrong",
     ),
     "governance": (
         "governance", "decision-making", "stewardship", "institutions",
         "policy", "collective decision", "public decision",
+        "which proposal", "proposal to try first", "stuck choosing", "what to do first",
+        "shared outcome", "small reversible action", "choose a small reversible action",
+        "compare proposals", "move forward", "priorities",
+        "how a decision was made", "scrutinize", "document decisions", "publish reasons",
+        "publish explanations", "reasoning behind decisions", "transparent", "public reporting",
     ),
     "belonging_identity": (
         "belonging", "group affiliation", "authenticity", "identity",
