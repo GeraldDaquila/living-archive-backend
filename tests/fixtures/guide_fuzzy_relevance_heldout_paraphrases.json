@@ -1,0 +1,55 @@
+{
+  "evaluation_id": "guide-fuzzy-relevance-heldout-paraphrases-2026-10-22",
+  "status": "ADDITIVE_HELDOUT_EVALUATION",
+  "purpose": "Challenge lexical/concept overlap with paraphrases and hard distractors not used in the initial balanced fixture. Human labels are expected relevance judgments, not proof of semantic understanding.",
+  "cases": [
+    {
+      "id": "ethical-tradeoff-paraphrase",
+      "query": "How can leaders choose between two remedies when helping one community could impose a new cost on another?",
+      "direct": {
+        "title": "Ethical Trade-offs When Repairing Harm",
+        "text": "When repairing harm creates competing harms, decision-makers should identify who bears the burden, protect rights, compare alternatives, listen to affected people, and explain the reasons for the decision."
+      },
+      "hard_distractor": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore how people maintain belonging, authenticity, and identity while navigating group expectations and community membership."
+      }
+    },
+    {
+      "id": "harm-repair-paraphrase",
+      "query": "What if the remedy offered leaves the injured people without what they most needed restored?",
+      "direct": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Repair should address the actual losses experienced by people harmed. Listen to affected people, understand what was lost, and revise restitution or redress when the proposed repair does not meet those needs."
+      },
+      "hard_distractor": {
+        "title": "Accountability and Transparent Governance",
+        "text": "Institutions should document decisions, publish reasons, review evidence, and report governance outcomes transparently."
+      }
+    },
+    {
+      "id": "collective-next-step-paraphrase",
+      "query": "A team agrees on the goal but is stuck choosing which proposal to try first. How can it move forward?",
+      "direct": {
+        "title": "Collective Sense-making SOP: Decentralized Consensus",
+        "text": "When members disagree about priorities or what should happen first, make each person's reasons visible, identify the shared outcome, compare proposals, and agree on a small reversible action the group can test together."
+      },
+      "hard_distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "accountability-paraphrase",
+      "query": "When leaders learn that their choice predictably hurt people, what should they do in response?",
+      "direct": {
+        "title": "Accountability After Harmful Decisions",
+        "text": "Accountable decision-makers review evidence, acknowledge responsibility for foreseeable harm, explain what went wrong, listen to affected people, and change the decision or safeguards when needed."
+      },
+      "hard_distractor": {
+        "title": "Ethical Trade-offs and Decision Criteria",
+        "text": "Decision-makers compare alternatives, weigh competing values, identify who bears burdens, and explain difficult choices when priorities conflict."
+      }
+    }
+  ]
+}
