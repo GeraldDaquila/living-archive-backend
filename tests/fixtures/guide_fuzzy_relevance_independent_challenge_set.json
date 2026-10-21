@@ -1,7 +1,7 @@
 {
   "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22-calibration-2",
   "status": "ADDITIVE_CHALLENGE_EVALUATION",
-  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged.",
+  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged. Two same-topic procedural-lookup pairs are explicitly marked candidate_set_underspecified because neither supplied candidate answers the concrete administrative-information request. Their raw pairwise outcomes remain reported, but they are not treated as valid semantic ground truth. This adjudication is a fixture-quality caveat, not a scorer pass claim; independent human review remains pending.",
   "frozen_benchmark_modified": false,
   "cases": [
     {
@@ -134,7 +134,9 @@
       "distractor": {
         "title": "Rights, Consent, and Affected People",
         "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
-      }
+      },
+      "evaluation_role": "candidate_set_underspecified",
+      "adjudication_note": "Neither candidate directly supplies the concrete permit rules / official notices and filing procedure requested. Preserve the observed pairwise score, but do not treat this forced choice as valid ground truth; add a genuinely procedure-specific candidate in future independent review."
     },
     {
       "id": "same-topic-public-notice",
@@ -146,7 +148,9 @@
       "distractor": {
         "title": "Rights, Consent, and Affected People",
         "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
-      }
+      },
+      "evaluation_role": "candidate_set_underspecified",
+      "adjudication_note": "Neither candidate directly supplies the concrete permit rules / official notices and filing procedure requested. Preserve the observed pairwise score, but do not treat this forced choice as valid ground truth; add a genuinely procedure-specific candidate in future independent review."
     },
     {
       "id": "negative-control-budget",
