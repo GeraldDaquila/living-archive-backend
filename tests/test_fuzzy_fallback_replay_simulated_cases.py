@@ -42,10 +42,21 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
              if baseline is not None and candidate["title"] == baseline.get("title")),
             None,
         )
+        scored_details = []
+        for candidate in candidates:
+            dimensions = score_resource_fit(case["query"], candidate)
+            scored_details.append({
+                "candidate_id": candidate["candidate_id"],
+                "overall_shadow_score": dimensions["overall_shadow_score"],
+                "top_dimensions": sorted(
+                    ((name, score) for name, score in dimensions.items()
+                     if name != "overall_shadow_score" and score > 0),
+                    key=lambda item: item[1], reverse=True
+                )[:4],
+            })
         scored = [
-            (candidate["candidate_id"],
-             score_resource_fit(case["query"], candidate)["overall_shadow_score"])
-            for candidate in candidates
+            (item["candidate_id"], item["overall_shadow_score"])
+            for item in scored_details
         ]
         shadow_id, shadow_score = max(scored, key=lambda pair: pair[1])
         tied = sum(score == shadow_score for _, score in scored) > 1
@@ -58,6 +69,7 @@ def test_simulated_fallback_replay_reports_pathways_and_counterfactuals():
             "baseline_selected": baseline_id,
             "shadow_counterfactual": None if tied else shadow_id,
             "shadow_tie": tied,
+            "shadow_scores_by_candidate": scored_details,
             "expected_relevant_candidate_id": expected_id,
             "baseline_matches_simulated_expectation": baseline_correct,
             "shadow_matches_simulated_expectation": shadow_correct,
