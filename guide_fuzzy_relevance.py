@@ -65,7 +65,14 @@ def score_resource_fit(query, document):
     title_overlap = len(query_tokens & title_tokens) / max(1, len(query_tokens))
     body_overlap = len(query_tokens & body_tokens) / max(1, len(query_tokens))
     dimensions = {
-        name: round(_membership(q, phrases) * 0.35 + _membership(full_text, phrases) * 0.65, 4)
+        # A concept contributes only when it is present in both the question
+        # and the candidate. This prevents a resource from scoring positively
+        # merely because it contains a concept unrelated to the visitor's ask.
+        name: round(
+            _membership(q, phrases)
+            * (0.35 * _membership(title, phrases) + 0.65 * _membership(body, phrases)),
+            4,
+        )
         for name, phrases in CONCEPTS.items()
     }
     dimensions["query_title_overlap"] = round(title_overlap, 4)
