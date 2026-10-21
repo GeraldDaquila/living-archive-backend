@@ -1,7 +1,7 @@
 {
-  "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22",
+  "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22-calibration-2",
   "status": "ADDITIVE_CHALLENGE_EVALUATION",
-  "purpose": "A second simulated challenge set authored after the initial battery was scored. Queries are paraphrased to reduce direct copying of cue phrases. Labels are still simulated judgments and must not be treated as independent human ground truth.",
+  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing.",
   "frozen_benchmark_modified": false,
   "cases": [
     {
@@ -98,6 +98,78 @@
       "distractor": {
         "title": "General Governance Principles",
         "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "park-redevelopment-resident-voice",
+      "query": "The city has already drawn up a plan for the local park. People living nearby only found out after the designs were finished. What should officials do before approving it?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "school-route-consultation",
+      "query": "A new school route will change traffic on several streets, yet nobody asked the households along it about the likely effects. What is missing from the process?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "same-topic-permit-rules",
+      "query": "Residents want to understand the rules and legal steps used to approve a neighborhood development permit.",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "same-topic-public-notice",
+      "query": "Where can people find the official notices, timelines, and administrative procedure for a municipal planning application?",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "negative-control-budget",
+      "query": "How should a small organization prepare a quarterly cash-flow forecast and monitor spending against its budget?",
+      "direct": {
+        "title": "Institutional Budget Forecasting",
+        "text": "Estimate revenue, operating costs, cash flow, and budget variances for the upcoming quarter."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "negative-control-identity",
+      "query": "How can someone stay true to themselves while trying to fit in with a close-knit community?",
+      "direct": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore belonging, authenticity, and identity when personal integrity comes into tension with group expectations and community membership."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
       }
     }
   ]
