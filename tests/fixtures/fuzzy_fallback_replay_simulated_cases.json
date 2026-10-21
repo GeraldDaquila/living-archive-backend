@@ -148,6 +148,30 @@
       ],
       "correlation_group": null,
       "notes": "Neither candidate supplies the requested town-specific form or deadline. Conservative outcome is no recommendation; scorer rank is diagnostic only."
+    },
+    {
+      "case_id": "sim-exhaustion-title-overlap-decoy",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "What filing deadline applies to the shoreline permit this year, and which form must I submit?",
+      "expected_relevant_candidate_id": "shoreline-current-instructions",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "shoreline-current-instructions",
+          "title": "Shoreline Permit Application Instructions",
+          "text": "For this year's shoreline construction permit, submit form SH-4 by June 30. The application must include the site plan and erosion-control checklist.",
+          "url": "https://geralddaquila.com/evaluation/fallback/shoreline-current-instructions/"
+        },
+        {
+          "candidate_id": "shoreline-deadline-decoy",
+          "title": "Shoreline Permit Filing Deadline This Year",
+          "text": "This overview explains that public notices, filing deadlines, and application rules are important, but it does not state the current deadline or identify the required form.",
+          "url": "https://geralddaquila.com/evaluation/fallback/shoreline-deadline-decoy/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Adversarial simulated case: decoy title closely matches the query but body explicitly lacks the requested current deadline and form. Candidate relevance expectation is author-authored; verify the shadow ranking and retain even if the scorer does not fail."
     }
   ]
 }
