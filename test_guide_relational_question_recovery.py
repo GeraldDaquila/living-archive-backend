@@ -27,7 +27,7 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
             "_normalize_query": lambda value: " ".join(str(value or "").split()),
             "compose_relational_fractal": lambda query: None,
             "use_core": SimpleNamespace(
-                context_blocks_to_documents=lambda value: []
+                context_blocks_to_documents=lambda value: [{"title": value, "content": ""}] if value else []
             ),
             "_is_practical_stewardship_question": lambda query: False,
         }
@@ -38,7 +38,7 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
         return self.recover(
             query,
             {"underlying_question": "", "desired_movement": ""},
-            {"context_blocks": ""},
+            {"context_blocks": title},
             recommendation_available=bool(title),
         )
 
