@@ -8,6 +8,7 @@ on:
       - "tests/test_guide_fuzzy_relevance_heldout_paraphrases.py"
       - "tests/test_guide_fuzzy_relevance_simulated_question_battery.py"
       - "tests/test_guide_fuzzy_relevance_independent_challenge_set.py"
+      - "tests/test_guide_fuzzy_shadow_visitor_boundary.py"
       - "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json"
       - "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json"
       - "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json"
@@ -22,6 +23,7 @@ on:
       - "tests/test_guide_fuzzy_relevance_heldout_paraphrases.py"
       - "tests/test_guide_fuzzy_relevance_simulated_question_battery.py"
       - "tests/test_guide_fuzzy_relevance_independent_challenge_set.py"
+      - "tests/test_guide_fuzzy_shadow_visitor_boundary.py"
       - "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json"
       - "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json"
       - "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json"
@@ -37,5 +39,5 @@ jobs:
           python-version: "3.11"
       - name: Install test runner
         run: python -m pip install pytest
-      - name: Test fuzzy relevance shadow scorer and evaluations
-        run: python -m pytest -q -s tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py tests/test_guide_fuzzy_relevance_simulated_question_battery.py tests/test_guide_fuzzy_relevance_independent_challenge_set.py
+      - name: Test fuzzy relevance shadow scorer, boundary, and evaluations
+        run: python -m pytest -q -s tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py tests/test_guide_fuzzy_relevance_simulated_question_battery.py tests/test_guide_fuzzy_relevance_independent_challenge_set.py tests/test_guide_fuzzy_shadow_visitor_boundary.py
