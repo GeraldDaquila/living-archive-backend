@@ -28,7 +28,7 @@ def _is_ethical_tradeoff(question):
     ))
     asks_for_judgment = bool(re.search(
         r"\b(?:how should we decide|how do we decide|what should we protect|"
-        r"what if|who should decide|which should|what is fair|fair process)\b", q
+        r"what if|who should decide|which should|what is fair|fair process|what does .{0,80} look like)\b", q
     ))
     return competing_values and asks_for_judgment
 
