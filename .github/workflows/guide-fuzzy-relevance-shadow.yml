@@ -5,7 +5,9 @@ on:
       - "guide_fuzzy_relevance.py"
       - "tests/test_guide_fuzzy_relevance_shadow.py"
       - "tests/test_guide_fuzzy_relevance_balanced_evaluation.py"
+      - "tests/test_guide_fuzzy_relevance_heldout_paraphrases.py"
       - "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json"
+      - "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json"
       - ".github/workflows/guide-fuzzy-relevance-shadow.yml"
   push:
     branches: [main]
@@ -13,7 +15,9 @@ on:
       - "guide_fuzzy_relevance.py"
       - "tests/test_guide_fuzzy_relevance_shadow.py"
       - "tests/test_guide_fuzzy_relevance_balanced_evaluation.py"
+      - "tests/test_guide_fuzzy_relevance_heldout_paraphrases.py"
       - "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json"
+      - "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json"
       - ".github/workflows/guide-fuzzy-relevance-shadow.yml"
 jobs:
   fuzzy-relevance-shadow:
@@ -25,5 +29,5 @@ jobs:
           python-version: "3.11"
       - name: Install test runner
         run: python -m pip install pytest
-      - name: Test fuzzy relevance shadow scorer and balanced evaluation
-        run: python -m pytest -q tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py
+      - name: Test fuzzy relevance shadow scorer and evaluations
+        run: python -m pytest -q tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py
