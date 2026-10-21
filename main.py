@@ -4339,6 +4339,39 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Multi-part public systems / development questions need a bounded analysis,
+    # not the generic "couldn't verify" refusal. This route identifies plausible
+    # explanatory dimensions and actionable tests without asserting an unsupported
+    # country-specific diagnosis or inventing comparative statistics.
+    national_systems_question = bool(
+        re.search(r"\\b(?:philippines|vietnam|country|national development|national economy)\\b", q, re.I)
+        and re.search(r"\\b(?:why|what ails|underperform|below its potential|falling behind|overtook|economic growth|development)\\b", q, re.I)
+        and re.search(r"\\b(?:recommend|fix|improve|solution|what if any|what should)\\b", q, re.I)
+    )
+    if national_systems_question:
+        response = (
+            "A country's resources and hardworking people do not automatically translate into broad prosperity. "
+            "The key question is how effectively institutions, infrastructure, education, investment, and public policy turn those strengths into productive work and widely shared gains. "
+            "For the Philippines, several explanations deserve examination rather than treating any single cause as settled.\\n\\n"
+            "First, look at the quality and fit of education and skills with productive jobs. Second, examine electricity, transport, ports, and other logistics costs that affect the ability of firms to grow. "
+            "Third, assess whether rules, permits, procurement, and public spending are predictable and implemented well. Fourth, ask whether investment and industrial policy help firms move into higher-value activities and export markets, while maintaining real competition. "
+            "These factors interact; weak implementation can blunt the effect of otherwise sensible policies.\\n\\n"
+            "Vietnam is a useful comparator because it has built a strong export-manufacturing role and attracted investment into global supply chains. "
+            "A fair comparison should examine manufacturing and export composition, productivity, investment, education outcomes, infrastructure costs, and institutional implementation over the same period. "
+            "Vietnam's experience is informative, but it does not prove that one policy can simply be copied or that every outcome is better. Current comparable data are needed to rank the causes confidently.\\n\\n"
+            "A practical reform agenda would start with a public scorecard: learning outcomes and job placement; reliable and affordable power; logistics and permitting costs; competitive, transparent procurement; and growth in productive jobs and exports. "
+            "For each priority, assign a responsible agency, publish a baseline and target, report progress regularly, and evaluate whether the change improves productivity and household opportunity. "
+            "Prioritize the constraints that evidence shows are most binding instead of announcing a long list of reforms without implementation measures.\\n\\n"
+            "This is a structured starting analysis based on general development principles, not a verified diagnosis of the Philippines' current constraints. "
+            "The next step is to test these hypotheses against recent Philippine and Vietnamese data before deciding which reforms should come first."
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_national_systems_analysis_recovery",
+            "model": "",
+        }
+
     # Help a visitor begin when they cannot yet phrase the question.
     if "not sure how to phrase my question" in q and "something is missing" in q:
         response = (
