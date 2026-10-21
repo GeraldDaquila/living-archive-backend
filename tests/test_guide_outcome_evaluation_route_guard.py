@@ -1,4 +1,4 @@
-"""Regression tests for outcome-evaluation protection at both FSD route gates."""
+"""Regression tests for outcome-evaluation protection across every FSD route gate."""
 
 from pathlib import Path
 import main
@@ -20,7 +20,14 @@ def test_early_fsd_handoff_excludes_outcome_evaluation_queries():
         "if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):"
         in source
     )
-    assert "def _is_outcome_evaluation_query(query):" in source
+
+
+def test_deterministic_fallback_excludes_outcome_evaluation_queries():
+    source = Path(main.__file__).read_text(encoding="utf-8")
+    assert (
+        'if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):\n'
+        '        return {\n            "route": "fsd",'
+    ) in source
 
 
 def test_later_model_selected_fsd_route_is_still_guarded():
