@@ -100,6 +100,54 @@
       ],
       "correlation_group": null,
       "notes": "Reported separately; individual provider failure is not equivalent to provider-bank exhaustion."
+    },
+    {
+      "case_id": "sim-exhaustion-lexical-false-improvement",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "How can people living nearby have a meaningful say before a project is approved?",
+      "expected_relevant_candidate_id": "participation-framework",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "participation-framework",
+          "title": "Meaningful Community Participation",
+          "text": "A fair process gives people affected by a decision a meaningful opportunity to contribute before approval and explains how their input informs the outcome.",
+          "url": "https://geralddaquila.com/evaluation/fallback/participation-framework/"
+        },
+        {
+          "candidate_id": "project-status-updates",
+          "title": "Project Updates for Nearby Residents",
+          "text": "Project updates help nearby residents follow project milestones, project budgets, and project status after decisions have been made.",
+          "url": "https://geralddaquila.com/evaluation/fallback/project-status-updates/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Deliberately tests whether lexical overlap with residents/project can outweigh the intended consultation relevance. Author-authored expectation only; inspect actual scorer output rather than presuming a false improvement."
+    },
+    {
+      "case_id": "sim-exhaustion-no-sufficient-candidate",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "What exact form and filing deadline does my town require for a shoreline construction permit this year?",
+      "expected_relevant_candidate_id": null,
+      "candidate_set_sufficient": false,
+      "candidates": [
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance-3/"
+        },
+        {
+          "candidate_id": "project-status-updates",
+          "title": "Project Updates for Nearby Residents",
+          "text": "Project updates help nearby residents follow project milestones, project budgets, and project status after decisions have been made.",
+          "url": "https://geralddaquila.com/evaluation/fallback/project-status-updates-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Neither candidate supplies the requested town-specific form or deadline. Conservative outcome is no recommendation; scorer rank is diagnostic only."
     }
   ]
 }
