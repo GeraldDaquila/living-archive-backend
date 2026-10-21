@@ -5959,9 +5959,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
             else:
                 print("The Guide General Composition: mode=auto; provider bank exhausted; using conservative deterministic recovery.")
+                print("The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=provider_bank_exhausted")
                 llm_output = _basic_inquiry_round1_deterministic_response(correction_subject or query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
         except Exception as exc:
             print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
+            print(f"The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
             try:
                 llm_output = _basic_inquiry_round1_deterministic_response(query, {}, composition_context, recommendation_available=bool(authoritative_doorway)).get("response", "")
             except Exception:
