@@ -1,0 +1,104 @@
+{
+  "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22",
+  "status": "ADDITIVE_CHALLENGE_EVALUATION",
+  "purpose": "A second simulated challenge set authored after the initial battery was scored. Queries are paraphrased to reduce direct copying of cue phrases. Labels are still simulated judgments and must not be treated as independent human ground truth.",
+  "frozen_benchmark_modified": false,
+  "cases": [
+    {
+      "id": "district-cost-shift",
+      "query": "A policy protects residents in one district but leaves neighboring families bearing the cost. How should leaders weigh the options?",
+      "direct": {
+        "title": "Ethical Trade-offs When Repairing Harm",
+        "text": "When a remedy benefits one group while burdening another, decision-makers should compare alternatives, identify who bears each burden, protect rights, and explain the reasons for the choice."
+      },
+      "distractor": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore identity, authenticity, and how people maintain belonging while navigating group expectations."
+      }
+    },
+    {
+      "id": "settlement-unaddressed-losses",
+      "query": "People say the settlement closes the case but leaves their losses unaddressed. What should happen next?",
+      "direct": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Meaningful repair listens to harmed people, understands actual losses, and revises restitution or redress when the proposed remedy does not meet their needs."
+      },
+      "distractor": {
+        "title": "Transparent Governance",
+        "text": "Institutions document decisions, publish reasons, and report governance outcomes to the public."
+      }
+    },
+    {
+      "id": "competing-first-moves",
+      "query": "Members share an aim, but the meeting keeps circling around competing first moves. What process could help them choose?",
+      "direct": {
+        "title": "Collective Sense-making SOP: Decentralized Consensus",
+        "text": "When members disagree about priorities, make each person's reasons visible, identify the shared outcome, compare proposals, and test a small reversible action together."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "warnings-ignored",
+      "query": "An organization ignored warnings, and the damage people predicted happened. What is a responsible response now?",
+      "direct": {
+        "title": "Accountability After Harmful Decisions",
+        "text": "Responsible decision-makers review warnings and evidence, acknowledge responsibility for foreseeable harm, explain what went wrong, hear affected people, and revise safeguards."
+      },
+      "distractor": {
+        "title": "Ethical Trade-offs and Decision Criteria",
+        "text": "Decision-makers compare alternatives, weigh competing values, and explain difficult choices when priorities conflict."
+      }
+    },
+    {
+      "id": "quiet-voices-excluded",
+      "query": "A few confident voices shape the meeting while quieter members barely get heard. How can the process be balanced?",
+      "direct": {
+        "title": "Power, Fairness, and Meaningful Participation",
+        "text": "Notice unequal power, protect the voice of less powerful participants, create meaningful opportunities to contribute, and make participation fair."
+      },
+      "distractor": {
+        "title": "Personal Productivity and Morning Routines",
+        "text": "Build a daily routine, organize tasks, and maintain personal productivity habits."
+      }
+    },
+    {
+      "id": "self-concealment-for-acceptance",
+      "query": "Someone feels they must hide important parts of themselves to remain accepted by their community. How might they think about this tension?",
+      "direct": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore belonging, authenticity, and identity when personal integrity comes into tension with group expectations and community membership."
+      },
+      "distractor": {
+        "title": "Institutional Budget Forecasting",
+        "text": "Estimate revenue, operating costs, and budget variances for the next financial year."
+      }
+    },
+    {
+      "id": "public-reasons-request",
+      "query": "Residents suspect a public decision was arbitrary and want to know why it was reached. What should the institution make available?",
+      "direct": {
+        "title": "Accountability and Transparent Governance",
+        "text": "Institutions should document the evidence and reasoning behind decisions, publish explanations, and enable public scrutiny and review."
+      },
+      "distractor": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Repair should address the actual losses experienced by people harmed and revise restitution or redress when needed."
+      }
+    },
+    {
+      "id": "neighborhood-not-consulted",
+      "query": "A project affects a neighborhood, but organizers planned it without hearing from residents. What should happen before moving ahead?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    }
+  ]
+}
