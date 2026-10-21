@@ -4169,20 +4169,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # investing, and invite clarification without inferring the other person's
     # motives or prescribing a relationship decision.
     relational_care_signal = bool(re.search(
-        r"\\b(?:feel|feeling)\\s+(?:so\\s+)?(?:foolish|stupid|silly|embarrassed|ashamed)\\b.{0,100}\\b(?:care|caring|love|loving|miss|missing|hold(?:ing)? on)\\b"
-        r"|\\b(?:still caring|still care|still love|still miss|can't let go)\\b",
+        r"\b(?:feel|feeling)\s+(?:so\s+)?(?:foolish|stupid|silly|embarrassed|ashamed)\b.{0,100}\b(?:care|caring|love|loving|miss|missing|hold(?:ing)? on)\b"
+        r"|\b(?:still caring|still care|still love|still miss|can't let go)\b",
         q,
         re.I,
     ))
     relational_context_signal = bool(re.search(
-        r"\\b(?:friendship|friend|relationship|someone i care about|them|him|her|they)\\b",
+        r"\b(?:friendship|friend|relationship|someone i care about|them|him|her|they)\b",
         q,
         re.I,
     ))
     if relational_care_signal and relational_context_signal:
         response = (
             "It isn't foolish to care about a friendship that has mattered to you. Caring doesn't switch off simply because a relationship becomes difficult, disappointing, or uncertain. "
-            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.\\n\\n"
+            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.\n\n"
             "Perhaps a useful place to begin is this: what makes you feel foolish for still caring—is it how the other person has treated you, the lack of reciprocity, or the feeling that you haven't been able to let go of what the friendship once was?"
         )
         return {
