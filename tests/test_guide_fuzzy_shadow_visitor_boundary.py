@@ -1,13 +1,12 @@
 """Regression contract: fuzzy relevance diagnostics never cross visitor boundaries.
 
-Source-structure checks guard explicit visitor allowlists; runtime normalization
-checks verify that injected diagnostics are stripped from public recommendations.
+Source-structure checks guard explicit visitor allowlists. Runtime normalization
+is tested separately in a dependency-complete production-validation workflow.
 This does not replace live JSON/SSE end-to-end testing.
 """
 import ast
 from pathlib import Path
 
-import main
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "main.py").read_text(encoding="utf-8")
