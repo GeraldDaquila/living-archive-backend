@@ -60,6 +60,19 @@ For every case, classify the outcome as one of:
 
 Report counts and rates for every class, score margins, ties, candidate-set insufficiency, reviewer agreement, and cohort sizes. Keep simulated, correlated paraphrase families, and independently reviewed cases separate. Never promote a metric by excluding a failure after seeing the result; any exclusion must have a documented, predeclared reason.
 
+## Observed simulated replay — 2026-10-22
+
+Latest inspected replay commit: `37aa0f2aca5628559edac3993bc39c7a557dca06`. These seven cases are all deliberately simulated; the expected-relevance labels are authored assumptions, not independent human ground truth.
+
+- Across the five provider-bank-exhaustion cases: deterministic matched the authored expectation in 3/5; fuzzy counterfactual matched in 2/5; there were two ties. This tiny synthetic cohort is not a performance estimate.
+- The consultation case remains unresolved: deterministic returned no selection and fuzzy tied the candidates.
+- The deliberately lexical consultation case was a **potential recovery** in this simulation: deterministic selected a status-update resource while fuzzy preferred the participation resource.
+- The insufficient-candidate case preserved conservative no-selection for deterministic, while fuzzy tied. The case is classified separately and is not counted as evidence of fuzzy correctness.
+- The adversarial title-overlap case is a **potential regression**: deterministic selected the resource whose body states the requested current permit form and deadline; fuzzy preferred a decoy whose title overlaps the query but whose body explicitly lacks those details.
+- The composition-exception case was a correct unchanged baseline. The individual-provider-failure case is reported separately and excluded from provider-bank-exhaustion/composition-exception metrics.
+
+These classifications come from the replay's author-authored labels and candidate descriptions. They show a specific failure mode worth independent review; they do not establish general relevance accuracy. Do not tune the scorer in this evaluation-only PR to make these results appear better. Any scorer modification must be a separate, regression-tested proposal and must continue to leave live behavior untouched unless separately authorized.
+
 ## Release gate
 
 No live influence is considered unless a held-out, independently reviewed evaluation demonstrates:
