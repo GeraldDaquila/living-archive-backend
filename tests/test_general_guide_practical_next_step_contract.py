@@ -27,3 +27,59 @@ def test_practical_next_step_rule_preserves_distress_pacing_exception():
     assert practical_rule < distress_rule
     assert "does not override safety boundaries" in system
     assert "special pacing required for grief and significant distress" in system
+
+
+
+def test_practical_next_step_question_is_detected():
+    query = (
+        "If the group agrees that something must change but its members disagree "
+        "about what to do first, what would be a constructive next step?"
+    )
+    assert composition._requires_actionable_next_step(query)
+
+
+def test_analysis_only_response_is_rejected_for_practical_next_step_question():
+    query = (
+        "If the group agrees that something must change but its members disagree "
+        "about what to do first, what would be a constructive next step?"
+    )
+    parse = composition._parse_factory(
+        [{"title": "Collective Sense-making SOP", "url": "https://example.test", "content": "Consensus."}],
+        query,
+    )
+    import json
+    analysis_only = json.dumps({
+        "response": (
+            "The group should identify the claim at issue, separate facts from "
+            "assumptions, and examine what evidence would distinguish explanations. "
+            "I need more context to offer a case-specific conclusion."
+        ),
+        "response_shape": "general",
+        "doorway_title": "",
+    })
+    try:
+        parse(analysis_only)
+    except ValueError as exc:
+        assert "one concrete action" in str(exc)
+    else:
+        raise AssertionError("analysis-only response should be rejected")
+
+
+def test_concrete_action_response_passes_practical_next_step_validation():
+    query = (
+        "If the group agrees that something must change but its members disagree "
+        "about what to do first, what would be a constructive next step?"
+    )
+    parse = composition._parse_factory([], query)
+    import json
+    actionable = json.dumps({
+        "response": (
+            "Ask each person to explain what they believe is most urgent and why. "
+            "Then identify the shared goal and agree on one small, reversible action "
+            "the group can try together."
+        ),
+        "response_shape": "general",
+        "doorway_title": "",
+    })
+    result = parse(actionable)
+    assert "Ask each person" in result["response"]
