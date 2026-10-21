@@ -32,4 +32,4 @@ jobs:
       - name: Install test runner
         run: python -m pip install pytest
       - name: Test fuzzy relevance shadow scorer and evaluations
-        run: python -m pytest -q tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py tests/test_guide_fuzzy_relevance_simulated_question_battery.py
+        run: python -m pytest -q -s tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py tests/test_guide_fuzzy_relevance_simulated_question_battery.py
