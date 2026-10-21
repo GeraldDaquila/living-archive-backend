@@ -17,6 +17,7 @@ CONCEPT_DIMENSIONS = (
     "collective_next_step",
     "belonging_identity",
     "power_fairness",
+    "consultation_participation",
 )
 
 
@@ -118,3 +119,11 @@ def test_independent_challenge_scores_bounded_and_candidates_unchanged():
             assert all(0.0 <= value <= 1.0 for value in score.values())
             assert candidate == before
 
+
+
+def test_procedure_and_broad_governance_intents_are_distinguished():
+    cases = {case["id"]: case for case in _cases()}
+    procedure = _score_case(cases["specific-procedure-over-broad-governance"])
+    governance = _score_case(cases["broad-governance-over-procedure-manual"])
+    assert procedure["direct"] > procedure["distractor"], procedure
+    assert governance["direct"] > governance["distractor"], governance
