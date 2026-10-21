@@ -41,6 +41,9 @@ def test_simulated_question_battery_reports_pairwise_accuracy_and_failures():
     failures = [item for item in outcomes if not item["correct"]]
     print(f"SIMULATED FUZZY EVALUATION: {correct}/{len(outcomes)} correct ({accuracy:.0%}); ties={ties}; failures={failures}")
     print(f"SIMULATED FUZZY SCORES: {outcomes}")
+    for item in failures:
+        case = next(case for case in _cases() if case["id"] == item["case"])
+        print("FAILED CASE DIMENSIONS", item["case"], score_resource_fit(case["query"], case["direct"]), score_resource_fit(case["query"], case["distractor"]))
     # Broad diagnostic threshold, not a claim of production readiness.
     assert accuracy >= 0.70, (
         f"Simulated pairwise accuracy {correct}/{len(outcomes)} ({accuracy:.0%}); "
