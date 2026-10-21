@@ -18,6 +18,7 @@ CONCEPT_DIMENSIONS = (
     "belonging_identity",
     "power_fairness",
     "consultation_participation",
+    "procedural_specificity",
 )
 
 
@@ -126,4 +127,23 @@ def test_procedure_and_broad_governance_intents_are_distinguished():
     procedure = _score_case(cases["specific-procedure-over-broad-governance"])
     governance = _score_case(cases["broad-governance-over-procedure-manual"])
     assert procedure["direct"] > procedure["distractor"], procedure
+    assert cases["specific-procedure-over-broad-governance"]["direct"] is not None
     assert governance["direct"] > governance["distractor"], governance
+
+    procedural_case = cases["specific-procedure-over-broad-governance"]
+    procedural_direct = score_resource_fit(
+        procedural_case["query"], procedural_case["direct"]
+    )["procedural_specificity"]
+    procedural_distractor = score_resource_fit(
+        procedural_case["query"], procedural_case["distractor"]
+    )["procedural_specificity"]
+    assert procedural_direct > procedural_distractor
+
+    broad_case = cases["broad-governance-over-procedure-manual"]
+    broad_direct = score_resource_fit(
+        broad_case["query"], broad_case["direct"]
+    )["procedural_specificity"]
+    broad_distractor = score_resource_fit(
+        broad_case["query"], broad_case["distractor"]
+    )["procedural_specificity"]
+    assert broad_direct >= broad_distractor
