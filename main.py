@@ -3491,6 +3491,38 @@ def _guide_capability_route(query, history=None):
         "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
     }
 
+    # Structural arbitration: outcome evaluation is not the same task as
+    # diagnosing system patterns. Apply this AFTER model interpretation so an
+    # FSD route cannot override an explicit evidence/outcome-evaluation intent.
+    # Keep this narrow: require both evaluation language and a change/outcome cue.
+    normalized_route_query = _normalize_query(query)
+    outcome_evaluation_intent = bool(
+        re.search(
+            r"\b(?:how can we tell|how do we know|how can (?:a|the) group tell|"
+            r"what evidence|what measures?|how to measure|whether|is .* actually|"
+            r"are .* actually|genuinely|really)\b",
+            normalized_route_query,
+            re.I,
+        )
+        and re.search(
+            r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
+            r"outcomes?|intervention|revised approach|approach|addressed the problem|"
+            r"working|effective|improvement|improved|unintended harm|affected people)\b",
+            normalized_route_query,
+            re.I,
+        )
+    )
+    if route == "fsd" and outcome_evaluation_intent:
+        route = "guide"
+        mode = "direct"
+        reason = (
+            "Structural route guard: the visitor is evaluating whether a change "
+            "is producing real outcomes. Keep the Guide responsible for evidence-"
+            "oriented navigation; FSD may be considered later if system-pattern "
+            "diagnosis is needed, but is not the first doorway."
+        )
+        print("USE route guard: outcome-evaluation intent retained in Guide instead of premature FSD")
+
     # Keep ordinary practical questions in the Guide. Formation is a distinct
     # delegated journey, not a substitute for answering a concrete public question
     # merely because it mentions stewardship, practice, or responsibility.
