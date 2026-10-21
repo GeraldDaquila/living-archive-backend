@@ -6039,6 +6039,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    # Final evidence contract for deterministic relational-burden recovery.
+    # This is deliberately enforced at payload assembly, after every composition,
+    # sanitization, and discovery path. A broad doorway selected by earlier retrieval
+    # must not be reattached after the bounded fallback has rejected it.
+    _relational_burden_final_gate = bool(
+        re.search(
+            r"\\b(?:responsible one|everyone depends on me|nobody asks how i am|"
+            r"no one asks how i am|carry(?:ing)? (?:the )?(?:whole )?family|"
+            r"always there for everyone|take care of everyone|look after everyone|"
+            r"no one checks on me|nobody checks on me|feel unseen|feel overlooked)\\b",
+            _normalize_query(query).casefold(),
+            re.I,
+        )
+        and re.search(
+            r"\\b(?:people rely on you|own needs may be going unnoticed|"
+            r"being dependable and feeling cared for)\\b",
+            response,
+            re.I,
+        )
+    )
+    if _relational_burden_final_gate:
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        # Keep provenance honest even if earlier retrieval supplied a broad asset.
+        composition_context.pop("authoritative_doorway", None)
+        composition_context["evidence_sufficiency_unavailable"] = True
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
