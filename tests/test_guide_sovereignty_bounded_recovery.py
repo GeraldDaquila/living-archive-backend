@@ -20,11 +20,13 @@ def test_sovereignty_definition_remains_useful_without_archive_context():
     assert result["doorway_title"] == ""
 
 
-def test_sovereignty_recovery_only_keeps_a_topic_relevant_doorway():
+def test_sovereignty_recovery_fails_closed_when_context_is_not_parseable():
     result = main._basic_inquiry_round1_deterministic_response(
         "What does sovereignty mean in the Living Archive's approach to human relationships?",
         {},
         {
+            # The protected core parser expects its own context-block format;
+            # arbitrary JSON is deliberately not treated as canonical evidence.
             "context_blocks": (
                 '[{"title":"The Living Archive Navigator: Volume II - Governance & Sovereignty",'
                 '"content":"Governance and sovereignty."}]'
@@ -34,6 +36,4 @@ def test_sovereignty_recovery_only_keeps_a_topic_relevant_doorway():
     )
 
     assert "general conceptual explanation" in result["response"]
-    assert result["doorway_title"] == (
-        "The Living Archive Navigator: Volume II - Governance & Sovereignty"
-    )
+    assert result["doorway_title"] == ""
