@@ -1,0 +1,72 @@
+{
+  "evaluation_id": "guide-fuzzy-relevance-balanced-2026-10-22",
+  "status": "ADDITIVE_EVALUATION_FIXTURE",
+  "purpose": "Evaluate the existing shadow scorer across direct, adjacent, and unsuitable resources. These labels are human-authored expectations; scores remain non-authoritative.",
+  "frozen_benchmark_modified": false,
+  "cases": [
+    {
+      "id": "ethical-tradeoff",
+      "query": "What if repairing harm to one group creates a different harm for another group, and how should decision-makers work through that conflict?",
+      "direct": {
+        "title": "Ethical Trade-offs When Repairing Harm",
+        "text": "When repairing harm creates competing harms, decision-makers should identify who bears the burden, protect rights, compare alternatives, listen to affected people, and explain the reasons for the decision."
+      },
+      "adjacent": {
+        "title": "The Tightrope of Belonging",
+        "text": "This essay explores belonging, group affiliation, authenticity, and identity in a community."
+      },
+      "unsuitable": {
+        "title": "Personal Productivity and Morning Routines",
+        "text": "Build a daily routine, organize tasks, and maintain personal productivity habits."
+      }
+    },
+    {
+      "id": "harm-repair",
+      "query": "What should a group do if the people who suffered harm say the proposed repair does not address what they actually lost?",
+      "direct": {
+        "title": "Restorative Justice and Meaningful Repair",
+        "text": "Repair should address the actual losses experienced by people harmed. Listen to affected people, understand what was lost, and revise restitution or redress when the proposed repair does not meet those needs."
+      },
+      "adjacent": {
+        "title": "Personal Growth After Difficult Experiences",
+        "text": "Reflect on identity, resilience, belonging, and personal growth after a difficult experience."
+      },
+      "unsuitable": {
+        "title": "Institutional Budget Forecasting",
+        "text": "Estimate revenue, operating costs, and budget variances for the next financial year."
+      }
+    },
+    {
+      "id": "collective-next-step",
+      "query": "If the group agrees that something must change but its members disagree about what to do first, what would be a constructive next step?",
+      "direct": {
+        "title": "Collective Sense-making SOP: Decentralized Consensus",
+        "text": "When members disagree about priorities or what should happen first, make each person's reasons visible, identify the shared outcome, compare proposals, and agree on a small reversible action the group can test together."
+      },
+      "adjacent": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "unsuitable": {
+        "title": "Individual Identity and Authenticity",
+        "text": "Explore personal authenticity, identity, belonging, and group affiliation."
+      }
+    },
+    {
+      "id": "accountability",
+      "query": "How should decision-makers respond when evidence shows that their decision caused foreseeable harm?",
+      "direct": {
+        "title": "Accountability After Harmful Decisions",
+        "text": "Accountable decision-makers review evidence, acknowledge responsibility for foreseeable harm, explain what went wrong, listen to affected people, and change the decision or safeguards when needed."
+      },
+      "adjacent": {
+        "title": "Transparent Governance",
+        "text": "Good governance uses policies, institutional processes, and public reporting to support transparent decisions."
+      },
+      "unsuitable": {
+        "title": "Community Belonging and Authenticity",
+        "text": "Discuss identity, group affiliation, authenticity, and belonging in community life."
+      }
+    }
+  ]
+}
