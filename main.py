@@ -6632,8 +6632,17 @@ _steward_readiness_probe = _guide_node_specific_match(
     "How can I assess my readiness for stewardship?"
 )
 if not _steward_readiness_probe or _steward_readiness_probe.get("node_id") != "steward-readiness-instruments":
-    raise RuntimeError(
-        "USE v488.24 invariant failed: natural Steward Readiness destination was not resolved."
+    # A transient WordPress registry outage/rate limit must not prevent the
+    # entire API process from starting. Preserve the invariant when an
+    # authoritative fresh registry was actually loaded; otherwise defer this
+    # data-dependent probe and let the registry boundary report degraded state.
+    if _guide_node_registry_is_fresh():
+        raise RuntimeError(
+            "USE v488.24 invariant failed: natural Steward Readiness destination was not resolved."
+        )
+    print(
+        "USE v488.24 invariant deferred: Guide Node Registry unavailable; "
+        "startup continues with registry-dependent destination routing degraded."
     )
 
 # v488.30 phrase-boundary invariant: a singular registered hint must not
