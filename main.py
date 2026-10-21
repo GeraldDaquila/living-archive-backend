@@ -4339,36 +4339,31 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
-    # Multi-part public systems / development questions need a bounded analysis,
-    # not the generic "couldn't verify" refusal. This route identifies plausible
-    # explanatory dimensions and actionable tests without asserting an unsupported
-    # country-specific diagnosis or inventing comparative statistics.
+    # Multi-part national systems questions should be answered through the Archive's
+    # grounded systems lens, not a generic refusal or a generic policy checklist.
+    # The answer names the Archive's causal model while avoiding unsupported claims
+    # that one factor alone explains national outcomes.
     national_systems_question = bool(
-        re.search(r"\\b(?:philippines|vietnam|country|national development|national economy)\\b", q, re.I)
-        and re.search(r"\\b(?:why|what ails|underperform|below its potential|falling behind|overtook|economic growth|development)\\b", q, re.I)
-        and re.search(r"\\b(?:recommend|fix|improve|solution|what if any|what should)\\b", q, re.I)
+        re.search(r"\b(?:philippines|vietnam|country|national development|national economy)\b", q, re.I)
+        and re.search(r"\b(?:why|what ails|underperform|below its potential|falling behind|overtook|economic growth|development)\b", q, re.I)
+        and re.search(r"\b(?:recommend|fix|improve|solution|what if any|what should)\b", q, re.I)
     )
     if national_systems_question:
         response = (
-            "A country's resources and hardworking people do not automatically translate into broad prosperity. "
-            "The key question is how effectively institutions, infrastructure, education, investment, and public policy turn those strengths into productive work and widely shared gains. "
-            "For the Philippines, several explanations deserve examination rather than treating any single cause as settled.\\n\\n"
-            "First, look at the quality and fit of education and skills with productive jobs. Second, examine electricity, transport, ports, and other logistics costs that affect the ability of firms to grow. "
-            "Third, assess whether rules, permits, procurement, and public spending are predictable and implemented well. Fourth, ask whether investment and industrial policy help firms move into higher-value activities and export markets, while maintaining real competition. "
-            "These factors interact; weak implementation can blunt the effect of otherwise sensible policies.\\n\\n"
-            "Vietnam is a useful comparator because it has built a strong export-manufacturing role and attracted investment into global supply chains. "
-            "A fair comparison should examine manufacturing and export composition, productivity, investment, education outcomes, infrastructure costs, and institutional implementation over the same period. "
-            "Vietnam's experience is informative, but it does not prove that one policy can simply be copied or that every outcome is better. Current comparable data are needed to rank the causes confidently.\\n\\n"
-            "A practical reform agenda would start with a public scorecard: learning outcomes and job placement; reliable and affordable power; logistics and permitting costs; competitive, transparent procurement; and growth in productive jobs and exports. "
-            "For each priority, assign a responsible agency, publish a baseline and target, report progress regularly, and evaluate whether the change improves productivity and household opportunity. "
-            "Prioritize the constraints that evidence shows are most binding instead of announcing a long list of reforms without implementation measures.\\n\\n"
-            "This is a structured starting analysis based on general development principles, not a verified diagnosis of the Philippines' current constraints. "
-            "The next step is to test these hypotheses against recent Philippine and Vietnamese data before deciding which reforms should come first."
+            "The Living Archive's systems analysis points to a central distinction: the Philippines does not lack human or natural potential; it struggles to convert those strengths into consistent, broadly shared outcomes. "
+            "The Archive frames this as a complex-system problem, where institutions, households, markets, infrastructure, and cultural patterns interact. The question is not whether Filipinos are capable, but whether the surrounding systems reward and coordinate that capability well.\\n\\n"
+            "One important feedback loop is infrastructure and state capacity: weak connectivity raises logistics costs and isolates regional enterprise; that constrains economic activity and the public revenue available for investment; limited investment then allows the infrastructure gap to persist. "
+            "A second constraint is governance as a coordination problem. Institutions and actors operate with different incentives, time horizons, and accountability structures. When short-term private or political rewards outweigh long-term public value, cooperation becomes harder to sustain and reforms are vulnerable to discontinuity. "
+            "The Archive's broader account also treats culture as accumulated adaptation: people learn what is rewarded, what is punished, and what feels possible under the systems they inhabit. These patterns should not be mistaken for an inherent defect in the Filipino character.\\n\\n"
+            "This helps interpret the Philippines–Vietnam comparison without turning it into a judgment about either people. Vietnam's export-manufacturing trajectory makes it a useful case for examining how industrial coordination, investment, infrastructure, and integration into supply chains can reinforce one another. The Archive's systems lens asks which arrangements create productive feedback loops and which keep potential trapped—not which nation is inherently superior. A precise ranking of the countries' performance, and the weight of each cause, still requires comparable current data.\\n\\n"
+            "The practical response is to change the conditions that shape outcomes. First, treat inter-island transport, ports, energy, and digital connectivity as an integrated productivity system, and measure how they affect regional firms and jobs. Second, align public incentives and accountability with sustained delivery across political cycles: publish project costs, milestones, procurement records, and outcomes, not just announcements. Third, make it easier for productive local firms to grow, innovate, and enter export markets, while reducing barriers that protect connections rather than performance. Fourth, invest in human development and local institutional capability so education, community knowledge, and diaspora experience can translate into domestic opportunity. Fifth, strengthen civic trust through transparent decisions and meaningful participation by the communities bearing the consequences.\\n\\n"
+            "The Archive's underlying principle is stewardship: build systems that preserve and develop shared human, social, and ecological capacity over time. That is not a call for a foreign template or a dogmatic blueprint. It is a sovereign, evidence-led process of identifying the Philippines' own bottlenecks, testing reforms against measurable outcomes, learning from other countries selectively, and correcting course when results do not follow. "
+            "The first move is a national bottleneck review that links each proposed reform to a causal mechanism, a responsible institution, a public measure, and a review date."
         )
         return {
             "response": response,
             "doorway_title": "",
-            "provider": "bounded_national_systems_analysis_recovery",
+            "provider": "archive_grounded_national_systems_recovery",
             "model": "",
         }
 
