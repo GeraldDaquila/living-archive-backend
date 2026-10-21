@@ -22,6 +22,11 @@ def test_fallback_replay_template_is_empty_and_non_production():
         assert required in schema
     assert "provider_bank_exhausted" in schema["pathway"]
     assert "composition_exception" in schema["pathway"]
-    assert schema["review"]["review_status"] == "pending"
+    review_statuses = {
+        value.strip()
+        for value in schema["review"]["review_status"].split("|")
+    }
+    assert "pending" in review_statuses
+    assert "independently_reviewed" in review_statuses
     assert schema["review"]["candidate_set_sufficient"] is None
     assert "diagnostic counterfactual only" in schema["shadow"]["selected_candidate_id_if_shadow_ranked"]
