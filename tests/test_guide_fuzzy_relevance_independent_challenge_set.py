@@ -52,6 +52,18 @@ def test_independent_challenge_fixture_is_additive_and_distinct():
     assert len({case["id"] for case in cases}) == len(cases)
     assert all(case["direct"]["title"] != case["distractor"]["title"] for case in cases)
     assert any("negative-control" in case["id"] for case in cases)
+    # These three scenarios use the same candidate pair, so they are a
+    # correlated paraphrase family, not three independent demonstrations.
+    consultation_family = [
+        case for case in cases
+        if case.get("correlation_group") == "consultation-participation-same-candidate-pair"
+    ]
+    assert {case["id"] for case in consultation_family} == {
+        "neighborhood-not-consulted",
+        "park-redevelopment-resident-voice",
+        "school-route-consultation",
+    }
+    assert len({(case["direct"]["title"], case["distractor"]["title"]) for case in consultation_family}) == 1
 
 
 def test_independent_challenge_pairwise_accuracy_floor_and_diagnostic_report():
@@ -183,3 +195,13 @@ def test_procedural_pair_adjudications_remain_explicit_and_reported():
         case = cases[case_id]
         assert case["evaluation_role"] == "candidate_set_underspecified"
         assert "Neither candidate directly" in case["adjudication_note"]
+
+
+def test_challenge_report_discloses_correlated_paraphrase_family():
+    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    assert "Case-level counts are descriptive" in fixture["purpose"]
+    family = [
+        case for case in fixture["cases"]
+        if case.get("correlation_group") == "consultation-participation-same-candidate-pair"
+    ]
+    assert len(family) == 3
