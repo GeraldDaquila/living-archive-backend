@@ -1,41 +1,38 @@
-"""Regression tests for the structural outcome-evaluation route guard."""
+"""Regression tests for outcome-evaluation protection at both FSD route gates."""
 
 from pathlib import Path
 import main
 
 
+OBSERVED_QUESTION = (
+    "How can a group tell whether its revised approach is genuinely reducing "
+    "harm, rather than simply making the group feel that it has addressed the problem?"
+)
+
+
 def test_observed_harm_reduction_question_matches_evaluation_contract():
-    query = (
-        "How can a group tell whether its revised approach is genuinely reducing "
-        "harm, rather than simply making the group feel that it has addressed the problem?"
+    assert main._is_outcome_evaluation_query(OBSERVED_QUESTION) is True
+
+
+def test_early_fsd_handoff_excludes_outcome_evaluation_queries():
+    source = Path(main.__file__).read_text(encoding="utf-8")
+    assert (
+        "if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):"
+        in source
     )
-    normalized = main._normalize_query(query)
-    import re
-
-    evaluation = bool(
-        re.search(
-            r"\b(?:how can we tell|how do we know|how can (?:a|the) group tell|"
-            r"what evidence|what measures?|how to measure|whether|is .* actually|"
-            r"are .* actually|genuinely|really)\b",
-            normalized,
-            re.I,
-        )
-        and re.search(
-            r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
-            r"outcomes?|intervention|revised approach|approach|addressed the problem|"
-            r"working|effective|improvement|improved|unintended harm|affected people)\b",
-            normalized,
-            re.I,
-        )
-    )
-    assert evaluation is True
+    assert "def _is_outcome_evaluation_query(query):" in source
 
 
-def test_structural_guard_overrides_fsd_only_for_outcome_evaluation():
+def test_later_model_selected_fsd_route_is_still_guarded():
     source = Path(main.__file__).read_text(encoding="utf-8")
     assert 'if route == "fsd" and outcome_evaluation_intent:' in source
     assert 'route = "guide"' in source
-    assert "instead of premature FSD" in source
+
+
+def test_clear_system_diagnostic_still_matches_fsd():
+    query = "Why does our community keep getting stuck in the same pattern?"
+    assert main._is_fsd_request(query) is True
+    assert main._is_outcome_evaluation_query(query) is False
 
 
 def test_prompt_preserves_fsd_for_actual_system_pattern_diagnosis():
