@@ -1,12 +1,18 @@
 import unittest
 from unittest.mock import patch
 
-from provider_health_store import export_health_states, merge_health_state, save_remote_states
+from provider_health_store import TIMEOUT_SECONDS, export_health_states, merge_health_state, save_remote_states
 import provider_bank
 import provider_gateway_service
 
 
 class ProviderHealthStoreTests(unittest.TestCase):
+    def test_shared_health_bridge_timeout_cannot_consume_inference_budget(self):
+        self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
+
+    def test_guide_allows_two_bounded_fallback_candidates(self):
+        self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES, 2)
+
     def test_newer_remote_failure_opens_local_state(self):
         local = {"provider": "groq", "model": "model-a", "state": "healthy", "last_failure": 0, "last_success": 10, "failures": 0, "consecutive_failures": 0, "cooldown_until": 0, "quarantine_until": 0}
         remote = {"provider": "groq", "model": "model-a", "state": "open", "last_failure": 20, "last_success": 10, "failures": 1, "consecutive_failures": 1, "cooldown_until": 100, "quarantine_until": 0, "last_error": "429", "category": "rate_limited"}
