@@ -1,0 +1,28 @@
+name: Guide Sovereignty Bounded Recovery
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "tests/test_guide_sovereignty_bounded_recovery.py"
+      - ".github/workflows/guide-sovereignty-bounded-recovery.yml"
+  push:
+    branches:
+      - "fix/guide-sovereignty-evidence-recovery"
+    paths:
+      - "main.py"
+      - "tests/test_guide_sovereignty_bounded_recovery.py"
+      - ".github/workflows/guide-sovereignty-bounded-recovery.yml"
+jobs:
+  sovereignty-bounded-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install declared runtime dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Compile changed runtime module
+        run: python -m py_compile main.py
+      - name: Run sovereignty recovery regressions
+        run: python -m pytest -q tests/test_guide_sovereignty_bounded_recovery.py
