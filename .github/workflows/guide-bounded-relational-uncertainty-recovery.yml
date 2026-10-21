@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install test runner
-        run: python -m pip install pytest fastapi
+        run: python -m pip install pytest fastapi pinecone
       - name: Compile production Guide runtime
         run: python -m py_compile main.py
       - name: Run bounded relational uncertainty regressions
