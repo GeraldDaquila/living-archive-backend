@@ -82,7 +82,7 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
         self.assertIn("stewardship", response)
         self.assertIn("not be mistaken for an inherent defect in the filipino character", response)
         self.assertNotIn("couldn't verify a reliable answer", response)
-        self.assertGreaterEqual(response.count("\\n\\n"), 3)
+        self.assertGreaterEqual(response.count(chr(10) + chr(10)), 3)
 
     def test_national_systems_recovery_does_not_capture_unrelated_questions(self):
         result = self.run_recovery(
