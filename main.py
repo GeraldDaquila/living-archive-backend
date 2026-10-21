@@ -4273,8 +4273,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # Answer directly, distinguish general framing from Archive-specific claims,
     # and only retain a doorway whose canonical title explicitly matches the topic.
     if (
-        re.search(r"\\bsovereignty\\b", q)
-        and re.search(r"\\b(?:what\\s+(?:does|is)|meaning|define|explain|approach|relationship|human relationships)\\b", q)
+        re.search(r"\bsovereignty\\b", q)
+        and re.search(r"\b(?:what\s+(?:does|is)|meaning|define|explain|approach|relationship|human relationships)\\b", q)
     ):
         response = (
             "Sovereignty, in a human-relations context, can be understood as a person's or community's authority to participate in shaping decisions that affect them, rather than having their choices or identity controlled by someone else. "
@@ -4282,7 +4282,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "For example, in a family or community decision, respecting sovereignty means listening to the people who will live with the consequences, making room for their informed choice, and not treating care or leadership as permission to decide everything for them. People can still negotiate shared responsibilities; the key is that participation is not replaced by coercion or assumed authority.\n\n"
             "That is a general conceptual explanation, not a verified quotation or definitive statement of the Living Archive's own doctrine. The Archive's specific framing should be checked against its canonical text on Governance & Sovereignty. The retrieved resource is a relevant next step, but the title alone does not establish every detail of its argument."
         )
-        relevant_doorway = title if re.search(r"\\b(?:sovereignty|governance)\\b", title, re.I) else ""
+        relevant_doorway = title if re.search(r"\b(?:sovereignty|governance)\\b", title, re.I) else ""
         return {
             "response": response,
             "doorway_title": relevant_doorway,
