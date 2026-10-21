@@ -47,6 +47,22 @@ CONCEPTS = {
         "power", "unequal power", "least power", "rights", "fairness",
         "disproportionate", "voice", "consent", "affected people",
     ),
+    # Explicit alias groups let distinct surface phrases represent the same
+    # observable consultation concept. This remains lexical/heuristic matching,
+    # not a claim of open-ended semantic understanding.
+    "consultation_participation": (
+        ("consultation", "consulted", "consulting", "consult"),
+        ("hearing from residents", "hear from residents", "listen to residents",
+         "asked residents", "asked the households", "residents were asked",
+         "without hearing from residents", "nobody asked the households"),
+        ("resident input", "residents' input", "community input", "public input",
+         "input from residents", "input informs decisions", "how their input informs decisions"),
+        ("affected people", "people affected", "people living nearby", "local residents",
+         "neighborhood residents", "households along it"),
+        ("meaningful participation", "participation", "participate",
+         "opportunities to contribute", "contribute"),
+        ("being heard", "heard", "listened to", "listen to", "voice", "voices"),
+    ),
 }
 
 
@@ -60,7 +76,12 @@ def _membership(text, phrases):
     normalized = _normalize(text)
     if not normalized:
         return 0.0
-    hits = sum(1 for phrase in phrases if _normalize(phrase) in normalized)
+    def matches(phrase):
+        if isinstance(phrase, (tuple, list)):
+            return any(_normalize(alias) in normalized for alias in phrase)
+        return _normalize(phrase) in normalized
+
+    hits = sum(1 for phrase in phrases if matches(phrase))
     return min(1.0, hits / max(3.0, min(6.0, len(phrases) * 0.5)))
 
 
