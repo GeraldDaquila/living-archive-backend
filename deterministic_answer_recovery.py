@@ -10,12 +10,27 @@ def _subject(question):
     value = _clean(question).rstrip(" ?.!;:")
     value = re.sub(
         r"^(?:please\s+)?(?:can you\s+|could you\s+)?"
-        r"(?:explain|describe|discuss|analyze|analyse|help me understand|"
-        r"tell me about|what is|what are|what does|why does|why do|why is|"
+        r"(?:help me understand|tell me about|explain|describe|discuss|analyze|analyse|"
+        r"what happens if|what if|what is|what are|what does|why does|why do|why is|"
         r"why are|how does|how do|how can|how should|should we|should i)\s+",
         "", value, flags=re.I,
     )
     return value[:240].strip(" ,;:") or "the question you raised"
+
+
+def _is_ethical_tradeoff(question):
+    """Recognize competing-value dilemmas before generic how-to language."""
+    q = _clean(question).casefold()
+    competing_values = bool(re.search(
+        r"\b(?:disagree|competing|conflict|trade.?offs?|priorit(?:y|ies)|"
+        r"protect(?:ing)?|worth protecting|deeply value|important to each|"
+        r"lose something|irreversible|bear the costs|fair(?:ly|ness)?)\b", q
+    ))
+    asks_for_judgment = bool(re.search(
+        r"\b(?:how should we decide|how do we decide|what should we protect|"
+        r"what if|who should decide|which should|what is fair|fair process|what does .{0,80} look like)\b", q
+    ))
+    return competing_values and asks_for_judgment
 
 
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
@@ -26,7 +41,38 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
 
-    if re.search(r"\b(?:compare|comparison|difference|different from|versus|\bvs\b)\b", lower):
+    # Ethical conflicts must outrank generic "how" / practical-action patterns.
+    if _is_ethical_tradeoff(q):
+        if re.search(r"\bstewardship\b", lower) and re.search(r"\b(?:disagree|protect)\w*\b", lower):
+            answer = (
+                "When people disagree about what is worth protecting, the disagreement may reflect different "
+                "values, responsibilities, or fears about what could be lost. One person may be trying to preserve "
+                "continuity; another may believe change is necessary to protect people or keep something useful. "
+                "Name those underlying concerns before treating the other person as careless or unreasonable.\n\n"
+                "A practical next step is to ask what each person is trying to protect, who would bear the costs of "
+                "each option, and which responsibilities or rights cannot simply be traded away. Separate shared "
+                "facts from judgments, and look for options that preserve the most important interests while making "
+                "the unavoidable trade-offs explicit.\n\n"
+                "People may not reach identical priorities, and stewardship does not require pretending otherwise. "
+                "They can still agree on a fair process, explain their reasons, consider people affected but not "
+                "represented, and review the decision when new evidence or consequences emerge. The aim is to handle "
+                "disagreement responsibly, not to erase it."
+            )
+        else:
+            answer = (
+                "When protecting one important thing puts something else at risk, the decision cannot be made fairly "
+                "by asking only which priority matters more. We also need to consider who depends on each choice, "
+                "who has the power to decide, and who will bear the consequences.\n\n"
+                "Make each person's claim visible, including the needs of people who may not have a voice in the "
+                "decision. Distinguish losses that can be repaired from those that cannot, and examine whether a "
+                "different approach could protect at least part of what matters to each side. Shared facts, clear "
+                "criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\n"
+                "Sometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for "
+                "the decision, acknowledging what is being sacrificed, and checking that the burden does not fall "
+                "unfairly on those with the least power. The question is not only what we choose to protect, but "
+                "whether we can justify that choice to the people who must live with its consequences."
+            )
+    elif re.search(r"\b(?:compare|comparison|difference|different from|versus|vs)\b", lower):
         answer = (
             f"A useful comparison of {subject} starts by judging the options on the same grounds. "
             "Look at what each is meant to achieve, how it works, who benefits or bears the costs, "
@@ -40,19 +86,19 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "explanation could fit the same facts. These are ways to investigate the question, not conclusions "
             "about a particular case; a confident answer needs the relevant details."
         )
-    elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
-        answer = (
-            f"A practical way to approach {subject} is to define the outcome you want, identify the main constraint, "
-            "and choose one step small enough to test. Before acting, consider who else is affected and what could "
-            "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
-            "must be final."
-        )
     elif re.search(r"\b(?:should i|should we|is it worth|whether to|decision|decide)\b", lower):
         answer = (
             f"The decision about {subject} depends on what matters most, which consequences are reversible, "
             "and who would carry the costs. Set out realistic options, the strongest reason for and against each, "
             "and what information would change your mind. If the decision is reversible, a limited trial may be "
             "wiser than treating it as permanent; include people significantly affected before deciding."
+        )
+    elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
+        answer = (
+            f"A practical way to approach {subject} is to define the outcome you want, identify the main constraint, "
+            "and choose one step small enough to test. Before acting, consider who else is affected and what could "
+            "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
+            "must be final."
         )
     elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
         answer = (
@@ -77,19 +123,19 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
 
     movement = _clean(desired_movement)
-    if movement:
+    if movement and not _is_ethical_tradeoff(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    else:
+    elif not _is_ethical_tradeoff(q):
         answer += " What detail or context would make this question most concrete for you?"
     return answer
 
 
 def contract_snapshot():
     return {
-        "contract_version": "v1",
+        "contract_version": "v2",
         "provider_independent": True,
         "does_not_invent_archive_evidence": True,
-        "question_shapes": ["comparison", "causal", "practical", "decision", "definition", "reflective", "general"],
+        "question_shapes": ["ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
     }
 
 
@@ -100,9 +146,19 @@ for _question in (
     "Compare individual freedom and shared responsibility.",
     "What should we consider before changing a policy?",
     "Help me understand a difficult situation.",
+    "What does stewardship look like when people disagree about what is worth protecting?",
+    "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
 ):
     _answer = compose_recovery(_question)
     if not _answer or len(_answer) < 80:
         raise RuntimeError("Deterministic answer recovery contract failed: response too short.")
     if re.search(r"\b(?:provider bank|retrieval layer|canonical evidence|machine-facing|USE)\b", _answer, re.I):
         raise RuntimeError("Deterministic answer recovery contract failed: internal language leaked.")
+
+_tradeoff_answer = compose_recovery(
+    "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?"
+)
+if "repaired" not in _tradeoff_answer or "least power" not in _tradeoff_answer:
+    raise RuntimeError("Ethical trade-off recovery contract failed: missing loss and power analysis.")
+if "choose one step small enough to test" in _tradeoff_answer:
+    raise RuntimeError("Ethical trade-off recovery contract failed: generic practical branch won classification.")
