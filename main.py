@@ -4807,6 +4807,50 @@ def _resource_allocation_candidate_has_direct_fit(query, document):
     body_fit = bool(re.search(r"\b(?:fund(?:ing|s)?|budget(?:s|ing)?|allocat(?:e|es|ed|ing|ion)|priorit(?:y|ies|ization|ize|ise)|limited resources|competing needs|decision criteria|trade[- ]offs?|scarce resources|resource allocation|fair process|weigh competing)\b", body))
     return title_fit and body_fit
 
+def _harm_repair_candidate_has_direct_fit(query, document):
+    """Fail closed on resource recommendations for harm-repair adequacy questions.
+
+    A resource must explicitly concern repair/accountability and substantively
+    address the losses or participation of people harmed. Generic personal-growth
+    essays are not relevant merely because retrieval ranked them highly.
+    """
+    q = _normalize_query(query)
+    harm_repair_question = (
+        bool(re.search(
+            r"\b(?:people who suffered (?:the )?harm|people harmed|those harmed|"
+            r"people affected|those affected|survivors|victims|those who suffered)\b", q, re.I
+        ))
+        and bool(re.search(
+            r"\b(?:repair|reparation|remedy|restitution|compensation|make amends)\b", q, re.I
+        ))
+        and bool(re.search(
+            r"\b(?:does not address|doesn't address|do not address|don't address|"
+            r"fails? to address|inadequate|insufficient|what they actually lost|"
+            r"their actual losses|does not restore|doesn't restore|not enough)\b", q, re.I
+        ))
+    )
+    if not harm_repair_question:
+        return True
+
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    title_fit = bool(re.search(
+        r"\b(?:repair|reparation|restorative justice|restorative practice|"
+        r"accountability|reconciliation|redress|remedy|justice|governance)\b", title
+    ))
+    body_fit = (
+        bool(re.search(
+            r"\b(?:repair|reparation|restorative justice|restitution|redress|"
+            r"make amends|address the harm|repairing harm|remedy)\b", body
+        ))
+        and bool(re.search(
+            r"\b(?:harmed|harm|affected people|people affected|survivors|"
+            r"losses|what was lost|listen|participat|consent|voice|needs of those)\b", body
+        ))
+    )
+    return title_fit and body_fit
+
+
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
@@ -4878,6 +4922,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             if _stewardship_conflict_candidate_has_direct_fit(query, item)
         ]
         evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
+        evidence_docs = [item for item in evidence_docs if _harm_repair_candidate_has_direct_fit(query, item)]
 
         topic_groups = _topic_anchor_groups(query)
         # When a visitor asks what to read about political dynasties, a broad
@@ -4931,6 +4976,7 @@ def _general_guide_authoritative_doorway(query, context_data):
                 if _stewardship_conflict_candidate_has_direct_fit(query, item)
             ]
             evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
+            evidence_docs = [item for item in evidence_docs if _harm_repair_candidate_has_direct_fit(query, item)]
             if require_dynasty_title:
                 evidence_docs = [
                     item for item in evidence_docs
