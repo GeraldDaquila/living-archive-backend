@@ -3196,7 +3196,7 @@ def _guide_route_fallback(query, history=None):
     except Exception:
         pass
 
-    if _is_fsd_request(query):
+    if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):
         return {
             "route": "fsd",
             "mode": "direct",
