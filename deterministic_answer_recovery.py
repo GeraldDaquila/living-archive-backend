@@ -37,6 +37,44 @@ def _is_hindsight_accountability(question):
     return (retrospective_frame and accountability_frame) or implicit_frame
 
 
+def is_harm_repair_question(question):
+    """Identify a repair-adequacy question raised by people who experienced harm."""
+    q = _clean(question).casefold()
+    affected_people = bool(re.search(
+        r"\b(?:people who suffered (?:the )?harm|people harmed|those harmed|"
+        r"people affected|those affected|survivors|victims|people who suffered|"
+        r"those who suffered)\b", q
+    ))
+    repair_frame = bool(re.search(
+        r"\b(?:proposed repair|repair|reparation|remedy|restitution|compensation|make amends)\b", q
+    ))
+    adequacy_gap = bool(re.search(
+        r"\b(?:does not address|doesn't address|do not address|don't address|"
+        r"fails? to address|does not meet|doesn't meet|inadequate|insufficient|"
+        r"what they actually lost|their actual losses|what was actually lost|"
+        r"does not restore|doesn't restore|not enough)\b", q
+    ))
+    return affected_people and repair_frame and adequacy_gap
+
+
+def _harm_repair_response():
+    """Give bounded, victim-centered guidance without inventing case-specific facts."""
+    return (
+        "The group should treat that response as a reason to pause and reconsider the repair, "
+        "not as resistance it must overcome. If the people harmed say the proposal misses what "
+        "they actually lost, the group needs to understand that gap before declaring the remedy adequate.\n\n"
+        "Listen to the people affected and ask what the proposal fails to recognize, restore, or make right. "
+        "Losses may include material damage, safety, livelihood, opportunity, dignity, trust, relationships, "
+        "or a voice in decisions that affected them. Do not assume one remedy can address every kind of loss, "
+        "or that the group alone gets to define what counts as repair.\n\n"
+        "Where they are willing to participate, work with affected people to revise the proposal and agree "
+        "on how its adequacy will be judged. Explain any genuine limits honestly, but do not make those harmed "
+        "carry the whole burden of designing the solution or repeatedly proving that their losses matter. "
+        "Repair may not restore everything as it was, but the group should not declare the matter resolved "
+        "simply because it has offered something."
+    )
+
+
 def _is_ethical_tradeoff(question):
     """Recognize competing-value dilemmas before generic how-to language."""
     q = _clean(question).casefold()
@@ -62,7 +100,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if _is_hindsight_accountability(q):
+    if is_harm_repair_question(q):
+        answer = _harm_repair_response()
+    elif _is_hindsight_accountability(q):
         answer = (
             "Genuine accountability asks whether the group made a reasonable decision with the information, "
             "constraints, and alternatives available at the time. Hindsight blame assumes that because the outcome "
@@ -198,3 +238,18 @@ if "repaired" not in _tradeoff_answer or "least power" not in _tradeoff_answer:
     raise RuntimeError("Ethical trade-off recovery contract failed: missing loss and power analysis.")
 if "choose one step small enough to test" in _tradeoff_answer:
     raise RuntimeError("Ethical trade-off recovery contract failed: generic practical branch won classification.")
+
+_harm_repair_question = (
+    "What should the group do if the people who suffered the harm say that its proposed repair "
+    "does not address what they actually lost?"
+)
+_harm_repair_answer = compose_recovery(_harm_repair_question)
+if not is_harm_repair_question(_harm_repair_question):
+    raise RuntimeError("Harm-repair recovery contract failed: canonical question was not classified.")
+for _required in ("pause and reconsider the repair", "Listen to the people affected", "revise the proposal", "declare the matter resolved"):
+    if _required not in _harm_repair_answer:
+        raise RuntimeError("Harm-repair recovery contract failed: missing substantive guidance.")
+if "What detail or context would make this question" in _harm_repair_answer:
+    raise RuntimeError("Harm-repair recovery contract failed: generic follow-up leaked.")
+if is_harm_repair_question("How do I repair a bicycle tire?"):
+    raise RuntimeError("Harm-repair recovery contract failed: ordinary repair question misclassified.")
