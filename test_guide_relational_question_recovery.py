@@ -66,6 +66,31 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
         )
         self.assertEqual(result["doorway_title"], "Family Responsibility and Care")
 
+    def test_national_systems_question_gets_structured_bounded_analysis(self):
+        result = self.run_recovery(
+            "What ails the Philippines, despite its rich natural resources, hard working and adaptable people, "
+            "why is the country performing well below its potential? Lately, even Vietnam overtook it. "
+            "What if any, would you recommend to fix the situation?",
+            title="Filipino Identity and Culture",
+        )
+        self.assertEqual(result["provider"], "bounded_national_systems_analysis_recovery")
+        self.assertEqual(result["doorway_title"], "")
+        response = result["response"].casefold()
+        self.assertIn("education and skills", response)
+        self.assertIn("electricity, transport, ports", response)
+        self.assertIn("vietnam is a useful comparator", response)
+        self.assertIn("public scorecard", response)
+        self.assertIn("not a verified diagnosis", response)
+        self.assertNotIn("couldn't verify a reliable answer", response)
+        self.assertGreaterEqual(response.count("\\n\\n"), 3)
+
+    def test_national_systems_recovery_does_not_capture_unrelated_questions(self):
+        result = self.run_recovery(
+            "What is the capital of Japan?",
+            title="",
+        )
+        self.assertEqual(result["provider"], "deterministic_question_preserving_recovery")
+
     def test_unrelated_factual_question_does_not_enter_relational_route(self):
         result = self.run_recovery("What is the capital of Japan?", title="")
         self.assertEqual(result["provider"], "deterministic_question_preserving_recovery")
