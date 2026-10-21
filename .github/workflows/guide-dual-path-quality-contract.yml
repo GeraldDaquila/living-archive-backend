@@ -1,0 +1,24 @@
+name: Guide Dual-Path Quality Contract
+on:
+  pull_request:
+    paths:
+      - "docs/guide-dual-path-quality-contract.md"
+      - "test_guide_dual_path_quality_contract.py"
+      - ".github/workflows/guide-dual-path-quality-contract.yml"
+  push:
+    branches:
+      - "feat/guide-dual-path-quality-contract"
+    paths:
+      - "docs/guide-dual-path-quality-contract.md"
+      - "test_guide_dual_path_quality_contract.py"
+      - ".github/workflows/guide-dual-path-quality-contract.yml"
+jobs:
+  architecture-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run dual-path architecture contract tests
+        run: python -m unittest -v test_guide_dual_path_quality_contract.py
