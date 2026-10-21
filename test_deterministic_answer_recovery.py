@@ -19,6 +19,33 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
                 self.assertGreater(len(answer), 120)
                 self.assertIn(expected, answer.casefold())
 
+    def test_ethical_tradeoff_precedes_generic_how_to_recovery(self):
+        question = (
+            "What if each person sincerely believes they are protecting something important, "
+            "but protecting one person's priorities means another person will lose something "
+            "they deeply value? How should we decide what to protect?"
+        )
+        answer = compose_recovery(question)
+        self.assertIn("who has the power to decide", answer)
+        self.assertIn("losses that can be repaired from those that cannot", answer)
+        self.assertIn("least power", answer)
+        self.assertIn("justify that choice", answer)
+        self.assertNotIn("choose one step small enough to test", answer)
+        self.assertNotIn("What detail or context", answer)
+
+    def test_gold_standard_stewardship_question_keeps_its_own_response_shape(self):
+        question = "What does stewardship look like when people disagree about what is worth protecting?"
+        answer = compose_recovery(question)
+        self.assertIn("different values, responsibilities, or fears", answer)
+        self.assertIn("who would bear the costs", answer)
+        self.assertIn("disagreement responsibly, not to erase it", answer)
+        self.assertNotIn("What detail or context", answer)
+
+    def test_ethical_tradeoff_does_not_trigger_for_ordinary_practical_question(self):
+        answer = compose_recovery("How can a team make a fair decision?")
+        self.assertIn("define the outcome you want", answer)
+        self.assertIn("choose one step small enough to test", answer)
+
     def test_never_claims_archive_source_or_provider_success(self):
         answer = compose_recovery("What is institutional responsibility?")
         self.assertNotIn("the Archive says", answer.casefold())
@@ -32,6 +59,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         snapshot = contract_snapshot()
         self.assertTrue(snapshot["provider_independent"])
         self.assertTrue(snapshot["does_not_invent_archive_evidence"])
+        self.assertIn("ethical_tradeoff", snapshot["question_shapes"])
         self.assertIn("general", snapshot["question_shapes"])
 
 
