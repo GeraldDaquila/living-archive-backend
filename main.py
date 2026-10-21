@@ -4796,6 +4796,50 @@ def _stewardship_conflict_candidate_has_direct_fit(query, document):
     return title_fit and body_fit
 
 
+def _ethical_tradeoff_candidate_has_direct_fit(query, document):
+    """Reject merely adjacent resources for questions about conflicting harms.
+
+    For this intent, a recommendation must substantively address ethical
+    trade-offs or conflicting harms in addition to signalling that topic in
+    its title. A title about belonging or group identity alone is insufficient.
+    """
+    q = _normalize_query(query)
+    competing_harms = (
+        bool(re.search(
+            r"\b(?:repair(?:ing)? the harm|address(?:ing)? the harm|harm to one group|"
+            r"one group.{0,50}another group|different harm for another|conflicting harms|"
+            r"competing harms|ethical trade[- ]?offs?|conflict between groups)\b", q, re.I
+        ))
+        and bool(re.search(
+            r"\b(?:another group|one group|different harm|conflict|trade[- ]?off|"
+            r"decision[- ]makers|decisions|work through that conflict)\b", q, re.I
+        ))
+    )
+    if not competing_harms:
+        return True
+
+    title = str(document.get("title") or "").casefold()
+    body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
+    title_fit = bool(re.search(
+        r"\b(?:ethical|ethic|trade[- ]?off|conflicting harms|restorative justice|"
+        r"repairing harm|accountability|justice|conflict resolution|governance|"
+        r"competing values|moral decision)\b", title
+    ))
+    body_fit = (
+        bool(re.search(
+            r"\b(?:trade[- ]?offs?|conflicting harms|competing harms|ethical conflict|"
+            r"repair(?:ing)? harm|restorative justice|competing values|"
+            r"decision criteria|fair process|conflict resolution)\b", body
+        ))
+        and bool(re.search(
+            r"\b(?:harm|harmed|affected people|consequences|burden|losses|"
+            r"who bears|people affected|rights|power|sacrif|alternatives|"
+            r"repair|accountability)\b", body
+        ))
+    )
+    return title_fit and body_fit
+
+
 def _resource_allocation_candidate_has_direct_fit(query, document):
     """Reject generic resources for questions about funding competing priorities."""
     q = _normalize_query(query)
@@ -4923,6 +4967,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         ]
         evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
         evidence_docs = [item for item in evidence_docs if _harm_repair_candidate_has_direct_fit(query, item)]
+        evidence_docs = [item for item in evidence_docs if _ethical_tradeoff_candidate_has_direct_fit(query, item)]
 
         topic_groups = _topic_anchor_groups(query)
         # When a visitor asks what to read about political dynasties, a broad
@@ -4977,6 +5022,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             ]
             evidence_docs = [item for item in evidence_docs if _resource_allocation_candidate_has_direct_fit(query, item)]
             evidence_docs = [item for item in evidence_docs if _harm_repair_candidate_has_direct_fit(query, item)]
+            evidence_docs = [item for item in evidence_docs if _ethical_tradeoff_candidate_has_direct_fit(query, item)]
             if require_dynasty_title:
                 evidence_docs = [
                     item for item in evidence_docs
