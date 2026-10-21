@@ -73,14 +73,14 @@ class GuideRelationalQuestionRecoveryTests(unittest.TestCase):
             "What if any, would you recommend to fix the situation?",
             title="Filipino Identity and Culture",
         )
-        self.assertEqual(result["provider"], "bounded_national_systems_analysis_recovery")
+        self.assertEqual(result["provider"], "archive_grounded_national_systems_recovery")
         self.assertEqual(result["doorway_title"], "")
         response = result["response"].casefold()
-        self.assertIn("education and skills", response)
-        self.assertIn("electricity, transport, ports", response)
-        self.assertIn("vietnam is a useful comparator", response)
-        self.assertIn("public scorecard", response)
-        self.assertIn("not a verified diagnosis", response)
+        self.assertIn("complex-system problem", response)
+        self.assertIn("feedback loop is infrastructure and state capacity", response)
+        self.assertIn("philippines–vietnam comparison", response)
+        self.assertIn("stewardship", response)
+        self.assertIn("not be mistaken for an inherent defect in the filipino character", response)
         self.assertNotIn("couldn't verify a reliable answer", response)
         self.assertGreaterEqual(response.count("\\n\\n"), 3)
 
