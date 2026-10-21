@@ -60,7 +60,7 @@ from provider_bank import (
     refresh_shared_health_state,
 )
 import general_guide_composition
-from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery
+from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -4158,6 +4158,13 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
             underlying_question=str((interpretation or {}).get("underlying_question") or ""),
             desired_movement=str((interpretation or {}).get("desired_movement") or ""),
         )
+        if is_harm_repair_question(query):
+            # The generic first retrieved document is not evidence that its page
+            # is a suitable continuation for a harm-repair adequacy question.
+            # Keep this bounded recovery self-contained rather than exposing a
+            # mismatched doorway just because unrelated context was present.
+            result["doorway_title"] = ""
+            result["recommendation"] = None
         result["provider"] = "bounded_provider_exhaustion_recovery"
     return result
 
