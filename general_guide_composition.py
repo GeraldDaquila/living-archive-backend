@@ -852,6 +852,14 @@ def compose(
         parse=_parse_factory(documents, effective_question),
     )
     if not result:
+        if _requires_outcome_evaluation_guidance(question):
+            return {
+                "response": _outcome_evaluation_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "",
+                "model": "",
+            }
         return None
 
     parsed = result["parsed"]
