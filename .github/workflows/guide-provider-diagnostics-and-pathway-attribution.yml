@@ -1,0 +1,32 @@
+name: Guide Provider Diagnostics and Pathway Attribution
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "provider_bank.py"
+      - "general_guide_composition.py"
+      - "test_provider_contract_diagnostics_and_pathway_attribution.py"
+      - ".github/workflows/guide-provider-diagnostics-and-pathway-attribution.yml"
+  push:
+    branches:
+      - "fix/provider-contract-diagnostics-and-pathway-attribution"
+    paths:
+      - "main.py"
+      - "provider_bank.py"
+      - "general_guide_composition.py"
+      - "test_provider_contract_diagnostics_and_pathway_attribution.py"
+      - ".github/workflows/guide-provider-diagnostics-and-pathway-attribution.yml"
+jobs:
+  provider-contract-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install declared runtime dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Compile changed runtime modules
+        run: python -m py_compile main.py provider_bank.py general_guide_composition.py
+      - name: Run diagnostics and attribution regressions
+        run: python -m pytest -q test_provider_contract_diagnostics_and_pathway_attribution.py
