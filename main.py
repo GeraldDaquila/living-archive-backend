@@ -60,6 +60,7 @@ from provider_bank import (
     refresh_shared_health_state,
 )
 import general_guide_composition
+from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
@@ -4954,6 +4955,11 @@ def _general_guide_authoritative_doorway(query, context_data):
                 continue
             seen.add(key)
             evidence_docs.append({"title": title, "url": url, "text": content})
+
+        # Fuzzy relevance runs in shadow mode only. Scores are diagnostic and
+        # deliberately do not alter hard gates, candidate ordering, or selection.
+        for _candidate in evidence_docs:
+            _candidate["_fuzzy_relevance_shadow"] = _score_guide_fuzzy_relevance_shadow(query, _candidate)
 
         comparative_subjects = _comparative_subject_terms(query)
         if comparative_subjects:
