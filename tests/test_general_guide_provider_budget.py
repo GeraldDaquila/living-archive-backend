@@ -108,7 +108,7 @@ def test_general_guide_stops_after_two_failed_fallbacks(monkeypatch):
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 0.5
+    assert clock.value == 0.75
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
