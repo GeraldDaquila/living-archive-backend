@@ -18,6 +18,25 @@ def _subject(question):
     return value[:240].strip(" ,;:") or "the question you raised"
 
 
+def _is_hindsight_accountability(question):
+    """Recognize fair retrospective review versus hindsight blame before generic decision advice."""
+    q = _clean(question).casefold()
+    retrospective_frame = bool(re.search(
+        r"\b(?:hindsight|in hindsight|at the time|available at the time|"
+        r"what (?:was|could be) known|information available|original decision|"
+        r"outcome was known|after the fact)\b", q
+    ))
+    accountability_frame = bool(re.search(
+        r"\b(?:accountability|accountable|blam(?:e|ing)|responsib(?:le|ility)|"
+        r"fairly judge|unfairly|distinguish|best decision|reasonable decision)\b", q
+    ))
+    implicit_frame = bool(
+        re.search(r"\b(?:information available at the time|could with the information)\b", q)
+        and re.search(r"\b(?:blam(?:e|ing)|accountability|unfairly|distinguish)\b", q)
+    )
+    return (retrospective_frame and accountability_frame) or implicit_frame
+
+
 def _is_ethical_tradeoff(question):
     """Recognize competing-value dilemmas before generic how-to language."""
     q = _clean(question).casefold()
@@ -41,8 +60,25 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
 
+    # Retrospective accountability must outrank generic decision advice:
+    # evaluate process using what was knowable then, not the outcome known now.
+    if _is_hindsight_accountability(q):
+        answer = (
+            "Genuine accountability asks whether the group made a reasonable decision with the information, "
+            "constraints, and alternatives available at the time. Hindsight blame assumes that because the outcome "
+            "is now known, it should have been predictable all along. A harmful result, by itself, does not prove "
+            "that the original decision was irresponsible.\n\n"
+            "Start by reconstructing what the group knew, what remained uncertain, which alternatives were realistically "
+            "available, and whether relevant warnings or dissent were taken seriously. Ask whether the group used "
+            "clear criteria, considered foreseeable risks, and listened to people who would bear the consequences. "
+            "Also distinguish a reasonable choice that turned out badly from a choice made carelessly or without "
+            "regard for evidence the group had a duty to consider.\n\n"
+            "A reasonable decision at the time does not excuse refusing to learn afterward. Accountability means "
+            "acknowledging the outcome, correcting what can be corrected, and improving the decision process without "
+            "rewriting the past to make blame easier."
+        )
     # Ethical conflicts must outrank generic "how" / practical-action patterns.
-    if _is_ethical_tradeoff(q):
+    elif _is_ethical_tradeoff(q):
         if re.search(r"\bstewardship\b", lower) and re.search(r"\b(?:disagree|protect)\w*\b", lower):
             answer = (
                 "When people disagree about what is worth protecting, the disagreement may reflect different "
@@ -123,9 +159,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
 
     movement = _clean(desired_movement)
-    if movement and not _is_ethical_tradeoff(q):
+    if movement and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    elif not _is_ethical_tradeoff(q):
+    elif not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += " What detail or context would make this question most concrete for you?"
     return answer
 
@@ -135,7 +171,7 @@ def contract_snapshot():
         "contract_version": "v2",
         "provider_independent": True,
         "does_not_invent_archive_evidence": True,
-        "question_shapes": ["ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
+        "question_shapes": ["hindsight_accountability", "ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
     }
 
 

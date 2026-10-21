@@ -19,6 +19,26 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
                 self.assertGreater(len(answer), 120)
                 self.assertIn(expected, answer.casefold())
 
+    def test_hindsight_accountability_precedes_generic_decision_recovery(self):
+        question = (
+            "If the group made the best decision it could with the information available at the time, "
+            "how should it distinguish genuine accountability from unfairly blaming people in hindsight?"
+        )
+        answer = compose_recovery(question)
+        self.assertIn("information, constraints, and alternatives available at the time", answer)
+        self.assertIn("Hindsight blame assumes", answer)
+        self.assertIn("warnings or dissent", answer)
+        self.assertIn("A harmful result, by itself, does not prove", answer)
+        self.assertIn("improving the decision process", answer)
+        self.assertNotIn("choose one step small enough to test", answer)
+        self.assertNotIn("What detail or context", answer)
+
+    def test_hindsight_accountability_classifier_does_not_capture_ordinary_decisions(self):
+        answer = compose_recovery("Should we change the policy now?")
+        self.assertIn("The decision about", answer)
+        self.assertIn("limited trial", answer)
+        self.assertNotIn("Hindsight blame assumes", answer)
+
     def test_ethical_tradeoff_precedes_generic_how_to_recovery(self):
         question = (
             "What if each person sincerely believes they are protecting something important, "
@@ -60,6 +80,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         snapshot = contract_snapshot()
         self.assertTrue(snapshot["provider_independent"])
         self.assertTrue(snapshot["does_not_invent_archive_evidence"])
+        self.assertIn("hindsight_accountability", snapshot["question_shapes"])
         self.assertIn("ethical_tradeoff", snapshot["question_shapes"])
         self.assertIn("general", snapshot["question_shapes"])
 
