@@ -80,7 +80,7 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
 
 
 
-def test_general_guide_stops_after_one_failed_fallback(monkeypatch):
+def test_general_guide_stops_after_two_failed_fallbacks(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -107,7 +107,7 @@ def test_general_guide_stops_after_one_failed_fallback(monkeypatch):
     assert result is None
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 1
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert clock.value == 0.5
 
 
@@ -176,7 +176,7 @@ def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
     assert result is None
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert clock.value == pytest.approx(0.4)
+    assert clock.value == pytest.approx(0.6)
 
 def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
