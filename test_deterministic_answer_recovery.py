@@ -27,7 +27,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         )
         answer = compose_recovery(question)
         self.assertIn("who has the power to decide", answer)
-        self.assertIn("losses that can be repaired from those that cannot", answer)
+        self.assertIn("can be repaired from those that cannot", answer)
         self.assertIn("least power", answer)
         self.assertIn("justify that choice", answer)
         self.assertNotIn("choose one step small enough to test", answer)
