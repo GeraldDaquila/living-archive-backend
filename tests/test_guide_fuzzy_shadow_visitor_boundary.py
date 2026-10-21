@@ -1,10 +1,13 @@
 """Regression contract: fuzzy relevance diagnostics never cross visitor boundaries.
 
-This is a source-structure guard, not a substitute for live JSON/SSE runtime tests.
-The scorer remains shadow-only and the visitor response is an explicit allowlist.
+Source-structure checks guard explicit visitor allowlists; runtime normalization
+checks verify that injected diagnostics are stripped from public recommendations.
+This does not replace live JSON/SSE end-to-end testing.
 """
 import ast
 from pathlib import Path
+
+import main
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "main.py").read_text(encoding="utf-8")
@@ -25,7 +28,7 @@ def _source(node):
 def test_shadow_score_is_confined_to_internal_candidate_diagnostics():
     source = _source(_function("_general_guide_authoritative_doorway"))
     assert "_fuzzy_relevance_shadow" in source
-    assert "diagnostic only" in source.lower() or "diagnostic" in source.lower()
+    assert "diagnostic" in source.lower()
     # The public doorway is explicitly reconstructed from only canonical title/URL.
     assert 'return {"title": title, "url": url}' in source
     assert '"_fuzzy_relevance_shadow":' not in source
@@ -33,7 +36,7 @@ def test_shadow_score_is_confined_to_internal_candidate_diagnostics():
 
 def test_basic_inquiry_visitor_payload_is_an_explicit_allowlist():
     source = _source(_function("_basic_inquiry_response"))
-    assert 'payload = {' in source
+    assert "payload = {" in source
     payload_start = source.index("payload = {")
     payload_end = source.index("\n    }", payload_start)
     payload_source = source[payload_start:payload_end]
@@ -57,3 +60,19 @@ def test_public_doorway_normalizer_drops_unrecognized_diagnostic_fields():
     assert 'return {"title": title, "url": url}' in source
     assert "_fuzzy_relevance_shadow" not in source
     assert "overall_shadow_score" not in source
+
+
+def test_runtime_public_recommendation_strips_injected_shadow_diagnostics():
+    doorway = {
+        "title": "Canonical Stewardship Resource",
+        "url": "https://geralddaquila.com/canonical-stewardship-resource/",
+        "_fuzzy_relevance_shadow": {"overall_shadow_score": 0.99},
+        "overall_shadow_score": 0.99,
+        "ethical_tradeoff": 1.0,
+    }
+    normalized = main._normalize_authoritative_recommendation(doorway)
+    assert normalized == {
+        "title": "Canonical Stewardship Resource",
+        "url": "https://geralddaquila.com/canonical-stewardship-resource/",
+    }
+    assert all("shadow" not in key and "ethical_tradeoff" not in key for key in normalized)
