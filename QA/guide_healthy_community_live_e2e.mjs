@@ -39,7 +39,7 @@ page.on("response", response => {
     const record = { url: response.url(), status: response.status(), atMs: elapsed(), timeoutMs: null, bodyReadError: null };
     controllerResponses.push(record);
     controllerBodyReads.push(response.text().then(source => {
-      const match = source.match(/USE_TRANSPORT_TIMEOUT_MS\\s*=\\s*(\\d+)/);
+      const match = source.match(/USE_TRANSPORT_TIMEOUT_MS\s*=\s*(\d+)/);
       record.timeoutMs = match ? Number(match[1]) : "constant_not_found";
       record.sourceBytes = source.length;
     }).catch(error => { record.bodyReadError = error?.message || String(error); }));
