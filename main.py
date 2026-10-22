@@ -3168,10 +3168,19 @@ def _healthy_community_canonical_recommendation(query, context_data):
         return None
     try:
         candidates = []
+        preferred_title = "What Healthy Communities Actually Look Like"
+        preferred_url = (
+            "https://geralddaquila.com/2025/10/07/"
+            "t4-codex-overflow-communities-governance-by-resonance/"
+        )
         existing = _general_guide_authoritative_doorway(query, context_data)
         if existing:
             pair = _healthy_community_recommendation_pair(existing)
-            if pair:
+            if (
+                pair
+                and pair.get("title", "").casefold() == preferred_title.casefold()
+                and pair.get("url", "").rstrip("/") == preferred_url.rstrip("/")
+            ):
                 return pair
 
         for search_query in (
@@ -3195,6 +3204,14 @@ def _healthy_community_canonical_recommendation(query, context_data):
                 continue
             seen.add(key)
             if not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+                continue
+            # This visitor query has an explicitly approved canonical target.
+            # Do not substitute a merely related governance page if that exact
+            # article is not present among the retrieved canonical candidates.
+            if (
+                title.casefold() != preferred_title.casefold()
+                or url.rstrip("/") != preferred_url.rstrip("/")
+            ):
                 continue
             # This topic-specific selector is independent of the original
             # wrapper wording. It still uses the normal canonical fit gates.
@@ -6623,9 +6640,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # A topical newcomer answer must preserve a relevant doorway even when
         # the ordinary vector context had no recommendation or the independent
         # practical-stewardship fallback would otherwise suppress it.
-        _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
-        if not _topic_doorway:
-            _topic_doorway = _healthy_community_canonical_recommendation(query, context_data)
+        _topic_doorway = _healthy_community_canonical_recommendation(query, context_data)
         if _topic_doorway:
             authoritative_doorway = _normalize_authoritative_recommendation(_topic_doorway)
             archive_evidence_unavailable = False
