@@ -26,9 +26,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.21"
+    assert guide.CONTRACT_VERSION == "v1.22"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.21"
+    assert snapshot["contract_version"] == "v1.22"
     assert snapshot["provider_neutral"] is True
 
 
@@ -84,8 +84,8 @@ def test_conceptual_relationships_require_reasoning_but_allow_proportionate_leng
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.21"
-    assert guide.contract_snapshot()["contract_version"] == "v1.21"
+    assert guide.CONTRACT_VERSION == "v1.22"
+    assert guide.contract_snapshot()["contract_version"] == "v1.22"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -119,8 +119,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.21"
-    assert guide.contract_snapshot()["contract_version"] == "v1.21"
+    assert guide.CONTRACT_VERSION == "v1.22"
+    assert guide.contract_snapshot()["contract_version"] == "v1.22"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():

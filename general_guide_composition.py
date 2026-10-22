@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.21"
+CONTRACT_VERSION = "v1.22"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -776,6 +776,47 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     return _parse
 
 
+_PRACTICAL_APPLICATION_PATTERNS = (
+    r"\bwhat would (?:i|we|they|an organization|the organization) actually do differently\b",
+    r"\bwhat (?:would|could|should) .{0,60} do differently\b",
+    r"\bhow (?:do|does|can|could|should|would) .{0,60} put .{1,60} into practice\b",
+    r"\bwhat .{0,60} look like (?:in practice|day to day|day-to-day)\b",
+    r"\bhow .{0,60} live by (?:it|that value|those values|this principle)\b",
+    r"\bwhat practical changes .{0,60} make\b",
+)
+_PRACTICAL_ACTION_MARKERS = (
+    r"\bask(?:ing)? the people affected\b",
+    r"\bseparat(?:e|ing) (?:what is known|observable facts) from (?:what is inferred|assumptions)\b",
+    r"\bexplain(?:ing)? the reasons? (?:for|behind) (?:the )?decision\b",
+    r"\bwho is responsible\b|\bname who will follow through\b",
+    r"\bcheck whether (?:the action|it) changed\b",
+    r"\bfollow through\b|\bclose the loop\b",
+)
+
+
+def is_practical_application_question(query: str) -> bool:
+    """Identify explicit requests for actionable practice, not conceptual questions."""
+    question = _normalize_space(query).casefold()
+    return any(re.search(pattern, question, re.I) for pattern in _PRACTICAL_APPLICATION_PATTERNS)
+
+
+def has_observable_practical_actions(response: str) -> bool:
+    """Return true when a practical answer contains at least two distinct action markers."""
+    text = _normalize_space(response).casefold()
+    return sum(bool(re.search(pattern, text, re.I)) for pattern in _PRACTICAL_ACTION_MARKERS) >= 2
+
+
+def _practical_application_recovery() -> str:
+    """Safe deterministic response when generation stays abstract despite a practical request."""
+    return (
+        "Start with one recurring situation where trust matters, such as a decision that affects a team. "
+        "Ask the people affected what they see before deciding, and separate observable facts from assumptions. "
+        "Explain the reasons for the decision, name who is responsible for the next step, and follow through when promised. "
+        "Then check with the people affected whether the action changed their experience; good intentions alone are not evidence that trust has improved. "
+        "Where would this make the biggest difference right now: decision-making, handling disagreement, or responding when something goes wrong?"
+    )
+
+
 def compose(
     *,
     use_core: Any,
@@ -851,6 +892,11 @@ def compose(
         if corrected_subject
         else ""
     )
+    practical_application_instruction = (
+        "The visitor explicitly asks what to do differently or how to put a value into practice. Give at least two concrete, observable behaviors before asking a follow-up. For organizational trust, examples include hearing from people affected before a decision, distinguishing facts from assumptions, explaining the decision, assigning responsibility, and checking whether follow-through changed people's experience. Do not answer only with a reflection framework or ask the visitor to make the question more concrete. End with at most one focused question that helps identify where to apply the actions.\n\n"
+        if is_practical_application_question(question)
+        else ""
+    )
     style_instruction = (
         "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\n\n"
         if _has_response_style_preference(question) or _has_response_style_preference(history_text)
@@ -864,6 +910,7 @@ def compose(
     user_content = (
         f"Visitor question:\n{question}\n\n"
         + explicit_invitation_instruction
+        + practical_application_instruction
         + correction_instruction
         + style_instruction
         + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
@@ -929,6 +976,15 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+
+    # Enforce the practical-answer contract on the output, not just in the prompt.
+    # This fallback is deliberately limited to explicit action-seeking questions.
+    if (
+        is_practical_application_question(question)
+        and not has_observable_practical_actions(candidate["response"])
+    ):
+        candidate["response"] = _practical_application_recovery()
+        candidate["response_shape"] = "explanatory"
 
     # If identical requests arrive concurrently, the first validated answer
     # wins; every concurrent caller returns that same answer. This prevents

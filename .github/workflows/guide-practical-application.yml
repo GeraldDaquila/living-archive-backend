@@ -1,0 +1,25 @@
+name: Guide Practical Application Response Contract
+on:
+  pull_request:
+    paths:
+      - "general_guide_composition.py"
+      - "tests/test_general_guide_practical_application.py"
+      - ".github/workflows/guide-practical-application.yml"
+  push:
+    branches: [main]
+    paths:
+      - "general_guide_composition.py"
+      - "tests/test_general_guide_practical_application.py"
+      - ".github/workflows/guide-practical-application.yml"
+jobs:
+  practical-application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Test practical response contract and regressions
+        run: python -m pytest -q tests/test_general_guide_practical_application.py tests/test_guide_fuzzy_relevance_shadow.py tests/test_guide_fuzzy_relevance_balanced_evaluation.py tests/test_guide_fuzzy_relevance_heldout_paraphrases.py tests/test_guide_fuzzy_relevance_simulated_question_battery.py tests/test_guide_fuzzy_relevance_independent_challenge_set.py
