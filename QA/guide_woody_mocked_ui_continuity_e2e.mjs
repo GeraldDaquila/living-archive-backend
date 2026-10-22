@@ -230,7 +230,7 @@ try {
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[3] ? recommendation : null,
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
