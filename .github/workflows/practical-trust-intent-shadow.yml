@@ -1,0 +1,25 @@
+name: Practical Trust Intent Shadow Calibration
+on:
+  pull_request:
+    paths:
+      - "guide_practical_intent_shadow.py"
+      - "tests/test_practical_trust_intent_shadow.py"
+      - ".github/workflows/practical-trust-intent-shadow.yml"
+  push:
+    branches: [main]
+    paths:
+      - "guide_practical_intent_shadow.py"
+      - "tests/test_practical_trust_intent_shadow.py"
+      - ".github/workflows/practical-trust-intent-shadow.yml"
+jobs:
+  practical-trust-intent-shadow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Run shadow-only practical-intent regression tests
+        run: python -m pytest -q -s tests/test_practical_trust_intent_shadow.py
