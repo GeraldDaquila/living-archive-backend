@@ -3227,7 +3227,7 @@ def _healthy_community_canonical_recommendation(query, context_data):
         if not eligible:
             print("The Guide healthy-community canonical recovery: no candidate passed topic fit.")
             return None
-        eligible.sort(reverse=True)
+        eligible.sort(key=lambda item: item[:-1], reverse=True)
         selected = eligible[0][-1]
         print(
             "The Guide healthy-community canonical recovery: selected evidence-backed "
