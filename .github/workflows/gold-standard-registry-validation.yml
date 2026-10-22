@@ -1,0 +1,52 @@
+name: Gold Standard Registry Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "tests/test_gold_standard_registry.py"
+      - ".github/workflows/gold-standard-registry-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "tests/test_gold_standard_registry.py"
+      - ".github/workflows/gold-standard-registry-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registry-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate registry JSON and test contracts
+        run: |
+          python -m json.tool docs/qa/gold_standard_registry.json > /dev/null
+          python -m pip install --upgrade pytest
+          python -m pytest -q tests/test_gold_standard_registry.py
+      - name: Generate registry and application identity report
+        env:
+          QA_APPLICATION_COMMIT: ${{ github.sha }}
+          QA_RUNTIME_IDENTITY: github-actions/${{ runner.os }}/python-3.12
+        run: |
+          mkdir -p qa-artifacts
+          python scripts/qa/report_gold_standard_registry.py --output qa-artifacts/gold-standard-registry-report.json
+      - name: Publish registry identity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-standard-registry-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-artifacts/gold-standard-registry-report.json
+          if-no-files-found: error
+          retention-days: 90
