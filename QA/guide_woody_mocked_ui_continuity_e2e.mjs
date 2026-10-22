@@ -1,16 +1,18 @@
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c";
-const API_PATTERN = /\/api\/query(?:\?|$)/;
+const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
   "How might this shape the way people make decisions together?",
+  "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.",
   "What is one concrete way to practice this in a neighborhood?"
 ];
 const ASSISTANT_ANSWERS = [
   "Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.",
   "People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.",
+  "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.",
   "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"
 ];
 const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
@@ -53,7 +55,12 @@ page.on("requestfailed", request => {
 let mainQueryIndex = 0;
 page.on("pageerror", error => pageErrors.push(error.message));
 
-await page.route("**/api/query**", async route => {
+await page.route("**/*", async route => {
+  const routeUrl = new URL(route.request().url());
+  if (!["living-archive-backend.onrender.com", "living-archive-backend-mirror.onrender.com"].includes(routeUrl.hostname) || routeUrl.pathname.replace(/\/$/, "") !== "/api/query") {
+    await route.continue();
+    return;
+  }
   const request = route.request();
   mark("api_route_handler_entered", { method: request.method(), url: request.url(), pathname: new URL(request.url()).pathname });
   if (!API_PATTERN.test(new URL(request.url()).pathname)) {
@@ -80,7 +87,15 @@ await page.route("**/api/query**", async route => {
   }
 
   if (request.method() !== "POST") {
-    await route.continue();
+    await route.fulfill({
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-headers": "content-type",
+        "access-control-max-age": "600"
+      }
+    });
     return;
   }
 
@@ -89,6 +104,7 @@ await page.route("**/api/query**", async route => {
   apiRequests.push({ body, postData: request.postData() || "", url: request.url() });
   const query = String(body.query || "");
   let answer;
+  let recommendation = null;
   if (query === FOLLOWUP) {
     answer = "In simpler terms, stewardship means looking after what you and others depend on, without assuming you must control everything.";
   } else {
@@ -99,6 +115,12 @@ await page.route("**/api/query**", async route => {
     }
     mainQueryIndex = Math.max(mainQueryIndex, expectedIndex + 1);
     answer = ASSISTANT_ANSWERS[expectedIndex];
+    if (query === QUESTIONS[2]) {
+      recommendation = {
+        title: "What Healthy Communities Actually Look Like",
+        url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
+      };
+    }
   }
 
   mark("api_route_fulfilling_post", { query, requestCount: apiRequests.length });
@@ -116,7 +138,7 @@ await page.route("**/api/query**", async route => {
       query,
       intent: "TOPICAL_INQUIRY",
       response: answer,
-      recommendation: null,
+      recommendation,
       answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
       processing: "qa_mock",
       route_source: "qa_ui_contract",
@@ -186,8 +208,9 @@ try {
     // response to the page. This direct Promise-based mock isolates the live
     // WordPress controller/UI contract from browser network plumbing.
     window.__guideApiRequests = [];
-    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","What is one concrete way to practice this in a neighborhood?"];
-    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
+    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?"];
+    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
+    const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/" };
     const qaFollowup = "Can you explain your previous answer in simpler terms?";
     const originalFetch = window.fetch.bind(window);
     window.fetch = function(...args) {
@@ -207,7 +230,7 @@ try {
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: null,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[2] ? recommendation : null,
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
@@ -370,6 +393,18 @@ try {
       return current.length > 35 && current !== before.trim();
     }, { selector: ROOT + " #archive-response-text", before });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
+    if (i === 2) {
+      const link = root.locator("#archive-response-text a.archive-recommendation-link");
+      await link.waitFor({ state: "visible" });
+      const linkData = await link.evaluate(node => ({ title: node.innerText.trim(), href: node.href }));
+      if (linkData.title !== "What Healthy Communities Actually Look Like") {
+        throw new Error("Canonical newcomer recommendation title mismatch: " + JSON.stringify(linkData));
+      }
+      if (linkData.href !== "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/") {
+        throw new Error("Canonical newcomer recommendation href mismatch: " + JSON.stringify(linkData));
+      }
+      mark("canonical_recommendation_link_rendered", linkData);
+    }
   }
 
   const panelInput = root.locator("#archive-ordinary-followup-input");
@@ -378,7 +413,7 @@ try {
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
   const replyResponsePromise = page.waitForFunction(
-    () => (window.__guideApiRequests || []).length >= 4,
+    () => (window.__guideApiRequests || []).length >= 5,
     null,
     { timeout: 12_000 }
   );
@@ -397,7 +432,7 @@ try {
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
   // not unrelated questions submitted as separate main-form searches.
-  const expectedHistoryItems = [QUESTIONS[2], ASSISTANT_ANSWERS[2]];
+  const expectedHistoryItems = [QUESTIONS[3], ASSISTANT_ANSWERS[3]];
   const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
   const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
   const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
@@ -416,7 +451,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 4) throw new Error("Expected exactly 4 intercepted API requests, got " + apiRequests.length);
+  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });

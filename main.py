@@ -3150,6 +3150,98 @@ def _healthy_community_recommendation_pair(doorway):
     return result
 
 
+def _healthy_community_canonical_recommendation(query, context_data):
+    """Find a topic-relevant community resource using the canonical selection gates.
+
+    This is a bounded supplement only when the ordinary selector yields no
+    relevant doorway. WordPress search supplies candidates; the existing
+    canonical relevance selector remains authoritative, while title/topic and
+    page-body fit prevent unrelated candidates from crossing the response.
+    """
+    if not _is_healthy_community_orientation_question(query):
+        return None
+    try:
+        candidates = []
+        existing = _general_guide_authoritative_doorway(query, context_data)
+        if existing:
+            pair = _healthy_community_recommendation_pair(existing)
+            if pair:
+                return pair
+
+        for search_query in (
+            "What Healthy Communities Actually Look Like",
+            "healthy communities governance",
+            "community participation shared responsibility",
+        ):
+            for document in _wordpress_search_canonical_candidates(search_query, limit=10):
+                if isinstance(document, dict):
+                    candidates.append(document)
+
+        profile = _base._inquiry_profile("healthy communities governance participation shared responsibility")
+        eligible = []
+        seen = set()
+        for document in candidates:
+            title = str(document.get("title") or "").strip()
+            url = str(document.get("url") or document.get("canonical_url") or "").strip()
+            body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").strip()
+            key = url.rstrip("/").casefold()
+            if not title or not body or not key or key in seen:
+                continue
+            seen.add(key)
+            if not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+                continue
+            # This topic-specific selector is independent of the original
+            # wrapper wording. It still uses the normal canonical fit gates.
+            if not _topic_specific_candidate_fit("healthy communities governance participation shared responsibility", document):
+                continue
+            if not _eligible_outward_doc(
+                "healthy communities governance participation shared responsibility",
+                {"title": title, "url": url, "text": body},
+                profile,
+                min_relevance=2,
+            ):
+                continue
+            doorway = _healthy_community_recommendation_pair({
+                "title": title,
+                "url": url,
+                "text": body,
+                "kind": document.get("kind") or "archive_resource",
+            })
+            if not doorway:
+                continue
+            # The visitor-facing title needs community/system/governance relevance,
+            # and the article's own opening body must corroborate the topic.
+            if not re.search(
+                r"\b(?:communit(?:y|ies)|participat\w*|governance|shared responsibility|"
+                r"collective|civic|belonging|public life|social system)\b",
+                body[:4000],
+                re.I,
+            ):
+                continue
+            metrics = _subject_metrics(
+                "healthy communities governance participation shared responsibility",
+                {"title": title, "url": url, "text": body},
+            )
+            eligible.append((metrics[2], metrics[3], metrics[0], metrics[1], title, doorway))
+
+        if not eligible:
+            print("The Guide healthy-community canonical recovery: no candidate passed topic fit.")
+            return None
+        eligible.sort(key=lambda item: item[:-1], reverse=True)
+        selected = eligible[0][-1]
+        print(
+            "The Guide healthy-community canonical recovery: selected evidence-backed "
+            f"resource={selected.get('title')!r}."
+        )
+        return {"title": selected["title"], "url": selected["url"], "kind": selected.get("kind", "archive_resource")}
+    except Exception as exc:
+        print(
+            "The Guide healthy-community canonical recovery failed safely: "
+            f"{type(exc).__name__}."
+        )
+        return None
+
+
 def _is_healthy_community_orientation_question(query):
     """Recognize a substantive healthy-community question from a newcomer."""
     q = _normalize_query(query)
@@ -6338,10 +6430,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             except Exception:
                 llm_output = ""
 
-    if _is_practical_stewardship_question(query):
+    if _is_practical_stewardship_question(query) and not _is_healthy_community_orientation_question(query):
         # This bounded recovery has no canonical source body selected as direct
         # evidence for the exact question. Suppress any incidental doorway from
         # broad initial retrieval rather than attach an unrelated recommendation.
+        # A substantive healthy-community newcomer query is a separate topic
+        # orientation intent and keeps its own validated recommendation contract.
         authoritative_doorway = None
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
@@ -6520,18 +6614,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # uncertainty recovery can send the visitor back to intake or ask them to restate it.
     if _is_healthy_community_orientation_question(query):
         response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
-        # The answer itself is the primary result. Only retain a selected doorway
-        # when its title clearly matches the visitor's stated subject.
+        # A topical newcomer answer must preserve a relevant doorway even when
+        # the ordinary vector context had no recommendation or the independent
+        # practical-stewardship fallback would otherwise suppress it.
         _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
-        if authoritative_doorway and not _topic_doorway:
+        if not _topic_doorway:
+            _topic_doorway = _healthy_community_canonical_recommendation(query, context_data)
+        if _topic_doorway:
+            authoritative_doorway = _normalize_authoritative_recommendation(_topic_doorway)
+            archive_evidence_unavailable = False
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context.pop("evidence_sufficiency_unavailable", None)
+        else:
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
-            print("The Guide healthy-community boundary: suppressed missing, invalid, or weakly relevant canonical recommendation.")
-        elif _topic_doorway:
-            # Preserve the verified title + canonical URL as the structured
-            # recommendation field so the visitor UI can render an actual link.
-            authoritative_doorway = _topic_doorway
+            print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
