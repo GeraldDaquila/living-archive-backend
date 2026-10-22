@@ -233,3 +233,21 @@ These are useful reference material, but they are **additive evaluation fixtures
 3. The existing repository already contains relevance suites beyond the saved ten-question calibration list. They should be indexed, not relabeled as visitor-approved gold standards.
 4. The ten-question list recovered from the September 20 handoff remains a calibration question set. Its original approved answers/ratings have not yet been recovered.
 5. Next source-recovery pass: inspect the frozen stewardship test and other fixture/test files on `main`, enumerate all relevant QA/fixtures directories, and search saved calibration screenshots/handoffs for the remaining user-referenced approved examples. No Render or production change is warranted at this stage.
+
+
+## I. Recovered benchmark metadata: compound stewardship explanation
+
+### GS-GUIDE-001 — frozen three-paragraph stewardship answer
+
+- **Exact question:** “What is stewardship and why does it matter now more than ever?”
+- **Status:** FROZEN_CONFIRMED; exact response text still needs source recovery.
+- **Frozen response contract:** Three paragraphs, recorded at **861 characters** in the October 15 handoff; answer and recommendation remain separate.
+- **Expected destination in the recorded frozen benchmark:** **Foundational Stewardship Cases** — https://geralddaquila.com/level-1-case-catalog/
+- **Historical dual-service evidence:** Guide dual-service E2E run [38645881872](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881872) and production validation run [38645881798](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881798) were recorded as successful at v489.259. The handoff records an 861-character response on both services, separate recommendation rendering in the response contract, and destination checks. These are historical results, not proof of current production status.
+- **Important destination discrepancy:** The October 15 handoff also notes a Stewardship Readiness destination in a discovery test scenario. Do not treat that as the expected destination for this frozen explanatory benchmark; preserve it as a distinct historical discovery scenario unless further provenance shows otherwise.
+- **Recovery boundary:** The handoff establishes the response length, paragraph count, question, expected destination, and successful historical test record, but does not include the exact 861-character answer text. Do not reconstruct or rewrite the answer from memory or a current model response. Recover it verbatim from the original workflow artifact/log, screenshot, or an authoritative historical fixture before creating a byte-exact fixture.
+- **Source:** Library handoff `Pasted text(20261015-000853).txt`, section “Frozen General Purpose gold standard” and “E2E infrastructure — verified configuration”; corroborating handoff `Pasted text(20261015-085140).txt`.
+
+### E2E registry rule
+
+The existing workflow `.github/workflows/live-guide-dual-service-e2e.yml` is part of the preserved E2E infrastructure. Registry adoption must add a pinned registry revision/hash to test evidence without replacing the lightweight release-identity gate or dropping visitor-journey checks. A workflow success from October 2026 is historical provenance only; future registry reports must identify the tested application commit, runtime fingerprint, registry revision/hash, exact scenario IDs, and whether the test was API-level or browser-level.
