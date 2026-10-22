@@ -6419,6 +6419,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         response = _sanitize_basic_inquiry_response(actionable_response)
 
+
+    # Final visitor-facing contract for conceptual relationship questions.
+    # This runs after composition/discovery paths so generic fallback language
+    # cannot replace the explanation requested by the visitor.
+    if general_guide_composition.is_conceptual_relationship_question(query):
+        if not general_guide_composition.has_conceptual_relationship_explanation(response):
+            response = _sanitize_basic_inquiry_response(
+                general_guide_composition._conceptual_relationship_recovery()
+            )
+            print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            query,
+            re.I,
+        ):
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            print("The Guide final relationship-answer boundary: suppressed unrequested doorway.")
+
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,

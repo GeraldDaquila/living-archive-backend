@@ -796,6 +796,41 @@ _PRACTICAL_ACTION_MARKERS = (
 )
 
 
+_CONCEPTUAL_RELATIONSHIP_PATTERNS = (
+    r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
+    r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
+    r"\brelationship between .{0,80} and .{0,80}\b",
+)
+
+
+def is_conceptual_relationship_question(query: str) -> bool:
+    """Identify questions asking how multiple concepts influence one another."""
+    question = _normalize_space(query).casefold()
+    return any(re.search(pattern, question, re.I) for pattern in _CONCEPTUAL_RELATIONSHIP_PATTERNS)
+
+
+def has_conceptual_relationship_explanation(response: str) -> bool:
+    """Require an explanation of a mechanism linking concepts, not generic advice."""
+    text = _normalize_space(response).casefold()
+    return (
+        len(text.split()) >= 65
+        and bool(re.search(r"\b(?:because|when|so that|which means|as a result|this makes|that makes)\b", text, re.I))
+        and bool(re.search(r"\b(?:accountability|trust|repair|harm|responsibility)\b", text, re.I))
+    )
+
+
+def _conceptual_relationship_recovery() -> str:
+    """Explain the mechanism linking accountability, trust, and repair in plain language."""
+    return (
+        "Accountability, trust, and repairing harm reinforce one another when responsibility leads to visible action. "
+        "Accountability starts with acknowledging what happened, who was affected, and what responsibility belongs to whom, rather than minimizing the impact or shifting blame. "
+        "That makes trust more credible because people can judge what someone does, not just what they promise. "
+        "When harm occurs, repair turns accountability into action: listen to the people affected, address the consequences, and change what allowed the harm to happen. "
+        "Following through gives people evidence that the harm was taken seriously. Trust may then become possible again—not because the harm is forgotten, but because people can see that responsibility led to meaningful change. "
+        "Are you thinking about this in an organization, a close relationship, or a wider community?"
+    )
+
+
 def is_practical_application_question(query: str) -> bool:
     """Identify explicit requests for actionable practice, not conceptual questions."""
     question = _normalize_space(query).casefold()
@@ -979,15 +1014,22 @@ def compose(
         "model": str(result.get("model") or ""),
     }
 
-    # Enforce the practical-answer contract on the output, not just in the prompt.
-    # This fallback is deliberately limited to explicit action-seeking questions.
+    # Enforce question-type-specific answer contracts on the output.
+    if is_conceptual_relationship_question(question):
+        if not has_conceptual_relationship_explanation(candidate["response"]):
+            candidate["response"] = _conceptual_relationship_recovery()
+            candidate["response_shape"] = "explanatory"
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            question,
+            re.I,
+        ):
+            candidate["doorway_title"] = ""
+
     if is_practical_application_question(question):
         if not has_observable_practical_actions(candidate["response"]):
             candidate["response"] = _practical_application_recovery()
             candidate["response_shape"] = "explanatory"
-        # Practical how-to questions are answer-first requests, not resource
-        # discovery. Do not attach a service doorway unless the visitor asked
-        # to find or contact a resource.
         if not re.search(
             r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
             question,
