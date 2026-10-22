@@ -142,6 +142,15 @@ def test_public_basic_inquiry_payload_carries_exact_canonical_recommendation(mon
     monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
     monkeypatch.setattr(main, "_basic_inquiry_round1_requires_discovery", lambda *_args, **_kwargs: False)
     monkeypatch.setattr(main, "_is_navigator_orientation_request", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(main, "_guide_requires_canonical_subject_supplement", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(main, "_guide_discovery_doorway_is_evidence_backed", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(main, "use_core.fetch_canonical_context", lambda _query: {
+        "context_blocks": "",
+        "canonical_link_context": "",
+        "intent": "TOPICAL_INQUIRY",
+    })
+    monkeypatch.setattr(main.general_guide_composition, "is_practical_application_question", lambda _query: False)
+    monkeypatch.setattr(main.general_guide_composition, "is_conceptual_relationship_question", lambda _query: False)
     monkeypatch.setattr(main, "_basic_inquiry_round1_deterministic_response", lambda *_args, **_kwargs: {
         "response": "A healthy community makes room for participation, disagreement, shared responsibility, and voice."
     })
