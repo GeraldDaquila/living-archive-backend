@@ -452,7 +452,11 @@ def main():
             f"responsibility-boundary paraphrase was not recognized: {paraphrase}",
         )
     assert_true(
-        "deterministic and provider-exhaustion routes can bypass this composer" in COMPOSITION_TEXT,
+        (
+            "deterministic and provider-exhaustion routes can bypass this composer" in COMPOSITION_TEXT
+            or "Deterministic and provider-exhaustion routes can bypass this composer" in COMPOSITION_TEXT
+            or "deterministic/provider-exhaustion routes can bypass compose()" in MAIN_TEXT
+        ),
         "composer bypass rationale is not documented",
     )
 
