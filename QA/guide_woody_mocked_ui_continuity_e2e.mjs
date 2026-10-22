@@ -55,7 +55,7 @@ page.on("requestfailed", request => {
 let mainQueryIndex = 0;
 page.on("pageerror", error => pageErrors.push(error.message));
 
-await page.route("**/api/query**", async route => {
+await page.route(/https:\/\/living-archive-backend(?:-mirror)?\.onrender\.com\/api\/query(?:\/|\?|$)/, async route => {
   const request = route.request();
   mark("api_route_handler_entered", { method: request.method(), url: request.url(), pathname: new URL(request.url()).pathname });
   if (!API_PATTERN.test(new URL(request.url()).pathname)) {
