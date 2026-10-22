@@ -406,6 +406,21 @@ def main():
         assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
     else:
         raise AssertionError("stewardship list gate accepted an unsolicited taxonomy")
+    # Responsibility-boundary calibration: prevent generic checklist answers
+    # from passing merely because they mention a small step and ask a question.
+    responsibility_contract = composition._GENERAL_GUIDE_SYSTEM
+    for required_clause in (
+        "explicitly distinguish responsibility for one's own contribution from accountability for the whole system",
+        "seeing a problem can create pressure to carry more than one's fair share",
+        "authority, resources, and shared obligations",
+        "defined contribution while naming what needs a decision, resource, or commitment from others",
+        "distinguish the part the visitor can influence from the part that requires shared ownership",
+    ):
+        assert_true(
+            required_clause in responsibility_contract,
+            f"responsibility-boundary gold-standard clause missing: {required_clause}",
+        )
+    print("responsibility_boundary_reasoning_contract=PASS")
     print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
     print("legacy_single_provider_all_purpose_path=absent")
