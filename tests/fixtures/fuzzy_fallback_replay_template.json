@@ -1,0 +1,45 @@
+{
+  "evaluation_id": "fuzzy-fallback-replay-template-v1",
+  "status": "TEMPLATE_ONLY_NO_CASES",
+  "purpose": "Schema for future offline replay cases. This file contains no production visitor records and no human relevance judgments.",
+  "production_data_present": false,
+  "cases": [],
+  "case_schema": {
+    "case_id": "stable non-identifying identifier",
+    "pathway": "provider_bank_exhausted | composition_exception | individual_provider_failure | other_deterministic_path",
+    "case_origin": "simulated | approved_deidentified_test_case",
+    "query": "question text; remove personal and sensitive details",
+    "candidates": [
+      {
+        "candidate_id": "stable candidate label",
+        "title": "canonical title",
+        "url": "canonical URL",
+        "text": "evidence text used for comparison"
+      }
+    ],
+    "baseline": {
+      "selector": "unchanged deterministic selector identifier/version",
+      "selected_candidate_id": "candidate_id or null",
+      "selection_reason": "recorded or reproducible reason"
+    },
+    "shadow": {
+      "scorer": "guide_fuzzy_relevance scorer version/commit",
+      "scores_by_candidate": {
+        "candidate_id": {
+          "overall_shadow_score": 0.0,
+          "dimension_scores": {}
+        }
+      },
+      "selected_candidate_id_if_shadow_ranked": "candidate_id or null; diagnostic counterfactual only"
+    },
+    "review": {
+      "review_status": "pending | independently_reviewed",
+      "reviewer_independent_of_case_author": null,
+      "relevance_by_candidate": {},
+      "rationale": "",
+      "candidate_set_sufficient": null
+    },
+    "correlation_group": null,
+    "notes": "explicit limitations, including why a case is or is not comparable"
+  }
+}

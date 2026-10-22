@@ -104,3 +104,5 @@ jobs:
         run: PYTHONPATH=. python QA/V488_77_BOUNDARY_RESILIENCE_QA.py
       - name: v487.89 specialist-pipe regression probes
         run: PYTHONPATH=. python QA/V487_89_SPECIALIST_PIPE_REGRESSION_TESTS.py
+      - name: Paired Guide selection and visitor-boundary calibration regressions
+        run: PYTHONPATH=. python -m pytest -q -s tests/test_guide_fuzzy_shadow_vs_deterministic_selector.py tests/test_guide_fuzzy_shadow_visitor_boundary_runtime.py tests/test_fuzzy_fallback_replay_simulated_cases.py

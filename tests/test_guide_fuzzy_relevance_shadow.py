@@ -38,3 +38,27 @@ def test_scoring_does_not_modify_candidate():
     before = dict(candidate)
     score_resource_fit(QUERY, candidate)
     assert candidate == before
+
+
+def test_consultation_paraphrases_match_without_relying_on_exact_word_overlap():
+    query = (
+        "A project affects a neighborhood, but organizers planned it without "
+        "hearing from residents. What should happen before moving ahead?"
+    )
+    direct = {
+        "title": "Rights, Consent, and Affected People",
+        "text": (
+            "Protect rights, seek meaningful consent where appropriate, listen to "
+            "affected people, and explain how their input informs decisions."
+        ),
+    }
+    distractor = {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+    }
+    direct_score = score_resource_fit(query, direct)
+    distractor_score = score_resource_fit(query, distractor)
+    assert "consultation_participation" in direct_score
+    assert direct_score["consultation_participation"] > 0.0
+    assert direct_score["consultation_participation"] > distractor_score["consultation_participation"]
+    assert direct_score["overall_shadow_score"] > distractor_score["overall_shadow_score"]

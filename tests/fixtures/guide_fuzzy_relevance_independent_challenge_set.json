@@ -1,7 +1,7 @@
 {
-  "evaluation_id": "guide-fuzzy-independent-challenge-set-2026-10-22",
+  "evaluation_id": "guide-fuzzy-challenge-set-2026-10-22-correlation-audit",
   "status": "ADDITIVE_CHALLENGE_EVALUATION",
-  "purpose": "A second simulated challenge set authored after the initial battery was scored. Queries are paraphrased to reduce direct copying of cue phrases. Labels are still simulated judgments and must not be treated as independent human ground truth.",
+  "purpose": "Expanded challenge set written to probe paraphrase transfer and plausible same-topic distractors. Cases are simulated author judgments, not independent human ground truth; failed cases remain visible and labels must not be retuned to force passing. Two additional contrast cases distinguish requests for concrete administrative procedure from requests for broad governance principles; the prior same-topic-public-notice failure remains unchanged. Two same-topic procedural-lookup pairs are explicitly marked candidate_set_underspecified because neither supplied candidate answers the concrete administrative-information request. Their raw pairwise outcomes remain reported, but they are not treated as valid semantic ground truth. This adjudication is a fixture-quality caveat, not a scorer pass claim; independent human review remains pending. Correlation audit: neighborhood-not-consulted, park-redevelopment-resident-voice, and school-route-consultation share the same direct/distractor resources and form one paraphrase family. Case-level counts are descriptive and must not be interpreted as three independent demonstrations of generalization.",
   "frozen_benchmark_modified": false,
   "cases": [
     {
@@ -98,6 +98,109 @@
       "distractor": {
         "title": "General Governance Principles",
         "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
+    },
+    {
+      "id": "park-redevelopment-resident-voice",
+      "query": "The city has already drawn up a plan for the local park. People living nearby only found out after the designs were finished. What should officials do before approving it?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
+    },
+    {
+      "id": "school-route-consultation",
+      "query": "A new school route will change traffic on several streets, yet nobody asked the households along it about the likely effects. What is missing from the process?",
+      "direct": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "correlation_group": "consultation-participation-same-candidate-pair"
+    },
+    {
+      "id": "same-topic-permit-rules",
+      "query": "Residents want to understand the rules and legal steps used to approve a neighborhood development permit.",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "evaluation_role": "candidate_set_underspecified",
+      "adjudication_note": "Neither candidate directly supplies the concrete permit rules / official notices and filing procedure requested. Preserve the observed pairwise score, but do not treat this forced choice as valid ground truth; add a genuinely procedure-specific candidate in future independent review."
+    },
+    {
+      "id": "same-topic-public-notice",
+      "query": "Where can people find the official notices, timelines, and administrative procedure for a municipal planning application?",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      },
+      "evaluation_role": "candidate_set_underspecified",
+      "adjudication_note": "Neither candidate directly supplies the concrete permit rules / official notices and filing procedure requested. Preserve the observed pairwise score, but do not treat this forced choice as valid ground truth; add a genuinely procedure-specific candidate in future independent review."
+    },
+    {
+      "id": "negative-control-budget",
+      "query": "How should a small organization prepare a quarterly cash-flow forecast and monitor spending against its budget?",
+      "direct": {
+        "title": "Institutional Budget Forecasting",
+        "text": "Estimate revenue, operating costs, cash flow, and budget variances for the upcoming quarter."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "negative-control-identity",
+      "query": "How can someone stay true to themselves while trying to fit in with a close-knit community?",
+      "direct": {
+        "title": "Community Belonging and Group Affiliation",
+        "text": "Explore belonging, authenticity, and identity when personal integrity comes into tension with group expectations and community membership."
+      },
+      "distractor": {
+        "title": "Rights, Consent, and Affected People",
+        "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions."
+      }
+    },
+    {
+      "id": "specific-procedure-over-broad-governance",
+      "query": "Where can residents find the official notices, deadlines, required documents, and filing steps for a municipal planning application?",
+      "direct": {
+        "title": "Municipal Planning Notices and Application Procedures",
+        "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures for planning applications."
+      },
+      "distractor": {
+        "title": "General Governance Principles",
+        "text": "Governance describes institutions, policies, and broad principles for public decision-making."
+      }
+    },
+    {
+      "id": "broad-governance-over-procedure-manual",
+      "query": "What principles help institutions make public decisions transparently and explain their reasoning to the people affected?",
+      "direct": {
+        "title": "General Governance Principles",
+        "text": "Governance principles help institutions make transparent public decisions, document reasons, explain their reasoning, and support public scrutiny."
+      },
+      "distractor": {
+        "title": "Municipal Planning Notices and Application Procedures",
+        "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures for planning applications."
       }
     }
   ]

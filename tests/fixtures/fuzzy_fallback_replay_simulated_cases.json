@@ -1,0 +1,225 @@
+{
+  "evaluation_id": "simulated-fallback-replay-v1",
+  "status": "SIMULATED_DIAGNOSTIC_ONLY",
+  "purpose": "Offline replay of deliberately simulated fallback-path scenarios. Candidate relevance labels are author-authored expectations, not independent human ground truth or observed production cases.",
+  "production_data_present": false,
+  "independent_human_review": "pending",
+  "cases": [
+    {
+      "case_id": "sim-exhaustion-consultation",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "The council planned a project affecting residents without asking them first. What should happen before approval?",
+      "expected_relevant_candidate_id": "affected-people",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "affected-people",
+          "title": "Rights, Consent, and Affected People",
+          "text": "Listen to affected people, seek meaningful consent where appropriate, and explain how their input informs decisions.",
+          "url": "https://geralddaquila.com/evaluation/fallback/affected-people/"
+        },
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance/"
+        }
+      ],
+      "correlation_group": "simulated-consultation-family",
+      "notes": "Simulated case; do not count as independent human-reviewed evidence."
+    },
+    {
+      "case_id": "sim-exhaustion-procedure",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "Where can residents find official notices, filing deadlines, required documents, and steps for a municipal planning application?",
+      "expected_relevant_candidate_id": "procedure-manual",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "procedure-manual",
+          "title": "Municipal Planning Notices and Application Procedures",
+          "text": "Find official municipal planning notices, application timelines, filing deadlines, required documents, and step-by-step administrative procedures.",
+          "url": "https://geralddaquila.com/evaluation/fallback/procedure-manual/"
+        },
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated case; intentionally concrete procedural request."
+    },
+    {
+      "case_id": "sim-composition-exception-repair",
+      "pathway": "composition_exception",
+      "case_origin": "simulated",
+      "query": "A settlement closes a case but leaves the affected people with losses that were never repaired. What should happen next?",
+      "expected_relevant_candidate_id": "meaningful-repair",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "meaningful-repair",
+          "title": "Restorative Justice and Meaningful Repair",
+          "text": "Meaningful repair listens to harmed people, understands actual losses, and revises restitution or redress when the proposed remedy does not meet their needs.",
+          "url": "https://geralddaquila.com/evaluation/fallback/meaningful-repair/"
+        },
+        {
+          "candidate_id": "budget-forecast",
+          "title": "Institutional Budget Forecasting",
+          "text": "Estimate revenue, operating costs, and budget variances for the next financial year.",
+          "url": "https://geralddaquila.com/evaluation/fallback/budget-forecast/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated composition-exception recovery; no real provider exception was observed."
+    },
+    {
+      "case_id": "sim-individual-provider-failure-budget",
+      "pathway": "individual_provider_failure",
+      "case_origin": "simulated",
+      "query": "How should a small organization prepare a quarterly cash-flow forecast and monitor spending against its budget?",
+      "expected_relevant_candidate_id": "budget-forecast",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "budget-forecast",
+          "title": "Institutional Budget Forecasting",
+          "text": "Estimate revenue, operating costs, cash flow, and budget variances for the upcoming quarter.",
+          "url": "https://geralddaquila.com/evaluation/fallback/budget-forecast-2/"
+        },
+        {
+          "candidate_id": "affected-people",
+          "title": "Rights, Consent, and Affected People",
+          "text": "Protect rights, seek meaningful consent where appropriate, listen to affected people, and explain how their input informs decisions.",
+          "url": "https://geralddaquila.com/evaluation/fallback/affected-people-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Reported separately; individual provider failure is not equivalent to provider-bank exhaustion."
+    },
+    {
+      "case_id": "sim-exhaustion-lexical-false-improvement",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "How can people living nearby have a meaningful say before a project is approved?",
+      "expected_relevant_candidate_id": "participation-framework",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "participation-framework",
+          "title": "Meaningful Community Participation",
+          "text": "A fair process gives people affected by a decision a meaningful opportunity to contribute before approval and explains how their input informs the outcome.",
+          "url": "https://geralddaquila.com/evaluation/fallback/participation-framework/"
+        },
+        {
+          "candidate_id": "project-status-updates",
+          "title": "Project Updates for Nearby Residents",
+          "text": "Project updates help nearby residents follow project milestones, project budgets, and project status after decisions have been made.",
+          "url": "https://geralddaquila.com/evaluation/fallback/project-status-updates/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Deliberately tests whether lexical overlap with residents/project can outweigh the intended consultation relevance. Author-authored expectation only; inspect actual scorer output rather than presuming a false improvement."
+    },
+    {
+      "case_id": "sim-exhaustion-no-sufficient-candidate",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "What exact form and filing deadline does my town require for a shoreline construction permit this year?",
+      "expected_relevant_candidate_id": null,
+      "candidate_set_sufficient": false,
+      "candidates": [
+        {
+          "candidate_id": "broad-governance",
+          "title": "General Governance Principles",
+          "text": "Governance describes institutions, policies, and broad principles for public decision-making.",
+          "url": "https://geralddaquila.com/evaluation/fallback/broad-governance-3/"
+        },
+        {
+          "candidate_id": "project-status-updates",
+          "title": "Project Updates for Nearby Residents",
+          "text": "Project updates help nearby residents follow project milestones, project budgets, and project status after decisions have been made.",
+          "url": "https://geralddaquila.com/evaluation/fallback/project-status-updates-2/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Neither candidate supplies the requested town-specific form or deadline. Conservative outcome is no recommendation; scorer rank is diagnostic only."
+    },
+    {
+      "case_id": "sim-exhaustion-title-overlap-decoy",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "What filing deadline applies to the shoreline permit this year, and which form must I submit?",
+      "expected_relevant_candidate_id": "shoreline-current-instructions",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "shoreline-current-instructions",
+          "title": "Shoreline Permit Application Instructions",
+          "text": "For this year's shoreline construction permit, submit form SH-4 by June 30. The application must include the site plan and erosion-control checklist.",
+          "url": "https://geralddaquila.com/evaluation/fallback/shoreline-current-instructions/"
+        },
+        {
+          "candidate_id": "shoreline-deadline-decoy",
+          "title": "Shoreline Permit Filing Deadline This Year",
+          "text": "This overview explains that public notices, filing deadlines, and application rules are important, but it does not state the current deadline or identify the required form.",
+          "url": "https://geralddaquila.com/evaluation/fallback/shoreline-deadline-decoy/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Adversarial simulated case: decoy title closely matches the query but body explicitly lacks the requested current deadline and form. Candidate relevance expectation is author-authored; verify the shadow ranking and retain even if the scorer does not fail."
+    },
+    {
+      "case_id": "sim-exhaustion-outdated-procedure",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "What is the current filing deadline and required form for the municipal shoreline permit?",
+      "expected_relevant_candidate_id": "current-permit-guide",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "current-permit-guide",
+          "title": "Current Shoreline Permit Filing Guide",
+          "text": "Current instructions: submit form SH-4 by June 30 this year, with the site plan and erosion-control checklist.",
+          "url": "https://geralddaquila.com/evaluation/fallback/current-permit-guide/"
+        },
+        {
+          "candidate_id": "outdated-permit-notice",
+          "title": "Shoreline Permit Filing Deadline and Required Form",
+          "text": "Archived notice from three years ago: submit form SH-2 by April 15. This notice is superseded and does not describe current requirements.",
+          "url": "https://geralddaquila.com/evaluation/fallback/outdated-permit-notice/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated freshness challenge: query asks current requirements; the highly overlapping alternative is explicitly outdated and superseded. Author-authored expectation; scorer output must be observed, not assumed."
+    },
+    {
+      "case_id": "sim-exhaustion-consultation-negation-decoy",
+      "pathway": "provider_bank_exhausted",
+      "case_origin": "simulated",
+      "query": "Were residents meaningfully consulted before the council approved the redevelopment?",
+      "expected_relevant_candidate_id": "consultation-record",
+      "candidate_set_sufficient": true,
+      "candidates": [
+        {
+          "candidate_id": "consultation-record",
+          "title": "Resident Consultation and Decision Record",
+          "text": "The record lists meetings with residents before approval, documents community input, and explains how their concerns informed the final decision.",
+          "url": "https://geralddaquila.com/evaluation/fallback/consultation-record/"
+        },
+        {
+          "candidate_id": "consultation-policy-decoy",
+          "title": "Resident Consultation Policy",
+          "text": "The policy describes when consultation should occur. It does not establish whether residents were consulted in this specific redevelopment or whether approval followed those meetings.",
+          "url": "https://geralddaquila.com/evaluation/fallback/consultation-policy-decoy/"
+        }
+      ],
+      "correlation_group": null,
+      "notes": "Simulated evidence-sufficiency challenge: general policy language overlaps, but only a case-specific record can answer whether consultation actually occurred. Author-authored expectation; no independent ground truth."
+    }
+  ]
+}
