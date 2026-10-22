@@ -4138,7 +4138,7 @@ def _basic_inquiry_source_dump_recovery(query):
             "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
             "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
         )
-    if re.search(r"\\b(?:same problems?|problems? keep returning|keep coming back|same pattern)\\b", q):
+    if re.search(r"\b(?:same problems?|problems? keep returning|keep coming back|same pattern)\b", q):
         return (
             "A problem can keep returning even when people are trying hard because fixing each incident "
             "does not always change the conditions that reproduce it. Those conditions might include "
