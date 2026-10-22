@@ -392,7 +392,7 @@ def clarification_response(query: str, history_text: str = "") -> Optional[Dict[
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
     if _is_response_preference_without_subject(query, history_text):
-        if re.search(r"\b(?:advice|recommendations)\b", query, re.I):
+        if re.search(r"\\b(?:advice|recommendations)\\b", query, re.I):
             response = (
                 "Of course. I’ll focus on explaining the subject itself rather than "
                 "giving advice. What subject would you like to understand?"
