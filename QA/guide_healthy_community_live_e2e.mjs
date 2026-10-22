@@ -16,6 +16,7 @@ const startedAt = Date.now();
 const elapsed = () => Date.now() - startedAt;
 const apiRequests = [];
 const apiResponses = [];
+const apiBodyReads = [];
 const apiFailures = [];
 const apiFinished = [];
 const pageErrors = [];
@@ -39,11 +40,11 @@ page.on("response", response => {
     bodyReadError: null
   };
   apiResponses.push(record);
-  void response.json().then(payload => {
+  apiBodyReads.push(response.json().then(payload => {
     record.payload = payload;
   }).catch(error => {
     record.bodyReadError = error?.message || String(error);
-  });
+  }));
 });
 page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) {
@@ -80,6 +81,9 @@ try {
     visible: Boolean(node.getClientRects().length)
   }));
   const responseText = await answer.innerText();
+  // The link proves the UI rendered; now wait for the separately captured API
+  // bodies before validating the response contract.
+  await Promise.all(apiBodyReads);
   if (rendered.title !== EXPECTED_TITLE) {
     throw new Error("Live visitor link title mismatch: " + JSON.stringify(rendered));
   }
