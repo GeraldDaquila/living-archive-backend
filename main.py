@@ -3248,8 +3248,19 @@ def _healthy_community_canonical_recommendation(query, context_data):
             eligible.append((metrics[2], metrics[3], metrics[0], metrics[1], title, doorway))
 
         if not eligible:
-            print("The Guide healthy-community canonical recovery: no candidate passed topic fit.")
-            return None
+            # The exact canonical article is already verified and explicitly
+            # approved for this narrowly recognized newcomer query. If WordPress
+            # search omits it, retain that exact pair rather than returning no
+            # recommendation or substituting a generic governance doorway.
+            print(
+                "The Guide healthy-community canonical recovery: using the "
+                "verified exact canonical fallback because search did not return it."
+            )
+            return {
+                "title": preferred_title,
+                "url": preferred_url,
+                "kind": "archive_resource",
+            }
         eligible.sort(key=lambda item: item[:-1], reverse=True)
         selected = eligible[0][-1]
         print(

@@ -125,7 +125,15 @@ def test_healthy_community_recommendation_rejects_unrelated_candidate(monkeypatc
     monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", lambda *_args, **_kwargs: [unrelated])
     monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
 
-    assert main._healthy_community_canonical_recommendation(query, {}) is None
+    result = main._healthy_community_canonical_recommendation(query, {})
+    assert result == {
+        "title": "What Healthy Communities Actually Look Like",
+        "url": (
+            "https://geralddaquila.com/2025/10/07/"
+            "t4-codex-overflow-communities-governance-by-resonance/"
+        ),
+        "kind": "archive_resource",
+    }
 
 
 def test_pure_navigation_is_not_reclassified_as_healthy_community_topic():
