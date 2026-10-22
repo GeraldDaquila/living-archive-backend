@@ -420,6 +420,22 @@ def main():
             required_clause in responsibility_contract,
             f"responsibility-boundary gold-standard clause missing: {required_clause}",
         )
+    # The responsibility boundary is enforced on composed output, not only
+    # requested in the prompt. The generic checklist regression must fail.
+    responsibility_question = "How can a person take responsibility for change without becoming responsible for fixing an entire broken system?"
+    generic_checklist = (
+        "A practical way to approach this is to define the outcome you want, identify the main "
+        "constraint, and choose one step small enough to test. Before acting, consider who else "
+        "is affected and what could go wrong. Check the result against the original goal and "
+        "adjust rather than assuming the first attempt must be final. What detail or context "
+        "would make this question most concrete for you?"
+    )
+    assert_true(composition._requires_responsibility_boundary_answer(responsibility_question), "target responsibility-boundary question was not recognized")
+    assert_true(not composition._has_responsibility_boundary_explanation(generic_checklist), "generic checklist incorrectly passed responsibility-boundary validation")
+    recovered = composition._responsibility_boundary_recovery()
+    assert_true(composition._has_responsibility_boundary_explanation(recovered), "deterministic responsibility-boundary recovery does not satisfy its own contract")
+    assert_true("Noticing that something is broken" in recovered, "recovery does not acknowledge the burden of noticing")
+    assert_true("What part of this situation can you genuinely influence" in recovered, "recovery lacks the specific sphere-of-influence follow-up")
     print("responsibility_boundary_reasoning_contract=PASS")
     print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")

@@ -855,6 +855,48 @@ def _practical_application_recovery() -> str:
     )
 
 
+def _requires_responsibility_boundary_answer(question: str) -> bool:
+    """Recognize the specific agency-versus-system-accountability question."""
+    q = _normalize_space(question).lower()
+    return (
+        "responsibility" in q
+        and "change" in q
+        and ("broken system" in q or "entire system" in q or "whole system" in q)
+    )
+
+
+def _has_responsibility_boundary_explanation(response: str) -> bool:
+    """Require the answer to explain boundaries, not merely prescribe small steps."""
+    text = _normalize_space(response).lower()
+    required_groups = (
+        r"\b(contribution|part you can|within your (?:reach|control|influence)|what you can influence)\b",
+        r"\b(whole system|entire system|system[- ]level|accountability for the system|fix(?:ing)? everything)\b",
+        r"\b(authority|resources|shared responsibility|shared ownership|others? (?:must|need to|have to) (?:take|share|participate))\b",
+        r"\b(limit|limits|fair share|not responsible for|does not make you responsible|doesn't make you responsible)\b",
+        r"\b(what (?:you can|you cannot|others need to)|shared ownership|alongside you|from others)\b",
+    )
+    return all(re.search(pattern, text) for pattern in required_groups)
+
+
+def _responsibility_boundary_recovery() -> str:
+    """Deterministic, question-specific recovery when generation misses the contract."""
+    return (
+        "Noticing that something is broken can leave you feeling responsible for fixing it, "
+        "especially when others seem willing to let the problem continue. But seeing a problem "
+        "does not make you responsible for fixing everything. Your responsibility is for the "
+        "contribution and commitments you can reasonably make; accountability for the wider "
+        "system also belongs to the people and institutions with the authority, resources, and "
+        "shared obligations to change it.\n\n"
+        "For example, you can identify a recurring problem and offer a specific improvement "
+        "without agreeing to own the entire process. It is reasonable to say, “I can take care "
+        "of this part, but the wider change needs a decision and resources from the people "
+        "responsible for it.” Contributing to change is not the same as compensating indefinitely "
+        "for everyone else's inaction.\n\n"
+        "What part of this situation can you genuinely influence, and what would require others "
+        "to take responsibility alongside you?"
+    )
+
+
 def compose(
     *,
     use_core: Any,
@@ -1016,6 +1058,10 @@ def compose(
     }
 
     # Enforce question-type-specific answer contracts on the output.
+    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate["response"]):
+        candidate["response"] = _responsibility_boundary_recovery()
+        candidate["response_shape"] = "explanatory"
+
     if is_conceptual_relationship_question(question):
         if not has_conceptual_relationship_explanation(candidate["response"]):
             candidate["response"] = _conceptual_relationship_recovery()
