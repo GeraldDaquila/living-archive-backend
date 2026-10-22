@@ -12,22 +12,48 @@ const page = await context.newPage();
 page.setDefaultTimeout(60_000);
 page.setDefaultNavigationTimeout(30_000);
 
+const startedAt = Date.now();
+const elapsed = () => Date.now() - startedAt;
 const apiRequests = [];
 const apiResponses = [];
+const apiFailures = [];
+const apiFinished = [];
 const pageErrors = [];
 page.on("pageerror", error => pageErrors.push(error.message));
 page.on("request", request => {
   if (request.method() === "POST" && request.url().includes("/api/query")) {
     let body = {};
     try { body = JSON.parse(request.postData() || "{}"); } catch {}
-    apiRequests.push({ url: request.url(), body });
+    apiRequests.push({ url: request.url(), body, atMs: elapsed() });
   }
 });
-page.on("response", async response => {
+page.on("response", response => {
   if (!response.url().includes("/api/query")) return;
-  let payload = null;
-  try { payload = await response.json(); } catch {}
-  apiResponses.push({ url: response.url(), status: response.status(), payload });
+  // Record headers/status synchronously; body parsing must never hide the fact
+  // that a response arrived from the failure diagnostics.
+  const record = {
+    url: response.url(),
+    status: response.status(),
+    atMs: elapsed(),
+    payload: null,
+    bodyReadError: null
+  };
+  apiResponses.push(record);
+  void response.json().then(payload => {
+    record.payload = payload;
+  }).catch(error => {
+    record.bodyReadError = error?.message || String(error);
+  });
+});
+page.on("requestfailed", request => {
+  if (request.url().includes("/api/query")) {
+    apiFailures.push({ url: request.url(), atMs: elapsed(), error: request.failure()?.errorText || "unknown" });
+  }
+});
+page.on("requestfinished", request => {
+  if (request.url().includes("/api/query")) {
+    apiFinished.push({ url: request.url(), atMs: elapsed() });
+  }
 });
 
 try {
@@ -78,12 +104,17 @@ try {
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
     rendered,
+    elapsedMs: elapsed(),
     apiRequests,
     apiResponses: apiResponses.map(item => ({
       url: item.url,
       status: item.status,
-      recommendation: item.payload?.recommendation
+      atMs: item.atMs,
+      recommendation: item.payload?.recommendation,
+      bodyReadError: item.bodyReadError
     })),
+    apiFailures,
+    apiFinished,
     answerLength: responseText.length,
     pageErrors
   }));
@@ -91,12 +122,17 @@ try {
   console.error(JSON.stringify({
     stage: "live_e2e_failed",
     message: error.message,
+    elapsedMs: elapsed(),
     apiRequests,
     apiResponses: apiResponses.map(item => ({
       url: item.url,
       status: item.status,
-      recommendation: item.payload?.recommendation
+      atMs: item.atMs,
+      recommendation: item.payload?.recommendation,
+      bodyReadError: item.bodyReadError
     })),
+    apiFailures,
+    apiFinished,
     pageErrors
   }));
   process.exitCode = 1;
