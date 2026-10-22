@@ -887,6 +887,8 @@ def _requires_responsibility_boundary_answer(question: str) -> bool:
     return systemic_scope and change_frame and (individual_agency or agency_limit)
 
 
+# Deterministic and provider-exhaustion routes can bypass this composer; the final
+# visitor response boundary in main.py owns cross-path question-specific enforcement.
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
