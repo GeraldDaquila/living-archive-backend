@@ -50,7 +50,7 @@ def test_frozen_stewardship_record_matches_authoritative_fixture_exactly():
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"]["title"] == fixture["expected_doorway_title"]
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
 
 
 def test_recovered_compound_stewardship_record_preserves_evidence_boundary():
@@ -62,7 +62,7 @@ def test_recovered_compound_stewardship_record_preserves_evidence_boundary():
     assert record["status"] == "RECOVERED_HISTORICAL_RESPONSE"
     assert record["query"] == "What is stewardship and why does it matter now more than ever?"
     assert len(record["expected_response"]) == 861
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/level-1-case-catalog/"
     assert "do not independently prove the exact live response text" in record["provenance"]["evidence_boundary"]
 
@@ -74,5 +74,5 @@ def test_reciprocity_record_is_explicit_about_unmerged_source():
         if item["benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
     )
     assert record["status"] == "FROZEN_REFERENCE_ONLY"
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert "open, unmerged historical PR branch" in record["provenance"]["caveat"]
