@@ -3125,6 +3125,39 @@ def _is_navigator_orientation_request(query):
 
 
 
+def _is_healthy_community_orientation_question(query):
+    """Recognize a substantive healthy-community question from a newcomer."""
+    q = _normalize_query(query)
+    topic = re.search(
+        r"\b(?:healthier communities|healthy communities|healthy community|"
+        r"healthier community|health of (?:a |the )?community|"
+        r"healthy (?:community|communal) environment)\b",
+        q,
+        re.I,
+    )
+    asks_for_orientation = re.search(
+        r"\b(?:i(?:'m| am) new|don't know (?:its|the) vocabulary|"
+        r"do not know (?:its|the) vocabulary|where to begin|where do i begin|"
+        r"where should i start|where to start|want to know|want to understand|"
+        r"care about|how do i know|how to create|how to recognize)\b",
+        q,
+        re.I,
+    )
+    return bool(topic and asks_for_orientation)
+
+
+def _healthy_community_answer_recovery():
+    """Accessible first answer for newcomers asking about healthy communities."""
+    return (
+        "A healthy community is not simply one where people always agree or where conflict never happens. "
+        "It is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. "
+        "You can begin to recognize one by looking at whose voices are heard, how people share responsibility, whether people feel safe enough to disagree, "
+        "and what happens when someone is excluded or harmed. A healthy community takes those effects seriously and works to address them rather than hiding them. "
+        "You do not need to know the Living Archive's vocabulary to begin exploring this. A useful next step is to look at what healthy communities actually look like in everyday life. "
+        "If you would like to explore the Archive more broadly afterward, the Living Archive Navigator can help you find other perspectives."
+    )
+
+
 def _has_substantive_topic_intent(query):
     """Keep a meaningful subject inquiry in The Guide before offering orientation.
 
@@ -6457,6 +6490,26 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             print("The Guide final relationship-answer boundary: suppressed unrequested doorway.")
+
+    # Final newcomer/topic contract: answer the expressed subject before generic
+    # uncertainty recovery can send the visitor back to intake or ask them to restate it.
+    if _is_healthy_community_orientation_question(query):
+        response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
+        # The answer itself is the primary result. Only retain a selected doorway
+        # when its title clearly matches the visitor's stated subject.
+        _doorway_title_for_topic = str(
+            (authoritative_doorway or {}).get("title")
+            or composition_context.get("authoritative_doorway_title")
+            or ""
+        ).casefold()
+        if _doorway_title_for_topic and not any(
+            term in _doorway_title_for_topic
+            for term in ("healthy communit", "community health", "communal health")
+        ):
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            print("The Guide healthy-community boundary: suppressed unrelated doorway.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
