@@ -6692,6 +6692,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
 
+    # Final responsibility-boundary contract at the shared visitor-response boundary.
+    # This must run after every generation/recovery pathway, including the bounded
+    # practical-stewardship shortcut above. Composition-only validation is insufficient
+    # because that shortcut deliberately bypasses general_guide_composition.compose.
+    if general_guide_composition._requires_responsibility_boundary_answer(query):
+        if not general_guide_composition._has_responsibility_boundary_explanation(response):
+            response = _sanitize_basic_inquiry_response(
+                general_guide_composition._responsibility_boundary_recovery()
+            )
+            print(
+                "The Guide final responsibility-boundary gate: replaced "
+                "nonconforming answer after all response pathways."
+            )
+        if not general_guide_composition._has_responsibility_boundary_explanation(response):
+            raise RuntimeError(
+                "Basic Inquiry responsibility-boundary contract failed at final response boundary."
+            )
+
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
