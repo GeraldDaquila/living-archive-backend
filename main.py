@@ -5168,6 +5168,16 @@ def _general_guide_authoritative_doorway(query, context_data):
             # A missing recommendation is preferable to an unrelated doorway.
             # The caller keeps the answer intact and serializes no recommendation.
             print("The Guide canonical doorway: no candidate passed relevance after bounded search recovery.")
+            # Record the no-selection outcome too, so shadow evaluation can
+            # distinguish an absent doorway from a disagreement on a selection.
+            try:
+                _record_guide_fuzzy_shadow_comparison(
+                    query=query,
+                    candidates=shadow_observation_candidates,
+                    selected=None,
+                )
+            except Exception:
+                pass
             return None
 
         # Best-effort shadow observation only: never feeds back into selection.
