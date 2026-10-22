@@ -67,8 +67,11 @@ def test_healthy_community_recommendation_uses_exact_canonical_pair(monkeypatch)
         ),
         "text": (
             "Healthy communities depend on participation, governance, belonging, "
-            "shared responsibility, and meaningful voice in public life. " * 8
-        ),
+            "shared responsibility, and meaningful voice in public life. "
+            "Community governance needs participation and shared responsibility. "
+            "Healthy communities make room for belonging, disagreement, and voice. "
+            "People affected by decisions should be heard before shared rules change. "
+        ) * 8,
         "kind": "archive_resource",
     }
     calls = []
