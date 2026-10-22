@@ -988,7 +988,11 @@ def compose(
         # Practical how-to questions are answer-first requests, not resource
         # discovery. Do not attach a service doorway unless the visitor asked
         # to find or contact a resource.
-        if not is_resource_discovery_question(question):
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            question,
+            re.I,
+        ):
             candidate["doorway_title"] = ""
 
     # If identical requests arrive concurrently, the first validated answer
