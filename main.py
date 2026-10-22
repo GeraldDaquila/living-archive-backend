@@ -2932,7 +2932,7 @@ def _is_fsd_request(query):
             r"\b(?:person|people|individuals?|we|i|you|someone|one)\b.{0,100}"
             r"\b(?:responsib(?:le|ility)|accountab(?:le|ility)|"
             r"contribut(?:e|ion|ing)|agency|role|burden|obligation|"
-            r"fix(?:ing)?|chang(?:e|ing)|help|act|participat(?:e|ion))\\b",
+            r"fix(?:ing)?|chang(?:e|ing)|help|act|participat(?:e|ion))\b",
             q,
             re.I,
         )
