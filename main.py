@@ -10,6 +10,7 @@ import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
+from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
 from urllib.parse import quote
@@ -5070,6 +5071,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         # deliberately do not alter hard gates, candidate ordering, or selection.
         for _candidate in evidence_docs:
             _candidate["_fuzzy_relevance_shadow"] = _score_guide_fuzzy_relevance_shadow(query, _candidate)
+        shadow_observation_candidates = list(evidence_docs)
 
         comparative_subjects = _comparative_subject_terms(query)
         if comparative_subjects:
@@ -5132,6 +5134,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             # remain diagnostic only and do not affect candidate eligibility.
             for _candidate in evidence_docs:
                 _candidate["_fuzzy_relevance_shadow"] = _score_guide_fuzzy_relevance_shadow(query, _candidate)
+            shadow_observation_candidates.extend(evidence_docs)
 
             # Recovery is a candidate source, not authority: reapply every
             # subject-specific gate after it has contributed candidates.
@@ -5165,7 +5168,28 @@ def _general_guide_authoritative_doorway(query, context_data):
             # A missing recommendation is preferable to an unrelated doorway.
             # The caller keeps the answer intact and serializes no recommendation.
             print("The Guide canonical doorway: no candidate passed relevance after bounded search recovery.")
+            # Record the no-selection outcome too, so shadow evaluation can
+            # distinguish an absent doorway from a disagreement on a selection.
+            try:
+                _record_guide_fuzzy_shadow_comparison(
+                    query=query,
+                    candidates=shadow_observation_candidates,
+                    selected=None,
+                )
+            except Exception:
+                pass
             return None
+
+        # Best-effort shadow observation only: never feeds back into selection.
+        # The observer hashes the query and resource URLs and swallows all errors.
+        try:
+            _record_guide_fuzzy_shadow_comparison(
+                query=query,
+                candidates=shadow_observation_candidates,
+                selected=primary,
+            )
+        except Exception:
+            pass
 
         # Titles are plain text in the public JSON contract: decode HTML
         # entities and remove emoji/decorative symbols at the boundary.
