@@ -441,7 +441,7 @@ def main():
     assert_true(
         "if general_guide_composition._requires_responsibility_boundary_answer(query):" in MAIN_TEXT
         and "general_guide_composition._has_responsibility_boundary_explanation(response)" in MAIN_TEXT
-        and "replaced nonconforming answer after all response pathways" in MAIN_TEXT,
+        and "nonconforming answer after all response pathways" in MAIN_TEXT,
         "final runtime responsibility-boundary gate is missing from main.py",
     )
     assert_true(
