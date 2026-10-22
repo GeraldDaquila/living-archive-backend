@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c";
-const API_PATTERN = /\/api\/query(?:\?|$)/;
+const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
