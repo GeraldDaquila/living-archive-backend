@@ -883,7 +883,7 @@ def _responsibility_boundary_recovery() -> str:
     return (
         "Noticing that something is broken can leave you feeling responsible for fixing it, "
         "especially when others seem willing to let the problem continue. But seeing a problem "
-        "does not make the whole system yours to repair. Your responsibility is for the "
+        "does not make you responsible for fixing everything. Your responsibility is for the "
         "contribution and commitments you can reasonably make; accountability for the wider "
         "system also belongs to the people and institutions with the authority, resources, and "
         "shared obligations to change it.\n\n"
