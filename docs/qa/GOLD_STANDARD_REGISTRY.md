@@ -251,3 +251,16 @@ These are useful reference material, but they are **additive evaluation fixtures
 ### E2E registry rule
 
 The existing workflow `.github/workflows/live-guide-dual-service-e2e.yml` is part of the preserved E2E infrastructure. Registry adoption must add a pinned registry revision/hash to test evidence without replacing the lightweight release-identity gate or dropping visitor-journey checks. A workflow success from October 2026 is historical provenance only; future registry reports must identify the tested application commit, runtime fingerprint, registry revision/hash, exact scenario IDs, and whether the test was API-level or browser-level.
+
+
+## J. Historical E2E payload recovery result
+
+The historical run was inspected directly rather than inferred from its summary:
+
+- Run [38645881872](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881872), job `116203181984`, completed successfully on October 15, 2026.
+- Its decoded job log contains the echoed Python test script and summary lines showing `response_chars=861`, three paragraphs, and the Foundational Stewardship Cases recommendation for both primary and backup.
+- The job log does **not** print or preserve the response body. The run exposes no workflow artifacts.
+- The separate run [38645881798](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881798) also exposes no workflow artifacts; its job is a broad v487 validation suite, not a response-body archive.
+- The current workflow source confirms that the relevant assertions inspect the response in memory and print only length/paragraph/recommendation metadata. It does not write the body to a retained artifact.
+
+**Conclusion:** These historical runs cannot supply a verbatim 861-character answer. They are valid behavioral/provenance evidence, but not a text fixture. Keep GS-GUIDE-001 marked as exact-text recovery pending until an authoritative response body is located. Do not weaken this distinction by using a newly generated response or the separate no-navigation stewardship fixture.
