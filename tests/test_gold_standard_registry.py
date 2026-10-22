@@ -76,3 +76,54 @@ def test_reciprocity_record_is_explicit_about_unmerged_source():
     assert record["status"] == "FROZEN_REFERENCE_ONLY"
     assert len(record["expected_response"].split("\n\n")) == 3
     assert "open, unmerged historical PR branch" in record["provenance"]["caveat"]
+
+
+
+def test_identity_report_pins_registry_hash_and_explicit_application_identity(tmp_path):
+    import hashlib
+    import subprocess
+    import sys
+
+    report_path = tmp_path / "registry-report.json"
+    script_path = ROOT / "scripts" / "qa" / "report_gold_standard_registry.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script_path),
+            "--application-commit",
+            "test-app-commit-123",
+            "--runtime-identity",
+            "test-runtime-primary",
+            "--output",
+            str(report_path),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    registry_bytes = REGISTRY_PATH.read_bytes()
+
+    assert report["application_commit"] == "test-app-commit-123"
+    assert report["runtime_identity"] == "test-runtime-primary"
+    assert report["registry_sha256"] == hashlib.sha256(registry_bytes).hexdigest()
+    assert report["benchmark_count"] == len(_registry()["records"])
+    assert any("does not itself assert that tests passed" in item for item in report["limitations"])
+
+
+def test_identity_report_refuses_to_guess_application_identity():
+    import subprocess
+    import sys
+
+    script_path = ROOT / "scripts" / "qa" / "report_gold_standard_registry.py"
+    completed = subprocess.run(
+        [sys.executable, str(script_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode != 0
+    assert "supply --application-commit and --runtime-identity" in completed.stderr
