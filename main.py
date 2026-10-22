@@ -4072,10 +4072,18 @@ def _guide_finalize_visitor_payload(payload, query):
     ):
         return payload
 
-    recovered = _basic_inquiry_round1_deterministic_response(
-        query, {}, {"context_blocks": ""}, recommendation_available=False
-    )
-    response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
+    # If executable/template text escaped into the answer, bypass the same
+    # composition path and use the dedicated safe recovery for the visitor's query.
+    if _basic_inquiry_has_source_dump(response_text):
+        response = _sanitize_basic_inquiry_response(
+            _basic_inquiry_source_dump_recovery(query)
+        )
+        recovered = {}
+    else:
+        recovered = _basic_inquiry_round1_deterministic_response(
+            query, {}, {"context_blocks": ""}, recommendation_available=False
+        )
+        response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
     if (
         not response
         or _basic_inquiry_has_internal_annotation(response)
