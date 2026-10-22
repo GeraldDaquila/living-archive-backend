@@ -6213,17 +6213,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
             if discovery_subject and authoritative_doorway:
-                doorway_docs = _wordpress_search_canonical_candidates(
-                    authoritative_doorway.get("title") or "", limit=3
-                )
-                # Search may rank around a destination without returning that
-                # exact page in its bounded slice. Fetch the already-authorized
-                # URL directly, then let the same URL/body/subject-fit checks
-                # decide whether it can support the discovery answer.
+                # Fetch the exact, already-authorized canonical destination first.
+                # A second WordPress search for its title repeats search plus
+                # candidate-body requests when the direct page fetch succeeds.
+                # Keep that search as a recovery path only when the direct fetch
+                # fails; all returned documents still pass the same downstream
+                # URL, body, frame-neutral, and subject-fit checks.
                 direct_body = _wordpress_fetch_selected_canonical_body(
                     authoritative_doorway.get("url") or ""
                 )
                 direct_selected_body = direct_body if isinstance(direct_body, dict) else None
+                doorway_docs = []
+                if direct_selected_body is None:
+                    doorway_docs = _wordpress_search_canonical_candidates(
+                        authoritative_doorway.get("title") or "", limit=3
+                    )
                 recovered_docs = (
                     ([direct_body] if isinstance(direct_body, dict) else [])
                     + list(doorway_docs)
