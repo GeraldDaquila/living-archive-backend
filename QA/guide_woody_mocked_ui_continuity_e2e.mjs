@@ -17,6 +17,9 @@ const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const HEALTHY_COMMUNITY_QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
 const HEALTHY_COMMUNITY_TITLE = "What Healthy Communities Actually Look Like";
 const HEALTHY_COMMUNITY_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
+const HEALTHY_COMMUNITY_QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
+const HEALTHY_COMMUNITY_TITLE = "What Healthy Communities Actually Look Like";
+const HEALTHY_COMMUNITY_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
@@ -453,7 +456,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 4) throw new Error("Expected exactly 4 intercepted API requests, got " + apiRequests.length);
+  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests including the healthy-community link check, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
