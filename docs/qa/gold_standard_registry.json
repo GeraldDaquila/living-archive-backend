@@ -108,6 +108,61 @@
         "evidence_boundary": "Exact response string is present in the historical v489.286 deterministic recovery implementation. This establishes wording in source, not that the historical live response body was independently archived or that a destination was approved."
       },
       "freeze_policy": "Preserve recovered source wording. Do not promote to FROZEN_CONFIRMED or assign a fixed doorway without the original approval/rating record."
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-application-2026-10-22",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "expected_response": "Start with one recurring situation where trust matters, such as a decision that affects a team. Ask the people affected what they see before deciding, and separate observable facts from assumptions. Explain the reasons for the decision, name who is responsible for the next step, and follow through when promised. Then check with the people affected whether the action changed their experience; good intentions alone are not evidence that trust has improved. Where would this make the biggest difference right now: decision-making, handling disagreement, or responding when something goes wrong?",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Behavioral reference is the accepted live response recorded as Gold Standard #20; do not treat wording as a mandatory template.",
+        "At least two concrete, observable organizational actions precede the focused follow-up.",
+        "Address what the visitor could do differently before asking a follow-up.",
+        "Do not attach an unsolicited service doorway to a practical how-to question.",
+        "Evaluate recommendation relevance separately from answer quality."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_practical_trust_gold_standard.json",
+        "source_ref": "qa/register-gold-standard-20",
+        "source_commit": "113039181ea810563726e48b77786de789d4aeba",
+        "source_status": "open, unmerged PR #777",
+        "approval_record": "Gold Standard #20, accepted live visitor screenshot dated 2026-10-22; rating 9/10",
+        "caveat": "Recovered from an open PR branch. This registry record does not imply the source PR is merged or present on main."
+      },
+      "freeze_policy": "Preserve the observed accepted response and behavioral invariants. Do not rewrite to accommodate regressions; this is a behavioral reference, not a rigid answer template."
+    },
+    {
+      "benchmark_id": "general-guide-conceptual-accountability-trust-harm-repair-2026-10-22",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "How might accountability, trust, and the ability to repair harm reinforce one another?",
+      "expected_response": "Accountability, trust, and repairing harm reinforce one another when responsibility leads to visible action. Accountability starts with acknowledging what happened, who was affected, and what responsibility belongs to whom, rather than minimizing the impact or shifting blame. That makes trust more credible because people can judge what someone does, not just what they promise. When harm occurs, repair turns accountability into action: listen to the people affected, address the consequences, and change what allowed the harm to happen. Following through gives people evidence that the harm was taken seriously. Trust may then become possible again—not because the harm is forgotten, but because people can see that responsibility led to meaningful change. Are you thinking about this in an organization, a close relationship, or a wider community?",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Behavioral reference is the accepted live response recorded as Gold Standard #21; do not treat wording as a mandatory template.",
+        "Explain the mechanism connecting the concepts, not merely their definitions.",
+        "Connect accountability to visible responsibility, trust to observable behavior, and repair to addressing consequences and preventing recurrence.",
+        "Do not imply that repair erases harm or guarantees trust will return.",
+        "End with at most one focused contextual follow-up.",
+        "Do not attach a resource doorway unless the visitor explicitly asks for one."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_conceptual_relationship_gold_standard.json",
+        "source_ref": "qa/register-gold-standard-21-conceptual-relationships",
+        "source_commit": "8535fc8343f7bfb45a52eb86fa83964f3729511a",
+        "source_status": "open, unmerged PR #779",
+        "approval_record": "Gold Standard #21, accepted live visitor screenshot dated 2026-10-22; rating 9.5/10",
+        "caveat": "Recovered from an open PR branch. This registry record does not imply the source PR is merged or present on main."
+      },
+      "freeze_policy": "Preserve the observed accepted response and behavioral invariants. Do not weaken invariants to accommodate regressions; this is a behavioral reference, not a rigid answer template."
     }
   ]
 }
