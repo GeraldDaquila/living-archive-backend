@@ -82,6 +82,32 @@
         "evidence_boundary": "Historical source answer exactly matches the frozen stewardship fixture; E2E logs corroborate response length, paragraph count, and destination, but do not independently prove the exact live response text."
       },
       "freeze_policy": "Recovered historical benchmark. Do not silently promote its approval status or modify expected_response."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-disagreement-protection-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "query": "What does stewardship look like when people disagree about what is worth protecting?",
+      "expected_response": "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\nA practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\nPeople may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Exactly three paragraphs; answer wording is recovered from the historical deterministic response branch, not newly generated.",
+        "Addresses disagreement about what is worth protecting, competing values and responsibilities, trade-offs, and a fair decision process.",
+        "Any destination recommendation must be verified separately; the historical branch returns a context-derived doorway title, so this source does not establish a fixed canonical destination.",
+        "Keep this conflict-specific answer distinct from the general stewardship-definition benchmark."
+      ],
+      "provenance": {
+        "source_path": "main.py",
+        "source_ref": "537f244d6b5ad21e3b7745af518dd54d1d4c9c55",
+        "source_location": "lines 4047-4054",
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/blob/537f244d6b5ad21e3b7745af518dd54d1d4c9c55/main.py",
+        "source_status": "RECOVERED_HISTORICAL_RESPONSE",
+        "evidence_boundary": "Exact response string is present in the historical v489.286 deterministic recovery implementation. This establishes wording in source, not that the historical live response body was independently archived or that a destination was approved."
+      },
+      "freeze_policy": "Preserve recovered source wording. Do not promote to FROZEN_CONFIRMED or assign a fixed doorway without the original approval/rating record."
     }
   ]
 }
