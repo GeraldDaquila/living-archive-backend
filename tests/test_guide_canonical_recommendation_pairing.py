@@ -42,3 +42,33 @@ def test_non_archive_or_non_https_url_is_rejected():
         "title": "What Healthy Communities Actually Look Like",
         "url": "http://example.com/healthy-communities",
     }) is None
+
+
+def test_exact_newcomer_query_matches_healthy_community_answer_and_canonical_pair():
+    query = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin."
+    doorway = {
+        "title": "What Healthy Communities Actually Look Like",
+        "url": "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/",
+    }
+    assert main._is_healthy_community_orientation_question(query)
+    assert main._healthy_community_recommendation_pair(doorway) == doorway
+    answer = main._healthy_community_answer_recovery()
+    assert "participate" in answer
+    assert "disagree" in answer
+    assert "excluded or harmed" in answer
+
+
+def test_unrelated_doorway_is_rejected_for_healthy_community_query():
+    unrelated = {
+        "title": "Learning to Receive Without Feeling Guilty",
+        "url": "https://geralddaquila.com/2026/01/01/receiving/",
+    }
+    assert main._healthy_community_recommendation_pair(unrelated) is None
+
+
+def test_living_archive_navigator_remains_distinct_from_healthy_community_resource():
+    navigator = {
+        "title": "Living Archive Navigator",
+        "url": "https://geralddaquila.com/living-archive-navigator/",
+    }
+    assert main._healthy_community_recommendation_pair(navigator) is None
