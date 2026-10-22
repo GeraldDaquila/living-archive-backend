@@ -3150,6 +3150,46 @@ def _healthy_community_recommendation_pair(doorway):
     return result
 
 
+def _healthy_community_verified_doorway(subject):
+    """Select the registered canonical community resource through existing Guide checks."""
+    expected_title = "What Healthy Communities Actually Look Like"
+    expected_url = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
+    matching_nodes = [
+        node for node in _guide_node_registry_snapshot()
+        if isinstance(node, dict)
+        and str(node.get("status") or "") == "active"
+        and str(node.get("title") or "").strip() == expected_title
+        and str(node.get("canonical_url") or "").strip().rstrip("/") == expected_url.rstrip("/")
+    ]
+    if not matching_nodes:
+        print("The Guide healthy-community recommendation: canonical resource is not an active registered node.")
+        return None
+    node = matching_nodes[0]
+    body = _wordpress_fetch_selected_canonical_body(expected_url)
+    if not isinstance(body, dict):
+        print("The Guide healthy-community recommendation: canonical resource body could not be fetched.")
+        return None
+    body_url = str(body.get("url") or body.get("canonical_url") or "").strip().rstrip("/")
+    if body_url.casefold() != expected_url.rstrip("/").casefold():
+        return None
+    body["title"] = expected_title
+    body["url"] = expected_url
+    body["_guide_node"] = node
+    grade = _guide_discovery_evidence_grade(subject, body, node=node)
+    if grade.get("grade") != "direct":
+        print("The Guide healthy-community recommendation: canonical body failed direct topic-fit evidence.")
+        return None
+    evidence = _guide_selected_doorway_discovery_evidence(
+        [body], subject, {"title": expected_title, "url": expected_url}
+    )
+    if not evidence or not _guide_discovery_doorway_is_evidence_backed(
+        {"title": expected_title, "url": expected_url}, evidence
+    ):
+        return None
+    print("The Guide healthy-community recommendation: registered canonical resource passed body-fit validation.")
+    return {"title": expected_title, "url": expected_url}
+
+
 def _is_healthy_community_orientation_question(query):
     """Recognize a substantive healthy-community question from a newcomer."""
     q = _normalize_query(query)
@@ -6520,18 +6560,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # uncertainty recovery can send the visitor back to intake or ask them to restate it.
     if _is_healthy_community_orientation_question(query):
         response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
-        # The answer itself is the primary result. Only retain a selected doorway
-        # when its title clearly matches the visitor's stated subject.
+        # Keep an already-selected relevant doorway. If ordinary retrieval did not
+        # select the appropriate community resource, use the established registry,
+        # canonical-body fetch, and direct topic-fit checks to recover it.
         _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
-        if authoritative_doorway and not _topic_doorway:
+        if not _topic_doorway:
+            _topic_doorway = _healthy_community_verified_doorway(
+                "healthy communities participation shared responsibility disagreement exclusion harm"
+            )
+        if _topic_doorway:
+            authoritative_doorway = _topic_doorway
+            archive_evidence_unavailable = False
+            composition_context["authoritative_doorway"] = _topic_doorway
+            composition_context["authoritative_doorway_title"] = _topic_doorway["title"]
+            print("The Guide healthy-community boundary: answer-first response carries the verified canonical doorway.")
+        else:
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
-            print("The Guide healthy-community boundary: suppressed missing, invalid, or weakly relevant canonical recommendation.")
-        elif _topic_doorway:
-            # Preserve the verified title + canonical URL as the structured
-            # recommendation field so the visitor UI can render an actual link.
-            authoritative_doorway = _topic_doorway
+            print("The Guide healthy-community boundary: no valid registered body-supported doorway; link omitted.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
