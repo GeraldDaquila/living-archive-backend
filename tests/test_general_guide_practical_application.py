@@ -47,6 +47,6 @@ def test_deterministic_recovery_contains_observable_actions_and_focused_question
     response = _practical_application_recovery()
     assert has_observable_practical_actions(response)
     assert "Ask the people affected" in response
-    assert "explain the reasons" in response
+    assert "Explain the reasons" in response
     assert "who is responsible" in response
     assert response.endswith("?")
