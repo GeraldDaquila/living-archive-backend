@@ -436,6 +436,18 @@ def main():
     assert_true(composition._has_responsibility_boundary_explanation(recovered), "deterministic responsibility-boundary recovery does not satisfy its own contract")
     assert_true("Noticing that something is broken" in recovered, "recovery does not acknowledge the burden of noticing")
     assert_true("What part of this situation can you genuinely influence" in recovered, "recovery lacks the specific sphere-of-influence follow-up")
+    # Production integration regression: the shared Basic Inquiry response boundary
+    # must enforce the contract after the deterministic practical-stewardship bypass.
+    assert_true(
+        "if general_guide_composition._requires_responsibility_boundary_answer(query):" in MAIN_TEXT
+        and "general_guide_composition._has_responsibility_boundary_explanation(response)" in MAIN_TEXT
+        and "replaced nonconforming answer after all response pathways" in MAIN_TEXT,
+        "final runtime responsibility-boundary gate is missing from main.py",
+    )
+    assert_true(
+        "composition-only validation is insufficient" in MAIN_TEXT,
+        "runtime bypass rationale is not documented at the final boundary",
+    )
     print("responsibility_boundary_reasoning_contract=PASS")
     print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
