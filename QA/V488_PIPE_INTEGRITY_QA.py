@@ -46,7 +46,8 @@ def main():
     assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), send)") == 1
     assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), _send_with_final_visitor_boundary)") == 1
     assert "def _guide_finalize_visitor_payload(payload, query):" in main_source
-    assert "app = streaming_entry(_use_request_boundary)" in main_source
+    assert "def _guide_outer_visitor_response_boundary(scope, receive, send):" in main_source
+    assert "app = streaming_entry(_guide_outer_visitor_response_boundary)" in main_source
 
     # The hub contract itself must remain authority-light.
     lower_hub = hub_source.casefold()
