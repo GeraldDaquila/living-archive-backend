@@ -1089,9 +1089,9 @@ def compose(
         "model": str(result.get("model") or ""),
     }
 
-    # Responsibility-boundary validation is intentionally owned by the final
-    # runtime response boundary in main.py. Enforcing it here alone is insufficient:
-    # deterministic and provider-exhaustion routes can bypass this composer.
+    # The composer keeps its local response-shape checks; the final runtime
+    # boundary owns cross-path question-specific enforcement because deterministic
+    # and provider-exhaustion routes can bypass this composer.
 
     if is_conceptual_relationship_question(question):
         if not has_conceptual_relationship_explanation(candidate["response"]):
