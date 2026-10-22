@@ -83,3 +83,32 @@ def test_outcome_evaluation_recovery_includes_baseline_comparison_and_counterche
 def test_outcome_evaluation_guidance_is_part_of_composition_prompt():
     assert "establish a baseline or starting point" in composition._GENERAL_GUIDE_SYSTEM
     assert "check for unintended consequences" in composition._GENERAL_GUIDE_SYSTEM
+
+
+
+def test_recurring_problem_question_requires_mechanism_level_explanation():
+    query = "Why do the same problems keep returning even when everyone involved seems to be trying their best?"
+    assert composition._requires_recurring_problem_explanation(query) is True
+
+
+def test_recurring_problem_explanation_accepts_concrete_mechanism():
+    response = (
+        "The same problem can return when the conditions that produce it remain in place, "
+        "even if everyone is trying to help. For example, a team may fix each missed handoff "
+        "but keep using a process where no one owns the final check. The immediate error is "
+        "corrected, but the process recreates it."
+    )
+    assert composition._has_recurring_problem_explanation(response) is True
+
+
+def test_recurring_problem_answer_that_only_requests_context_is_rejected():
+    response = (
+        "There may be several explanations, and the details matter. What context would make "
+        "this question more concrete for you?"
+    )
+    assert composition._has_recurring_problem_explanation(response) is False
+
+
+def test_clear_system_diagnosis_is_not_misclassified_as_recurring_problem_explanation():
+    query = "Map the feedback loops and authority gaps that keep our organization stuck."
+    assert composition._requires_recurring_problem_explanation(query) is False
