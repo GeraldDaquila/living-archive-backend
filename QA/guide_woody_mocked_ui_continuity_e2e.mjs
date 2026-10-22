@@ -418,7 +418,7 @@ try {
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
   // not unrelated questions submitted as separate main-form searches.
-  const expectedHistoryItems = [QUESTIONS[2], ASSISTANT_ANSWERS[2]];
+  const expectedHistoryItems = [QUESTIONS[3], ASSISTANT_ANSWERS[3]];
   const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
   const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
   const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
