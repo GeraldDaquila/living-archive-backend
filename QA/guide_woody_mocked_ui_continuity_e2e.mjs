@@ -61,9 +61,6 @@ await page.route("**/*", async route => {
     await route.continue();
     return;
   }
-    await route.continue();
-    return;
-  }
   const request = route.request();
   mark("api_route_handler_entered", { method: request.method(), url: request.url(), pathname: new URL(request.url()).pathname });
   if (!API_PATTERN.test(new URL(request.url()).pathname)) {
