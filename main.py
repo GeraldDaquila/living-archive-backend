@@ -6430,7 +6430,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             except Exception:
                 llm_output = ""
 
-    if _is_practical_stewardship_question(query) and not _is_healthy_community_orientation_question(query):
+    if _is_practical_stewardship_question(query):
         # This bounded recovery has no canonical source body selected as direct
         # evidence for the exact question. Suppress any incidental doorway from
         # broad initial retrieval rather than attach an unrelated recommendation.
