@@ -127,3 +127,24 @@ def test_identity_report_refuses_to_guess_application_identity():
     )
     assert completed.returncode != 0
     assert "supply --application-commit and --runtime-identity" in completed.stderr
+
+
+def test_recovered_stewardship_disagreement_response_preserves_source_boundary():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-stewardship-disagreement-protection-2026-10"
+    )
+    assert record["status"] == "RECOVERED_HISTORICAL_RESPONSE"
+    assert record["query"] == (
+        "What does stewardship look like when people disagree about what is worth protecting?"
+    )
+    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert "When people disagree about what is worth protecting" in record["expected_response"]
+    assert record["provenance"]["source_ref"] == (
+        "537f244d6b5ad21e3b7745af518dd54d1d4c9c55"
+    )
+    assert "does not establish that a destination was approved" in (
+        record["provenance"]["evidence_boundary"]
+    )
+    assert record["expected_doorway"]["url"] is None
