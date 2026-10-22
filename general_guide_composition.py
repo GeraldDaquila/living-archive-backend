@@ -887,6 +887,8 @@ def _requires_responsibility_boundary_answer(question: str) -> bool:
     return systemic_scope and change_frame and (individual_agency or agency_limit)
 
 
+# Deterministic and provider-exhaustion routes can bypass this composer; the final
+# visitor response boundary in main.py owns cross-path question-specific enforcement.
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
@@ -1089,9 +1091,9 @@ def compose(
         "model": str(result.get("model") or ""),
     }
 
-    # Responsibility-boundary validation is intentionally owned by the final
-    # runtime response boundary in main.py. Enforcing it here alone is insufficient:
-    # deterministic and provider-exhaustion routes can bypass this composer.
+    # The composer keeps its local response-shape checks; the final runtime
+    # boundary owns cross-path question-specific enforcement because deterministic
+    # and provider-exhaustion routes can bypass this composer.
 
     if is_conceptual_relationship_question(question):
         if not has_conceptual_relationship_explanation(candidate["response"]):

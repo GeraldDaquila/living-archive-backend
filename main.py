@@ -6623,9 +6623,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
 
-    # Final visitor-facing contract for explicit practical-application questions.
-    # This gate runs after every composition and discovery path, so an earlier
-    # generic answer or canonical doorway cannot override the requested task.
+    # Shared visitor-facing response contract begins with focused practical guidance.
+    # The final boundary later in this function validates question-specific duties
+    # after every rewrite, including deterministic/provider-exhaustion bypass paths.
     if general_guide_composition.is_practical_application_question(query):
         if not general_guide_composition.has_observable_practical_actions(response):
             response = _sanitize_basic_inquiry_response(
@@ -6641,9 +6641,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway", None)
             print("The Guide final practical-answer boundary: suppressed premature canonical doorway.")
 
-    # Final provider-independent contract: if every provider attempt and its
-    # fallback still produced analysis without a concrete next step, replace it
-    # with a bounded actionable response before the visitor payload is assembled.
     actionable_response = general_guide_composition.enforce_actionable_next_step(
         query, response
     )
@@ -6655,9 +6652,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _sanitize_basic_inquiry_response(actionable_response)
 
 
-    # Final visitor-facing contract for conceptual relationship questions.
-    # This runs after composition/discovery paths so generic fallback language
-    # cannot replace the explanation requested by the visitor.
     if general_guide_composition.is_conceptual_relationship_question(query):
         if not general_guide_composition.has_conceptual_relationship_explanation(response):
             response = _sanitize_basic_inquiry_response(
@@ -6692,9 +6686,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
 
-    # Single owner for the responsibility-boundary answer contract. This runs
-    # after all generation, discovery, sanitization, and topic-specific rewrites,
-    # including deterministic/provider-exhaustion paths that bypass composition.
+    # Single final owner for question-specific answer requirements. This runs
+    # after generation, sanitization, discovery, practical/conceptual recovery,
+    # and topic-specific rewrites. Those paths may replace a previously valid
+    # answer, and deterministic/provider-exhaustion routes can bypass compose().
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
