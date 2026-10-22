@@ -31,6 +31,14 @@ def test_unrelated_resource_is_not_presented_as_community_recommendation():
     assert main._healthy_community_recommendation_pair(doorway) is None
 
 
+def test_generic_governance_doorway_does_not_displace_specific_community_article():
+    doorway = {
+        "title": "Governance",
+        "url": "https://geralddaquila.com/governance/",
+    }
+    assert main._healthy_community_recommendation_pair(doorway) is None
+
+
 def test_title_without_canonical_url_is_not_a_recommendation():
     assert main._healthy_community_recommendation_pair({
         "title": "What Healthy Communities Actually Look Like",
