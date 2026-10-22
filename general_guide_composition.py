@@ -560,7 +560,7 @@ def _requires_recurring_problem_explanation(query: str) -> bool:
     """Recognize recurring-problem questions that need a mechanism-level explanation."""
     q = _normalize_space(query).casefold()
     recurrence = bool(re.search(
-        r"\b(?:same problems?|problems? keep (?:coming|returning|recurring)|keeps? (?:happening|returning|recurring)|recurring problems?|keeps? repeating|happens? again and again|same pattern)\b",
+        r"\b(?:same problems?|problems? keep (?:coming(?: back)?|returning|recurring)|keeps? (?:happening|coming back|returning|recurring)|recurring problems?|keeps? repeating|happens? again and again|same pattern)\b",
         q,
     ))
     asks_why = bool(re.search(r"\b(?:why|what makes|how can|how does|why does|why do)\b", q))
