@@ -3125,6 +3125,31 @@ def _is_navigator_orientation_request(query):
 
 
 
+def _healthy_community_recommendation_pair(doorway):
+    """Return a canonical, topic-relevant recommendation or None.
+
+    Never infer a URL from a title. A recommendation must carry both its
+    visitor-facing title and a verified Living Archive HTTPS URL.
+    """
+    if not isinstance(doorway, dict):
+        return None
+    title = str(doorway.get("title") or "").strip()
+    url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+        return None
+    title_text = title.casefold()
+    relevance_terms = (
+        "communit", "collective", "civic", "social system", "human flourishing",
+        "human system", "participat", "governance", "belonging", "shared life",
+    )
+    if not any(term in title_text for term in relevance_terms):
+        return None
+    result = dict(doorway)
+    result["title"] = title
+    result["url"] = url
+    return result
+
+
 def _is_healthy_community_orientation_question(query):
     """Recognize a substantive healthy-community question from a newcomer."""
     q = _normalize_query(query)
@@ -6497,19 +6522,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
         # The answer itself is the primary result. Only retain a selected doorway
         # when its title clearly matches the visitor's stated subject.
-        _doorway_title_for_topic = str(
-            (authoritative_doorway or {}).get("title")
-            or composition_context.get("authoritative_doorway_title")
-            or ""
-        ).casefold()
-        if _doorway_title_for_topic and not any(
-            term in _doorway_title_for_topic
-            for term in ("healthy communit", "community health", "communal health")
-        ):
+        _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
+        if authoritative_doorway and not _topic_doorway:
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
-            print("The Guide healthy-community boundary: suppressed unrelated doorway.")
+            print("The Guide healthy-community boundary: suppressed missing, invalid, or weakly relevant canonical recommendation.")
+        elif _topic_doorway:
+            # Preserve the verified title + canonical URL as the structured
+            # recommendation field so the visitor UI can render an actual link.
+            authoritative_doorway = _topic_doorway
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
