@@ -216,7 +216,7 @@ try {
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: null,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation,
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
@@ -399,7 +399,7 @@ try {
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
   const replyResponsePromise = page.waitForFunction(
-    () => (window.__guideApiRequests || []).length >= 4,
+    () => (window.__guideApiRequests || []).length >= 5,
     null,
     { timeout: 12_000 }
   );
@@ -437,7 +437,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 4) throw new Error("Expected exactly 4 intercepted API requests, got " + apiRequests.length);
+  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
