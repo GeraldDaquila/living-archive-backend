@@ -14,6 +14,9 @@ const ASSISTANT_ANSWERS = [
   "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"
 ];
 const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
+const HEALTHY_COMMUNITY_QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
+const HEALTHY_COMMUNITY_TITLE = "What Healthy Communities Actually Look Like";
+const HEALTHY_COMMUNITY_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
@@ -93,7 +96,9 @@ await page.route("**/api/query**", async route => {
     answer = "In simpler terms, stewardship means looking after what you and others depend on, without assuming you must control everything.";
   } else {
     const expectedIndex = QUESTIONS.indexOf(query);
-    if (expectedIndex < 0) {
+    if (query === HEALTHY_COMMUNITY_QUERY) {
+      answer = "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. A useful way to recognize one is to notice whose voices are heard and how people respond when someone is excluded or harmed.";
+    } else if (expectedIndex < 0) {
       await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ ok: false, error: "Unexpected QA query" }) });
       return;
     }
@@ -116,8 +121,8 @@ await page.route("**/api/query**", async route => {
       query,
       intent: "TOPICAL_INQUIRY",
       response: answer,
-      recommendation: null,
-      answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
+      recommendation: query === HEALTHY_COMMUNITY_QUERY ? { title: HEALTHY_COMMUNITY_TITLE, url: HEALTHY_COMMUNITY_URL } : null,
+      answer_basis: { kind: query === HEALTHY_COMMUNITY_QUERY ? "archive_supported" : "general_knowledge", label: query === HEALTHY_COMMUNITY_QUERY ? "Informed by the Living Archive" : "General knowledge", explanation: "QA fixture response only." },
       processing: "qa_mock",
       route_source: "qa_ui_contract",
       visitor_boundary_version: "qa"
@@ -198,17 +203,20 @@ try {
       try { body = JSON.parse(args[1]?.body || "{}"); } catch {}
       const query = String(body.query || "");
       const index = qaQuestions.indexOf(query);
-      const answer = query === qaFollowup
-        ? "In simpler terms, stewardship means looking after what you and others depend on, without assuming you must control everything."
-        : qaAnswers[index];
+      const answer = query === HEALTHY_COMMUNITY_QUERY
+        ? "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. A useful way to recognize one is to notice whose voices are heard and how people respond when someone is excluded or harmed."
+        : query === qaFollowup
+          ? "In simpler terms, stewardship means looking after what you and others depend on, without assuming you must control everything."
+          : qaAnswers[index];
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: null,
-        answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
+        query, intent: "TOPICAL_INQUIRY", response: answer,
+        recommendation: query === HEALTHY_COMMUNITY_QUERY ? { title: HEALTHY_COMMUNITY_TITLE, url: HEALTHY_COMMUNITY_URL } : null,
+        answer_basis: { kind: query === HEALTHY_COMMUNITY_QUERY ? "archive_supported" : "general_knowledge", label: query === HEALTHY_COMMUNITY_QUERY ? "Informed by the Living Archive" : "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
       // The controller contract requires only an HTTP-like ok/status envelope
@@ -371,6 +379,35 @@ try {
     }, { selector: ROOT + " #archive-response-text", before });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
   }
+
+
+  // Browser-level exact title/href contract for the newcomer response.
+  const healthyBefore = await answer.innerText().catch(() => "");
+  await input.fill(HEALTHY_COMMUNITY_QUERY);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  await page.waitForFunction(
+    query => (window.__guideApiRequests || []).some(item => item.body?.query === query),
+    HEALTHY_COMMUNITY_QUERY,
+    { timeout: 12_000 }
+  );
+  await page.waitForFunction(
+    ({ selector, before, title, href }) => {
+      const container = document.querySelector(selector);
+      const link = container && Array.from(container.querySelectorAll("a.archive-recommendation-link"))
+        .find(node => node.textContent?.trim() === title && node.getAttribute("href") === href);
+      const current = container?.innerText?.trim() || "";
+      return Boolean(link) && current.length > 100 && current !== before.trim();
+    },
+    { selector: ROOT + " #archive-response-text", before: healthyBefore, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL },
+    { timeout: 12_000 }
+  );
+  const renderedHealthyLinks = await answer.locator("a.archive-recommendation-link").evaluateAll(nodes =>
+    nodes.map(node => ({ title: node.textContent?.trim(), href: node.getAttribute("href") }))
+  );
+  if (!renderedHealthyLinks.some(link => link.title === HEALTHY_COMMUNITY_TITLE && link.href === HEALTHY_COMMUNITY_URL)) {
+    throw new Error("Healthy-community recommendation did not render as the exact canonical visitor link.");
+  }
+  mark("healthy_community_link_rendered", { query: HEALTHY_COMMUNITY_QUERY, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL });
 
   const panelInput = root.locator("#archive-ordinary-followup-input");
   await panelInput.waitFor({ state: "visible", timeout: 8_000 });
