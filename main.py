@@ -3228,7 +3228,7 @@ def _healthy_community_canonical_recommendation(query, context_data):
             }
             profile = _base._inquiry_profile("healthy communities governance participation shared responsibility")
             body_supports_topic = bool(re.search(
-                r"\\b(?:communit(?:y|ies)|participat\\w*|governance|shared responsibility|"
+                r"\b(?:communit(?:y|ies)|participat\w*|governance|shared responsibility|"
                 r"collective|civic|belonging|public life|social system)\\b",
                 direct_body[:4000],
                 re.I,
