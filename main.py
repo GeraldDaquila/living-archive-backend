@@ -6388,6 +6388,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
 
+    # Final visitor-facing contract for explicit practical-application questions.
+    # This gate runs after every composition and discovery path, so an earlier
+    # generic answer or canonical doorway cannot override the requested task.
+    if general_guide_composition.is_practical_application_question(query):
+        if not general_guide_composition.has_observable_practical_actions(response):
+            response = _sanitize_basic_inquiry_response(
+                general_guide_composition._practical_application_recovery()
+            )
+            print("The Guide final practical-answer boundary: replaced abstract response with observable actions.")
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            query,
+            re.I,
+        ):
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            print("The Guide final practical-answer boundary: suppressed premature canonical doorway.")
+
     # Final provider-independent contract: if every provider attempt and its
     # fallback still produced analysis without a concrete next step, replace it
     # with a bounded actionable response before the visitor payload is assembled.
