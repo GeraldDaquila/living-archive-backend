@@ -856,13 +856,45 @@ def _practical_application_recovery() -> str:
 
 
 def _requires_responsibility_boundary_answer(question: str) -> bool:
-    """Recognize the specific agency-versus-system-accountability question."""
-    q = _normalize_space(question).lower()
-    return (
-        "responsibility" in q
-        and "change" in q
-        and ("broken system" in q or "entire system" in q or "whole system" in q)
-    )
+    """Recognize responsibility-versus-systemic-change questions across paraphrases."""
+    q = _normalize_space(question).casefold()
+    if not q:
+        return False
+    individual_agency = bool(re.search(
+        r"\b(?:my|our|individual|personal|a person|one person|each person|people)\b.{0,80}\b"
+        r"(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility)|change|fix|repair|solve)\b"
+        r"|\b(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility))\b.{0,80}\b"
+        r"(?:my|our|individual|personal|one person|each person|people)\b",
+        q,
+    ))
+    systemic_scope = bool(re.search(
+        r"\b(?:system|institution|organization|society|structure|whole|everyone|"
+        r"all of it|entire thing|larger problem|root cause|systemic)\w*\b",
+        q,
+    ))
+    change_frame = bool(re.search(
+        r"\b(?:change|fix|repair|solve|transform|reform|improve|responsib(?:le|ility)|"
+        r"accountab(?:le|ility)|burden|obligation)\w*\b",
+        q,
+    ))
+    agency_limit = bool(re.search(
+        r"\b(?:alone|single.hand(?:ed|edly)|one person|individual|personal|"
+        r"my part|our part|what can i|what can we|how much|fair share|limits?)\b",
+        q,
+    ))
+    # Require a systemic-change frame plus either explicit individual agency or
+    # a clear question about the limits/fairness of one person's responsibility.
+    return systemic_scope and change_frame and (individual_agency or agency_limit)
+
+
+def enforce_response_contracts(question: str, response: str) -> str:
+    """Validate question-specific answer obligations at the final runtime boundary."""
+    candidate = _sanitize_candidate(response)
+    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
+        candidate = _responsibility_boundary_recovery()
+    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
+        raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
+    return candidate
 
 
 def _has_responsibility_boundary_explanation(response: str) -> bool:
@@ -1057,10 +1089,9 @@ def compose(
         "model": str(result.get("model") or ""),
     }
 
-    # Enforce question-type-specific answer contracts on the output.
-    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate["response"]):
-        candidate["response"] = _responsibility_boundary_recovery()
-        candidate["response_shape"] = "explanatory"
+    # Responsibility-boundary validation is intentionally owned by the final
+    # runtime response boundary in main.py. Enforcing it here alone is insufficient:
+    # deterministic and provider-exhaustion routes can bypass this composer.
 
     if is_conceptual_relationship_question(question):
         if not has_conceptual_relationship_explanation(candidate["response"]):

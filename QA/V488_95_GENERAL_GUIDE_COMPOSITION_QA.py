@@ -17,6 +17,7 @@ import provider_bank
 
 MAIN = ROOT / "main.py"
 MAIN_TEXT = MAIN.read_text(encoding="utf-8")
+COMPOSITION_TEXT = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
 USE_CORE = ROOT / "use_core.py"
 USE_CORE_TEXT = USE_CORE.read_text(encoding="utf-8")
 
@@ -436,6 +437,25 @@ def main():
     assert_true(composition._has_responsibility_boundary_explanation(recovered), "deterministic responsibility-boundary recovery does not satisfy its own contract")
     assert_true("Noticing that something is broken" in recovered, "recovery does not acknowledge the burden of noticing")
     assert_true("What part of this situation can you genuinely influence" in recovered, "recovery lacks the specific sphere-of-influence follow-up")
+    assert_true(
+        "general_guide_composition.enforce_response_contracts(query, response)" in MAIN_TEXT,
+        "single final runtime response-contract boundary is missing from main.py",
+    )
+    for paraphrase in (
+        "What is my responsibility for changing a broken system?",
+        "How much of a systemic problem is one person expected to fix?",
+        "Can one individual be accountable for reforming an institution?",
+        "What is a fair share of responsibility when the whole organization needs to change?",
+    ):
+        assert_true(
+            composition._requires_responsibility_boundary_answer(paraphrase),
+            f"responsibility-boundary paraphrase was not recognized: {paraphrase}",
+        )
+    assert_true(
+        "deterministic and provider-exhaustion routes can bypass this composer" in COMPOSITION_TEXT,
+        "composer bypass rationale is not documented",
+    )
+
     print("responsibility_boundary_reasoning_contract=PASS")
     print("V489.243 GENERAL GUIDE COMPOSITION QA: PASS")
     print("provider_neutral=True")
