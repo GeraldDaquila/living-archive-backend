@@ -19,9 +19,15 @@ const apiResponses = [];
 const apiBodyReads = [];
 const apiFailures = [];
 const apiFinished = [];
+const controllerRequests = [];
+const controllerResponses = [];
+const controllerBodyReads = [];
 const pageErrors = [];
 page.on("pageerror", error => pageErrors.push(error.message));
 page.on("request", request => {
+  if (request.url().includes("living-archive-guide-") && request.url().endsWith(".js?ver=5")) {
+    controllerRequests.push({ url: request.url(), atMs: elapsed() });
+  }
   if (request.method() === "POST" && request.url().includes("/api/query")) {
     let body = {};
     try { body = JSON.parse(request.postData() || "{}"); } catch {}
@@ -29,6 +35,15 @@ page.on("request", request => {
   }
 });
 page.on("response", response => {
+  if (response.url().includes("living-archive-guide-") && response.url().includes(".js")) {
+    const record = { url: response.url(), status: response.status(), atMs: elapsed(), timeoutMs: null, bodyReadError: null };
+    controllerResponses.push(record);
+    controllerBodyReads.push(response.text().then(source => {
+      const match = source.match(/USE_TRANSPORT_TIMEOUT_MS\\s*=\\s*(\\d+)/);
+      record.timeoutMs = match ? Number(match[1]) : "constant_not_found";
+      record.sourceBytes = source.length;
+    }).catch(error => { record.bodyReadError = error?.message || String(error); }));
+  }
   if (!response.url().includes("/api/query")) return;
   // Record headers/status synchronously; body parsing must never hide the fact
   // that a response arrived from the failure diagnostics.
@@ -60,6 +75,10 @@ page.on("requestfinished", request => {
 try {
   console.log(JSON.stringify({ stage: "live_e2e_start", url: GUIDE_URL }));
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
+  // Wait for the external controller response and inspect the exact bytes the browser received.
+  await page.waitForLoadState("load").catch(() => {});
+  await Promise.all(controllerBodyReads);
+  console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses }));
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
@@ -109,6 +128,8 @@ try {
     stage: "live_e2e_passed",
     rendered,
     elapsedMs: elapsed(),
+    controllerRequests,
+    controllerResponses,
     apiRequests,
     apiResponses: apiResponses.map(item => ({
       url: item.url,
