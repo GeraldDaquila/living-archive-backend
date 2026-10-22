@@ -99,7 +99,11 @@ def test_healthy_community_recommendation_uses_exact_canonical_pair(monkeypatch)
         return []
 
     monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", fake_search)
-    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
+    generic_doorway = {
+        "title": "ARK-006: Governance Protocols for Distributed Communities",
+        "url": "https://geralddaquila.com/2026/05/10/ark-006-governance-protocols-for-distributed-communities/",
+    }
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: generic_doorway)
 
     result = main._healthy_community_canonical_recommendation(query, {})
     assert result is not None
