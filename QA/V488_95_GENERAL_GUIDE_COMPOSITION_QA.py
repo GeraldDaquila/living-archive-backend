@@ -437,6 +437,15 @@ def main():
     assert_true(composition._has_responsibility_boundary_explanation(recovered), "deterministic responsibility-boundary recovery does not satisfy its own contract")
     assert_true("Noticing that something is broken" in recovered, "recovery does not acknowledge the burden of noticing")
     assert_true("What part of this situation can you genuinely influence" in recovered, "recovery lacks the specific sphere-of-influence follow-up")
+    # The runtime boundary is the common enforcement point after all rewrites.
+    assert_true(
+        "general_guide_composition.enforce_response_contracts(query, response)" in MAIN_TEXT,
+        "single final runtime response-contract boundary is missing from main.py",
+    )
+    assert_true(
+        "deterministic and provider-exhaustion routes can bypass this composer" in COMPOSITION_TEXT,
+        "composer bypass rationale is not documented",
+    )
     assert_true(
         "general_guide_composition.enforce_response_contracts(query, response)" in MAIN_TEXT,
         "single final runtime response-contract boundary is missing from main.py",
