@@ -3146,7 +3146,7 @@ def _healthy_community_recommendation_pair(doorway):
         return None
     relevance_terms = (
         "communit", "collective", "civic", "social system", "human flourishing",
-        "human system", "participat", "governance", "belonging", "shared life",
+        "human system", "participat", "belonging", "shared life",
     )
     if not any(term in title_text for term in relevance_terms):
         return None
