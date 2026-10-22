@@ -6005,6 +6005,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     source_trace_request = general_guide_composition.is_exact_source_request(query)
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
+    # Newcomer topic questions are answer-first, but still need a bounded canonical
+    # discovery pass. Give the existing registry/body/evidence selector the explicit
+    # subject instead of relying on broad initial recommendation retrieval.
+    if not correction_subject and not source_trace_request and _is_healthy_community_orientation_question(query):
+        discovery_subject = "healthy communities"
     resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
@@ -6520,18 +6525,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # uncertainty recovery can send the visitor back to intake or ask them to restate it.
     if _is_healthy_community_orientation_question(query):
         response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
-        # The answer itself is the primary result. Only retain a selected doorway
-        # when its title clearly matches the visitor's stated subject.
+        # A recommendation is optional, but when available it must be the verified
+        # topic-relevant item from the existing registry/canonical-body discovery path.
         _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
-        if authoritative_doorway and not _topic_doorway:
+        if _topic_doorway:
+            authoritative_doorway = _topic_doorway
+            archive_evidence_unavailable = False
+            composition_context["authoritative_doorway"] = _topic_doorway
+            composition_context["authoritative_doorway_title"] = _topic_doorway["title"]
+            print("The Guide healthy-community boundary: answer-first response carries the verified canonical doorway.")
+        else:
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
-            print("The Guide healthy-community boundary: suppressed missing, invalid, or weakly relevant canonical recommendation.")
-        elif _topic_doorway:
-            # Preserve the verified title + canonical URL as the structured
-            # recommendation field so the visitor UI can render an actual link.
-            authoritative_doorway = _topic_doorway
+            print("The Guide healthy-community boundary: no valid body-supported community doorway; link omitted.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
