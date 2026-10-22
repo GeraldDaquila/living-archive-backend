@@ -2928,17 +2928,17 @@ def _is_fsd_request(query):
     # Explicit FSD naming above remains an intentional direct-entry request.
     agency_and_responsibility_question = bool(
         re.search(
-            r"\\b(?:how|what|when|where|why|can|could|should|do|does)\\b.{0,100}"
-            r"\\b(?:person|people|individuals?|we|i|you|someone|one)\\b.{0,100}"
-            r"\\b(?:responsib(?:le|ility)|accountab(?:le|ility)|"
+            r"\b(?:how|what|when|where|why|can|could|should|do|does)\b.{0,100}"
+            r"\b(?:person|people|individuals?|we|i|you|someone|one)\b.{0,100}"
+            r"\b(?:responsib(?:le|ility)|accountab(?:le|ility)|"
             r"contribut(?:e|ion|ing)|agency|role|burden|obligation|"
-            r"fix(?:ing)?|chang(?:e|ing)|help|act|participat(?:e|ion))\\b",
+            r"fix(?:ing)?|chang(?:e|ing)|participat(?:e|ion))\b",
             q,
             re.I,
         )
         and re.search(
-            r"\\b(?:how|what|without|rather than|instead of|where|can|should|"
-            r"responsib(?:le|ility)|accountab(?:le|ility)|burden|obligation)\\b",
+            r"\b(?:how|what|without|rather than|instead of|where|can|should|"
+            r"responsib(?:le|ility)|accountab(?:le|ility)|burden|obligation)\b",
             q,
             re.I,
         )
