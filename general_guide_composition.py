@@ -861,7 +861,7 @@ def _requires_responsibility_boundary_answer(question: str) -> bool:
     if not q:
         return False
     individual_agency = bool(re.search(
-        r"\b(?:my|our|individual|personal|one person|each person|people)\b.{0,80}\b"
+        r"\b(?:my|our|individual|personal|a person|one person|each person|people)\b.{0,80}\b"
         r"(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility)|change|fix|repair|solve)\b"
         r"|\b(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility))\b.{0,80}\b"
         r"(?:my|our|individual|personal|one person|each person|people)\b",
