@@ -97,11 +97,25 @@ def test_existing_registry_discovery_selects_healthy_community_resource(monkeypa
     }
     monkeypatch.setattr(main, "_guide_node_registry_snapshot", lambda: [node])
     monkeypatch.setattr(main, "_wordpress_fetch_selected_canonical_body", lambda url: dict(body) if url == expected_url else None)
-    monkeypatch.setattr(main, "_guide_discovery_evidence_grade", lambda subject, document, node=None: {"grade": "direct", "score": 120, "support": ["healthy", "communities"]})
+
+    def direct_grade(subject, document, node=None):
+        return {"grade": "direct", "score": 120, "support": ["healthy", "communities"]}
+
+    monkeypatch.setattr(main, "_guide_discovery_evidence_grade", direct_grade)
     monkeypatch.setattr(main, "_guide_selected_doorway_discovery_evidence", lambda documents, subject, doorway: [dict(documents[0])])
     monkeypatch.setattr(main, "_guide_discovery_doorway_is_evidence_backed", lambda doorway, evidence: True)
-    # The newcomer query must be shaped into the same subject used by ordinary
-    # registered canonical discovery, rather than relying on incidental retrieval.
-    query = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin."
-    assert main._is_healthy_community_orientation_question(query)
-    assert "healthy communities" == " ".join(["healthy", "communities"])
+    monkeypatch.setattr(
+        main.use_core,
+        "fetch_canonical_context",
+        lambda subject: {
+            "recommendation_canonical_primary": None,
+            "context_blocks": "",
+            "canonical_link_context": "",
+        },
+    )
+    # Existing registered doorway selection should find the matching resource.
+    doorway, evidence = main._guide_align_registered_discovery_doorway(
+        "healthy communities", [dict(body, _guide_node=node)]
+    )
+    assert doorway == {"title": expected_title, "url": expected_url}
+    assert evidence
