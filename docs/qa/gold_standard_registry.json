@@ -1,0 +1,87 @@
+{
+  "registry_id": "living-archive-gold-standard-registry",
+  "schema_version": "1.0.0",
+  "registry_status": "RECOVERY_IN_PROGRESS",
+  "authority": "Version-controlled Git source; QA execution must pin a registry commit and report application/runtime identity.",
+  "records": [
+    {
+      "benchmark_id": "general-guide-stewardship-gold-standard-2026-10-14",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "Explain stewardship, but do not send me to another page yet.",
+      "expected_response": "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\nIt matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.",
+      "expected_doorway": {
+        "title": "The Stewardship Age",
+        "url": "https://geralddaquila.com/2026/08/19/the-stewardship-age-why-stewardship-will-define-the-twenty-first-century/"
+      },
+      "assertions": [
+        "Answer is complete before any optional doorway.",
+        "Exactly three paragraphs.",
+        "The explicit request not to send the visitor to another page forbids direct page handoff.",
+        "A single Search submission renders the answer; a second click is not required."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_stewardship_gold_standard.json",
+        "source_ref": "main",
+        "source_blob_sha": "7a11e93a4688806704e3f7b388c87128cec917e0",
+        "source_status": "FROZEN_REFERENCE_ONLY"
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "What does reciprocity mean in the Living Archive?",
+      "expected_response": "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\nFor example, neighbors might take turns checking on an older resident or helping each other with errands. One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\nReciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger.",
+      "expected_doorway": {
+        "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+        "url": null
+      },
+      "assertions": [
+        "Answer is complete before the optional doorway.",
+        "Exactly three paragraphs.",
+        "The answer does not claim to be the sole canonical definition of reciprocity.",
+        "A single Search submission renders the substantive answer without requiring a second click.",
+        "Answer remains useful when the general-Guide provider bank is exhausted."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_reciprocity_gold_standard.json",
+        "source_ref": "qa/freeze-reciprocity-gold-standard",
+        "source_blob_sha": "16bdc5338215c93be64b0d37ee99efc3fe6c25f4",
+        "source_status": "FROZEN_REFERENCE_ONLY",
+        "caveat": "Recovered from an open, unmerged historical PR branch; not yet on main."
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-compound-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "query": "What is stewardship and why does it matter now more than ever?",
+      "expected_response": "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\nIt matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.",
+      "expected_doorway": {
+        "title": "Foundational Stewardship Cases",
+        "url": "https://geralddaquila.com/level-1-case-catalog/"
+      },
+      "assertions": [
+        "Recovered answer is exactly 861 characters and three paragraphs.",
+        "Answer composition and destination recommendation are asserted independently.",
+        "Historical E2E logs record an 861-character three-paragraph response and the expected recommendation, but do not print the answer text."
+      ],
+      "provenance": {
+        "source_path": "main.py",
+        "source_ref": "ab561433a984118b18560aa3a8a9ee6203e61de9",
+        "source_location": "lines 3872-3880",
+        "corroborating_fixture": "tests/fixtures/general_guide_stewardship_gold_standard.json",
+        "corroborating_fixture_blob_sha": "7a11e93a4688806704e3f7b388c87128cec917e0",
+        "historical_e2e_runs": [
+          "https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881872",
+          "https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881798"
+        ],
+        "evidence_boundary": "Historical source answer exactly matches the frozen stewardship fixture; E2E logs corroborate response length, paragraph count, and destination, but do not independently prove the exact live response text."
+      },
+      "freeze_policy": "Recovered historical benchmark. Do not silently promote its approval status or modify expected_response."
+    }
+  ]
+}
