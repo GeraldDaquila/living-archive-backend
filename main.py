@@ -4062,7 +4062,14 @@ def _guide_finalize_visitor_payload(payload, query):
     """Replace contaminated ordinary Guide responses at the shared outer API boundary."""
     if not isinstance(payload, dict):
         return payload
-    if not _basic_inquiry_has_internal_annotation(payload.get("response")):
+    response_text = str(payload.get("response") or "")
+    # Source/template fragments are a separate contamination class from evidence
+    # annotations. Detect them at the shared API boundary so they cannot escape
+    # regardless of which provider, retrieval route, or composer produced them.
+    if (
+        not _basic_inquiry_has_internal_annotation(response_text)
+        and not _basic_inquiry_has_source_dump(response_text)
+    ):
         return payload
 
     recovered = _basic_inquiry_round1_deterministic_response(
@@ -4111,7 +4118,12 @@ def _basic_inquiry_has_source_dump(response):
     return bool(re.search(
         r"(?i)(?:case studies and real-world applications|"
         r"consider\s+[A-Z][a-z]+,\s*\d{2,3}[- ]year[- ]old|"
-        r"eisenhower matrix|by adopting mindfulness meditation)",
+        r"eisenhower matrix|by adopting mindfulness meditation|"
+        r"\\bcurrentTurn\\s*={2,3}|\\bnextQuestion\\s*:|"
+        r"\\b(?:else\\s+if|reflection\\s*:)"
+        r"\\bresponse\\s*=\\s*\\{|"
+        r"\\{\\s*currentTurn\\s*={2,3}|"
+        r"\\b(?:const|let|var)\\s+(?:currentTurn|nextQuestion|response)\\b)",
         text,
     ))
 
@@ -4125,6 +4137,15 @@ def _basic_inquiry_source_dump_recovery(query):
             "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
             "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
             "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+    if re.search(r"\\b(?:same problems?|problems? keep returning|keep coming back|same pattern)\\b", q):
+        return (
+            "A problem can keep returning even when people are trying hard because fixing each incident "
+            "does not always change the conditions that reproduce it. Those conditions might include "
+            "unclear responsibility, competing incentives, limited resources, or a handoff where information "
+            "gets lost. For example, a team may correct every missed handoff but keep a process in which "
+            "nobody confirms the next person received the work. The immediate mistake is fixed, but the "
+            "same gap remains. These are possibilities to examine, not conclusions about your situation."
         )
     if "stewardship" in q:
         return (
