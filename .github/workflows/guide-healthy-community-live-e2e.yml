@@ -1,0 +1,29 @@
+name: Guide Healthy Community Live Browser Acceptance
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-healthy-community-live-e2e-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  live-browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+      - name: Verify real production API and live visitor rendering
+        timeout-minutes: 3
+        run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_healthy_community_live_e2e.mjs
