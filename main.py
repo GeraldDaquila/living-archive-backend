@@ -4113,17 +4113,17 @@ if not _basic_inquiry_has_internal_annotation(_BASIC_INQUIRY_INTERNAL_ANNOTATION
 
 
 def _basic_inquiry_has_source_dump(response):
-    """Detect copied source fragments that are not safe as a visitor-facing answer."""
+    """Detect copied source fragments and executable/template text unsafe for visitors."""
     text = str(response or "")
     return bool(re.search(
         r"(?i)(?:case studies and real-world applications|"
         r"consider\s+[A-Z][a-z]+,\s*\d{2,3}[- ]year[- ]old|"
         r"eisenhower matrix|by adopting mindfulness meditation|"
-        r"\\bcurrentTurn\\s*={2,3}|\\bnextQuestion\\s*:|"
-        r"\\b(?:else\\s+if|reflection\\s*:)"
-        r"\\bresponse\\s*=\\s*\\{|"
-        r"\\{\\s*currentTurn\\s*={2,3}|"
-        r"\\b(?:const|let|var)\\s+(?:currentTurn|nextQuestion|response)\\b)",
+        r"\bcurrentTurn\s*={2,3}|\bnextQuestion\s*:|"
+        r"\b(?:else\s+if|reflection\s*:)|"
+        r"\bresponse\s*=\s*\{|"
+        r"\{\s*currentTurn\s*={2,3}|"
+        r"\b(?:const|let|var)\s+(?:currentTurn|nextQuestion|response)\b)",
         text,
     ))
 
