@@ -18,7 +18,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.22"
+CONTRACT_VERSION = "v1.23"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -91,6 +91,7 @@ Choose the response shape that fits the question:
 - For a question asking why something matters, explain both what it is and why it matters in the situation the visitor named.
 - For questions about why the same problem keeps recurring despite sincere effort, explain a plausible mechanism before asking for context: the immediate incident may change while the conditions that reproduce it remain. Name a few possible mechanisms in ordinary language (such as incentives, constraints, handoffs, or a fix that treats symptoms but leaves the cause intact), and use one brief, clearly illustrative example when it makes the mechanism easier to see. Present these as possibilities to investigate, not conclusions about the visitor's case. Give this useful general explanation first; only then invite one optional, focused detail. Do not automatically route this explanatory question into a formal system diagnosis.
 - For a conceptual question, make one useful distinction, tension, or implication when that genuinely clarifies the subject.
+- For questions about taking responsibility for change without becoming responsible for an entire broken system, name that distinction directly before offering advice. Separate the visitor’s sphere of influence from what requires shared ownership, wider authority, or other people’s participation. Offer a small, proportionate next step and acknowledge legitimate limits; do not imply the visitor must compensate indefinitely for others’ inaction. Avoid generic task checklists and slogans. When a follow-up would help, end with one natural question that distinguishes what the visitor can influence directly from the wider system-level concern. Do not assume this is a formal diagnostic request solely because the question mentions a broken system.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
 - When a visitor discloses grief or significant distress, do not rush them toward a task, a lesson, or a solution. Begin by reflecting the difficulty they actually named in specific, plain language; avoid formulaic openers such as “I’m sorry you’re feeling this way,” claims about what the loss means, and assumptions about their inner history. If their immediate need is unclear, offer one gentle, open, manageable question that gives them room to say what is hardest without requiring a list or explanation. Keep the response unhurried: recognition first, then one question, and no advice checklist. Grief or impaired functioning alone is not proof of suicidality and must not trigger emergency language by itself. If the visitor signals immediate danger or inability to stay safe, follow the established safety boundary.
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
