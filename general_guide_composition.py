@@ -584,6 +584,23 @@ def _has_recurring_problem_explanation(response: str) -> bool:
     return has_conditions and has_example
 
 
+def _recurring_problem_explanation_recovery() -> str:
+    """Reliable explanation-first fallback when providers cannot satisfy the contract."""
+    return (
+        "A problem can keep returning even when people are making a sincere effort because "
+        "fixing each incident does not always change the conditions that produce it. Those "
+        "conditions might include unclear responsibilities, incentives that reward a quick "
+        "fix, limited resources, or a handoff where important information gets lost. "
+        "For example, a team may correct every missed handoff but leave the process unchanged "
+        "so nobody is responsible for confirming the next person received the work. The "
+        "individual mistake is fixed, yet the same gap can create it again.\n\n"
+        "These are possibilities to examine, not conclusions about your situation. The useful "
+        "starting point is to notice what repeats around the problem, not only what happened "
+        "in the latest incident. If you have a particular example in mind, you can share it "
+        "and we can look at what may be keeping it going."
+    )
+
+
 def _requires_outcome_evaluation_guidance(query: str) -> bool:
     """Recognize questions asking whether a change is producing real-world results."""
     q = _normalize_space(query).casefold()
@@ -886,6 +903,14 @@ def compose(
         parse=_parse_factory(documents, effective_question),
     )
     if not result:
+        if _requires_recurring_problem_explanation(question):
+            return {
+                "response": _recurring_problem_explanation_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "",
+                "model": "",
+            }
         if _requires_outcome_evaluation_guidance(question):
             return {
                 "response": _outcome_evaluation_recovery(),
