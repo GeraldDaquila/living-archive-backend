@@ -8308,7 +8308,106 @@ if not any(getattr(route, "path", "") == "/api/relational-return" for route in a
 if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
     raise RuntimeError("USE streaming transport contract integrity failure.")
 
-app = streaming_entry(_use_request_boundary)
+async def _guide_outer_visitor_response_boundary(scope, receive, send):
+    """Enforce visitor-response sanitation around every /api/query exit path.
+
+    This boundary intentionally sits outside _use_request_boundary so early
+    specialist/handoff returns and the legacy-core fallback share the same
+    last-mile contamination guard. The inner finalizer remains defense in depth.
+    """
+    if (
+        scope.get("type") != "http"
+        or str(scope.get("method") or "").upper() != "POST"
+        or str(scope.get("path") or "") != "/api/query"
+    ):
+        await _use_request_boundary(scope, receive, send)
+        return
+
+    raw_body = await _use_request_body(receive)
+    try:
+        request_payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+    except Exception:
+        request_payload = {}
+    if not isinstance(request_payload, dict):
+        request_payload = {}
+    query = str(
+        request_payload.get("query")
+        or request_payload.get("user_query")
+        or request_payload.get("question")
+        or request_payload.get("text")
+        or request_payload.get("input")
+        or ""
+    ).strip()
+
+    captured_start = None
+    captured_chunks = []
+
+    async def _capture_json_response(message):
+        nonlocal captured_start, captured_chunks
+        message_type = message.get("type")
+        if message_type == "http.response.start":
+            headers = message.get("headers") or []
+            content_type = next(
+                (value.lower() for key, value in headers if key.lower() == b"content-type"),
+                b"",
+            )
+            if b"application/json" in content_type:
+                captured_start = message
+                captured_chunks = []
+                return
+            await send(message)
+            return
+
+        if message_type == "http.response.body" and captured_start is not None:
+            captured_chunks.append(message.get("body") or b"")
+            if message.get("more_body", False):
+                return
+            raw_response = b"".join(captured_chunks)
+            try:
+                payload = json.loads(raw_response.decode("utf-8"))
+            except Exception:
+                payload = None
+            safe_payload = _guide_finalize_visitor_payload(payload, query)
+            if safe_payload is not payload and isinstance(safe_payload, dict):
+                encoded = json.dumps(
+                    safe_payload, ensure_ascii=False, separators=(",", ":")
+                ).encode("utf-8")
+                headers = [
+                    (key, value)
+                    for key, value in (captured_start.get("headers") or [])
+                    if key.lower() not in {
+                        b"content-length", b"content-encoding", b"etag"
+                    }
+                ]
+                headers.append((b"content-length", str(len(encoded)).encode("ascii")))
+                start = dict(captured_start)
+                start["status"] = 200
+                start["headers"] = headers
+                await send(start)
+                await send({
+                    "type": "http.response.body",
+                    "body": encoded,
+                    "more_body": False,
+                })
+            else:
+                await send(captured_start)
+                await send({
+                    "type": "http.response.body",
+                    "body": raw_response,
+                    "more_body": False,
+                })
+            captured_start = None
+            captured_chunks = []
+            return
+
+        await send(message)
+
+    await _use_request_boundary(
+        scope, _use_replay_receive(raw_body), _capture_json_response
+    )
+
+
+app = streaming_entry(_guide_outer_visitor_response_boundary)
 
 
 
