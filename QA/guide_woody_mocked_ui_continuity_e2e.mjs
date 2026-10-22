@@ -82,7 +82,15 @@ await page.route("**/api/query**", async route => {
   }
 
   if (request.method() !== "POST") {
-    await route.continue();
+    await route.fulfill({
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-headers": "content-type",
+        "access-control-max-age": "600"
+      }
+    });
     return;
   }
 
