@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 STEWARDSHIP_FIXTURE_PATH = (
     ROOT / "tests" / "fixtures" / "general_guide_stewardship_gold_standard.json"
