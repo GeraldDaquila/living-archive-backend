@@ -240,12 +240,12 @@ These are useful reference material, but they are **additive evaluation fixtures
 ### GS-GUIDE-001 — frozen three-paragraph stewardship answer
 
 - **Exact question:** “What is stewardship and why does it matter now more than ever?”
-- **Status:** FROZEN_CONFIRMED; exact response text still needs source recovery.
+- **Status:** FROZEN_CONFIRMED; exact 861-character response recovered by byte-for-byte text match against the frozen stewardship fixture and the historical v489.259 deterministic recovery implementation.
 - **Frozen response contract:** Three paragraphs, recorded at **861 characters** in the October 15 handoff; answer and recommendation remain separate.
 - **Expected destination in the recorded frozen benchmark:** **Foundational Stewardship Cases** — https://geralddaquila.com/level-1-case-catalog/
 - **Historical dual-service evidence:** Guide dual-service E2E run [38645881872](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881872) and production validation run [38645881798](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881798) were recorded as successful at v489.259. The handoff records an 861-character response on both services, separate recommendation rendering in the response contract, and destination checks. These are historical results, not proof of current production status.
 - **Important destination discrepancy:** The October 15 handoff also notes a Stewardship Readiness destination in a discovery test scenario. Do not treat that as the expected destination for this frozen explanatory benchmark; preserve it as a distinct historical discovery scenario unless further provenance shows otherwise.
-- **Recovery boundary:** The handoff establishes the response length, paragraph count, question, expected destination, and successful historical test record, but does not include the exact 861-character answer text. Do not reconstruct or rewrite the answer from memory or a current model response. Recover it verbatim from the original workflow artifact/log, screenshot, or an authoritative historical fixture before creating a byte-exact fixture.
+- **Recovery result:** The historical v489.259 source at `main.py` lines 3872–3880 contains the exact 861-character, three-paragraph response in its deterministic stewardship recovery branch. The text matches `expected_response` in `tests/fixtures/general_guide_stewardship_gold_standard.json` exactly, including punctuation and paragraph breaks. This independently corroborates the missing answer wording, although the existing fixture's query is the separate “Explain stewardship, but do not send me to another page yet.” benchmark. Preserve that query distinction.
 - **Source:** Library handoff `Pasted text(20261015-000853).txt`, section “Frozen General Purpose gold standard” and “E2E infrastructure — verified configuration”; corroborating handoff `Pasted text(20261015-085140).txt`.
 
 ### E2E registry rule
@@ -264,3 +264,19 @@ The historical run was inspected directly rather than inferred from its summary:
 - The current workflow source confirms that the relevant assertions inspect the response in memory and print only length/paragraph/recommendation metadata. It does not write the body to a retained artifact.
 
 **Conclusion:** These historical runs cannot supply a verbatim 861-character answer. They are valid behavioral/provenance evidence, but not a text fixture. Keep GS-GUIDE-001 marked as exact-text recovery pending until an authoritative response body is located. Do not weaken this distinction by using a newly generated response or the separate no-navigation stewardship fixture.
+
+
+## K. Exact response recovery completed — compound stewardship benchmark
+
+The missing answer text has now been recovered from the historical source tree, rather than reconstructed.
+
+- **Source commit:** `ab561433a984118b18560aa3a8a9ee6203e61de9` (v489.259)
+- **Source file and lines:** `main.py`, lines 3872–3880; the deterministic fallback branch returns the response for stewardship definition/explanation queries.
+- **Exact text length:** 861 characters, including the two paragraph-separating blank lines.
+- **Paragraph count:** 3.
+- **Independent exact-match reference:** `tests/fixtures/general_guide_stewardship_gold_standard.json`, blob SHA `7a11e93a4688806704e3f7b388c87128cec917e0`; its `expected_response` is exactly 861 characters and text-identical.
+- **Historical benchmark query:** “What is stewardship and why does it matter now more than ever?”
+- **Historical destination for this benchmark:** Foundational Stewardship Cases — https://geralddaquila.com/level-1-case-catalog/
+- **Important separation:** The same response text is also used in a distinct no-navigation benchmark whose question explicitly forbids immediate navigation and whose expected optional doorway is The Stewardship Age. Text reuse does not make those query contracts interchangeable. Each query retains its own navigation expectation.
+- **Confidence:** High for exact answer wording, because the historical deterministic branch and independently frozen fixture are text-identical and match the documented length and paragraph count. The historical run logs still do not expose the actual returned payload, so the logs alone cannot prove which generation path produced that live response. The source match is the strongest available exact recovery evidence.
+- **Registry rule:** Future test fixtures should reuse the exact text without editing it. Test the compound query's separate Foundational Stewardship Cases recommendation independently from the no-navigation query's separate The Stewardship Age doorway.
