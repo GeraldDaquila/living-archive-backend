@@ -6406,6 +6406,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway", None)
             print("The Guide final practical-answer boundary: suppressed premature canonical doorway.")
 
+    # Final visitor-facing contract for conceptual relationship questions.
+    # This runs after composition/discovery paths so generic fallback language
+    # cannot replace the explanation requested by the visitor.
+    if general_guide_composition.is_conceptual_relationship_question(query):
+        if not general_guide_composition.has_conceptual_relationship_explanation(response):
+            response = _sanitize_basic_inquiry_response(
+                general_guide_composition._conceptual_relationship_recovery()
+            )
+            print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            query,
+            re.I,
+        ):
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            print("The Guide final relationship-answer boundary: suppressed unrequested doorway.")
+
     # Final provider-independent contract: if every provider attempt and its
     # fallback still produced analysis without a concrete next step, replace it
     # with a bounded actionable response before the visitor payload is assembled.
