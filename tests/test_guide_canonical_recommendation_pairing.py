@@ -112,6 +112,85 @@ def test_healthy_community_recommendation_uses_exact_canonical_pair(monkeypatch)
     assert calls, "Canonical WordPress retrieval should supply the candidate"
 
 
+def test_healthy_community_direct_canonical_verification_avoids_search_fanout(monkeypatch):
+    query = (
+        "I'm new to the Living Archive. I care about healthier communities, "
+        "but I don't know its vocabulary or where to begin."
+    )
+    preferred_title = "What Healthy Communities Actually Look Like"
+    preferred_url = (
+        "https://geralddaquila.com/2025/10/07/"
+        "t4-codex-overflow-communities-governance-by-resonance/"
+    )
+    direct_body = {
+        "title": preferred_title,
+        "url": preferred_url,
+        "text": (
+            "Healthy communities depend on participation, governance, belonging, "
+            "shared responsibility, and meaningful voice in public life. "
+        ) * 8,
+    }
+    calls = {"fetch": [], "search": []}
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
+
+    def fetch(url):
+        calls["fetch"].append(url)
+        return dict(direct_body)
+
+    def search(query, limit=10):
+        calls["search"].append((query, limit))
+        return []
+
+    monkeypatch.setattr(main, "_wordpress_fetch_selected_canonical_body", fetch)
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", search)
+
+    result = main._healthy_community_canonical_recommendation(query, {})
+
+    assert result == {
+        "title": preferred_title,
+        "url": preferred_url,
+        "kind": "archive_resource",
+    }
+    assert calls["fetch"] == [preferred_url]
+    assert calls["search"] == []
+
+
+def test_healthy_community_direct_canonical_verification_failure_uses_existing_search_fallback(monkeypatch):
+    query = (
+        "I'm new to the Living Archive. I care about healthier communities, "
+        "but I don't know its vocabulary or where to begin."
+    )
+    preferred_url = (
+        "https://geralddaquila.com/2025/10/07/"
+        "t4-codex-overflow-communities-governance-by-resonance/"
+    )
+    calls = {"fetch": [], "search": []}
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
+    monkeypatch.setattr(main, "_wordpress_fetch_selected_canonical_body", lambda url: calls["fetch"].append(url) or None)
+
+    def search(query, limit=10):
+        calls["search"].append((query, limit))
+        if query == "What Healthy Communities Actually Look Like":
+            return [{
+                "title": "What Healthy Communities Actually Look Like",
+                "url": preferred_url,
+                "text": (
+                    "Healthy communities depend on participation, governance, belonging, "
+                    "shared responsibility, and meaningful voice in public life. "
+                ) * 8,
+                "kind": "archive_resource",
+            }]
+        return []
+
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", search)
+    result = main._healthy_community_canonical_recommendation(query, {})
+    assert result is not None
+    assert result["title"] == "What Healthy Communities Actually Look Like"
+    assert result["url"] == preferred_url
+    assert calls["fetch"] == [preferred_url]
+    assert calls["search"]
+
+
 def test_healthy_community_recommendation_rejects_unrelated_candidate(monkeypatch):
     query = (
         "I'm new to the Living Archive. I care about healthier communities, "

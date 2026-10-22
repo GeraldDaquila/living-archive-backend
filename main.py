@@ -3208,6 +3208,58 @@ def _healthy_community_canonical_recommendation(query, context_data):
             ):
                 return pair
 
+        # Fast path: the healthy-community newcomer contract has one explicitly
+        # approved canonical target. Verify that exact page first; avoid three
+        # separate WordPress search calls and their candidate fan-out on the
+        # common path. A failed fetch/fit falls through to the established
+        # bounded search-and-evidence path below.
+        direct_document = _wordpress_fetch_selected_canonical_body(preferred_url)
+        if (
+            isinstance(direct_document, dict)
+            and str(direct_document.get("title") or "").strip().casefold() == preferred_title.casefold()
+        ):
+            direct_url = str(direct_document.get("url") or "").strip()
+            direct_body = str(direct_document.get("text") or direct_document.get("content") or "").strip()
+            direct_candidate = {
+                "title": preferred_title,
+                "url": preferred_url,
+                "text": direct_body,
+                "kind": "archive_resource",
+            }
+            profile = _base._inquiry_profile("healthy communities governance participation shared responsibility")
+            body_supports_topic = bool(re.search(
+                r"\b(?:communit(?:y|ies)|participat\w*|governance|shared responsibility|"
+                r"collective|civic|belonging|public life|social system)\b",
+                direct_body[:4000],
+                re.I,
+            ))
+            if (
+                direct_url.rstrip("/") == preferred_url.rstrip("/")
+                and len(direct_body) >= 80
+                and body_supports_topic
+                and _topic_specific_candidate_fit(
+                    "healthy communities governance participation shared responsibility",
+                    direct_candidate,
+                )
+                and _eligible_outward_doc(
+                    "healthy communities governance participation shared responsibility",
+                    direct_candidate,
+                    profile,
+                    min_relevance=2,
+                )
+            ):
+                approved = _healthy_community_recommendation_pair({
+                    "title": preferred_title,
+                    "url": preferred_url,
+                    "kind": "archive_resource",
+                })
+                if approved:
+                    print(
+                        "The Guide healthy-community canonical recovery: direct canonical "
+                        "body verification passed; skipped broad search fan-out."
+                    )
+                    return approved
+
         for search_query in (
             "What Healthy Communities Actually Look Like",
             "healthy communities governance",
