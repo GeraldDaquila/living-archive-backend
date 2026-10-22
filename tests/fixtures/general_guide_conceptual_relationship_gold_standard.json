@@ -1,0 +1,49 @@
+{
+  "registry_id": 21,
+  "benchmark_id": "general-guide-conceptual-accountability-trust-harm-repair-2026-10-22",
+  "status": "ACCEPTED_GOLD_STANDARD",
+  "rating": 9.5,
+  "recorded_at": "2026-10-22",
+  "purpose": "Frozen behavioral-quality reference for conceptual relationship questions. It records an accepted live response and its reasoning pattern, not mandatory wording.",
+  "query": "How might accountability, trust, and the ability to repair harm reinforce one another?",
+  "observed_accepted_response": "Accountability, trust, and repairing harm reinforce one another when responsibility leads to visible action. Accountability starts with acknowledging what happened, who was affected, and what responsibility belongs to whom, rather than minimizing the impact or shifting blame. That makes trust more credible because people can judge what someone does, not just what they promise. When harm occurs, repair turns accountability into action: listen to the people affected, address the consequences, and change what allowed the harm to happen. Following through gives people evidence that the harm was taken seriously. Trust may then become possible again—not because the harm is forgotten, but because people can see that responsibility led to meaningful change. Are you thinking about this in an organization, a close relationship, or a wider community?",
+  "expected_recommendation": "none unless visitor explicitly requests a resource",
+  "assessment": {
+    "meets_expectations": true,
+    "gold_standard": true,
+    "strengths": [
+      "Directly answers how the concepts reinforce one another.",
+      "Explains a causal mechanism rather than listing definitions.",
+      "Connects accountability to visible responsibility, trust to observable behavior, and repair to addressing consequences and preventing recurrence.",
+      "Avoids implying that repair erases harm or guarantees restored trust.",
+      "Uses humane, clear, non-prescriptive language.",
+      "Ends with one useful contextual question without asking the visitor to reformulate the original question."
+    ],
+    "disallowed_regressions": [
+      "Generic problem-solving advice unrelated to the concepts in the question.",
+      "A request for the visitor to make the question concrete before providing an explanation.",
+      "A definitions-only answer that does not explain the relationship between concepts.",
+      "An unrequested or weakly justified resource doorway."
+    ],
+    "recommendation_relevance_is_evaluated_separately": true,
+    "notes": "Accepted from live visitor screenshot on 2026-10-22 after the conceptual-relationship answer contract was deployed. Rating 9.5/10. Reference pattern only; alternate wording is acceptable when it preserves the same explanatory quality."
+  },
+  "invariants": [
+    "Explain the mechanism connecting the concepts, not merely their individual meanings.",
+    "Show how accountability becomes visible through acknowledging impact and taking responsibility.",
+    "Explain why trust becomes more credible when people can judge actions rather than promises.",
+    "Explain how repair addresses consequences and changes what allowed harm to occur.",
+    "Do not imply that repair erases harm or guarantees trust will return.",
+    "End with at most one focused follow-up that helps contextualize the question.",
+    "Do not attach a resource doorway unless the visitor explicitly asks to find a resource.",
+    "Preserve provider neutrality and protected use_core.py.",
+    "Fuzzy relevance remains shadow-only and must not control answer selection."
+  ],
+  "freeze_policy": [
+    "Frozen behavioral reference, not a verbatim answer template.",
+    "Do not weaken the invariants to accommodate regressions.",
+    "Do not modify protected use_core.py.",
+    "Future changes require a documented registry addition or benchmark-version change.",
+    "Live visitor verification complements, and does not replace, automated regression tests."
+  ]
+}
