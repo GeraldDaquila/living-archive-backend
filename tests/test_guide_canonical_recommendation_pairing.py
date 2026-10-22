@@ -115,3 +115,46 @@ def test_pure_navigation_is_not_reclassified_as_healthy_community_topic():
     assert main._is_navigator_orientation_request(
         "Where should I begin with the Living Archive?"
     )
+
+
+
+def test_public_basic_inquiry_payload_carries_exact_canonical_recommendation(monkeypatch):
+    query = (
+        "I'm new to the Living Archive. I care about healthier communities, "
+        "but I don't know its vocabulary or where to begin."
+    )
+    expected_url = (
+        "https://geralddaquila.com/2025/10/07/"
+        "t4-codex-overflow-communities-governance-by-resonance/"
+    )
+    evidence = {
+        "title": "What Healthy Communities Actually Look Like",
+        "url": expected_url,
+        "text": (
+            "Healthy communities depend on participation, governance, belonging, "
+            "shared responsibility, voice, fair decision-making, and inclusion. "
+            "Community governance requires participation. Shared responsibility "
+            "means people affected by decisions have a meaningful voice. "
+        ) * 8,
+        "kind": "archive_resource",
+    }
+    monkeypatch.setattr(main, "_wordpress_search_canonical_candidates", lambda *_args, **_kwargs: [dict(evidence)])
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
+    monkeypatch.setattr(main, "_basic_inquiry_round1_requires_discovery", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(main, "_is_navigator_orientation_request", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(main, "_basic_inquiry_round1_deterministic_response", lambda *_args, **_kwargs: {
+        "response": "A healthy community makes room for participation, disagreement, shared responsibility, and voice."
+    })
+    monkeypatch.setattr(main.general_guide_composition, "compose", lambda **_kwargs: {
+        "response": "A healthy community makes room for participation, disagreement, shared responsibility, and voice.",
+        "provider": "test",
+        "model": "test",
+        "response_shape": "test",
+    })
+    payload = main._basic_inquiry_response(query)
+    assert payload["processing"] == "basic_inquiry"
+    assert payload["response"]
+    assert payload["recommendation"] == {
+        "title": "What Healthy Communities Actually Look Like",
+        "url": expected_url,
+    }
