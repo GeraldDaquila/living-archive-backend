@@ -144,7 +144,7 @@ def test_recovered_stewardship_disagreement_response_preserves_source_boundary()
     assert record["provenance"]["source_ref"] == (
         "537f244d6b5ad21e3b7745af518dd54d1d4c9c55"
     )
-    assert "does not establish that a destination was approved" in (
+    assert "or that a destination was approved" in (
         record["provenance"]["evidence_boundary"]
     )
     assert record["expected_doorway"]["url"] is None
