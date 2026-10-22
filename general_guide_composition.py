@@ -784,13 +784,15 @@ _PRACTICAL_APPLICATION_PATTERNS = (
     r"\bhow .{0,60} live by (?:it|that value|those values|this principle)\b",
     r"\bwhat practical changes .{0,60} make\b",
 )
+# Count only observable organizational behaviors. A reflection framework alone
+# must not satisfy the practical-answer contract.
 _PRACTICAL_ACTION_MARKERS = (
     r"\bask(?:ing)? the people affected\b",
-    r"\bseparat(?:e|ing) (?:what is known|observable facts) from (?:what is inferred|assumptions)\b",
-    r"\bexplain(?:ing)? the reasons? (?:for|behind) (?:the )?decision\b",
-    r"\bwho is responsible\b|\bname who will follow through\b",
-    r"\bcheck whether (?:the action|it) changed\b",
-    r"\bfollow through\b|\bclose the loop\b",
+    r"\b(?:explain|explain(?:ing)? the reasons?) (?:the reasons? )?(?:for|behind) (?:the )?decision\b",
+    r"\b(?:name|assign|make clear) who is responsible\b|\bassign responsibility\b",
+    r"\bfollow through\b|\bclose the loop\b|\bkeep the commitment\b",
+    r"\bcheck with the people affected\b|\bask the people affected whether\b",
+    r"\brespond when something goes wrong\b|\backnowledge the mistake\b",
 )
 
 
@@ -979,12 +981,15 @@ def compose(
 
     # Enforce the practical-answer contract on the output, not just in the prompt.
     # This fallback is deliberately limited to explicit action-seeking questions.
-    if (
-        is_practical_application_question(question)
-        and not has_observable_practical_actions(candidate["response"])
-    ):
-        candidate["response"] = _practical_application_recovery()
-        candidate["response_shape"] = "explanatory"
+    if is_practical_application_question(question):
+        if not has_observable_practical_actions(candidate["response"]):
+            candidate["response"] = _practical_application_recovery()
+            candidate["response_shape"] = "explanatory"
+        # Practical how-to questions are answer-first requests, not resource
+        # discovery. Do not attach a service doorway unless the visitor asked
+        # to find or contact a resource.
+        if not is_resource_discovery_question(question):
+            candidate["doorway_title"] = ""
 
     # If identical requests arrive concurrently, the first validated answer
     # wins; every concurrent caller returns that same answer. This prevents
