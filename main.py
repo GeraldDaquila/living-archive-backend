@@ -6518,7 +6518,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         _has_relevant_canonical_pair = bool(
             _doorway_title_for_topic
-            and re.match(r"^https://geralddaquila\\.com/\\S+$", _doorway_url_for_topic, re.I)
+            and re.match(r"^https://geralddaquila\.com/\S+$", _doorway_url_for_topic, re.I)
             and any(term in _doorway_topic_text for term in _community_relevance_terms)
         )
         if authoritative_doorway and not _has_relevant_canonical_pair:
