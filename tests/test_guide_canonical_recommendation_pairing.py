@@ -5,7 +5,7 @@ import main
 def test_relevant_community_resource_keeps_title_and_canonical_url():
     doorway = {
         "title": "What Healthy Communities Actually Look Like",
-        "url": "https://geralddaquila.com/2026/10/01/healthy-communities/",
+        "url": "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/",
         "kind": "archive_resource",
     }
     result = main._healthy_community_recommendation_pair(doorway)
