@@ -3125,6 +3125,26 @@ def _is_navigator_orientation_request(query):
 
 
 
+def _has_substantive_topic_intent(query):
+    """Keep a meaningful subject inquiry in The Guide before offering orientation.
+
+    A visitor can be new to the Archive and still have stated a clear topic
+    they want help understanding. In that case, answer the topic first; the
+    Navigator may be offered as an optional next step rather than replacing
+    the answer with an intake flow.
+    """
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:i\s+(?:care about|want to understand|want to know about|"
+        r"am interested in|would like to understand|am trying to understand)|"
+        r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
+        r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
+        r"how\s+to\s+(?:create|build|recognize|improve|understand|support))\b",
+        q,
+        re.I,
+    ))
+
+
 def _is_explicit_atlas_request(query):
     """Recognize a bounded request for the native Atlas / Reference Map surface.
 
@@ -7597,7 +7617,7 @@ async def _use_request_boundary(scope, receive, send):
     # prevents questions such as "Where can I explore Philippine renewal?"
     # from losing their destination merely because they are phrased as
     # navigation questions.
-    if _is_navigator_orientation_request(query):
+    if _is_navigator_orientation_request(query) and not _has_substantive_topic_intent(query):
         specific_node = (
             _guide_node_specific_match(query)
             if _is_explicit_guide_destination_request(query)
