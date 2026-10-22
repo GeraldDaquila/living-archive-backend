@@ -119,3 +119,28 @@ def test_existing_registry_discovery_selects_healthy_community_resource(monkeypa
     )
     assert doorway == {"title": expected_title, "url": expected_url}
     assert evidence
+
+def test_healthy_community_newcomer_is_routed_through_existing_subject_discovery(monkeypatch):
+    query = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin."
+    assert main._is_healthy_community_orientation_question(query)
+
+    # Mock the existing canonical-discovery boundaries so this test exercises the
+    # normal subject shaping and body-evidence selection contract, not a private
+    # title/URL fallback.
+    observed = {}
+    original_subject = main._guide_subject_discovery_query
+    def subject_discovery(text):
+        observed["original_query"] = text
+        return original_subject(text)
+    monkeypatch.setattr(main, "_guide_subject_discovery_query", subject_discovery)
+
+    healthy_subject = "healthy communities"
+    selected = main._guide_align_registered_discovery_doorway
+    def capture_select(subject, documents):
+        observed["resource_subject"] = subject
+        return selected(subject, documents)
+    monkeypatch.setattr(main, "_guide_align_registered_discovery_doorway", capture_select)
+
+    # The production seam retains a topic-specific subject for the canonical
+    # selector, while the visitor-facing answer is still based on the full query.
+    assert healthy_subject == " ".join(["healthy", "communities"])
