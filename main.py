@@ -2921,6 +2921,31 @@ def _is_fsd_request(query):
     if re.search(r"\bfsd\b", q, re.I):
         return True
 
+    # Human agency, role, and responsibility questions are Guide-owned
+    # explanatory requests, even when they describe a broken system or use
+    # diagnostic-sounding vocabulary. Answer the person's question first;
+    # recommend FSD only as an optional next step when evidence supports it.
+    # Explicit FSD naming above remains an intentional direct-entry request.
+    agency_and_responsibility_question = bool(
+        re.search(
+            r"\\b(?:how|what|when|where|why|can|could|should|do|does)\\b.{0,100}"
+            r"\\b(?:person|people|individuals?|we|i|you|someone|one)\\b.{0,100}"
+            r"\\b(?:responsib(?:le|ility)|accountab(?:le|ility)|"
+            r"contribut(?:e|ion|ing)|agency|role|burden|obligation|"
+            r"fix(?:ing)?|chang(?:e|ing)|help|act|participat(?:e|ion))\\b",
+            q,
+            re.I,
+        )
+        and re.search(
+            r"\\b(?:how|what|without|rather than|instead of|where|can|should|"
+            r"responsib(?:le|ility)|accountab(?:le|ility)|burden|obligation)\\b",
+            q,
+            re.I,
+        )
+    )
+    if agency_and_responsibility_question:
+        return False
+
     # A systems/organizational context is necessary for the natural-language
     # diagnostic boundary.
     systems_context = bool(re.search(
