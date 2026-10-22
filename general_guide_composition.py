@@ -89,6 +89,7 @@ Start with the question itself. Answer it directly before directing the visitor 
 Choose the response shape that fits the question:
 - For a definition or bounded factual question, give a clear direct answer.
 - For a question asking why something matters, explain both what it is and why it matters in the situation the visitor named.
+- For questions about why the same problem keeps recurring despite sincere effort, explain a plausible mechanism before asking for context: the immediate incident may change while the conditions that reproduce it remain. Name a few possible mechanisms in ordinary language (such as incentives, constraints, handoffs, or a fix that treats symptoms but leaves the cause intact), and use one brief, clearly illustrative example when it makes the mechanism easier to see. Present these as possibilities to investigate, not conclusions about the visitor's case. Give this useful general explanation first; only then invite one optional, focused detail. Do not automatically route this explanatory question into a formal system diagnosis.
 - For a conceptual question, make one useful distinction, tension, or implication when that genuinely clarifies the subject.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
 - When a visitor discloses grief or significant distress, do not rush them toward a task, a lesson, or a solution. Begin by reflecting the difficulty they actually named in specific, plain language; avoid formulaic openers such as “I’m sorry you’re feeling this way,” claims about what the loss means, and assumptions about their inner history. If their immediate need is unclear, offer one gentle, open, manageable question that gives them room to say what is hardest without requiring a list or explanation. Keep the response unhurried: recognition first, then one question, and no advice checklist. Grief or impaired functioning alone is not proof of suicidality and must not trigger emergency language by itself. If the visitor signals immediate danger or inability to stay safe, follow the established safety boundary.
@@ -555,6 +556,34 @@ def enforce_actionable_next_step(query: str, response: str) -> str:
     )
 
 
+def _requires_recurring_problem_explanation(query: str) -> bool:
+    """Recognize recurring-problem questions that need a mechanism-level explanation."""
+    q = _normalize_space(query).casefold()
+    recurrence = bool(re.search(
+        r"\b(?:same problems?|problems? keep (?:coming|returning|recurring)|keeps? (?:happening|returning|recurring)|recurring problems?|keeps? repeating|happens? again and again|same pattern)\b",
+        q,
+    ))
+    asks_why = bool(re.search(r"\b(?:why|what makes|how can|how does|why does|why do)\b", q))
+    effort_context = bool(re.search(
+        r"\b(?:trying (?:their|our|my) best|sincere effort|working hard|doing everything|despite (?:our|their|everyone's) efforts?)\b",
+        q,
+    ))
+    return recurrence and (asks_why or effort_context)
+
+
+def _has_recurring_problem_explanation(response: str) -> bool:
+    """Require mechanism-level explanation, not only a request for more context."""
+    has_conditions = bool(re.search(
+        r"\b(?:conditions?|incentives?|constraints?|handoffs?|underlying causes?|what produces|what keeps|recreates?|reinforces?|repeats?|surface symptoms?|short-term fixes?|interact|feedback loops?)\b",
+        response, re.I,
+    ))
+    has_example = bool(re.search(
+        r"\b(?:for example|imagine|a team|a group|a process|the same issue|the visible problem)\b",
+        response, re.I,
+    ))
+    return has_conditions and has_example
+
+
 def _requires_outcome_evaluation_guidance(query: str) -> bool:
     """Recognize questions asking whether a change is producing real-world results."""
     q = _normalize_space(query).casefold()
@@ -625,6 +654,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # provider misses this, reject the candidate so Provider Bank can retry.
         if _requires_actionable_next_step(query) and not _has_concrete_next_step(response):
             raise ValueError("practical next-step answer must include one concrete action")
+
+        if _requires_recurring_problem_explanation(query) and not _has_recurring_problem_explanation(response):
+            raise ValueError(
+                "recurring-problem answer must explain a plausible mechanism before requesting context"
+            )
 
         if _requires_outcome_evaluation_guidance(query) and not _has_outcome_evaluation_guidance(response):
             raise ValueError(
