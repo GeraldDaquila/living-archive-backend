@@ -139,7 +139,7 @@ def test_recovered_stewardship_disagreement_response_preserves_source_boundary()
     assert record["query"] == (
         "What does stewardship look like when people disagree about what is worth protecting?"
     )
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
     assert "When people disagree about what is worth protecting" in record["expected_response"]
     assert record["provenance"]["source_ref"] == (
         "537f244d6b5ad21e3b7745af518dd54d1d4c9c55"
