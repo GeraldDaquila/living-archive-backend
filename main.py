@@ -6398,7 +6398,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             print("The Guide final practical-answer boundary: replaced abstract response with observable actions.")
         if not re.search(
-            r"\\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\\b",
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
             query,
             re.I,
         ):
