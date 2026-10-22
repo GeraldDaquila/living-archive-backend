@@ -112,3 +112,16 @@ def test_recurring_problem_answer_that_only_requests_context_is_rejected():
 def test_clear_system_diagnosis_is_not_misclassified_as_recurring_problem_explanation():
     query = "Map the feedback loops and authority gaps that keep our organization stuck."
     assert composition._requires_recurring_problem_explanation(query) is False
+
+
+
+def test_recurring_problem_detector_catches_coming_back_wording():
+    query = "Why do these problems keep coming back?"
+    assert composition._requires_recurring_problem_explanation(query) is True
+
+
+def test_recurring_problem_provider_exhaustion_has_explanation_first_fallback():
+    fallback = composition._recurring_problem_explanation_recovery()
+    assert composition._has_recurring_problem_explanation(fallback) is True
+    assert "possibilities to examine, not conclusions" in fallback
+    assert "For example" in fallback
