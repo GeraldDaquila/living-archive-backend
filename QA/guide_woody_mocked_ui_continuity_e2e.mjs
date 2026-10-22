@@ -6,14 +6,14 @@ const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
   "How might this shape the way people make decisions together?",
-  "What is one concrete way to practice this in a neighborhood?",
-  "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin."
+  "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.",
+  "What is one concrete way to practice this in a neighborhood?"
 ];
 const ASSISTANT_ANSWERS = [
   "Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.",
   "People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.",
-  "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?",
-  "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below."
+  "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.",
+  "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"
 ];
 const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
@@ -115,7 +115,7 @@ await page.route("**/*", async route => {
     }
     mainQueryIndex = Math.max(mainQueryIndex, expectedIndex + 1);
     answer = ASSISTANT_ANSWERS[expectedIndex];
-    if (query === QUESTIONS[3]) {
+    if (query === QUESTIONS[2]) {
       recommendation = {
         title: "What Healthy Communities Actually Look Like",
         url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
@@ -208,8 +208,8 @@ try {
     // response to the page. This direct Promise-based mock isolates the live
     // WordPress controller/UI contract from browser network plumbing.
     window.__guideApiRequests = [];
-    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","What is one concrete way to practice this in a neighborhood?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin."];
-    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below."];
+    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?"];
+    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
     const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/" };
     const qaFollowup = "Can you explain your previous answer in simpler terms?";
     const originalFetch = window.fetch.bind(window);
@@ -230,7 +230,7 @@ try {
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[3] ? recommendation : null,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[2] ? recommendation : null,
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
@@ -393,7 +393,7 @@ try {
       return current.length > 35 && current !== before.trim();
     }, { selector: ROOT + " #archive-response-text", before });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
-    if (i === 3) {
+    if (i === 2) {
       const link = root.locator("#archive-response-text a.archive-recommendation-link");
       await link.waitFor({ state: "visible" });
       const linkData = await link.evaluate(node => ({ title: node.innerText.trim(), href: node.href }));
