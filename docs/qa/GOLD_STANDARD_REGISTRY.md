@@ -280,3 +280,30 @@ The missing answer text has now been recovered from the historical source tree, 
 - **Important separation:** The same response text is also used in a distinct no-navigation benchmark whose question explicitly forbids immediate navigation and whose expected optional doorway is The Stewardship Age. Text reuse does not make those query contracts interchangeable. Each query retains its own navigation expectation.
 - **Confidence:** High for exact answer wording, because the historical deterministic branch and independently frozen fixture are text-identical and match the documented length and paragraph count. The historical run logs still do not expose the actual returned payload, so the logs alone cannot prove which generation path produced that live response. The source match is the strongest available exact recovery evidence.
 - **Registry rule:** Future test fixtures should reuse the exact text without editing it. Test the compound query's separate Foundational Stewardship Cases recommendation independently from the no-navigation query's separate The Stewardship Age doorway.
+
+
+## L. Gold Standards #20 and #21 recovered from accepted-response records
+
+Two additional accepted General Guide response records have been recovered from their exact JSON fixture diffs in open, unmerged PRs and copied into the central machine-readable registry. The response text and acceptance invariants are preserved; neither source PR has been merged by this recovery work.
+
+### GS-GUIDE-020 — practical trust application
+
+- **Question:** “I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?”
+- **Recorded rating:** 9/10; recorded as Gold Standard #20 on October 22, 2026.
+- **Accepted response:** Preserved verbatim in `docs/qa/gold_standard_registry.json` under benchmark ID `general-guide-practical-trust-application-2026-10-22`.
+- **Behavioral invariants:** Concrete, observable organizational actions before a follow-up; accountability and follow-through; check outcomes with affected people; no unsolicited service doorway.
+- **Source PR:** [#777](https://github.com/GeraldDaquila/living-archive-backend/pull/777), branch `qa/register-gold-standard-20`, commit `113039181ea810563726e48b77786de789d4aeba`.
+- **Source status:** Open/unmerged. The central record is a preserved reference; it does not mean the source PR is part of `main`.
+
+### GS-GUIDE-021 — accountability, trust, and harm repair
+
+- **Question:** “How might accountability, trust, and the ability to repair harm reinforce one another?”
+- **Recorded rating:** 9.5/10; recorded as Gold Standard #21 on October 22, 2026.
+- **Accepted response:** Preserved verbatim in `docs/qa/gold_standard_registry.json` under benchmark ID `general-guide-conceptual-accountability-trust-harm-repair-2026-10-22`.
+- **Behavioral invariants:** Explain the mechanism connecting the concepts; connect responsibility to visible action and trust to observable behavior; explain repair as addressing consequences and changing what allowed harm; do not imply repair erases harm or guarantees trust; no unrequested doorway.
+- **Source PR:** [#779](https://github.com/GeraldDaquila/living-archive-backend/pull/779), branch `qa/register-gold-standard-21-conceptual-relationships`, commit `8535fc8343f7bfb45a52eb86fa83964f3729511a`.
+- **Source status:** Open/unmerged. The central record is a preserved reference; it does not mean the source PR is part of `main`.
+
+### Registry interpretation
+
+These two records expand the central inventory from four to six machine-readable General Guide records. Their source records explicitly describe accepted live visitor responses and include ratings, but they are behavioral references rather than mandatory templates. Their status remains `FROZEN_REFERENCE_ONLY` in this registry until the registry's source-status model can represent accepted-but-unmerged evidence without conflating it with production-main availability. No application code, WordPress, Render, or production service was changed.
