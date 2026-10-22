@@ -6686,15 +6686,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
 
-    # Single owner for the responsibility-boundary answer contract. This runs
-    # after all generation, discovery, sanitization, and topic-specific rewrites,
-    # including deterministic/provider-exhaustion paths that bypass composition.
-    response = _sanitize_basic_inquiry_response(
-        general_guide_composition.enforce_response_contracts(query, response)
-    )
-    if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
-        raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
-
     # Single final owner for question-specific answer requirements. This runs
     # after generation, sanitization, discovery, practical/conceptual recovery,
     # and topic-specific rewrites. Those paths may replace a previously valid
