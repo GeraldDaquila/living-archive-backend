@@ -9,7 +9,7 @@ import re
 _PRACTICAL_APPLICATION_PATTERNS = (
     r"\bwhat would (?:i|we|they|an organization|the organization) actually do differently\b",
     r"\bwhat (?:would|could|should) .{0,60} do differently\b",
-    r"\bhow (?:do|does|can|could|should) .{0,60} put .{1,60} into practice\b",
+    r"\bhow (?:do|does|can|could|should|would) .{0,60} put .{1,60} into practice\b",
     r"\bhow .{0,60} work in practice\b",
     r"\bwhat .{0,60} look like (?:in practice|day to day|day-to-day)\b",
     r"\bhow .{0,60} live by (?:it|that value|those values|this principle)\b",
