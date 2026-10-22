@@ -50,7 +50,7 @@ def test_frozen_stewardship_record_matches_authoritative_fixture_exactly():
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"]["title"] == fixture["expected_doorway_title"]
-    assert len(record["expected_response"].split("\n\n")) == 3
+    assert len(record["expected_response"].split("\\n\\n")) == 3
 
 
 def test_recovered_compound_stewardship_record_preserves_evidence_boundary():
