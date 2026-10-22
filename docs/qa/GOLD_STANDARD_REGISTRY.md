@@ -166,3 +166,70 @@
 8. Only after inventory reconciliation, decide how the standalone QA Render service should consume a pinned registry revision. Do not use Render's ephemeral filesystem as the sole source of truth.
 
 **Current inventory:** 17 numbered entries, but several are themes/placeholders, duplicates, or contract checks. This is intentionally not represented as a recovered set of 20+ fully validated gold standards.
+
+
+## F. Exact approved response recovered from authoritative repository fixtures
+
+### GS-GUIDE-002 — exact frozen response (recovered)
+- **Authoritative fixture:** `tests/fixtures/general_guide_stewardship_gold_standard.json` on main
+- **Fixture SHA:** `7a11e93a4688806704e3f7b388c87128cec917e0`
+- **Benchmark ID:** `general-guide-stewardship-gold-standard-2026-10-14`
+- **Status in source:** `FROZEN_REFERENCE_ONLY`
+- **Exact approved response:**
+
+> Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.
+>
+> It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.
+>
+> Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.
+
+- **Expected doorway title:** The Stewardship Age
+- **Freeze invariants:** Answer complete before optional doorway; exactly three connected paragraphs; everyday language; no unsolicited taxonomy/list; separate optional doorway; explicit “do not send me to another page yet” forbids direct handoff; one submission renders the answer.
+- **Source:** https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/general_guide_stewardship_gold_standard.json
+
+### GS-GUIDE-008 — exact frozen reciprocity response (recovered from PR branch; not on main)
+- **Authoritative fixture branch:** `qa/freeze-reciprocity-gold-standard`
+- **Fixture:** `tests/fixtures/general_guide_reciprocity_gold_standard.json`
+- **Benchmark ID:** `general-guide-reciprocity-gold-standard-2026-10-19`
+- **Status in source:** `FROZEN_REFERENCE_ONLY`
+- **Exact approved response:**
+
+> Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.
+>
+> For example, neighbors might take turns checking on an older resident or helping each other with errands. One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.
+>
+> Reciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger.
+
+- **Expected doorway title:** Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions
+- **Freeze invariants:** Three connected paragraphs; plain meaning, everyday neighbor example, boundary against coercion/debt-ledger thinking; answer does not claim sole canonical definition; doorway separate and optional; one submission renders substantive answer; must remain useful during provider-bank exhaustion.
+- **Important:** PR #701 remains open/unmerged according to the current GitHub record. The fixture is recoverable from its branch, but is not currently present on main. Do not assume it is part of the production test suite until merged or otherwise deliberately incorporated.
+- **Source:** https://github.com/GeraldDaquila/living-archive-backend/pull/701
+
+## G. Existing machine-readable relevance evaluation suites discovered on main
+
+These are useful reference material, but they are **additive evaluation fixtures**, not frozen visitor-approved response standards. Their labels are authored expectations; they are not independent human ground truth. Keep that limitation in reports.
+
+| Fixture | Recorded cases | Classification |
+|---|---:|---|
+| `tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json` | 4 | Direct / adjacent / unsuitable resource comparison |
+| `tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json` | 4 | Held-out paraphrases and hard distractors |
+| `tests/fixtures/guide_fuzzy_relevance_independent_challenge_set.json` | 16 | Expanded challenge cases; includes correlated paraphrase family and underspecified candidate-set caveats |
+| `tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json` | 10 | Simulated question battery with plausible hard distractors |
+| `tests/fixtures/fuzzy_fallback_replay_simulated_cases.json` | 9 | Simulated diagnostic-only fallback replay |
+
+**Count caution:** The four relevance fixtures contain 34 case records in total, but this is not 34 independently validated gold standards. Some cases are correlated, some are simulated, and the independent challenge fixture explicitly records cases where the candidate set is underspecified. The registry must preserve these caveats rather than reporting a misleading pass rate.
+
+### Relevance fixture source references
+- Balanced evaluation: https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json
+- Held-out paraphrases: https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json
+- Independent challenge set: https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/guide_fuzzy_relevance_independent_challenge_set.json
+- Simulated question battery: https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json
+- Fallback replay: https://github.com/GeraldDaquila/living-archive-backend/blob/main/tests/fixtures/fuzzy_fallback_replay_simulated_cases.json
+
+## H. Newly verified recovery findings
+
+1. The exact frozen stewardship answer is now recovered from the authoritative fixture on `main`; the earlier inventory no longer needs to leave its response text unresolved.
+2. The exact reciprocity response is recoverable from the branch for PR #701, but the PR is still open/unmerged and its fixture is not present on `main`.
+3. The existing repository already contains relevance suites beyond the saved ten-question calibration list. They should be indexed, not relabeled as visitor-approved gold standards.
+4. The ten-question list recovered from the September 20 handoff remains a calibration question set. Its original approved answers/ratings have not yet been recovered.
+5. Next source-recovery pass: inspect the frozen stewardship test and other fixture/test files on `main`, enumerate all relevant QA/fixtures directories, and search saved calibration screenshots/handoffs for the remaining user-referenced approved examples. No Render or production change is warranted at this stage.
