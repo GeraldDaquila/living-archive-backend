@@ -6525,9 +6525,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # uncertainty recovery can send the visitor back to intake or ask them to restate it.
     if _is_healthy_community_orientation_question(query):
         response = _sanitize_basic_inquiry_response(_healthy_community_answer_recovery())
-        # The registered discovery/body-fit pipeline runs earlier using the topic
-        # subject. Carry forward only its qualifying doorway; never manufacture a
-        # title/URL when canonical retrieval or body evidence cannot verify one.
+        # A recommendation is optional, but when available it must be the verified
+        # topic-relevant item from the existing registry/canonical-body discovery path.
         _topic_doorway = _healthy_community_recommendation_pair(authoritative_doorway)
         if _topic_doorway:
             authoritative_doorway = _topic_doorway
