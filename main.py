@@ -6406,6 +6406,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway", None)
             print("The Guide final practical-answer boundary: suppressed premature canonical doorway.")
 
+    # Final provider-independent contract: if every provider attempt and its
+    # fallback still produced analysis without a concrete next step, replace it
+    # with a bounded actionable response before the visitor payload is assembled.
+    actionable_response = general_guide_composition.enforce_actionable_next_step(
+        query, response
+    )
+    if actionable_response != response:
+        print(
+            "The Guide final response contract: replaced non-actionable recovery "
+            "with bounded practical next-step guidance."
+        )
+        response = _sanitize_basic_inquiry_response(actionable_response)
+
+
     # Final visitor-facing contract for conceptual relationship questions.
     # This runs after composition/discovery paths so generic fallback language
     # cannot replace the explanation requested by the visitor.
@@ -6423,19 +6437,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             print("The Guide final relationship-answer boundary: suppressed unrequested doorway.")
-
-    # Final provider-independent contract: if every provider attempt and its
-    # fallback still produced analysis without a concrete next step, replace it
-    # with a bounded actionable response before the visitor payload is assembled.
-    actionable_response = general_guide_composition.enforce_actionable_next_step(
-        query, response
-    )
-    if actionable_response != response:
-        print(
-            "The Guide final response contract: replaced non-actionable recovery "
-            "with bounded practical next-step guidance."
-        )
-        response = _sanitize_basic_inquiry_response(actionable_response)
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
