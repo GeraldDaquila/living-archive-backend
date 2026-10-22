@@ -392,7 +392,7 @@ def clarification_response(query: str, history_text: str = "") -> Optional[Dict[
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
     if _is_response_preference_without_subject(query, history_text):
-        if re.search(r"\\b(?:advice|recommendations)\\b", query, re.I):
+        if re.search(r"\b(?:advice|recommendations)\\b", query, re.I):
             response = (
                 "Of course. I’ll focus on explaining the subject itself rather than "
                 "giving advice. What subject would you like to understand?"
@@ -777,20 +777,20 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
 
 _PRACTICAL_APPLICATION_PATTERNS = (
-    r"\\bwhat would (?:i|we|they|an organization|the organization) actually do differently\\b",
-    r"\\bwhat (?:would|could|should) .{0,60} do differently\\b",
-    r"\\bhow (?:do|does|can|could|should|would) .{0,60} put .{1,60} into practice\\b",
-    r"\\bwhat .{0,60} look like (?:in practice|day to day|day-to-day)\\b",
-    r"\\bhow .{0,60} live by (?:it|that value|those values|this principle)\\b",
-    r"\\bwhat practical changes .{0,60} make\\b",
+    r"\bwhat would (?:i|we|they|an organization|the organization) actually do differently\\b",
+    r"\bwhat (?:would|could|should) .{0,60} do differently\\b",
+    r"\bhow (?:do|does|can|could|should|would) .{0,60} put .{1,60} into practice\\b",
+    r"\bwhat .{0,60} look like (?:in practice|day to day|day-to-day)\\b",
+    r"\bhow .{0,60} live by (?:it|that value|those values|this principle)\\b",
+    r"\bwhat practical changes .{0,60} make\\b",
 )
 _PRACTICAL_ACTION_MARKERS = (
-    r"\\bask(?:ing)? the people affected\\b",
-    r"\\bseparat(?:e|ing) (?:what is known|observable facts) from (?:what is inferred|assumptions)\\b",
-    r"\\bexplain(?:ing)? the reasons? (?:for|behind) (?:the )?decision\\b",
-    r"\\bwho is responsible\\b|\\bname who will follow through\\b",
-    r"\\bcheck whether (?:the action|it) changed\\b",
-    r"\\bfollow through\\b|\\bclose the loop\\b",
+    r"\bask(?:ing)? the people affected\\b",
+    r"\bseparat(?:e|ing) (?:what is known|observable facts) from (?:what is inferred|assumptions)\\b",
+    r"\bexplain(?:ing)? the reasons? (?:for|behind) (?:the )?decision\\b",
+    r"\bwho is responsible\\b|\\bname who will follow through\\b",
+    r"\bcheck whether (?:the action|it) changed\\b",
+    r"\bfollow through\\b|\\bclose the loop\\b",
 )
 
 
