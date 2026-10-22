@@ -3138,6 +3138,12 @@ def _healthy_community_recommendation_pair(doorway):
     if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
         return None
     title_text = title.casefold()
+    # A broad doorway label is not a topic-specific recommendation. In
+    # particular, the generic "Governance" page must not displace the known
+    # healthy-community article for newcomers asking about healthier communities.
+    generic_titles = {"governance", "community", "communities", "social systems"}
+    if re.sub(r"[^a-z0-9]+", " ", title_text).strip() in generic_titles:
+        return None
     relevance_terms = (
         "communit", "collective", "civic", "social system", "human flourishing",
         "human system", "participat", "governance", "belonging", "shared life",
