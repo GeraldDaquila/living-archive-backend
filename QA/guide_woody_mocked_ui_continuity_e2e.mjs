@@ -17,9 +17,7 @@ const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const HEALTHY_COMMUNITY_QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
 const HEALTHY_COMMUNITY_TITLE = "What Healthy Communities Actually Look Like";
 const HEALTHY_COMMUNITY_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
-const HEALTHY_COMMUNITY_QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
-const HEALTHY_COMMUNITY_TITLE = "What Healthy Communities Actually Look Like";
-const HEALTHY_COMMUNITY_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
+
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
@@ -384,34 +382,6 @@ try {
   }
 
 
-  // Browser-level exact title/href contract for the newcomer response.
-  const healthyBefore = await answer.innerText().catch(() => "");
-  await input.fill(HEALTHY_COMMUNITY_QUERY);
-  await submit.evaluate(element => setTimeout(() => element.click(), 0));
-  await page.waitForFunction(
-    query => (window.__guideApiRequests || []).some(item => item.body?.query === query),
-    HEALTHY_COMMUNITY_QUERY,
-    { timeout: 12_000 }
-  );
-  await page.waitForFunction(
-    ({ selector, before, title, href }) => {
-      const container = document.querySelector(selector);
-      const link = container && Array.from(container.querySelectorAll("a.archive-recommendation-link"))
-        .find(node => node.textContent?.trim() === title && node.getAttribute("href") === href);
-      const current = container?.innerText?.trim() || "";
-      return Boolean(link) && current.length > 100 && current !== before.trim();
-    },
-    { selector: ROOT + " #archive-response-text", before: healthyBefore, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL },
-    { timeout: 12_000 }
-  );
-  const renderedHealthyLinks = await answer.locator("a.archive-recommendation-link").evaluateAll(nodes =>
-    nodes.map(node => ({ title: node.textContent?.trim(), href: node.getAttribute("href") }))
-  );
-  if (!renderedHealthyLinks.some(link => link.title === HEALTHY_COMMUNITY_TITLE && link.href === HEALTHY_COMMUNITY_URL)) {
-    throw new Error("Healthy-community recommendation did not render as the exact canonical visitor link.");
-  }
-  mark("healthy_community_link_rendered", { query: HEALTHY_COMMUNITY_QUERY, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL });
-
   const panelInput = root.locator("#archive-ordinary-followup-input");
   await panelInput.waitFor({ state: "visible", timeout: 8_000 });
   const replyButton = root.getByRole("button", { name: /reply/i }).first();
@@ -458,6 +428,34 @@ try {
 
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests including the healthy-community link check, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
+
+  // Browser-level exact title/href contract for the newcomer response.
+  const healthyBefore = await answer.innerText().catch(() => "");
+  await input.fill(HEALTHY_COMMUNITY_QUERY);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  await page.waitForFunction(
+    query => (window.__guideApiRequests || []).some(item => item.body?.query === query),
+    HEALTHY_COMMUNITY_QUERY,
+    { timeout: 12_000 }
+  );
+  await page.waitForFunction(
+    ({ selector, before, title, href }) => {
+      const container = document.querySelector(selector);
+      const link = container && Array.from(container.querySelectorAll("a.archive-recommendation-link"))
+        .find(node => node.textContent?.trim() === title && node.getAttribute("href") === href);
+      const current = container?.innerText?.trim() || "";
+      return Boolean(link) && current.length > 100 && current !== before.trim();
+    },
+    { selector: ROOT + " #archive-response-text", before: healthyBefore, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL },
+    { timeout: 12_000 }
+  );
+  const renderedHealthyLinks = await answer.locator("a.archive-recommendation-link").evaluateAll(nodes =>
+    nodes.map(node => ({ title: node.textContent?.trim(), href: node.getAttribute("href") }))
+  );
+  if (!renderedHealthyLinks.some(link => link.title === HEALTHY_COMMUNITY_TITLE && link.href === HEALTHY_COMMUNITY_URL)) {
+    throw new Error("Healthy-community recommendation did not render as the exact canonical visitor link.");
+  }
+  mark("healthy_community_link_rendered", { query: HEALTHY_COMMUNITY_QUERY, title: HEALTHY_COMMUNITY_TITLE, href: HEALTHY_COMMUNITY_URL });
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
