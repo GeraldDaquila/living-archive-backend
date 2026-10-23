@@ -4,6 +4,11 @@ on:
   pull_request:
     branches:
       - feat/runtime-gold-standard-exemplars
+    paths:
+      - main.py
+      - guide_direct_attribute_evidence.py
+      - general_guide_composition.py
+      - .github/workflows/guide-live-qa-boundary-e2e.yml
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -64,7 +69,7 @@ jobs:
               ),
               (
                   "positive_source_discovery",
-                  "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
+                  "I want to learn about Living Stewardship.",
               ),
           ]
           timings = {}
@@ -140,18 +145,33 @@ jobs:
                       if "Stewardship means taking care" in response:
                           raise AssertionError("Provider-exhaustion control leaked the hardcoded general-knowledge answer.")
                   else:
-                      if basis.get("kind") != "archive_supported":
-                          raise AssertionError(
-                              "Source-discovery positive control was not Archive-supported: "
-                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
-                          )
-                      if not isinstance(recommendation, dict) or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/"):
-                          raise AssertionError(
-                              "Source-discovery positive control did not return a canonical Living Archive recommendation: "
-                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
-                          )
-                      if len(response.strip()) < 40:
-                          raise AssertionError("Source-discovery response is unexpectedly empty or short.")
+                      if payload.get("intent") == "GUIDE_NODE_HANDOFF":
+                          if payload.get("handoff") != "guide_node":
+                              raise AssertionError("Living Stewardship positive control used an unexpected handoff mode.")
+                          if payload.get("guide_node_title") != "Living Stewardship":
+                              raise AssertionError(
+                                  "Positive node handoff did not select the requested canonical node: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          if payload.get("guide_node_url") != "https://geralddaquila.com/living-projects-2/":
+                              raise AssertionError(
+                                  "Positive node handoff URL did not match the canonical registry: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                      else:
+                          if basis.get("kind") != "archive_supported":
+                              raise AssertionError(
+                                  "Source-discovery positive control was not Archive-supported: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          positive_url = str((recommendation or {}).get("url") or "")
+                          if not isinstance(recommendation, dict) or not positive_url.startswith("https://geralddaquila.com/"):
+                              raise AssertionError(
+                                  "Source-discovery positive control did not return a canonical Living Archive recommendation: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          if len(response.strip()) < 40:
+                              raise AssertionError("Source-discovery response is unexpectedly empty or short.")
                   time.sleep(2)
               ordered = sorted(samples)
               timings[name] = {
