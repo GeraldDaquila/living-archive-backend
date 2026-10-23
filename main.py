@@ -5133,11 +5133,16 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             # text from the read-only WordPress published-content bridge. This
             # avoids rendering a full page or transferring the entire REST object.
             post_match = re.match(
-                r"^https://geralddaquila\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)(?:\?.*)?$",
+                r"^https://geralddaquila\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)/?(?:\?.*)?$",
                 href,
                 re.I,
             )
-            if post_match:
+            if not post_match:
+                print(
+                    "The Guide canonical search recovery: published-content bridge skipped "
+                    "(unrecognized WordPress REST self URL)."
+                )
+            else:
                 post_id = int(post_match.group(1))
                 bridge_url = (
                     "https://geralddaquila.com/wp-json/living-archive/v1/"
@@ -5151,29 +5156,46 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                     )
                     with urlopen(bridge_request, timeout=3.0) as response:
                         bridge_payload = json.loads(response.read().decode("utf-8"))
-                    bridge_title = str(bridge_payload.get("title") or "").strip() if isinstance(bridge_payload, dict) else ""
-                    bridge_url_value = str(bridge_payload.get("url") or "").strip() if isinstance(bridge_payload, dict) else ""
-                    bridge_text = str(bridge_payload.get("text") or "").strip() if isinstance(bridge_payload, dict) else ""
+                    bridge_is_dict = isinstance(bridge_payload, dict)
+                    bridge_title = str(bridge_payload.get("title") or "").strip() if bridge_is_dict else ""
+                    bridge_url_value = str(bridge_payload.get("url") or "").strip() if bridge_is_dict else ""
+                    bridge_text = str(bridge_payload.get("text") or "").strip() if bridge_is_dict else ""
                     bridge_candidate = {
                         "title": html.unescape(bridge_title),
                         "url": bridge_url_value,
                         "text": bridge_text[:6000],
                     }
+                    bridge_id_match = bridge_is_dict and str(bridge_payload.get("id") or "") == str(post_id)
+                    bridge_source_match = bridge_is_dict and bridge_payload.get("source") == "published_wordpress_content"
+                    bridge_url_match = bool(
+                        re.match(r"^https://geralddaquila\.com/\S+$", bridge_url_value, re.I)
+                        and bridge_url_value.rstrip("/").casefold() == url.rstrip("/").casefold()
+                    )
+                    bridge_topic_fit = bool(
+                        bridge_title
+                        and len(bridge_text) >= 80
+                        and bridge_url_match
+                        and _topic_specific_candidate_fit(query, bridge_candidate)
+                    )
                     if (
-                        isinstance(bridge_payload, dict)
-                        and int(bridge_payload.get("id") or 0) == post_id
-                        and bridge_payload.get("source") == "published_wordpress_content"
+                        bridge_id_match
+                        and bridge_source_match
                         and bridge_title
                         and len(bridge_text) >= 80
-                        and re.match(r"^https://geralddaquila\.com/\S+$", bridge_url_value, re.I)
-                        and bridge_url_value.rstrip("/").casefold() == url.rstrip("/").casefold()
-                        and _topic_specific_candidate_fit(query, bridge_candidate)
+                        and bridge_url_match
+                        and bridge_topic_fit
                     ):
                         print(
                             "The Guide canonical search recovery: recovered topic-fit "
                             f"canonical body from published-content bridge (chars={len(bridge_text)})."
                         )
                         return bridge_candidate
+                    print(
+                        "The Guide canonical search recovery: published-content bridge response rejected "
+                        f"(id_match={bridge_id_match}, source_match={bridge_source_match}, "
+                        f"url_match={bridge_url_match}, topic_fit={bridge_topic_fit}, "
+                        f"body_chars={len(bridge_text)})."
+                    )
                 except Exception as bridge_exc:
                     print(
                         "The Guide canonical search recovery: published-content bridge skipped "
