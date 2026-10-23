@@ -434,3 +434,80 @@ def test_wordpress_candidate_rejects_excerpt_without_topic_body_corroboration(mo
     assert len(candidates) == 1
     assert "body and soul" in candidates[0]["text"].casefold()
     assert page_url in calls
+
+
+
+def test_wordpress_candidate_recovers_topic_fit_body_from_read_only_bridge(monkeypatch):
+    """The published-content bridge supplies real body text without full page rendering."""
+    import json
+
+    query = "What does the Living Archive say about becoming fully human?"
+    page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    post_endpoint = "https://geralddaquila.com/wp-json/wp/v2/posts/66853"
+    bridge_url = "https://geralddaquila.com/wp-json/living-archive/v1/canonical-evidence/66853"
+    search_payload = [{
+        "title": {"rendered": "✨ Becoming Fully Human"},
+        "url": page_url,
+        "_links": {"self": [{"href": post_endpoint}]},
+    }]
+    excerpt_payload = {
+        "link": page_url,
+        "title": {"rendered": "✨ Becoming Fully Human"},
+        "excerpt": {"rendered": (
+            "<p>This cornerstone essay explores human development through biology, "
+            "psychology, ethics, leadership, integration, and maturity.</p>"
+        )},
+    }
+    bridge_payload = {
+        "id": 66853,
+        "title": "✨ Becoming Fully Human",
+        "url": page_url,
+        "text": (
+            "Human development integrates biological, psychological, relational, ethical, "
+            "systemic, and existential capacities. The opening explains that biology "
+            "describes the body, while the wider article connects the dimensions of "
+            "human development into a coherent architecture."
+        ),
+        "source": "published_wordpress_content",
+    }
+
+    class FakeResponse:
+        def __init__(self, body, url):
+            self.body = body.encode("utf-8") if isinstance(body, str) else body
+            self.url = url
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self, *args):
+            return self.body
+        def geturl(self):
+            return self.url
+
+    calls = []
+    def fake_urlopen(request, timeout):
+        url = request.full_url
+        calls.append(url)
+        if "/wp-json/wp/v2/search?" in url:
+            return FakeResponse(json.dumps(search_payload), url)
+        if url == post_endpoint:
+            raise TimeoutError("controlled full REST body timeout")
+        if url == post_endpoint + "?_fields=link,title,excerpt":
+            return FakeResponse(json.dumps(excerpt_payload), url)
+        if url == bridge_url:
+            return FakeResponse(json.dumps(bridge_payload), url)
+        if url == page_url:
+            raise AssertionError("Full public page rendering should not be needed after bridge recovery.")
+        raise AssertionError("Unexpected URL requested: " + url)
+
+    monkeypatch.setattr(main, "_subject_terms", lambda _query: {"fully human"})
+    monkeypatch.setattr(main, "urlopen", fake_urlopen)
+
+    candidates = main._wordpress_search_canonical_candidates(query, limit=3)
+
+    assert len(candidates) == 1
+    assert candidates[0]["title"] == "✨ Becoming Fully Human"
+    assert candidates[0]["url"] == page_url
+    assert "the body" in candidates[0]["text"].casefold()
+    assert bridge_url in calls
+    assert page_url not in calls
