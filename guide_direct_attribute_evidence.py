@@ -37,3 +37,17 @@ def direct_attribute_supported(question, document):
     normalized_body = " ".join(re.findall(r"[a-z0-9]+", body))
     # Require the attribute phrase as a phrase, not scattered term mentions.
     return bool(normalized_body) and phrase in normalized_body
+
+
+def should_fail_closed(archive_evidence_unavailable, discovery_subject=False):
+    """Fail closed for ordinary inquiries without evidence; discovery has its own page-body gate."""
+    return bool(archive_evidence_unavailable) and not bool(discovery_subject)
+
+
+def archive_limitation_response():
+    """Visitor-facing corpus-only response when no suitable Archive evidence exists."""
+    return (
+        "I couldn’t establish an answer to that question from the Living Archive’s "
+        "available material. I won’t substitute outside knowledge or attach a "
+        "resource that has not been shown to address what you asked."
+    )
