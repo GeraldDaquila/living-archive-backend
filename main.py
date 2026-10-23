@@ -4295,47 +4295,27 @@ def _basic_inquiry_has_internal_annotation(response):
 
 
 def _guide_finalize_visitor_payload(payload, query):
-    """Replace contaminated ordinary Guide responses at the shared outer API boundary."""
+    """Fail closed when contaminated Guide prose cannot be trusted as Archive-grounded."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
-    # Source/template fragments are a separate contamination class from evidence
-    # annotations. Detect them at the shared API boundary so they cannot escape
-    # regardless of which provider, retrieval route, or composer produced them.
     if (
         not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
         return payload
 
-    # If executable/template text escaped into the answer, bypass the same
-    # composition path and use the dedicated safe recovery for the visitor's query.
-    if _basic_inquiry_has_source_dump(response_text):
-        response = _sanitize_basic_inquiry_response(
-            _basic_inquiry_source_dump_recovery(query)
-        )
-        recovered = {}
-    else:
-        recovered = _basic_inquiry_round1_deterministic_response(
-            query, {}, {"context_blocks": ""}, recommendation_available=False
-        )
-        response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
-    if (
-        not response
-        or _basic_inquiry_has_internal_annotation(response)
-        or _basic_inquiry_has_source_dump(response)
-    ):
-        response = _sanitize_basic_inquiry_response(_basic_inquiry_source_dump_recovery(query))
-
+    # A sanitization failure invalidates the generated answer's evidence contract.
+    # Never replace contaminated prose with a hardcoded general-knowledge answer.
     safe = dict(payload)
     safe.update({
         "ok": True,
-        "response": response,
+        "response": _archive_limitation_response(),
         "recommendation": None,
         "answer_basis": {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "The response was recovered without relying on a direct Archive source.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish a safe, supported answer to this question.",
         },
         "processing": "final_visitor_boundary_recovery",
         "route_source": "guide_final_visitor_boundary",
@@ -4344,7 +4324,7 @@ def _guide_finalize_visitor_payload(payload, query):
     safe.pop("error_type", None)
     print(
         "The Guide shared final visitor boundary: discarded contaminated response "
-        "and any incidental recommendation; deterministic recovery used."
+        "and recommendation; failed closed because source support was not verified."
     )
     return safe
 
@@ -6448,10 +6428,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         reasoning_mode = "auto"
 
     composition_result = None
+    deterministic_recovery_used = False
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
     if _is_practical_stewardship_question(query):
+        deterministic_recovery_used = True
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
         )
@@ -6464,6 +6446,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
+        deterministic_recovery_used = True
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             correction_subject or query, {}, composition_context,
             recommendation_available=bool(authoritative_doorway),
@@ -6495,16 +6478,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
                 )
             else:
-                print("The Guide General Composition: mode=auto; provider bank exhausted; using conservative deterministic recovery.")
-                print("The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=provider_bank_exhausted")
+                deterministic_recovery_used = True
+                print("The Guide General Composition: mode=auto; provider bank exhausted; no Archive-grounded answer generation available.")
+                print("The Guide Final Pathway: mode=auto, pathway=fail_closed, provider=none, model=none, reason=provider_bank_exhausted")
                 deterministic_result = _basic_inquiry_provider_exhaustion_response(
                     correction_subject or query, {}, composition_context,
                     recommendation_available=bool(authoritative_doorway),
                 )
                 llm_output = str(deterministic_result.get("response") or "")
         except Exception as exc:
-            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
-            print(f"The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
+            deterministic_recovery_used = True
+            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; no Archive-grounded answer generation available.")
+            print(f"The Guide Final Pathway: mode=auto, pathway=fail_closed, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
             try:
                 deterministic_result = _basic_inquiry_provider_exhaustion_response(
                     query, {}, composition_context,
@@ -6546,6 +6531,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # unsupported title/URL pairs from crossing the API boundary.
     raw_visitor_text = str(llm_output or "").strip()
     if _basic_inquiry_has_internal_annotation(raw_visitor_text):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected generated prose with internal "
             "evidence annotations; using query-grounded deterministic recovery."
@@ -6556,6 +6542,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         llm_output = str(deterministic_recovery.get("response") or "").strip()
         raw_visitor_text = llm_output
     if _basic_inquiry_contains_html_markup(raw_visitor_text):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
             "using query-grounded deterministic recovery."
@@ -6576,6 +6563,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if _basic_inquiry_has_source_dump(response):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
             "using deterministic synthesis instead."
@@ -6612,6 +6600,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # that last step reintroduces internal annotations, discard it and recover
     # from the visitor's question without reusing contaminated prose or links.
     if _basic_inquiry_has_internal_annotation(response):
+        deterministic_recovery_used = True
         print(
             "The Guide final discovery boundary: rejected reintroduced internal "
             "annotations; using query-grounded deterministic recovery."
@@ -6754,6 +6743,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # recovery clears the generic evidence flag. In particular, the generic
     # sufficiency gate must not undo a direct-attribute failure caused by
     # rejecting a preselected but substantively unrelated doorway.
+    if deterministic_recovery_used and not discovery_subject:
+        archive_evidence_unavailable = True
+
     final_archive_evidence_unavailable = bool(
         archive_evidence_unavailable or direct_attribute_evidence_missing
     )
@@ -7980,74 +7972,31 @@ async def _use_request_boundary(scope, receive, send):
                 "The Guide Basic Inquiry seam failed; "
                 f"ordinary route remains ordinary and will not be reclassified: {exc}"
             )
-            try:
-                context_data = use_core.fetch_canonical_context(query)
-                recovery_context = context_data if isinstance(context_data, dict) else {}
-                recovery = _basic_inquiry_round1_deterministic_response(
-                    query,
-                    {},
-                    recovery_context,
-                )
-                recovery_text = str(recovery.get("response") or "").strip()
-                if _basic_inquiry_contains_html_markup(recovery_text):
-                    print(
-                        "The Guide recovery boundary: rejected HTML-shaped deterministic output; "
-                        "retrying without retrieved context."
-                    )
-                    recovery_text = _basic_inquiry_markup_recovery(
-                        query, history, context_data.get("intent", "TOPICAL_INQUIRY")
-                    )
-                    if not recovery_text:
-                        try:
-                            recovery = _basic_inquiry_round1_deterministic_response(
-                                query, {}, {"context_blocks": ""}
-                            )
-                            recovery_text = str(recovery.get("response") or "").strip()
-                        except Exception:
-                            recovery_text = ""
-                if _basic_inquiry_contains_html_markup(recovery_text):
-                    recovery_text = ""
-                recovery_recommendation = _normalize_authoritative_recommendation(
-                    _general_guide_authoritative_doorway(query, recovery_context)
-                )
-                if recovery_text:
-                    request_id = "basic-recovery-" + hashlib.sha1(
-                        (query + "|" + _history_text(history)).encode("utf-8")
-                    ).hexdigest()[:16]
-                    return await _use_send_json(send, {
-                        "ok": True,
-                        "version": APP_VERSION,
-                        "fingerprint": DEPLOYMENT_FINGERPRINT,
-                        "source_sha256": RUNTIME_SOURCE_SHA256,
-                        "request_id": request_id,
-                        "query": query,
-                        "intent": (
-                            context_data.get("intent", "TOPICAL_INQUIRY")
-                            if isinstance(context_data, dict)
-                            else "TOPICAL_INQUIRY"
-                        ),
-                        "response": recovery_text,
-                        "recommendation": recovery_recommendation,
-                        "processing": "basic_inquiry_recovery",
-                        "route_source": "guide_basic_inquiry_recovery",
-                        "recovery": "deterministic_round1",
-                        "visitor_boundary_version": APP_VERSION,
-                    })
-            except Exception as recovery_exc:
-                print(
-                    "The Guide Basic Inquiry deterministic recovery also failed: "
-                    f"{recovery_exc}"
-                )
+            # If the Basic Inquiry seam itself fails, no generated answer can be
+            # certified against the Archive evidence contract. Return the same
+            # honest limitation rather than bypassing the final provenance gate.
+            request_id = "basic-recovery-" + hashlib.sha1(
+                (query + "|" + _history_text(history)).encode("utf-8")
+            ).hexdigest()[:16]
             return await _use_send_json(send, {
-                "ok": False,
+                "ok": True,
                 "version": APP_VERSION,
+                "fingerprint": DEPLOYMENT_FINGERPRINT,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "request_id": request_id,
                 "query": query,
                 "intent": "TOPICAL_INQUIRY",
-                "response": "The Guide could not complete this question right now.",
-                "error_type": "basic_inquiry_failure",
-                "route_source": "guide_basic_inquiry",
+                "response": _archive_limitation_response(),
+                "recommendation": None,
+                "answer_basis": {
+                    "kind": "archive_evidence_unavailable",
+                    "label": "Archive evidence not found",
+                    "explanation": "The available Archive material did not establish a safe, supported answer to this question.",
+                },
+                "processing": "basic_inquiry_recovery",
+                "route_source": "guide_basic_inquiry_recovery",
                 "visitor_boundary_version": APP_VERSION,
-            }, 503)
+            })
 
     explicit_formation_route = _explicit_formation_entry_route(query)
     if explicit_formation_route is not None:
