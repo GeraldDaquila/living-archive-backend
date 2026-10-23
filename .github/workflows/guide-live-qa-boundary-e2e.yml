@@ -64,7 +64,7 @@ jobs:
               ),
               (
                   "positive_source_discovery",
-                  "Tell me about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
+                  "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
               ),
           ]
           timings = {}
