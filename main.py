@@ -8053,9 +8053,22 @@ async def _use_request_boundary(scope, receive, send):
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
 
-    # Final-boundary arbitration: comparative explanatory intent outranks a
-    # model's generic Glossary classification. Do not hand off the whole phrase
-    # as a term; retain the visitor's complete question for Guide composition.
+    # Final-boundary arbitration: explanatory learning intent outranks
+    # generic specialist labels from the advisory capability router. This
+    # applies to Navigator as well as Glossary: a request to learn about a
+    # substantive topic must remain in Guide composition, not become an empty
+    # Start Here handoff merely because a model selected the Navigator lane.
+    if route_id == "navigator" and _has_substantive_topic_intent(query):
+        print(
+            "The Guide request boundary: kept substantive topic inquiry in Guide composition; "
+            f"advisory_route=navigator, query={_normalize_query(query)[:120]}"
+        )
+        route_id = "guide"
+        mode = "direct"
+
+    # Comparative explanatory intent also outranks a model's generic Glossary
+    # classification. Do not hand off the whole phrase as a term; retain the
+    # visitor's complete question for Guide composition.
     if route_id == "glossary" and _is_comparative_explanatory_request(query):
         print(
             "The Guide request boundary: kept comparative inquiry in Guide composition; "
