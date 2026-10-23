@@ -215,3 +215,92 @@ def test_guide_request_core_contains_no_vector_index_mutation_calls():
         "canonical vector index; found mutation calls: " + ", ".join(violations)
     )
 
+
+
+def test_wordpress_candidate_recovers_public_body_when_rest_fetch_times_out(monkeypatch):
+    """A search-discovered canonical URL may recover via its public page body."""
+    import json
+
+    query = "What does the Living Archive say about becoming fully human?"
+    page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    search_payload = [{
+        "title": {"rendered": "Becoming Fully Human"},
+        "url": page_url,
+        "_links": {"self": [{"href": "https://geralddaquila.com/wp-json/wp/v2/posts/66853"}]},
+    }]
+
+    class FakeResponse:
+        def __init__(self, body, url):
+            self.body = body.encode("utf-8") if isinstance(body, str) else body
+            self.url = url
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self, *args):
+            return self.body
+        def geturl(self):
+            return self.url
+
+    calls = []
+    def fake_urlopen(request, timeout):
+        url = request.full_url
+        calls.append(url)
+        if "/wp-json/wp/v2/search?" in url:
+            return FakeResponse(json.dumps(search_payload), url)
+        if "/wp-json/wp/v2/posts/66853" in url:
+            raise TimeoutError("controlled REST body timeout")
+        if url == page_url:
+            return FakeResponse(
+                "<html><head><title>Becoming Fully Human</title></head><body><main>"
+                "Becoming fully human is explored through human development, biological, "
+                "psychological, relational, ethical, systemic, and existential capacities."
+                "</main></body></html>",
+                url,
+            )
+        raise AssertionError("Unexpected URL requested: " + url)
+
+    monkeypatch.setattr(main, "_subject_terms", lambda _query: {"fully human"})
+    monkeypatch.setattr(main, "urlopen", fake_urlopen)
+
+    candidates = main._wordpress_search_canonical_candidates(query, limit=3)
+
+    assert len(candidates) == 1
+    assert candidates[0]["title"] == "Becoming Fully Human"
+    assert candidates[0]["url"] == page_url
+    assert "human development" in candidates[0]["text"].casefold()
+    assert calls[-1] == page_url
+
+
+def test_wordpress_candidate_does_not_emit_metadata_when_both_body_paths_fail(monkeypatch):
+    """A canonical URL/title is never enough to authorize a recommendation."""
+    import json
+
+    page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    search_payload = [{
+        "title": {"rendered": "Becoming Fully Human"},
+        "url": page_url,
+        "_links": {"self": [{"href": "https://geralddaquila.com/wp-json/wp/v2/posts/66853"}]},
+    }]
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self, *args):
+            return json.dumps(search_payload).encode("utf-8")
+        def geturl(self):
+            return "https://geralddaquila.com/wp-json/wp/v2/search"
+
+    def fake_urlopen(request, timeout):
+        if "/wp-json/wp/v2/search?" in request.full_url:
+            return FakeResponse()
+        raise TimeoutError("controlled body timeout")
+
+    monkeypatch.setattr(main, "_subject_terms", lambda _query: {"fully human"})
+    monkeypatch.setattr(main, "urlopen", fake_urlopen)
+
+    assert main._wordpress_search_canonical_candidates(
+        "What does the Living Archive say about becoming fully human?", limit=3
+    ) == []
