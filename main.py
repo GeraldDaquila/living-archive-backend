@@ -10,6 +10,7 @@ import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported
 from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -944,6 +945,11 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False
     if not _topic_specific_candidate_fit(query, doc):
+        return False
+    # A shared entity (for example, "water") cannot establish evidence for a
+    # requested attribute (for example, "boiling point"). Direct attributes
+    # must be present in the candidate's own source body.
+    if not _direct_attribute_supported(query, doc):
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
@@ -6168,6 +6174,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         context_data.get("recommendation_canonical_primary")
         or _general_guide_authoritative_doorway(resource_query, context_data)
     )
+    # Direct attribute questions need source-body evidence for the attribute
+    # itself. If no doorway survives that contract, keep the final answer
+    # bounded rather than allowing provider recovery to fill the gap externally.
+    direct_attribute_evidence_missing = bool(_direct_attribute_phrase(query)) and not bool(authoritative_doorway)
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6729,11 +6739,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
+    # Enforce the direct-attribute source boundary after all provider and
+    # deterministic recovery paths. A relevant-looking doorway cannot substitute
+    # for evidence that actually addresses the requested attribute.
+    if direct_attribute_evidence_missing:
+        response = (
+            "I couldn’t verify that specific information from the Living Archive’s "
+            "available material. I won’t substitute outside knowledge or attach a "
+            "resource that only shares a word with your question."
+        )
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
     # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable:
+    if direct_attribute_evidence_missing:
+        answer_basis = {
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish the specific attribute requested.",
+        }
+    elif archive_evidence_unavailable:
         answer_basis = {
             "kind": "general_knowledge",
             "label": "General knowledge",
