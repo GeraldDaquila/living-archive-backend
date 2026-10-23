@@ -348,3 +348,42 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 **Verified current fixture counts:** balanced relevance 4; held-out paraphrases 4; independent challenge set 16; simulated question battery 10; fuzzy fallback replay 9. These total 43 fixture cases, but are not 43 approved gold standards. The independent challenge set includes correlated cases and underspecified candidate pairs; simulated cases are not independent human ground truth. The separate ten-question calibration set is also not an approved-answer set.
 
 **Registry size at this revision:** 18 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
+
+
+## G. Original 14-standard forensic sequence recovered from Issue #747
+
+Source: [Issue #747 — Forensics: establish provenance of the 14 Guide Gold Standards](https://github.com/GeraldDaquila/living-archive-backend/issues/747). Its comments establish provider/source attribution and include an explicit user-approval record for the deterministic-recovery trade-off answer.
+
+### Exact original prompts recovered
+
+- **Original #1:** “How does responsibility differ from carrying everything yourself?” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+- **Original #2:** “How can I tell when helping has turned into taking over?” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+- **Original #3:** “What does sharing responsibility look like when a team is struggling?” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+- **Original #4:** “Where should I start if I want to understand trust-based systems?” — primary-service logs show a navigation-specialist handoff to Start Here (https://geralddaquila.com/start-here-2/), not a logged General Guide composition event.
+- **Original #5:** “What does accountability really mean?” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+- **Original #6:** “Explain a concept that is not directly covered by an available Archive resource” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+- **Original #7:** “What does the Archive specifically say about a claim for which no supporting source is retrieved?” — successful Groq Qwen composition logged; exact accepted response/rating still missing.
+
+### Original #8–#14: numbered slots confirmed; exact prompts still missing
+
+Issue #747 confirms successful Groq Qwen compositions for these seven slots and provides only these topic descriptions, not verbatim questions:
+
+- **#8:** Recurring problems.
+- **#9:** Authority without agency.
+- **#10:** Formal authority refuses to listen.
+- **#11:** Legitimate safeguards versus power protection.
+- **#12:** New conditions / moving goalposts.
+- **#13:** Genuinely new risk.
+- **#14:** Real risk imposing costs on those who accepted the original decision.
+
+Each has a separate recovery placeholder in the JSON registry. The original question wording, exact accepted answer, doorway, visitor rating, and approval record remain unfilled; none have been reconstructed from these topic summaries.
+
+### Explicit approval recovered: deterministic-recovery trade-off
+
+Issue #747 comment [#6322797433](https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6322797433) explicitly records user approval on October 22, 2026, of the exact ethical trade-off answer now stored in the JSON registry. The displayed navigation title is “Leadership Case Study 01: Decision-Making Under Pressure and Resource Scarcity.” The numeric rating and destination URL are not stated in that approval record. The comment calls it “Gold Standard #2”; however, the previously recorded reciprocity standard was also described as the second Guide gold standard. Numbering conflict unresolved: preserve both source labels and do not renumber without the original sequence record.
+
+### Attribution and quality limits
+
+The forensic issue attributes #1–#3 and #5–#7, and #8–#14, to successful Groq qwen/qwen3.8-27b composition. #4 is a separate navigation-specialist path. These logs establish source/provider attribution but do not supply every exact accepted output. The next unaccepted edge-case prompt is a provider-bank-exhaustion/deterministic-recovery control, not an accepted gold standard. Do not conflate it with the accepted trade-off response.
+
+The issue also records that query/history hashes are not unique invocation IDs and that the complete exact model inputs/outputs were not captured for every run. No component-by-component causal claim should be treated as proven from provider attribution alone.
