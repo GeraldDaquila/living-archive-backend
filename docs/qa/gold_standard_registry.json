@@ -538,7 +538,8 @@
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -546,9 +547,13 @@
         "request_hash": "basic-0d9cf848b88718f0",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 8.5,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Responsibility versus carrying everything; boundaries and sustainable contribution."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
@@ -558,13 +563,14 @@
       "query": "How can I tell when helping has turned into taking over?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Learning to Receive Without Feeling Guilty",
         "url": null
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -572,9 +578,13 @@
         "request_hash": "basic-2102d3c92fe242ef",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer and recommendation accepted; exact response not recovered",
+      "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
@@ -590,7 +600,8 @@
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -598,9 +609,13 @@
         "request_hash": "basic-dcca201b61d915d1",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 8.5,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Shared accountability, mutual support, transparency, coordination, resilience; shared responsibility does not mean equal responsibility."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
@@ -610,13 +625,14 @@
       "query": "Where should I start if I want to understand trust-based systems?",
       "expected_response": null,
       "expected_doorway": {
-        "title": "Start Here",
+        "title": "Start Here — Where to begin and how to navigate the Living Archive",
         "url": "https://geralddaquila.com/start-here-2/"
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -624,9 +640,13 @@
         "request_hash": "navigator-c03843228f6a6649",
         "provider_attribution": "navigation specialist; model composition not established",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered."
+        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "orientation answer/destination accepted; path is navigation-specialist handoff, not General Guide composition",
+      "known_theme": "Trust-based systems orientation."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
@@ -636,13 +656,14 @@
       "query": "What does accountability really mean?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Community Accountability Systems",
         "url": null
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -650,9 +671,13 @@
         "request_hash": "basic-4d01507060492335",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Accountability as responsibility, transparency, and repair."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
@@ -668,7 +693,8 @@
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -676,9 +702,13 @@
         "request_hash": "basic-8adbd3c1e545e29f",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "known_theme": "Explain a general concept without claiming unsupported Archive-specific evidence."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
@@ -694,7 +724,8 @@
       "assertions": [
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
-        "Do not reconstruct the original accepted response from model attribution or response length alone."
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -702,26 +733,31 @@
         "request_hash": "basic-6d41f289f647a5a3",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "known_theme": "Evidence honesty when no supporting Archive source is retrieved."
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 8,
-      "query": null,
+      "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
         "url": null
       },
-      "known_theme": "Recurring problems (exact original question wording not recovered)",
+      "known_theme": "Recurring problems despite good intentions.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -729,26 +765,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.8,
+      "approval_state": "answer accepted; exact response not recovered"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 9,
-      "query": null,
+      "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
       "expected_response": null,
       "expected_doorway": {
         "title": null,
         "url": null
       },
-      "known_theme": "Authority without agency (exact original question wording not recovered)",
+      "known_theme": "Authority without agency.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -756,26 +796,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.6,
+      "approval_state": "answer accepted; exact response and doorway not recovered"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 10,
-      "query": null,
+      "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Institutional Stewardship",
         "url": null
       },
-      "known_theme": "Formal authority refuses to listen (exact original question wording not recovered)",
+      "known_theme": "Formal authority refuses to listen; informal coalition lacks influence; pilot needs permission.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -783,26 +827,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.7,
+      "approval_state": "answer accepted; exact response not recovered"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 11,
-      "query": null,
+      "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Beyond Bureaucracy",
         "url": null
       },
-      "known_theme": "Legitimate safeguards versus power protection (exact original question wording not recovered)",
+      "known_theme": "Legitimate safeguards versus protection of power.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -810,26 +858,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer and destination accepted; evidence verification was pending"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 12,
-      "query": null,
+      "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
       "expected_response": null,
       "expected_doorway": {
         "title": null,
         "url": null
       },
-      "known_theme": "New conditions / moving goalposts (exact original question wording not recovered)",
+      "known_theme": "Moving goalposts after safeguards have been accepted.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -837,26 +889,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.8,
+      "approval_state": "answer and destination accepted subject to evidence verification; exact destination title not recovered"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 13,
-      "query": null,
+      "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Decision-Making Under Uncertainty: How People Choose Without Enough Information",
         "url": null
       },
-      "known_theme": "Genuinely new risk (exact original question wording not recovered)",
+      "known_theme": "Genuinely new risk after criteria are agreed.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -864,26 +920,30 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 9.1,
+      "approval_state": "answer and destination accepted; grounding verification was pending"
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
       "status": "NEEDS_SOURCE_RECOVERY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 14,
-      "query": null,
+      "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
       "expected_response": null,
       "expected_doorway": {
         "title": null,
         "url": null
       },
-      "known_theme": "Real risk imposing costs on those who accepted the original decision (exact original question wording not recovered)",
+      "known_theme": "Fairness when circumstances change and the costs of addressing new risk fall unevenly.",
       "assertions": [
         "Original numbered slot is confirmed in the forensic inventory.",
         "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
-        "Do not infer exact wording from the thematic summary."
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
       ],
       "provenance": {
         "source_issue": 747,
@@ -891,9 +951,13 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
-        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_decision": "Cognitive Dissonance recommendation rejected as conceptually adjacent rather than directly addressing cost distribution."
       },
-      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.7,
+      "approval_state": "answer accepted; proposed Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent, not directly about cost distribution"
     },
     {
       "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
@@ -929,5 +993,5 @@
       "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
     }
   ],
-  "last_reconciliation_note": "October 23: 33 structured records. Recovered original forensic inventory issue #747. Added numbered records for original Guide Gold Standards #1-14, preserving exact prompts only where actually present; #8-14 remain explicit missing-source placeholders. Promoted the user-approved deterministic-recovery trade-off response (called Gold Standard #2 in the Oct 22 approval comment) to a distinct approved record with exact answer and displayed doorway title. Registry numbering conflict remains unresolved: reciprocity was previously called the second Guide gold standard, while the forensic issue labels this accepted deterministic-recovery answer #2. Do not renumber either without original sequence evidence. Current head's CI results have not yet been verified."
+  "last_reconciliation_note": "October 23: 33 structured records. Recovered original forensic inventory issue #747 and prior calibration context for original Guide Gold Standards #1-14. Exact prompts, ratings, approval states, and some doorway titles are now recorded where supported. Exact accepted response texts remain unrecovered for original #1-#14 except the separate explicitly approved deterministic-recovery trade-off answer. #8-#14 are no longer merely theme-only: exact prompts/rating summaries were recovered from prior calibration context. Gold-standard numbering conflict remains unresolved: reciprocity and the deterministic-recovery trade-off have both been called #2 in separate records."
 }
