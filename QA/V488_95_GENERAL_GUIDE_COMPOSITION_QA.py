@@ -60,7 +60,7 @@ def main():
     assert_true("from concurrent.futures import ThreadPoolExecutor" in MAIN_TEXT and "executor.map(fetch_candidate, candidate_slice)" in MAIN_TEXT, "canonical search candidate fetches are not concurrent and order-preserving")
     assert_true("fallback_docs = _wordpress_search_canonical_candidates(query)" in MAIN_TEXT, "canonical search recovery is not connected to missing-doorway recovery")
     assert_true("primary = _canonical_primary_from_docs(evidence_docs, query, profile)" in MAIN_TEXT, "recovered candidates do not pass through the shared relevance gate")
-    assert_true("score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)" in MAIN_TEXT, "canonical doorway ranking does not prioritize evidence in the resource body")
+    assert_true("score = (metrics[0], metrics[1], metrics[2], metrics[3], context[2], context[1], -index)" in MAIN_TEXT, "canonical doorway ranking does not prioritize title-level topic fit after body-evidence eligibility")
     # Navigation selection is independent from answer synthesis sufficiency.
     evidence_boundary_start = MAIN_TEXT.find("if archive_evidence_unavailable:")
     evidence_boundary_end = MAIN_TEXT.find("# All ordinary questions use the same provider-neutral composition path", evidence_boundary_start)
