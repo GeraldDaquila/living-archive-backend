@@ -330,9 +330,9 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 
 - **Balanced relevance evaluation** — PR #758, four cases: ethical trade-off, harm repair, collective next step, accountability; each contrasts direct, adjacent, and unsuitable candidates. Labels are authored expectations, not independent ground truth. https://github.com/GeraldDaquila/living-archive-backend/pull/758
 - **Held-out paraphrases** — PR #760. Tests paraphrase transfer and topical distractors; exact current case count still to verify. https://github.com/GeraldDaquila/living-archive-backend/pull/760
-- **Independent challenge set** — PRs #761–#762. Simulated labels, not independent human ground truth. Three consultation/participation cases share a candidate pair and form one correlated family. Two administrative-procedure cases are marked `candidate_set_underspecified`, so their forced pairwise choice is not valid semantic ground truth. Exact current case count still to verify. https://github.com/GeraldDaquila/living-archive-backend/pull/762
-- **Simulated question battery** — PR #761. Diagnostic direct-versus-adjacent relevance evaluation; not approved answer gold standards. Exact current case count still to verify.
-- **Fuzzy fallback replay** — PR #762. Simulated diagnostic cases; not approved answer gold standards. Exact current case count still to verify.
+- **Independent challenge set** — PRs #761–#762. Simulated labels, not independent human ground truth. Three consultation/participation cases share a candidate pair and form one correlated family. Two administrative-procedure cases are marked `candidate_set_underspecified`, so their forced pairwise choice is not valid semantic ground truth. Current main fixture: 4 cases (blob SHA `643fc07bf620d923461373628d1c3441234f702d`). https://github.com/GeraldDaquila/living-archive-backend/pull/762
+- **Simulated question battery** — PR #761. Diagnostic direct-versus-adjacent relevance evaluation; not approved answer gold standards. Current main fixture: 10 cases (blob SHA `7a146a44eb8a37f432d0b9e618aede151779e06a`).
+- **Fuzzy fallback replay** — PR #762. Simulated diagnostic cases; not approved answer gold standards. Current main fixture: 9 simulated cases (blob SHA `f03afa3157c683479591b67d835065f922ceeab0`).
 - **Practical-trust shadow diagnostic** — PR #772. Hypothesis/evaluation-only tests for practical application versus generic inquiry. Keep distinct from approved Gold Standard #20, already recorded as the accepted 9/10 live response.
 
 ### Source-lineage rules
@@ -343,3 +343,8 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 - A merged implementation fix does not by itself establish that its test question/answer was visitor-approved.
 - Simulated candidate labels and shadow diagnostics must not be counted as approved gold standards.
 - The original “20+” gold-standard collection is **still not fully recovered**. Original numbering, several exact questions/answers, and approval/rating records remain open reconciliation items. Do not claim completeness until each original item is linked to source evidence or explicitly classified as missing, duplicate, superseded, simulated, or awaiting approval.
+
+
+**Verified current fixture counts:** balanced relevance 4; held-out paraphrases 4; independent challenge set 16; simulated question battery 10; fuzzy fallback replay 9. These total 43 fixture cases, but are not 43 approved gold standards. The independent challenge set includes correlated cases and underspecified candidate pairs; simulated cases are not independent human ground truth. The separate ten-question calibration set is also not an approved-answer set.
+
+**Registry size at this revision:** 18 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
