@@ -416,3 +416,6 @@ The registry now records the following ratings and destination decisions for ori
 | #14 | ~8.7/10 | Answer accepted; Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent |
 
 Source for these recovered metadata fields: prior October 21 calibration conversation. The exact accepted response text for original #1–#14 has not yet been recovered verbatim. The separate October 22 deterministic-recovery trade-off answer remains explicitly approved with its full exact answer in the registry, but its “Gold Standard #2” label conflicts with earlier numbering for reciprocity; do not renumber either without original sequence evidence.
+
+
+**Numbering conflict discovered during prior-conversation recovery:** the exact ethical-trade-off answer is recorded as “Gold Standard #2 — Deterministic Recovery Calibration” in Issue #747 comment dated October 22 and as “GS #18 — Ethical Trade-offs and Conflicting Harms” in an earlier calibration summary. That earlier summary gives it a 9.0/10 rating. The registry preserves both labels and rating without asserting they are the same sequence as the original 14. Do not renumber until the original numbered calibration log is recovered.
