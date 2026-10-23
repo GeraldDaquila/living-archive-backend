@@ -1047,15 +1047,54 @@
         "The prior calibration context explicitly says the original GS #15–#21 records are not preserved in the retrieved source.",
         "Do not create inferred standards for slots 15, 16, 17, or 19 without original source evidence.",
         "Keep the known unaccepted provider-exhaustion negative control separate from approved gold standards.",
-        "Keep the separate ethical-trade-off answer's conflicting #2/#18 labels unresolved until original sequence evidence is recovered."
+        "Keep the separate ethical-trade-off answer's conflicting #2/#18 labels unresolved until original sequence evidence is recovered.",
+        "Separately recovered Advanced Calibration Suite prompts are stored verbatim but remain unassigned; do not map them to original Gold Standard numbers without primary-source evidence."
       ],
       "provenance": {
         "source": "prior-conversation forensic recovery",
         "source_issue_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
         "evidence_boundary": "These are missing sequence positions, not assertions that a particular question/answer existed at each number. #20 and #21 are separately recorded with their exact accepted responses.",
-        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747"
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "additional_recovery_note": "The five exact prompts above were surfaced by a separate prior-conversation history search as members of an Advanced Calibration Suite. The available history results do not establish that these prompts map one-to-one to the missing original Gold Standard sequence slots 15, 16, 17, 19, or the disputed slot 18. They are preserved verbatim as unassigned prompt evidence only; no answer text, rating, approval, or doorway is inferred."
       },
-      "freeze_policy": "Gap marker only; do not count as a gold-standard answer."
+      "freeze_policy": "Gap marker only; do not count as a gold-standard answer.",
+      "separately_recovered_advanced_calibration_prompts_unassigned": [
+        {
+          "prompt": "How can a group make a responsible decision when members disagree about the facts and nobody has enough evidence to be certain?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "How can we tell whether an accountability process is helping people take responsibility or simply giving the group a socially acceptable way to punish someone?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "I’m tired of being the only adult in the room. What am I missing?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "How do I get people to take responsibility?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "If I stop helping, am I abandoning people?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        }
+      ]
     }
   ],
   "last_reconciliation_note": "October 23: 34 structured records. Original #1–#14 prompts, recovered ratings, approval/resource metadata, and provenance are recorded; exact accepted answer text for that original sequence remains unavailable in retrieved prior context. Canonical URLs recovered for #2, #5, #8, #10, #13. The separate approved ethical-trade-off answer is preserved at 9.0/10 with conflicting labels #2 and #18. Missing original sequence positions #15–#17 and #19 are recorded as a gap marker, not fabricated standards. Current CI rerun pending on latest head."
