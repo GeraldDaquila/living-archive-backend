@@ -26,7 +26,7 @@ def test_source_that_discusses_requested_attribute_can_qualify():
     source = {
         "title": "Water properties",
         "url": "https://geralddaquila.com/water-properties/",
-        "text": "The boiling point of water changes with atmospheric pressure.",
+        "text": "At sea level, the boiling point of water changes with atmospheric pressure.",
     }
     assert direct_attribute_supported(
         "What is the boiling point of water at sea level?", source
@@ -108,3 +108,23 @@ def test_ordinary_question_preserves_preselected_primary():
     )
     assert selected is preselected
     assert calls == []
+
+
+
+def test_direct_attribute_requires_explicit_question_condition():
+    from guide_direct_attribute_evidence import direct_attribute_supported
+
+    question = "What is the boiling point of water at sea level?"
+    generic = {"title": "Water properties", "text": "The boiling point of water changes with atmospheric pressure."}
+    specific = {"title": "Water properties", "text": "At sea level, the boiling point of water is described here."}
+    assert not direct_attribute_supported(question, generic)
+    assert direct_attribute_supported(question, specific)
+
+
+def test_single_word_attribute_is_still_checked():
+    from guide_direct_attribute_evidence import direct_attribute_phrase, direct_attribute_supported
+
+    question = "What is the color of the flag?"
+    assert direct_attribute_phrase(question) == "color"
+    assert not direct_attribute_supported(question, {"title": "Flag", "text": "The flag is displayed outside."})
+    assert direct_attribute_supported(question, {"title": "Flag", "text": "The color of the flag is blue."})
