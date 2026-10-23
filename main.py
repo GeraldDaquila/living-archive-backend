@@ -10,7 +10,7 @@ import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
-from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, should_fail_closed as _should_fail_closed, archive_limitation_response as _archive_limitation_response
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, select_authoritative_doorway as _select_direct_attribute_doorway, should_fail_closed as _should_fail_closed, archive_limitation_response as _archive_limitation_response
 from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -6171,19 +6171,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
     direct_attribute_query = bool(_direct_attribute_phrase(query))
-    if direct_attribute_query:
-        # Do not trust the preselected primary for direct-attribute questions:
-        # that field can be populated before the final attribute-evidence gate.
-        # Re-select from source-bearing candidates through the full eligibility
-        # contract, which checks the requested attribute in the candidate body.
-        authoritative_doorway = _normalize_authoritative_recommendation(
-            _general_guide_authoritative_doorway(resource_query, context_data)
-        )
-    else:
-        authoritative_doorway = _normalize_authoritative_recommendation(
-            context_data.get("recommendation_canonical_primary")
-            or _general_guide_authoritative_doorway(resource_query, context_data)
-        )
+    # The shared selector deliberately ignores a preselected primary for
+    # direct-attribute questions, forcing source-bearing evidence to pass the
+    # same eligibility contract used for canonical outward recommendations.
+    authoritative_doorway = _select_direct_attribute_doorway(
+        query,
+        context_data.get("recommendation_canonical_primary"),
+        _general_guide_authoritative_doorway,
+        context_data,
+        resource_query=resource_query,
+        normalize=_normalize_authoritative_recommendation,
+    )
     # Direct attribute questions need source-body evidence for the attribute
     # itself. If no doorway survives that contract, keep the final answer
     # bounded rather than allowing provider recovery to fill the gap externally.
