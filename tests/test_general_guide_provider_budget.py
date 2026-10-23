@@ -206,3 +206,43 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS)]
     assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 1.25
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 2.8
+
+
+def test_general_guide_preserves_configured_priority_over_openrouter_and_rotation(monkeypatch):
+    candidates = [
+        _item("groq", "openai/gpt-oss-20b"),
+        _item("openrouter", "openrouter/free"),
+        _item("gemini", "gemini-3.8-flash"),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(
+        provider_bank, "_csv",
+        lambda _name: ["groq", "openrouter", "gemini"],
+    )
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    first = provider_bank.select(use_core=None, operation="general_guide_composition")
+    second = provider_bank.select(use_core=None, operation="general_guide_composition")
+
+    assert [item["provider"] for item in first[:3]] == ["groq", "openrouter", "gemini"]
+    assert [item["provider"] for item in second[:3]] == ["groq", "openrouter", "gemini"]
+    assert provider_bank._STATE["provider_cursor"] == 0
+
+
+def test_hrn_keeps_its_explicit_openrouter_priority(monkeypatch):
+    candidates = [
+        _item("groq", "openai/gpt-oss-20b"),
+        _item("openrouter", "openrouter/free"),
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(
+        provider_bank, "_csv",
+        lambda _name: ["groq", "openrouter"],
+    )
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="hrn_perception")
+
+    assert [item["provider"] for item in selected[:2]] == ["openrouter", "groq"]
