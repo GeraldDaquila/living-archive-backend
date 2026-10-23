@@ -151,6 +151,7 @@ jobs:
               body = json.dumps({"query": query}).encode("utf-8")
               started = time.perf_counter()
               last_failure = None
+              source_sha256 = None
               for transport_attempt in range(3):
                   request = urllib.request.Request(
                       endpoint,
@@ -161,6 +162,7 @@ jobs:
                   try:
                       with urllib.request.urlopen(request, timeout=90) as response:
                           status = response.status
+                          source_sha256 = response.headers.get("x-use-source-sha256")
                           raw = response.read().decode("utf-8")
                       if status >= 500 and transport_attempt < 2:
                           last_failure = f"transient HTTP {status}: {raw[:500]}"
@@ -169,6 +171,7 @@ jobs:
                       break
                   except urllib.error.HTTPError as exc:
                       status = exc.code
+                      source_sha256 = exc.headers.get("x-use-source-sha256") if exc.headers else None
                       raw = exc.read().decode("utf-8", errors="replace")
                       if status >= 500 and transport_attempt < 2:
                           last_failure = f"transient HTTP {status}: {raw[:500]}"
@@ -189,7 +192,7 @@ jobs:
                   payload = json.loads(raw)
               except Exception:
                   payload = {"raw_response": raw[:2000]}
-              return status, payload, elapsed_ms
+              return status, payload, elapsed_ms, source_sha256
 
           for name, query in cases:
               samples = []
@@ -202,7 +205,7 @@ jobs:
                   "provider_error_payload_fails_closed": 1,
               }[name]
               for attempt in range(sample_count):
-                  status, payload, elapsed_ms = post_query(query)
+                  status, payload, elapsed_ms, response_source_sha256 = post_query(query)
                   samples.append(elapsed_ms)
                   observed.append({"status": status, "payload": payload, "elapsed_ms": round(elapsed_ms, 1)})
                   if status != 200:
@@ -211,11 +214,30 @@ jobs:
                           f"payload={json.dumps(payload, ensure_ascii=False)[:2000]}"
                       )
                   expected_source = os.environ["EXPECTED_SOURCE_SHA256"]
-                  if payload.get("source_sha256") != expected_source:
+                  observed_source = response_source_sha256 or payload.get("source_sha256")
+                  if observed_source is None:
+                      # Native handoff payloads intentionally omit source_sha256.
+                      # Verify the live runtime identity through the audit endpoint
+                      # rather than forcing an internal field into the visitor schema.
+                      audit_request = urllib.request.Request(
+                          base + "/api/integration-audit",
+                          headers={"Accept": "application/json"},
+                          method="GET",
+                      )
+                      with urllib.request.urlopen(audit_request, timeout=20) as audit_response:
+                          audit_status = audit_response.status
+                          audit_payload = json.loads(audit_response.read().decode("utf-8"))
+                          observed_source = audit_response.headers.get("x-use-source-sha256")
+                      if audit_status != 200 or audit_payload.get("version") != payload.get("version"):
+                          raise AssertionError(
+                              f"{name} attempt {attempt + 1}: native handoff version differs from runtime audit; "
+                              f"handoff_version={payload.get('version')}; audit={audit_payload}"
+                          )
+                  if observed_source != expected_source:
                       raise AssertionError(
                           f"{name} attempt {attempt + 1}: runtime identity changed or does not match "
                           f"the tested checkout; expected_source_sha256={expected_source}; "
-                          f"payload_source_sha256={payload.get('source_sha256')}"
+                          f"observed_source_sha256={observed_source}"
                       )
                   basis = payload.get("answer_basis") or {}
                   recommendation = payload.get("recommendation")
