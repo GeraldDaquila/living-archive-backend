@@ -286,16 +286,16 @@
           "https://github.com/GeraldDaquila/living-archive-backend/pull/756",
           "https://github.com/GeraldDaquila/living-archive-backend/pull/757"
         ],
-        "source_status": "PRs #755 and #756 merged; PR #757 closed unmerged (verified 2026-10-23)",
-        "evidence_boundary": "Exact query and behavioral contracts are recovered from PRs #755-757. PR #757 also contains a verbatim bounded fallback response, separately recorded as implementation_response; it is not an approved answer and no visitor rating was recovered."
+        "source_status": "PRs #755, #756, and #757 merged (verified 2026-10-23)",
+        "evidence_boundary": "Exact query and behavioral contracts are recovered from PRs #755-757. PR #757's bounded fallback response is now merged into main and is recorded separately as implementation_response; no visitor approval/rating was recovered, so it is not an approved gold answer."
       },
       "freeze_policy": "Regression scenario, not an approved verbatim answer.",
       "implementation_response": "Ask each person to explain what they believe is most urgent and why. Then identify the outcome everyone agrees they want, and choose one small, reversible action the group can try before deciding on a larger plan. Afterward, compare what the group learned and use that to decide what should come next.",
       "implementation_response_provenance": {
         "source_pr": 757,
         "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/757",
-        "source_status": "closed, unmerged PR branch (verified 2026-10-23)",
-        "evidence_boundary": "Exact bounded fallback text appears in the PR #757 diff. This is implementation evidence only, not an approved answer: no visitor approval/rating was recovered, and the unmerged PR does not establish that this response reached main or production."
+        "source_status": "merged to main via PR #757 merge commit fa7c575c8337a937c0f0a6bef8ef87339ce35b96 (verified 2026-10-23)",
+        "evidence_boundary": "Exact bounded fallback text is present in merged source. This is implementation evidence only, not an approved answer: no visitor approval/rating was recovered, and no independent claim is made that this exact fallback was returned in a production visitor session."
       }
     },
     {
@@ -330,9 +330,16 @@
           "https://github.com/GeraldDaquila/living-archive-backend/pull/768"
         ],
         "source_status": "merged",
-        "evidence_boundary": "Question and shallow-answer failure pattern recovered from regression tests. Exact accepted recovery response and visitor rating not yet copied into registry."
+        "evidence_boundary": "Exact question and shallow-answer failure pattern recovered from regression tests. Exact deterministic recovery text is now recovered from merged PR #768 and separately recorded as implementation_response; visitor approval/rating for that exact response remains unrecovered."
       },
-      "freeze_policy": "Keep as one scenario lineage with linked PR revisions; do not count each PR as a separate gold standard."
+      "freeze_policy": "Keep as one scenario lineage with linked PR revisions; do not count each PR as a separate gold standard.",
+      "implementation_response": "To tell whether the revised approach is reducing harm, first describe what the harm looked like before the change and choose a few observable signs to track. These might include how often the problem occurs, what affected people report, or whether people feel safer in the specific situation. Compare those observations with the starting point over time rather than relying on the group’s confidence or a single encouraging example.\n\nAsk the people most affected whether their experience has changed, and check for unintended consequences or people who may still be harmed. If the evidence is mixed, treat that as a reason to adjust and keep observing—not as proof of success or failure. The key test is whether the change improves real experiences and whether that improvement holds up when the group looks for evidence that could challenge its own belief.",
+      "implementation_response_provenance": {
+        "source_pr": 768,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/768",
+        "source_status": "merged to main via PR #768 merge commit c8badec12025e57b47024ebd7fa07666c85d4a04 (verified 2026-10-23)",
+        "evidence_boundary": "Exact deterministic fallback text is present in merged general_guide_composition.py. This is implementation evidence, not a visitor-approved gold answer; no explicit visitor approval or rating for this exact response was recovered."
+      }
     },
     {
       "benchmark_id": "general-guide-fuzzy-relevance-balanced-evaluation-2026-10-22",
