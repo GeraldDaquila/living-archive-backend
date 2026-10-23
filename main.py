@@ -6741,45 +6741,44 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
-    # Enforce the direct-attribute source boundary after all provider and
-    # deterministic recovery paths. A relevant-looking doorway cannot substitute
-    # for evidence that actually addresses the requested attribute.
-    if direct_attribute_evidence_missing:
+    # Enforce the Archive-only boundary after every provider and deterministic
+    # recovery path. If the evidence gates found no suitable source, generated
+    # or deterministic prose must not silently become an external answer. The
+    # subject-discovery path has its own exact-page evidence contract above.
+    if archive_evidence_unavailable and not discovery_subject:
         response = (
-            "I couldn’t verify that specific information from the Living Archive’s "
+            "I couldn’t establish an answer to that question from the Living Archive’s "
             "available material. I won’t substitute outside knowledge or attach a "
-            "resource that only shares a word with your question."
+            "resource that has not been shown to address what you asked."
         )
         authoritative_doorway = None
-        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
 
-    # Expose a small, deterministic provenance contract for the visitor UI.
-    # This describes the answer's basis; it does not claim that every sentence
-    # is directly quoted from a source. A recommendation is only supplied when
-    # the relevance gate found a canonical doorway for this specific question.
-    if direct_attribute_evidence_missing:
+    # Provenance describes evidence sufficiency, not the mere presence of a
+    # doorway. No-evidence responses are explicitly labelled as such; when the
+    # evidence gate passes, the answer is Archive-supported even if no separate
+    # recommendation is appropriate.
+    if archive_evidence_unavailable and not discovery_subject:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
-            "explanation": "The available Archive material did not establish the specific attribute requested.",
+            "explanation": "The available Archive material did not establish an answer to this question.",
         }
-    elif archive_evidence_unavailable:
+    elif archive_evidence_unavailable and discovery_subject and not authoritative_doorway:
         answer_basis = {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "No suitable Archive evidence was available to ground this answer.",
-        }
-    elif authoritative_doorway:
-        answer_basis = {
-            "kind": "archive_supported",
-            "label": "Informed by the Living Archive",
-            "explanation": "A relevant Archive resource is available to explore the ideas behind this answer.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "No verified canonical Archive page was found to support this discovery request.",
         }
     else:
         answer_basis = {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "No sufficiently relevant Archive resource was identified for this question.",
+            "kind": "archive_supported",
+            "label": "Informed by the Living Archive",
+            "explanation": (
+                "The answer is grounded in available Archive evidence."
+                if not authoritative_doorway
+                else "A relevant Archive resource is available to explore the ideas behind this answer."
+            ),
         }
 
     payload = {
