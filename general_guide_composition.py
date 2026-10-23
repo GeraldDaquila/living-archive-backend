@@ -19,7 +19,7 @@ from provider_bank import (
 )
 from gold_standard_exemplars import build_exemplar_guidance
 
-CONTRACT_VERSION = "v1.23"
+CONTRACT_VERSION = "v1.24"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
