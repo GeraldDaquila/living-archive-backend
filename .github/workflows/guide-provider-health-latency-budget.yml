@@ -7,6 +7,7 @@ on:
       - "provider_health_store.py"
       - "test_provider_health_store.py"
       - "test_provider_contract_diagnostics_and_pathway_attribution.py"
+      - "tests/test_guide_local_latency_budget.py"
       - ".github/workflows/guide-provider-health-latency-budget.yml"
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - "provider_health_store.py"
       - "test_provider_health_store.py"
       - "test_provider_contract_diagnostics_and_pathway_attribution.py"
+      - "tests/test_guide_local_latency_budget.py"
       - ".github/workflows/guide-provider-health-latency-budget.yml"
 
 jobs:
@@ -30,5 +32,5 @@ jobs:
         run: python -m pip install --upgrade pip && pip install -r requirements.txt pytest
       - name: Compile changed runtime modules
         run: python -m py_compile provider_bank.py provider_health_store.py
-      - name: Run provider health and pathway regressions
-        run: pytest -q test_provider_health_store.py test_provider_contract_diagnostics_and_pathway_attribution.py
+      - name: Run provider health, pathway, and Guide latency regressions
+        run: pytest -q test_provider_health_store.py test_provider_contract_diagnostics_and_pathway_attribution.py tests/test_guide_local_latency_budget.py
