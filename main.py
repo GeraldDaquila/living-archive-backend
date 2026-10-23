@@ -6170,14 +6170,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
-    authoritative_doorway = _normalize_authoritative_recommendation(
-        context_data.get("recommendation_canonical_primary")
-        or _general_guide_authoritative_doorway(resource_query, context_data)
-    )
+    direct_attribute_query = bool(_direct_attribute_phrase(query))
+    if direct_attribute_query:
+        # Do not trust the preselected primary for direct-attribute questions:
+        # that field can be populated before the final attribute-evidence gate.
+        # Re-select from source-bearing candidates through the full eligibility
+        # contract, which checks the requested attribute in the candidate body.
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            _general_guide_authoritative_doorway(resource_query, context_data)
+        )
+    else:
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            context_data.get("recommendation_canonical_primary")
+            or _general_guide_authoritative_doorway(resource_query, context_data)
+        )
     # Direct attribute questions need source-body evidence for the attribute
     # itself. If no doorway survives that contract, keep the final answer
     # bounded rather than allowing provider recovery to fill the gap externally.
-    direct_attribute_evidence_missing = bool(_direct_attribute_phrase(query)) and not bool(authoritative_doorway)
+    direct_attribute_evidence_missing = direct_attribute_query and not bool(authoritative_doorway)
     if direct_attribute_evidence_missing:
         authoritative_doorway = None
         archive_evidence_unavailable = True
