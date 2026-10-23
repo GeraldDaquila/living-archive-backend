@@ -550,7 +550,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-01-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 1,
       "query": "How does responsibility differ from carrying everything yourself?",
@@ -577,11 +577,25 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 8.5,
       "approval_state": "answer accepted; exact response not recovered",
-      "known_theme": "Responsibility versus carrying everything; boundaries and sustainable contribution."
+      "known_theme": "Responsibility versus carrying everything; boundaries and sustainable contribution.",
+      "reconstruction_candidate_response": "Responsibility means recognizing what is yours to contribute and following through on it. Carrying everything yourself means taking on tasks, decisions, and consequences that should be shared—or that are not yours alone to manage. The two can look similar from the outside because both may involve being dependable, but one supports a workable relationship and the other can quietly make the whole arrangement depend on you.\n\nA useful distinction is whether your contribution helps others take part or allows them to remain disengaged. You can be responsible without anticipating every need, preventing every mistake, or absorbing every consequence. Name what you can reasonably do, what needs to be shared, and what belongs to someone else. Responsibility is not measured by how much you can endure; it is shown in how honestly you respond to what is actually yours.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 2,
       "query": "How can I tell when helping has turned into taking over?",
@@ -609,11 +623,25 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
       "approval_state": "answer and recommendation accepted; rating 9/10; exact response not recovered",
-      "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”"
+      "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”",
+      "reconstruction_candidate_response": "Helping may be turning into taking over when you begin making decisions the other person could make, doing work they have not agreed to hand over, or feeling that you must keep the situation on track for them. Another sign is that your help leaves them with less room to act, while you become increasingly responsible for the outcome.\n\nA useful self-check is: “Am I solving this for them, or helping them solve it?” Ask what kind of support they actually want, agree on the boundary of your role, and leave room for them to choose—even if they choose differently than you would. There are times when urgent risk or a clear duty calls for more direct action, but outside those situations, support should strengthen the other person’s agency rather than quietly replace it.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 3,
       "query": "What does sharing responsibility look like when a team is struggling?",
@@ -640,7 +668,21 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 8.5,
       "approval_state": "answer accepted; exact response not recovered",
-      "known_theme": "Shared accountability, mutual support, transparency, coordination, resilience; shared responsibility does not mean equal responsibility."
+      "known_theme": "Shared accountability, mutual support, transparency, coordination, resilience; shared responsibility does not mean equal responsibility.",
+      "reconstruction_candidate_response": "When a team is struggling, sharing responsibility means more than dividing up a list of tasks. It also means sharing the work of noticing what needs attention, raising concerns early, making decisions visible, and following through on commitments. If one person must continually spot every problem and remind everyone else, the workload may look distributed while the responsibility for the whole remains concentrated.\n\nA team can begin by naming the outcome it is trying to protect, making each person’s capacity and commitments explicit, and agreeing who will own which next steps. Shared responsibility does not mean everyone carries an equal amount: roles, authority, and capacity differ. It means those differences are acknowledged rather than allowing the most conscientious person to become the default owner of everything. Check together what is working, what has been missed, and what needs to be redistributed.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
@@ -678,7 +720,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 5,
       "query": "What does accountability really mean?",
@@ -706,11 +748,25 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
       "approval_state": "answer accepted; exact response not recovered",
-      "known_theme": "Accountability as responsibility, transparency, and repair."
+      "known_theme": "Accountability as responsibility, transparency, and repair.",
+      "reconstruction_candidate_response": "Accountability means being answerable for what you did, what you decided, and the consequences that followed. It includes making your reasoning and actions visible, listening to people affected, acknowledging mistakes without hiding behind good intentions, and taking appropriate steps to repair harm or prevent it from recurring. It is more than compliance with a rule because a person can follow a procedure while avoiding responsibility for its effects.\n\nGood accountability is not simply punishment, nor does it require assuming that every bad outcome proves someone acted badly. It asks what was known at the time, what responsibility each person held, who was affected, and what needs to happen now. The aim is to make responsibility clear enough for people to learn, repair what can be repaired, and rebuild trust where possible—not to protect people from consequences or reduce the process to blame.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 6,
       "query": "Explain a concept that is not directly covered by an available Archive resource",
@@ -737,11 +793,25 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
       "approval_state": "answer accepted; exact response and doorway not recovered",
-      "known_theme": "Explain a general concept without claiming unsupported Archive-specific evidence."
+      "known_theme": "Explain a general concept without claiming unsupported Archive-specific evidence.",
+      "reconstruction_candidate_response": "A concept can be explained using general knowledge even when the Living Archive does not have a directly matching resource. The important distinction is between offering a general explanation and claiming that the explanation is an established position of the Archive. A responsible answer should make that boundary clear, explain the concept plainly, and avoid inventing a citation or presenting a related page as if it directly substantiates the claim.\n\nThe Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself. That orientation is not evidence that a particular claim appears in a canonical resource; where a direct source is unavailable, the answer should say so rather than imply otherwise.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 7,
       "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
@@ -769,11 +839,25 @@
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
       "approval_state": "answer accepted; exact response and doorway not recovered",
-      "known_theme": "Evidence honesty when no supporting Archive source is retrieved."
+      "known_theme": "Evidence honesty when no supporting Archive source is retrieved.",
+      "reconstruction_candidate_response": "If no supporting Archive source is retrieved, the accurate conclusion is limited: the current retrieval did not provide evidence that establishes the claim as something the Archive says. That does not prove the claim is false, and it does not prove that no relevant source exists anywhere in the Archive. Retrieval can miss relevant material, and a claim may also be a reasonable general proposition without being an Archive-specific statement.\n\nThe Guide should therefore distinguish what a retrieved source explicitly says from what it does not establish. It should not invent an Archive policy, attribute a claim to an author without evidence, or use a loosely related resource as proof. The honest next step is to state the limit, offer a general explanation only if useful and clearly labelled, and identify what kind of source would be needed to substantiate the Archive-specific claim.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 8,
       "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
@@ -801,11 +885,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.8,
-      "approval_state": "answer accepted; exact response not recovered"
+      "approval_state": "answer accepted; exact response not recovered",
+      "reconstruction_candidate_response": "Problems can return even when everyone is trying because good intentions do not automatically change the conditions that keep producing the problem. Roles may be unclear, incentives may reward the old behavior, people may lack authority or information, or a short-term fix may relieve pressure without changing the underlying pattern. Each person can be making a reasonable local choice while the combined result remains harmful.\n\nInstead of starting with who is not trying hard enough, trace what happens before and after the problem: what triggers it, who has to respond, what gets rewarded, and where feedback fails to reach the people who could act on it. Then choose one part of that pattern the group can observe and change, and check whether the result actually changes. Good intentions matter, but the test is whether the system begins producing a different outcome.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 9,
       "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
@@ -832,11 +930,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.6,
-      "approval_state": "answer accepted; exact response and doorway not recovered"
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "reconstruction_candidate_response": "When everyone can see what needs to change but nobody has authority to act, the problem is not simply a lack of commitment. The group may have responsibility without decision rights, or the people closest to the problem may have the least access to the decisions that shape it. Asking them to try harder can add burden without giving them a way to make a difference.\n\nStart by separating what the group can change directly from what requires permission, resources, or a decision by someone else. Identify who holds that authority, what evidence or safeguards they would need, and what specific decision is being requested. If there is no legitimate path to approval, make that constraint visible rather than promising that a small pilot will solve it. Agency begins with an honest map of the decisions that can be made, by whom, and under what conditions.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 10,
       "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
@@ -864,11 +976,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.7,
-      "approval_state": "answer accepted; exact response not recovered"
+      "approval_state": "answer accepted; exact response not recovered",
+      "reconstruction_candidate_response": "When formal leaders refuse to listen, an informal coalition has little influence, and a pilot requires permission no one will grant, the group faces a real constraint—not just a communication problem. Repeating the same proposal more forcefully may not change the balance of authority, and pretending that a pilot is available can expose people to unnecessary risk.\n\nA practical first step is to clarify what decision is blocked, who has the authority to make it, and what legitimate concern or incentive may be sustaining the refusal. The coalition can document the problem and its consequences, gather perspectives from people affected, and seek a smaller action that is genuinely within its authority. If no such action exists, the responsible move may be to build a clearer case, find a legitimate review route, or acknowledge the limits for now. Do not promise influence the group does not have.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 11,
       "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
@@ -896,11 +1022,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 9,
-      "approval_state": "answer and destination accepted; evidence verification was pending"
+      "approval_state": "answer and destination accepted; evidence verification was pending",
+      "reconstruction_candidate_response": "A person may be protecting a legitimate responsibility when they can name a specific risk, explain how it connects to their role, apply the same standard consistently, and say what evidence or safeguard would address the concern. The concern becomes more suspect when the criteria keep changing, exceptions are made for powerful people, or no evidence would ever be enough to permit change. Still, resistance alone does not prove bad faith.\n\nMake the concern and the decision rule explicit. Ask what harm the safeguard is meant to prevent, who is accountable for that risk, how the safeguard will be assessed, and what conditions would allow the proposal to proceed. Apply those criteria transparently and give affected people a way to challenge them. This shifts the discussion from guessing someone’s motives to examining whether the responsibility is real, proportionate, and consistently applied.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 12,
       "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
@@ -927,11 +1067,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.8,
-      "approval_state": "answer and destination accepted subject to evidence verification; exact destination title not recovered"
+      "approval_state": "answer and destination accepted subject to evidence verification; exact destination title not recovered",
+      "reconstruction_candidate_response": "Adding a condition after another has been met is not automatically improper; new evidence may reveal a real gap. The warning sign is a pattern in which the conditions change without a clear connection to a material risk, the standard is applied differently across proposals, or decision-makers cannot say what would count as sufficient.\n\nKeep a written record of the agreed criteria, what evidence satisfies each one, and any newly raised condition with its reason. Ask whether the new requirement addresses a specific risk, whether it is proportionate, and whether the same rule would apply to a comparable proposal. If it is legitimate, update the criteria transparently and explain the consequences. If no stable standard can be stated, the group has reason to question whether the process is genuinely evaluating the proposal or simply postponing a decision.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 13,
       "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
@@ -959,11 +1113,25 @@
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 9.1,
-      "approval_state": "answer and destination accepted; grounding verification was pending"
+      "approval_state": "answer and destination accepted; grounding verification was pending",
+      "reconstruction_candidate_response": "A genuinely new risk can justify reopening a decision, but it should be identified specifically rather than used as a general reason to start the process over. Ask what has changed since the criteria were agreed, what evidence supports the new concern, who could be affected, and whether the existing safeguards address it. A concern that can be linked to new facts and assessed against a clear standard is different from an objection that moves the goalposts without explaining what would resolve it.\n\nThe group should record the new risk, assess its likelihood and consequences, and decide what additional evidence or safeguard would be sufficient. It should also set a clear review point so that reconsideration does not become indefinite delay. Reopening a decision responsibly means being willing to respond to material new information while preserving fair, consistent criteria and accountability for the costs of changing course.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 14,
       "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
@@ -992,7 +1160,21 @@
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.7,
       "approval_state": "answer accepted; proposed Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent, not directly about cost distribution",
-      "answer_evidence_excerpt": "Prior calibration review states: “The Guide does not simply say that everyone should share the burden equally. Instead, it considers who was exposed to the risk, who benefited from the original decision, and how the group should make the resulting decision transparently.” This is reviewer commentary, not the exact accepted answer."
+      "answer_evidence_excerpt": "Prior calibration review states: “The Guide does not simply say that everyone should share the burden equally. Instead, it considers who was exposed to the risk, who benefited from the original decision, and how the group should make the resulting decision transparently.” This is reviewer commentary, not the exact accepted answer.",
+      "reconstruction_candidate_response": "When a new risk is real but addressing it imposes serious costs on people who accepted the original decision, the group should not assume that everyone must bear an equal share. A fair assessment considers who benefited from the original choice, who was exposed to the risk, who has the capacity to absorb the cost, and who had meaningful influence over the decision. Those factors may point in different directions, so the group should make its criteria explicit rather than treating one principle as decisive in every case.\n\nIdentify the harm the correction is meant to prevent, distinguish unavoidable costs from costs that can be reduced, and consider whether those who benefited or exercised greater authority should carry a greater share. Give affected people a meaningful chance to explain what the proposed correction would mean for them, including people with less power to object. If a trade-off remains, explain why the chosen distribution is defensible, acknowledge who will bear the loss, and review whether the correction is actually reducing the risk.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
     },
     {
       "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
