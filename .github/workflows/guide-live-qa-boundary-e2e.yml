@@ -68,8 +68,8 @@ jobs:
                   "What is stewardship and why does it matter now more than ever?",
               ),
               (
-                  "positive_source_discovery",
-                  "I want to learn about Living Stewardship.",
+                  "positive_canonical_node_handoff",
+                  "Please take me to Living Stewardship.",
               ),
           ]
           timings = {}
