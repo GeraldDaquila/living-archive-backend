@@ -16,7 +16,7 @@ def test_exemplar_guidance_explicitly_forbids_copying_and_doorway_transfer():
         "How can I tell when helping has turned into taking over?"
     )
     assert token == "general-guide-original-gold-standard-02-2026-10-21"
-    assert "pattern, not as an answer to copy" in guidance
+    assert "structural cue only" in guidance
     assert "Do not copy claims, examples, or any destination" in guidance
 
 
