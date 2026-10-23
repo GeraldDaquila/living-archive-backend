@@ -51,3 +51,13 @@ def archive_limitation_response():
         "available material. I won’t substitute outside knowledge or attach a "
         "resource that has not been shown to address what you asked."
     )
+
+
+
+def select_authoritative_doorway(question, preselected, source_selector, context, *, resource_query=None, normalize=None):
+    """Do not let an earlier preselection bypass direct-attribute evidence checks."""
+    if direct_attribute_phrase(question):
+        candidate = source_selector(resource_query or question, context)
+    else:
+        candidate = preselected or source_selector(resource_query or question, context)
+    return normalize(candidate) if normalize else candidate
