@@ -267,11 +267,15 @@ def main():
         assert_true(empty_result is not None, "empty Archive retrieval blocked a general-purpose answer")
         assert_true(
             "No relevant Archive material was retrieved" in captured_user_messages[-1],
-            "empty-retrieval prompt did not preserve the general-knowledge lane",
+            "empty-retrieval prompt did not preserve the source-only lane",
         )
         assert_true(
-            "do not invent Archive-specific claims or sources" in captured_user_messages[-1],
-            "empty-retrieval prompt does not protect source integrity",
+            "Do not answer from outside knowledge" in captured_user_messages[-1],
+            "empty-retrieval prompt permits external-knowledge substitution",
+        )
+        assert_true(
+            "available Living Archive material does not establish the answer" in captured_user_messages[-1],
+            "empty-retrieval prompt does not require an honest source limitation",
         )
 
         # Navigation must be supplied structurally by the Guide, never embedded
