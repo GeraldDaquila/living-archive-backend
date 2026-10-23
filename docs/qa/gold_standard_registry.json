@@ -1030,7 +1030,8 @@
       "provenance": {
         "source": "prior-conversation forensic recovery",
         "source_issue_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
-        "evidence_boundary": "These are missing sequence positions, not assertions that a particular question/answer existed at each number. #20 and #21 are separately recorded with their exact accepted responses."
+        "evidence_boundary": "These are missing sequence positions, not assertions that a particular question/answer existed at each number. #20 and #21 are separately recorded with their exact accepted responses.",
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747"
       },
       "freeze_policy": "Gap marker only; do not count as a gold-standard answer."
     }
