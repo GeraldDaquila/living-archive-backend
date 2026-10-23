@@ -62,6 +62,10 @@ jobs:
                   "provider_exhaustion_fails_closed",
                   "What is stewardship and why does it matter now more than ever?",
               ),
+              (
+                  "positive_source_discovery",
+                  "Tell me about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
+              ),
           ]
           timings = {}
           payloads = {}
@@ -117,7 +121,7 @@ jobs:
                           )
                       if "Frequency Water" in response:
                           raise AssertionError("Direct-attribute response contains the known unrelated decoy.")
-                  else:
+                  elif name == "provider_exhaustion_fails_closed":
                       if basis.get("kind") != "archive_evidence_unavailable":
                           raise AssertionError(
                               "Provider-exhaustion control did not fail closed: "
@@ -135,6 +139,19 @@ jobs:
                           )
                       if "Stewardship means taking care" in response:
                           raise AssertionError("Provider-exhaustion control leaked the hardcoded general-knowledge answer.")
+                  else:
+                      if basis.get("kind") != "archive_supported":
+                          raise AssertionError(
+                              "Source-discovery positive control was not Archive-supported: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if not isinstance(recommendation, dict) or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/"):
+                          raise AssertionError(
+                              "Source-discovery positive control did not return a canonical Living Archive recommendation: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if len(response.strip()) < 40:
+                          raise AssertionError("Source-discovery response is unexpectedly empty or short.")
                   time.sleep(2)
               ordered = sorted(samples)
               timings[name] = {
