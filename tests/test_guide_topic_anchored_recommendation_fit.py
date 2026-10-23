@@ -540,6 +540,17 @@ def test_qa_read_only_diagnostics_reports_stats_and_exact_url_probe_without_writ
 
         def query(self, **kwargs):
             queries.append(kwargs)
+            if "filter" not in kwargs:
+                return {"matches": [{
+                    "id": "semantic-top-1",
+                    "score": 0.88,
+                    "metadata": {
+                        "title": "The Body as Archive",
+                        "url": "https://geralddaquila.com/the-body-as-archive/",
+                        "chunk_index": 0,
+                        "resource_type": "essay",
+                    },
+                }]}
             url = kwargs["filter"]["url"]["$eq"]
             matches = []
             if url == canonical_url:
@@ -572,7 +583,10 @@ def test_qa_read_only_diagnostics_reports_stats_and_exact_url_probe_without_writ
     assert payload["index"]["total_vector_count"] == 12345
     assert payload["exact_url_probe"]["status"] == "ok"
     assert payload["exact_url_probe"]["variants"][canonical_url]["match_count"] == 1
+    assert payload["semantic_top_matches"]["status"] == "ok"
+    assert payload["semantic_top_matches"]["matches"][0]["title"] == "The Body as Archive"
     assert payload["provider_health"]["shared_secret_configured"] is False
     assert payload["provider_health"]["persistence_enabled"] is False
-    assert len(queries) == 2
-    assert all("filter" in query and "url" in query["filter"] for query in queries)
+    assert len(queries) == 3
+    assert sum("filter" not in query for query in queries) == 1
+    assert all("url" in query["filter"] for query in queries if "filter" in query)
