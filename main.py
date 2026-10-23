@@ -5071,6 +5071,37 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
 
     def fetch_candidate(entry):
         _title_hits, _order, title, url, href = entry
+
+        def recover_public_page():
+            # REST body requests can fail while the already-discovered public
+            # canonical page remains readable. Recover its actual body only;
+            # search metadata alone never becomes recommendation evidence.
+            try:
+                recovered = _wordpress_fetch_selected_canonical_body(url)
+            except Exception as recovery_exc:
+                print(
+                    "The Guide canonical search recovery: public body fetch skipped "
+                    f"({type(recovery_exc).__name__})."
+                )
+                return None
+            if not isinstance(recovered, dict):
+                return None
+            recovered_title = str(recovered.get("title") or title).strip()
+            recovered_url = str(recovered.get("url") or "").strip()
+            recovered_text = str(recovered.get("text") or "").strip()
+            if (
+                not recovered_title
+                or len(recovered_text) < 80
+                or not re.match(r"^https://geralddaquila\.com/\S+$", recovered_url, re.I)
+                or recovered_url.rstrip("/").casefold() != url.rstrip("/").casefold()
+            ):
+                return None
+            return {
+                "title": html.unescape(recovered_title),
+                "url": recovered_url,
+                "text": recovered_text[:6000],
+            }
+
         try:
             request = UrlRequest(
                 href,
@@ -5080,7 +5111,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             with urlopen(request, timeout=1.5) as response:
                 resource = json.loads(response.read().decode("utf-8"))
             if not isinstance(resource, dict):
-                return None
+                return recover_public_page()
             resource_url = str(resource.get("link") or url).strip()
             resource_title_obj = resource.get("title")
             resource_title = str(
@@ -5094,12 +5125,17 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             raw_content = content_html or excerpt_html
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = _guide_html_to_source_text(raw_content)
-            if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
-                return None
+            if (
+                not content
+                or len(content) < 80
+                or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I)
+                or resource_url.rstrip("/").casefold() != url.rstrip("/").casefold()
+            ):
+                return recover_public_page()
             return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
         except Exception as exc:
             print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
-            return None
+            return recover_public_page()
 
     # Fetch the bounded candidate slice concurrently but preserve ranking order.
     # The per-request timeout still bounds each outbound operation.
