@@ -59,7 +59,7 @@ jobs:
                   "What is the boiling point of water at sea level?",
               ),
               (
-                  "positive_archive_supported",
+                  "provider_exhaustion_fails_closed",
                   "What is stewardship and why does it matter now more than ever?",
               ),
           ]
@@ -92,7 +92,7 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              for attempt in range(3):
+              for attempt in range(10):
                   status, payload, elapsed_ms = post_query(query)
                   samples.append(elapsed_ms)
                   observed.append({"status": status, "payload": payload, "elapsed_ms": round(elapsed_ms, 1)})
@@ -118,18 +118,23 @@ jobs:
                       if "Frequency Water" in response:
                           raise AssertionError("Direct-attribute response contains the known unrelated decoy.")
                   else:
-                      if basis.get("kind") != "archive_supported":
+                      if basis.get("kind") != "archive_evidence_unavailable":
                           raise AssertionError(
-                              "Positive control was not Archive-supported: "
+                              "Provider-exhaustion control did not fail closed: "
                               f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
                           )
-                      if not isinstance(recommendation, dict) or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/"):
+                      if recommendation is not None:
                           raise AssertionError(
-                              "Positive control did not return a canonical Living Archive recommendation: "
+                              "Provider-exhaustion control returned a doorway as answer authority: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      if "outside knowledge" not in response.casefold():
+                          raise AssertionError(
+                              "Provider-exhaustion control did not explicitly preserve the Archive-only boundary: "
                               f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
                           )
-                      if len(response.strip()) < 40:
-                          raise AssertionError("Positive control response is unexpectedly empty or short.")
+                      if "Stewardship means taking care" in response:
+                          raise AssertionError("Provider-exhaustion control leaked the hardcoded general-knowledge answer.")
                   time.sleep(2)
               ordered = sorted(samples)
               timings[name] = {
