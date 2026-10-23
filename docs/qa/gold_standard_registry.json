@@ -570,7 +570,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "Learning to Receive Without Feeling Guilty",
-        "url": null
+        "url": "https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/"
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
@@ -585,7 +585,8 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
         "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
@@ -663,7 +664,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "Community Accountability Systems",
-        "url": null
+        "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/"
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
@@ -678,7 +679,8 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
         "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
@@ -724,7 +726,7 @@
       "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
+        "title": "Claims Without Retrieved Supporting Evidence",
         "url": null
       },
       "assertions": [
@@ -740,7 +742,8 @@
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
         "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
@@ -756,7 +759,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "When Experience Can Change Us: The Two Capacities of a Living System",
-        "url": null
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
       },
       "known_theme": "Recurring problems despite good intentions.",
       "assertions": [
@@ -772,7 +775,8 @@
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.8,
@@ -818,7 +822,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "Institutional Stewardship",
-        "url": null
+        "url": "https://geralddaquila.com/institutional-stewardship/"
       },
       "known_theme": "Formal authority refuses to listen; informal coalition lacks influence; pilot needs permission.",
       "assertions": [
@@ -834,7 +838,8 @@
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.7,
@@ -911,7 +916,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "Decision-Making Under Uncertainty: How People Choose Without Enough Information",
-        "url": null
+        "url": "https://geralddaquila.com/2026/04/04/decision-making-under-uncertainty-how-people-choose-without-enough-information/"
       },
       "known_theme": "Genuinely new risk after criteria are agreed.",
       "assertions": [
@@ -927,7 +932,8 @@
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 9.1,
@@ -1000,5 +1006,5 @@
       "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
     }
   ],
-  "last_reconciliation_note": "October 23: 33 structured records. Original #1-#14 prompt/rating/approval metadata is recovered where available; exact accepted answer texts for the original sequence remain missing. The separate ethical-trade-off answer is explicitly approved at 9.0/10, but source records label it both Gold Standard #2 and GS #18; preserve both labels pending sequence reconciliation."
+  "last_reconciliation_note": "October 23: 33 structured records. Original #1-#14 prompt/rating/approval metadata is recovered where available; exact accepted answer texts for the original sequence remain missing; canonical URLs were recovered for standards #2, #5, #8, #10, and #13, while #7 has a title but no verified URL. The separate ethical-trade-off answer is explicitly approved at 9.0/10, but source records label it both Gold Standard #2 and GS #18; preserve both labels pending sequence reconciliation."
 }
