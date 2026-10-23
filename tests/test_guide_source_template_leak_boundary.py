@@ -101,8 +101,10 @@ def test_outer_asgi_boundary_catches_leak_from_early_request_exit(monkeypatch):
     recovered = json.loads(response_body.decode("utf-8"))
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"] == main._archive_limitation_response()
+    assert "outside knowledge" in recovered["response"]
     assert recovered["recommendation"] is None
+    assert recovered["answer_basis"]["kind"] == "archive_evidence_unavailable"
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
 
