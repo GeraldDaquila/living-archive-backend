@@ -40,8 +40,10 @@ def test_final_boundary_recovers_template_contamination():
     )
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"] == main._archive_limitation_response()
+    assert "outside knowledge" in recovered["response"]
     assert recovered["recommendation"] is None
+    assert recovered["answer_basis"]["kind"] == "archive_evidence_unavailable"
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
 
