@@ -17,8 +17,9 @@ from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
 )
+from gold_standard_exemplars import build_exemplar_guidance
 
-CONTRACT_VERSION = "v1.23"
+CONTRACT_VERSION = "v1.24"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -1019,6 +1020,7 @@ def compose(
         if _requires_explicit_followup_invitation(question)
         else ""
     )
+    exemplar_guidance, exemplar_cache_token = build_exemplar_guidance(question)
     user_content = (
         f"Visitor question:\n{question}\n\n"
         + explicit_invitation_instruction
@@ -1026,7 +1028,8 @@ def compose(
         + correction_instruction
         + style_instruction
         + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
-        f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
+        + exemplar_guidance
+        + f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
         + (
             "Response pacing for this visitor: slow down. First recognize the specific difficulty they named in natural, non-formulaic language; do not open with generic sympathy or presume what their loss means. Then ask exactly one gentle, open question about what feels hardest or what they would like to say more about. Do not turn the disclosure into a task-management exercise, list examples of basic tasks, offer advice before understanding their need, or infer suicidality from grief alone. End with the question so the conversation has a clear, humane next step.\n\n"
             if _requires_distress_sensitive_pacing(question)
@@ -1038,7 +1041,7 @@ def compose(
     cache_key = _composition_cache_key(
         question,
         history_text,
-        shape,
+        shape + "|gold_standard_exemplar:" + exemplar_cache_token,
         documents,
     )
     now = time.monotonic()

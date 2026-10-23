@@ -63,8 +63,8 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
     def test_ethical_tradeoff_does_not_trigger_for_ordinary_practical_question(self):
         answer = compose_recovery("How can a team coordinate a project rollout?")
-        self.assertIn("define the outcome you want", answer)
-        self.assertIn("choose one step small enough to test", answer)
+        self.assertIn("clarify what a good outcome would look like", answer)
+        self.assertIn("Choose one small step", answer)
         self.assertNotIn("least power", answer)
 
     def test_never_claims_archive_source_or_provider_success(self):

@@ -170,11 +170,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "wiser than treating it as permanent; include people significantly affected before deciding."
         )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
+        # Keep this recovery independent of brittle subject extraction. First-person
+        # questions can leave a verb phrase ("I support someone...") that cannot
+        # grammatically follow "approach". The fallback must remain coherent even
+        # when it cannot classify the visitor's exact domain.
         answer = (
-            f"A practical way to approach {subject} is to define the outcome you want, identify the main constraint, "
-            "and choose one step small enough to test. Before acting, consider who else is affected and what could "
-            "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
-            "must be final."
+            "A practical starting point is to clarify what a good outcome would look like, "
+            "what constraint matters most, and what the person affected wants to retain control over. "
+            "Choose one small step that supports that outcome without taking more responsibility or "
+            "decision-making away from others than the situation requires. Then check what changed "
+            "and adjust based on the result."
         )
     elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
         answer = (
@@ -253,3 +258,15 @@ if "What detail or context would make this question" in _harm_repair_answer:
     raise RuntimeError("Harm-repair recovery contract failed: generic follow-up leaked.")
 if is_harm_repair_question("How do I repair a bicycle tire?"):
     raise RuntimeError("Harm-repair recovery contract failed: ordinary repair question misclassified.")
+
+
+# Regression probes for first-person practical questions: recovery must never
+# interpolate an ungrammatical subject into "approach <subject>".
+for _question in (
+    "How do I support someone without making them dependent on me?",
+    "How can I help without taking away their independence?",
+    "How can I tell if I am helping too much and taking over?",
+):
+    _answer = compose_recovery(_question)
+    if not _answer or re.search(r"approach I\b|approach support someone|approach help without", _answer, re.I):
+        raise RuntimeError("Practical recovery contract failed: malformed first-person phrasing.")

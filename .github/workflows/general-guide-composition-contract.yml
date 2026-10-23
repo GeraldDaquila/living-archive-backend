@@ -6,6 +6,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "gold_standard_exemplars.py"
+      - "tests/test_gold_standard_exemplar_runtime.py"
       - "deterministic_answer_recovery.py"
       - "test_deterministic_answer_recovery.py"
       - "tests/test_general_guide_perception_contract.py"
@@ -46,9 +48,9 @@ jobs:
       - name: Install test runner
         run: python -m pip install --upgrade pytest
       - name: Compile Guide runtime modules
-        run: python -m compileall -q main.py general_guide_composition.py deterministic_answer_recovery.py streaming_transport.py
+        run: python -m compileall -q main.py general_guide_composition.py gold_standard_exemplars.py deterministic_answer_recovery.py streaming_transport.py
       - name: Run composition regression tests
-        run: python -m pytest -q tests/test_general_guide_perception_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py
+        run: python -m pytest -q tests/test_general_guide_perception_contract.py tests/test_general_guide_preference_clarification.py tests/test_gold_standard_exemplar_runtime.py test_deterministic_answer_recovery.py
       - name: Run static Guide composition QA
         run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
       - name: Run central gold-standard registry contracts
