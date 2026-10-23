@@ -1,0 +1,144 @@
+name: Guide Live QA Boundary E2E
+
+on:
+  pull_request:
+    branches:
+      - feat/runtime-gold-standard-exemplars
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  live-guide-boundary:
+    if: github.event.pull_request.head.ref == 'fix/guide-factual-no-evidence-final-gate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for isolated QA service
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import os, time, urllib.request
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          deadline = time.monotonic() + 300
+          last_error = None
+          while time.monotonic() < deadline:
+              try:
+                  req = urllib.request.Request(base + "/", method="GET")
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      if response.status == 200:
+                          print("QA service is responding with HTTP 200.")
+                          break
+                      last_error = f"unexpected HTTP {response.status}"
+              except Exception as exc:
+                  last_error = repr(exc)
+              time.sleep(10)
+          else:
+              raise SystemExit(f"QA service did not become ready within 5 minutes: {last_error}")
+          PY
+
+      - name: Run live negative and positive visitor queries
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import statistics
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          endpoint = base + "/api/query"
+          cases = [
+              (
+                  "negative_direct_attribute",
+                  "What is the boiling point of water at sea level?",
+              ),
+              (
+                  "positive_archive_supported",
+                  "What is stewardship and why does it matter now more than ever?",
+              ),
+          ]
+          timings = {}
+          payloads = {}
+
+          def post_query(query):
+              body = json.dumps({"query": query}).encode("utf-8")
+              request = urllib.request.Request(
+                  endpoint,
+                  data=body,
+                  headers={"Content-Type": "application/json"},
+                  method="POST",
+              )
+              started = time.perf_counter()
+              try:
+                  with urllib.request.urlopen(request, timeout=90) as response:
+                      status = response.status
+                      raw = response.read().decode("utf-8")
+              except urllib.error.HTTPError as exc:
+                  status = exc.code
+                  raw = exc.read().decode("utf-8", errors="replace")
+              elapsed_ms = (time.perf_counter() - started) * 1000
+              try:
+                  payload = json.loads(raw)
+              except Exception:
+                  payload = {"raw_response": raw[:2000]}
+              return status, payload, elapsed_ms
+
+          for name, query in cases:
+              samples = []
+              observed = []
+              for attempt in range(3):
+                  status, payload, elapsed_ms = post_query(query)
+                  samples.append(elapsed_ms)
+                  observed.append({"status": status, "payload": payload, "elapsed_ms": round(elapsed_ms, 1)})
+                  if status != 200:
+                      raise AssertionError(
+                          f"{name} attempt {attempt + 1}: expected HTTP 200, got {status}; "
+                          f"payload={json.dumps(payload, ensure_ascii=False)[:2000]}"
+                      )
+                  basis = payload.get("answer_basis") or {}
+                  recommendation = payload.get("recommendation")
+                  response = str(payload.get("response") or "")
+                  if name == "negative_direct_attribute":
+                      if basis.get("kind") != "archive_evidence_unavailable":
+                          raise AssertionError(
+                              "Direct-attribute query did not fail closed with "
+                              f"archive_evidence_unavailable: {json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if recommendation is not None:
+                          raise AssertionError(
+                              "Direct-attribute query returned an unsupported recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      if "Frequency Water" in response:
+                          raise AssertionError("Direct-attribute response contains the known unrelated decoy.")
+                  else:
+                      if basis.get("kind") != "archive_supported":
+                          raise AssertionError(
+                              "Positive control was not Archive-supported: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if not isinstance(recommendation, dict) or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/"):
+                          raise AssertionError(
+                              "Positive control did not return a canonical Living Archive recommendation: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if len(response.strip()) < 40:
+                          raise AssertionError("Positive control response is unexpectedly empty or short.")
+                  time.sleep(2)
+              ordered = sorted(samples)
+              timings[name] = {
+                  "samples_ms": [round(x, 1) for x in samples],
+                  "p50_ms": round(statistics.median(samples), 1),
+                  "p95_ms_nearest_rank": round(ordered[max(0, __import__("math").ceil(0.95 * len(ordered)) - 1)], 1),
+              }
+              payloads[name] = observed[-1]["payload"]
+              print(json.dumps({"case": name, "timings": timings[name], "last_payload": observed[-1]["payload"]}, ensure_ascii=False))
+
+          print("LIVE_QA_SUMMARY=" + json.dumps(timings, ensure_ascii=False))
+          PY
