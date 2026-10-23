@@ -353,6 +353,43 @@ jobs:
                           raise AssertionError("Grounded explanation positive control is unexpectedly empty or short.")
                       if "couldn’t establish an answer" in response.casefold() or "outside knowledge" in response.casefold():
                           raise AssertionError("Grounded explanation positive control fell back to the evidence-unavailable response.")
+                      # Topic/title overlap is not source fidelity. The canonical
+                      # post (ID 66853) frames human development as integration
+                      # across disciplines, maturity, responsibility, and stewardship.
+                      # Require those central ideas and reject known cross-asset claims
+                      # that are absent from this source.
+                      response_folded = response.casefold()
+                      required_source_concepts = {
+                          "integration": ("integration", "integrated", "interconnected"),
+                          "disciplinary_scope": ("biology", "psychology", "ethics", "leadership", "meaning"),
+                          "maturity_or_stewardship": ("maturity", "responsibility", "stewardship"),
+                      }
+                      missing_concepts = [
+                          label for label, alternatives in required_source_concepts.items()
+                          if not any(term in response_folded for term in alternatives)
+                      ]
+                      if missing_concepts:
+                          raise AssertionError(
+                              "Grounded explanation does not reflect the canonical source's central "
+                              "developmental-integration framework; missing concept groups="
+                              f"{missing_concepts}; response={response[:2000]!r}"
+                          )
+                      unsupported_source_claims = (
+                          "temporary garment",
+                          "continues beyond any single lifetime",
+                          "soul-memory",
+                          "somatic meditation",
+                          "mindful movement",
+                          "retrieve the hidden records of the soul",
+                      )
+                      detected_unsupported = [
+                          claim for claim in unsupported_source_claims if claim in response_folded
+                      ]
+                      if detected_unsupported:
+                          raise AssertionError(
+                              "Grounded explanation contains claims not supported by the selected "
+                              f"canonical source: {detected_unsupported}; response={response[:2000]!r}"
+                          )
                   else:
                       if payload.get("intent") == "GUIDE_NODE_HANDOFF":
                           if payload.get("handoff") != "guide_node":
