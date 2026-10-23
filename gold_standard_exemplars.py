@@ -58,16 +58,23 @@ def _load_exemplars() -> List[Dict[str, Any]]:
             continue
         query = str(record.get("query") or "").strip()
         response = _response_for_record(record)
-        terms = _tokens(query)
+        terms = _tokens(query + " " + str(record.get("known_theme") or ""))
+        assertions = record.get("assertions") or []
         if not query or not response or not terms:
             continue
-        # Registry assertions are quality guardrails, not a source for doorway
-        # selection. Store only answer text and question; ignore destination.
+        # The saved response is required as an approval gate but is deliberately
+        # not sent into the prompt, avoiding copy pressure and excess token cost.
+        known_theme = str(record.get("known_theme") or "").strip()
+        structural_assertions = [
+            str(item).strip() for item in assertions
+            if isinstance(item, str) and str(item).strip()
+        ][:3]
         result.append({
             "id": str(record.get("benchmark_id") or ""),
             "status": str(record.get("status") or ""),
             "query": query,
-            "response": response[:1800],
+            "known_theme": known_theme,
+            "assertions": structural_assertions,
             "terms": terms,
         })
     return result
@@ -112,11 +119,11 @@ def build_exemplar_guidance(query: str) -> Tuple[str, str]:
     if not exemplar:
         return "", "none"
     guidance = (
-        "Potentially relevant approved General Guide exemplar (use as a pattern, "
-        "not as an answer to copy):\n"
+        "Potentially relevant approved General Guide exemplar (structural cue only):\n"
         f"Exemplar question: {exemplar['question']}\n"
-        f"Exemplar response: {exemplar['response']}\n"
-        "Apply only the transferable response structure and quality: answer the "
+        + (f"Recorded theme: {exemplar['known_theme']}\n" if exemplar["known_theme"] else "")
+        + ("Relevant quality checks: " + "; ".join(exemplar["assertions"]) + "\n" if exemplar["assertions"] else "")
+        + "Apply only the transferable response structure and quality: answer the "
         "actual question directly, make the key distinction or reasoning concrete, "
         "respect the visitor's agency and uncertainty, and use a natural pace. "
         "Rebuild the substance for the current question and its supplied evidence. "
