@@ -4295,18 +4295,26 @@ def _basic_inquiry_has_internal_annotation(response):
 
 
 def _guide_finalize_visitor_payload(payload, query):
-    """Fail closed when contaminated Guide prose cannot be trusted as Archive-grounded."""
+    """Fail closed when provider errors or contaminated prose cross any Guide response path."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    provider_error_response = bool(re.search(
+        r"\\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\\s+is not configured|provider bank exhausted|provider unavailable)\\b",
+        response_text,
+        re.I,
+    ))
     if (
-        not _basic_inquiry_has_internal_annotation(response_text)
+        not provider_error_response
+        and not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
         return payload
 
-    # A sanitization failure invalidates the generated answer's evidence contract.
-    # Never replace contaminated prose with a hardcoded general-knowledge answer.
+    # A provider error or sanitization failure invalidates the answer evidence
+    # contract, even when the protected core is the path that produced the text.
+    # Never pass through provider configuration details or replace them with
+    # a hardcoded general-knowledge answer.
     safe = dict(payload)
     safe.update({
         "ok": True,
@@ -4323,8 +4331,9 @@ def _guide_finalize_visitor_payload(payload, query):
     })
     safe.pop("error_type", None)
     print(
-        "The Guide shared final visitor boundary: discarded contaminated response "
-        "and recommendation; failed closed because source support was not verified."
+        "The Guide shared final visitor boundary: discarded provider-error or "
+        "contaminated response and recommendation; failed closed because source "
+        "support was not verified."
     )
     return safe
 
