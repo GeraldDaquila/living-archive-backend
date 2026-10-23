@@ -72,6 +72,10 @@ jobs:
                   "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
               ),
               (
+                  "positive_archive_grounded_explanation",
+                  "What does the Living Archive say about becoming fully human?",
+              ),
+              (
                   "positive_canonical_node_handoff",
                   "Please take me to Living Stewardship.",
               ),
@@ -105,7 +109,7 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              sample_count = 3 if name == "provider_error_payload_fails_closed" else 5
+              sample_count = 3 if name in {"provider_error_payload_fails_closed", "positive_archive_grounded_explanation"} else 5
               for attempt in range(sample_count):
                   status, payload, elapsed_ms = post_query(query)
                   samples.append(elapsed_ms)
@@ -161,6 +165,27 @@ jobs:
                           raise AssertionError("Provider-error payload did not use the Archive-only limitation response.")
                       if "GROQ_API_KEY" in response or "Unable to generate a response" in response:
                           raise AssertionError("Provider configuration/error details leaked into the visitor response.")
+                  elif name == "positive_archive_grounded_explanation":
+                      if basis.get("kind") != "archive_supported":
+                          raise AssertionError(
+                              "Grounded explanation positive control was not marked Archive-supported: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if not isinstance(recommendation, dict):
+                          raise AssertionError(
+                              "Grounded explanation positive control did not return a canonical recommendation: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      positive_url = str(recommendation.get("url") or "")
+                      if not positive_url.startswith("https://geralddaquila.com/"):
+                          raise AssertionError(
+                              "Grounded explanation positive control returned a non-canonical recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      if len(response.strip()) < 80:
+                          raise AssertionError("Grounded explanation positive control is unexpectedly empty or short.")
+                      if "couldn’t establish an answer" in response.casefold() or "outside knowledge" in response.casefold():
+                          raise AssertionError("Grounded explanation positive control fell back to the evidence-unavailable response.")
                   else:
                       if payload.get("intent") == "GUIDE_NODE_HANDOFF":
                           if payload.get("handoff") != "guide_node":
