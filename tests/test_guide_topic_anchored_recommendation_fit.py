@@ -304,3 +304,67 @@ def test_wordpress_candidate_does_not_emit_metadata_when_both_body_paths_fail(mo
     assert main._wordpress_search_canonical_candidates(
         "What does the Living Archive say about becoming fully human?", limit=3
     ) == []
+
+
+def test_wordpress_candidate_recovers_canonical_excerpt_before_large_body_fetch(monkeypatch):
+    """A real published excerpt can ground a candidate when full-body routes time out."""
+    import json
+
+    query = "What does the Living Archive say about becoming fully human?"
+    page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    post_endpoint = "https://geralddaquila.com/wp-json/wp/v2/posts/66853"
+    search_payload = [{
+        "title": {"rendered": "Becoming Fully Human"},
+        "url": page_url,
+        "_links": {"self": [{"href": post_endpoint}]},
+    }]
+    excerpt_text = (
+        "This cornerstone essay explores human development through a systems perspective, "
+        "integrating biology, psychology, ethics, and leadership. True maturity involves "
+        "integration rather than mere accumulation and supports responsible stewardship."
+    )
+    excerpt_payload = {
+        "link": page_url,
+        "title": {"rendered": "✨ Becoming Fully Human"},
+        "excerpt": {"rendered": f"<p>{excerpt_text}</p>"},
+    }
+
+    class FakeResponse:
+        def __init__(self, body, url):
+            self.body = body.encode("utf-8") if isinstance(body, str) else body
+            self.url = url
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self, *args):
+            return self.body
+        def geturl(self):
+            return self.url
+
+    calls = []
+    def fake_urlopen(request, timeout):
+        url = request.full_url
+        calls.append(url)
+        if "/wp-json/wp/v2/search?" in url:
+            return FakeResponse(json.dumps(search_payload), url)
+        if url == post_endpoint:
+            raise TimeoutError("controlled full REST body timeout")
+        if url == post_endpoint + "?_fields=link,title,excerpt":
+            return FakeResponse(json.dumps(excerpt_payload), url)
+        if url == page_url:
+            raise AssertionError("Large public page fetch should not be needed when excerpt is sufficient.")
+        raise AssertionError("Unexpected URL requested: " + url)
+
+    monkeypatch.setattr(main, "_subject_terms", lambda _query: {"fully human"})
+    monkeypatch.setattr(main, "urlopen", fake_urlopen)
+
+    candidates = main._wordpress_search_canonical_candidates(query, limit=3)
+
+    assert len(candidates) == 1
+    assert candidates[0]["title"] == "✨ Becoming Fully Human"
+    assert candidates[0]["url"] == page_url
+    assert "human development" in candidates[0]["text"].casefold()
+    assert "responsible stewardship" in candidates[0]["text"].casefold()
+    assert post_endpoint + "?_fields=link,title,excerpt" in calls
+    assert page_url not in calls
