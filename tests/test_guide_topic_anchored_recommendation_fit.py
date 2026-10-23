@@ -124,3 +124,35 @@ def test_canonical_primary_prefers_exact_subject_title_over_long_adjacent_articl
         [adjacent, direct], query, main._base._inquiry_profile(query)
     )
     assert selected is direct
+
+def test_human_development_topic_gate_rejects_attention_article_even_if_body_repeats_phrase():
+    query = "What does the Living Archive say about becoming fully human?"
+    decoy = {
+        "title": "Attention as Ecology: Why Human Focus Is Becoming a Civilizational Resource",
+        "url": "https://geralddaquila.com/2026/09/28/attention-as-ecology-why-human-focus-is-becoming-a-civilizational-resource/",
+        "text": (
+            "Becoming fully human requires careful attention and discernment. "
+            "The article is about human focus, attention, and civilizational resources."
+        ),
+    }
+    assert not main._topic_specific_candidate_fit(query, decoy)
+    assert not main._eligible_outward_doc(
+        query, decoy, main._base._inquiry_profile(query), min_relevance=2
+    )
+
+
+def test_human_development_topic_gate_accepts_direct_title_with_body_corroboration():
+    query = "What does the Living Archive say about becoming fully human?"
+    direct = {
+        "title": "Becoming Fully Human",
+        "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
+        "text": (
+            "Becoming fully human is explored through human development, "
+            "the body's role as archive, and the soul's continuity."
+        ),
+    }
+    assert main._topic_specific_candidate_fit(query, direct)
+    assert main._eligible_outward_doc(
+        query, direct, main._base._inquiry_profile(query), min_relevance=2
+    )
+

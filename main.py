@@ -888,6 +888,22 @@ _TOPIC_ANCHOR_GROUPS = {
         r"\bpolitics\b",
         r"\bgovernment\b",
     ),
+    # A narrow semantic family for the Archive's human-development material.
+    # It distinguishes embodiment/soul resources from broadly adjacent articles
+    # that happen to repeat the phrase "becoming fully human" in their body.
+    "human_development": (
+        r"\bbecoming fully human\b",
+        r"\bfully human\b",
+        r"\bhuman development\b",
+        r"\bhuman potential\b",
+        r"\bmore than this body\b",
+        r"\bbody as archive\b",
+        r"\bbody and soul\b",
+        r"\bsoul(?:'s)? continuity\b",
+        r"\bembodiment\b",
+        r"\bembodied\b",
+        r"\bhuman nature\b",
+    ),
 }
 
 
@@ -906,10 +922,22 @@ def _topic_specific_candidate_fit(query, doc):
     for a question about institutions, political dynasties, or accountability.
     """
     query_groups = _topic_anchor_groups(query)
-    if len(query_groups) < 2:
-        return True
     title = str(doc.get("title") or "")
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if "human_development" in query_groups:
+        # This topic requires title-level identity plus source-body corroboration.
+        # A long adjacent article must not qualify merely because its body repeats
+        # "becoming fully human" while its actual subject is attention or AI.
+        if not title.strip() or not body.strip():
+            return False
+        title_groups = _topic_anchor_groups(title)
+        body_groups = _topic_anchor_groups(body)
+        return (
+            "human_development" in title_groups
+            and "human_development" in body_groups
+        )
+    if len(query_groups) < 2:
+        return True
     if not title.strip() or not body.strip():
         return False
     title_groups = _topic_anchor_groups(title)
@@ -5276,6 +5304,24 @@ def _general_guide_authoritative_doorway(query, context_data):
         except Exception:
             supplied = []
         candidates.extend(item for item in supplied if isinstance(item, dict))
+
+        # Run one bounded, exact-title canonical search for this narrow topic.
+        # Retrieval may surface related body/soul material while omitting the
+        # direct "Becoming Fully Human" doorway; supplement candidates before
+        # ranking rather than allowing an adjacent article to become primary.
+        if "human_development" in _topic_anchor_groups(query):
+            try:
+                candidates.extend(
+                    item for item in (
+                        _wordpress_search_canonical_candidates("Becoming Fully Human", limit=10) or []
+                    )
+                    if isinstance(item, dict)
+                )
+            except Exception as exc:
+                print(
+                    "The Guide human-development canonical recovery failed safely: "
+                    f"{type(exc).__name__}"
+                )
 
         # Preserve only evidence-bearing documents with canonical Archive URLs.
         evidence_docs = []
