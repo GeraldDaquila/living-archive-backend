@@ -53,3 +53,12 @@ def test_successfully_grounded_ordinary_inquiry_does_not_use_no_evidence_fallbac
 
 def test_subject_discovery_uses_its_separate_canonical_page_evidence_gate():
     assert not should_fail_closed(True, discovery_subject=True)
+
+
+def test_general_guide_composition_prompt_is_corpus_only():
+    import general_guide_composition
+
+    system_prompt = general_guide_composition._GENERAL_GUIDE_SYSTEM
+    assert "sole authority for substantive content" in system_prompt
+    assert "Do not import outside facts" in system_prompt
+    assert "answer from reliable general knowledge" not in system_prompt
