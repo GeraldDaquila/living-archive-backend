@@ -320,8 +320,8 @@ def test_wordpress_candidate_recovers_canonical_excerpt_before_large_body_fetch(
     }]
     excerpt_text = (
         "This cornerstone essay explores human development through a systems perspective, "
-        "integrating biology, psychology, ethics, and leadership. True maturity involves "
-        "integration rather than mere accumulation and supports responsible stewardship."
+        "integrating biology, psychology, ethics, and leadership. The body and soul are "
+        "considered alongside maturity, integration, and responsible stewardship."
     )
     excerpt_payload = {
         "link": page_url,
@@ -368,3 +368,69 @@ def test_wordpress_candidate_recovers_canonical_excerpt_before_large_body_fetch(
     assert "responsible stewardship" in candidates[0]["text"].casefold()
     assert post_endpoint + "?_fields=link,title,excerpt" in calls
     assert page_url not in calls
+
+
+
+def test_wordpress_candidate_rejects_excerpt_without_topic_body_corroboration(monkeypatch):
+    """A generic excerpt must not bypass the human-development body/soul gate."""
+    import json
+
+    query = "What does the Living Archive say about becoming fully human?"
+    page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    post_endpoint = "https://geralddaquila.com/wp-json/wp/v2/posts/66853"
+    search_payload = [{
+        "title": {"rendered": "✨ Becoming Fully Human"},
+        "url": page_url,
+        "_links": {"self": [{"href": post_endpoint}]},
+    }]
+    excerpt_payload = {
+        "link": page_url,
+        "title": {"rendered": "✨ Becoming Fully Human"},
+        "excerpt": {"rendered": (
+            "<p>This cornerstone essay explores human development through biology, "
+            "psychology, ethics, leadership, integration, and maturity.</p>"
+        )},
+    }
+
+    class FakeResponse:
+        def __init__(self, body, url):
+            self.body = body.encode("utf-8") if isinstance(body, str) else body
+            self.url = url
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self, *args):
+            return self.body
+        def geturl(self):
+            return self.url
+
+    calls = []
+    def fake_urlopen(request, timeout):
+        url = request.full_url
+        calls.append(url)
+        if "/wp-json/wp/v2/search?" in url:
+            return FakeResponse(json.dumps(search_payload), url)
+        if url == post_endpoint:
+            raise TimeoutError("controlled full REST body timeout")
+        if url == post_endpoint + "?_fields=link,title,excerpt":
+            return FakeResponse(json.dumps(excerpt_payload), url)
+        if url == page_url:
+            return FakeResponse(
+                "<html><head><title>✨ Becoming Fully Human</title></head><body><main>"
+                "The article describes human development as an integration of biological, "
+                "psychological, relational, ethical, systemic, and existential capacities. "
+                "It considers the body and soul within this wider developmental architecture."
+                "</main></body></html>",
+                url,
+            )
+        raise AssertionError("Unexpected URL requested: " + url)
+
+    monkeypatch.setattr(main, "_subject_terms", lambda _query: {"fully human"})
+    monkeypatch.setattr(main, "urlopen", fake_urlopen)
+
+    candidates = main._wordpress_search_canonical_candidates(query, limit=3)
+
+    assert len(candidates) == 1
+    assert "body and soul" in candidates[0]["text"].casefold()
+    assert page_url in calls
