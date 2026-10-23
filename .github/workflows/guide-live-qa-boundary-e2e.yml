@@ -20,28 +20,86 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Wait for isolated QA service
+      - uses: actions/checkout@v4
+
+      - name: Compute expected runtime source identity
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+
+          root = Path(".").resolve()
+          excluded_parts = {
+              ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+              "tests", "QA", "scripts", "node_modules",
+          }
+          source_files = []
+          for path in root.rglob("*.py"):
+              if path.is_symlink():
+                  continue
+              relative = path.relative_to(root)
+              if any(part in excluded_parts for part in relative.parts):
+                  continue
+              source_files.append(path)
+          digest = hashlib.sha256()
+          for path in sorted(source_files, key=lambda item: item.relative_to(root).as_posix()):
+              relative_name = path.relative_to(root).as_posix()
+              digest.update(relative_name.encode("utf-8"))
+              digest.update(b"\\0")
+              digest.update(path.read_bytes())
+              digest.update(b"\\0")
+          expected = digest.hexdigest()
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"EXPECTED_SOURCE_SHA256={expected}\\n")
+          print(f"Expected runtime source SHA-256: {expected}")
+          PY
+
+      - name: Wait for isolated QA runtime identity
         env:
           QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
         run: |
           python - <<'PY'
-          import os, time, urllib.request
+          import json
+          import os
+          import time
+          import urllib.request
+
           base = os.environ["QA_BASE_URL"].rstrip("/")
+          expected = os.environ["EXPECTED_SOURCE_SHA256"]
           deadline = time.monotonic() + 300
-          last_error = None
+          last_state = None
           while time.monotonic() < deadline:
               try:
-                  req = urllib.request.Request(base + "/", method="GET")
+                  req = urllib.request.Request(
+                      base + "/api/integration-audit",
+                      headers={"Accept": "application/json"},
+                      method="GET",
+                  )
                   with urllib.request.urlopen(req, timeout=20) as response:
-                      if response.status == 200:
-                          print("QA service is responding with HTTP 200.")
-                          break
-                      last_error = f"unexpected HTTP {response.status}"
+                      status = response.status
+                      payload = json.loads(response.read().decode("utf-8"))
+                  last_state = {
+                      "status": status,
+                      "version": payload.get("version"),
+                      "fingerprint": payload.get("fingerprint"),
+                      "source_sha256": payload.get("source_sha256"),
+                  }
+                  if status == 200 and payload.get("source_sha256") == expected:
+                      print(
+                          "Isolated QA runtime identity matches this checkout: "
+                          f"version={payload.get('version')}, source_sha256={expected}"
+                      )
+                      break
               except Exception as exc:
-                  last_error = repr(exc)
+                  last_state = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
+              print(f"Waiting for expected isolated QA runtime identity: {last_state}")
               time.sleep(10)
           else:
-              raise SystemExit(f"QA service did not become ready within 5 minutes: {last_error}")
+              raise SystemExit(
+                  "QA service did not reach this checkout's runtime source identity "
+                  f"within 5 minutes. Expected={expected}; last_state={last_state}"
+              )
           PY
 
       - name: Run live negative and positive visitor queries
@@ -139,6 +197,13 @@ jobs:
                       raise AssertionError(
                           f"{name} attempt {attempt + 1}: expected HTTP 200, got {status}; "
                           f"payload={json.dumps(payload, ensure_ascii=False)[:2000]}"
+                      )
+                  expected_source = os.environ["EXPECTED_SOURCE_SHA256"]
+                  if payload.get("source_sha256") != expected_source:
+                      raise AssertionError(
+                          f"{name} attempt {attempt + 1}: runtime identity changed or does not match "
+                          f"the tested checkout; expected_source_sha256={expected_source}; "
+                          f"payload_source_sha256={payload.get('source_sha256')}"
                       )
                   basis = payload.get("answer_basis") or {}
                   recommendation = payload.get("recommendation")
