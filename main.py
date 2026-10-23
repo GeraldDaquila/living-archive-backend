@@ -1009,7 +1009,15 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
         # across the document, rather than requiring literal title overlap.
         frame = _query_frame(query)
         contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
-        if not contextual_family_support:
+        # For the narrowly anchored human-development topic, title identity and
+        # body-level body/soul corroboration are stronger evidence than literal
+        # overlap with the visitor's wording. This keeps a relevant fallback
+        # doorway available when the exact-title search times out.
+        human_development_title_fit = (
+            "human_development" in _topic_anchor_groups(query)
+            and _topic_specific_candidate_fit(query, doc)
+        )
+        if not contextual_family_support and not human_development_title_fit:
             return False
     return True
 
