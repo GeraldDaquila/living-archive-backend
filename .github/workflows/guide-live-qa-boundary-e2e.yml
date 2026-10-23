@@ -145,8 +145,12 @@ jobs:
           probe = payload.get("exact_url_probe") or {}
           if probe.get("status") != "ok":
               raise SystemExit(f"Exact-URL read-only probe failed: {probe!r}")
+          semantic = payload.get("semantic_top_matches") or {}
+          if semantic.get("status") != "ok":
+              raise SystemExit(f"Unfiltered semantic read-only probe failed: {semantic!r}")
           variants = probe.get("variants") or {}
           match_count = sum(int(item.get("match_count") or 0) for item in variants.values())
+          semantic_matches = semantic.get("matches") or []
           print(
               "QA_READ_ONLY_INDEX_EVIDENCE="
               + json.dumps({
@@ -155,6 +159,8 @@ jobs:
                   "namespace_count": index.get("namespace_count"),
                   "canonical_url": canonical_url,
                   "exact_url_match_count_across_slash_variants": match_count,
+                  "semantic_top_titles": [item.get("title") for item in semantic_matches],
+                  "semantic_top_urls": [item.get("url") for item in semantic_matches],
                   "shared_provider_health_persistence_enabled": provider_health.get("persistence_enabled"),
                   "vector_writes_performed": payload.get("write_operations_performed"),
               }, sort_keys=True)
