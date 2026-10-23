@@ -40,10 +40,13 @@ def test_responsibility_without_system_repair_has_a_distinct_composition_contrac
     assert "Do not assume this is a formal diagnostic request solely because the question mentions a broken system" in prompt
 
 
-def test_writer_does_not_force_restrictive_fact_inference_unknown_gate():
+def test_writer_enforces_archive_only_evidence_boundary():
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "Apply discernment structurally, not as a final stylistic flourish" not in prompt
-    assert "If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it" in prompt
+    assert "sole authority for substantive content" in prompt
+    assert "Do not import outside facts" in prompt
+    assert "If the supplied material does not establish an answer, say so plainly rather than filling the gap." in prompt
+    assert "If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it" not in prompt
 
 
 def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance():
