@@ -5101,21 +5101,28 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                         if isinstance(excerpt_obj, dict) else excerpt_obj or ""
                     )
                     excerpt_text = _guide_html_to_source_text(excerpt_html).strip()
+                    excerpt_candidate = {
+                        "title": html.unescape(excerpt_title),
+                        "url": excerpt_url,
+                        "text": excerpt_text[:6000],
+                    }
                     if (
                         excerpt_title
                         and len(excerpt_text) >= 80
                         and re.match(r"^https://geralddaquila\.com/\S+$", excerpt_url, re.I)
                         and excerpt_url.rstrip("/").casefold() == url.rstrip("/").casefold()
+                        and _topic_specific_candidate_fit(query, excerpt_candidate)
                     ):
                         print(
                             "The Guide canonical search recovery: "
-                            f"recovered canonical excerpt (chars={len(excerpt_text)})."
+                            f"recovered topic-fit canonical excerpt (chars={len(excerpt_text)})."
                         )
-                        return {
-                            "title": html.unescape(excerpt_title),
-                            "url": excerpt_url,
-                            "text": excerpt_text[:6000],
-                        }
+                        return excerpt_candidate
+                    if len(excerpt_text) >= 80:
+                        print(
+                            "The Guide canonical search recovery: excerpt did not meet "
+                            "topic-specific body corroboration; trying full public page."
+                        )
             except Exception as excerpt_exc:
                 print(
                     "The Guide canonical search recovery: excerpt fetch skipped "
