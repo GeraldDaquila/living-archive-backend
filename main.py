@@ -935,7 +935,7 @@ def _topic_specific_candidate_fit(query, doc):
         # may use the Archive's established body/soul vocabulary even when the
         # exact title phrase is not repeated in the article body.
         body_support = bool(re.search(
-            r"\\b(?:soul|body|embodiment|embodied|memory|flesh|human existence|divine potential|spirit)\\b",
+            r"\b(?:soul|body|embodiment|embodied|memory|flesh|human existence|divine potential|spirit)\b",
             body,
             re.I,
         ))
