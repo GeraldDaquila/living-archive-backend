@@ -1332,6 +1332,44 @@ def _recommendation_first_fetch(query_str):
             "url": selected_doorway["url"],
         }
 
+        # Read-only seam diagnostic: record the titles/URLs available to answer
+        # composition, and whether the validated primary body is actually present.
+        # Never log source text, visitor history, or credentials.
+        try:
+            _composition_docs = general_guide_composition._documents_from_context(use_core, data)
+            _composition_doc_identity = [
+                {
+                    "title": str(item.get("title") or "")[:180],
+                    "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                    "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                }
+                for item in _composition_docs if isinstance(item, dict)
+            ]
+            _primary_identity = {
+                "title": str(authoritative[0].get("title") or "")[:180],
+                "url": str(authoritative[0].get("url") or "")[:500],
+                "body_chars": len(str(authoritative[0].get("text") or "")),
+            }
+            _primary_in_composition = any(
+                str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                == str(_primary_identity["url"]).rstrip("/").casefold()
+                for item in _composition_docs if isinstance(item, dict)
+            )
+            print(
+                "The Guide source-fidelity seam diagnostic: "
+                + json.dumps({
+                    "query": _normalize_query(query_str)[:120],
+                    "selected_primary": _primary_identity,
+                    "primary_present_in_composition_pool": _primary_in_composition,
+                    "composition_documents": _composition_doc_identity[:20],
+                }, ensure_ascii=False, sort_keys=True)
+            )
+        except Exception as _diag_exc:
+            print(
+                "The Guide source-fidelity seam diagnostic unavailable: "
+                f"{type(_diag_exc).__name__}"
+            )
+
     # Preserve the complete evidence pool for non-navigation questions. Their
     # composition may need multiple sources, but the canonical primary remains
     # separately pinned for the outward recommendation field.
