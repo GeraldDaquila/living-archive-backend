@@ -550,7 +550,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-01-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 1,
       "query": "How does responsibility differ from carrying everything yourself?",
@@ -589,13 +589,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 2,
       "query": "How can I tell when helping has turned into taking over?",
@@ -635,13 +639,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 3,
       "query": "What does sharing responsibility look like when a team is struggling?",
@@ -680,13 +688,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
-      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "status": "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 4,
       "query": "Where should I start if I want to understand trust-based systems?",
@@ -711,7 +723,9 @@
         "source_status": "matched in October 21, 2026 forensic record",
         "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered. Do not reconstruct verbatim response from its theme.",
         "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
-        "forensic_comment_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6315222606"
+        "forensic_comment_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6315222606",
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed the 14-record DOCX script and confirmed the records are correct as far as recalled; #4 remains classified as a Navigator handoff, not a General Guide answer."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
@@ -720,7 +734,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 5,
       "query": "What does accountability really mean?",
@@ -760,13 +774,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 6,
       "query": "Explain a concept that is not directly covered by an available Archive resource",
@@ -805,13 +823,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 7,
       "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
@@ -851,13 +873,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 8,
       "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
@@ -897,13 +923,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 9,
       "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
@@ -942,13 +972,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 10,
       "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
@@ -988,13 +1022,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 11,
       "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
@@ -1034,13 +1072,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 12,
       "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
@@ -1079,13 +1121,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 13,
       "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
@@ -1125,13 +1171,17 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
-      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 14,
       "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
@@ -1172,8 +1222,12 @@
         ],
         "live_guide_replay": false,
         "historical_exact": false,
-        "user_approved": false,
-        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+        "user_approved": true,
+        "caution": "User-confirmed from recollection on 2026-10-23; not verified as verbatim historical live output. Keep distinct from a historical exact capture.",
+        "user_reviewed": true,
+        "user_confirmed_as_recalled": true,
+        "user_confirmation_date": "2026-10-23",
+        "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
       }
     },
     {
@@ -1279,5 +1333,5 @@
       ]
     }
   ],
-  "last_reconciliation_note": "October 23: 34 structured records. Original #1–#14 prompts, recovered ratings, approval/resource metadata, and provenance are recorded; exact accepted answer text for that original sequence remains unavailable in retrieved prior context. Canonical URLs recovered for #2, #5, #8, #10, #13. The separate approved ethical-trade-off answer is preserved at 9.0/10 with conflicting labels #2 and #18. Missing original sequence positions #15–#17 and #19 are recorded as a gap marker, not fabricated standards. Current CI rerun pending on latest head."
+  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture."
 }
