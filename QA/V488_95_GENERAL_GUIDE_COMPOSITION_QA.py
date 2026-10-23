@@ -362,9 +362,9 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    # Significant distress changes conversational pacing, not the availability
-    # of a separately rendered doorway that has already passed relevance/safety
-    # gates. Verify the ordinary and recovery paths do not discard it by default.
+    # A valid doorway remains separate from answer synthesis when a supported
+    # answer exists. But a recovery path with no certified answer must fail closed
+    # and suppress any doorway that would imply the unsupported answer is grounded.
     assert_true(
         "Distress-sensitive pacing governs the prose, not access to a separate" in MAIN_TEXT,
         "distress-sensitive doorway continuity contract is missing",
@@ -375,8 +375,9 @@ def main():
     )
     assert_true(
         '"recommendation": authoritative_doorway' in MAIN_TEXT
-        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
-        "ordinary/recovery recommendation contract is incomplete",
+        and '"response": _archive_limitation_response()' in MAIN_TEXT
+        and '"recommendation": None' in MAIN_TEXT,
+        "ordinary answer and fail-closed recovery recommendation contracts are incomplete",
     )
 
     # The final public boundary must preserve Markdown line breaks instead of
