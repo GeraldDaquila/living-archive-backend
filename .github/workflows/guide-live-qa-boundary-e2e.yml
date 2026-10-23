@@ -203,6 +203,23 @@ jobs:
                               "Grounded explanation positive control returned a non-canonical recommendation: "
                               f"{json.dumps(recommendation, ensure_ascii=False)}"
                           )
+                      # Canonical ownership alone does not prove topical relevance.
+                      # For this question, require a resource about human development,
+                      # the body/soul, or becoming fully human—not a merely adjacent
+                      # Archive page such as an article about attention and focus.
+                      positive_title = str(recommendation.get("title") or "").casefold()
+                      relevant_title_markers = (
+                          "fully human",
+                          "human development",
+                          "body as archive",
+                          "more than this body",
+                          "soul",
+                      )
+                      if not any(marker in positive_title for marker in relevant_title_markers):
+                          raise AssertionError(
+                              "Grounded explanation returned a canonical but topically mismatched recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
                       if len(response.strip()) < 80:
                           raise AssertionError("Grounded explanation positive control is unexpectedly empty or short.")
                       if "couldn’t establish an answer" in response.casefold() or "outside knowledge" in response.casefold():
