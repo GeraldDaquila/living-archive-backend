@@ -268,5 +268,5 @@ for _question in (
     "How can I tell if I am helping too much and taking over?",
 ):
     _answer = compose_recovery(_question)
-    if not _answer or re.search(r"approach I\\b|approach support someone|approach help without", _answer, re.I):
+    if not _answer or re.search(r"approach I\b|approach support someone|approach help without", _answer, re.I):
         raise RuntimeError("Practical recovery contract failed: malformed first-person phrasing.")
