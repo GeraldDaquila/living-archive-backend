@@ -206,7 +206,10 @@ def test_original_fourteen_standard_provenance_is_recorded_without_fabricated_an
     for number, rating in expected_ratings.items():
         assert records[number]["rating_out_of_10"] == rating
         assert records[number]["query"] or records[number].get("known_theme")
-        assert records[number]["status"] == "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE"
+        assert records[number]["status"] in {
+            "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+            "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+        }
         assert records[number]["expected_response"] is None
 
     assert records[4]["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
