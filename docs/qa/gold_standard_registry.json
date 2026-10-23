@@ -854,7 +854,7 @@
       "expected_response": null,
       "expected_doorway": {
         "title": "Beyond Bureaucracy",
-        "url": null
+        "url": "https://geralddaquila.com/beyond-bureaucracy/"
       },
       "known_theme": "Legitimate safeguards versus protection of power.",
       "assertions": [
@@ -870,7 +870,8 @@
         "request_hash": null,
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime catalogue record recovered from Library source."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 9,
