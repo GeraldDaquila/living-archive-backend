@@ -937,6 +937,64 @@ def _topic_specific_candidate_fit(query, doc):
     return bool(query_groups & title_groups) or len(query_groups & early_groups) >= 2
 
 
+
+
+def _query_topic_tokens(query):
+    """Return substantive lexical topic anchors, excluding request scaffolding."""
+    tokens = _subject_terms(query)
+    generic = {
+        "human", "fully", "becoming", "living", "existence", "body", "soul",
+        "spirituality", "metaphysics", "higher", "order", "intelligence",
+        "archive", "say", "says", "mean", "means", "definition", "purpose",
+        "what", "does", "about", "according",
+    }
+    return tuple(token for token in tokens if token not in generic)
+
+
+def _canonical_topic_relevance(query, doc):
+    """Grade a candidate using title and evidence-body topic anchors, not URL authority.
+
+    This gate complements existing canonical, evidence, risk-role, and
+    query-specific gates. It never promotes a candidate that fails them.
+    """
+    if not isinstance(doc, dict):
+        return {"eligible": False, "grade": "none", "score": 0, "support": []}
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    if not title.strip() or not body.strip():
+        return {"eligible": False, "grade": "none", "score": 0, "support": []}
+
+    anchors = _query_topic_tokens(query)
+    if not anchors:
+        return {"eligible": True, "grade": "existing-gates", "score": 0, "support": []}
+
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    body_tokens = set(re.findall(r"[a-z0-9]+", body))
+    early_tokens = set(re.findall(r"[a-z0-9]+", body[:3000]))
+    title_hits = {term for term in anchors if _term_forms(term) & title_tokens}
+    body_hits = {term for term in anchors if _term_forms(term) & body_tokens}
+    early_hits = {term for term in anchors if _term_forms(term) & early_tokens}
+    distinctive = {term for term in anchors if len(term) >= 5}
+    title_distinctive = title_hits & distinctive
+    early_distinctive = early_hits & distinctive
+
+    # A distinctive title anchor must be corroborated by the page's own body.
+    # This allows natural-language paraphrases while rejecting title-only decoys.
+    if title_distinctive:
+        supported = title_distinctive & body_hits
+        if not supported:
+            return {"eligible": False, "grade": "none", "score": 0, "support": sorted(body_hits)}
+        score = 100 + 12 * len(supported) + 4 * len(early_hits) + 2 * len(body_hits)
+        return {"eligible": True, "grade": "direct", "score": score, "support": sorted(supported | early_hits)}
+
+    # A broad title without a distinctive subject needs a topic cluster near the
+    # beginning of the source plus corroboration elsewhere, not scattered overlap.
+    if len(early_distinctive) >= 2 and len(body_hits) >= 2:
+        score = 40 + 8 * len(early_distinctive) + 3 * len(body_hits)
+        return {"eligible": True, "grade": "supported", "score": score, "support": sorted(early_distinctive | body_hits)}
+
+    return {"eligible": False, "grade": "none", "score": 0, "support": sorted(body_hits)}
+
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
@@ -960,6 +1018,9 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if role["abuse"] and not re.search(r"\b(?:abuse|abusive|coercive\s+control|gaslighting)\b", q):
         return False
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
+        return False
+    topic_fit = _canonical_topic_relevance(query, doc)
+    if not topic_fit["eligible"]:
         return False
     metrics = _subject_metrics(query, doc)
     # A title overlap alone is not enough to make a canonical doorway relevant.
@@ -1000,11 +1061,12 @@ def _canonical_primary_from_docs(docs, query, profile):
     for index, doc in enumerate(docs or []):
         if not _eligible_outward_doc(query, doc, profile, min_relevance=2):
             continue
+        topic_fit = _canonical_topic_relevance(query, doc)
         metrics = _subject_metrics(query, doc)
         context = _contextual_fit(query, doc)
-        # Rank by body corroboration first, then title fit. The document's
-        # substantive relevance must outrank incidental title overlap.
-        score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
+        # Topic fit is the leading ranking dimension. Existing lexical/body
+        # corroboration and contextual fit break ties only after hard eligibility.
+        score = (topic_fit["score"], metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
         eligible.append((score, doc))
     eligible.sort(key=lambda item: item[0], reverse=True)
     return eligible[0][1] if eligible else None
