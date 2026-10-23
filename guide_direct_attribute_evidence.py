@@ -34,6 +34,6 @@ def direct_attribute_supported(question, document):
     if not isinstance(document, dict):
         return False
     body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
-    body_tokens = set(re.findall(r"[a-z0-9]+", body))
-    requested_terms = phrase.split()
-    return bool(body.strip()) and all(term in body_tokens for term in requested_terms)
+    normalized_body = " ".join(re.findall(r"[a-z0-9]+", body))
+    # Require the attribute phrase as a phrase, not scattered term mentions.
+    return bool(normalized_body) and phrase in normalized_body
