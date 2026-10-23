@@ -21,13 +21,33 @@ def direct_attribute_phrase(question):
         return None
     phrase = re.sub(r"\s+", " ", match.group(1)).strip(" ,;:")
     terms = [token.casefold() for token in re.findall(r"[a-z0-9]+", phrase) if token.casefold() not in _STOP]
-    # Keep this contract conservative: one-word classifications can be
-    # ambiguous, while multiword attributes have a clear evidence obligation.
-    return " ".join(terms) if len(terms) >= 2 else None
+    return " ".join(terms) if terms else None
+
+
+def direct_attribute_qualifier(question):
+    """Return a material condition attached to a direct attribute question, if any."""
+    value = re.sub(r"\s+", " ", str(question or "")).strip().rstrip(" ?!.")
+    match = re.match(
+        r"^(?:please\s+)?what\s+is\s+(?:the\s+)?(.+?)\s+of\s+(.+)$",
+        value,
+        flags=re.I,
+    )
+    if not match:
+        return None
+    subject = match.group(2)
+    qualifier = re.search(
+        r"\b(?:at|under|above|below|in|on|with|without|during|when|for)\s+(.+)$",
+        subject,
+        flags=re.I,
+    )
+    if not qualifier:
+        return None
+    terms = [token.casefold() for token in re.findall(r"[a-z0-9]+", qualifier.group(1))]
+    return " ".join(terms) if terms else None
 
 
 def direct_attribute_supported(question, document):
-    """Require source-body support for the requested attribute, not just entity overlap."""
+    """Require the attribute and any explicit condition in the source body."""
     phrase = direct_attribute_phrase(question)
     if not phrase:
         return True
@@ -35,8 +55,12 @@ def direct_attribute_supported(question, document):
         return False
     body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
     normalized_body = " ".join(re.findall(r"[a-z0-9]+", body))
-    # Require the attribute phrase as a phrase, not scattered term mentions.
-    return bool(normalized_body) and phrase in normalized_body
+    # Require the attribute as a phrase, plus any material qualifier such as
+    # "sea level"; shared entity words alone are not enough.
+    if not normalized_body or phrase not in normalized_body:
+        return False
+    qualifier = direct_attribute_qualifier(question)
+    return not qualifier or qualifier in normalized_body
 
 
 def should_fail_closed(archive_evidence_unavailable, discovery_subject=False):
