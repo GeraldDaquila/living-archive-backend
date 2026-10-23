@@ -931,11 +931,15 @@ def _topic_specific_candidate_fit(query, doc):
         if not title.strip() or not body.strip():
             return False
         title_groups = _topic_anchor_groups(title)
-        body_groups = _topic_anchor_groups(body)
-        return (
-            "human_development" in title_groups
-            and "human_development" in body_groups
-        )
+        # The title must name the human-development family. Body corroboration
+        # may use the Archive's established body/soul vocabulary even when the
+        # exact title phrase is not repeated in the article body.
+        body_support = bool(re.search(
+            r"\\b(?:soul|body|embodiment|embodied|memory|flesh|human existence|divine potential|spirit)\\b",
+            body,
+            re.I,
+        ))
+        return "human_development" in title_groups and body_support
     if len(query_groups) < 2:
         return True
     if not title.strip() or not body.strip():

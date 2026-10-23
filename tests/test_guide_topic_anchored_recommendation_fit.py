@@ -159,6 +159,23 @@ def test_human_development_topic_gate_accepts_direct_title_with_body_corroborati
         query, direct, main._base._inquiry_profile(query), min_relevance=2
     )
 
+
+
+def test_human_development_topic_gate_allows_body_soul_doorway_fallback():
+    query = "What does the Living Archive say about becoming fully human?"
+    related = {
+        "title": "The Body as Archive",
+        "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
+        "text": (
+            "The body is an archive of memory and embodied experience. "
+            "The soul continues beyond the body's temporary form."
+        ),
+    }
+    assert main._topic_specific_candidate_fit(query, related)
+    assert main._eligible_outward_doc(
+        query, related, main._base._inquiry_profile(query), min_relevance=2
+    )
+
 def test_guide_request_core_contains_no_vector_index_mutation_calls():
     """The live Guide query path may retrieve canonical vectors, never mutate them."""
     forbidden_methods = {
