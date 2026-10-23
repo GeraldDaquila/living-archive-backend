@@ -286,10 +286,17 @@
           "https://github.com/GeraldDaquila/living-archive-backend/pull/756",
           "https://github.com/GeraldDaquila/living-archive-backend/pull/757"
         ],
-        "source_status": "PRs #755 and #756 merged; #757 described as unmerged in historical handoff; verify current merge state",
-        "evidence_boundary": "Exact query is recovered from the fuzzy evaluation fixture and PR #755-757 behavioral contracts. No single accepted exact answer or rating recovered."
+        "source_status": "PRs #755 and #756 merged; PR #757 closed unmerged (verified 2026-10-23)",
+        "evidence_boundary": "Exact query and behavioral contracts are recovered from PRs #755-757. PR #757 also contains a verbatim bounded fallback response, separately recorded as implementation_response; it is not an approved answer and no visitor rating was recovered."
       },
-      "freeze_policy": "Regression scenario, not an approved verbatim answer."
+      "freeze_policy": "Regression scenario, not an approved verbatim answer.",
+      "implementation_response": "Ask each person to explain what they believe is most urgent and why. Then identify the outcome everyone agrees they want, and choose one small, reversible action the group can try before deciding on a larger plan. Afterward, compare what the group learned and use that to decide what should come next.",
+      "implementation_response_provenance": {
+        "source_pr": 757,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/757",
+        "source_status": "closed, unmerged PR branch (verified 2026-10-23)",
+        "evidence_boundary": "Exact bounded fallback text appears in the PR #757 diff. This is implementation evidence only: no visitor approval/rating was recovered, and the unmerged PR does not establish that this response reached main or production."
+      }
     },
     {
       "benchmark_id": "general-guide-harm-reduction-outcome-evaluation-2026-10",
