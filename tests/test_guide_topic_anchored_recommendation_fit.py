@@ -443,7 +443,7 @@ def test_wordpress_candidate_recovers_topic_fit_body_from_read_only_bridge(monke
 
     query = "What does the Living Archive say about becoming fully human?"
     page_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
-    post_endpoint = "https://geralddaquila.com/wp-json/wp/v2/posts/66853"
+    post_endpoint = "https://geralddaquila.com/wp-json/wp/v2/posts/66853/"
     bridge_url = "https://geralddaquila.com/wp-json/living-archive/v1/canonical-evidence/66853"
     search_payload = [{
         "title": {"rendered": "✨ Becoming Fully Human"},
