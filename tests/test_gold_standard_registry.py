@@ -188,3 +188,26 @@ def test_ten_question_calibration_set_is_not_misrepresented_as_approved_answers(
     assert len(record["calibration_questions"]) == 10
     assert record["expected_response"] is None
     assert record["status"] == "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL"
+
+
+
+def test_original_fourteen_standard_provenance_is_recorded_without_fabricated_answers():
+    registry = _registry()
+    records = {
+        item.get("original_gold_standard_number"): item
+        for item in registry["records"]
+        if item.get("original_gold_standard_number") is not None
+    }
+    assert set(range(1, 15)).issubset(records)
+    expected_ratings = {
+        1: 8.5, 2: 9.0, 3: 8.5, 4: 9.0, 5: 9.0, 6: 9.0, 7: 9.0,
+        8: 8.8, 9: 8.6, 10: 8.7, 11: 9.0, 12: 8.8, 13: 9.1, 14: 8.7,
+    }
+    for number, rating in expected_ratings.items():
+        assert records[number]["rating_out_of_10"] == rating
+        assert records[number]["query"] or records[number].get("known_theme")
+        assert records[number]["status"] == "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE"
+        assert records[number]["expected_response"] is None
+
+    assert records[4]["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
+    assert "rejected" in records[14]["approval_state"]
