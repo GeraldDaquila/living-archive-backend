@@ -99,3 +99,28 @@ def test_deterministic_recovery_does_not_promise_archive_recommendation_without_
     )
     assert "recommendation below" not in result["response"].casefold()
     assert "sufficiently relevant archive resource" in result["response"].casefold()
+
+
+def test_canonical_primary_prefers_exact_subject_title_over_long_adjacent_article():
+    query = "What does the Living Archive say about becoming fully human?"
+    adjacent = {
+        "title": "Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill",
+        "url": "https://geralddaquila.com/2026/10/19/truth-in-the-age-of-ai-why-discernment-is-becoming-a-survival-skill/",
+        "text": (
+            "Becoming fully human requires discernment in an age of artificial intelligence. "
+            "Human life, human judgment, and human flourishing are discussed at length. "
+            "The article returns repeatedly to discernment, technology, and survival."
+        ),
+    }
+    direct = {
+        "title": "Becoming Fully Human",
+        "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
+        "text": (
+            "Becoming fully human is explored through the architecture of human development. "
+            "The resource considers human existence, growth, and the conditions of becoming fully human."
+        ),
+    }
+    selected = main._canonical_primary_from_docs(
+        [adjacent, direct], query, main._base._inquiry_profile(query)
+    )
+    assert selected is direct
