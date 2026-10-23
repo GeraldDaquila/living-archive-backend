@@ -9179,8 +9179,37 @@ def qa_read_only_diagnostics(request: Request):
                         "match_count": len(matches),
                         "matches": summaries,
                     }
+                semantic_probe = {"status": "unavailable", "matches": []}
+                try:
+                    semantic_result = _plain_mapping(index.query(
+                        vector=vector,
+                        top_k=8,
+                        include_metadata=True,
+                    ))
+                    semantic_matches = semantic_result.get("matches") or []
+                    semantic_summaries = []
+                    for match in semantic_matches:
+                        match_data = _plain_mapping(match)
+                        metadata = _plain_mapping(match_data.get("metadata") or {})
+                        semantic_summaries.append({
+                            "title": str(metadata.get("title") or ""),
+                            "url": str(metadata.get("url") or ""),
+                            "chunk_index": metadata.get("chunk_index"),
+                            "resource_type": str(metadata.get("resource_type") or ""),
+                            "score": match_data.get("score"),
+                        })
+                    semantic_probe = {
+                        "status": "ok",
+                        "matches": semantic_summaries,
+                    }
+                except Exception as semantic_exc:
+                    semantic_probe = {
+                        "status": "error",
+                        "error_type": type(semantic_exc).__name__,
+                    }
                 probe["status"] = "ok"
             else:
+                semantic_probe = {"status": "unavailable", "matches": []}
                 probe["status"] = "embedding_unavailable"
         except Exception as exc:
             probe = {"status": "error", "error_type": type(exc).__name__}
@@ -9213,6 +9242,7 @@ def qa_read_only_diagnostics(request: Request):
             "namespace_vector_counts": namespace_vector_counts,
         },
         "exact_url_probe": probe,
+        "semantic_top_matches": semantic_probe,
         "provider_health": {
             "url_configured": bool(str(os.getenv("USE_PROVIDER_HEALTH_STATE_URL") or "").strip()),
             "shared_secret_configured": shared_secret_configured,
