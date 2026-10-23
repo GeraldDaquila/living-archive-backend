@@ -1,5 +1,10 @@
 """Regression tests for direct-attribute source evidence."""
-from guide_direct_attribute_evidence import (\n    direct_attribute_phrase, direct_attribute_supported,\n    should_fail_closed, archive_limitation_response,\n)
+from guide_direct_attribute_evidence import (
+    direct_attribute_phrase,
+    direct_attribute_supported,
+    should_fail_closed,
+    archive_limitation_response,
+)
 
 
 def test_direct_attribute_question_extracts_requested_property():
