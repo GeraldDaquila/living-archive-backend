@@ -163,6 +163,314 @@
         "caveat": "Recovered from an open PR branch. This registry record does not imply the source PR is merged or present on main."
       },
       "freeze_policy": "Preserve the observed accepted response and behavioral invariants. Do not weaken invariants to accommodate regressions; this is a behavioral reference, not a rigid answer template."
+    },
+    {
+      "benchmark_id": "general-guide-hindsight-accountability-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+      "subsystem": "general-purpose-guide",
+      "query": "If the group made the best decision it could with the information available at the time, how should it distinguish genuine accountability from unfairly blaming people in hindsight?",
+      "expected_response": "Genuine accountability asks whether the group made a reasonable decision with the information, constraints, and alternatives available at the time. Hindsight blame assumes that because the outcome is now known, it should have been predictable all along. A harmful result, by itself, does not prove that the original decision was irresponsible.\n\nStart by reconstructing what the group knew, what remained uncertain, which alternatives were realistically available, and whether relevant warnings or dissent were taken seriously. Ask whether the group used clear criteria, considered foreseeable risks, and listened to people who would bear the consequences. Also distinguish a reasonable choice that turned out badly from a choice made carelessly or without regard for evidence the group had a duty to consider.\n\nA reasonable decision at the time does not excuse refusing to learn afterward. Accountability means acknowledging the outcome, correcting what can be corrected, and improving the decision process without rewriting the past to make blame easier.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Distinguishes decision quality based on what was knowable then from hindsight blame.",
+        "Reconstructs uncertainty, realistic alternatives, warnings/dissent and foreseeable risk.",
+        "Acknowledges outcome and learning without rewriting history to simplify blame.",
+        "Keep separate from ordinary policy-decision advice."
+      ],
+      "provenance": {
+        "source_pr": 750,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/750",
+        "source_path": "deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
+        "evidence_boundary": "Exact deterministic recovery response and regression assertions recovered from source. No visitor rating/approval record found yet."
+      },
+      "freeze_policy": "Do not promote to approved/frozen gold standard without recovered approval evidence."
+    },
+    {
+      "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
+      "status": "RECOVERED_SCENARIO_PENDING_APPROVAL_EVIDENCE",
+      "subsystem": "general-purpose-guide",
+      "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Address competing values and explicit sacrifice, not generic how-to advice.",
+        "Consider who has power to decide, people with least power, and what can be repaired versus what cannot.",
+        "State defensible criteria and justify the choice.",
+        "Keep distinct from the stewardship-disagreement reference question and ordinary practical questions."
+      ],
+      "provenance": {
+        "source_pr": 749,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/749",
+        "source_path": "test_deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
+        "evidence_boundary": "Exact calibration question and required-response assertions recovered. Full accepted response and visitor approval record not yet recovered."
+      },
+      "freeze_policy": "Scenario/regression record only; do not invent or reconstruct missing expected_response."
+    },
+    {
+      "benchmark_id": "general-guide-responsibility-boundary-2026-10",
+      "status": "RECOVERED_CONTRACT_PENDING_EXACT_QUESTION_AND_APPROVAL",
+      "subsystem": "general-purpose-guide",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Explicitly distinguish responsibility for one's own contribution from accountability for the whole system.",
+        "Recognize that seeing a problem can create pressure to carry more than one's fair share.",
+        "Tie shared responsibility to authority, resources, and shared obligations.",
+        "Offer a defined contribution while naming what needs a decision, resource, or commitment from others.",
+        "Distinguish the part the visitor can influence from the part requiring shared ownership."
+      ],
+      "provenance": {
+        "source_pr": 794,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/794",
+        "source_paths": [
+          "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py",
+          "general_guide_composition.py"
+        ],
+        "source_status": "merged",
+        "evidence_boundary": "Exact contract clauses recovered from PR patch; exact original visitor question, complete approved answer and rating not found in this source."
+      },
+      "freeze_policy": "Contract/regression scenario, not a frozen verbatim answer. Continue searching for original calibration record."
+    },
+    {
+      "benchmark_id": "general-guide-practical-collective-next-step-2026-10",
+      "status": "RECOVERED_REGRESSION_SCENARIO",
+      "subsystem": "general-purpose-guide",
+      "query": "If the group agrees that something must change but its members disagree about what to do first, what would be a constructive next step?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Provide one useful, low-risk next step before asking for more context when responsible.",
+        "The final response must contain a concrete action, not analysis-only prose.",
+        "Preserve visitor agency; do not present a mandatory checklist or claim the step will resolve the conflict.",
+        "Do not rewrite unrelated questions or change the frozen stewardship benchmark."
+      ],
+      "provenance": {
+        "source_prs": [
+          755,
+          756,
+          757
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/755",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/756",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/757"
+        ],
+        "source_status": "PRs #755 and #756 merged; #757 described as unmerged in historical handoff; verify current merge state",
+        "evidence_boundary": "Exact query is recovered from the fuzzy evaluation fixture and PR #755-757 behavioral contracts. No single accepted exact answer or rating recovered."
+      },
+      "freeze_policy": "Regression scenario, not an approved verbatim answer."
+    },
+    {
+      "benchmark_id": "general-guide-harm-reduction-outcome-evaluation-2026-10",
+      "status": "RECOVERED_REGRESSION_SCENARIO",
+      "subsystem": "general-purpose-guide",
+      "query": "How can we tell whether a revised approach is genuinely reducing harm?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Distinguish outcome evaluation from systemic-pattern diagnosis/FSD routing.",
+        "Explain observable outcomes, baseline/starting point, comparison over time, affected people's feedback, and unintended consequences.",
+        "Reject generic next-step advice that does not say what evidence would show harm decreased.",
+        "Keep Guide routing for outcome-evaluation intent while preserving FSD for genuine recurring-pattern diagnosis."
+      ],
+      "provenance": {
+        "source_prs": [
+          763,
+          764,
+          765,
+          766,
+          768
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/763",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/764",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/765",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/766",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/768"
+        ],
+        "source_status": "merged",
+        "evidence_boundary": "Question and shallow-answer failure pattern recovered from regression tests. Exact accepted recovery response and visitor rating not yet copied into registry."
+      },
+      "freeze_policy": "Keep as one scenario lineage with linked PR revisions; do not count each PR as a separate gold standard."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-balanced-evaluation-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Four human-authored evaluation cases cover ethical trade-off, harm repair, collective next step and accountability.",
+        "Each case compares direct, adjacent and unsuitable candidate resources.",
+        "Labels are authored expectations; scorer remains shadow-only and results are not independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 758,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/758",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json",
+        "source_ref": "main",
+        "source_status": "open PR; fixture content recovered from patch",
+        "case_ids": [
+          "ethical-tradeoff",
+          "harm-repair",
+          "collective-next-step",
+          "accountability"
+        ],
+        "case_count": 4
+      },
+      "freeze_policy": "Evaluation dataset only; never count as four approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-heldout-paraphrases-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Held-out paraphrases probe transfer beyond the original wording and include plausible topical distractors.",
+        "Keep scoring shadow-only; preserve failures rather than tuning labels or thresholds to force a pass."
+      ],
+      "provenance": {
+        "source_pr": 760,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/760",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Exact case count to be computed from current main fixture before declaring inventory complete."
+      },
+      "freeze_policy": "Evaluation dataset only; not a set of approved response texts."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-independent-challenge-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Paraphrases avoid existing cue vocabulary and include plausible same-topic distractors and negative controls.",
+        "Three consultation/participation cases share the same candidate pair and must be treated as one correlated paraphrase family, not independent demonstrations.",
+        "Two procedural-lookup cases are marked candidate_set_underspecified and are not valid semantic ground truth.",
+        "Independent human review remains pending."
+      ],
+      "provenance": {
+        "source_prs": [
+          761,
+          762
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/761",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/762"
+        ],
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_independent_challenge_set.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Expanded case count to be computed from current main fixture; labels are simulated judgments, not independent human ground truth."
+      },
+      "freeze_policy": "Evaluation dataset only; report correlation and candidate-set caveats."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-simulated-question-battery-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Simulated paraphrased queries and plausible hard distractors test direct-versus-adjacent relevance.",
+        "Pairwise accuracy/ties/failures are diagnostic only; authored labels are not independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 761,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/761",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Current case count to be verified from main fixture."
+      },
+      "freeze_policy": "Evaluation dataset only; not approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-fallback-replay-simulated-2026-10-22",
+      "status": "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Replay simulated fuzzy fallback cases to inspect deterministic-selector versus shadow-scorer boundaries.",
+        "Do not treat simulated cases as human-approved gold standards or independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 762,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/762",
+        "source_path": "tests/fixtures/fuzzy_fallback_replay_simulated_cases.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Current case count to be verified from main fixture."
+      },
+      "freeze_policy": "Diagnostic replay only; not approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-shadow-diagnostic-2026-10",
+      "status": "RECOVERED_SHADOW_DIAGNOSTIC_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-composition-shadow",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Diagnostic checks whether practical-application intent produces observable organizational practices rather than generic inquiry guidance.",
+        "Includes paraphrases and conceptual-question negatives.",
+        "Evaluation-only module is not imported into production; no visitor approval implied by passing tests."
+      ],
+      "provenance": {
+        "source_pr": 772,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/772",
+        "source_status": "merged",
+        "evidence_boundary": "Keep separate from approved Gold Standard #20, whose accepted exact response and 9/10 rating are already registered."
+      },
+      "freeze_policy": "Shadow diagnostic only; Gold Standard #20 is the approved response record."
     }
-  ]
+  ],
+  "last_reconciliation_note": "Expanded source inventory from PRs #749, #750, #755-#757, #758, #760-#762, #763-#766, #768, #772, and #794. Distinguishes recovered exact answers, response-contract scenarios, and simulated/shadow evaluation fixtures. Full original 20+ collection and several approval/rating records remain unrecovered."
 }
