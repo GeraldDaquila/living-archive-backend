@@ -119,9 +119,9 @@ jobs:
 
           base = os.environ["QA_BASE_URL"].rstrip("/")
           endpoint = base + "/api/query"
-          # Run positive controls before the deliberately failing provider controls.
-          # This prevents the suite itself from exhausting free-provider quotas
-          # before it tests whether an Archive-grounded explanation can succeed.
+          # Keep this live suite deterministic and low-load. Provider-exhaustion
+          # and provider-error payload guarantees are covered by dedicated CI
+          # regressions that simulate those states rather than relying on live quotas.
           cases = [
               (
                   "positive_archive_grounded_explanation",
@@ -134,14 +134,6 @@ jobs:
               (
                   "negative_direct_attribute",
                   "What is the boiling point of water at sea level?",
-              ),
-              (
-                  "provider_exhaustion_fails_closed",
-                  "What is stewardship and why does it matter now more than ever?",
-              ),
-              (
-                  "provider_error_payload_fails_closed",
-                  "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
               ),
           ]
           timings = {}
@@ -197,13 +189,7 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              sample_count = {
-                  "positive_archive_grounded_explanation": 3,
-                  "positive_canonical_node_handoff": 3,
-                  "negative_direct_attribute": 3,
-                  "provider_exhaustion_fails_closed": 1,
-                  "provider_error_payload_fails_closed": 1,
-              }[name]
+              sample_count = 3
               for attempt in range(sample_count):
                   status, payload, elapsed_ms, response_source_sha256 = post_query(query)
                   samples.append(elapsed_ms)
@@ -255,36 +241,6 @@ jobs:
                           )
                       if "Frequency Water" in response:
                           raise AssertionError("Direct-attribute response contains the known unrelated decoy.")
-                  elif name == "provider_exhaustion_fails_closed":
-                      if basis.get("kind") != "archive_evidence_unavailable":
-                          raise AssertionError(
-                              "Provider-exhaustion control did not fail closed: "
-                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
-                          )
-                      if recommendation is not None:
-                          raise AssertionError(
-                              "Provider-exhaustion control returned a doorway as answer authority: "
-                              f"{json.dumps(recommendation, ensure_ascii=False)}"
-                          )
-                      if "outside knowledge" not in response.casefold():
-                          raise AssertionError(
-                              "Provider-exhaustion control did not explicitly preserve the Archive-only boundary: "
-                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
-                          )
-                      if "Stewardship means taking care" in response:
-                          raise AssertionError("Provider-exhaustion control leaked the hardcoded general-knowledge answer.")
-                  elif name == "provider_error_payload_fails_closed":
-                      if basis.get("kind") != "archive_evidence_unavailable":
-                          raise AssertionError(
-                              "Provider-error payload did not fail closed: "
-                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
-                          )
-                      if recommendation is not None:
-                          raise AssertionError("Provider-error payload retained an unsupported recommendation.")
-                      if "outside knowledge" not in response.casefold():
-                          raise AssertionError("Provider-error payload did not use the Archive-only limitation response.")
-                      if "GROQ_API_KEY" in response or "Unable to generate a response" in response:
-                          raise AssertionError("Provider configuration/error details leaked into the visitor response.")
                   elif name == "positive_archive_grounded_explanation":
                       if basis.get("kind") != "archive_supported":
                           raise AssertionError(
