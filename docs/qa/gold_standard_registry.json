@@ -192,12 +192,12 @@
     },
     {
       "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
-      "status": "RECOVERED_SCENARIO_PENDING_APPROVAL_EVIDENCE",
+      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
       "subsystem": "general-purpose-guide",
       "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
       "expected_response": "When protecting one important thing puts something else at risk, the decision cannot be made fairly by asking only which priority matters more. We also need to consider who depends on each choice, who has the power to decide, and who will bear the consequences.\n\nMake each person's claim visible, including the needs of people who may not have a voice in the decision. Distinguish losses that can be repaired from those that cannot, and examine whether a different approach could protect at least part of what matters to each side. Shared facts, clear criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\nSometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for the decision, acknowledging what is being sacrificed, and checking that the burden does not fall unfairly on those with the least power. The question is not only what we choose to protect, but whether we can justify that choice to the people who must live with its consequences.",
       "expected_doorway": {
-        "title": null,
+        "title": "Leadership Case Study 01: Decision-Making Under Pressure and Resource Scarcity",
         "url": null
       },
       "assertions": [
@@ -212,9 +212,17 @@
         "source_path": "test_deterministic_answer_recovery.py",
         "source_ref": "main",
         "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
-        "evidence_boundary": "Exact deterministic recovery answer for the ethical-tradeoff query recovered from current main deterministic_answer_recovery.py (blob d51817ea1c2aa940f724b61cc586faffda3bbef2). This is source wording, not evidence of visitor approval or rating."
+        "evidence_boundary": "Exact accepted answer, explicit user approval, and displayed navigation title recovered from issue #747 comment. Destination URL and independent doorway relevance validation remain unrecovered."
       },
-      "freeze_policy": "Scenario/regression record only; do not invent or reconstruct missing expected_response."
+      "freeze_policy": "Preserve exact accepted response verbatim. Create a dedicated fixture and test separately from the existing October 14 stewardship fixture; do not change use_core.py or claim the deterministic production path generated this answer.",
+      "original_gold_standard_number": 2,
+      "rating": null,
+      "approval_evidence": {
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6322797433",
+        "approval_date": "2026-10-22",
+        "approval": "explicitly user-approved as a gold-standard answer",
+        "numeric_rating": "not stated in recovered approval comment"
+      }
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
@@ -515,7 +523,378 @@
         "evidence_boundary": "Recovered question set and evaluation dimensions. Original per-question answer/rating/approval records are not in the recovered excerpt."
       },
       "freeze_policy": "Question set is a calibration candidate set, not ten approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-01-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 1,
+      "query": "How does responsibility differ from carrying everything yourself?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-0d9cf848b88718f0",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
+      "status": "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 2,
+      "query": "How can I tell when helping has turned into taking over?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-2102d3c92fe242ef",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 3,
+      "query": "What does sharing responsibility look like when a team is struggling?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-dcca201b61d915d1",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 4,
+      "query": "Where should I start if I want to understand trust-based systems?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "navigator-c03843228f6a6649",
+        "provider_attribution": "navigation specialist; model composition not established",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "A navigation-specialist orientation handoff to https://geralddaquila.com/start-here-2/ is logged; this is not a General Guide composition event."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 5,
+      "query": "What does accountability really mean?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-4d01507060492335",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 6,
+      "query": "Explain a concept that is not directly covered by an available Archive resource",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-8adbd3c1e545e29f",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 7,
+      "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-6d41f289f647a5a3",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 8,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Recurring problems (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 9,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Authority without agency (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 10,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Formal authority refuses to listen (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 11,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Legitimate safeguards versus power protection (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 12,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "New conditions / moving goalposts (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 13,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Genuinely new risk (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 14,
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Real risk imposing costs on those who accepted the original decision (exact original question wording not recovered)",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
     }
   ],
-  "last_reconciliation_note": "October 23 reconciliation: 18 structured records. Exact ethical-tradeoff recovery text added; fuzzy fixture counts verified from main (4 balanced, 4 held-out, 16 independent challenge, 10 simulated battery, 9 simulated fallback replay); ten-question calibration set recorded as one non-approved candidate-set record. Original 20+ collection, several approval/rating records, original numbering, and the institutional-responsibility doorway conflict remain unresolved."
+  "last_reconciliation_note": "October 23: recovered original forensic inventory issue #747. Added numbered records for original Guide Gold Standards #1-14, preserving exact prompts only where actually present; #8-14 remain explicit missing-source placeholders. Promoted the user-approved deterministic-recovery trade-off response (called Gold Standard #2 in the Oct 22 approval comment) to a distinct approved record with exact answer and displayed doorway title. Registry numbering conflict remains unresolved: reciprocity was previously called the second Guide gold standard, while the forensic issue labels this accepted deterministic-recovery answer #2. Do not renumber either without original sequence evidence."
 }
