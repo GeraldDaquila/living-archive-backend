@@ -645,7 +645,13 @@
         "user_confirmed_as_recalled": true,
         "user_confirmation_date": "2026-10-23",
         "user_confirmation_note": "User reviewed all 14 numbered records in the DOCX review script and confirmed they are correct as far as the user can recall. This confirms the reconstruction from recollection, not verbatim historical capture."
-      }
+      },
+      "related_question_variants": [
+        "Why do I always end up doing everything for other people?",
+        "How do I support someone without making them dependent on me?",
+        "How can I help without taking away their independence?",
+        "How do I know when helping someone has become doing things for them?"
+      ]
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
