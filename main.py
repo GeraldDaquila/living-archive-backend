@@ -6468,15 +6468,48 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 history_text=_history_text(history),
             )
             if composition_result:
-                llm_output = composition_result.get("response", "")
-                print(
-                    "The Guide General Composition: "
-                    f"mode=auto, provider={composition_result.get('provider') or 'unknown'}, "
-                    f"model={composition_result.get('model') or 'unknown'}, "
-                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                    f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
-                    f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                composition_response = str(composition_result.get("response") or "").strip()
+                composition_provider = str(composition_result.get("provider") or "").strip()
+                composition_model = str(composition_result.get("model") or "").strip()
+                composition_shape = str(composition_result.get("response_shape") or "").strip()
+                clarification_reason = str(composition_result.get("clarification_reason") or "").strip()
+                safe_clarification = (
+                    composition_shape == "clarifying"
+                    and clarification_reason in {
+                        "source_claim_missing",
+                        "response_preference_subject_missing",
+                    }
                 )
+                provider_error_response = bool(re.search(
+                    r"\\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\\s+is not configured|provider bank exhausted|provider unavailable)\\b",
+                    composition_response,
+                    re.I,
+                ))
+                missing_provider_identity = not composition_provider or not composition_model
+                if provider_error_response or (missing_provider_identity and not safe_clarification):
+                    # A truthy composition object is not proof that a model answered.
+                    # Provider-bank recovery payloads can contain hardcoded general
+                    # knowledge and error text while still looking like a result.
+                    deterministic_recovery_used = True
+                    llm_output = _archive_limitation_response()
+                    print(
+                        "The Guide General Composition: mode=auto; rejected result "
+                        "without verified provider/model identity or with provider-error text."
+                    )
+                    print(
+                        "The Guide Final Pathway: mode=auto, pathway=fail_closed, "
+                        "provider=none, model=none, reason=provider_result_not_verified"
+                    )
+                else:
+                    llm_output = composition_response
+                    print(
+                        "The Guide General Composition: "
+                        f"mode=auto, provider={composition_provider or 'clarification'}, "
+                        f"model={composition_model or 'none'}, "
+                        f"shape={composition_shape or 'unknown'}, "
+                        f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+                        f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                    )
             else:
                 deterministic_recovery_used = True
                 print("The Guide General Composition: mode=auto; provider bank exhausted; no Archive-grounded answer generation available.")
