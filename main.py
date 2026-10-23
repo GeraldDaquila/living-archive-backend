@@ -9085,6 +9085,142 @@ def provider_health_readiness():
         }
 
 
+@_FASTAPI_APP.get("/api/qa/read-only-diagnostics")
+def qa_read_only_diagnostics(request: Request):
+    """QA-flag-gated, read-only Pinecone and shared-health configuration probe."""
+    if str(os.getenv("USE_QA_DIAGNOSTICS") or "").strip().casefold() not in {"1", "true", "yes"}:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    index = getattr(use_core, "index", None)
+    if index is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "Pinecone index unavailable"},
+        )
+
+    def _plain_mapping(value):
+        if isinstance(value, dict):
+            return value
+        for method_name in ("to_dict", "model_dump", "dict"):
+            method = getattr(value, method_name, None)
+            if callable(method):
+                try:
+                    result = method()
+                    if isinstance(result, dict):
+                        return result
+                except Exception:
+                    pass
+        return {}
+
+    try:
+        stats = _plain_mapping(index.describe_index_stats())
+    except Exception as exc:
+        return JSONResponse(
+            status_code=502,
+            content={"ok": False, "error_type": type(exc).__name__},
+        )
+
+    namespaces_raw = stats.get("namespaces") or {}
+    namespace_vector_counts = {}
+    if isinstance(namespaces_raw, dict):
+        for namespace_name, namespace_value in namespaces_raw.items():
+            namespace_stats = _plain_mapping(namespace_value)
+            vector_count = namespace_stats.get("vector_count", namespace_stats.get("vectorCount"))
+            namespace_vector_counts[str(namespace_name)] = int(vector_count or 0)
+
+    total_vector_count = stats.get("total_vector_count", stats.get("totalVectorCount"))
+    dimension = stats.get("dimension")
+
+    canonical_url = str(
+        request.query_params.get("canonical_url")
+        or "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    ).strip()
+    if (
+        not re.match(r"^https://geralddaquila\.com/\S+$", canonical_url, re.I)
+        or "?" in canonical_url
+        or "#" in canonical_url
+    ):
+        raise HTTPException(status_code=400, detail="Invalid canonical URL")
+
+    probe = {"status": "unavailable", "variants": {}}
+    embedding_function = getattr(use_core, "generate_embedding", None)
+    if callable(embedding_function):
+        try:
+            vector = embedding_function(
+                "What does the Living Archive say about becoming fully human?"
+            )
+            if vector:
+                url_variants = [canonical_url]
+                without_trailing_slash = canonical_url.rstrip("/")
+                with_trailing_slash = without_trailing_slash + "/"
+                for variant in (without_trailing_slash, with_trailing_slash):
+                    if variant not in url_variants:
+                        url_variants.append(variant)
+
+                for variant in url_variants:
+                    query_result = _plain_mapping(index.query(
+                        vector=vector,
+                        top_k=5,
+                        filter={"url": {"$eq": variant}},
+                        include_metadata=True,
+                    ))
+                    matches = query_result.get("matches") or []
+                    summaries = []
+                    for match in matches:
+                        match_data = _plain_mapping(match)
+                        metadata = _plain_mapping(match_data.get("metadata") or {})
+                        summaries.append({
+                            "title": str(metadata.get("title") or ""),
+                            "url": str(metadata.get("url") or ""),
+                            "chunk_index": metadata.get("chunk_index"),
+                            "resource_type": str(metadata.get("resource_type") or ""),
+                        })
+                    probe["variants"][variant] = {
+                        "match_count": len(matches),
+                        "matches": summaries,
+                    }
+                probe["status"] = "ok"
+            else:
+                probe["status"] = "embedding_unavailable"
+        except Exception as exc:
+            probe = {"status": "error", "error_type": type(exc).__name__}
+
+    shared_url = str(
+        os.getenv("USE_PROVIDER_HEALTH_STATE_URL")
+        or "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
+    ).strip()
+    shared_secret_configured = bool(
+        str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
+    )
+    shared_health_persistence_enabled = bool(
+        shared_url.startswith("https://") and shared_secret_configured
+    )
+
+    return {
+        "ok": dimension is not None and total_vector_count is not None,
+        "diagnostic_mode": "qa_read_only",
+        "read_only": True,
+        "write_operations_performed": False,
+        "index": {
+            "name": str(
+                getattr(use_core, "PINECONE_INDEX_NAME", None)
+                or os.getenv("PINECONE_INDEX_NAME")
+                or "living-archive"
+            ),
+            "dimension": dimension,
+            "total_vector_count": total_vector_count,
+            "namespace_count": len(namespace_vector_counts),
+            "namespace_vector_counts": namespace_vector_counts,
+        },
+        "exact_url_probe": probe,
+        "provider_health": {
+            "url_configured": bool(str(os.getenv("USE_PROVIDER_HEALTH_STATE_URL") or "").strip()),
+            "shared_secret_configured": shared_secret_configured,
+            "persistence_enabled": shared_health_persistence_enabled,
+        },
+    }
+
+
 @_FASTAPI_APP.get("/api/integration-audit")
 def ecosystem_integration_audit():
     capabilities = []
