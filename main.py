@@ -6425,10 +6425,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # selected, relevant canonical doorway. The doorway is returned as a
         # separate field and is not passed into the composition context.
 
-    # All ordinary questions use the same provider-neutral composition path,
-    # including when no suitable Archive evidence is available. The composer
-    # is explicitly instructed to answer from general knowledge where suitable
-    # and to state source limitations only when the question actually requires it.
+    # All ordinary questions use the same provider-neutral composition path.
+    # The composition prompt is corpus-only: no outside knowledge or generic
+    # methodology may fill missing Archive evidence. If the evidence gates fail,
+    # the final response boundary below states that limitation explicitly.
 
     # One controlled reasoning-provider seam. AUTO preserves the existing LLM-first
     # provider bank and bounded deterministic fallback. DETERMINISTIC_ONLY bypasses
