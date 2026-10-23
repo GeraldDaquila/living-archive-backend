@@ -5104,7 +5104,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                     if (
                         excerpt_title
                         and len(excerpt_text) >= 80
-                        and re.match(r"^https://geralddaquila\\.com/\\S+$", excerpt_url, re.I)
+                        and re.match(r"^https://geralddaquila\.com/\S+$", excerpt_url, re.I)
                         and excerpt_url.rstrip("/").casefold() == url.rstrip("/").casefold()
                     ):
                         print(
