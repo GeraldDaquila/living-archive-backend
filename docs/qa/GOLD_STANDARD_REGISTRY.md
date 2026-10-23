@@ -347,7 +347,7 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 
 **Verified current fixture counts:** balanced relevance 4; held-out paraphrases 4; independent challenge set 16; simulated question battery 10; fuzzy fallback replay 9. These total 43 fixture cases, but are not 43 approved gold standards. The independent challenge set includes correlated cases and underspecified candidate pairs; simulated cases are not independent human ground truth. The separate ten-question calibration set is also not an approved-answer set.
 
-**Registry size at this revision:** 32 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
+**Registry size at this revision:** 33 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
 
 
 ## G. Original 14-standard forensic sequence recovered from Issue #747
@@ -387,3 +387,8 @@ Issue #747 comment [#6322797433](https://github.com/GeraldDaquila/living-archive
 The forensic issue attributes #1–#3 and #5–#7, and #8–#14, to successful Groq qwen/qwen3.8-27b composition. #4 is a separate navigation-specialist path. These logs establish source/provider attribution but do not supply every exact accepted output. The next unaccepted edge-case prompt is a provider-bank-exhaustion/deterministic-recovery control, not an accepted gold standard. Do not conflate it with the accepted trade-off response.
 
 The issue also records that query/history hashes are not unique invocation IDs and that the complete exact model inputs/outputs were not captured for every run. No component-by-component causal claim should be treated as proven from provider attribution alone.
+
+
+### Additional failure-control record
+
+The JSON registry also records the unaccepted provider-exhaustion prompt from Issue #747 as a separate negative reliability control. Its exact prompt and provider-attempt sequence are captured, including the Groq/Workers/OpenRouter timeouts, Groq TPM rejection, and NVIDIA hosted-function 404. The final response was logged as 410 characters, but the exact text was not recovered. This is explicitly not a gold-standard answer and must not be counted as one.
