@@ -700,11 +700,34 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
 
         if _requires_concrete_concept_explanation(query):
-            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 2:
-                raise ValueError("abstract concept definition must use readable paragraph breaks")
-            if not _has_everyday_example(response):
-                raise ValueError("abstract concept definition requires one useful everyday example")
+            # The prompt makes an everyday example conditional on source support.
+            # The validator must honor the same evidence boundary: requiring an
+            # example when the supplied Archive documents contain no recognizable
+            # everyday anchor turns a correct, bounded answer into a contract
+            # rejection and can exhaust every provider. Only enforce the example
+            # and paragraph-shape requirements when the selected source material
+            # itself supplies an everyday-life anchor.
+            source_supports_everyday_example = any(
+                _has_everyday_example(
+                    str(item.get("content") or item.get("text") or "")
+                )
+                for item in documents
+                if isinstance(item, dict)
+            )
+            if source_supports_everyday_example:
+                paragraphs = [
+                    part.strip()
+                    for part in re.split(r"\n\s*\n+", response)
+                    if part.strip()
+                ]
+                if len(paragraphs) < 2:
+                    raise ValueError(
+                        "source-supported abstract concept explanation must use readable paragraph breaks"
+                    )
+                if not _has_everyday_example(response):
+                    raise ValueError(
+                        "source-supported abstract concept explanation requires one useful everyday example"
+                    )
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
