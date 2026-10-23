@@ -1005,8 +1005,11 @@ def _canonical_primary_from_docs(docs, query, profile):
             continue
         metrics = _subject_metrics(query, doc)
         context = _contextual_fit(query, doc)
-        # Rank only with established eligibility gates; fuzzy scoring stays observational.
-        score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
+        # Eligibility already requires source-body corroboration. Rank the
+        # candidate's title-level topic fit before broad body frequency, so a
+        # long adjacent article cannot outrank the resource that names the
+        # visitor's requested subject. Fuzzy scores remain observational only.
+        score = (metrics[0], metrics[1], metrics[2], metrics[3], context[2], context[1], -index)
         eligible.append((score, doc))
     eligible.sort(key=lambda item: item[0], reverse=True)
     return eligible[0][1] if eligible else None
