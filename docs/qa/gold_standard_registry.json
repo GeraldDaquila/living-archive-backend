@@ -610,8 +610,8 @@
       "query": "Where should I start if I want to understand trust-based systems?",
       "expected_response": null,
       "expected_doorway": {
-        "title": null,
-        "url": null
+        "title": "Start Here",
+        "url": "https://geralddaquila.com/start-here-2/"
       },
       "assertions": [
         "Preserve this exact original numbered calibration question.",
@@ -624,7 +624,7 @@
         "request_hash": "navigator-c03843228f6a6649",
         "provider_attribution": "navigation specialist; model composition not established",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "A navigation-specialist orientation handoff to https://geralddaquila.com/start-here-2/ is logged; this is not a General Guide composition event."
+        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered."
     },
@@ -894,7 +894,40 @@
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark."
+    },
+    {
+      "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
+      "status": "RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide-provider-reliability",
+      "query": "What if the people who benefited most from the original decision are least able to absorb the costs of correcting it, while those who benefited least are best able to pay?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve as an unaccepted provider-exhaustion failure-control case, not an approved gold standard.",
+        "Provider-attempt sequence includes Groq Qwen and Workers AI timeouts, Groq GPT-OSS TPM admission rejection, NVIDIA HTTP 404/model-unavailable, and OpenRouter timeout.",
+        "Final response length was logged as 410 characters; do not invent the exact final response text.",
+        "Keep provider reliability and answer-quality evaluation distinct."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-f96eeca16b79a729",
+        "timestamp_utc": "2026-10-21T11:25:52Z",
+        "provider_sequence": [
+          "Groq qwen/qwen3.8-27b timeout at 1.277s",
+          "Workers AI @cf/google/gemma-4-26b-a4b-it timeout at 1.274s",
+          "Groq openai/gpt-oss-120b rejected due to exhausted TPM budget",
+          "NVIDIA nvidia/nemotron-3-super-120b-a12b HTTP 404: hosted function not found for account",
+          "OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free timeout at 1.893s"
+        ],
+        "final_response_chars": 410,
+        "evidence_boundary": "Issue #747 identifies this as the next unaccepted edge-case prompt, not Gold Standard #14 or an approved answer. Exact final text and visitor rating are not recorded."
+      },
+      "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
     }
   ],
-  "last_reconciliation_note": "October 23: 32 structured records. Recovered original forensic inventory issue #747. Added numbered records for original Guide Gold Standards #1-14, preserving exact prompts only where actually present; #8-14 remain explicit missing-source placeholders. Promoted the user-approved deterministic-recovery trade-off response (called Gold Standard #2 in the Oct 22 approval comment) to a distinct approved record with exact answer and displayed doorway title. Registry numbering conflict remains unresolved: reciprocity was previously called the second Guide gold standard, while the forensic issue labels this accepted deterministic-recovery answer #2. Do not renumber either without original sequence evidence. Current head's CI results have not yet been verified."
+  "last_reconciliation_note": "October 23: 33 structured records. Recovered original forensic inventory issue #747. Added numbered records for original Guide Gold Standards #1-14, preserving exact prompts only where actually present; #8-14 remain explicit missing-source placeholders. Promoted the user-approved deterministic-recovery trade-off response (called Gold Standard #2 in the Oct 22 approval comment) to a distinct approved record with exact answer and displayed doorway title. Registry numbering conflict remains unresolved: reciprocity was previously called the second Guide gold standard, while the forensic issue labels this accepted deterministic-recovery answer #2. Do not renumber either without original sequence evidence. Current head's CI results have not yet been verified."
 }
