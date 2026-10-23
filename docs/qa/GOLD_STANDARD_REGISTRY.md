@@ -307,3 +307,39 @@ Two additional accepted General Guide response records have been recovered from 
 ### Registry interpretation
 
 These two records expand the central inventory from four to six machine-readable General Guide records. Their source records explicitly describe accepted live visitor responses and include ratings, but they are behavioral references rather than mandatory templates. Their status remains `FROZEN_REFERENCE_ONLY` in this registry until the registry's source-status model can represent accepted-but-unmerged evidence without conflating it with production-main availability. No application code, WordPress, Render, or production service was changed.
+
+
+## F. Newly reconciled source artifacts — October 23, 2026
+
+These records were added to `gold_standard_registry.json` from historical PRs and fixture patches. They are deliberately not all classified as approved gold standards.
+
+### Exact historical response recovered; approval evidence still missing
+
+- **Hindsight accountability** — PR #750, merged. Exact question and full deterministic response recovered from `deterministic_answer_recovery.py`. Status: `RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE`. No visitor rating/approval record found yet.
+  - Question: “If the group made the best decision it could with the information available at the time, how should it distinguish genuine accountability from unfairly blaming people in hindsight?”
+  - Source: https://github.com/GeraldDaquila/living-archive-backend/pull/750
+
+### Recovered calibration/regression scenarios; not frozen answer standards
+
+- **Ethical trade-off** — PR #749, merged. Exact question and assertions recovered; full accepted response and approval/rating record remain missing. Question: “What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?”
+- **Responsibility boundary** — PR #794, merged. Contract clauses recovered: distinguish personal contribution from system-level accountability; recognize pressure from noticing; connect shared responsibility to authority/resources/obligations; provide a defined contribution and identify what requires others' commitment. Exact original question, complete approved answer, and rating remain missing.
+- **Practical collective next step** — PRs #755–#757. One lineage, not three standards. The core query also appears in the relevance evaluation fixture: “If the group agrees that something must change but its members disagree about what to do first, what would be a constructive next step?” The contract requires one low-risk action before optional context and preserves agency. No single approved exact answer/rating recovered.
+- **Harm-reduction outcome evaluation** — PRs #763–#766 and #768. One scenario lineage, not five standards. Query: “How can we tell whether a revised approach is genuinely reducing harm?” Must require baseline, observable outcomes, comparison over time, feedback from affected people, and unintended-consequence checks; distinguish this intent from FSD system-pattern diagnosis. Exact accepted recovery answer/rating remains to be recorded.
+
+### Relevance and shadow-evaluation fixtures — not gold-standard answer texts
+
+- **Balanced relevance evaluation** — PR #758, four cases: ethical trade-off, harm repair, collective next step, accountability; each contrasts direct, adjacent, and unsuitable candidates. Labels are authored expectations, not independent ground truth. https://github.com/GeraldDaquila/living-archive-backend/pull/758
+- **Held-out paraphrases** — PR #760. Tests paraphrase transfer and topical distractors; exact current case count still to verify. https://github.com/GeraldDaquila/living-archive-backend/pull/760
+- **Independent challenge set** — PRs #761–#762. Simulated labels, not independent human ground truth. Three consultation/participation cases share a candidate pair and form one correlated family. Two administrative-procedure cases are marked `candidate_set_underspecified`, so their forced pairwise choice is not valid semantic ground truth. Exact current case count still to verify. https://github.com/GeraldDaquila/living-archive-backend/pull/762
+- **Simulated question battery** — PR #761. Diagnostic direct-versus-adjacent relevance evaluation; not approved answer gold standards. Exact current case count still to verify.
+- **Fuzzy fallback replay** — PR #762. Simulated diagnostic cases; not approved answer gold standards. Exact current case count still to verify.
+- **Practical-trust shadow diagnostic** — PR #772. Hypothesis/evaluation-only tests for practical application versus generic inquiry. Keep distinct from approved Gold Standard #20, already recorded as the accepted 9/10 live response.
+
+### Source-lineage rules
+
+- PRs #755–#757 are one evolving practical-next-step defect lineage.
+- PRs #763–#768 are one evolving outcome-evaluation routing/composition defect lineage.
+- PRs #761–#762 are one evolving fuzzy challenge-set lineage.
+- A merged implementation fix does not by itself establish that its test question/answer was visitor-approved.
+- Simulated candidate labels and shadow diagnostics must not be counted as approved gold standards.
+- The original “20+” gold-standard collection is **still not fully recovered**. Original numbering, several exact questions/answers, and approval/rating records remain open reconciliation items. Do not claim completeness until each original item is linked to source evidence or explicitly classified as missing, duplicate, superseded, simulated, or awaiting approval.
