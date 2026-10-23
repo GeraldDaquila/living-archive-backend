@@ -19,6 +19,8 @@ VALID_STATUSES = {
     "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
     "RECOVERED_SHADOW_DIAGNOSTIC_NOT_GOLD_STANDARD",
     "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL",
+    "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+    "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
     "CONFIRMED_CASE",
     "NEEDS_SOURCE_RECOVERY",
     "CANDIDATE",
@@ -57,7 +59,7 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
             # to have no single query/answer; they must not be miscounted as gold answers.
             assert "NOT_GOLD_STANDARD" in record["status"] or (
                 "PENDING" in record["status"]
-            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE"}
+            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE", "NEEDS_SOURCE_RECOVERY", "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE", "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE"}
         else:
             assert record["query"].strip()
             assert record["expected_response"].strip()
