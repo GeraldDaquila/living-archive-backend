@@ -58,7 +58,9 @@ def _load_exemplars() -> List[Dict[str, Any]]:
             continue
         query = str(record.get("query") or "").strip()
         response = _response_for_record(record)
-        terms = _tokens(query + " " + str(record.get("known_theme") or ""))
+        variants = record.get("related_question_variants") or []
+        variant_text = " ".join(str(item) for item in variants if isinstance(item, str))
+        terms = _tokens(query + " " + str(record.get("known_theme") or "") + " " + variant_text)
         assertions = record.get("assertions") or []
         if not query or not response or not terms:
             continue
