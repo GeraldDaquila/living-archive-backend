@@ -6481,7 +6481,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     }
                 )
                 provider_error_response = bool(re.search(
-                    r"\\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\\s+is not configured|provider bank exhausted|provider unavailable)\\b",
+                    r"\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\s+is not configured|provider bank exhausted|provider unavailable)\b",
                     composition_response,
                     re.I,
                 ))
