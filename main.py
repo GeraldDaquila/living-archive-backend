@@ -10,7 +10,7 @@ import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
-from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, should_fail_closed as _should_fail_closed, archive_limitation_response as _archive_limitation_response
 from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -6180,6 +6180,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     direct_attribute_evidence_missing = bool(_direct_attribute_phrase(query)) and not bool(authoritative_doorway)
     if direct_attribute_evidence_missing:
         authoritative_doorway = None
+        archive_evidence_unavailable = True
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6745,12 +6746,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # recovery path. If the evidence gates found no suitable source, generated
     # or deterministic prose must not silently become an external answer. The
     # subject-discovery path has its own exact-page evidence contract above.
-    if archive_evidence_unavailable and not discovery_subject:
-        response = (
-            "I couldn’t establish an answer to that question from the Living Archive’s "
-            "available material. I won’t substitute outside knowledge or attach a "
-            "resource that has not been shown to address what you asked."
-        )
+    if _should_fail_closed(archive_evidence_unavailable, discovery_subject):
+        response = _archive_limitation_response()
         authoritative_doorway = None
         composition_context.pop("authoritative_doorway", None)
 
@@ -6764,7 +6761,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "label": "Archive evidence not found",
             "explanation": "The available Archive material did not establish an answer to this question.",
         }
-    elif archive_evidence_unavailable and discovery_subject and not authoritative_doorway:
+    elif discovery_subject and not authoritative_doorway:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
