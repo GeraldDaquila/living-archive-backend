@@ -14,7 +14,7 @@ def test_first_person_how_questions_never_produce_ungrammatical_subjects():
         answer = compose_recovery(question)
         assert answer.strip()
         assert not re.search(
-            r"approach I\\b|approach support someone|approach help without",
+            r"approach I\b|approach support someone|approach help without",
             answer,
             re.I,
         )
