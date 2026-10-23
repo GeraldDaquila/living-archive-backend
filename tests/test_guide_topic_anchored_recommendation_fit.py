@@ -511,3 +511,68 @@ def test_wordpress_candidate_recovers_topic_fit_body_from_read_only_bridge(monke
     assert "the body" in candidates[0]["text"].casefold()
     assert bridge_url in calls
     assert page_url not in calls
+
+
+
+def test_qa_read_only_diagnostics_is_disabled_without_flag(monkeypatch):
+    from types import SimpleNamespace
+    import pytest
+
+    monkeypatch.delenv("USE_QA_DIAGNOSTICS", raising=False)
+    with pytest.raises(main.HTTPException) as exc:
+        main.qa_read_only_diagnostics(SimpleNamespace(query_params={}))
+    assert exc.value.status_code == 404
+
+
+def test_qa_read_only_diagnostics_reports_stats_and_exact_url_probe_without_writes(monkeypatch):
+    from types import SimpleNamespace
+
+    canonical_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    queries = []
+
+    class FakeIndex:
+        def describe_index_stats(self):
+            return {
+                "dimension": 384,
+                "total_vector_count": 12345,
+                "namespaces": {"": {"vector_count": 12345}},
+            }
+
+        def query(self, **kwargs):
+            queries.append(kwargs)
+            url = kwargs["filter"]["url"]["$eq"]
+            matches = []
+            if url == canonical_url:
+                matches = [{
+                    "id": "becoming-fully-human-0",
+                    "score": 0.91,
+                    "metadata": {
+                        "title": "✨ Becoming Fully Human",
+                        "url": canonical_url,
+                        "chunk_index": 0,
+                        "resource_type": "essay",
+                    },
+                }]
+            return {"matches": matches}
+
+    monkeypatch.setenv("USE_QA_DIAGNOSTICS", "1")
+    monkeypatch.setenv("USE_PROVIDER_HEALTH_STATE_URL", "")
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "")
+    monkeypatch.setattr(main.use_core, "index", FakeIndex(), raising=False)
+    monkeypatch.setattr(main.use_core, "generate_embedding", lambda _text: [0.1] * 384, raising=False)
+
+    payload = main.qa_read_only_diagnostics(
+        SimpleNamespace(query_params={"canonical_url": canonical_url})
+    )
+
+    assert payload["ok"] is True
+    assert payload["read_only"] is True
+    assert payload["write_operations_performed"] is False
+    assert payload["index"]["dimension"] == 384
+    assert payload["index"]["total_vector_count"] == 12345
+    assert payload["exact_url_probe"]["status"] == "ok"
+    assert payload["exact_url_probe"]["variants"][canonical_url]["match_count"] == 1
+    assert payload["provider_health"]["shared_secret_configured"] is False
+    assert payload["provider_health"]["persistence_enabled"] is False
+    assert len(queries) == 2
+    assert all("filter" in query and "url" in query["filter"] for query in queries)
