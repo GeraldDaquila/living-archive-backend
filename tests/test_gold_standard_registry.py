@@ -214,3 +214,18 @@ def test_original_fourteen_standard_provenance_is_recorded_without_fabricated_an
 
     assert records[4]["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
     assert "rejected" in records[14]["approval_state"]
+
+
+def test_original_gold_standard_four_records_navigator_handoff_provenance():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item.get("original_gold_standard_number") == 4
+    )
+    assert record["query"] == "Where should I start if I want to understand trust-based systems?"
+    assert record["expected_response"] is None
+    assert record["rating_out_of_10"] == 9
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
+    assert record["provenance"]["request_hash"] == "navigator-c03843228f6a6649"
+    assert record["provenance"]["provider_attribution"] == "navigation specialist; model composition not established"
+    assert "not a logged General Guide composition event" in record["provenance"]["evidence_boundary"]
