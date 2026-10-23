@@ -1004,7 +1004,36 @@
         "evidence_boundary": "Issue #747 identifies this as the next unaccepted edge-case prompt, not Gold Standard #14 or an approved answer. Exact final text and visitor rating are not recorded."
       },
       "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
+    },
+    {
+      "benchmark_id": "general-guide-gold-standard-sequence-gap-15-17-19",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide-calibration-provenance",
+      "missing_original_sequence_numbers": [
+        15,
+        16,
+        17,
+        19
+      ],
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "The prior calibration context explicitly says the original GS #15–#21 records are not preserved in the retrieved source.",
+        "Do not create inferred standards for slots 15, 16, 17, or 19 without original source evidence.",
+        "Keep the known unaccepted provider-exhaustion negative control separate from approved gold standards.",
+        "Keep the separate ethical-trade-off answer's conflicting #2/#18 labels unresolved until original sequence evidence is recovered."
+      ],
+      "provenance": {
+        "source": "prior-conversation forensic recovery",
+        "source_issue_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "evidence_boundary": "These are missing sequence positions, not assertions that a particular question/answer existed at each number. #20 and #21 are separately recorded with their exact accepted responses."
+      },
+      "freeze_policy": "Gap marker only; do not count as a gold-standard answer."
     }
   ],
-  "last_reconciliation_note": "October 23: 33 structured records. Original #1-#14 prompt/rating/approval metadata is recovered where available; exact accepted answer texts for the original sequence remain missing; canonical URLs were recovered for standards #2, #5, #8, #10, and #13, while #7 has a title but no verified URL. The separate ethical-trade-off answer is explicitly approved at 9.0/10, but source records label it both Gold Standard #2 and GS #18; preserve both labels pending sequence reconciliation."
+  "last_reconciliation_note": "October 23: 34 structured records. Original #1–#14 prompts, recovered ratings, approval/resource metadata, and provenance are recorded; exact accepted answer text for that original sequence remains unavailable in retrieved prior context. Canonical URLs recovered for #2, #5, #8, #10, #13. The separate approved ethical-trade-off answer is preserved at 9.0/10 with conflicting labels #2 and #18. Missing original sequence positions #15–#17 and #19 are recorded as a gap marker, not fabricated standards. Current CI rerun pending on latest head."
 }
