@@ -229,3 +229,19 @@ def test_original_gold_standard_four_records_navigator_handoff_provenance():
     assert record["provenance"]["request_hash"] == "navigator-c03843228f6a6649"
     assert record["provenance"]["provider_attribution"] == "navigation specialist; model composition not established"
     assert "not a logged General Guide composition event" in record["provenance"]["evidence_boundary"]
+
+
+
+def test_collective_next_step_fallback_is_recorded_as_implementation_not_gold_answer():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-practical-collective-next-step-2026-10"
+    )
+    assert record["status"] == "RECOVERED_REGRESSION_SCENARIO"
+    assert record["expected_response"] is None
+    assert record["implementation_response"].startswith("Ask each person to explain")
+    assert "choose one small, reversible action" in record["implementation_response"]
+    assert record["implementation_response_provenance"]["source_pr"] == 757
+    assert "closed, unmerged" in record["implementation_response_provenance"]["source_status"]
+    assert "not an approved answer" in record["implementation_response_provenance"]["evidence_boundary"]
