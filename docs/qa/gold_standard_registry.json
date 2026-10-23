@@ -212,7 +212,8 @@
         "source_path": "test_deterministic_answer_recovery.py",
         "source_ref": "main",
         "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
-        "evidence_boundary": "Exact accepted answer, explicit user approval, and displayed navigation title recovered from issue #747 comment. Destination URL and independent doorway relevance validation remain unrecovered."
+        "evidence_boundary": "Exact accepted answer, explicit user approval, displayed navigation title, and 9.0/10 rating are recovered across Issue #747 and prior calibration context. Destination URL and independent doorway relevance validation remain unrecovered.",
+        "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven."
       },
       "freeze_policy": "Preserve exact accepted response verbatim. Create a dedicated fixture and test separately from the existing October 14 stewardship fixture; do not change use_core.py or claim the deterministic production path generated this answer.",
       "original_gold_standard_number": 2,
@@ -222,7 +223,12 @@
         "approval_date": "2026-10-22",
         "approval": "explicitly user-approved as a gold-standard answer",
         "numeric_rating": "not stated in recovered approval comment"
-      }
+      },
+      "rating_out_of_10": 9,
+      "original_numbering_labels": [
+        "Gold Standard #2 — Deterministic Recovery Calibration (Issue #747 comment, 2026-10-22)",
+        "GS #18 — Ethical Trade-offs and Conflicting Harms (prior calibration summary, 2026-10-21)"
+      ]
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
@@ -953,11 +959,12 @@
         "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
         "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
         "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
-        "doorway_decision": "Cognitive Dissonance recommendation rejected as conceptually adjacent rather than directly addressing cost distribution."
+        "doorway_decision": "The Cognitive Dissonance recommendation was explicitly rejected as only conceptually adjacent and not directly about cost distribution."
       },
       "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
       "rating_out_of_10": 8.7,
-      "approval_state": "answer accepted; proposed Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent, not directly about cost distribution"
+      "approval_state": "answer accepted; proposed Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent, not directly about cost distribution",
+      "answer_evidence_excerpt": "Prior calibration review states: “The Guide does not simply say that everyone should share the burden equally. Instead, it considers who was exposed to the risk, who benefited from the original decision, and how the group should make the resulting decision transparently.” This is reviewer commentary, not the exact accepted answer."
     },
     {
       "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
@@ -993,5 +1000,5 @@
       "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
     }
   ],
-  "last_reconciliation_note": "October 23: 33 structured records. Recovered original forensic inventory issue #747 and prior calibration context for original Guide Gold Standards #1-14. Exact prompts, ratings, approval states, and some doorway titles are now recorded where supported. Exact accepted response texts remain unrecovered for original #1-#14 except the separate explicitly approved deterministic-recovery trade-off answer. #8-#14 are no longer merely theme-only: exact prompts/rating summaries were recovered from prior calibration context. Gold-standard numbering conflict remains unresolved: reciprocity and the deterministic-recovery trade-off have both been called #2 in separate records."
+  "last_reconciliation_note": "October 23: 33 structured records. Original #1-#14 prompt/rating/approval metadata is recovered where available; exact accepted answer texts for the original sequence remain missing. The separate ethical-trade-off answer is explicitly approved at 9.0/10, but source records label it both Gold Standard #2 and GS #18; preserve both labels pending sequence reconciliation."
 }
