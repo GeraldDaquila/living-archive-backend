@@ -743,7 +743,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 8,
       "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
@@ -774,7 +774,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 9,
       "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
@@ -805,7 +805,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 10,
       "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
@@ -836,7 +836,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 11,
       "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
@@ -867,7 +867,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 12,
       "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
@@ -898,7 +898,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 13,
       "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
@@ -929,7 +929,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
-      "status": "NEEDS_SOURCE_RECOVERY",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 14,
       "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
