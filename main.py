@@ -4981,7 +4981,7 @@ def _wordpress_fetch_selected_canonical_body(url):
             headers={"Accept": "text/html", "User-Agent": "LivingArchiveGuide/1.0"},
             method="GET",
         )
-        with urlopen(request, timeout=2.0) as response:
+        with urlopen(request, timeout=6.0) as response:
             final_url = str(response.geturl() or "").strip()
             raw_html = response.read(1_000_000).decode("utf-8", errors="replace")
         final = urlparse(final_url)
