@@ -109,7 +109,8 @@ def select_exemplar(query: str) -> Optional[Dict[str, Any]]:
         "status": exemplar["status"],
         "score": round(score, 3),
         "question": exemplar["query"],
-        "response": exemplar["response"],
+        "known_theme": exemplar["known_theme"],
+        "assertions": exemplar["assertions"],
     }
 
 
