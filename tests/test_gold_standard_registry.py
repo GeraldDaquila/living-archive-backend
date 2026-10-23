@@ -243,5 +243,24 @@ def test_collective_next_step_fallback_is_recorded_as_implementation_not_gold_an
     assert record["implementation_response"].startswith("Ask each person to explain")
     assert "choose one small, reversible action" in record["implementation_response"]
     assert record["implementation_response_provenance"]["source_pr"] == 757
-    assert "closed, unmerged" in record["implementation_response_provenance"]["source_status"]
+    assert "merged to main via PR #757" in record["implementation_response_provenance"]["source_status"]
     assert "not an approved answer" in record["implementation_response_provenance"]["evidence_boundary"]
+
+
+
+def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-harm-reduction-outcome-evaluation-2026-10"
+    )
+    assert record["status"] == "RECOVERED_REGRESSION_SCENARIO"
+    assert record["expected_response"] is None
+    assert record["implementation_response"].startswith(
+        "To tell whether the revised approach is reducing harm"
+    )
+    assert "starting point over time" in record["implementation_response"]
+    assert "unintended consequences" in record["implementation_response"]
+    assert record["implementation_response_provenance"]["source_pr"] == 768
+    assert "merged to main via PR #768" in record["implementation_response_provenance"]["source_status"]
+    assert "not a visitor-approved gold answer" in record["implementation_response_provenance"]["evidence_boundary"]
