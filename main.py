@@ -9143,6 +9143,7 @@ def qa_read_only_diagnostics(request: Request):
         raise HTTPException(status_code=400, detail="Invalid canonical URL")
 
     probe = {"status": "unavailable", "variants": {}}
+    semantic_probe = {"status": "unavailable", "matches": []}
     embedding_function = getattr(use_core, "generate_embedding", None)
     if callable(embedding_function):
         try:
