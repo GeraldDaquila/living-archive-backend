@@ -216,7 +216,6 @@
         "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven."
       },
       "freeze_policy": "Preserve exact accepted response verbatim. Create a dedicated fixture and test separately from the existing October 14 stewardship fixture; do not change use_core.py or claim the deterministic production path generated this answer.",
-      "original_gold_standard_number": 2,
       "rating": null,
       "approval_evidence": {
         "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6322797433",
@@ -228,7 +227,8 @@
       "original_numbering_labels": [
         "Gold Standard #2 — Deterministic Recovery Calibration (Issue #747 comment, 2026-10-22)",
         "GS #18 — Ethical Trade-offs and Conflicting Harms (prior calibration summary, 2026-10-21)"
-      ]
+      ],
+      "numbering_conflict": "Source calls this Gold Standard #2 in Issue #747 and GS #18 in prior calibration context; it is not assigned to the original 14-sequence numbering until reconciled."
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
