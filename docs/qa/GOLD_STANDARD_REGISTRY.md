@@ -347,7 +347,7 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 
 **Verified current fixture counts:** balanced relevance 4; held-out paraphrases 4; independent challenge set 16; simulated question battery 10; fuzzy fallback replay 9. These total 43 fixture cases, but are not 43 approved gold standards. The independent challenge set includes correlated cases and underspecified candidate pairs; simulated cases are not independent human ground truth. The separate ten-question calibration set is also not an approved-answer set.
 
-**Registry size at this revision:** 18 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
+**Registry size at this revision:** 32 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
 
 
 ## G. Original 14-standard forensic sequence recovered from Issue #747
