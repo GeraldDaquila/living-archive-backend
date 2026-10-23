@@ -283,7 +283,7 @@ def test_concept_definition_requires_example_when_archive_evidence_supports_one(
         documents, "What does stewardship mean in the Living Archive?"
     )
     answer = {
-        "response": "The Archive frames stewardship through agency, responsibility, and limits.",
+        "response": "The Archive frames stewardship through agency, responsibility, and limits.\n\nThese principles shape how responsibility is understood.",
         "doorway_title": "",
         "response_shape": "explanatory",
     }
