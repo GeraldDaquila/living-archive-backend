@@ -184,6 +184,36 @@ def test_archive_evidence_gaps_fail_closed_after_composition(monkeypatch):
         assert payload.get("recommendation") is None
         assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
 
+def test_provider_exhaustion_fails_closed_even_when_a_relevant_doorway_exists(monkeypatch):
+    """A navigation candidate cannot authorize hardcoded prose when composition is unavailable."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        general_guide_composition, "compose", lambda **kwargs: None
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "Stewardship means taking care" not in payload["response"]
+
+
+def test_outer_basic_inquiry_failure_cannot_bypass_archive_only_boundary(monkeypatch):
+    """The request-boundary emergency path must not revive generic fallback prose."""
+    def fail_basic_inquiry(**kwargs):
+        raise RuntimeError("controlled request-boundary failure")
+
+    monkeypatch.setattr(use_main, "_basic_inquiry_response", fail_basic_inquiry)
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+
+
 def test_direct_attribute_query_rejects_preselected_unrelated_doorway(monkeypatch):
     """A preselected entity-overlap doorway cannot bypass source-body evidence."""
     _install_controlled_provider_and_retrieval(
