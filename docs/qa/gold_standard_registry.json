@@ -563,7 +563,7 @@
     },
     {
       "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
-      "status": "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
       "subsystem": "general-purpose-guide",
       "original_gold_standard_number": 2,
       "query": "How can I tell when helping has turned into taking over?",
@@ -584,13 +584,13 @@
         "request_hash": "basic-2102d3c92fe242ef",
         "provider_attribution": "groq/qwen/qwen3.8-27b",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "evidence_boundary": "Prior October 21 calibration context confirms approval, rating, and recommended title; exact accepted answer text remains unavailable. Canonical URL was separately verified from the public Archive runtime catalogue.",
         "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
         "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
-      "approval_state": "answer and recommendation accepted; exact response not recovered",
+      "approval_state": "answer and recommendation accepted; rating 9/10; exact response not recovered",
       "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”"
     },
     {
