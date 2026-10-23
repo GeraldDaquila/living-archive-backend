@@ -424,3 +424,14 @@ Source for these recovered metadata fields: prior October 21 calibration convers
 ### Original sequence gaps #15–#17 and #19
 
 A gap marker in the JSON registry records the source-backed limitation that prior-context recovery did not preserve the original items for slots #15, #16, #17, and #19. These are not invented benchmarks. The provider-exhaustion question is separately classified as an unaccepted reliability control, and the ethical-trade-off answer retains its conflicting #2/#18 labels pending original sequence evidence. Gold Standards #20 and #21 remain separately recorded with exact approved responses.
+
+
+## Recovery addendum — October 23, 2026
+
+### Gold Standard #4 source correction
+The October 21 forensic record's later comment directly correlates **“Where should I start if I want to understand trust-based systems?”** to the primary service's Guide systemic Navigator orientation handoff, request hash `navigator-c03843228f6a6649`, and destination [Start Here](https://geralddaquila.com/start-here-2/). This supersedes the earlier note that #4 was uncorrelated. It does **not** recover the exact accepted response or establish General Guide model composition: the event is a navigation-specialist path. The registry records the recovered rating of 9/10 and accepted orientation destination separately from the still-missing verbatim response.
+
+Source: [Issue #747 comment documenting the #4 match](https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6315222606).
+
+### Current-head validation record
+At registry head `f8653219d1bb48943655f23d3627a9693edcdd79`, the following all completed successfully: Gold Standard Registry Validation (run 39877950754), General Guide Composition Contract (39877950828), Guide Woody Mocked UI Continuity Contract (39877950819), Guide Healthy Community Live Browser Acceptance (39877950780), and v487 production validation (39877950817). These are current-head workflow results, not evidence that all historical answers have been recovered. The #1–#14 verbatim accepted answers remain missing from the central registry.
