@@ -295,7 +295,7 @@
         "source_pr": 757,
         "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/757",
         "source_status": "closed, unmerged PR branch (verified 2026-10-23)",
-        "evidence_boundary": "Exact bounded fallback text appears in the PR #757 diff. This is implementation evidence only: no visitor approval/rating was recovered, and the unmerged PR does not establish that this response reached main or production."
+        "evidence_boundary": "Exact bounded fallback text appears in the PR #757 diff. This is implementation evidence only, not an approved answer: no visitor approval/rating was recovered, and the unmerged PR does not establish that this response reached main or production."
       }
     },
     {
