@@ -517,5 +517,5 @@
       "freeze_policy": "Question set is a calibration candidate set, not ten approved answer gold standards."
     }
   ],
-  "last_reconciliation_note": "October 23 reconciliation: 17 structured records; exact ethical-tradeoff recovery text added; fuzzy fixture counts verified from main (4 balanced, 4 held-out, 16 independent challenge, 10 simulated battery, 9 simulated fallback replay); ten-question calibration set recorded as a single non-approved candidate-set record. Original 20+ collection still not fully recovered."
+  "last_reconciliation_note": "October 23 reconciliation: 18 structured records. Exact ethical-tradeoff recovery text added; fuzzy fixture counts verified from main (4 balanced, 4 held-out, 16 independent challenge, 10 simulated battery, 9 simulated fallback replay); ten-question calibration set recorded as one non-approved candidate-set record. Original 20+ collection, several approval/rating records, original numbering, and the institutional-responsibility doorway conflict remain unresolved."
 }
